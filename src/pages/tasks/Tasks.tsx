@@ -19,7 +19,8 @@ export const Tasks = () => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
-        completion_pct: 0, target: '', result_links: '', output: '', notes: ''
+        completion_pct: 0, target: '', result_links: '', output: '', notes: '',
+        completion_date: ''
     })
 
     useEffect(() => {
@@ -110,7 +111,8 @@ export const Tasks = () => {
         setForm({
             task_code: nextCode, project_id: projectId || '', name: '', description: '',
             assignee_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình',
-            start_date: '', due_date: '', completion_pct: 0, target: '', result_links: '', output: '', notes: ''
+            start_date: '', due_date: '', completion_pct: 0, target: '', result_links: '', output: '', notes: '',
+            completion_date: ''
         })
         setShowModal(true)
     }
@@ -121,7 +123,8 @@ export const Tasks = () => {
             task_code: t.task_code, project_id: t.project_id, name: t.name, description: t.description || '',
             assignee_id: t.assignee_id || '', status: t.status, priority: t.priority,
             start_date: t.start_date || '', due_date: t.due_date || '', completion_pct: t.completion_pct,
-            target: t.target || '', result_links: t.result_links || '', output: t.output || '', notes: t.notes || ''
+            target: t.target || '', result_links: t.result_links || '', output: t.output || '', notes: t.notes || '',
+            completion_date: t.completion_date || ''
         })
         setShowModal(true)
     }
@@ -140,7 +143,8 @@ export const Tasks = () => {
                 target: form.target || null,
                 result_links: form.result_links || null,
                 output: form.output || null,
-                notes: form.notes || null
+                notes: form.notes || null,
+                completion_date: form.completion_date || null
             }
 
             let result;
@@ -170,6 +174,22 @@ export const Tasks = () => {
             console.error('Task Catch Error:', err)
             alert('Lỗi hệ thống khi lưu nhiệm vụ.')
         }
+    }
+
+    const toggleComplete = async (task: Task) => {
+        const isCompleted = task.status?.includes('Hoàn thành')
+        const newStatus = isCompleted ? 'Đang thực hiện' : 'Hoàn thành'
+        const newPct = isCompleted ? 50 : 100
+        const newDate = !isCompleted ? new Date().toISOString().split('T')[0] : null
+
+        const { error } = await supabase.from('tasks').update({
+            status: newStatus,
+            completion_pct: newPct,
+            completion_date: newDate
+        }).eq('id', task.id)
+
+        if (error) console.error(error)
+        fetchAll()
     }
 
     const handleDelete = async (id: string) => {
@@ -307,7 +327,12 @@ export const Tasks = () => {
                                             {projectTasks.map((task) => (
                                                 <tr key={task.id} className="hover:bg-slate-50/30 transition-colors">
                                                     <td className="px-5 py-3">
-                                                        <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={task.status?.includes('Hoàn thành')}
+                                                            onChange={() => toggleComplete(task)}
+                                                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                                                        />
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <div>
@@ -390,82 +415,69 @@ export const Tasks = () => {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h3 className="text-lg font-bold text-slate-800">{editingTask ? 'Sửa nhiệm vụ' : 'Thêm nhiệm vụ mới'}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-white rounded-lg">
+                    <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-slate-800">{editingTask ? 'Chỉnh sửa nhiệm vụ' : 'Thêm nhiệm vụ mới'}</h3>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-50 rounded-full">
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="p-6 overflow-y-auto max-h-[70vh]">
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Dự án</label>
-                                    <select
-                                        value={form.project_id}
-                                        onChange={(e) => setForm({ ...form, project_id: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        disabled={!!editingTask}
-                                    >
-                                        <option value="">Chọn dự án</option>
-                                        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mã nhiệm vụ</label>
-                                    <input
-                                        type="text"
-                                        value={form.task_code}
-                                        onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        disabled={!!editingTask}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tên nhiệm vụ</label>
+                        <div className="p-8 overflow-y-auto max-h-[75vh] space-y-6">
+                            {/* Tên nhiệm vụ */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Tên nhiệm vụ <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    placeholder="Nhập tên nhiệm vụ..."
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+                                    placeholder="Ví dụ: Thiết kế giao diện chính..."
                                 />
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4 mb-4">
+                            {/* Dự án */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Thuộc dự án <span className="text-red-500">*</span></label>
+                                <select
+                                    value={form.project_id}
+                                    onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
+                                >
+                                    <option value="">Chọn dự án</option>
+                                    {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.project_code})</option>)}
+                                </select>
+                            </div>
+
+                            {/* Mô tả */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Mô tả</label>
+                                <textarea
+                                    value={form.description}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[100px] resize-none"
+                                    placeholder="Nội dung mô tả nhiệm vụ..."
+                                />
+                            </div>
+
+                            {/* Người thực hiện & Ưu tiên */}
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Người thực hiện</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Người thực hiện</label>
                                     <select
                                         value={form.assignee_id}
                                         onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
                                     >
                                         <option value="">Chọn người</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name} ({p.email})</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Trạng thái</label>
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    >
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
-                                        <option value="Hủy bỏ">Hủy bỏ</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ưu tiên</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ưu tiên</label>
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
                                     >
                                         <option value="Thấp">Thấp</option>
                                         <option value="Trung bình">Trung bình</option>
@@ -475,61 +487,109 @@ export const Tasks = () => {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-4">
+                            {/* Ngày bắt đầu & Hạn chót */}
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ngày bắt đầu <span className="text-red-500">*</span></label>
                                     <input
                                         type="date"
                                         value={form.start_date}
                                         onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Hạn chót</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Hạn chót <span className="text-red-500">*</span></label>
                                     <input
                                         type="date"
                                         value={form.due_date}
                                         onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-4">
+                            {/* Trạng thái, Tiến độ, Ngày hoàn thành */}
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tiến độ (%)</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Trạng thái</label>
+                                    <select
+                                        value={form.status}
+                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
+                                    >
+                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                        <option value="Tạm dừng">Tạm dừng</option>
+                                        <option value="Hủy bỏ">Hủy bỏ</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Tiến độ (%)</label>
                                     <input
                                         type="number"
                                         min="0"
                                         max="100"
                                         value={form.completion_pct}
                                         onChange={(e) => setForm({ ...form, completion_pct: parseInt(e.target.value) })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Link kết quả</label>
+                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ngày hoàn thành</label>
                                     <input
-                                        type="text"
-                                        value={form.result_links}
-                                        onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        placeholder="https://..."
+                                        type="date"
+                                        value={form.completion_date}
+                                        onChange={(e) => setForm({ ...form, completion_date: e.target.value })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     />
                                 </div>
                             </div>
+
+                            {/* Mục tiêu */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Mục tiêu</label>
+                                <textarea
+                                    value={form.target}
+                                    onChange={(e) => setForm({ ...form, target: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
+                                    placeholder="Mô tả mục tiêu của nhiệm vụ..."
+                                />
+                            </div>
+
+                            {/* Link kết quả */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Link kết quả</label>
+                                <textarea
+                                    value={form.result_links}
+                                    onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
+                                    placeholder="Nhập mỗi link trên một dòng"
+                                />
+                            </div>
+
+                            {/* Kết quả đầu ra */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Kết quả đầu ra</label>
+                                <textarea
+                                    value={form.output}
+                                    onChange={(e) => setForm({ ...form, output: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
+                                    placeholder="Mô tả kết quả đầu ra mong muốn..."
+                                />
+                            </div>
                         </div>
-                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                        <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                             <button
                                 onClick={() => setShowModal(false)}
-                                className="px-5 py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
+                                className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
                             >
                                 Hủy bỏ
                             </button>
                             <button
                                 onClick={handleSave}
-                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all active:scale-95 uppercase tracking-wider"
+                                className="px-10 py-2.5 bg-[#3a31d8] hover:bg-[#2e26b1] text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 uppercase tracking-wider"
                             >
                                 {editingTask ? 'Cập nhật' : 'Tạo nhiệm vụ'}
                             </button>
