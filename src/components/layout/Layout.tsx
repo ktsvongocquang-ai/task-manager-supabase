@@ -75,12 +75,12 @@ export const Layout = () => {
             <aside className="hidden md:flex w-56 bg-slate-800 flex-col fixed inset-y-0 z-10 shadow-xl">
                 {/* Logo */}
                 <div className="h-16 flex items-center px-5 border-b border-slate-700">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center mr-3 shadow-lg ring-1 ring-white/20">
                         <FolderKanban size={16} className="text-white" />
                     </div>
                     <div>
-                        <span className="font-bold text-sm text-white block leading-tight">Quản Lý Dự Án</span>
-                        <span className="text-[10px] text-slate-400 leading-none">Quản lý thông minh</span>
+                        <span className="font-black text-sm text-white block leading-tight tracking-tighter uppercase italic">QUẢN LÝ DỰ ÁN</span>
+                        <span className="text-[9px] text-slate-500 leading-none font-bold tracking-widest uppercase">Quản lý nâng tầm</span>
                     </div>
                 </div>
 
