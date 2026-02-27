@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { CheckSquare, Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, X, ExternalLink } from 'lucide-react'
+import { CheckSquare, Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, X, ExternalLink, Filter, Calendar, Clock } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
 export const Tasks = () => {
@@ -37,8 +37,11 @@ export const Tasks = () => {
             setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
             setProfiles(pr || [])
-            // Expand all projects by default
-            if (p) setExpandedProjects(new Set(p.map((x: any) => x.id)))
+            if (p) {
+                // By default expand projects that have tasks
+                const projectsWithTasks = new Set((t || []).map(x => x.project_id))
+                setExpandedProjects(projectsWithTasks)
+            }
         } catch (err) {
             console.error(err)
         } finally {
@@ -57,13 +60,6 @@ export const Tasks = () => {
         return p?.full_name || 'N/A'
     }
 
-    const getManagerForProject = (projectId: string) => {
-        const p = projects.find(x => x.id === projectId)
-        if (!p?.manager_id) return ''
-        const prof = profiles.find(x => x.id === p.manager_id)
-        return prof?.full_name || ''
-    }
-
     const statusCounts = {
         'Chưa bắt đầu': tasks.filter(t => t.status === 'Chưa bắt đầu').length,
         'Đang thực hiện': tasks.filter(t => t.status?.includes('Đang')).length,
@@ -78,7 +74,6 @@ export const Tasks = () => {
         return matchSearch && matchStatus
     })
 
-    // Group tasks by project
     const groupedTasks: Record<string, Task[]> = {}
     filteredTasks.forEach(t => {
         if (!groupedTasks[t.project_id]) groupedTasks[t.project_id] = []
@@ -93,25 +88,18 @@ export const Tasks = () => {
     }
 
     const getStatusBadge = (status: string) => {
-        if (status?.includes('Hoàn thành')) return 'bg-emerald-100 text-emerald-700'
-        if (status?.includes('Đang')) return 'bg-blue-100 text-blue-700'
-        if (status?.includes('Tạm dừng')) return 'bg-amber-100 text-amber-700'
-        if (status?.includes('Hủy')) return 'bg-red-100 text-red-700'
-        return 'bg-slate-100 text-slate-700'
+        if (status?.includes('Hoàn thành')) return 'bg-emerald-500 text-white'
+        if (status?.includes('Đang')) return 'bg-blue-400 text-white'
+        if (status?.includes('Tạm dừng')) return 'bg-amber-400 text-white'
+        if (status?.includes('Hủy')) return 'bg-red-400 text-white'
+        return 'bg-slate-200 text-slate-600'
     }
 
     const getPriorityBadge = (priority: string) => {
-        if (priority === 'Khẩn cấp') return 'bg-red-500 text-white'
-        if (priority === 'Cao') return 'bg-orange-100 text-orange-700'
-        if (priority === 'Trung bình') return 'bg-yellow-100 text-yellow-700'
-        return 'bg-slate-100 text-slate-600'
-    }
-
-    const getPriorityDot = (priority: string) => {
-        if (priority === 'Khẩn cấp') return 'bg-red-500'
-        if (priority === 'Cao') return 'bg-orange-500'
-        if (priority === 'Trung bình') return 'bg-yellow-500'
-        return 'bg-slate-400'
+        if (priority === 'Khẩn cấp') return 'bg-red-50 text-red-600 border-red-100'
+        if (priority === 'Cao') return 'bg-orange-50 text-orange-600 border-orange-100'
+        if (priority === 'Trung bình') return 'bg-yellow-50 text-yellow-600 border-yellow-100'
+        return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
     const openAddModal = (projectId?: string) => {
@@ -183,123 +171,170 @@ export const Tasks = () => {
     }
 
     return (
-        <div className="space-y-5 max-w-[1400px] mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="space-y-6 max-w-[1400px] mx-auto">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-xl font-bold text-slate-800">Quản lý nhiệm vụ</h1>
-                <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm nhiệm vụ..."
-                            className="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none w-52" />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Tìm kiếm nhiệm vụ..."
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        />
                     </div>
-                    <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none">
-                        <option value="">Tất cả</option>
-                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                        <option value="Đang thực hiện">Đang thực hiện</option>
-                        <option value="Hoàn thành">Hoàn thành</option>
-                        <option value="Tạm dừng">Tạm dừng</option>
-                    </select>
-                    <button onClick={() => openAddModal()} className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
-                        <Plus size={16} className="mr-1.5" /> Tạo nhiệm vụ mới
+                    <button
+                        onClick={() => openAddModal()}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                    >
+                        <Plus size={18} /> Tạo mới nhiệm vụ
                     </button>
                 </div>
             </div>
 
-            {/* Status Counts */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* Status Tabs - Circular style like screenshot */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => (
-                    <button key={status} onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-sm font-medium transition-all ${statusFilter === status ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
-                        <span className="font-bold text-lg">{count}</span>
-                        <span className="text-xs">{status}</span>
+                    <button
+                        key={status}
+                        onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+                        className={`bg-white border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-slate-100 hover:border-slate-200'
+                            }`}
+                    >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
+                                status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
+                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                            }`}>
+                            {count}
+                        </div>
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{status}</span>
                     </button>
                 ))}
             </div>
 
-            {/* Tasks grouped by project */}
+            {/* Grouped Tasks Table */}
             <div className="space-y-4">
                 {Object.entries(groupedTasks).map(([projectId, projectTasks]) => {
                     const project = projects.find(p => p.id === projectId)
                     const isExpanded = expandedProjects.has(projectId)
-                    const manager = getManagerForProject(projectId)
 
                     return (
-                        <div key={projectId} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                            {/* Project Header */}
-                            <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-colors"
-                                onClick={() => toggleProject(projectId)}>
+                        <div key={projectId} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                            {/* Project Header Accordion */}
+                            <div
+                                onClick={() => toggleProject(projectId)}
+                                className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between cursor-pointer hover:bg-slate-100/50 transition-colors"
+                            >
                                 <div className="flex items-center gap-3">
-                                    {isExpanded ? <ChevronDown size={16} className="text-slate-400" /> : <ChevronRight size={16} className="text-slate-400" />}
-                                    <h3 className="text-sm font-bold text-slate-800">{project?.name || projectId}</h3>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadge(project?.status || '')}`}>{project?.status}</span>
+                                    <div className="text-slate-400">
+                                        {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                    </div>
+                                    <h3 className="text-sm font-bold text-slate-800">{project?.name} ({project?.project_code})</h3>
+                                    <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-indigo-100">
+                                        {projectTasks.length} NHIỆM VỤ
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-slate-500">
-                                    {manager && <span>Quản lý: {manager}</span>}
-                                    <span>{projectTasks.length} nhiệm vụ</span>
-                                    <button onClick={(e) => { e.stopPropagation(); openAddModal(projectId) }}
-                                        className="text-indigo-600 hover:text-indigo-700 font-medium">+ Thêm</button>
-                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); openAddModal(projectId); }}
+                                    className="text-xs font-bold text-indigo-600 hover:underline"
+                                >
+                                    + THÊM NHIỆM VỤ
+                                </button>
                             </div>
 
                             {/* Tasks Table */}
                             {isExpanded && (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
+                                    <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="border-b border-slate-100 text-xs text-slate-500 uppercase tracking-wider">
-                                                <th className="text-left py-3 px-4 font-medium">Nhiệm vụ</th>
-                                                <th className="text-left py-3 px-3 font-medium">Người thực hiện</th>
-                                                <th className="text-left py-3 px-3 font-medium">Trạng thái</th>
-                                                <th className="text-left py-3 px-3 font-medium">Ưu tiên</th>
-                                                <th className="text-left py-3 px-3 font-medium">Tiến độ</th>
-                                                <th className="text-left py-3 px-3 font-medium">Link kết quả</th>
-                                                <th className="text-left py-3 px-3 font-medium">Ngày bắt đầu</th>
-                                                <th className="text-left py-3 px-3 font-medium">Hạn chót</th>
-                                                <th className="text-center py-3 px-3 font-medium">Thao tác</th>
+                                            <tr className="bg-slate-50/30 border-b border-slate-100 text-slate-500 uppercase font-bold tracking-wider">
+                                                <th className="px-5 py-3 text-left w-10">
+                                                    <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                </th>
+                                                <th className="px-4 py-3 text-left">Nhiệm vụ</th>
+                                                <th className="px-4 py-3 text-left">Người thực hiện</th>
+                                                <th className="px-4 py-3 text-left">Trạng thái</th>
+                                                <th className="px-4 py-3 text-left">Ưu tiên</th>
+                                                <th className="px-4 py-3 text-left">Tiến độ</th>
+                                                <th className="px-4 py-3 text-left">Link kết quả</th>
+                                                <th className="px-4 py-3 text-left">Hạn chót</th>
+                                                <th className="px-4 py-3 text-center">Thao tác</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {projectTasks.map(task => (
-                                                <tr key={task.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                                    <td className="py-3 px-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${getPriorityDot(task.priority)}`}></div>
-                                                            <div>
-                                                                <p className="font-medium text-slate-800 line-clamp-1">{task.name}</p>
-                                                                <p className="text-[10px] text-slate-400">{task.task_code}</p>
-                                                            </div>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {projectTasks.map((task) => (
+                                                <tr key={task.id} className="hover:bg-slate-50/30 transition-colors">
+                                                    <td className="px-5 py-3">
+                                                        <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div>
+                                                            <p className="font-bold text-slate-800 leading-tight mb-0.5">{task.name}</p>
+                                                            <p className="text-[10px] text-slate-400 font-medium">{task.task_code}</p>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-3 text-xs text-slate-600">{getAssigneeName(task.assignee_id)}</td>
-                                                    <td className="py-3 px-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusBadge(task.status)}`}>{task.status}</span>
-                                                    </td>
-                                                    <td className="py-3 px-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
-                                                    </td>
-                                                    <td className="py-3 px-3">
+                                                    <td className="px-4 py-3 text-slate-600 font-medium">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-16 bg-slate-100 rounded-full h-1.5">
-                                                                <div className={`h-1.5 rounded-full ${task.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${task.completion_pct}%` }}></div>
+                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                {getAssigneeName(task.assignee_id).charAt(0)}
                                                             </div>
-                                                            <span className="text-[10px] text-slate-500">{task.completion_pct}%</span>
+                                                            {getAssigneeName(task.assignee_id)}
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-3 text-xs">
+                                                    <td className="px-4 py-3">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm ${getStatusBadge(task.status)}`}>
+                                                            {task.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(task.priority)}`}>
+                                                            {task.priority}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1">
+                                                                <div
+                                                                    className={`h-1.5 rounded-full ${task.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                                                                    style={{ width: `${task.completion_pct}%` }}
+                                                                ></div>
+                                                            </div>
+                                                            <span className="font-bold text-slate-500 min-w-[3ch]">{task.completion_pct}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
                                                         {task.result_links ? (
-                                                            <a href={task.result_links} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                                                                <ExternalLink size={10} /> Link
+                                                            <a href={task.result_links} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold">
+                                                                <ExternalLink size={12} /> LINK
                                                             </a>
-                                                        ) : <span className="text-slate-400">Chưa có</span>}
+                                                        ) : <span className="text-slate-400">---</span>}
                                                     </td>
-                                                    <td className="py-3 px-3 text-xs text-slate-500">{task.start_date ? format(parseISO(task.start_date), 'dd/MM/yyyy') : '-'}</td>
-                                                    <td className="py-3 px-3 text-xs text-slate-500">{task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '-'}</td>
-                                                    <td className="py-3 px-3">
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            <button onClick={() => openEditModal(task)} className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded"><Edit3 size={13} /></button>
-                                                            <button onClick={() => handleCopy(task)} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded"><Copy size={13} /></button>
-                                                            <button onClick={() => handleDelete(task.id)} className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
+                                                    <td className="px-4 py-3 text-slate-500 font-medium">
+                                                        {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleCopy(task); }}
+                                                                className="w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100"
+                                                            >
+                                                                <Copy size={13} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
+                                                                className="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100"
+                                                            >
+                                                                <Edit3 size={13} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                                                                className="w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -313,98 +348,150 @@ export const Tasks = () => {
                 })}
             </div>
 
-            {filteredTasks.length === 0 && (
-                <div className="py-12 text-center bg-white border border-slate-200 border-dashed rounded-2xl">
-                    <CheckSquare size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-1">Chưa có nhiệm vụ nào</h3>
-                </div>
-            )}
-
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-5">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                             <h3 className="text-lg font-bold text-slate-800">{editingTask ? 'Sửa nhiệm vụ' : 'Thêm nhiệm vụ mới'}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-white rounded-lg">
+                                <X size={20} />
+                            </button>
                         </div>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-3 gap-4">
+                        <div className="p-6 overflow-y-auto max-h-[70vh]">
+                            <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Mã nhiệm vụ</label>
-                                    <input value={form.task_code} onChange={e => setForm({ ...form, task_code: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" disabled={!!editingTask} />
-                                </div>
-                                <div>
-                                    <label className="text-xs font-medium text-slate-600">Dự án</label>
-                                    <select value={form.project_id} onChange={e => setForm({ ...form, project_id: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" disabled={!!editingTask}>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Dự án</label>
+                                    <select
+                                        value={form.project_id}
+                                        onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        disabled={!!editingTask}
+                                    >
                                         <option value="">Chọn dự án</option>
                                         {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Người thực hiện</label>
-                                    <select value={form.assignee_id} onChange={e => setForm({ ...form, assignee_id: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mã nhiệm vụ</label>
+                                    <input
+                                        type="text"
+                                        value={form.task_code}
+                                        onChange={(e) => setForm({ ...form, task_code: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        disabled={!!editingTask}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tên nhiệm vụ</label>
+                                <input
+                                    type="text"
+                                    value={form.name}
+                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    placeholder="Nhập tên nhiệm vụ..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Người thực hiện</label>
+                                    <select
+                                        value={form.assignee_id}
+                                        onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    >
                                         <option value="">Chọn người</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-slate-600">Tên nhiệm vụ</label>
-                                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                                    className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Nhập tên nhiệm vụ" />
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Trạng thái</label>
-                                    <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                                        <option>Chưa bắt đầu</option><option>Đang thực hiện</option><option>Hoàn thành</option><option>Tạm dừng</option><option>Hủy bỏ</option>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Trạng thái</label>
+                                    <select
+                                        value={form.status}
+                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    >
+                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                        <option value="Tạm dừng">Tạm dừng</option>
+                                        <option value="Hủy bỏ">Hủy bỏ</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Ưu tiên</label>
-                                    <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                                        <option>Thấp</option><option>Trung bình</option><option>Cao</option><option>Khẩn cấp</option>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ưu tiên</label>
+                                    <select
+                                        value={form.priority}
+                                        onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    >
+                                        <option value="Thấp">Thấp</option>
+                                        <option value="Trung bình">Trung bình</option>
+                                        <option value="Cao">Cao</option>
+                                        <option value="Khẩn cấp">Khẩn cấp</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Tiến độ (%)</label>
-                                    <input type="number" min="0" max="100" value={form.completion_pct}
-                                        onChange={e => setForm({ ...form, completion_pct: Number(e.target.value) })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
+                                    <input
+                                        type="date"
+                                        value={form.start_date}
+                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Hạn chót</label>
+                                    <input
+                                        type="date"
+                                        value={form.due_date}
+                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Ngày bắt đầu</label>
-                                    <input type="date" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tiến độ (%)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={form.completion_pct}
+                                        onChange={(e) => setForm({ ...form, completion_pct: parseInt(e.target.value) })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600">Hạn chót</label>
-                                    <input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Link kết quả</label>
+                                    <input
+                                        type="text"
+                                        value={form.result_links}
+                                        onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                        placeholder="https://..."
+                                    />
                                 </div>
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-slate-600">Link kết quả</label>
-                                <input value={form.result_links} onChange={e => setForm({ ...form, result_links: e.target.value })}
-                                    className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="https://..." />
-                            </div>
-                            <div>
-                                <label className="text-xs font-medium text-slate-600">Ghi chú</label>
-                                <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
-                                    className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm" rows={2} />
                             </div>
                         </div>
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Hủy</button>
-                            <button onClick={handleSave} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="px-5 py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all active:scale-95 uppercase tracking-wider"
+                            >
                                 {editingTask ? 'Cập nhật' : 'Tạo nhiệm vụ'}
                             </button>
                         </div>

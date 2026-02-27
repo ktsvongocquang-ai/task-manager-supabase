@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 
 const viewTitles: Record<string, string> = {
-    '/dashboard': 'Tổng Quan - ',
+    '/dashboard': 'Tổng Quan',
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
     '/tasks': 'Quản lý Nhiệm vụ',
@@ -44,19 +44,19 @@ export const Layout = () => {
     const currentTitle = () => {
         const path = location.pathname
         const base = viewTitles[path] || 'Quản Lý Dự Án'
-        if (path === '/dashboard') return `${base}${profile?.role || 'User'}`
+        if (path === '/dashboard') return `${base} - ${profile?.role || 'User'}`
         return base
     }
 
     const navItems = [
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
-        { name: 'Dự án', path: '/projects', icon: FolderKanban },
-        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare },
+        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard, color: 'text-white' },
+        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart, color: 'text-indigo-300' },
+        { name: 'Dự án', path: '/projects', icon: FolderKanban, color: 'text-slate-300' },
+        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare, color: 'text-emerald-300' },
     ]
 
     if (profile?.role === 'Admin' || profile?.role === 'Quản lý') {
-        navItems.push({ name: 'Người dùng', path: '/users', icon: Users })
+        navItems.push({ name: 'Người dùng', path: '/users', icon: Users, color: 'text-rose-300' })
     }
 
     const getInitials = (name?: string) => {
@@ -64,90 +64,105 @@ export const Layout = () => {
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     }
 
+    const getRoleColor = () => {
+        if (profile?.role === 'Admin') return 'bg-orange-500'
+        if (profile?.role === 'Quản lý') return 'bg-emerald-500'
+        return 'bg-blue-500'
+    }
+
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            {/* Sidebar for Desktop */}
-            <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col fixed inset-y-0 z-10 shadow-sm">
-                <div className="h-16 flex items-center px-5 border-b border-slate-200 bg-indigo-50/50">
-                    <div className="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-md">
-                        <FolderKanban size={18} className="text-white" />
+        <div className="min-h-screen bg-slate-100 flex">
+            {/* Sidebar for Desktop - Dark Navy */}
+            <aside className="hidden md:flex w-56 bg-slate-800 flex-col fixed inset-y-0 z-10 shadow-xl">
+                {/* Logo */}
+                <div className="h-16 flex items-center px-5 border-b border-slate-700">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                        <FolderKanban size={16} className="text-white" />
                     </div>
                     <div>
-                        <span className="font-bold text-base text-slate-800 tracking-tight block leading-tight">Quản Lý Dự Án</span>
+                        <span className="font-bold text-sm text-white block leading-tight">Quản Lý Dự Án</span>
                         <span className="text-[10px] text-slate-400 leading-none">Quản lý thông minh</span>
                     </div>
                 </div>
 
-                <div className="p-4 border-b border-slate-100 bg-white">
+                {/* User Info */}
+                <div className="p-4 border-b border-slate-700">
                     <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                        <div className={`w-9 h-9 rounded-full ${getRoleColor()} text-white flex items-center justify-center font-bold text-sm shadow-md`}>
                             {getInitials(profile?.full_name)}
                         </div>
                         <div className="overflow-hidden">
-                            <p className="text-sm font-semibold text-slate-800 truncate">{profile?.full_name || 'Người dùng'}</p>
-                            <p className="text-xs text-slate-500 truncate">{profile?.role || 'Nhân viên'}</p>
+                            <p className="text-sm font-semibold text-white truncate">{profile?.full_name || 'Người dùng'}</p>
+                            <p className="text-xs text-slate-400 truncate">{profile?.role || 'Nhân viên'}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="px-4 pt-3 pb-1 flex items-center gap-2">
-                    <button onClick={() => navigate('/login')} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
-                        <KeyRound size={12} /> Đổi mật khẩu
+                {/* Quick Actions */}
+                <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+                    <button onClick={() => { }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium text-blue-300 hover:text-blue-200 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors">
+                        <KeyRound size={11} /> Đổi mật khẩu
                     </button>
-                    <button onClick={handleSignOut} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                        <LogOut size={12} /> Đăng xuất
+                    <button onClick={handleSignOut} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium text-red-300 hover:text-red-200 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors">
+                        <LogOut size={11} /> Đăng xuất
                     </button>
                 </div>
 
+                {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) =>
-                                `flex items-center px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${isActive
-                                    ? 'bg-indigo-50 text-indigo-600'
-                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                                `flex items-center px-3 py-2.5 rounded-lg transition-all font-medium text-sm relative ${isActive
+                                    ? 'bg-indigo-600/80 text-white shadow-md'
+                                    : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'
                                 }`
                             }
                         >
-                            <item.icon size={20} className="mr-3" />
-                            {item.name}
+                            {({ isActive }) => (
+                                <>
+                                    {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-cyan-400 rounded-r-full -ml-3"></div>}
+                                    <item.icon size={18} className={`mr-3 ${isActive ? 'text-white' : item.color}`} />
+                                    {item.name}
+                                </>
+                            )}
                         </NavLink>
                     ))}
                 </nav>
             </aside>
 
             {/* Main Content Wrapper */}
-            <div className="flex-1 flex flex-col md:pl-64 min-w-0">
+            <div className="flex-1 flex flex-col md:pl-56 min-w-0">
 
                 {/* Mobile Header */}
-                <header className="md:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-20">
+                <header className="md:hidden h-14 bg-slate-800 flex items-center justify-between px-4 sticky top-0 z-20 shadow-md">
                     <div className="flex items-center">
-                        <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-purple-500 rounded-lg flex items-center justify-center mr-3 font-bold text-white">
-                            <FolderKanban size={16} />
+                        <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center mr-2.5">
+                            <FolderKanban size={14} className="text-white" />
                         </div>
-                        <span className="text-lg font-bold text-slate-800">Quản Lý Dự Án</span>
+                        <span className="text-base font-bold text-white">Quản Lý Dự Án</span>
                     </div>
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="p-2 -mr-2 text-slate-500 hover:bg-slate-100 rounded-lg"
+                        className="p-2 text-slate-300 hover:text-white rounded-lg"
                     >
-                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
                     </button>
                 </header>
 
                 {/* Mobile Menu Overlay */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden fixed inset-0 z-10 bg-slate-900 text-white flex flex-col pt-16">
-                        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+                    <div className="md:hidden fixed inset-0 z-30 bg-slate-800 flex flex-col pt-14">
+                        <div className="flex-1 overflow-y-auto py-4 px-4 space-y-2">
                             {navItems.map((item) => (
                                 <NavLink
                                     key={item.path}
                                     to={item.path}
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className={({ isActive }) =>
-                                        `flex items-center px-4 py-4 rounded-xl transition-colors font-medium text-base ${isActive ? 'bg-indigo-600 text-white' : 'active:bg-slate-800'
+                                        `flex items-center px-4 py-4 rounded-xl transition-colors font-medium text-base ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-300 active:bg-slate-700'
                                         }`
                                     }
                                 >
@@ -156,12 +171,12 @@ export const Layout = () => {
                                 </NavLink>
                             ))}
                         </div>
-                        <div className="p-6 border-t border-slate-800">
+                        <div className="p-4 border-t border-slate-700">
                             <button
                                 onClick={handleSignOut}
-                                className="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-white bg-slate-800 active:bg-slate-700 rounded-xl transition-colors"
+                                className="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-white bg-red-600/80 hover:bg-red-600 rounded-xl transition-colors"
                             >
-                                <LogOut size={20} className="mr-3" />
+                                <LogOut size={18} className="mr-3" />
                                 Đăng xuất
                             </button>
                         </div>
@@ -170,33 +185,46 @@ export const Layout = () => {
 
                 {/* Topbar */}
                 <div className="bg-white border-b border-slate-200 px-6 py-3 hidden md:flex justify-between items-center shadow-sm z-10">
-                    <h2 className="text-lg font-semibold text-slate-800">{currentTitle()}</h2>
+                    <h2 className="text-base font-semibold text-slate-800">{currentTitle()}</h2>
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={handleRefresh}
-                            className="text-slate-400 hover:text-indigo-600 transition-colors bg-slate-50 hover:bg-indigo-50 p-2 rounded-lg"
+                            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
                             title="Làm mới dữ liệu"
                         >
                             <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
                         </button>
                         <button
                             onClick={() => navigate('/projects')}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg shadow-sm text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
                         >
                             <Plus size={16} className="mr-1.5" />
                             Tạo mới
                         </button>
-                        <button className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-lg">
-                            <Settings size={16} />
-                        </button>
+                        {/* User avatar in topbar */}
+                        <div className={`w-8 h-8 rounded-full ${getRoleColor()} text-white flex items-center justify-center text-xs font-bold shadow-sm`}>
+                            {getInitials(profile?.full_name)}
+                        </div>
                     </div>
                 </div>
 
-                {/* Page Content Rendering Area */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
+                {/* Page Content */}
+                <main className="flex-1 p-4 sm:p-6 overflow-x-hidden bg-slate-50">
                     <Outlet />
                 </main>
 
+                {/* Footer */}
+                <div className="bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between text-xs text-slate-400">
+                    <div className="flex items-center gap-2">
+                        <span>Hỗ trợ kỹ thuật</span>
+                        <span className="text-indigo-500 font-medium">(Phiên bản 4.1)</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                    </div>
+                    <span>© 2025 chaolongqua.com</span>
+                </div>
             </div>
         </div>
     )
