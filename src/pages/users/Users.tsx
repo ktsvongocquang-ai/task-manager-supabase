@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
-import { Plus, Edit3, Trash2, X, Shield, Check, Crown, UserCircle2 } from 'lucide-react'
+import { Plus, Edit3, Trash2, X, Shield, Check } from 'lucide-react'
 
 const PERMISSIONS = {
     'QUẢN LÝ DỰ ÁN': [
@@ -21,7 +21,7 @@ const PERMISSIONS = {
 }
 
 export const Users = () => {
-    const { profile: currentProfile } = useAuthStore()
+    const { profile: _profile } = useAuthStore()
     const [profiles, setProfiles] = useState<Profile[]>([])
     const [loading, setLoading] = useState(true)
     const [showModal, setShowModal] = useState(false)

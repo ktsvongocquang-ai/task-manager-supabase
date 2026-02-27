@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { CheckSquare, Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, X, ExternalLink, Filter, Calendar, Clock } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, X, ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
 export const Tasks = () => {
@@ -205,8 +205,8 @@ export const Tasks = () => {
                             }`}
                     >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
-                                status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
-                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                            status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
+                                status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
                             }`}>
                             {count}
                         </div>
