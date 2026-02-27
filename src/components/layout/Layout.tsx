@@ -8,13 +8,19 @@ import {
     CheckSquare,
     Users,
     LogOut,
-    Menu,
+    Rocket,
+    MessageSquare,
+    Youtube,
+    ChevronDown,
+    Send,
+    MessageCircle,
+    FolderPlus,
+    PlusCircle,
+    UserPlus,
     RefreshCw,
     Plus,
     KeyRound,
-    Rocket,
-    MessageSquare,
-    Youtube
+    Menu
 } from 'lucide-react'
 
 const viewTitles: Record<string, string> = {
@@ -31,6 +37,8 @@ export const Layout = () => {
     const location = useLocation()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
+    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
+    const [isChatOpen, setIsChatOpen] = useState(false)
 
     const handleSignOut = async () => {
         await signOut()
@@ -141,16 +149,21 @@ export const Layout = () => {
                 {/* Sidebar Footer */}
                 <div className="p-6">
                     <div className="glass-card p-4 text-center">
-                        <p className="text-xs font-bold text-gray-700 mb-2">Hỗ trợ kỹ thuật <span className="text-blue-500 font-normal ml-1">(v4.1)</span></p>
-                        <div className="flex justify-center space-x-3 mb-3">
-                            <a href="#" className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition-colors">
-                                <MessageSquare size={14} />
+                        <div className="text-sm font-bold text-gray-700 mb-2">Hỗ trợ kỹ thuật
+                            <span className="text-[11px] font-normal text-gray-400 ml-1">(Version: 4.1)</span></div>
+                        <div className="flex justify-center space-x-4">
+                            <a href="https://zalo.me/0399971179" target="_blank" rel="noreferrer"
+                                className="flex items-center justify-center w-8 h-8 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors duration-200">
+                                <MessageCircle className="text-blue-600" size={14} />
                             </a>
-                            <a href="#" className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors">
-                                <Youtube size={14} />
+                            <a href="https://www.youtube.com/@sheetkhoinghiep" target="_blank" rel="noreferrer"
+                                className="flex items-center justify-center w-8 h-8 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200">
+                                <Youtube className="text-red-600" size={14} />
                             </a>
                         </div>
-                        <p className="text-[10px] text-gray-400">© 2025 <span className="text-blue-500">chaolongqua.com</span></p>
+                        <div className="text-[10px] text-gray-400 mt-2 italic">
+                            © 2025 <a href="https://sheetkhoinghiep.com" className="text-blue-500 hover:underline" target="_blank" rel="noreferrer">sheetkhoinghiep.com</a>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -170,21 +183,91 @@ export const Layout = () => {
                             <h2 className="text-xl font-bold text-gray-900">{currentTitle()}</h2>
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-4">
+                            {/* Refresh Button */}
                             <button
                                 onClick={handleRefresh}
                                 className={`p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
+                                title="Làm mới dữ liệu"
                             >
                                 <RefreshCw size={18} />
                             </button>
 
-                            <button
-                                onClick={() => navigate('/projects')}
-                                className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
-                            >
-                                <Plus size={18} className="mr-2" />
-                                Tạo mới
-                            </button>
+                            {/* Quick Add Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
+                                    className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200/50 hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    <Plus size={18} className="mr-2" />
+                                    <span>Tạo mới</span>
+                                    <ChevronDown size={14} className={`ml-2 transition-transform duration-200 ${isQuickAddOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isQuickAddOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setIsQuickAddOpen(false)}></div>
+                                        <div className="absolute right-0 mt-2 w-52 glass-card shadow-xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2">
+                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/projects'); }} className="quick-add-item">
+                                                <FolderPlus className="text-purple-600" size={18} />
+                                                <span>Dự án mới</span>
+                                            </div>
+                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/tasks'); }} className="quick-add-item">
+                                                <PlusCircle className="text-emerald-600" size={18} />
+                                                <span>Nhiệm vụ mới</span>
+                                            </div>
+                                            {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
+                                                <div onClick={() => { setIsQuickAddOpen(false); navigate('/users'); }} className="quick-add-item">
+                                                    <UserPlus className="text-amber-600" size={18} />
+                                                    <span>Nhân viên mới</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Chat Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsChatOpen(!isChatOpen)}
+                                    className="relative p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+                                >
+                                    <MessageSquare size={18} />
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white">0</span>
+                                </button>
+
+                                {isChatOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setIsChatOpen(false)}></div>
+                                        <div className="absolute right-0 mt-2 w-[400px] glass-card shadow-xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col max-h-[500px]">
+                                            <div className="p-4 border-b border-gray-100/50 flex justify-between items-center">
+                                                <h3 className="font-bold text-gray-900">Chat chung</h3>
+                                                <div className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full uppercase">Sắp ra mắt</div>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] flex items-center justify-center bg-slate-50/50">
+                                                <div className="text-center">
+                                                    <MessageCircle className="mx-auto text-gray-300 mb-2" size={32} />
+                                                    <p className="text-sm text-gray-500">Kênh chat chung đang được phát triển</p>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 border-t border-gray-100/50">
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        disabled
+                                                        className="flex-1 text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed"
+                                                        placeholder="Nhập tin nhắn..."
+                                                    />
+                                                    <button disabled className="p-2 bg-blue-100 text-blue-400 rounded-lg cursor-not-allowed">
+                                                        <Send size={18} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </header>

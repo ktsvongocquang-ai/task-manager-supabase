@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
-import { Plus, Edit3, Trash2, X, Check, Info } from 'lucide-react'
+import { Plus, Edit3, Trash2, X, Check, Info, Search } from 'lucide-react'
 
 // Specific permission data structure to match the snapshot
 const PERMISSIONS = {
@@ -85,9 +85,17 @@ export const Users = () => {
         staff_id: '', full_name: '', email: '', position: '', role: 'Nhân viên'
     })
 
+    const [search, setSearch] = useState('')
+
     useEffect(() => {
         fetchProfiles()
     }, [])
+
+    const filteredProfiles = profiles.filter(p =>
+        p.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        p.email.toLowerCase().includes(search.toLowerCase()) ||
+        p.staff_id.toLowerCase().includes(search.toLowerCase())
+    )
 
     const fetchProfiles = async () => {
         try {
@@ -135,7 +143,6 @@ export const Users = () => {
                     full_name: form.full_name, position: form.position, role: form.role
                 }).eq('id', editingProfile.id)
             } else {
-                // Add new logic if needed, but profiles are usually managed via auth
                 console.log('Add new profile:', form)
             }
             setShowModal(false)
@@ -151,22 +158,36 @@ export const Users = () => {
         fetchProfiles()
     }
 
+
     if (loading) return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
 
     return (
         <div className="space-y-6 max-w-[1450px] mx-auto pb-10">
             {/* Page Header */}
-            <div className="flex justify-between items-center bg-white/50 backdrop-blur-md p-2 rounded-2xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white/50 backdrop-blur-md p-4 rounded-3xl gap-4">
                 <h1 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-orange-500 rounded-full"></span>
                     QUẢN LÝ NHÂN VIÊN
                 </h1>
-                <button
-                    onClick={openAddModal}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg shadow-orange-200 transition-all flex items-center gap-2 active:scale-95 uppercase"
-                >
-                    <Plus size={16} strokeWidth={3} /> Thêm nhân viên
-                </button>
+
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Tìm kiếm nhân viên..."
+                            className="w-full bg-white border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all shadow-sm"
+                        />
+                    </div>
+                    <button
+                        onClick={openAddModal}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg shadow-orange-200 transition-all flex items-center gap-2 active:scale-95 uppercase whitespace-nowrap"
+                    >
+                        <Plus size={16} strokeWidth={3} /> Thêm mới
+                    </button>
+                </div>
             </div>
 
             {/* Permissions Matrix - High Fidelity */}
@@ -229,7 +250,7 @@ export const Users = () => {
 
             {/* User Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 pt-4">
-                {profiles.map(p => {
+                {filteredProfiles.map(p => {
                     const brand = getRoleBrand(p.role)
                     return (
                         <div key={p.id} className={`bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all text-center flex flex-col group relative ${brand.hover}`}>
