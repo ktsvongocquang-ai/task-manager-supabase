@@ -4,11 +4,9 @@ import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/dashboard/Dashboard'
 import { Projects } from './pages/projects/Projects'
-
-// Placeholder Pages
-const Tasks = () => <div className="p-4"><h1 className="text-2xl font-bold">Nhiệm vụ</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Nhiệm vụ...</p></div>
-const Chat = () => <div className="p-4"><h1 className="text-2xl font-bold">Thảo luận</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Nhắn tin...</p></div>
-const Staff = () => <div className="p-4"><h1 className="text-2xl font-bold">Nhân sự</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Nhân sự...</p></div>
+import { Tasks } from './pages/tasks/Tasks'
+import { Users } from './pages/users/Users'
+import { Gantt } from './pages/gantt/Gantt'
 
 function App() {
   return (
@@ -21,10 +19,10 @@ function App() {
         <Route path="/" element={<AuthGuard><Layout /></AuthGuard>}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="gantt" element={<Gantt />} />
           <Route path="projects" element={<Projects />} />
           <Route path="tasks" element={<Tasks />} />
-          <Route path="chat" element={<Chat />} />
-          <Route path="staff" element={<Staff />} />
+          <Route path="users" element={<Users />} />
         </Route>
 
         {/* Catch all */}

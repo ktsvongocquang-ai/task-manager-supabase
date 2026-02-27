@@ -8,11 +8,14 @@ import {
     Clock,
     AlertCircle,
     Activity,
-    ArrowRight
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import {
+    PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line
+} from 'recharts'
+
+const COLORS_STATUS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
+const COLORS_PRIORITY = ['#3b82f6', '#f59e0b', '#ef4444']
 
 export const Dashboard = () => {
     const { profile } = useAuthStore()
@@ -24,6 +27,13 @@ export const Dashboard = () => {
         overdueTasks: 0
     })
     const [recentActivities, setRecentActivities] = useState<ActivityLog[]>([])
+    const [urgentTasks, setUrgentTasks] = useState<any[]>([])
+    const [taskStatusData, setTaskStatusData] = useState<any[]>([])
+    const [projectProgressData, setProjectProgressData] = useState<any[]>([])
+    const [taskPriorityData, setTaskPriorityData] = useState<any[]>([])
+    const [employeeData, setEmployeeData] = useState<any[]>([])
+    const [trendData, setTrendData] = useState<any[]>([])
+    const [projectCompareData, setProjectCompareData] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -34,65 +44,122 @@ export const Dashboard = () => {
         try {
             setLoading(true)
 
-            // 1. Fetch Projects (dependent on Role)
-            let projectsQuery = supabase.from('projects').select('*')
-            if (profile?.role === 'Quản lý') {
-                projectsQuery = projectsQuery.eq('manager_id', profile.id)
-            } else if (profile?.role === 'Nhân viên') {
-                // This is simplified. Real logic requires fetching tasks where assignee_id = profile.id then getting those project_ids
-                projectsQuery = projectsQuery.limit(10) // Fallback for simple display mode
-            }
-            const { data: projects } = await projectsQuery
+            // Fetch Projects
+            const { data: projects } = await supabase.from('projects').select('*')
+            // Fetch Tasks
+            const { data: tasks } = await supabase.from('tasks').select('*')
+            // Fetch Profiles
+            const { data: profiles } = await supabase.from('profiles').select('*')
 
-            // 2. Fetch Tasks
-            let tasksQuery = supabase.from('tasks').select('*')
-            if (profile?.role === 'Nhân viên') {
-                tasksQuery = tasksQuery.eq('assignee_id', profile.id)
-            } else if (profile?.role === 'Quản lý') {
-                // Should fetch manager's own tasks OR tasks in their projects. (Simplified for dashboard stats)
-                const projIds = projects?.map((p: any) => p.id) || []
-                if (projIds.length > 0) {
-                    tasksQuery = tasksQuery.in('project_id', projIds)
-                }
-            }
-            const { data: tasks } = await tasksQuery
+            const allTasks = (tasks || []) as Task[]
+            const allProjects = projects || []
 
-            // Calculate Stats
+            // Stats
             const today = new Date()
             today.setHours(0, 0, 0, 0)
+            let completed = 0, ongoing = 0, overdue = 0
+            const statusMap: Record<string, number> = {}
+            const priorityMap: Record<string, number> = {}
 
-            let completed = 0
-            let ongoing = 0
-            let overdue = 0
+            allTasks.forEach((t: Task) => {
+                const status = t.status || ''
+                statusMap[status] = (statusMap[status] || 0) + 1
 
-            tasks?.forEach((t: Task) => {
-                const status = t.status.toLowerCase()
-                if (status.includes('hoàn thành')) completed++
-                else if (status.includes('đang')) ongoing++
+                if (t.priority) {
+                    priorityMap[t.priority] = (priorityMap[t.priority] || 0) + 1
+                }
 
-                if (!status.includes('hoàn thành') && t.due_date) {
+                if (status.includes('Hoàn thành')) completed++
+                else if (status.includes('Đang')) ongoing++
+
+                if (!status.includes('Hoàn thành') && t.due_date) {
                     const due = new Date(t.due_date)
                     if (due < today) overdue++
                 }
             })
 
             setStats({
-                totalProjects: projects?.length || 0,
-                totalTasks: tasks?.length || 0,
+                totalProjects: allProjects.length,
+                totalTasks: allTasks.length,
                 completedTasks: completed,
                 ongoingTasks: ongoing,
                 overdueTasks: overdue
             })
 
-            // 3. Fetch Recent Activities
-            let logQuery = supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(6)
+            // Task Status Donut
+            setTaskStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })))
 
-            // Filter logs by user role logic (Skipped for brevity on Admin dashboard)
-            if (profile?.role === 'Nhân viên') {
-                logQuery = logQuery.eq('user_id', profile.id)
-            }
+            // Task Priority Donut
+            setTaskPriorityData(Object.entries(priorityMap).map(([name, value]) => ({ name, value })))
 
-            const { data: logs } = await logQuery
+            // Project Progress Bar
+            const projProgress = allProjects.map((p: any) => {
+                const projTasks = allTasks.filter(t => t.project_id === p.id)
+                const total = projTasks.length
+                const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+                const pct = total > 0 ? Math.round((done / total) * 100) : 0
+                return { name: p.project_code || p.name?.substring(0, 10), 'Khối lượng': pct }
+            }).slice(0, 8)
+            setProjectProgressData(projProgress)
+
+            // Employee Performance
+            const empMap: Record<string, { total: number, done: number }> = {}
+            allTasks.forEach((t: any) => {
+                const assignee = t.assignee_id
+                if (!assignee) return
+                if (!empMap[assignee]) empMap[assignee] = { total: 0, done: 0 }
+                empMap[assignee].total++
+                if (t.status?.includes('Hoàn thành')) empMap[assignee].done++
+            })
+            const empData = Object.entries(empMap).map(([id, data]) => {
+                const prof = profiles?.find((p: any) => p.id === id)
+                return {
+                    name: prof?.full_name?.split(' ').pop() || id.substring(0, 6),
+                    'Tổng số nhiệm vụ': data.total,
+                    'Việc hoàn thành (%)': data.total > 0 ? Math.round((data.done / data.total) * 100) : 0
+                }
+            }).slice(0, 6)
+            setEmployeeData(empData)
+
+            // Trend data (monthly)
+            const monthMap: Record<string, number> = {}
+            allTasks.forEach((t: any) => {
+                if (t.status?.includes('Hoàn thành') && t.report_date) {
+                    const month = t.report_date.substring(0, 7)
+                    monthMap[month] = (monthMap[month] || 0) + 1
+                }
+            })
+            const sortedMonths = Object.entries(monthMap).sort((a, b) => a[0].localeCompare(b[0])).slice(-6)
+            setTrendData(sortedMonths.map(([month, count]) => ({ name: month, 'Hoàn thành': count })))
+
+            // Project comparison
+            const projCompare = allProjects.map((p: any) => {
+                const projTasks = allTasks.filter(t => t.project_id === p.id)
+                const doing = projTasks.filter(t => t.status?.includes('Đang')).length
+                const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+                return {
+                    name: p.project_code || p.name?.substring(0, 8),
+                    'Đang thực hiện': doing,
+                    'Hoàn thành': done
+                }
+            }).slice(0, 6)
+            setProjectCompareData(projCompare)
+
+            // Urgent tasks (high priority or overdue)
+            const urgent = allTasks.filter(t => {
+                if (t.status?.includes('Hoàn thành')) return false
+                const isHighPriority = t.priority === 'Cao' || t.priority === 'Khẩn cấp'
+                let isOverdue = false
+                if (t.due_date) {
+                    const due = new Date(t.due_date)
+                    if (due < today) isOverdue = true
+                }
+                return isHighPriority || isOverdue
+            }).slice(0, 6)
+            setUrgentTasks(urgent)
+
+            // Recent Activities
+            const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(6)
             if (logs) setRecentActivities(logs as ActivityLog[])
 
         } catch (error) {
@@ -102,20 +169,33 @@ export const Dashboard = () => {
         }
     }
 
-    const StatCard = ({ title, value, icon: Icon, colorClass, link }: any) => (
-        <Link to={link || "#"} className={`bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group`}>
-            <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-10 transition-transform group-hover:scale-150 ${colorClass.bg}`}></div>
-            <div className="flex justify-between items-start">
-                <div>
-                    <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-                    <h3 className={`text-3xl font-bold ${colorClass.text}`}>{value}</h3>
-                </div>
-                <div className={`p-3 rounded-xl ${colorClass.bg} ${colorClass.text} bg-opacity-10`}>
-                    <Icon size={24} />
-                </div>
-            </div>
-        </Link>
-    )
+    const formatTimeAgo = (isoString: string) => {
+        if (!isoString) return ''
+        const date = new Date(isoString)
+        const now = new Date()
+        const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+        if (seconds < 60) return 'Vừa xong'
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return `${minutes} phút trước`
+        const hours = Math.floor(minutes / 60)
+        if (hours < 24) return `${hours} giờ trước`
+        const days = Math.floor(hours / 24)
+        return `${days} ngày trước`
+    }
+
+    const getStatusBadgeColor = (status: string) => {
+        if (status?.includes('Hoàn thành')) return 'bg-emerald-100 text-emerald-700'
+        if (status?.includes('Đang')) return 'bg-blue-100 text-blue-700'
+        if (status?.includes('Tạm dừng')) return 'bg-amber-100 text-amber-700'
+        return 'bg-slate-100 text-slate-700'
+    }
+
+    const getPriorityBadge = (priority: string) => {
+        if (priority === 'Khẩn cấp') return 'bg-red-500 text-white'
+        if (priority === 'Cao') return 'bg-orange-100 text-orange-700'
+        if (priority === 'Trung bình') return 'bg-yellow-100 text-yellow-700'
+        return 'bg-slate-100 text-slate-600'
+    }
 
     if (loading) {
         return (
@@ -125,75 +205,62 @@ export const Dashboard = () => {
         )
     }
 
-    return (
-        <div className="space-y-6 max-w-7xl mx-auto">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800">Tổng quan</h1>
-                <p className="text-slate-500 mt-1">Xin chào {profile?.full_name}, chúc bạn một ngày làm việc hiệu quả.</p>
-            </div>
+    const statCards = [
+        { title: 'Tổng Dự Án', value: stats.totalProjects, icon: FolderKanban, bg: 'bg-blue-500', extra: `● Hoàn thành: ${stats.completedTasks}`, extraPct: stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0, pctLabel: 'Tỷ lệ' },
+        { title: 'Tổng Nhiệm Vụ', value: stats.totalTasks, icon: CheckSquare, bg: 'bg-emerald-500', extra: `● Hoàn thành: ${stats.completedTasks}`, extraPct: stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0, pctLabel: 'Tỷ lệ' },
+        { title: 'Nhiệm vụ Đang Làm', value: stats.ongoingTasks, icon: Clock, bg: 'bg-amber-500', extra: `● Chưa bắt đầu: ${stats.totalTasks - stats.completedTasks - stats.ongoingTasks - stats.overdueTasks}`, extraPct: undefined, pctLabel: undefined },
+        { title: 'Nhiệm vụ Quá Hạn', value: stats.overdueTasks, icon: AlertCircle, bg: stats.overdueTasks > 0 ? 'bg-red-500' : 'bg-emerald-500', extra: stats.overdueTasks > 0 ? `● Tổng nhiệm vụ: ${stats.totalTasks}` : '● Tạm dừng: 0', extraPct: stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0, pctLabel: 'Tỷ lệ' },
+    ]
 
+    return (
+        <div className="space-y-6 max-w-[1400px] mx-auto">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard
-                    title="Tổng Dự Án"
-                    value={stats.totalProjects}
-                    icon={FolderKanban}
-                    link="/projects"
-                    colorClass={{ text: 'text-indigo-600', bg: 'bg-indigo-600' }}
-                />
-                <StatCard
-                    title="Tổng Nhiệm Vụ"
-                    value={stats.totalTasks}
-                    icon={CheckSquare}
-                    link="/tasks"
-                    colorClass={{ text: 'text-blue-600', bg: 'bg-blue-600' }}
-                />
-                <StatCard
-                    title="Đang Thực Hiện"
-                    value={stats.ongoingTasks}
-                    icon={Clock}
-                    link="/tasks"
-                    colorClass={{ text: 'text-amber-500', bg: 'bg-amber-500' }}
-                />
-                <StatCard
-                    title="Quá Hạn"
-                    value={stats.overdueTasks}
-                    icon={AlertCircle}
-                    link="/tasks"
-                    colorClass={stats.overdueTasks > 0 ? { text: 'text-rose-500', bg: 'bg-rose-500' } : { text: 'text-emerald-500', bg: 'bg-emerald-500' }}
-                />
+                {statCards.map((card, i) => (
+                    <div key={i} className={`${card.bg} text-white rounded-2xl p-5 shadow-lg relative overflow-hidden`}>
+                        <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="bg-white/20 p-2.5 rounded-xl">
+                                <card.icon size={22} />
+                            </div>
+                        </div>
+                        <div className="text-3xl font-bold">{card.value}</div>
+                        <div className="text-sm text-white/80 mt-1">{card.title}</div>
+                        <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/70 flex items-center justify-between">
+                            <span>{card.extra}</span>
+                            {card.extraPct !== undefined && (
+                                <span>▲ Tỷ lệ: {card.extraPct}%</span>
+                            )}
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
+            {/* Row 2: Activity + Urgent Tasks */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 {/* Activity Feed */}
                 <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                    <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                    <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
                         <div className="flex items-center space-x-2">
-                            <Activity size={20} className="text-indigo-600" />
-                            <h3 className="text-lg font-semibold text-slate-800">Hoạt động gần đây</h3>
+                            <Activity size={18} className="text-indigo-600" />
+                            <h3 className="text-base font-semibold text-slate-800">Hoạt động gần đây</h3>
                         </div>
-                        <button className="text-sm text-indigo-600 font-medium hover:text-indigo-700 flex items-center">
-                            Xem tất cả <ArrowRight size={16} className="ml-1" />
-                        </button>
                     </div>
-                    <div className="p-6">
+                    <div className="p-5 max-h-[400px] overflow-y-auto">
                         {recentActivities.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500">Chưa có hoạt động nào được ghi nhận.</div>
+                            <div className="text-center py-8 text-slate-500">Chưa có hoạt động nào.</div>
                         ) : (
-                            <div className="space-y-6">
-                                {recentActivities.map((activity) => (
-                                    <div key={activity.id} className="flex space-x-4">
+                            <div className="space-y-5">
+                                {recentActivities.map((a) => (
+                                    <div key={a.id} className="flex space-x-3">
                                         <div className="flex flex-col items-center">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 mb-1 z-10 ring-4 ring-white"></div>
-                                            <div className="w-px h-full bg-slate-200 -mt-1"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-white"></div>
+                                            <div className="w-px h-full bg-slate-200 -mt-0.5"></div>
                                         </div>
-                                        <div className="flex-1 pb-4">
-                                            <p className="text-sm font-medium text-slate-800">{activity.action}</p>
-                                            <p className="text-sm text-slate-500 mt-1 leading-relaxed">{activity.details}</p>
-                                            <p className="text-xs text-slate-400 mt-2">
-                                                {format(parseISO(activity.created_at), "HH:mm, dd/MM/yyyy", { locale: vi })}
-                                            </p>
+                                        <div className="flex-1 pb-3">
+                                            <p className="text-sm font-medium text-slate-800">{a.action}</p>
+                                            <p className="text-xs text-slate-500 mt-1 bg-slate-50 p-2 rounded border border-slate-100 line-clamp-2">{a.details}</p>
+                                            <p className="text-xs text-slate-400 mt-1.5">{formatTimeAgo(a.created_at)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -202,27 +269,144 @@ export const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Quick Actions / Getting Started */}
-                <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-md">
-                        <h3 className="font-semibold text-lg mb-2">Thao tác nhanh</h3>
-                        <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-                            Tạo mới và quản lý luồng công việc của bạn một cách nhanh chóng.
-                        </p>
-                        <div className="space-y-3">
-                            {profile?.role !== 'Nhân viên' && (
-                                <Link to="/projects/new" className="block w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur-sm transition-colors py-2.5 rounded-lg text-sm font-medium text-white border border-white/10">
-                                    + Tạo Dự Án Mới
-                                </Link>
-                            )}
-                            <Link to="/tasks/new" className="block w-full text-center bg-white text-indigo-700 hover:bg-indigo-50 transition-colors py-2.5 rounded-lg text-sm font-bold shadow-sm">
-                                + Giao Việc Mới
-                            </Link>
-                        </div>
+                {/* Urgent Tasks */}
+                <div className="lg:col-span-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
+                    <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                        <h3 className="text-base font-semibold text-slate-800">Nhiệm vụ ưu tiên cao</h3>
+                    </div>
+                    <div className="p-3 max-h-[400px] overflow-y-auto">
+                        {urgentTasks.length === 0 ? (
+                            <div className="text-center py-8 text-slate-500">🎉 Không có việc quá hạn!</div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {urgentTasks.map((task: any) => (
+                                    <div key={task.id} className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-xs font-medium text-slate-500">{task.task_code}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
+                                        </div>
+                                        <h4 className="text-sm font-semibold text-slate-800 line-clamp-1 mb-2">{task.name}</h4>
+                                        <div className="flex items-center justify-between text-xs text-slate-500">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${getStatusBadgeColor(task.status)}`}>{task.status}</span>
+                                            <span>{task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
+                                        </div>
+                                        {/* Progress bar */}
+                                        <div className="mt-3">
+                                            <div className="w-full bg-slate-100 rounded-full h-1.5">
+                                                <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${task.completion_pct || 0}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
+            {/* Row 3: Charts Row 1 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Task Status Donut */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">Trạng thái nhiệm vụ</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                            <Pie data={taskStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                                {taskStatusData.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS_STATUS[index % COLORS_STATUS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Project Progress Bar */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">Phân bổ tiến độ dự án</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={projectProgressData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 10 }} />
+                            <Tooltip />
+                            <Bar dataKey="Khối lượng" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Task Priority Donut */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">Phân bổ ưu tiên nhiệm vụ</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                            <Pie data={taskPriorityData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                                {taskPriorityData.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS_PRIORITY[index % COLORS_PRIORITY.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Row 4: Charts Row 2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Employee Performance */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">Hiệu quả nhân viên</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={employeeData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 10 }} />
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                            <Bar dataKey="Tổng số nhiệm vụ" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Việc hoàn thành (%)" fill="#10b981" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Completion Trend */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">Xu hướng hoàn thành</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={trendData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 10 }} />
+                            <Tooltip />
+                            <Line type="monotone" dataKey="Hoàn thành" stroke="#6366f1" strokeWidth={2} dot={{ fill: '#6366f1' }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Project Comparison */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-slate-800 mb-4">So sánh dự án</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={projectCompareData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis tick={{ fontSize: 10 }} />
+                            <Tooltip />
+                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                            <Bar dataKey="Đang thực hiện" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="Hoàn thành" fill="#10b981" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center text-xs text-slate-400 py-4 border-t border-slate-100">
+                <p>Hỗ trợ kỹ thuật: <span className="text-indigo-500">Phiên bản 4.0</span></p>
+                <p className="mt-1">© 2025 chaolongqua.com</p>
+            </div>
         </div>
     )
 }
