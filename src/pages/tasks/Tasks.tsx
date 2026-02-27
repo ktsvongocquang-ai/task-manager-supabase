@@ -129,21 +129,46 @@ export const Tasks = () => {
     const handleSave = async () => {
         try {
             const payload = {
-                name: form.name, description: form.description || null, assignee_id: form.assignee_id || null,
-                status: form.status, priority: form.priority, start_date: form.start_date || null,
-                due_date: form.due_date || null, completion_pct: Number(form.completion_pct),
-                target: form.target || null, result_links: form.result_links || null,
-                output: form.output || null, notes: form.notes || null
+                name: form.name,
+                description: form.description || null,
+                assignee_id: form.assignee_id || null,
+                status: form.status,
+                priority: form.priority,
+                start_date: form.start_date || null,
+                due_date: form.due_date || null,
+                completion_pct: Number(form.completion_pct) || 0,
+                target: form.target || null,
+                result_links: form.result_links || null,
+                output: form.output || null,
+                notes: form.notes || null
             }
+
+            let result;
             if (editingTask) {
-                await supabase.from('tasks').update(payload).eq('id', editingTask.id)
+                result = await supabase.from('tasks').update(payload).eq('id', editingTask.id)
             } else {
-                await supabase.from('tasks').insert({ ...payload, task_code: form.task_code, project_id: form.project_id })
+                if (!form.project_id) {
+                    alert('Vui lòng chọn dự án cho nhiệm vụ này.')
+                    return
+                }
+                result = await supabase.from('tasks').insert({
+                    ...payload,
+                    task_code: form.task_code,
+                    project_id: form.project_id
+                })
             }
+
+            if (result.error) {
+                console.error('Supabase Task Error:', result.error)
+                alert(`Lỗi Supabase (Nhiệm vụ): ${result.error.message}`)
+                return
+            }
+
             setShowModal(false)
             fetchAll()
         } catch (err) {
-            console.error(err)
+            console.error('Task Catch Error:', err)
+            alert('Lỗi hệ thống khi lưu nhiệm vụ.')
         }
     }
 
@@ -154,16 +179,30 @@ export const Tasks = () => {
     }
 
     const handleCopy = async (t: Task) => {
-        const count = tasks.filter(x => x.project_id === t.project_id).length
-        const projCode = getProjectCode(t.project_id)
-        const nextCode = `${projCode}-${String(count + 1).padStart(2, '0')}`
-        await supabase.from('tasks').insert({
-            task_code: nextCode, project_id: t.project_id, name: `${t.name} (Bản sao)`,
-            description: t.description, assignee_id: t.assignee_id, status: 'Chưa bắt đầu',
-            priority: t.priority, start_date: t.start_date, due_date: t.due_date,
-            completion_pct: 0, target: t.target, result_links: null, output: null, notes: t.notes
-        })
-        fetchAll()
+        try {
+            const count = tasks.filter(x => x.project_id === t.project_id).length
+            const projCode = getProjectCode(t.project_id)
+            const nextCode = `${projCode}-${String(count + 1).padStart(2, '0')}`
+            const { id, created_at, ...rest } = t as any
+            const payload = {
+                ...rest,
+                task_code: nextCode,
+                name: `${t.name} (Bản sao)`,
+                completion_pct: 0,
+                result_links: null,
+                output: null
+            }
+
+            const { error } = await supabase.from('tasks').insert(payload)
+            if (error) {
+                console.error('Task Copy Error:', error)
+                alert(`Lỗi sao chép nhiệm vụ: ${error.message}`)
+            } else {
+                fetchAll()
+            }
+        } catch (err) {
+            console.error(err)
+        }
     }
 
     if (loading) {
