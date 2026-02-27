@@ -38,6 +38,7 @@ export interface Task {
     result_links: string | null
     output: string | null
     notes: string | null
+    completion_date: string | null
     created_at: string
 }
 
