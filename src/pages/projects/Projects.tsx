@@ -81,7 +81,7 @@ export const Projects = () => {
         try {
             // Remove budget if it's potentially causing a "column does not exist" error
             // Also ensure we don't send empty strings for optional relation fields
-            const { budget, ...formData } = form;
+            const { budget: _budget, ...formData } = form;
             const payload = {
                 ...formData,
                 manager_id: formData.manager_id || null,
