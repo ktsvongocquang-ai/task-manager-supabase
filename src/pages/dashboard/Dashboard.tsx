@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../services/supabase'
-import { useAuthStore } from '../store/authStore'
-import { type Project, type Task, type ActivityLog } from '../types'
+import { supabase } from '../../services/supabase'
+import { useAuthStore } from '../../store/authStore'
+import { type Task, type ActivityLog } from '../../types'
 import {
     FolderKanban,
     CheckSquare,
@@ -50,7 +50,7 @@ export const Dashboard = () => {
                 tasksQuery = tasksQuery.eq('assignee_id', profile.id)
             } else if (profile?.role === 'Quản lý') {
                 // Should fetch manager's own tasks OR tasks in their projects. (Simplified for dashboard stats)
-                const projIds = projects?.map(p => p.id) || []
+                const projIds = projects?.map((p: any) => p.id) || []
                 if (projIds.length > 0) {
                     tasksQuery = tasksQuery.in('project_id', projIds)
                 }
