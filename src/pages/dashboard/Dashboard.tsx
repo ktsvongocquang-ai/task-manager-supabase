@@ -144,82 +144,127 @@ export const Dashboard = () => {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Pro Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="modern-stat-card bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 group">
-                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
-                            <FolderKanban size={24} />
+                {/* Total Projects */}
+                <div className="modern-stat-card group">
+                    <div className="card-gradient bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700"></div>
+                    <div className="p-6">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                <FolderKanban size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="stat-number">{stats.totalProjects}</span>
+                                <span className="stat-label">Tổng dự án</span>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-black">{stats.totalProjects}</div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Tổng dự án</div>
-                        </div>
-                    </div>
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
-                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-300"></div> Hoàn thành: {stats.completedTasks}</div>
-                        <div className="bg-blue-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
-                            {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%
-                        </div>
-                    </div>
-                </div>
-
-                <div className="modern-stat-card bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 group">
-                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
-                            <CheckSquare size={24} />
-                        </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-black">{stats.totalTasks}</div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Nhiệm vụ</div>
-                        </div>
-                    </div>
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
-                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-300"></div> Done: {stats.completedTasks}</div>
-                        <div className="bg-emerald-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
-                            {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                    <CheckSquare size={10} />
+                                </div>
+                                <span>Hoàn thành: <strong className="text-gray-900">{stats.completedTasks}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <Clock size={10} />
+                                </div>
+                                <span>Tỷ lệ: <strong className="text-gray-900">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="modern-stat-card bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 group">
-                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
-                            <Clock size={24} />
+                {/* Total Tasks */}
+                <div className="modern-stat-card group">
+                    <div className="card-gradient bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700"></div>
+                    <div className="p-6">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-200 focus-within:">
+                                <CheckSquare size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="stat-number">{stats.totalTasks}</span>
+                                <span className="stat-label">Tổng nhiệm vụ</span>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-black">{stats.ongoingTasks}</div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Đang làm</div>
-                        </div>
-                    </div>
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
-                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-300"></div> Tạm dừng: {stats.pausedTasks}</div>
-                        <div className="bg-amber-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
-                            {stats.notStartedTasks} Chưa bắt đầu
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                    <CheckSquare size={10} />
+                                </div>
+                                <span>Hoàn thành: <strong className="text-gray-900">{stats.completedTasks}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                    <Clock size={10} />
+                                </div>
+                                <span>Tỷ lệ: <strong className="text-gray-900">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="modern-stat-card bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 group">
-                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
-                    <div className="flex items-center justify-between relative z-10">
-                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
-                            <AlertTriangle size={24} />
+                {/* Active Tasks */}
+                <div className="modern-stat-card group">
+                    <div className="card-gradient bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"></div>
+                    <div className="p-6">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg shadow-amber-200">
+                                <Clock size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="stat-number">{stats.ongoingTasks}</span>
+                                <span className="stat-label">Đang thực hiện</span>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <div className="text-3xl font-black">{stats.overdueTasks}</div>
-                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Quá hạn</div>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                                    <Clock size={10} />
+                                </div>
+                                <span>Chưa bắt đầu: <strong className="text-gray-900">{stats.notStartedTasks}</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                                    <Clock size={10} />
+                                </div>
+                                <span>Tạm dừng: <strong className="text-gray-900">{stats.pausedTasks}</strong></span>
+                            </div>
                         </div>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
-                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-300"></div> Cần xử lý gấp</div>
-                        <div className="bg-rose-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
-                            {stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}% Danger
+                </div>
+
+                {/* Overdue Tasks */}
+                <div className="modern-stat-card group">
+                    <div className="card-gradient bg-gradient-to-br from-red-500 via-red-600 to-red-700"></div>
+                    <div className="p-6">
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-lg shadow-red-200">
+                                <AlertTriangle size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="stat-number">{stats.overdueTasks}</span>
+                                <span className="stat-label">Nhiệm vụ quá hạn</span>
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                    <AlertTriangle size={10} />
+                                </div>
+                                <span>Cần xử lý: <strong className="text-gray-900">GẤP</strong></span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                                    <AlertTriangle size={10} />
+                                </div>
+                                <span>Tỷ lệ lỗi: <strong className="text-gray-900 text-rose-600">{stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             {/* Activities & Urgent Tasks Row */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
