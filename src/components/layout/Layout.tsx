@@ -12,8 +12,7 @@ import {
     X,
     RefreshCw,
     Plus,
-    KeyRound,
-    Settings
+    KeyRound
 } from 'lucide-react'
 
 const viewTitles: Record<string, string> = {
