@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthGuard } from './components/AuthGuard'
 import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
+import { Dashboard } from './pages/dashboard/Dashboard'
 
 // Placeholder Pages
-const Dashboard = () => <div className="p-4"><h1 className="text-2xl font-bold">Tổng quan</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Tổng quan...</p></div>
 const Projects = () => <div className="p-4"><h1 className="text-2xl font-bold">Dự án</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Dự án...</p></div>
 const Tasks = () => <div className="p-4"><h1 className="text-2xl font-bold">Nhiệm vụ</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Nhiệm vụ...</p></div>
 const Chat = () => <div className="p-4"><h1 className="text-2xl font-bold">Thảo luận</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Nhắn tin...</p></div>
