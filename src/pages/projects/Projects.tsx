@@ -79,16 +79,29 @@ export const Projects = () => {
 
     const handleSave = async () => {
         try {
-            const payload = { ...form, updated_at: new Date().toISOString() }
-            if (editingProject) {
-                await supabase.from('projects').update(payload).eq('id', editingProject.id)
-            } else {
-                await supabase.from('projects').insert(payload)
+            const payload = {
+                ...form,
+                manager_id: form.manager_id || null // Ensure empty string is null for UUID columns
             }
+
+            let result;
+            if (editingProject) {
+                result = await supabase.from('projects').update(payload).eq('id', editingProject.id)
+            } else {
+                result = await supabase.from('projects').insert(payload)
+            }
+
+            if (result.error) {
+                console.error('Supabase Error:', result.error)
+                alert(`Lỗi: ${result.error.message}`)
+                return
+            }
+
             setShowModal(false)
             fetchProjects()
         } catch (err) {
-            console.error(err)
+            console.error('Catch Error:', err)
+            alert('Có lỗi xảy ra khi lưu dữ án.')
         }
     }
 
@@ -100,17 +113,20 @@ export const Projects = () => {
 
     const handleCopy = async (p: Project) => {
         const count = projects.length + 1
+        const { id, created_at, ...rest } = p as any
         const payload = {
-            ...p,
-            id: undefined,
+            ...rest,
             project_code: `DA${String(count).padStart(3, '0')}`,
             name: `${p.name} (Bản sao)`,
-            created_at: undefined,
-            updated_at: undefined
         }
-        delete (payload as any).id
-        await supabase.from('projects').insert(payload)
-        fetchProjects()
+
+        const { error } = await supabase.from('projects').insert(payload)
+        if (error) {
+            console.error('Copy Error:', error)
+            alert(`Lỗi sao chép: ${error.message}`)
+        } else {
+            fetchProjects()
+        }
     }
 
     const getStatusBadge = (status: string) => {
