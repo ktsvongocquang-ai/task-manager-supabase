@@ -3,9 +3,9 @@ import { AuthGuard } from './components/AuthGuard'
 import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/dashboard/Dashboard'
+import { Projects } from './pages/projects/Projects'
 
 // Placeholder Pages
-const Projects = () => <div className="p-4"><h1 className="text-2xl font-bold">Dự án</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Dự án...</p></div>
 const Tasks = () => <div className="p-4"><h1 className="text-2xl font-bold">Nhiệm vụ</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Nhiệm vụ...</p></div>
 const Chat = () => <div className="p-4"><h1 className="text-2xl font-bold">Thảo luận</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Nhắn tin...</p></div>
 const Staff = () => <div className="p-4"><h1 className="text-2xl font-bold">Nhân sự</h1><p className="mt-2 text-slate-500">Đang xây dựng Tính năng Quản lý Nhân sự...</p></div>
