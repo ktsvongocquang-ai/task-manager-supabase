@@ -9,10 +9,12 @@ import {
     Users,
     LogOut,
     Menu,
-    X,
     RefreshCw,
     Plus,
-    KeyRound
+    KeyRound,
+    Rocket,
+    MessageSquare,
+    Youtube
 } from 'lucide-react'
 
 const viewTitles: Record<string, string> = {
@@ -43,19 +45,18 @@ export const Layout = () => {
     const currentTitle = () => {
         const path = location.pathname
         const base = viewTitles[path] || 'Quản Lý Dự Án'
-        if (path === '/dashboard') return `${base} - ${profile?.role || 'User'}`
         return base
     }
 
     const navItems = [
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard, color: 'text-white' },
-        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart, color: 'text-indigo-300' },
-        { name: 'Dự án', path: '/projects', icon: FolderKanban, color: 'text-slate-300' },
-        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare, color: 'text-emerald-300' },
+        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard, bgColor: 'bg-blue-100', iconColor: 'text-blue-600', activeColor: 'bg-blue-600' },
+        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600', activeColor: 'bg-indigo-600' },
+        { name: 'Dự án', path: '/projects', icon: FolderKanban, bgColor: 'bg-purple-100', iconColor: 'text-purple-600', activeColor: 'bg-purple-600' },
+        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare, bgColor: 'bg-emerald-100', iconColor: 'text-emerald-600', activeColor: 'bg-emerald-600' },
     ]
 
     if (profile?.role === 'Admin' || profile?.role === 'Quản lý') {
-        navItems.push({ name: 'Người dùng', path: '/users', icon: Users, color: 'text-rose-300' })
+        navItems.push({ name: 'Người dùng', path: '/users', icon: Users, bgColor: 'bg-amber-100', iconColor: 'text-amber-600', activeColor: 'bg-amber-600' })
     }
 
     const getInitials = (name?: string) => {
@@ -63,168 +64,136 @@ export const Layout = () => {
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     }
 
-    const getRoleColor = () => {
-        if (profile?.role === 'Admin') return 'bg-orange-500'
-        if (profile?.role === 'Quản lý') return 'bg-emerald-500'
-        return 'bg-blue-500'
-    }
-
     return (
-        <div className="min-h-screen bg-slate-100 flex">
-            {/* Sidebar for Desktop - Dark Navy */}
-            <aside className="hidden md:flex w-56 bg-slate-800 flex-col fixed inset-y-0 z-10 shadow-xl">
-                {/* Logo */}
-                <div className="h-16 flex items-center px-5 border-b border-slate-700">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-500 rounded-xl flex items-center justify-center mr-3 shadow-lg ring-1 ring-white/20">
-                        <FolderKanban size={16} className="text-white" />
-                    </div>
-                    <div>
-                        <span className="font-black text-sm text-white block leading-tight tracking-tighter uppercase italic">QUẢN LÝ DỰ ÁN</span>
-                        <span className="text-[9px] text-slate-500 leading-none font-bold tracking-widest uppercase">Quản lý nâng tầm</span>
-                    </div>
-                </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                ></div>
+            )}
 
-                {/* User Info */}
-                <div className="p-4 border-b border-slate-700">
-                    <div className="flex items-center space-x-3">
-                        <div className={`w-9 h-9 rounded-full ${getRoleColor()} text-white flex items-center justify-center font-bold text-sm shadow-md`}>
-                            {getInitials(profile?.full_name)}
+            {/* Sidebar - Pro Glassmorphism Style */}
+            <aside className={`fixed left-0 top-0 h-full w-72 bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-2xl z-50 transform transition-transform duration-300 ease-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 border-b border-slate-100/50">
+                    <div className="flex items-center space-x-3 mb-6">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Rocket className="text-white" size={20} />
                         </div>
-                        <div className="overflow-hidden">
-                            <p className="text-sm font-semibold text-white truncate">{profile?.full_name || 'Người dùng'}</p>
-                            <p className="text-xs text-slate-400 truncate">{profile?.role || 'Nhân viên'}</p>
+                        <div>
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-none">QUẢN LÝ DỰ ÁN</h1>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
                         </div>
                     </div>
+
+                    {/* User Profile Card */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border border-blue-100/50 shadow-sm mb-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
+                                {getInitials(profile?.full_name)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-900 truncate">{profile?.full_name || 'Người dùng'}</p>
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{profile?.role || 'Nhân viên'}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+                            <button className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-[10px] font-bold text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-50 transition-colors">
+                                <KeyRound size={12} /> Đổi mật khẩu
+                            </button>
+                            <button onClick={handleSignOut} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-red-50 text-[10px] font-bold text-red-600 rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
+                                <LogOut size={12} /> Đăng xuất
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                    <button onClick={() => { }} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium text-blue-300 hover:text-blue-200 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors">
-                        <KeyRound size={11} /> Đổi mật khẩu
-                    </button>
-                    <button onClick={handleSignOut} className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium text-red-300 hover:text-red-200 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors">
-                        <LogOut size={11} /> Đăng xuất
-                    </button>
-                </div>
-
-                {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                {/* Navigation Menu */}
+                <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className={({ isActive }) =>
-                                `flex items-center px-3 py-2.5 rounded-lg transition-all font-medium text-sm relative ${isActive
-                                    ? 'bg-indigo-600/80 text-white shadow-md'
-                                    : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                                `group flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 relative ${isActive
+                                    ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5'
+                                    : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'
                                 }`
                             }
                         >
                             {({ isActive }) => (
                                 <>
-                                    {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-cyan-400 rounded-r-full -ml-3"></div>}
-                                    <item.icon size={18} className={`mr-3 ${isActive ? 'text-white' : item.color}`} />
-                                    {item.name}
+                                    <div className={`w-8 h-8 rounded-lg ${isActive ? item.activeColor : item.bgColor} flex items-center justify-center mr-3 transition-colors duration-200 shadow-sm`}>
+                                        <item.icon className={isActive ? 'text-white' : item.iconColor} size={16} />
+                                    </div>
+                                    <span>{item.name}</span>
+                                    {isActive && (
+                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-blue-100"></div>
+                                    )}
                                 </>
                             )}
                         </NavLink>
                     ))}
                 </nav>
+
+                {/* Sidebar Footer */}
+                <div className="p-6">
+                    <div className="glass-card p-4 text-center">
+                        <p className="text-xs font-bold text-gray-700 mb-2">Hỗ trợ kỹ thuật <span className="text-blue-500 font-normal ml-1">(v4.1)</span></p>
+                        <div className="flex justify-center space-x-3 mb-3">
+                            <a href="#" className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                                <MessageSquare size={14} />
+                            </a>
+                            <a href="#" className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors">
+                                <Youtube size={14} />
+                            </a>
+                        </div>
+                        <p className="text-[10px] text-gray-400">© 2025 <span className="text-blue-500">chaolongqua.com</span></p>
+                    </div>
+                </div>
             </aside>
 
-            {/* Main Content Wrapper */}
-            <div className="flex-1 flex flex-col md:pl-56 min-w-0">
-
-                {/* Mobile Header */}
-                <header className="md:hidden h-14 bg-slate-800 flex items-center justify-between px-4 sticky top-0 z-20 shadow-md">
-                    <div className="flex items-center">
-                        <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center mr-2.5">
-                            <FolderKanban size={14} className="text-white" />
-                        </div>
-                        <span className="text-base font-bold text-white">Quản Lý Dự Án</span>
-                    </div>
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="p-2 text-slate-300 hover:text-white rounded-lg"
-                    >
-                        {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-                    </button>
-                </header>
-
-                {/* Mobile Menu Overlay */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden fixed inset-0 z-30 bg-slate-800 flex flex-col pt-14">
-                        <div className="flex-1 overflow-y-auto py-4 px-4 space-y-2">
-                            {navItems.map((item) => (
-                                <NavLink
-                                    key={item.path}
-                                    to={item.path}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className={({ isActive }) =>
-                                        `flex items-center px-4 py-4 rounded-xl transition-colors font-medium text-base ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-300 active:bg-slate-700'
-                                        }`
-                                    }
-                                >
-                                    <item.icon size={22} className="mr-4" />
-                                    {item.name}
-                                </NavLink>
-                            ))}
-                        </div>
-                        <div className="p-4 border-t border-slate-700">
+            {/* Main Content */}
+            <main className="flex-1 md:ml-72 flex flex-col min-h-screen">
+                {/* Header */}
+                <header className="sticky top-0 bg-white/60 backdrop-blur-xl border-b border-white/20 z-30 px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
                             <button
-                                onClick={handleSignOut}
-                                className="w-full flex items-center justify-center px-4 py-3 text-base font-medium text-white bg-red-600/80 hover:bg-red-600 rounded-xl transition-colors"
+                                onClick={() => setIsMobileMenuOpen(true)}
+                                className="md:hidden p-2 rounded-xl bg-gray-100 text-gray-600"
                             >
-                                <LogOut size={18} className="mr-3" />
-                                Đăng xuất
+                                <Menu size={20} />
+                            </button>
+                            <h2 className="text-xl font-bold text-gray-900">{currentTitle()}</h2>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={handleRefresh}
+                                className={`p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
+                            >
+                                <RefreshCw size={18} />
+                            </button>
+
+                            <button
+                                onClick={() => navigate('/projects')}
+                                className="hidden sm:flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                <Plus size={18} className="mr-2" />
+                                Tạo mới
                             </button>
                         </div>
                     </div>
-                )}
+                </header>
 
-                {/* Topbar */}
-                <div className="bg-white border-b border-slate-200 px-6 py-3 hidden md:flex justify-between items-center shadow-sm z-10">
-                    <h2 className="text-base font-semibold text-slate-800">{currentTitle()}</h2>
-                    <div className="flex items-center space-x-3">
-                        <button
-                            onClick={handleRefresh}
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
-                            title="Làm mới dữ liệu"
-                        >
-                            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-                        </button>
-                        <button
-                            onClick={() => navigate('/projects')}
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg shadow-sm text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
-                        >
-                            <Plus size={16} className="mr-1.5" />
-                            Tạo mới
-                        </button>
-                        {/* User avatar in topbar */}
-                        <div className={`w-8 h-8 rounded-full ${getRoleColor()} text-white flex items-center justify-center text-xs font-bold shadow-sm`}>
-                            {getInitials(profile?.full_name)}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Page Content */}
-                <main className="flex-1 p-4 sm:p-6 overflow-x-hidden bg-slate-50">
+                {/* Page View */}
+                <div className="p-6 flex-1">
                     <Outlet />
-                </main>
-
-                {/* Footer */}
-                <div className="bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between text-xs text-slate-400">
-                    <div className="flex items-center gap-2">
-                        <span>Hỗ trợ kỹ thuật</span>
-                        <span className="text-indigo-500 font-medium">(Phiên bản 4.1)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    </div>
-                    <span>© 2025 chaolongqua.com</span>
                 </div>
-            </div>
+            </main>
         </div>
     )
 }

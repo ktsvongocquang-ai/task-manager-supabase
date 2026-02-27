@@ -14,7 +14,7 @@ import {
 } from 'recharts'
 
 const COLORS_STATUS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
-const COLORS_PRIORITY = ['#3b82f6', '#f59e0b', '#ef4444']
+const COLORS_PRIORITY = ['#ef4444', '#f59e0b', '#3b82f6', '#94a3b8']
 
 export const Dashboard = () => {
     const { profile } = useAuthStore()
@@ -71,7 +71,10 @@ export const Dashboard = () => {
             })
 
             setTaskStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })))
-            setTaskPriorityData(Object.entries(priorityMap).map(([name, value]) => ({ name, value })))
+            setTaskPriorityData(['Khẩn cấp', 'Cao', 'Trung bình', 'Thấp'].map(p => ({
+                name: p,
+                value: priorityMap[p] || 0
+            })))
 
             const projProgress = allProjects.map((p: any) => {
                 const projTasks = allTasks.filter(t => t.project_id === p.id)
@@ -129,132 +132,158 @@ export const Dashboard = () => {
     }
 
     const getPriorityBadge = (p: string) => {
-        if (p === 'Khẩn cấp') return 'bg-red-500 text-white'
-        if (p === 'Cao') return 'bg-orange-500 text-white'
-        if (p === 'Trung bình') return 'bg-yellow-100 text-yellow-700'
-        return 'bg-slate-100 text-slate-600'
+        if (p === 'Khẩn cấp') return 'bg-red-500 text-white shadow-sm'
+        if (p === 'Cao') return 'bg-orange-500 text-white shadow-sm'
+        if (p === 'Trung bình') return 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
+        return 'bg-slate-100 text-slate-600 border border-slate-200'
     }
 
-    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+    if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div></div>
 
     return (
-        <div className="space-y-6 max-w-[1400px] mx-auto">
-            {/* Stats Cards - Matching screenshot exactly */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Blue - Total Projects */}
-                <div className="bg-blue-500 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                    <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="bg-white/20 p-2.5 rounded-xl"><FolderKanban size={22} /></div>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Pro Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="modern-stat-card bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 group">
+                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
+                            <FolderKanban size={24} />
+                        </div>
+                        <div className="text-right">
+                            <div className="text-3xl font-black">{stats.totalProjects}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Tổng dự án</div>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold">{stats.totalProjects}</div>
-                    <div className="text-sm text-white/80 mt-1 uppercase tracking-wide text-[11px]">Tổng Dự Án</div>
-                    <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/70 flex items-center justify-between">
-                        <span>● Hoàn thành: {stats.completedTasks}</span>
-                        <span>▲ Tỷ lệ: {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</span>
-                    </div>
-                </div>
-
-                {/* Green - Total Tasks */}
-                <div className="bg-emerald-500 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                    <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="bg-white/20 p-2.5 rounded-xl"><CheckSquare size={22} /></div>
-                    </div>
-                    <div className="text-3xl font-bold">{stats.totalTasks}</div>
-                    <div className="text-sm text-white/80 mt-1 uppercase tracking-wide text-[11px]">Tổng Nhiệm Vụ</div>
-                    <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/70 flex items-center justify-between">
-                        <span>● Hoàn thành: {stats.completedTasks}</span>
-                        <span>▲ Tỷ lệ: {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</span>
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
+                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-300"></div> Hoàn thành: {stats.completedTasks}</div>
+                        <div className="bg-blue-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
+                            {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%
+                        </div>
                     </div>
                 </div>
 
-                {/* Orange - Ongoing Tasks */}
-                <div className="bg-orange-400 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden">
-                    <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="bg-white/20 p-2.5 rounded-xl"><Clock size={22} /></div>
+                <div className="modern-stat-card bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 group">
+                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
+                            <CheckSquare size={24} />
+                        </div>
+                        <div className="text-right">
+                            <div className="text-3xl font-black">{stats.totalTasks}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Nhiệm vụ</div>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold">{stats.ongoingTasks}</div>
-                    <div className="text-sm text-white/80 mt-1 uppercase tracking-wide text-[11px]">Nhiệm Vụ Đang Làm</div>
-                    <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/70 flex items-center justify-between">
-                        <span>● Chưa bắt đầu: {stats.notStartedTasks}</span>
-                        <span>● Tạm dừng: {stats.pausedTasks}</span>
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
+                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-300"></div> Done: {stats.completedTasks}</div>
+                        <div className="bg-emerald-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
+                            {stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%
+                        </div>
                     </div>
                 </div>
 
-                {/* Red - Overdue */}
-                <div className={`${stats.overdueTasks > 0 ? 'bg-red-500' : 'bg-red-500'} text-white rounded-2xl p-5 shadow-lg relative overflow-hidden`}>
-                    <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/10"></div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="bg-white/20 p-2.5 rounded-xl"><AlertTriangle size={22} /></div>
+                <div className="modern-stat-card bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 group">
+                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
+                            <Clock size={24} />
+                        </div>
+                        <div className="text-right">
+                            <div className="text-3xl font-black">{stats.ongoingTasks}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Đang làm</div>
+                        </div>
                     </div>
-                    <div className="text-3xl font-bold">{stats.overdueTasks}</div>
-                    <div className="text-sm text-white/80 mt-1 uppercase tracking-wide text-[11px]">Nhiệm Vụ Quá Hạn</div>
-                    <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/70 flex items-center justify-between">
-                        <span>● Tổng nhiệm vụ: {stats.totalTasks}</span>
-                        <span>▲ Tỷ lệ: {stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}%</span>
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
+                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-amber-300"></div> Tạm dừng: {stats.pausedTasks}</div>
+                        <div className="bg-amber-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
+                            {stats.notStartedTasks} Chưa bắt đầu
+                        </div>
+                    </div>
+                </div>
+
+                <div className="modern-stat-card bg-gradient-to-br from-rose-500 via-rose-600 to-rose-700 group">
+                    <div className="card-gradient-overlay opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="bg-white/20 p-3 rounded-2xl shadow-inner backdrop-blur-md">
+                            <AlertTriangle size={24} />
+                        </div>
+                        <div className="text-right">
+                            <div className="text-3xl font-black">{stats.overdueTasks}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Quá hạn</div>
+                        </div>
+                    </div>
+                    <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold relative z-10">
+                        <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-rose-300"></div> Cần xử lý gấp</div>
+                        <div className="bg-rose-400/30 px-2 py-0.5 rounded-full ring-1 ring-white/20">
+                            {stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}% Danger
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Row 2: Activity + Urgent Tasks */}
+            {/* Activities & Urgent Tasks Row */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                {/* Activity Feed */}
-                <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                    <div className="px-5 py-4 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800">Hoạt động gần đây</h3>
+                <div className="lg:col-span-2 glass-card">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Hoạt động gần đây</h3>
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                     </div>
-                    <div className="p-5 max-h-[420px] overflow-y-auto">
+                    <div className="p-6 max-h-[440px] overflow-y-auto custom-scrollbar">
                         {recentActivities.length === 0 ? (
-                            <div className="text-center py-8 text-slate-400 text-sm">Chưa có hoạt động nào.</div>
+                            <div className="text-center py-12 text-slate-400 text-xs italic">Chưa có hoạt động nào.</div>
                         ) : (
-                            <div className="space-y-5">
+                            <div className="space-y-6">
                                 {recentActivities.map((a) => (
-                                    <div key={a.id} className="flex gap-3">
+                                    <div key={a.id} className="flex gap-4 group">
                                         <div className="flex flex-col items-center">
-                                            <div className="w-3 h-3 rounded-full bg-indigo-500 z-10 ring-4 ring-white"></div>
-                                            <div className="w-px flex-1 bg-slate-200"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"></div>
+                                            <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
                                         </div>
-                                        <div className="flex-1 pb-2">
-                                            <p className="text-sm font-semibold text-slate-800">{a.action}</p>
-                                            <p className="text-xs text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100 line-clamp-2">{a.details}</p>
-                                            <p className="text-[11px] text-slate-400 mt-1">{formatTimeAgo(a.created_at)}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Urgent Tasks - Card style like screenshot */}
-                <div className="lg:col-span-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                    <div className="px-5 py-4 border-b border-slate-100">
-                        <h3 className="text-sm font-bold text-slate-800">Nhiệm vụ ưu tiên cao</h3>
-                    </div>
-                    <div className="p-4 max-h-[420px] overflow-y-auto">
-                        {urgentTasks.length === 0 ? (
-                            <div className="text-center py-8 text-slate-400 text-sm">🎉 Không có việc khẩn cấp!</div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {urgentTasks.map((task: any) => (
-                                    <div key={task.id} className="border border-slate-100 rounded-xl p-4 hover:shadow-md transition-shadow bg-white">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-[11px] font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded">{task.task_code}</span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
-                                        </div>
-                                        <h4 className="text-sm font-bold text-slate-800 line-clamp-1 mb-2">{task.name}</h4>
-                                        <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3">
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getStatusBadge(task.status)}`}>{task.status}</span>
-                                            <span>{task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                                        </div>
-                                        {/* Progress bar with green fill */}
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
-                                                <div className="bg-emerald-500 h-2 rounded-full transition-all" style={{ width: `${task.completion_pct || 0}%` }}></div>
+                                        <div className="flex-1 pb-4">
+                                            <p className="text-xs font-bold text-slate-800 leading-snug">{a.action}</p>
+                                            <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
+                                                {a.details}
                                             </div>
-                                            <span className="text-[10px] font-semibold text-emerald-600">{task.completion_pct || 0}%</span>
+                                            <p className="text-[10px] text-slate-400 mt-1.5 font-bold flex items-center gap-1">
+                                                <Clock size={10} /> {formatTimeAgo(a.created_at)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="lg:col-span-3 glass-card">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Nhiệm vụ ưu tiên cao</h3>
+                        <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-rose-100">CẦN XỬ LÝ</span>
+                    </div>
+                    <div className="p-4 max-h-[440px] overflow-y-auto custom-scrollbar">
+                        {urgentTasks.length === 0 ? (
+                            <div className="text-center py-12 text-slate-400 text-xs italic">🎉 Không có việc khẩn cấp!</div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {urgentTasks.map((task: any) => (
+                                    <div key={task.id} className="border border-slate-100 rounded-[20px] p-4 hover:shadow-xl transition-all duration-300 bg-white group ring-1 ring-black/5 hover:ring-indigo-100 transform hover:-translate-y-1">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-[10px] font-black text-slate-400 tracking-widest">{task.task_code}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
+                                        </div>
+                                        <h4 className="text-sm font-bold text-slate-800 line-clamp-2 mb-3 leading-tight group-hover:text-indigo-600 transition-colors uppercase italic tracking-tight">{task.name}</h4>
+                                        <div className="flex items-center justify-between text-[10px] text-slate-500 mb-4 font-bold uppercase">
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black ${getStatusBadge(task.status)}`}>{task.status}</span>
+                                            <span className="text-slate-400">HẠN: {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
+                                                <span>TIẾN ĐỘ</span>
+                                                <span className="text-emerald-500">{task.completion_pct || 0}%</span>
+                                            </div>
+                                            <div className="bg-slate-50 rounded-full h-1.5 ring-1 ring-black/5">
+                                                <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-1.5 rounded-full shadow-sm" style={{ width: `${task.completion_pct || 0}%` }}></div>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -264,65 +293,117 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Charts Row 1 */}
+            {/* Charts Section - 6 Premium Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Trạng thái nhiệm vụ</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <PieChart><Pie data={taskStatusData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
-                            {taskStatusData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i % COLORS_STATUS.length]} />)}
-                        </Pie><Tooltip /><Legend wrapperStyle={{ fontSize: '11px' }} /></PieChart>
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-emerald-500 rounded-full"></div> Trạng thái nhiệm vụ
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
+                        <PieChart>
+                            <Pie
+                                data={taskStatusData}
+                                cx="50%" cy="50%"
+                                innerRadius={65} outerRadius={90}
+                                paddingAngle={5} dataKey="value"
+                                cornerRadius={6}
+                            >
+                                {taskStatusData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i % COLORS_STATUS.length]} />)}
+                            </Pie>
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '10px' }} />
+                        </PieChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Phân bổ tiến độ dự án</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={projectProgressData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip />
-                            <Bar dataKey="Khối lượng" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Phân bổ ưu tiên nhiệm vụ</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <PieChart><Pie data={taskPriorityData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
-                            {taskPriorityData.map((_, i) => <Cell key={i} fill={COLORS_PRIORITY[i % COLORS_PRIORITY.length]} />)}
-                        </Pie><Tooltip /><Legend wrapperStyle={{ fontSize: '11px' }} /></PieChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
 
-            {/* Charts Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Hiệu quả nhân viên</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={employeeData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar dataKey="Tổng số nhiệm vụ" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Việc hoàn thành (%)" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-indigo-500 rounded-full"></div> Tiến độ dự án (%)
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
+                        <BarChart data={projectProgressData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                            <Bar dataKey="Khối lượng" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
+                                <defs>
+                                    <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
+                                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0.8} />
+                                    </linearGradient>
+                                </defs>
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">Xu hướng hoàn thành</h3>
-                    <ResponsiveContainer width="100%" height={220}>
+
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-amber-500 rounded-full"></div> Mức độ ưu tiên
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
+                        <PieChart>
+                            <Pie
+                                data={taskPriorityData}
+                                cx="50%" cy="50%"
+                                innerRadius={65} outerRadius={90}
+                                paddingAngle={5} dataKey="value"
+                                cornerRadius={6}
+                            >
+                                {taskPriorityData.map((_, i) => <Cell key={i} fill={COLORS_PRIORITY[i % COLORS_PRIORITY.length]} />)}
+                            </Pie>
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-blue-500 rounded-full"></div> Hiệu suất nhân viên
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
+                        <BarChart data={employeeData}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                            <Bar dataKey="Tổng số nhiệm vụ" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={12} />
+                            <Bar dataKey="Việc hoàn thành (%)" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-purple-500 rounded-full"></div> Xu hướng hoàn thành
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
                         <LineChart data={trendData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip />
-                            <Line type="monotone" dataKey="Hoàn thành" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                            <Line type="monotone" dataKey="Hoàn thành" stroke="#8b5cf6" strokeWidth={3} dot={{ stroke: '#8b5cf6', strokeWidth: 2, r: 4, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-sm font-bold text-slate-800 mb-4">So sánh dự án</h3>
-                    <ResponsiveContainer width="100%" height={220}>
+
+                <div className="glass-card p-6">
+                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-3 bg-sky-500 rounded-full"></div> So sánh trạng thái dự án
+                    </h3>
+                    <ResponsiveContainer width="100%" height={240}>
                         <BarChart data={projectCompareData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" /><XAxis dataKey="name" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip />
-                            <Legend wrapperStyle={{ fontSize: '11px' }} />
-                            <Bar dataKey="Đang thực hiện" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="Hoàn thành" fill="#10b981" radius={[4, 4, 0, 0]} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
+                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                            <Bar dataKey="Đang thực hiện" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={12} />
+                            <Bar dataKey="Hoàn thành" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

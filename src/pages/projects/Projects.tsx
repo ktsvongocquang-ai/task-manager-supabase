@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users, Clock } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
 export const Projects = () => {
@@ -200,42 +200,40 @@ export const Projects = () => {
             {/* Project Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project) => (
-                    <div key={project.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow relative group">
+                    <div key={project.id} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1">
                         {/* Status badge in top left */}
                         <div className="flex justify-between items-start mb-4">
-                            <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase border ${getStatusBadge(project.status)}`}>
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${getStatusBadge(project.status)}`}>
                                 {project.status}
                             </span>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                <button onClick={() => handleCopy(project)} className="w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors shadow-sm border border-blue-100">
-                                    <Copy size={13} />
+                                <button onClick={() => handleCopy(project)} className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
+                                    <Copy size={14} />
                                 </button>
-                                <button onClick={() => { }} className="w-7 h-7 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center hover:bg-emerald-100 transition-colors shadow-sm border border-emerald-100">
-                                    <Clock size={13} />
+                                <button onClick={() => openEditModal(project)} className="w-8 h-8 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all shadow-sm border border-amber-100">
+                                    <Edit3 size={14} />
                                 </button>
-                                <button onClick={() => openEditModal(project)} className="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center hover:bg-amber-100 transition-colors shadow-sm border border-amber-100">
-                                    <Edit3 size={13} />
-                                </button>
-                                <button onClick={() => handleDelete(project.id)} className="w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors shadow-sm border border-red-100">
-                                    <Trash2 size={13} />
+                                <button onClick={() => handleDelete(project.id)} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100">
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         </div>
 
-                        <h3 className="text-base font-bold text-slate-800 mb-1 leading-tight">{project.name} ({project.project_code})</h3>
-                        <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8">{project.description || 'Không có mô tả'}</p>
+                        <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
+                        <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
+                        <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
 
-                        <div className="space-y-3 mb-4">
-                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                        <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
                                 <Calendar size={14} className="text-emerald-500" />
                                 <span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
                                 <Calendar size={14} className="text-rose-500" />
                                 <span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-600">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
                                 <Users size={14} className="text-indigo-500" />
                                 <span>Quản lý: {getManagerName(project.manager_id || '')}</span>
                             </div>
@@ -243,13 +241,13 @@ export const Projects = () => {
 
                         {/* Progress */}
                         <div className="pt-3 border-t border-slate-100">
-                            <div className="flex justify-between items-center mb-1.5">
-                                <span className="text-[11px] font-bold text-slate-500 uppercase">Tiến độ</span>
-                                <span className="text-[11px] font-bold text-indigo-600">{project.status === 'Hoàn thành' ? '100%' : '65%'}</span>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ dự án</span>
+                                <span className="text-[11px] font-black text-blue-600">{project.status === 'Hoàn thành' ? '100%' : '65%'}</span>
                             </div>
-                            <div className="bg-slate-100 rounded-full h-2">
+                            <div className="bg-slate-100 rounded-full h-2 ring-1 ring-black/5">
                                 <div
-                                    className={`h-2 rounded-full transition-all duration-500 ${project.status === 'Hoàn thành' ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                                    className={`h-2 rounded-full transition-all duration-700 shadow-sm ${project.status === 'Hoàn thành' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
                                     style={{ width: project.status === 'Hoàn thành' ? '100%' : '65%' }}
                                 ></div>
                             </div>
