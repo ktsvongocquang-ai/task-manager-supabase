@@ -79,10 +79,18 @@ export const Projects = () => {
 
     const handleSave = async () => {
         try {
+            // Remove budget if it's potentially causing a "column does not exist" error
+            // Also ensure we don't send empty strings for optional relation fields
+            const { budget, ...formData } = form;
             const payload = {
-                ...form,
-                manager_id: form.manager_id || null // Ensure empty string is null for UUID columns
+                ...formData,
+                manager_id: formData.manager_id || null,
+                description: formData.description || null,
+                start_date: formData.start_date || null,
+                end_date: formData.end_date || null
             }
+
+            console.log('Sending project payload:', payload);
 
             let result;
             if (editingProject) {
@@ -93,7 +101,7 @@ export const Projects = () => {
 
             if (result.error) {
                 console.error('Supabase Error:', result.error)
-                alert(`Lỗi: ${result.error.message}`)
+                alert(`Lỗi Supabase: ${result.error.message} (Mã: ${result.error.code})`)
                 return
             }
 
@@ -101,7 +109,7 @@ export const Projects = () => {
             fetchProjects()
         } catch (err) {
             console.error('Catch Error:', err)
-            alert('Có lỗi xảy ra khi lưu dữ án.')
+            alert('Lỗi hệ thống khi lưu dự án. Vui lòng kiểm tra console.')
         }
     }
 
