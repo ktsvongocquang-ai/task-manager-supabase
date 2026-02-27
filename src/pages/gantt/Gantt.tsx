@@ -9,8 +9,8 @@ const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', '
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 const PROJECT_COLORS = [
-    'bg-indigo-400', 'bg-emerald-400', 'bg-amber-400', 'bg-rose-400',
-    'bg-cyan-400', 'bg-purple-400', 'bg-orange-400', 'bg-teal-400'
+    'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-emerald-500',
+    'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-orange-500'
 ]
 
 export const Gantt = () => {
@@ -165,21 +165,24 @@ export const Gantt = () => {
             </div>
 
             {/* Navigation Header */}
-            <div className="bg-white border border-slate-100 p-4 rounded-3xl shadow-sm flex items-center justify-center gap-8">
+            <div className="bg-white/70 backdrop-blur-md border border-white/20 p-4 rounded-[2rem] shadow-xl flex items-center justify-center gap-12 group">
                 <button
                     onClick={prevMonth}
-                    className="w-10 h-10 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100 flex items-center justify-center transition-all active:scale-90"
+                    className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
-                    <ChevronLeft size={22} />
+                    <ChevronLeft size={24} />
                 </button>
-                <h2 className="text-lg font-black text-slate-800 min-w-[180px] text-center uppercase tracking-tight">
-                    {MONTHS_VI[month]} {year}
-                </h2>
+                <div className="flex flex-col items-center">
+                    <h2 className="text-2xl font-black text-gray-900 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        {MONTHS_VI[month]} {year}
+                    </h2>
+                    <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1 opacity-20"></div>
+                </div>
                 <button
                     onClick={nextMonth}
-                    className="w-10 h-10 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-100 flex items-center justify-center transition-all active:scale-90"
+                    className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
-                    <ChevronRight size={22} />
+                    <ChevronRight size={24} />
                 </button>
             </div>
 
@@ -197,12 +200,12 @@ export const Gantt = () => {
                                     key={day}
                                     style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
                                     className={`text-center flex flex-col items-center justify-center py-2 border-r border-slate-100 transition-colors ${isToday(day) ? 'bg-orange-500' :
-                                            isWeekend(day) ? 'bg-slate-100/50' : 'bg-blue-50/50'
+                                        isWeekend(day) ? 'bg-slate-100/50' : 'bg-blue-50/50'
                                         }`}
                                 >
                                     <div className={`text-[11px] font-black ${isToday(day) ? 'text-white' : 'text-slate-700'}`}>{day}</div>
                                     <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(day) ? 'text-white/80' :
-                                            isWeekend(day) ? 'text-red-400' : 'text-blue-400'
+                                        isWeekend(day) ? 'text-red-400' : 'text-blue-400'
                                         }`}>
                                         {getDayName(day)}
                                     </div>
