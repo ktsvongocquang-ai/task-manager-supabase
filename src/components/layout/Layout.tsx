@@ -11,7 +11,6 @@ import {
     Rocket,
     MessageSquare,
     Youtube,
-    ChevronDown,
     Send,
     MessageCircle,
     FolderPlus,
@@ -169,9 +168,9 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-72 flex flex-col min-h-screen">
+            <main className="flex-1 md:ml-72 flex flex-col min-h-screen relative">
                 {/* Header */}
-                <header className="sticky top-0 bg-white/60 backdrop-blur-xl border-b border-white/20 z-30 px-6 py-4">
+                <header className="sticky top-0 bg-white/60 backdrop-blur-xl border-b border-white/20 z-40 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <button
@@ -183,43 +182,48 @@ export const Layout = () => {
                             <h2 className="text-xl font-bold text-gray-900">{currentTitle()}</h2>
                         </div>
 
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-3">
                             {/* Refresh Button */}
                             <button
                                 onClick={handleRefresh}
-                                className={`p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors ${isRefreshing ? 'animate-spin' : ''}`}
+                                className={`p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
                                 title="Làm mới dữ liệu"
                             >
-                                <RefreshCw size={18} />
+                                <RefreshCw size={18} strokeWidth={2.5} />
                             </button>
 
-                            {/* Quick Add Dropdown */}
+                            {/* Quick Add Button */}
                             <div className="relative">
                                 <button
                                     onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
-                                    className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200/50 hover:scale-105 active:scale-95 transition-all"
+                                    className="flex items-center px-5 py-2.5 bg-gradient-to-r from-[#3a31d8] to-[#6366f1] text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200/50 hover:scale-105 active:scale-95 transition-all gap-2"
                                 >
-                                    <Plus size={18} className="mr-2" />
+                                    <Plus size={18} strokeWidth={3} />
                                     <span>Tạo mới</span>
-                                    <ChevronDown size={14} className={`ml-2 transition-transform duration-200 ${isQuickAddOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
                                 {isQuickAddOpen && (
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setIsQuickAddOpen(false)}></div>
-                                        <div className="absolute right-0 mt-2 w-52 glass-card shadow-xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2">
-                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/projects'); }} className="quick-add-item">
-                                                <FolderPlus className="text-purple-600" size={18} />
-                                                <span>Dự án mới</span>
+                                        <div className="absolute right-0 mt-2 w-56 glass-card shadow-2xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2 overflow-hidden border border-white/40">
+                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/projects'); }} className="quick-add-item mx-2">
+                                                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
+                                                    <FolderPlus className="text-purple-600" size={18} />
+                                                </div>
+                                                <span className="font-bold text-slate-700">Dự án mới</span>
                                             </div>
-                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/tasks'); }} className="quick-add-item">
-                                                <PlusCircle className="text-emerald-600" size={18} />
-                                                <span>Nhiệm vụ mới</span>
+                                            <div onClick={() => { setIsQuickAddOpen(false); navigate('/tasks'); }} className="quick-add-item mx-2">
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
+                                                    <PlusCircle className="text-emerald-600" size={18} />
+                                                </div>
+                                                <span className="font-bold text-slate-700">Nhiệm vụ mới</span>
                                             </div>
                                             {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
-                                                <div onClick={() => { setIsQuickAddOpen(false); navigate('/users'); }} className="quick-add-item">
-                                                    <UserPlus className="text-amber-600" size={18} />
-                                                    <span>Nhân viên mới</span>
+                                                <div onClick={() => { setIsQuickAddOpen(false); navigate('/users'); }} className="quick-add-item mx-2">
+                                                    <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mr-3">
+                                                        <UserPlus className="text-amber-600" size={18} />
+                                                    </div>
+                                                    <span className="font-bold text-slate-700">Nhân viên mới</span>
                                                 </div>
                                             )}
                                         </div>
@@ -227,53 +231,59 @@ export const Layout = () => {
                                 )}
                             </div>
 
-                            {/* Chat Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsChatOpen(!isChatOpen)}
-                                    className="relative p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
-                                >
-                                    <MessageSquare size={18} />
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white">0</span>
-                                </button>
-
-                                {isChatOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-10" onClick={() => setIsChatOpen(false)}></div>
-                                        <div className="absolute right-0 mt-2 w-[400px] glass-card shadow-xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col max-h-[500px]">
-                                            <div className="p-4 border-b border-gray-100/50 flex justify-between items-center">
-                                                <h3 className="font-bold text-gray-900">Chat chung</h3>
-                                                <div className="px-2 py-0.5 bg-blue-100 text-blue-600 text-[10px] font-bold rounded-full uppercase">Sắp ra mắt</div>
-                                            </div>
-                                            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[200px] flex items-center justify-center bg-slate-50/50">
-                                                <div className="text-center">
-                                                    <MessageCircle className="mx-auto text-gray-300 mb-2" size={32} />
-                                                    <p className="text-sm text-gray-500">Kênh chat chung đang được phát triển</p>
-                                                </div>
-                                            </div>
-                                            <div className="p-4 border-t border-gray-100/50">
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        disabled
-                                                        className="flex-1 text-sm px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed"
-                                                        placeholder="Nhập tin nhắn..."
-                                                    />
-                                                    <button disabled className="p-2 bg-blue-100 text-blue-400 rounded-lg cursor-not-allowed">
-                                                        <Send size={18} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                            {/* Global Chat Button */}
+                            <button
+                                onClick={() => setIsChatOpen(!isChatOpen)}
+                                className="relative p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                            >
+                                <MessageSquare size={18} strokeWidth={2.5} />
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
+                            </button>
                         </div>
                     </div>
                 </header>
 
+                {/* Chat Dropdown logic (Absolute positioned relative to header) */}
+                {isChatOpen && (
+                    <div className="fixed inset-0 z-[60]" onClick={() => setIsChatOpen(false)}>
+                        <div
+                            className="absolute right-6 top-20 w-[400px] glass-card shadow-2xl z-[70] animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col max-h-[600px] border border-white/40"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-5 border-b border-gray-100/50 flex justify-between items-center bg-white/80">
+                                <div>
+                                    <h3 className="font-black text-gray-900 uppercase text-sm tracking-tight">Chat chung</h3>
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Kênh thảo luận nội bộ</p>
+                                </div>
+                                <div className="px-3 py-1 bg-blue-100 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-tighter">Sắp ra mắt</div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[300px] flex items-center justify-center bg-slate-50/30 backdrop-blur-sm">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                        <MessageCircle className="text-blue-300" size={32} />
+                                    </div>
+                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest px-10">Kênh chat đang được hoàn thiện</p>
+                                </div>
+                            </div>
+                            <div className="p-5 border-t border-gray-100/50 bg-white/80">
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        disabled
+                                        className="flex-1 text-xs px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed font-medium"
+                                        placeholder="Nhập tin nhắn..."
+                                    />
+                                    <button disabled className="p-3 bg-blue-50 text-blue-300 rounded-xl cursor-not-allowed">
+                                        <Send size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Page View */}
-                <div className="p-6 flex-1">
+                <div className="p-6 flex-1 overflow-y-auto">
                     <Outlet />
                 </div>
             </main>

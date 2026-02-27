@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
-import { Plus, Edit3, Trash2, X, Check, Info, Search } from 'lucide-react'
+import { Edit3, Trash2, X, Check, Info, Search, UserPlus, FolderKanban, CheckSquare } from 'lucide-react'
 
 // Specific permission data structure to match the snapshot
 const PERMISSIONS = {
@@ -163,80 +163,80 @@ export const Users = () => {
 
     return (
         <div className="space-y-6 max-w-[1450px] mx-auto pb-10">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white/50 backdrop-blur-md p-4 rounded-3xl gap-4">
-                <h1 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                    <span className="w-1.5 h-6 bg-orange-500 rounded-full"></span>
-                    QUẢN LÝ NHÂN VIÊN
-                </h1>
-
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Tìm kiếm nhân viên..."
-                            className="w-full bg-white border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all shadow-sm"
-                        />
-                    </div>
-                    <button
-                        onClick={openAddModal}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg shadow-orange-200 transition-all flex items-center gap-2 active:scale-95 uppercase whitespace-nowrap"
-                    >
-                        <Plus size={16} strokeWidth={3} /> Thêm mới
-                    </button>
+            {/* Action Section Below Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-center bg-white/40 p-4 rounded-3xl border border-white/30 gap-4">
+                <div className="relative w-full sm:w-80">
+                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Tìm kiếm nhân viên..."
+                        className="w-full bg-white/80 border border-slate-200/50 pl-10 pr-4 py-3 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm"
+                    />
                 </div>
+                <button
+                    onClick={openAddModal}
+                    className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 rounded-2xl text-[12px] font-black shadow-xl shadow-orange-200/50 transition-all flex items-center justify-center gap-2 active:scale-95 uppercase tracking-wider"
+                >
+                    <UserPlus size={18} strokeWidth={3} />
+                    Thêm nhân viên
+                </button>
             </div>
 
             {/* Permissions Matrix - High Fidelity */}
-            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-sm overflow-hidden">
-                <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3 bg-slate-50/30">
-                    <div className="w-7 h-7 bg-indigo-500 rounded-full flex items-center justify-center text-white shadow-sm ring-4 ring-indigo-50">
-                        <Info size={14} />
+            <div className="bg-white/80 backdrop-blur-xl border border-white/20 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden">
+                <div className="px-8 py-5 border-b border-slate-100/50 flex items-center gap-3 bg-slate-50/50">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <Info size={16} />
                     </div>
-                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Phân quyền hệ thống</h3>
+                    <div>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">Phân quyền hệ thống</h3>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-0.5">Quy định truy cập</p>
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-slate-200 bg-slate-50/10">
-                                <th className="text-left py-5 px-8 font-black text-slate-500 text-[10px] uppercase tracking-[0.2em] w-1/3">Chức năng</th>
-                                <th className="text-center py-5 px-6 font-black text-orange-500 text-[10px] uppercase tracking-[0.2em]">👑 ADMIN</th>
-                                <th className="text-center py-5 px-6 font-black text-blue-600 text-[10px] uppercase tracking-[0.2em]">👤 QUẢN LÝ</th>
-                                <th className="text-center py-5 px-6 font-black text-emerald-500 text-[10px] uppercase tracking-[0.2em]">👥 NHÂN VIÊN</th>
+                            <tr className="border-b border-slate-100 bg-slate-50/30">
+                                <th className="text-left py-6 px-10 font-black text-slate-400 text-[10px] uppercase tracking-[0.2em] w-1/3">Chức năng hệ thống</th>
+                                <th className="text-center py-6 px-6 font-black text-orange-500 text-[10px] uppercase tracking-[0.2em]">👑 ADMIN</th>
+                                <th className="text-center py-6 px-6 font-black text-blue-600 text-[10px] uppercase tracking-[0.2em]">👤 QUẢN LÝ</th>
+                                <th className="text-center py-6 px-6 font-black text-emerald-500 text-[10px] uppercase tracking-[0.2em]">👥 NHÂN VIÊN</th>
                             </tr>
                         </thead>
                         <tbody>
                             {Object.entries(PERMISSIONS).map(([category, perms]) => (
                                 <React.Fragment key={category}>
                                     <tr className={category === 'QUẢN LÝ DỰ ÁN' ? 'bg-indigo-50/40' : 'bg-emerald-50/40'}>
-                                        <td colSpan={4} className={`py-2 px-8 text-[10px] font-black uppercase tracking-[0.2em] ${category === 'QUẢN LÝ DỰ ÁN' ? 'text-indigo-600' : 'text-emerald-600'}`}>
-                                            {category === 'QUẢN LÝ DỰ ÁN' ? '📁 ' : '📝 '} {category}
+                                        <td colSpan={4} className={`py-3 px-10 text-[11px] font-black uppercase tracking-[0.15em] ${category === 'QUẢN LÝ DỰ ÁN' ? 'text-indigo-600' : 'text-emerald-600'}`}>
+                                            <span className="flex items-center gap-2">
+                                                {category === 'QUẢN LÝ DỰ ÁN' ? <FolderKanban size={14} /> : <CheckSquare size={14} />}
+                                                {category}
+                                            </span>
                                         </td>
                                     </tr>
                                     {perms.map((p, i) => (
-                                        <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors group">
-                                            <td className="py-4 px-8 text-[11px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">
+                                        <tr key={i} className="border-b border-slate-50 hover:bg-white/90 transition-all group">
+                                            <td className="py-4 px-10 text-[11px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">
                                                 {p.name}
                                             </td>
                                             <td className="py-4 px-6 text-center">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    {p.admin.value ? <Check size={18} className="text-emerald-500" /> : <X size={18} className="text-red-400" />}
-                                                    {p.admin.note && <span className="text-[9px] text-slate-400 font-medium italic">{p.admin.note}</span>}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    {p.admin.value ? <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shadow-sm shadow-emerald-100"><Check size={14} className="text-emerald-600" strokeWidth={4} /></div> : <X size={18} className="text-red-400" />}
+                                                    {p.admin.note && <span className="text-[9px] text-slate-400 font-medium italic bg-slate-50 px-2 py-0.5 rounded-full">{p.admin.note}</span>}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6 text-center">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    {p.manager.value ? <Check size={18} className="text-emerald-500" /> : <X size={18} className="text-red-400" />}
-                                                    {p.manager.note && <span className="text-[9px] text-slate-400 font-medium italic">{p.manager.note}</span>}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    {p.manager.value ? <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shadow-sm shadow-emerald-100"><Check size={14} className="text-emerald-600" strokeWidth={4} /></div> : <X size={18} className="text-red-400" />}
+                                                    {p.manager.note && <span className="text-[9px] text-slate-400 font-medium italic bg-slate-50 px-2 py-0.5 rounded-full">{p.manager.note}</span>}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-6 text-center">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    {p.staff.value ? <Check size={18} className="text-emerald-500" /> : <X size={18} className="text-red-400" />}
-                                                    {p.staff.note && <span className="text-[9px] text-slate-400 font-medium italic">{p.staff.note}</span>}
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    {p.staff.value ? <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shadow-sm shadow-emerald-100"><Check size={14} className="text-emerald-600" strokeWidth={4} /></div> : <X size={18} className="text-red-400" />}
+                                                    {p.staff.note && <span className="text-[9px] text-slate-400 font-medium italic bg-slate-50 px-2 py-0.5 rounded-full">{p.staff.note}</span>}
                                                 </div>
                                             </td>
                                         </tr>
@@ -253,38 +253,41 @@ export const Users = () => {
                 {filteredProfiles.map(p => {
                     const brand = getRoleBrand(p.role)
                     return (
-                        <div key={p.id} className={`bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm hover:shadow-xl transition-all text-center flex flex-col group relative ${brand.hover}`}>
+                        <div key={p.id} className={`bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm hover:shadow-2xl transition-all duration-300 text-center flex flex-col group relative overflow-hidden ${brand.hover}`}>
+                            {/* Background Accent */}
+                            <div className={`absolute top-0 inset-x-0 h-1.5 ${brand.color} opacity-20`}></div>
+
                             {/* Role Icon/Initial Circle */}
-                            <div className={`w-14 h-14 mx-auto rounded-full ${brand.color} text-white flex items-center justify-center text-xs font-black mb-5 shadow-lg ring-8 ring-slate-50 relative group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-16 h-16 mx-auto rounded-full ${brand.color} text-white flex items-center justify-center text-sm font-black mb-5 shadow-xl shadow-slate-200 ring-8 ring-slate-50 relative group-hover:scale-110 transition-transform duration-500`}>
                                 {getInitials(p.full_name)}
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                    <div className={`w-3 h-3 rounded-full ${brand.color}`}></div>
+                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+                                    <div className={`w-3.5 h-3.5 rounded-full ${brand.color} animate-pulse`}></div>
                                 </div>
                             </div>
 
-                            <h4 className="text-sm font-black text-slate-800 mb-1 tracking-tight">{p.full_name}</h4>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{p.position || 'Chức vụ'}</p>
-                            <p className="text-[10px] text-slate-400 mb-5 truncate italic">{p.email}</p>
+                            <h4 className="text-sm font-black text-slate-800 mb-1 tracking-tight group-hover:text-blue-600 transition-colors uppercase">{p.full_name}</h4>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{p.position || 'Chức vụ'}</p>
+                            <p className="text-[10px] text-slate-400 mb-6 truncate italic font-medium">{p.email}</p>
 
-                            <div className="mt-auto">
-                                <span className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${brand.badge} shadow-sm group-hover:scale-105 transition-transform`}>
+                            <div className="mt-auto flex flex-col items-center">
+                                <span className={`inline-flex px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${brand.badge} shadow-lg transition-all group-hover:px-6`}>
                                     {p.role}
                                 </span>
 
-                                <div className="flex items-center justify-center gap-2 mt-6 p-2 bg-slate-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                <div className="flex items-center justify-center gap-3 mt-8">
                                     <button
                                         onClick={() => openEditModal(p)}
-                                        className="w-10 h-10 bg-white text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 hover:bg-blue-600 hover:text-white transition-all transform hover:-rotate-12"
+                                        className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm border border-blue-100 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1"
                                         title="Chỉnh sửa"
                                     >
-                                        <Edit3 size={16} />
+                                        <Edit3 size={15} strokeWidth={2.5} />
                                     </button>
                                     <button
                                         onClick={() => handleDelete(p.id)}
-                                        className="w-10 h-10 bg-white text-red-500 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 hover:bg-red-500 hover:text-white transition-all transform hover:rotate-12"
+                                        className="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white transition-all transform hover:-translate-y-1"
                                         title="Xóa"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={15} strokeWidth={2.5} />
                                     </button>
                                 </div>
                             </div>
