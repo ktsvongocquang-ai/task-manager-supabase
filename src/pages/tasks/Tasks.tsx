@@ -33,7 +33,7 @@ export const Tasks = () => {
             const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name, role')
+                supabase.from('profiles').select('id, full_name, role, email')
             ])
             setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
@@ -577,6 +577,17 @@ export const Tasks = () => {
                                     onChange={(e) => setForm({ ...form, output: e.target.value })}
                                     className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
                                     placeholder="Mô tả kết quả đầu ra mong muốn..."
+                                />
+                            </div>
+
+                            {/* Ghi chú */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 mb-2">Ghi chú</label>
+                                <textarea
+                                    value={form.notes}
+                                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
+                                    placeholder="Ghi chú thêm..."
                                 />
                             </div>
                         </div>
