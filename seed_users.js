@@ -1,26 +1,23 @@
-// File chạy một lần (script) để thêm 7 nhân viên bằng JS thay vì SQL
-// Yêu cầu: Đã cài đặt @supabase/supabase-js và dotenv 
-
 import { createClient } from '@supabase/supabase-js';
 
-// Vui lòng điền đúng 2 thông số này từ phần Settings > API của Supabase
-const supabaseUrl = 'https://mlozcqdfyvuelktogdma.supabase.co'; // Thay bằng URL của bạn nếu khác
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || 'ĐIỀN_ANON_KEY_VÀO_ĐÂY'; // Thay bằng Anon Key thực tế
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://mlozcqdfyvuelktogdma.supabase.co';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sb3pjcWRmeXZ1ZWxrdG9nZG1hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxNTg1ODcsImV4cCI6MjA4NzczNDU4N30.Gu-9XFac2ft9hwprsQybCOGF_EyyNkYIIpd9zJHWvys';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const usersToCreate = [
-    { email: 'admin@dqh.vn', password: 'password123', fullName: 'Admin', role: 'Admin', position: 'Admin', staffId: 'ADMIN_01' },
-    { email: 'aminh@dqh.vn', password: 'password123', fullName: 'Aminh', role: 'Quản lý', position: 'Quản trị viên', staffId: 'NV001' },
-    { email: 'thang@dqh.vn', password: 'password123', fullName: 'Thắng', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV002' },
-    { email: 'minh@dqh.vn', password: 'password123', fullName: 'Minh', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV003' },
-    { email: 'vy@dqh.vn', password: 'password123', fullName: 'Vy', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV004' },
-    { email: 'hau@dqh.vn', password: 'password123', fullName: 'Hậu', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV005' },
-    { email: 'khoa@dqh.vn', password: 'password123', fullName: 'Khoa', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV006' }
+    { email: 'admin@dqh.vn', password: '123456', fullName: 'Admin', role: 'Admin', position: 'Admin', staffId: 'ADMIN_01' },
+    { email: 'aminh@dqh.vn', password: '123456', fullName: 'Aminh', role: 'Quản lý', position: 'Quản trị viên', staffId: 'NV001' },
+    // Không tạo Thắng vì Thắng đã đăng nhập thành công
+    // { email: 'thang@dqh.vn', password: '123456', fullName: 'Thắng', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV002' },
+    { email: 'minh@dqh.vn', password: '123456', fullName: 'Minh', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV003' },
+    { email: 'vy@dqh.vn', password: '123456', fullName: 'Vy', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV004' },
+    { email: 'hau@dqh.vn', password: '123456', fullName: 'Hậu', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV005' },
+    { email: 'khoa@dqh.vn', password: '123456', fullName: 'Khoa', role: 'Nhân viên', position: 'Nhân viên', staffId: 'NV006' }
 ];
 
 async function seedUsers() {
-    console.log('🚀 Bắt đầu tạo 7 nhân viên qua API...');
+    console.log('🚀 Bắt đầu tạo 6 nhân viên (trừ Thắng) qua API...');
 
     for (const u of usersToCreate) {
         console.log(`Đang chạy: ${u.email}...`);
@@ -38,19 +35,13 @@ async function seedUsers() {
 
         if (authError) {
             console.error(`❌ Lỗi tạo Auth user (${u.email}):`, authError.message);
-            // Nếu lỗi "User already registered", tiếp tục cập nhật Profile
-            if (!authError.message.includes('User already registered') && !authError.message.includes('already exists')) {
-                continue; // Bỏ qua nếu lỗi khác
-            }
+            continue;
         }
 
         let userId = authData?.user?.id;
 
-        // Nếu user đã tồn tại nhưng signUp bị chặn do chính sách, ta thử query lại id
         if (!userId) {
-            // Không có Admin Key thì không query được list user, do vậy đoạn này hơi hạn chế.
-            // Giải pháp tốt nhất: Xóa toàn bộ user lỗi cũ trong mục Authentication -> Users trên góc nhìn giao diện quản trị Supabase.
-            console.log(`⚠️ User ${u.email} đã tồn tại trong hệ thống cũ. Xin vui lòng xoá user bằng tay trong phần Authentication của Supabase trước.`);
+            console.log(`⚠️ User ${u.email} chưa được tạo ID.`);
             continue;
         }
 
@@ -65,14 +56,13 @@ async function seedUsers() {
                 full_name: u.fullName,
                 email: u.email,
                 role: u.role,
-                position: u.position,
-                updated_at: new Date().toISOString()
+                position: u.position
             }, { onConflict: 'id' });
 
         if (profileError) {
             console.error(`❌ Lỗi lưu Profile (${u.email}):`, profileError.message);
         } else {
-            console.log(`✅ Lưu Profile thành công cho ${u.fullName}!`);
+            console.log(`✅ Lưu Profile và Phân quyền thành công cho ${u.fullName} (${u.role})!`);
         }
     }
 
