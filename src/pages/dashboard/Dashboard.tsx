@@ -385,6 +385,8 @@ export const Dashboard = () => {
                                 {recentActivities.map((a) => {
                                     const prof = allProfiles.find(p => p.id === a.user_id);
                                     const userName = prof?.full_name || 'Hệ thống';
+                                    const proj = allProjects.find(p => p.id === a.project_id);
+                                    const projName = proj ? proj.name : null;
                                     const actionColor = a.action.toLowerCase().includes('thêm') ? 'text-emerald-500' :
                                         a.action.toLowerCase().includes('sửa') ? 'text-amber-500' :
                                             a.action.toLowerCase().includes('xóa') ? 'text-rose-500' : 'text-indigo-500';
@@ -395,10 +397,16 @@ export const Dashboard = () => {
                                                 <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
                                             </div>
                                             <div className="flex-1 pb-4">
-                                                <p className="text-xs font-bold text-slate-800 leading-snug flex items-center gap-1.5">
+                                                <p className="text-xs font-bold text-slate-800 leading-snug flex items-center gap-1.5 flex-wrap">
                                                     <span className={actionColor}>{a.action}</span>
                                                     <span className="text-slate-300">|</span>
                                                     <span>{userName}</span>
+                                                    {projName && (
+                                                        <>
+                                                            <span className="text-slate-300">|</span>
+                                                            <span className="text-slate-600 truncate max-w-[150px]" title={projName}>{projName}</span>
+                                                        </>
+                                                    )}
                                                 </p>
                                                 <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
                                                     {a.details}
