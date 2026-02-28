@@ -312,8 +312,8 @@ export const Tasks = () => {
                                                 const displayPct = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : task.completion_pct;
 
                                                 return (
-                                                    <tr key={task.id} className="hover:bg-slate-50/30 transition-colors">
-                                                        <td className="px-5 py-3">
+                                                    <tr key={task.id} onClick={() => openEditModal(task)} className="hover:bg-slate-50/30 transition-colors cursor-pointer group">
+                                                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                                                             <input
                                                                 type="checkbox"
                                                                 checked={task.status?.includes('Hoàn thành')}
