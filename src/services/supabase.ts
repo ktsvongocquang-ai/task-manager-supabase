@@ -8,3 +8,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+
+// Use this client for administrative tasks like creating new users
+// so it doesn't log out the currently authenticated admin.
+export const supabaseAdmin = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+    auth: {
+        autoRefreshToken: false,
+        persistSession: false
+    }
+})

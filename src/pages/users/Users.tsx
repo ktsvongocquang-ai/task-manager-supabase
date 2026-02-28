@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../../services/supabase'
+import { supabase, supabaseAdmin } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
-import { Edit3, Trash2, X, Check, Info, Search, UserPlus, FolderKanban, CheckSquare } from 'lucide-react'
+import { Edit3, Trash2, X, Check, Info, Search, UserPlus, FolderKanban, CheckSquare, Crown, User } from 'lucide-react'
 
 // Specific permission data structure to match the snapshot
 const PERMISSIONS = {
@@ -82,7 +82,7 @@ export const Users = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
     const [form, setForm] = useState({
-        staff_id: '', full_name: '', email: '', position: '', role: 'Nhân viên'
+        staff_id: '', full_name: '', email: '', position: '', role: 'Nhân viên', password: ''
     })
 
     const [search, setSearch] = useState('')
@@ -123,7 +123,7 @@ export const Users = () => {
     const openAddModal = () => {
         setEditingProfile(null)
         const nextId = `NV${String(profiles.length + 1).padStart(3, '0')}`
-        setForm({ staff_id: nextId, full_name: '', email: '', position: '', role: 'Nhân viên' })
+        setForm({ staff_id: nextId, full_name: '', email: '', position: '', role: 'Nhân viên', password: '' })
         setShowModal(true)
     }
 
@@ -131,7 +131,7 @@ export const Users = () => {
         setEditingProfile(p)
         setForm({
             staff_id: p.staff_id, full_name: p.full_name, email: p.email,
-            position: p.position || '', role: p.role
+            position: p.position || '', role: p.role, password: ''
         })
         setShowModal(true)
     }
@@ -148,11 +148,37 @@ export const Users = () => {
                     return
                 }
             } else {
-                if (!form.full_name || !form.email) {
-                    alert('Vui lòng nhập đầy đủ họ tên và email.')
+                if (!form.full_name || !form.email || !form.password) {
+                    alert('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.')
                     return
                 }
+
+                // Create user in Supabase Auth first using the admin client
+                const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
+                    email: form.email,
+                    password: form.password,
+                    options: {
+                        data: {
+                            full_name: form.full_name
+                        }
+                    }
+                })
+
+                if (authError) {
+                    console.error('Sign up error:', authError)
+                    alert(`Lỗi tạo tài khoản: ${authError.message}`)
+                    return
+                }
+
+                const newUserId = authData?.user?.id
+                if (!newUserId) {
+                    alert('Không thể lấy ID người dùng mới.')
+                    return
+                }
+
+                // Then create the profile
                 const { error } = await supabase.from('profiles').insert({
+                    id: newUserId,
                     staff_id: form.staff_id,
                     full_name: form.full_name,
                     email: form.email,
@@ -161,7 +187,7 @@ export const Users = () => {
                 })
                 if (error) {
                     console.error('Insert profile error:', error)
-                    alert(`Lỗi thêm nhân viên: ${error.message}`)
+                    alert(`Lỗi thêm nhân viên vào danh bạ: ${error.message}`)
                     return
                 }
             }
@@ -223,9 +249,9 @@ export const Users = () => {
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/30">
                                 <th className="text-left py-6 px-10 font-black text-slate-400 text-[10px] uppercase tracking-[0.2em] w-1/3">Chức năng hệ thống</th>
-                                <th className="text-center py-6 px-6 font-black text-orange-500 text-[10px] uppercase tracking-[0.2em]">👑 ADMIN</th>
-                                <th className="text-center py-6 px-6 font-black text-blue-600 text-[10px] uppercase tracking-[0.2em]">👤 QUẢN LÝ</th>
-                                <th className="text-center py-6 px-6 font-black text-emerald-500 text-[10px] uppercase tracking-[0.2em]">👥 NHÂN VIÊN</th>
+                                <th className="text-center py-6 px-6 font-black text-orange-500 text-[10px] uppercase tracking-[0.2em]"><div className="flex items-center justify-center gap-1.5"><Crown size={14} /> ADMIN</div></th>
+                                <th className="text-center py-6 px-6 font-black text-blue-600 text-[10px] uppercase tracking-[0.2em]"><div className="flex items-center justify-center gap-1.5"><User size={14} /> QUẢN LÝ</div></th>
+                                <th className="text-center py-6 px-6 font-black text-emerald-500 text-[10px] uppercase tracking-[0.2em]"><div className="flex items-center justify-center gap-1.5"><User size={14} /> NHÂN VIÊN</div></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -351,16 +377,28 @@ export const Users = () => {
                                 />
                             </div>
                             {!editingProfile && (
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Email <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="email"
-                                        value={form.email}
-                                        onChange={e => setForm({ ...form, email: e.target.value })}
-                                        className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
-                                        placeholder="example@email.com"
-                                    />
-                                </div>
+                                <>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Email <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="email"
+                                            value={form.email}
+                                            onChange={e => setForm({ ...form, email: e.target.value })}
+                                            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                                            placeholder="example@email.com"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Mật khẩu <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="password"
+                                            value={form.password}
+                                            onChange={e => setForm({ ...form, password: e.target.value })}
+                                            className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </>
                             )}
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Chức danh / Vị trí</label>
