@@ -83,11 +83,22 @@ export const Projects = () => {
         'Hủy bỏ': projects.filter(p => p.status === 'Hủy bỏ').length,
     }
 
+    const generateNextProjectCode = () => {
+        let maxId = 0;
+        projects.forEach(p => {
+            const match = p.project_code.match(/^DA(\d+)$/i);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+        return `DA${String(maxId + 1).padStart(3, '0')}`;
+    }
+
     const openAddModal = () => {
         setEditingProject(null)
-        const count = projects.length + 1
         setForm({
-            name: '', project_code: `DA${String(count).padStart(3, '0')}`,
+            name: '', project_code: generateNextProjectCode(),
             description: '', status: 'Chưa bắt đầu', start_date: '', end_date: '',
             manager_id: profile?.id || '', budget: 0
         })
@@ -145,11 +156,10 @@ export const Projects = () => {
     }
 
     const handleCopy = async (p: Project) => {
-        const count = projects.length + 1
         const { id, created_at, ...rest } = p as any
         const payload = {
             ...rest,
-            project_code: `DA${String(count).padStart(3, '0')}`,
+            project_code: generateNextProjectCode(),
             name: `${p.name} (Bản sao)`,
         }
 
