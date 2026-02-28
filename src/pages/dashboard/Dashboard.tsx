@@ -97,7 +97,7 @@ export const Dashboard = () => {
             setStats({
                 totalProjects: fetchedProjects.length, totalTasks: fetchedTasks.length,
                 completedTasks: completed, ongoingTasks: ongoing, overdueTasks: overdue,
-                notStartedTasks: notStarted, pausedTasks: paused, totalTaskCount: allTasks.length
+                notStartedTasks: notStarted, pausedTasks: paused, totalTaskCount: fetchedTasks.length
             })
 
             setTaskStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })))
@@ -283,7 +283,7 @@ export const Dashboard = () => {
                     <div className="card-gradient bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700"></div>
                     <div className="p-6">
                         <div className="flex items-center gap-4 mb-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-200 focus-within:">
+                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
                                 <CheckSquare size={24} />
                             </div>
                             <div className="flex-1">

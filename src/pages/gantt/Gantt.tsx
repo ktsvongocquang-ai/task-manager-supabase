@@ -111,7 +111,7 @@ export const Gantt = () => {
                     name: `  └ ${t.task_code}: ${t.name}`,
                     startDay: tEffStart.getDate(),
                     endDay: tEffEnd.getDate(),
-                    color: PROJECT_COLORS[idx % PROJECT_COLORS.length].replace('400', '300'),
+                    color: PROJECT_COLORS[idx % PROJECT_COLORS.length].replace('500', '300'),
                     type: 'task',
                     projectCode: p.project_code
                 })
