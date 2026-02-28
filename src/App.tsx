@@ -7,6 +7,7 @@ import { Projects } from './pages/projects/Projects'
 import { Tasks } from './pages/tasks/Tasks'
 import { Users } from './pages/users/Users'
 import { Gantt } from './pages/gantt/Gantt'
+import { History } from './pages/history/History'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="projects" element={<Projects />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="users" element={<Users />} />
+          <Route path="history" element={<History />} />
         </Route>
 
         {/* Catch all */}

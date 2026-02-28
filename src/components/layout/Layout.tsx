@@ -19,7 +19,8 @@ import {
     RefreshCw,
     Plus,
     KeyRound,
-    Menu
+    Menu,
+    History as HistoryIcon
 } from 'lucide-react'
 
 const viewTitles: Record<string, string> = {
@@ -27,6 +28,7 @@ const viewTitles: Record<string, string> = {
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
     '/tasks': 'Quản lý Nhiệm vụ',
+    '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
 }
 
@@ -60,6 +62,7 @@ export const Layout = () => {
         { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
         { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare },
+        { name: 'Lịch sử', path: '/history', icon: HistoryIcon },
     ]
 
     if (profile?.role === 'Admin' || profile?.role === 'Quản lý') {

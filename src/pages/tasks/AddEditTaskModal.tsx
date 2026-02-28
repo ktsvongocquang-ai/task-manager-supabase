@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { X, Plus, Trash2, CheckCircle2 } from 'lucide-react'
+import { logActivity } from '../../services/activity';
 
 interface AddEditTaskModalProps {
     isOpen: boolean;
@@ -128,9 +129,41 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
             if (result.error) {
                 console.error('Supabase Task Error:', result.error)
-                alert(`Lỗi Supabase (Nhiệm vụ): ${result.error.message}`)
+                alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
                 return
             }
+
+            // --- Logging ---
+            if (editingTask) {
+                let changes = [];
+                if (editingTask.status !== form.status) changes.push(`Trạng thái: ${editingTask.status || 'Trống'} -> ${form.status} `);
+                if (editingTask.assignee_id !== form.assignee_id) {
+                    const oldAssignee = profiles.find(p => p.id === editingTask.assignee_id)?.full_name || 'Trống';
+                    const newAssignee = profiles.find(p => p.id === form.assignee_id)?.full_name || 'Trống';
+                    changes.push(`Phụ trách: ${oldAssignee} -> ${newAssignee} `);
+                }
+                if (editingTask.supporter_id !== form.supporter_id) {
+                    const oldSup = profiles.find(p => p.id === editingTask.supporter_id)?.full_name || 'Trống';
+                    const newSup = profiles.find(p => p.id === form.supporter_id)?.full_name || 'Trống';
+                    changes.push(`Người hỗ trợ: ${oldSup} -> ${newSup} `);
+                }
+
+                // Compare notes (sub-tasks) simply
+                const oldNotes = editingTask.notes || '[]';
+                const newNotes = payload.notes || '[]';
+                if (oldNotes !== newNotes) {
+                    changes.push('Công việc con đã thay đổi');
+                }
+
+                if (changes.length > 0) {
+                    await logActivity('Sửa nhiệm vụ', `${changes.join('; ')} (Nhiệm vụ: ${form.name})`, editingTask.project_id);
+                } else if (editingTask.name !== form.name || editingTask.description !== form.description) {
+                    await logActivity('Sửa nhiệm vụ', `Cập nhật thông tin: ${form.name} `, editingTask.project_id);
+                }
+            } else {
+                await logActivity('Thêm nhiệm vụ', `Tạo mới: ${form.name} `, form.project_id);
+            }
+            // ---------------
 
             onSaved()
         } catch (err) {
@@ -178,7 +211,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             type="text"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                            className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all font - medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                             placeholder="Nhập tiêu đề công việc..."
                             disabled={shouldDisableTopFields()}
                         />
@@ -206,7 +239,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <select
                                 value={form.priority}
                                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                                className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all font - medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="Thấp">Thấp</option>
@@ -224,7 +257,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <select
                                 value={form.assignee_id}
                                 onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                                className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all font - medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn người</option>
@@ -236,7 +269,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <select
                                 value={form.supporter_id}
                                 onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                                className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all font - medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn người hỗ trợ</option>
@@ -252,7 +285,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <select
                                 value={form.project_id}
                                 onChange={(e) => handleProjectChange(e.target.value)}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                                className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all font - medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn dự án</option>
@@ -266,7 +299,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 value={form.due_date}
                                 onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                                 max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
+                                className={`w - full px - 4 py - 3 bg - white border border - slate - 200 rounded - lg text - sm text - slate - 800 focus: outline - none focus: ring - 2 focus: ring - indigo - 500 / 20 focus: border - indigo - 500 transition - all ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''} `}
                                 disabled={shouldDisableTopFields()}
                             />
                         </div>
@@ -285,7 +318,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             onChange={(e) => toggleSubTask(st.id, e.target.checked)}
                                             className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
                                         />
-                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
+                                        <div className={`w - 5 h - 5 rounded border - 2 flex items - center justify - center transition - colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'} `}>
                                             {st.completed && <CheckCircle2 size={14} className="stroke-[3]" />}
                                         </div>
                                     </div>
@@ -294,7 +327,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         value={st.text}
                                         onChange={(e) => updateSubTask(st.id, e.target.value)}
                                         placeholder="Mô tả công việc con..."
-                                        className={`flex-1 bg-transparent border-none text-sm focus:outline-none text-slate-800 ${st.completed ? 'line-through text-slate-400' : ''}`}
+                                        className={`flex - 1 bg - transparent border - none text - sm focus: outline - none text - slate - 800 ${st.completed ? 'line-through text-slate-400' : ''} `}
                                     />
                                     <button onClick={() => removeSubTask(st.id)} className="text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <X size={16} />
