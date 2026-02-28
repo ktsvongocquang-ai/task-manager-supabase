@@ -56,14 +56,20 @@ export const Layout = () => {
     }
 
     const navItems = [
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard, bgColor: 'bg-blue-100', iconColor: 'text-blue-600', activeColor: 'bg-blue-600' },
-        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart, bgColor: 'bg-indigo-100', iconColor: 'text-indigo-600', activeColor: 'bg-indigo-600' },
-        { name: 'Dự án', path: '/projects', icon: FolderKanban, bgColor: 'bg-purple-100', iconColor: 'text-purple-600', activeColor: 'bg-purple-600' },
-        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare, bgColor: 'bg-emerald-100', iconColor: 'text-emerald-600', activeColor: 'bg-emerald-600' },
+        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
+        { name: 'Dự án', path: '/projects', icon: FolderKanban },
+        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare },
     ]
 
     if (profile?.role === 'Admin' || profile?.role === 'Quản lý') {
-        navItems.push({ name: 'Người dùng', path: '/users', icon: Users, bgColor: 'bg-amber-100', iconColor: 'text-amber-600', activeColor: 'bg-amber-600' })
+        navItems.push({ name: 'Người dùng', path: '/users', icon: Users })
+    }
+
+    const getRoleBrand = (role?: string) => {
+        if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
+        if (role === 'Quản lý') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager' }
+        return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee' }
     }
 
     const getInitials = (name?: string) => {
@@ -82,8 +88,8 @@ export const Layout = () => {
             )}
 
             {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className={`fixed left-0 top-0 h-full w-72 bg-white/80 backdrop-blur-xl border-r border-white/20 shadow-2xl z-50 transform transition-transform duration-300 ease-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="p-6 border-b border-slate-100/50">
+            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 border-b border-border-main">
                     <div className="flex items-center space-x-3 mb-6">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                             <Rocket className="text-white" size={20} />
@@ -95,50 +101,45 @@ export const Layout = () => {
                     </div>
 
                     {/* User Profile Card */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border border-blue-100/50 shadow-sm mb-4">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-border-main mb-4">
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white">
+                            <div className={`w-10 h-10 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm`}>
                                 {getInitials(profile?.full_name)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-bold text-gray-900 truncate">{profile?.full_name || 'Người dùng'}</p>
-                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">{profile?.role || 'Nhân viên'}</p>
+                                <p className="text-sm font-semibold text-text-main truncate">{profile?.full_name || 'Người dùng'}</p>
+                                <p className={`text-xs ${getRoleBrand(profile?.role).text}`}>{profile?.role || 'Nhân viên'}</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-4">
-                            <button className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-[10px] font-bold text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-50 transition-colors">
-                                <KeyRound size={12} /> Đổi mật khẩu
+                            <button className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
+                                <KeyRound size={14} /> Đổi mật khẩu
                             </button>
-                            <button onClick={handleSignOut} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-red-50 text-[10px] font-bold text-red-600 rounded-lg border border-red-100 hover:bg-red-100 transition-colors">
-                                <LogOut size={12} /> Đăng xuất
+                            <button onClick={handleSignOut} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
+                                <LogOut size={14} /> Đăng xuất
                             </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation Menu */}
-                <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+                <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
                     {navItems.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={({ isActive }) =>
-                                `group flex items-center px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 relative ${isActive
-                                    ? 'bg-white shadow-lg text-gray-900 ring-1 ring-black/5'
-                                    : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'
+                                `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                 }`
                             }
                         >
                             {({ isActive }) => (
                                 <>
-                                    <div className={`w-8 h-8 rounded-lg ${isActive ? item.activeColor : item.bgColor} flex items-center justify-center mr-3 transition-colors duration-200 shadow-sm`}>
-                                        <item.icon className={isActive ? 'text-white' : item.iconColor} size={16} />
-                                    </div>
+                                    <item.icon className={`mr-3 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
                                     <span>{item.name}</span>
-                                    {isActive && (
-                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-blue-100"></div>
-                                    )}
                                 </>
                             )}
                         </NavLink>
@@ -168,9 +169,9 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-72 flex flex-col min-h-screen relative">
+            <main className="flex-1 md:ml-64 flex flex-col min-h-screen relative bg-app-bg">
                 {/* Header */}
-                <header className="sticky top-0 bg-white/60 backdrop-blur-xl border-b border-white/20 z-40 px-6 py-4">
+                <header className="sticky top-0 bg-white border-b border-border-main z-40 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             <button
