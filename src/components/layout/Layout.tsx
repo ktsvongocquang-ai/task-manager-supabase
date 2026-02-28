@@ -10,7 +10,6 @@ import {
     LogOut,
     Rocket,
     MessageSquare,
-    Youtube,
     Send,
     MessageCircle,
     FolderPlus,
@@ -174,21 +173,11 @@ export const Layout = () => {
 
                 {/* Sidebar Footer */}
                 <div className="p-6">
-                    <div className="glass-card p-4 text-center">
-                        <div className="text-sm font-bold text-gray-700 mb-2">Hỗ trợ kỹ thuật
-                            <span className="text-[11px] font-normal text-gray-400 ml-1">(Version: 4.1)</span></div>
-                        <div className="flex justify-center space-x-4">
-                            <a href="https://zalo.me/0399971179" target="_blank" rel="noreferrer"
-                                className="flex items-center justify-center w-8 h-8 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors duration-200">
-                                <MessageCircle className="text-blue-600" size={14} />
-                            </a>
-                            <a href="https://www.youtube.com/@sheetkhoinghiep" target="_blank" rel="noreferrer"
-                                className="flex items-center justify-center w-8 h-8 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200">
-                                <Youtube className="text-red-600" size={14} />
-                            </a>
-                        </div>
-                        <div className="text-[10px] text-gray-400 mt-2 italic">
-                            © 2025 <a href="https://sheetkhoinghiep.com" className="text-blue-500 hover:underline" target="_blank" rel="noreferrer">sheetkhoinghiep.com</a>
+                    <div className="glass-card p-4 text-center flex flex-col items-center justify-center gap-1 hover:bg-white/60 transition-colors">
+                        <div className="text-sm font-bold text-slate-700 tracking-tight">App QLDA DQH</div>
+                        <div className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">version 1.0</div>
+                        <div className="text-[10px] text-slate-400 mt-2 font-medium">
+                            © 2026 <a href="https://dqharchitects.vn" className="text-slate-500 font-bold hover:text-indigo-600 hover:underline transition-colors" target="_blank" rel="noreferrer">dqharchitects.vn</a>
                         </div>
                     </div>
                 </div>

@@ -239,7 +239,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
     )
 
     return (
-        <div className="flex h-[500px] border border-slate-200 rounded-xl bg-white overflow-hidden relative transition-all shadow-sm">
+        <div className="flex h-[320px] border border-slate-200 rounded-xl bg-white overflow-hidden relative transition-all shadow-sm">
             {/* Left Column (Main Chat) */}
             <div className={`flex flex-col h-full bg-white transition-all duration-300 ${activeThreadId ? 'w-1/2 border-r border-slate-200' : 'w-full'}`}>
                 {/* Header */}

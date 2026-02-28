@@ -4,6 +4,7 @@ import { getNotifications, markNotificationAsRead, markAllNotificationsAsRead } 
 import type { AppNotification } from '../../types'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 
 interface NotificationsDropdownProps {
     userId?: string;
@@ -12,6 +13,7 @@ interface NotificationsDropdownProps {
 }
 
 export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ userId, onClose, onCountChange }) => {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState<AppNotification[]>([])
     const [loading, setLoading] = useState(false)
 
@@ -105,8 +107,18 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                             <div
                                 key={notif.id}
                                 className={`p-4 transition-colors cursor-pointer group ${getBgColor(notif.type, notif.is_read)}`}
-                                // Future enhancement: navigate to the task/project
-                                onClick={() => { }}
+                                onClick={(e) => {
+                                    if (!notif.is_read) {
+                                        handleMarkAsRead(notif.id, e);
+                                    }
+                                    navigate('/dashboard', {
+                                        state: {
+                                            openTaskId: notif.related_task_id,
+                                            openProjectId: notif.related_project_id
+                                        }
+                                    });
+                                    onClose();
+                                }}
                             >
                                 <div className="flex gap-3">
                                     <div className="flex-shrink-0 mt-0.5">
