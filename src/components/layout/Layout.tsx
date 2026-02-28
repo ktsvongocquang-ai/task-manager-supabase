@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -20,8 +20,11 @@ import {
     Plus,
     KeyRound,
     Menu,
+    Bell, // Added Bell icon
     History as HistoryIcon
 } from 'lucide-react'
+import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
+import { NotificationsDropdown } from './NotificationsDropdown'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Tổng Quan',
@@ -40,6 +43,26 @@ export const Layout = () => {
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
+    const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
+    const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
+
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (profile?.id) {
+                try {
+                    // Check scheduled tasks first
+                    await checkScheduledNotifications(profile.id)
+
+                    const count = await getUnreadNotificationCount(profile.id)
+                    setUnreadNotifCount(count)
+                } catch (error) {
+                    console.error('Error fetching unread notification count:', error)
+                }
+            }
+        }
+
+        fetchUnreadCount()
+    }, [profile?.id])
 
     const handleSignOut = async () => {
         await signOut()
@@ -235,13 +258,45 @@ export const Layout = () => {
                                 )}
                             </div>
 
+                            {/* Notification Bell */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => {
+                                        setIsNotifOpen(!isNotifOpen);
+                                        if (isChatOpen) setIsChatOpen(false);
+                                    }}
+                                    className="relative p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                                >
+                                    <Bell size={18} strokeWidth={2.5} className="text-yellow-500 fill-yellow-500/20" />
+                                    {unreadNotifCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">
+                                            {unreadNotifCount}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {isNotifOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-[60]" onClick={() => setIsNotifOpen(false)}></div>
+                                        <NotificationsDropdown
+                                            userId={profile?.id}
+                                            onClose={() => setIsNotifOpen(false)}
+                                            onCountChange={setUnreadNotifCount}
+                                        />
+                                    </>
+                                )}
+                            </div>
+
                             {/* Global Chat Button */}
                             <button
-                                onClick={() => setIsChatOpen(!isChatOpen)}
+                                onClick={() => {
+                                    setIsChatOpen(!isChatOpen);
+                                    if (isNotifOpen) setIsNotifOpen(false);
+                                }}
                                 className="relative p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                             >
                                 <MessageSquare size={18} strokeWidth={2.5} />
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
                             </button>
                         </div>
                     </div>

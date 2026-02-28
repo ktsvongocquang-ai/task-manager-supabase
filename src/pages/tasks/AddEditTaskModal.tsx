@@ -3,6 +3,8 @@ import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { X, Plus, Trash2, CheckCircle2 } from 'lucide-react'
 import { logActivity } from '../../services/activity';
+import { createNotification } from '../../services/notifications';
+import { CommentSection } from '../../components/chat/CommentSection';
 
 interface AddEditTaskModalProps {
     isOpen: boolean;
@@ -124,13 +126,30 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     ...payload,
                     task_code: form.task_code,
                     project_id: form.project_id
-                })
+                }).select()
             }
 
             if (result.error) {
                 console.error('Supabase Task Error:', result.error)
                 alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
                 return
+            }
+
+            // --- Notifications ---
+            const newAssigneeId = form.assignee_id;
+            if (newAssigneeId && newAssigneeId !== currentUserProfile?.id) {
+                // Check if it's a new assignment
+                const isNewAssignment = !editingTask || (editingTask.assignee_id !== newAssigneeId);
+                if (isNewAssignment) {
+                    await createNotification(
+                        newAssigneeId,
+                        `${currentUserProfile?.full_name || 'Admin'} đã giao cho bạn nhiệm vụ: "${form.name}"`,
+                        'assignment',
+                        currentUserProfile?.id,
+                        editingTask ? editingTask.id : (result.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
+                        form.project_id
+                    );
+                }
             }
 
             // --- Logging ---
@@ -353,6 +372,18 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             placeholder="Nhập link kết quả..."
                         />
                     </div>
+
+                    {/* Chat & Comment Section - Chỉ hiện khi đang sửa (đã có ID) */}
+                    {editingTask?.id && (
+                        <div className="mt-6 pt-6 border-t border-slate-200">
+                            <CommentSection
+                                taskId={editingTask.id}
+                                currentUserProfile={currentUserProfile}
+                                profiles={profiles}
+                                itemName={editingTask.name}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between gap-3 rounded-b-2xl">
