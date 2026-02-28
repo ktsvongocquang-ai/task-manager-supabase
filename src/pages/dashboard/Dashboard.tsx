@@ -226,6 +226,23 @@ export const Dashboard = () => {
         return allProfiles.find((p: any) => p.id === id)?.full_name || 'N/A'
     }
 
+    const handleActivityClick = (activity: ActivityLog) => {
+        let foundTask = null;
+        if (activity.details) {
+            foundTask = allTasks.find(t =>
+                t.project_id === activity.project_id &&
+                activity.details?.includes(t.name)
+            );
+        }
+
+        if (foundTask) {
+            openEditTask(foundTask);
+        } else if (activity.project_id) {
+            const proj = allProjects.find(p => p.id === activity.project_id);
+            if (proj) openProjectDetail(proj);
+        }
+    }
+
     // Filtered data for popups
     const filteredPopupProjects = allProjects.filter(p =>
         p.name.toLowerCase().includes(searchProjects.toLowerCase()) ||
@@ -391,9 +408,13 @@ export const Dashboard = () => {
                                         a.action.toLowerCase().includes('sửa') ? 'text-amber-500' :
                                             a.action.toLowerCase().includes('xóa') ? 'text-rose-500' : 'text-indigo-500';
                                     return (
-                                        <div key={a.id} className="flex gap-4 group">
+                                        <div
+                                            key={a.id}
+                                            className="flex gap-4 group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition-colors"
+                                            onClick={() => handleActivityClick(a)}
+                                        >
                                             <div className="flex flex-col items-center">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all focus:outline-none"></div>
                                                 <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
                                             </div>
                                             <div className="flex-1 pb-4">

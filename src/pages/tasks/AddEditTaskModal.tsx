@@ -5,6 +5,7 @@ import { X, Plus, Trash2, CheckCircle2 } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { CommentSection } from '../../components/chat/CommentSection';
+import { format, parseISO } from 'date-fns';
 
 interface AddEditTaskModalProps {
     isOpen: boolean;
@@ -155,16 +156,29 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             // --- Logging ---
             if (editingTask) {
                 let changes = [];
-                if (editingTask.status !== form.status) changes.push(`Trạng thái: ${editingTask.status || 'Trống'} -> ${form.status} `);
-                if (editingTask.assignee_id !== form.assignee_id) {
+                if (editingTask.name !== form.name) {
+                    changes.push(`Tên: ${editingTask.name} -> ${form.name}`);
+                }
+                if (editingTask.status !== form.status) {
+                    changes.push(`Trạng thái: ${editingTask.status || 'Trống'} -> ${form.status}`);
+                }
+                if ((editingTask.assignee_id || '') !== (form.assignee_id || '')) {
                     const oldAssignee = profiles.find(p => p.id === editingTask.assignee_id)?.full_name || 'Trống';
                     const newAssignee = profiles.find(p => p.id === form.assignee_id)?.full_name || 'Trống';
-                    changes.push(`Phụ trách: ${oldAssignee} -> ${newAssignee} `);
+                    changes.push(`Phụ trách: ${oldAssignee} -> ${newAssignee}`);
                 }
-                if (editingTask.supporter_id !== form.supporter_id) {
+                if ((editingTask.supporter_id || '') !== (form.supporter_id || '')) {
                     const oldSup = profiles.find(p => p.id === editingTask.supporter_id)?.full_name || 'Trống';
                     const newSup = profiles.find(p => p.id === form.supporter_id)?.full_name || 'Trống';
-                    changes.push(`Người hỗ trợ: ${oldSup} -> ${newSup} `);
+                    changes.push(`Người hỗ trợ: ${oldSup} -> ${newSup}`);
+                }
+                if (editingTask.priority !== form.priority) {
+                    changes.push(`Ưu tiên: ${editingTask.priority || 'Trống'} -> ${form.priority}`);
+                }
+                if ((editingTask.due_date || '') !== (form.due_date || '')) {
+                    const oldDate = editingTask.due_date ? format(parseISO(editingTask.due_date), 'dd/MM/yyyy') : 'Trống';
+                    const newDate = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Trống';
+                    changes.push(`Hạn chót: ${oldDate} -> ${newDate}`);
                 }
 
                 // Compare notes (sub-tasks) simply
@@ -176,11 +190,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                 if (changes.length > 0) {
                     await logActivity('Sửa nhiệm vụ', `${changes.join('; ')} (Nhiệm vụ: ${form.name})`, editingTask.project_id);
-                } else if (editingTask.name !== form.name || editingTask.description !== form.description) {
-                    await logActivity('Sửa nhiệm vụ', `Cập nhật thông tin: ${form.name} `, editingTask.project_id);
+                } else if (editingTask.description !== form.description || (editingTask.result_links || '') !== (form.result_links || '')) {
+                    await logActivity('Sửa nhiệm vụ', `Cập nhật nội dung chi tiết (Nhiệm vụ: ${form.name})`, editingTask.project_id);
                 }
             } else {
-                await logActivity('Thêm nhiệm vụ', `Tạo mới: ${form.name} `, form.project_id);
+                await logActivity('Thêm nhiệm vụ', `Tạo mới: ${form.name}`, form.project_id);
             }
             // ---------------
 

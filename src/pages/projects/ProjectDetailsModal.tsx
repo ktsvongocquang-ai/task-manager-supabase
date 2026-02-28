@@ -172,13 +172,27 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                             </div>
 
                                             {/* Right side actions and info */}
-                                            <div className="flex flex-col items-end gap-2">
-                                                {task.totalSub > 0 && (
-                                                    <div className="text-2xl font-black text-indigo-600 mb-1 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
-                                                        {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
+                                            <div className="flex flex-col items-end justify-between self-stretch gap-2 shrink-0">
+                                                <div className="flex flex-col items-end gap-1.5">
+                                                    {task.totalSub > 0 && (
+                                                        <div className="text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
+                                                            {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
+                                                        <div className="flex items-center gap-1 font-bold text-slate-700">
+                                                            <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
+                                                                {getAssigneeName(task.assignee_id).charAt(0)}
+                                                            </div>
+                                                            <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
+                                                        </div>
+                                                        <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                                                            🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
+                                                        </div>
                                                     </div>
-                                                )}
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                </div>
+
+                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto pb-1">
                                                     {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
                                                         <button onClick={() => onCopyTask(task)} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50">
                                                             <Copy size={14} />
@@ -194,17 +208,6 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                             <Trash2 size={14} />
                                                         </button>
                                                     )}
-                                                </div>
-                                                <div className="text-right flex-1 flex flex-col justify-end mt-2">
-                                                    <div className="flex items-center gap-1.5 justify-end text-sm font-bold text-slate-700 mb-1">
-                                                        <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-600">
-                                                            {getAssigneeName(task.assignee_id).charAt(0)}
-                                                        </div>
-                                                        {getAssigneeName(task.assignee_id)}
-                                                    </div>
-                                                    <div className="text-xs font-semibold text-slate-400">
-                                                        🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
