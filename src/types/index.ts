@@ -58,3 +58,25 @@ export interface ActivityLog {
     project_id: string | null
     created_at: string
 }
+
+export interface Comment {
+    id: string
+    task_id: string | null
+    project_id: string | null
+    user_id: string
+    content: string
+    mentions: string[] // Array of user IDs
+    created_at: string
+}
+
+export interface AppNotification {
+    id: string
+    user_id: string
+    actor_id: string | null
+    type: string | 'mention' | 'assignment' | 'overdue' | 'due_today' | 'system'
+    related_task_id: string | null
+    related_project_id: string | null
+    content: string
+    is_read: boolean
+    created_at: string
+}

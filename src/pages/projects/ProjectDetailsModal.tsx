@@ -2,6 +2,7 @@ import React from 'react'
 import { type Project, type Task } from '../../types'
 import { X, Copy, Edit3, Trash2, Plus } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
+import { CommentSection } from '../../components/chat/CommentSection'
 
 interface ProjectDetailsModalProps {
     isOpen: boolean;
@@ -224,6 +225,18 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                             })}
                         </div>
                     </div>
+
+                    {/* Chat & Comment Section */}
+                    {project?.id && (
+                        <div className="mt-8 pt-8 border-t border-slate-300">
+                            <CommentSection
+                                projectId={project.id}
+                                currentUserProfile={currentUserProfile}
+                                profiles={profiles}
+                                itemName={project.name}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer Add Task Button */}
