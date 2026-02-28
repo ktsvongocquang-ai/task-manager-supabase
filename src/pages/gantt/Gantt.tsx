@@ -3,6 +3,7 @@ import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User } from 'lucide-react'
 import { format } from 'date-fns'
+import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
@@ -19,6 +20,9 @@ export const Gantt = () => {
     const [profiles, setProfiles] = useState<any[]>([])
     const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
     const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
+    const [editingTask, setEditingTask] = useState<Task | null>(null)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -30,14 +34,20 @@ export const Gantt = () => {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
+            const [{ data: t }, { data: p }, { data: pr }, { data: authData }] = await Promise.all([
                 supabase.from('tasks').select('*'),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name')
+                supabase.from('profiles').select('id, full_name'),
+                supabase.auth.getUser()
             ])
             setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
             setProfiles((pr || []) as any[])
+
+            if (authData?.user) {
+                const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single()
+                setCurrentUserProfile(userProfile)
+            }
         } catch (err) {
             console.error(err)
         } finally {
@@ -61,6 +71,20 @@ export const Gantt = () => {
     const getDayName = (day: number) => {
         const d = new Date(year, month, day)
         return DAY_NAMES[d.getDay()]
+    }
+
+    const getSubtasksCount = (notes: string | undefined | null) => {
+        if (!notes) return null;
+        try {
+            const parsed = JSON.parse(notes);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                const completed = parsed.filter(st => st.completed).length;
+                return { completed, total: parsed.length };
+            }
+        } catch (e) {
+            return null;
+        }
+        return null;
     }
 
     const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
@@ -305,9 +329,16 @@ export const Gantt = () => {
                                                                 {item.task.status?.includes('Hoàn thành') && <CheckCircle2 size={12} />}
                                                             </div>
                                                         </div>
-                                                        <div className="min-w-0">
-                                                            <div className="text-[11px] font-semibold text-slate-700 truncate mb-1" title={item.name}>
-                                                                {item.name}
+                                                        <div className="min-w-0 flex-1 cursor-pointer" onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <div className="text-[11px] font-semibold text-slate-700 truncate hover:text-blue-600 transition-colors" title={item.name}>
+                                                                    {item.name}
+                                                                </div>
+                                                                {getSubtasksCount(item.task.notes) && (
+                                                                    <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold border border-blue-100">
+                                                                        {getSubtasksCount(item.task.notes)?.completed}/{getSubtasksCount(item.task.notes)?.total}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-2 text-[9px] text-slate-500 flex-wrap">
                                                                 <span className="flex items-center gap-1">
@@ -347,6 +378,12 @@ export const Gantt = () => {
                                                     style={{
                                                         left: `${(item.startDay - 1) * cellWidth + 4}px`,
                                                         width: `${barWidth}px`
+                                                    }}
+                                                    onClick={() => {
+                                                        if (item.type === 'task') {
+                                                            setEditingTask(item.task);
+                                                            setIsEditModalOpen(true);
+                                                        }
                                                     }}
                                                 >
                                                     {/* Stripe effect for project bars */}
@@ -410,6 +447,18 @@ export const Gantt = () => {
                     </div>
                 </div>
             )}
+
+            {/* Edit Task Modal */}
+            <AddEditTaskModal
+                isOpen={isEditModalOpen}
+                onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }}
+                onSaved={fetchData}
+                editingTask={editingTask}
+                initialData={{ task_code: '', project_id: '' }}
+                profiles={profiles}
+                currentUserProfile={currentUserProfile}
+                projects={projects}
+            />
         </div>
     )
 }
