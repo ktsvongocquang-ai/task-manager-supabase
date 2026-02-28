@@ -382,23 +382,34 @@ export const Dashboard = () => {
                             <div className="text-center py-12 text-slate-400 text-xs italic">Chưa có hoạt động nào.</div>
                         ) : (
                             <div className="space-y-6">
-                                {recentActivities.map((a) => (
-                                    <div key={a.id} className="flex gap-4 group">
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"></div>
-                                            <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
-                                        </div>
-                                        <div className="flex-1 pb-4">
-                                            <p className="text-xs font-bold text-slate-800 leading-snug">{a.action}</p>
-                                            <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
-                                                {a.details}
+                                {recentActivities.map((a) => {
+                                    const prof = allProfiles.find(p => p.id === a.user_id);
+                                    const userName = prof?.full_name || 'Hệ thống';
+                                    const actionColor = a.action.toLowerCase().includes('thêm') ? 'text-emerald-500' :
+                                        a.action.toLowerCase().includes('sửa') ? 'text-amber-500' :
+                                            a.action.toLowerCase().includes('xóa') ? 'text-rose-500' : 'text-indigo-500';
+                                    return (
+                                        <div key={a.id} className="flex gap-4 group">
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all"></div>
+                                                <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
                                             </div>
-                                            <p className="text-[10px] text-slate-400 mt-1.5 font-bold flex items-center gap-1">
-                                                <Clock size={10} /> {formatTimeAgo(a.created_at)}
-                                            </p>
+                                            <div className="flex-1 pb-4">
+                                                <p className="text-xs font-bold text-slate-800 leading-snug flex items-center gap-1.5">
+                                                    <span className={actionColor}>{a.action}</span>
+                                                    <span className="text-slate-300">|</span>
+                                                    <span>{userName}</span>
+                                                </p>
+                                                <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
+                                                    {a.details}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1.5 font-bold flex items-center gap-1">
+                                                    <Clock size={10} /> {formatTimeAgo(a.created_at)}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
