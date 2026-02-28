@@ -2,9 +2,26 @@
 
 @theme {
   --font-inter: "Inter", sans-serif;
+  --color-app-bg: var(--color-background-app);
+  --color-primary: var(--color-primary);
+  --color-sidebar-bg: var(--color-sidebar-bg);
+  --color-admin: var(--color-admin);
+  --color-manager: var(--color-manager);
+  --color-employee: var(--color-employee);
+  --color-text-main: var(--color-text-primary);
+  --color-border-main: var(--color-border);
 }
 
 :root {
+  --color-background-app: #FAFAFA;
+  --color-primary: #2563EB;
+  --color-sidebar-bg: #FFFFFF;
+  --color-admin: #F97316;
+  --color-manager: #2563EB;
+  --color-employee: #16A34A;
+  --color-text-primary: #0F172A;
+  --color-border: #E2E8F0;
+
   --glass-bg-white: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(255, 255, 255, 0.2);
   --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -19,7 +36,7 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen font-inter text-slate-900 antialiased;
+    @apply bg-app-bg min-h-screen font-inter text-text-main antialiased;
   }
 }
 
