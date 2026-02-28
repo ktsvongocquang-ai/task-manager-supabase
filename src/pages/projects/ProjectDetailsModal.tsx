@@ -33,22 +33,36 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     if (!isOpen || !project) return null;
 
     const projectTasks = tasks.filter(t => t.project_id === project.id);
-
     const today = startOfDay(new Date());
 
+    const tasksWithProgress = projectTasks.map(t => {
+        let subTasks: any[] = [];
+        try {
+            if (t.notes && t.notes.startsWith('[')) {
+                subTasks = JSON.parse(t.notes);
+            }
+        } catch (e) {
+            subTasks = [];
+        }
+        const totalSub = subTasks.length;
+        const completedSub = subTasks.filter(st => st.completed).length;
+        const displayPct = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : (t.completion_pct || 0);
+        return { ...t, subTasks, totalSub, completedSub, displayPct };
+    });
+
     const stats = {
-        total: projectTasks.length,
-        completed: projectTasks.filter(t => t.status?.includes('Hoàn thành')).length,
-        inProgress: projectTasks.filter(t => t.status?.includes('Đang')).length,
-        overdue: projectTasks.filter(t => {
+        total: tasksWithProgress.length,
+        completed: tasksWithProgress.filter(t => t.status?.includes('Hoàn thành')).length,
+        inProgress: tasksWithProgress.filter(t => t.status?.includes('Đang')).length,
+        overdue: tasksWithProgress.filter(t => {
             if (t.status?.includes('Hoàn thành')) return false;
             if (!t.due_date) return false;
             return isBefore(parseISO(t.due_date), today);
         }).length
     };
 
-    const overallProgress = projectTasks.length > 0
-        ? Math.round(projectTasks.reduce((acc, t) => acc + (t.completion_pct || 0), 0) / projectTasks.length)
+    const overallProgress = tasksWithProgress.length > 0
+        ? Math.round(tasksWithProgress.reduce((acc, t) => acc + t.displayPct, 0) / tasksWithProgress.length)
         : 0;
 
     const getAssigneeName = (id: string | null) => {
@@ -57,14 +71,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
         return p?.full_name || 'N/A'
     }
 
-    const getPriorityBadge = (priority: string) => {
-        if (priority === 'Khẩn cấp') return 'bg-red-50 text-red-600 border-red-100'
-        if (priority === 'Cao') return 'bg-orange-50 text-orange-600 border-orange-100'
-        if (priority === 'Trung bình') return 'bg-yellow-50 text-yellow-600 border-yellow-100'
-        return 'bg-slate-50 text-slate-500 border-slate-100'
-    }
-
-    const getStatusStyle = (t: Task) => {
+    const getStatusStyle = (t: any) => {
         const isCompleted = t.status?.includes('Hoàn thành');
         let isOverdue = false;
         if (!isCompleted && t.due_date) {
@@ -134,10 +141,10 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Danh sách nhiệm vụ ({stats.total})</h3>
 
                         <div className="space-y-4 pr-2">
-                            {projectTasks.map(task => {
+                            {tasksWithProgress.map(task => {
                                 const statusStyle = getStatusStyle(task);
                                 return (
-                                    <div key={task.id} className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group`}>
+                                    <div key={task.id} className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col`}>
 
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex gap-3">
@@ -159,20 +166,17 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
                                                             {task.status}
                                                         </span>
-                                                        <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(task.priority)}`}>
-                                                            {task.priority}
-                                                        </span>
-                                                        {isBefore(parseISO(task.due_date || ''), today) && !task.status?.includes('Hoàn thành') && (
-                                                            <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase bg-red-50 text-red-500 border border-red-100`}>
-                                                                Quá hạn
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Right side actions and info */}
-                                            <div className="flex flex-col items-end gap-3">
+                                            <div className="flex flex-col items-end gap-2">
+                                                {task.totalSub > 0 && (
+                                                    <div className="text-2xl font-black text-indigo-600 mb-1 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
+                                                        {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
                                                         <button onClick={() => onCopyTask(task)} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50">
@@ -190,14 +194,14 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         </button>
                                                     )}
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="text-right flex-1 flex flex-col justify-end mt-2">
                                                     <div className="flex items-center gap-1.5 justify-end text-sm font-bold text-slate-700 mb-1">
-                                                        <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-500">
+                                                        <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-600">
                                                             {getAssigneeName(task.assignee_id).charAt(0)}
                                                         </div>
                                                         {getAssigneeName(task.assignee_id)}
                                                     </div>
-                                                    <div className="text-xs font-semibold text-slate-500">
+                                                    <div className="text-xs font-semibold text-slate-400">
                                                         🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
                                                     </div>
                                                 </div>
@@ -205,15 +209,15 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                         </div>
 
                                         {/* Task Progress Bar */}
-                                        <div className="flex items-center gap-3 mt-4">
-                                            <span className="text-xs font-semibold text-slate-500">Tiến độ</span>
-                                            <div className="flex-1 bg-slate-100 rounded-full h-1.5">
+                                        <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
+                                            <span className="text-xs font-bold text-slate-400">Tiến độ</span>
+                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
                                                 <div
-                                                    className={`h-1.5 rounded-full ${task.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
-                                                    style={{ width: `${task.completion_pct}%` }}
+                                                    className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`}
+                                                    style={{ width: `${task.displayPct}%` }}
                                                 ></div>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-600">{task.completion_pct}%</span>
+                                            <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
                                         </div>
                                     </div>
                                 )
