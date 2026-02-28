@@ -158,27 +158,27 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-[#0b1021]/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-[#121b2e] border border-blue-900/30 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="px-6 py-4 border-b border-blue-900/30 flex justify-between items-center bg-[#121b2e]">
-                    <h3 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                         {editingTask ? 'Chi Tiết Công Việc' : 'Tạo mới Công Việc'}
-                        {editingTask && <Trash2 size={18} className="text-red-400 hover:text-red-300 cursor-pointer ml-2" />}
+                        {editingTask && <Trash2 size={18} className="text-red-500 hover:text-red-600 cursor-pointer ml-2" />}
                     </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1.5 hover:bg-slate-800 rounded-full">
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
                         <X size={20} />
                     </button>
                 </div>
-                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-5 bg-[#121b2e]">
+                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-5 bg-white">
 
                     {/* Tiêu đề */}
                     <div>
-                        <label className="block text-sm font-semibold text-emerald-400 mb-2">Tiêu đề</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Tiêu đề</label>
                         <input
                             type="text"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                             placeholder="Nhập tiêu đề công việc..."
                             disabled={shouldDisableTopFields()}
                         />
@@ -187,11 +187,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     {/* Trạng thái & Mức độ ưu tiên */}
                     <div className="grid grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Trạng thái</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Trạng thái</label>
                             <select
                                 value={form.status}
                                 onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                className="w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
                             >
                                 <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                 <option value="Đang làm">Đang làm</option>
@@ -202,11 +202,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Mức độ ưu tiên</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Mức độ ưu tiên</label>
                             <select
                                 value={form.priority}
                                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="Thấp">Thấp</option>
@@ -220,11 +220,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     {/* Phụ trách & Người hỗ trợ */}
                     <div className="grid grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Phụ trách</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Phụ trách</label>
                             <select
                                 value={form.assignee_id}
                                 onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn người</option>
@@ -232,11 +232,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Người hỗ trợ</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Người hỗ trợ</label>
                             <select
                                 value={form.supporter_id}
                                 onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn người hỗ trợ</option>
@@ -248,11 +248,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     {/* Tên Dự Án & Hạn chót */}
                     <div className="grid grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Tên Dự Án</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Tên Dự Án</label>
                             <select
                                 value={form.project_id}
                                 onChange={(e) => handleProjectChange(e.target.value)}
-                                className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                                 disabled={shouldDisableTopFields()}
                             >
                                 <option value="">Chọn dự án</option>
@@ -260,14 +260,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-semibold text-emerald-400 mb-2">Hạn chót</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Hạn chót</label>
                             <input
                                 type="date"
                                 value={form.due_date}
                                 onChange={(e) => setForm({ ...form, due_date: e.target.value })}
                                 max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
-                                className={`w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                style={{ colorScheme: 'dark' }}
+                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
                                 disabled={shouldDisableTopFields()}
                             />
                         </div>
@@ -275,18 +274,18 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                     {/* Công việc con / Ghi chú (Checklist) */}
                     <div>
-                        <label className="block text-sm font-semibold text-emerald-400 mb-3">Công việc con / Ghi chú</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-3">Công việc con / Ghi chú</label>
                         <div className="space-y-2 mb-3">
                             {subTasks.map((st) => (
-                                <div key={st.id} className="flex items-center gap-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg p-3 group">
+                                <div key={st.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-3 group">
                                     <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
                                         <input
                                             type="checkbox"
                                             checked={st.completed}
                                             onChange={(e) => toggleSubTask(st.id, e.target.checked)}
-                                            className="w-5 h-5 rounded text-emerald-400 border-slate-600 focus:ring-emerald-400 z-10 opacity-0 absolute cursor-pointer"
+                                            className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
                                         />
-                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-emerald-400 border-emerald-400 text-[#0a0f1d]' : 'bg-transparent border-slate-500'}`}>
+                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
                                             {st.completed && <CheckCircle2 size={14} className="stroke-[3]" />}
                                         </div>
                                     </div>
@@ -295,9 +294,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         value={st.text}
                                         onChange={(e) => updateSubTask(st.id, e.target.value)}
                                         placeholder="Mô tả công việc con..."
-                                        className={`flex-1 bg-transparent border-none text-sm focus:outline-none text-white ${st.completed ? 'line-through text-slate-500' : ''}`}
+                                        className={`flex-1 bg-transparent border-none text-sm focus:outline-none text-slate-800 ${st.completed ? 'line-through text-slate-400' : ''}`}
                                     />
-                                    <button onClick={() => removeSubTask(st.id)} className="text-red-500/50 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => removeSubTask(st.id)} className="text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <X size={16} />
                                     </button>
                                 </div>
@@ -305,7 +304,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         </div>
                         <button
                             onClick={addSubTask}
-                            className="w-full py-3 border border-dashed border-blue-900/50 rounded-lg text-sm text-slate-400 hover:text-emerald-400 hover:border-emerald-500/50 transition-colors flex items-center justify-center gap-2"
+                            className="w-full py-3 border border-dashed border-slate-300 rounded-lg text-sm font-medium text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors flex items-center justify-center gap-2"
                         >
                             <Plus size={16} /> Thêm mục
                         </button>
@@ -313,26 +312,26 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                     {/* Link kết quả */}
                     <div>
-                        <label className="block text-sm font-semibold text-emerald-400 mb-2">Link kết quả</label>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Link kết quả</label>
                         <textarea
                             value={form.result_links}
                             onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                            className="w-full px-4 py-3 bg-[#0a0f1d] border border-blue-900/30 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-all min-h-[80px] resize-none"
+                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[80px] resize-none"
                             placeholder="Nhập link kết quả..."
                         />
                     </div>
                 </div>
 
-                <div className="px-6 py-4 bg-[#121b2e] border-t border-blue-900/30 flex justify-between gap-3">
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between gap-3 rounded-b-2xl">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 border border-slate-600 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
+                        className="px-6 py-2 border border-slate-300 bg-white rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
                     >
                         Đóng
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-8 py-2 bg-emerald-400 hover:bg-emerald-500 text-[#0a0f1d] rounded-lg text-sm font-bold shadow-lg shadow-emerald-900/20 transition-all active:scale-95"
+                        className="px-8 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95"
                     >
                         Lưu Lại
                     </button>
