@@ -63,10 +63,12 @@ export interface Comment {
     id: string
     task_id: string | null
     project_id: string | null
+    parent_id: string | null
     user_id: string
     content: string
     mentions: string[] // Array of user IDs
     created_at: string
+    reply_count?: number // Optional computed field
 }
 
 export interface AppNotification {

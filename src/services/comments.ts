@@ -29,7 +29,8 @@ export const createComment = async (
     content: string,
     mentions: string[] = [],
     taskId?: string | null,
-    projectId?: string | null
+    projectId?: string | null,
+    parentId?: string | null
 ) => {
     try {
         const { error } = await supabase
@@ -39,7 +40,8 @@ export const createComment = async (
                 content: content,
                 mentions: mentions,
                 task_id: taskId || null,
-                project_id: projectId || null
+                project_id: projectId || null,
+                parent_id: parentId || null
             });
 
         if (error) throw error;
