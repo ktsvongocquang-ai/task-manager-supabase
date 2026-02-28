@@ -120,11 +120,23 @@ export const Tasks = () => {
         return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
+    const generateNextTaskCode = (projectId: string) => {
+        const projTasks = tasks.filter(t => t.project_id === projectId);
+        let maxId = 0;
+        projTasks.forEach(t => {
+            const match = t.task_code.match(/-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+        const projCode = getProjectCode(projectId);
+        return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : '';
+    }
+
     const openAddModal = (projectId?: string) => {
         setEditingTask(null)
-        const count = tasks.filter(t => t.project_id === projectId).length
-        const projCode = projectId ? getProjectCode(projectId) : ''
-        const nextCode = projCode ? `${projCode}-${String(count + 1).padStart(2, '0')}` : ''
+        const nextCode = projectId ? generateNextTaskCode(projectId) : ''
         setForm({
             task_code: nextCode, project_id: projectId || '', name: '', description: '',
             assignee_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình',
@@ -262,9 +274,7 @@ export const Tasks = () => {
 
     const handleCopy = async (t: Task) => {
         try {
-            const count = tasks.filter(x => x.project_id === t.project_id).length
-            const projCode = getProjectCode(t.project_id)
-            const nextCode = `${projCode}-${String(count + 1).padStart(2, '0')}`
+            const nextCode = generateNextTaskCode(t.project_id)
             const { id, created_at, ...rest } = t as any
             const payload = {
                 ...rest,
