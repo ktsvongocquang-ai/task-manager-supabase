@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users, Eye, List } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
+import { ProjectDetailsModal } from './ProjectDetailsModal'
+import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 
 export const Projects = () => {
     const { profile } = useAuthStore()
@@ -19,6 +21,11 @@ export const Projects = () => {
         name: '', project_code: '', description: '', status: 'Mới',
         start_date: '', end_date: '', manager_id: '', budget: 0
     })
+
+    const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<Project | null>(null)
+    const [showTaskModal, setShowTaskModal] = useState(false)
+    const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' })
+    const [editingTask, setEditingTask] = useState<Task | null>(null)
 
     useEffect(() => {
         fetchProjects()
@@ -44,7 +51,7 @@ export const Projects = () => {
     }
 
     const fetchTasks = async () => {
-        const { data } = await supabase.from('tasks').select('id, project_id, status')
+        const { data } = await supabase.from('tasks').select('*')
         if (data) setAllTasks(data as Task[])
     }
 
@@ -172,6 +179,73 @@ export const Projects = () => {
         }
     }
 
+    const handleToggleTaskComplete = async (task: Task) => {
+        const isCompleted = task.status?.includes('Hoàn thành')
+        const newStatus = isCompleted ? 'Đang thực hiện' : 'Hoàn thành'
+        const newPct = isCompleted ? 50 : 100
+        const newDate = !isCompleted ? new Date().toISOString().split('T')[0] : null
+
+        const { error } = await supabase.from('tasks').update({
+            status: newStatus,
+            completion_pct: newPct,
+            completion_date: newDate
+        }).eq('id', task.id)
+
+        if (!error) fetchTasks()
+    }
+
+    const handleDeleteTask = async (id: string) => {
+        if (!confirm('Xóa nhiệm vụ này?')) return
+        await supabase.from('tasks').delete().eq('id', id)
+        fetchTasks()
+    }
+
+    const generateNextTaskCode = (projectId: string) => {
+        const projTasks = allTasks.filter(t => t.project_id === projectId);
+        let maxId = 0;
+        projTasks.forEach(t => {
+            const match = t.task_code.match(/-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+        const proj = projects.find(p => p.id === projectId);
+        const projCode = proj?.project_code || '';
+        return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : '';
+    }
+
+    const handleCopyTask = async (t: Task) => {
+        try {
+            const nextCode = generateNextTaskCode(t.project_id)
+            const { id, created_at, ...rest } = t as any
+            const payload = {
+                ...rest,
+                task_code: nextCode,
+                name: `${t.name} (Bản sao)`,
+                completion_pct: 0,
+                result_links: null,
+                output: null
+            }
+            const { error } = await supabase.from('tasks').insert(payload)
+            if (!error) fetchTasks()
+        } catch (err) {
+            console.error(err)
+        }
+    }
+
+    const openAddTaskModal = (projectId: string) => {
+        setEditingTask(null);
+        setTaskModalInitialData({ task_code: generateNextTaskCode(projectId), project_id: projectId });
+        setShowTaskModal(true);
+    }
+
+    const openEditTaskModal = (t: Task) => {
+        setEditingTask(t);
+        setTaskModalInitialData({ task_code: t.task_code, project_id: t.project_id });
+        setShowTaskModal(true);
+    }
+
     const getStatusBadge = (status: string) => {
         if (status === 'Hoàn thành') return 'bg-emerald-100 text-emerald-700 border-emerald-200'
         if (status === 'Đang thực hiện') return 'bg-blue-100 text-blue-700 border-blue-200'
@@ -245,18 +319,26 @@ export const Projects = () => {
                             </span>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
+                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
+                                        <Plus size={14} />
+                                    </button>
+                                )}
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
+                                    <Eye size={14} />
+                                </button>
                                 {profile?.role !== 'Nhân viên' && (
-                                    <button onClick={() => handleCopy(project)} className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
+                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto">
                                         <Copy size={14} />
                                     </button>
                                 )}
                                 {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
-                                    <button onClick={() => openEditModal(project)} className="w-8 h-8 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all shadow-sm border border-amber-100">
+                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
                                         <Edit3 size={14} />
                                     </button>
                                 )}
-                                {profile?.role !== 'Nhân viên' && (profile?.role === 'Admin' || project.manager_id === profile?.id) && (
-                                    <button onClick={() => handleDelete(project.id)} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100">
+                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto">
                                         <Trash2 size={14} />
                                     </button>
                                 )}
@@ -283,21 +365,27 @@ export const Projects = () => {
                         </div>
 
                         {/* Progress */}
-                        <div className="pt-3 border-t border-slate-100">
-                            {(() => {
-                                const pct = getProjectProgress(project.id); return (<>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ dự án</span>
-                                        <span className="text-[11px] font-black text-blue-600">{pct}%</span>
-                                    </div>
-                                    <div className="bg-slate-100 rounded-full h-2 ring-1 ring-black/5">
-                                        <div
-                                            className={`h-2 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
-                                            style={{ width: `${pct}%` }}
-                                        ></div>
-                                    </div>
-                                </>);
-                            })()}
+                        <div className="pt-3 border-t border-slate-100 mt-2">
+                            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 py-2 px-3 rounded-2xl">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Tiến độ</span>
+                                <div className="flex-1 mx-3 bg-white rounded-full h-2 ring-1 ring-slate-200 overflow-hidden shadow-inner">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-700 w-full shadow-sm ${getProjectProgress(project.id) >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}
+                                        style={{ width: `${getProjectProgress(project.id)}%` }}
+                                    ></div>
+                                </div>
+                                <span className="text-xs font-black text-slate-700 leading-none">{getProjectProgress(project.id)}%</span>
+                            </div>
+
+                            <div className="flex justify-end mt-3">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-50 transition-all text-xs font-bold w-auto"
+                                >
+                                    <List size={14} className="text-indigo-400" />
+                                    {allTasks.filter(t => t.project_id === project.id).length} nhiệm vụ
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -410,6 +498,37 @@ export const Projects = () => {
                     </div>
                 </div>
             )}
+
+            {/* Project Details Modal */}
+            <ProjectDetailsModal
+                isOpen={!!selectedProjectForDetails}
+                onClose={() => setSelectedProjectForDetails(null)}
+                project={selectedProjectForDetails}
+                tasks={allTasks}
+                profiles={profiles}
+                currentUserProfile={profile}
+                onToggleComplete={handleToggleTaskComplete}
+                onDeleteTask={handleDeleteTask}
+                onCopyTask={handleCopyTask}
+                onEditTask={openEditTaskModal}
+                onAddTask={openAddTaskModal}
+            />
+
+            {/* Add/Edit Task Modal */}
+            <AddEditTaskModal
+                isOpen={showTaskModal}
+                onClose={() => setShowTaskModal(false)}
+                onSaved={() => {
+                    setShowTaskModal(false);
+                    fetchTasks();
+                }}
+                editingTask={editingTask}
+                initialData={taskModalInitialData}
+                projects={projects}
+                profiles={profiles}
+                currentUserProfile={profile}
+                generateNextTaskCode={generateNextTaskCode}
+            />
         </div>
     )
 }
