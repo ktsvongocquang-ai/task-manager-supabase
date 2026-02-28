@@ -13,6 +13,7 @@ import {
     ArrowLeft,
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
+import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line
 } from 'recharts'
@@ -192,34 +193,6 @@ export const Dashboard = () => {
         setActivePopup('editTask')
     }
     const closePopup = () => { setActivePopup(null); setSelectedProject(null); setSelectedTask(null) }
-
-    const handleTaskSave = async () => {
-        try {
-            const payload = {
-                name: taskForm.name, description: taskForm.description || null,
-                assignee_id: taskForm.assignee_id || null, status: taskForm.status,
-                priority: taskForm.priority, start_date: taskForm.start_date || null,
-                due_date: taskForm.due_date || null, completion_pct: Number(taskForm.completion_pct) || 0,
-                target: taskForm.target || null, result_links: taskForm.result_links || null,
-                output: taskForm.output || null, notes: taskForm.notes || null,
-                completion_date: taskForm.completion_date || null
-            }
-            let result
-            if (activePopup === 'editTask' && selectedTask) {
-                result = await supabase.from('tasks').update(payload).eq('id', selectedTask.id)
-            } else {
-                if (!taskForm.project_id) { alert('Vui lòng chọn dự án.'); return }
-                result = await supabase.from('tasks').insert({ ...payload, task_code: taskForm.task_code, project_id: taskForm.project_id })
-            }
-            if (result.error) { alert(`Lỗi: ${result.error.message}`); return }
-            await fetchDashboardData()
-            if (activePopup === 'createTask' && selectedProject) {
-                setActivePopup('projectDetail')
-            } else {
-                closePopup()
-            }
-        } catch (err) { console.error(err); alert('Lỗi hệ thống.') }
-    }
 
     const getAssigneeName = (id: string | null) => {
         if (!id) return 'Chưa gán'
@@ -797,156 +770,37 @@ export const Dashboard = () => {
             )}
 
             {/* ========== POPUP 3 & 5: Form tạo/chỉnh sửa nhiệm vụ ========== */}
-            {(activePopup === 'createTask' || activePopup === 'editTask') && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closePopup}>
-                    <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                {activePopup === 'createTask' && selectedProject && (
-                                    <button onClick={() => setActivePopup('projectDetail')} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg"><ArrowLeft size={18} /></button>
-                                )}
-                                <h3 className="text-xl font-bold text-slate-800">
-                                    {activePopup === 'editTask' ? 'Chỉnh sửa nhiệm vụ' : 'Tạo nhiệm vụ mới'}
-                                </h3>
-                            </div>
-                            <button onClick={closePopup} className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-full"><X size={20} /></button>
-                        </div>
-                        <div className="p-8 overflow-y-auto max-h-[75vh] space-y-5">
-                            {/* Tên nhiệm vụ */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Tên nhiệm vụ <span className="text-red-500">*</span></label>
-                                <input type="text" value={taskForm.name} onChange={e => setTaskForm({ ...taskForm, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium"
-                                    placeholder="Ví dụ: Thiết kế giao diện chính..." />
-                            </div>
-
-                            {/* Thuộc dự án + Người thực hiện */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Thuộc dự án <span className="text-red-500">*</span></label>
-                                    <select value={taskForm.project_id} onChange={e => setTaskForm({ ...taskForm, project_id: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium appearance-none">
-                                        <option value="">Chọn dự án</option>
-                                        {allProjects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.project_code})</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Người thực hiện</label>
-                                    <select value={taskForm.assignee_id} onChange={e => setTaskForm({ ...taskForm, assignee_id: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium appearance-none">
-                                        <option value="">Chọn người</option>
-                                        {allProfiles.map((p: any) => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Mô tả */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Mô tả</label>
-                                <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[80px] resize-none"
-                                    placeholder="Nội dung mô tả nhiệm vụ..." />
-                            </div>
-
-                            {/* Ưu tiên + Trạng thái */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ưu tiên</label>
-                                    <select value={taskForm.priority} onChange={e => setTaskForm({ ...taskForm, priority: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium appearance-none">
-                                        <option value="Thấp">Thấp</option>
-                                        <option value="Trung bình">Trung bình</option>
-                                        <option value="Cao">Cao</option>
-                                        <option value="Khẩn cấp">Khẩn cấp</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Trạng thái</label>
-                                    <select value={taskForm.status} onChange={e => setTaskForm({ ...taskForm, status: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium appearance-none">
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
-                                        <option value="Hủy bỏ">Hủy bỏ</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Ngày bắt đầu + Hạn chót */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ngày bắt đầu <span className="text-red-500">*</span></label>
-                                    <input type="date" value={taskForm.start_date} onChange={e => setTaskForm({ ...taskForm, start_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Hạn chót <span className="text-red-500">*</span></label>
-                                    <input type="date" value={taskForm.due_date} onChange={e => setTaskForm({ ...taskForm, due_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                                </div>
-                            </div>
-
-                            {/* Tiến độ + Ngày hoàn thành */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Tiến độ (%)</label>
-                                    <input type="number" min="0" max="100" value={taskForm.completion_pct}
-                                        onChange={e => setTaskForm({ ...taskForm, completion_pct: parseInt(e.target.value) || 0 })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-2">Ngày hoàn thành</label>
-                                    <input type="date" value={taskForm.completion_date} onChange={e => setTaskForm({ ...taskForm, completion_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                                </div>
-                            </div>
-
-                            {/* Mục tiêu */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Mục tiêu</label>
-                                <textarea value={taskForm.target} onChange={e => setTaskForm({ ...taskForm, target: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[70px] resize-none"
-                                    placeholder="Mô tả mục tiêu của nhiệm vụ..." />
-                            </div>
-
-                            {/* Link kết quả */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Link kết quả</label>
-                                <textarea value={taskForm.result_links} onChange={e => setTaskForm({ ...taskForm, result_links: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[70px] resize-none"
-                                    placeholder="Nhập mỗi link trên một dòng" />
-                            </div>
-
-                            {/* Kết quả đầu ra */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Kết quả đầu ra</label>
-                                <textarea value={taskForm.output} onChange={e => setTaskForm({ ...taskForm, output: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[70px] resize-none"
-                                    placeholder="Mô tả kết quả đầu ra mong muốn..." />
-                            </div>
-
-                            {/* Ghi chú */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 mb-2">Ghi chú</label>
-                                <textarea value={taskForm.notes} onChange={e => setTaskForm({ ...taskForm, notes: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 min-h-[70px] resize-none"
-                                    placeholder="Ghi chú thêm..." />
-                            </div>
-                        </div>
-                        <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                            <button onClick={closePopup}
-                                className="px-6 py-2.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider">
-                                Hủy
-                            </button>
-                            <button onClick={handleTaskSave}
-                                className="px-10 py-2.5 bg-[#3a31d8] hover:bg-[#2e26b1] text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 transition-all active:scale-95 uppercase tracking-wider">
-                                {activePopup === 'editTask' ? 'Lưu thay đổi' : 'Tạo nhiệm vụ'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AddEditTaskModal
+                isOpen={activePopup === 'createTask' || activePopup === 'editTask'}
+                onClose={() => {
+                    if (activePopup === 'createTask' && selectedProject) {
+                        setActivePopup('projectDetail')
+                    } else {
+                        closePopup()
+                    }
+                }}
+                onSaved={() => {
+                    fetchDashboardData();
+                    if (activePopup === 'createTask' && selectedProject) {
+                        setActivePopup('projectDetail')
+                    } else {
+                        closePopup()
+                    }
+                }}
+                editingTask={activePopup === 'editTask' ? selectedTask : null}
+                initialData={{
+                    task_code: taskForm.task_code,
+                    project_id: taskForm.project_id
+                }}
+                projects={allProjects}
+                profiles={allProfiles}
+                currentUserProfile={profile}
+                generateNextTaskCode={(pId) => {
+                    const tasks = allTasks.filter(t => t.project_id === pId)
+                    const proj = allProjects.find(p => p.id === pId)
+                    return proj ? `${proj.project_code}-${String(tasks.length + 1).padStart(2, '0')}` : ''
+                }}
+            />
         </div>
     )
 }
