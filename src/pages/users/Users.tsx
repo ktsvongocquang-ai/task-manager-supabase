@@ -139,16 +139,37 @@ export const Users = () => {
     const handleSave = async () => {
         try {
             if (editingProfile) {
-                await supabase.from('profiles').update({
+                const { error } = await supabase.from('profiles').update({
                     full_name: form.full_name, position: form.position, role: form.role
                 }).eq('id', editingProfile.id)
+                if (error) {
+                    console.error('Update profile error:', error)
+                    alert(`Lỗi cập nhật: ${error.message}`)
+                    return
+                }
             } else {
-                console.log('Add new profile:', form)
+                if (!form.full_name || !form.email) {
+                    alert('Vui lòng nhập đầy đủ họ tên và email.')
+                    return
+                }
+                const { error } = await supabase.from('profiles').insert({
+                    staff_id: form.staff_id,
+                    full_name: form.full_name,
+                    email: form.email,
+                    position: form.position || null,
+                    role: form.role
+                })
+                if (error) {
+                    console.error('Insert profile error:', error)
+                    alert(`Lỗi thêm nhân viên: ${error.message}`)
+                    return
+                }
             }
             setShowModal(false)
             fetchProfiles()
         } catch (err) {
             console.error(err)
+            alert('Lỗi hệ thống khi lưu thông tin nhân viên.')
         }
     }
 
@@ -317,13 +338,26 @@ export const Users = () => {
                                 <input value={form.staff_id} disabled className="w-full px-5 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 cursor-not-allowed" />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Họ tên đầy đủ</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Họ tên đầy đủ <span className="text-red-500">*</span></label>
                                 <input
                                     value={form.full_name}
                                     onChange={e => setForm({ ...form, full_name: e.target.value })}
                                     className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                                    placeholder="Nhập họ tên..."
                                 />
                             </div>
+                            {!editingProfile && (
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Email <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="email"
+                                        value={form.email}
+                                        onChange={e => setForm({ ...form, email: e.target.value })}
+                                        className="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                                        placeholder="example@email.com"
+                                    />
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-[10px] font-black text-slate-500 uppercase mb-1.5 tracking-widest pl-1">Chức danh / Vị trí</label>
                                 <input

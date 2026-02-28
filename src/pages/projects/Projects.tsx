@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
-import { type Project } from '../../types'
+import { type Project, type Task } from '../../types'
 import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
@@ -14,6 +14,7 @@ export const Projects = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingProject, setEditingProject] = useState<Project | null>(null)
     const [profiles, setProfiles] = useState<any[]>([])
+    const [allTasks, setAllTasks] = useState<Task[]>([])
     const [form, setForm] = useState({
         name: '', project_code: '', description: '', status: 'Mới',
         start_date: '', end_date: '', manager_id: '', budget: 0
@@ -22,6 +23,7 @@ export const Projects = () => {
     useEffect(() => {
         fetchProjects()
         fetchProfiles()
+        fetchTasks()
     }, [])
 
     const fetchProjects = async () => {
@@ -39,6 +41,18 @@ export const Projects = () => {
     const fetchProfiles = async () => {
         const { data } = await supabase.from('profiles').select('id, full_name')
         if (data) setProfiles(data)
+    }
+
+    const fetchTasks = async () => {
+        const { data } = await supabase.from('tasks').select('id, project_id, status')
+        if (data) setAllTasks(data as Task[])
+    }
+
+    const getProjectProgress = (projectId: string) => {
+        const projTasks = allTasks.filter(t => t.project_id === projectId)
+        if (projTasks.length === 0) return 0
+        const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+        return Math.round((done / projTasks.length) * 100)
     }
 
     const filteredProjects = projects.filter(p => {
@@ -89,8 +103,6 @@ export const Projects = () => {
                 start_date: formData.start_date || null,
                 end_date: formData.end_date || null
             }
-
-            console.log('Sending project payload:', payload);
 
             let result;
             if (editingProject) {
@@ -241,16 +253,18 @@ export const Projects = () => {
 
                         {/* Progress */}
                         <div className="pt-3 border-t border-slate-100">
+                            {(() => { const pct = getProjectProgress(project.id); return (<>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ dự án</span>
-                                <span className="text-[11px] font-black text-blue-600">{project.status === 'Hoàn thành' ? '100%' : '65%'}</span>
+                                <span className="text-[11px] font-black text-blue-600">{pct}%</span>
                             </div>
                             <div className="bg-slate-100 rounded-full h-2 ring-1 ring-black/5">
                                 <div
-                                    className={`h-2 rounded-full transition-all duration-700 shadow-sm ${project.status === 'Hoàn thành' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
-                                    style={{ width: project.status === 'Hoàn thành' ? '100%' : '65%' }}
+                                    className={`h-2 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
+                                    style={{ width: `${pct}%` }}
                                 ></div>
                             </div>
+                            </>); })()}
                         </div>
                     </div>
                 ))}
