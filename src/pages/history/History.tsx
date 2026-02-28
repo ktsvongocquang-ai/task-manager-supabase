@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns'
 export const History = () => {
     const [logs, setLogs] = useState<any[]>([])
     const [profiles, setProfiles] = useState<any[]>([])
+    const [projects, setProjects] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     // Filters
@@ -20,16 +21,19 @@ export const History = () => {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const [logsResponse, profilesResponse] = await Promise.all([
+            const [logsResponse, profilesResponse, projectsResponse] = await Promise.all([
                 supabase.from('activity_logs').select('*').order('created_at', { ascending: false }),
-                supabase.from('profiles').select('*')
+                supabase.from('profiles').select('*'),
+                supabase.from('projects').select('*')
             ])
 
             if (logsResponse.error) throw logsResponse.error
             if (profilesResponse.error) throw profilesResponse.error
+            if (projectsResponse.error) throw projectsResponse.error
 
             setLogs(logsResponse.data || [])
             setProfiles(profilesResponse.data || [])
+            setProjects(projectsResponse.data || [])
         } catch (error) {
             console.error('Error fetching history:', error)
         } finally {
@@ -51,6 +55,12 @@ export const History = () => {
         return 'text-blue-400'
     }
 
+    const getProjectName = (projectId: string | null) => {
+        if (!projectId) return '-'
+        const project = projects.find(p => p.id === projectId)
+        return project?.name || '-'
+    }
+
     // Apply filters
     const filteredLogs = logs.filter(log => {
         const logDate = log.created_at ? format(parseISO(log.created_at), 'yyyy-MM-dd') : ''
@@ -62,7 +72,7 @@ export const History = () => {
 
         const searchLower = searchKeyword.toLowerCase()
         const matchSearch = searchKeyword
-            ? (log.action.toLowerCase().includes(searchLower) || (log.details || '').toLowerCase().includes(searchLower))
+            ? (log.action.toLowerCase().includes(searchLower) || (log.details || '').toLowerCase().includes(searchLower) || getProjectName(log.project_id).toLowerCase().includes(searchLower))
             : true
 
         return matchDate && matchAction && matchUser && matchSearch
@@ -71,37 +81,36 @@ export const History = () => {
     const uniqueActions = ['Tất cả', ...Array.from(new Set(logs.map(l => l.action.split(' ')[0])))]
 
     return (
-        <div className="min-h-screen bg-[#0a0f1d] text-slate-300 p-8 font-inter">
+        <div className="min-h-screen bg-slate-50 text-slate-800 p-8 font-inter">
             <div className="max-w-7xl mx-auto space-y-6">
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-white tracking-wide">Lịch Sử Hoạt Động</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-wide">Lịch Sử Hoạt Động</h1>
                 </div>
 
                 {/* Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Date Filter */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-emerald-400/80">Lọc theo ngày</label>
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Lọc theo ngày</label>
                         <div className="relative">
                             <input
                                 type="date"
                                 value={dateFilter}
                                 onChange={(e) => setDateFilter(e.target.value)}
-                                className="w-full bg-[#0b1021] border border-emerald-900/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-slate-600 appearance-none"
+                                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 appearance-none font-medium shadow-sm"
                             />
-                            {/* Note: Native date input might style differently, keeping it simple for now */}
                         </div>
                     </div>
 
                     {/* Action Filter */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-emerald-400/80">Thao tác</label>
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Thao tác</label>
                         <select
                             value={actionFilter}
                             onChange={(e) => setActionFilter(e.target.value)}
-                            className="w-full bg-[#0b1021] border border-emerald-900/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors appearance-none"
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
                         >
                             {uniqueActions.map((action, idx) => (
                                 <option key={idx} value={action}>{action}</option>
@@ -111,11 +120,11 @@ export const History = () => {
 
                     {/* User Filter */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-emerald-400/80">Người thực hiện</label>
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Người thực hiện</label>
                         <select
                             value={userFilter}
                             onChange={(e) => setUserFilter(e.target.value)}
-                            className="w-full bg-[#0b1021] border border-emerald-900/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors appearance-none"
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
                         >
                             <option value="Tất cả">Tất cả</option>
                             {profiles.map(p => (
@@ -126,53 +135,57 @@ export const History = () => {
 
                     {/* Search */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-emerald-400/80">Tìm kiếm</label>
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tìm kiếm</label>
                         <div className="relative">
                             <input
                                 type="text"
                                 placeholder="Nhập từ khóa..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                className="w-full bg-[#0b1021] border border-emerald-900/30 text-white text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-emerald-500/50 transition-colors placeholder-slate-500"
+                                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 font-medium shadow-sm"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Table */}
-                <div className="bg-[#0b1021] border border-slate-800/60 rounded-xl overflow-hidden shadow-2xl">
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-slate-800/60">
-                                    <th className="py-4 px-6 text-xs font-semibold text-emerald-400 w-48">Ngày giờ</th>
-                                    <th className="py-4 px-6 text-xs font-semibold text-emerald-400 w-32">Thao tác</th>
-                                    <th className="py-4 px-6 text-xs font-semibold text-emerald-400 w-48">Người thực hiện</th>
-                                    <th className="py-4 px-6 text-xs font-semibold text-emerald-400">Nội dung thực hiện</th>
+                                <tr className="border-b border-slate-200 bg-slate-50">
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Ngày giờ</th>
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-32 uppercase tracking-wider">Thao tác</th>
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Người thực hiện</th>
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 uppercase tracking-wider">Dự án</th>
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 uppercase tracking-wider">Nội dung thực hiện</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/40">
+                            <tbody className="divide-y divide-slate-100">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={4} className="py-8 text-center text-slate-500 text-sm">Đang tải dữ liệu...</td>
+                                        <td colSpan={5} className="py-8 text-center text-slate-500 text-sm font-medium">Đang tải dữ liệu...</td>
                                     </tr>
                                 ) : filteredLogs.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="py-8 text-center text-slate-500 text-sm">Không tìm thấy lịch sử hoạt động phù hợp.</td>
+                                        <td colSpan={5} className="py-8 text-center text-slate-500 text-sm font-medium">Không tìm thấy lịch sử hoạt động phù hợp.</td>
                                     </tr>
                                 ) : (
                                     filteredLogs.map(log => (
-                                        <tr key={log.id} className="hover:bg-slate-800/20 transition-colors group">
-                                            <td className="py-3.5 px-6 text-sm text-slate-400 font-medium">
+                                        <tr key={log.id} className="hover:bg-slate-50 transition-colors group">
+                                            <td className="py-3.5 px-6 text-sm text-slate-500 font-medium whitespace-nowrap">
                                                 {log.created_at ? format(parseISO(log.created_at), 'yyyy-MM-dd HH:mm') : '-'}
                                             </td>
-                                            <td className={`py-3.5 px-6 text-sm font-semibold capitalize ${getActionColor(log.action)}`}>
+                                            <td className={`py-3.5 px-6 text-sm font-bold capitalize whitespace-nowrap ${getActionColor(log.action)}`}>
                                                 {log.action}
                                             </td>
-                                            <td className="py-3.5 px-6 text-sm text-slate-300">
+                                            <td className="py-3.5 px-6 text-sm font-semibold text-slate-700 whitespace-nowrap">
                                                 {getProfileName(log.user_id)}
                                             </td>
-                                            <td className="py-3.5 px-6 text-sm text-slate-400 max-w-lg truncate group-hover:block transition-all" title={log.details || ''}>
+                                            <td className="py-3.5 px-6 text-sm font-semibold text-indigo-600 max-w-[200px] truncate" title={getProjectName(log.project_id)}>
+                                                {getProjectName(log.project_id)}
+                                            </td>
+                                            <td className="py-3.5 px-6 text-sm text-slate-600 max-w-lg truncate group-hover:whitespace-normal transition-all" title={log.details || ''}>
                                                 {log.details || '-'}
                                             </td>
                                         </tr>
