@@ -157,6 +157,17 @@ export const Tasks = () => {
                 completion_pct: 100,
                 completion_date: prev.completion_date || new Date().toISOString().split('T')[0]
             }));
+        } else if (form.completion_pct === 100 && form.status !== 'Hoàn thành') {
+            setForm(prev => ({
+                ...prev,
+                status: 'Hoàn thành',
+                completion_date: prev.completion_date || new Date().toISOString().split('T')[0]
+            }));
+        } else if (form.status !== 'Hoàn thành' && form.completion_date) {
+            setForm(prev => ({
+                ...prev,
+                completion_date: ''
+            }));
         }
 
         // Auto-enforce date minimums
@@ -164,7 +175,7 @@ export const Tasks = () => {
             setForm(prev => ({ ...prev, due_date: prev.start_date }));
         }
 
-    }, [form.status, form.start_date, form.due_date, showModal]);
+    }, [form.status, form.completion_pct, form.start_date, form.due_date, showModal]);
 
     const isCurrentUserManagerOfSelectedProject = () => {
         if (!form.project_id) return false;
@@ -349,7 +360,7 @@ export const Tasks = () => {
                                         {projectTasks.length} NHIỆM VỤ
                                     </span>
                                 </div>
-                                {profile?.role !== 'Nhân viên' && (
+                                {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); openAddModal(projectId); }}
                                         className="text-xs font-bold text-indigo-600 hover:underline"
@@ -387,6 +398,7 @@ export const Tasks = () => {
                                                             checked={task.status?.includes('Hoàn thành')}
                                                             onChange={() => toggleComplete(task)}
                                                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                                                            disabled={!(profile?.role === 'Admin' || project?.manager_id === profile?.id || task.assignee_id === profile?.id)}
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -436,24 +448,28 @@ export const Tasks = () => {
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex items-center justify-center gap-2">
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleCopy(task); }}
-                                                                className="w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100"
-                                                            >
-                                                                <Copy size={13} />
-                                                            </button>
+                                                            {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleCopy(task); }}
+                                                                    className="w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100"
+                                                                >
+                                                                    <Copy size={13} />
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
                                                                 className="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100"
                                                             >
                                                                 <Edit3 size={13} />
                                                             </button>
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
-                                                                className="w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100"
-                                                            >
-                                                                <Trash2 size={13} />
-                                                            </button>
+                                                            {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
+                                                                    className="w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100"
+                                                                >
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -511,8 +527,9 @@ export const Tasks = () => {
                                 <textarea
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[100px] resize-none"
+                                    className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[100px] resize-none ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
                                     placeholder="Nội dung mô tả nhiệm vụ..."
+                                    disabled={shouldDisableTopFields()}
                                 />
                             </div>
 
@@ -535,7 +552,8 @@ export const Tasks = () => {
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
+                                        className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
                                     >
                                         <option value="Thấp">Thấp</option>
                                         <option value="Trung bình">Trung bình</option>
@@ -617,8 +635,9 @@ export const Tasks = () => {
                                 <textarea
                                     value={form.target}
                                     onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none"
+                                    className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all min-h-[80px] resize-none ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
                                     placeholder="Mô tả mục tiêu của nhiệm vụ..."
+                                    disabled={shouldDisableTopFields()}
                                 />
                             </div>
 
