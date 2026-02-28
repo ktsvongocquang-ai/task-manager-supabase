@@ -196,13 +196,15 @@ export const Users = () => {
                         className="w-full bg-white/80 border border-slate-200/50 pl-10 pr-4 py-3 rounded-2xl text-[11px] font-bold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-sm"
                     />
                 </div>
-                <button
-                    onClick={openAddModal}
-                    className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 rounded-2xl text-[12px] font-black shadow-xl shadow-orange-200/50 transition-all flex items-center justify-center gap-2 active:scale-95 uppercase tracking-wider"
-                >
-                    <UserPlus size={18} strokeWidth={3} />
-                    Thêm nhân viên
-                </button>
+                {_profile?.role === 'Admin' && (
+                    <button
+                        onClick={openAddModal}
+                        className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-3 rounded-2xl text-[12px] font-black shadow-xl shadow-orange-200/50 transition-all flex items-center justify-center gap-2 active:scale-95 uppercase tracking-wider"
+                    >
+                        <UserPlus size={18} strokeWidth={3} />
+                        Thêm nhân viên
+                    </button>
+                )}
             </div>
 
             {/* Permissions Matrix - High Fidelity */}
@@ -295,22 +297,24 @@ export const Users = () => {
                                     {p.role}
                                 </span>
 
-                                <div className="flex items-center justify-center gap-3 mt-8">
-                                    <button
-                                        onClick={() => openEditModal(p)}
-                                        className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm border border-blue-100 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1"
-                                        title="Chỉnh sửa"
-                                    >
-                                        <Edit3 size={15} strokeWidth={2.5} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(p.id)}
-                                        className="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white transition-all transform hover:-translate-y-1"
-                                        title="Xóa"
-                                    >
-                                        <Trash2 size={15} strokeWidth={2.5} />
-                                    </button>
-                                </div>
+                                {_profile?.role === 'Admin' && (
+                                    <div className="flex items-center justify-center gap-3 mt-8">
+                                        <button
+                                            onClick={() => openEditModal(p)}
+                                            className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shadow-sm border border-blue-100 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1"
+                                            title="Chỉnh sửa"
+                                        >
+                                            <Edit3 size={15} strokeWidth={2.5} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(p.id)}
+                                            className="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-sm border border-red-100 hover:bg-red-500 hover:text-white transition-all transform hover:-translate-y-1"
+                                            title="Xóa"
+                                        >
+                                            <Trash2 size={15} strokeWidth={2.5} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )
