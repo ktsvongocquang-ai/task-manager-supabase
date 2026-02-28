@@ -69,6 +69,23 @@ export const Tasks = () => {
     }
 
     const filteredTasks = tasks.filter(t => {
+        const userRole = profile?.role;
+        const isAssigned = t.assignee_id === profile?.id;
+        // Check if user is manager of the project this task belongs to
+        const project = projects.find(p => p.id === t.project_id);
+        const isProjectManager = project && project.manager_id === profile?.id;
+
+        let isVisible = true;
+        if (userRole === 'Nhân viên') {
+            isVisible = Boolean(isAssigned || isProjectManager);
+        } else if (userRole === 'Quản lý') {
+            isVisible = Boolean(isProjectManager || isAssigned); // Assuming Manager can see all their project tasks
+            // Wait, reference says "Xem tất cả nhiệm vụ: Manager: Flase, Admin: True"
+            // But manager CAN see tasks in projects they manage.
+        }
+
+        if (!isVisible) return false;
+
         const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
             t.task_code.toLowerCase().includes(search.toLowerCase())
         const matchStatus = statusFilter ? t.status === statusFilter : true
@@ -128,6 +145,40 @@ export const Tasks = () => {
         })
         setShowModal(true)
     }
+
+    // Effect for handling auto-completion and date constraints
+    useEffect(() => {
+        if (!showModal) return;
+
+        // Auto-complete
+        if (form.status === 'Hoàn thành' && form.completion_pct !== 100) {
+            setForm(prev => ({
+                ...prev,
+                completion_pct: 100,
+                completion_date: prev.completion_date || new Date().toISOString().split('T')[0]
+            }));
+        }
+
+        // Auto-enforce date minimums
+        if (form.start_date && form.due_date && form.due_date < form.start_date) {
+            setForm(prev => ({ ...prev, due_date: prev.start_date }));
+        }
+
+    }, [form.status, form.start_date, form.due_date, showModal]);
+
+    const isCurrentUserManagerOfSelectedProject = () => {
+        if (!form.project_id) return false;
+        const p = projects.find(x => x.id === form.project_id);
+        return p?.manager_id === profile?.id;
+    }
+
+    const shouldDisableTopFields = () => {
+        if (profile?.role === 'Admin') return false;
+        if (profile?.role === 'Quản lý' && isCurrentUserManagerOfSelectedProject()) return false;
+        if (profile?.role === 'Nhân viên' && isCurrentUserManagerOfSelectedProject()) return false;
+        return editingTask !== null; // If editing as regular staff/assigned user, disable core fields
+    }
+
 
     const handleSave = async () => {
         try {
@@ -245,12 +296,14 @@ export const Tasks = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
-                    <button
-                        onClick={() => openAddModal()}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                    >
-                        <Plus size={18} /> Tạo mới nhiệm vụ
-                    </button>
+                    {profile?.role !== 'Nhân viên' && (
+                        <button
+                            onClick={() => openAddModal()}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                        >
+                            <Plus size={18} /> Tạo mới nhiệm vụ
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -296,12 +349,14 @@ export const Tasks = () => {
                                         {projectTasks.length} NHIỆM VỤ
                                     </span>
                                 </div>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); openAddModal(projectId); }}
-                                    className="text-xs font-bold text-indigo-600 hover:underline"
-                                >
-                                    + THÊM NHIỆM VỤ
-                                </button>
+                                {profile?.role !== 'Nhân viên' && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); openAddModal(projectId); }}
+                                        className="text-xs font-bold text-indigo-600 hover:underline"
+                                    >
+                                        + THÊM NHIỆM VỤ
+                                    </button>
+                                )}
                             </div>
 
                             {/* Tasks Table */}
@@ -430,8 +485,9 @@ export const Tasks = () => {
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+                                    className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
                                     placeholder="Ví dụ: Thiết kế giao diện chính..."
+                                    disabled={shouldDisableTopFields()}
                                 />
                             </div>
 
@@ -441,10 +497,11 @@ export const Tasks = () => {
                                 <select
                                     value={form.project_id}
                                     onChange={(e) => setForm({ ...form, project_id: e.target.value })}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
+                                    className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                                    disabled={shouldDisableTopFields()}
                                 >
                                     <option value="">Chọn dự án</option>
-                                    {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.project_code})</option>)}
+                                    {projects.filter(p => profile?.role === 'Admin' || p.manager_id === profile?.id || editingTask !== null).map(p => <option key={p.id} value={p.id}>{p.name} ({p.project_code})</option>)}
                                 </select>
                             </div>
 
@@ -466,10 +523,11 @@ export const Tasks = () => {
                                     <select
                                         value={form.assignee_id}
                                         onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none"
+                                        className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium appearance-none ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn người</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name} ({p.email})</option>)}
+                                        {profiles.filter(p => profile?.role === 'Admin' || isCurrentUserManagerOfSelectedProject() || p.id === profile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name} ({p.email})</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -495,7 +553,10 @@ export const Tasks = () => {
                                         type="date"
                                         value={form.start_date}
                                         onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                        min={form.project_id ? projects.find(p => p.id === form.project_id)?.start_date?.split('T')[0] : undefined}
+                                        max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
+                                        className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
                                     />
                                 </div>
                                 <div>
@@ -504,7 +565,10 @@ export const Tasks = () => {
                                         type="date"
                                         value={form.due_date}
                                         onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                        min={form.start_date || (form.project_id ? projects.find(p => p.id === form.project_id)?.start_date?.split('T')[0] : undefined)}
+                                        max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
+                                        className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all ${shouldDisableTopFields() ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
                                     />
                                 </div>
                             </div>

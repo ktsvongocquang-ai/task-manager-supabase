@@ -56,6 +56,19 @@ export const Projects = () => {
     }
 
     const filteredProjects = projects.filter(p => {
+        // Role-based filtering
+        const userRole = profile?.role;
+        const isUserProject = p.manager_id === profile?.id;
+
+        let isVisible = true;
+        if (userRole === 'Nhân viên') {
+            isVisible = isUserProject || allTasks.some(t => t.project_id === p.id);
+        } else if (userRole === 'Quản lý') {
+            isVisible = isUserProject;
+        }
+
+        if (!isVisible) return false;
+
         const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
             p.project_code.toLowerCase().includes(search.toLowerCase())
         const matchStatus = statusFilter ? p.status === statusFilter : true
@@ -179,12 +192,14 @@ export const Projects = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
-                    <button
-                        onClick={openAddModal}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                    >
-                        <Plus size={18} /> Tạo mới dự án
-                    </button>
+                    {profile?.role !== 'Nhân viên' && (
+                        <button
+                            onClick={openAddModal}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                        >
+                            <Plus size={18} /> Tạo mới dự án
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -220,15 +235,21 @@ export const Projects = () => {
                             </span>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                <button onClick={() => handleCopy(project)} className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
-                                    <Copy size={14} />
-                                </button>
-                                <button onClick={() => openEditModal(project)} className="w-8 h-8 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all shadow-sm border border-amber-100">
-                                    <Edit3 size={14} />
-                                </button>
-                                <button onClick={() => handleDelete(project.id)} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100">
-                                    <Trash2 size={14} />
-                                </button>
+                                {profile?.role !== 'Nhân viên' && (
+                                    <button onClick={() => handleCopy(project)} className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100">
+                                        <Copy size={14} />
+                                    </button>
+                                )}
+                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
+                                    <button onClick={() => openEditModal(project)} className="w-8 h-8 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center hover:bg-amber-600 hover:text-white transition-all shadow-sm border border-amber-100">
+                                        <Edit3 size={14} />
+                                    </button>
+                                )}
+                                {profile?.role !== 'Nhân viên' && (profile?.role === 'Admin' || project.manager_id === profile?.id) && (
+                                    <button onClick={() => handleDelete(project.id)} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-600 hover:text-white transition-all shadow-sm border border-red-100">
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -253,18 +274,20 @@ export const Projects = () => {
 
                         {/* Progress */}
                         <div className="pt-3 border-t border-slate-100">
-                            {(() => { const pct = getProjectProgress(project.id); return (<>
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ dự án</span>
-                                <span className="text-[11px] font-black text-blue-600">{pct}%</span>
-                            </div>
-                            <div className="bg-slate-100 rounded-full h-2 ring-1 ring-black/5">
-                                <div
-                                    className={`h-2 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
-                                    style={{ width: `${pct}%` }}
-                                ></div>
-                            </div>
-                            </>); })()}
+                            {(() => {
+                                const pct = getProjectProgress(project.id); return (<>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ dự án</span>
+                                        <span className="text-[11px] font-black text-blue-600">{pct}%</span>
+                                    </div>
+                                    <div className="bg-slate-100 rounded-full h-2 ring-1 ring-black/5">
+                                        <div
+                                            className={`h-2 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}
+                                            style={{ width: `${pct}%` }}
+                                        ></div>
+                                    </div>
+                                </>);
+                            })()}
                         </div>
                     </div>
                 ))}
@@ -343,9 +366,10 @@ export const Projects = () => {
                                     value={form.manager_id}
                                     onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
                                     className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                    disabled={profile?.role !== 'Admin'}
                                 >
                                     <option value="">Chọn quản lý</option>
-                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    {profiles.filter(p => profile?.role === 'Admin' || p.id === profile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                 </select>
                             </div>
                             <div>
