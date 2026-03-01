@@ -11,7 +11,7 @@ interface GenerateAIProjectModalProps {
 }
 
 const PROJECT_TYPES = [
-    'Chung cư - Hoàn thiện nội thất',
+    'Chung cư',
     'Nhà phố - Cải tạo',
     'Nhà phố - Xây mới',
     'Biệt thự',
@@ -28,10 +28,11 @@ const STYLES = [
 ];
 
 const INVESTMENT_LEVELS = [
-    'Tiêu chuẩn (< 1 Tỷ)',
-    'Khá (1 - 3 Tỷ)',
-    'Cao cấp (3 - 5 Tỷ)',
-    'Siêu cao cấp (> 5 Tỷ)'
+    'Tiết kiệm (< 300Tr)',
+    'Tiêu chuẩn (300 - 500Tr)',
+    'Khá (500 - 800Tr)',
+    'Cao cấp (800Tr - 1 Tỷ)',
+    'Luxury (> 1 Tỷ)'
 ];
 
 export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
@@ -52,14 +53,65 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
     const [projectType, setProjectType] = useState(PROJECT_TYPES[0]);
     const [style, setStyle] = useState(STYLES[0]);
-    const [investment, setInvestment] = useState(INVESTMENT_LEVELS[1]);
+    const [investment, setInvestment] = useState(INVESTMENT_LEVELS[2]);
     const [area, setArea] = useState('100');
+    const [hasMepStruct, setHasMepStruct] = useState(false); // For Nhà Phố/Biệt thự
 
     // --- State: Processing & Preview ---
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedPhases, setGeneratedPhases] = useState<any[]>([]);
     const [generatedTasks, setGeneratedTasks] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState(false);
+
+    // --- Dynamic Calculation ---
+    // Base 44-task SOP is ~14.5 WD internal. We modify it based on complexity factors.
+    const computeTimeline = () => {
+        let baseWd = 14.5;
+        let c = 2, d3 = 4.25, s = 3.5, kt = 3, qc = 1.75; // Baseline phases
+
+        let multiplier = 1.0;
+
+        // 1. Type multiplier
+        if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) multiplier += 0.3;
+        if (projectType === 'Văn phòng') multiplier -= 0.1;
+
+        // 2. Investment multiplier
+        if (investment.includes('> 1 Tỷ') || investment.includes('Cao cấp')) multiplier += 0.2;
+        if (investment.includes('< 300Tr')) multiplier -= 0.15;
+
+        // 3. Area multiplier (Base 100m2)
+        const numArea = parseFloat(area) || 100;
+        if (numArea > 150) multiplier += 0.15;
+        if (numArea > 300) multiplier += 0.3;
+
+        // 4. MEP/Struct Dependency
+        if (hasMepStruct) {
+            baseWd += 4; // Add 4 days explicitly for structural/MEP coordination
+            kt += 2;
+            qc += 1;
+        }
+
+        const internalWd = Number((baseWd * multiplier).toFixed(1));
+        const bufferKh = Number((4.25 * multiplier).toFixed(1));
+
+        // Approximate calendar days: (WD / 5) * 7
+        const totalWd = internalWd + bufferKh;
+        const totalCalendar = Math.round((totalWd / 5) * 7);
+
+        // Adjust phase weights proportionally to the new internalWd for the visual bar
+        // We ensure they roughly sum up to internalWd
+        const adjustedPhaseWd = {
+            c: Number((c * multiplier).toFixed(2)),
+            d3: Number((d3 * multiplier).toFixed(2)),
+            s: Number((s * multiplier).toFixed(2)),
+            kt: kt, // KT and QC logic already handled above if MEP
+            qc: qc
+        }
+
+        return { internalWd, bufferKh, totalCalendar, phases: adjustedPhaseWd };
+    };
+
+    const timelineData = computeTimeline();
 
     const handleGenerate = async () => {
         if (!projectName || !clientName) {
@@ -214,15 +266,15 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-[#0f172a] border border-slate-700/50 rounded-2xl shadow-2xl shadow-slate-900/50 w-full max-w-5xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 shrink-0">
+                <div className="px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-[#0f172a] shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="bg-indigo-500/20 p-2 rounded-lg text-indigo-400">
-                            <Sparkles size={20} />
+                        <div className="bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20 text-indigo-400">
+                            <Sparkles size={20} strokeWidth={2.5} />
                         </div>
-                        <h3 className="text-xl font-bold text-white">Tạo Dự Án Mới (AI Assist)</h3>
+                        <h3 className="text-xl font-black text-white tracking-wide">Tạo Dự Án Mới <span className="text-indigo-400 font-bold">(AI Assist)</span></h3>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-lg">
                         <X size={20} />
@@ -230,139 +282,215 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-950">
+                <div className="flex-1 overflow-y-auto p-8 bg-[#151c2f] custom-scrollbar">
                     {!showPreview ? (
-                        <div className="max-w-3xl mx-auto space-y-8">
-                            <p className="text-slate-400 text-sm">Điền thông tin dự án, AI sẽ tự động phân rã WBS và xếp lịch công việc chuẩn xác theo SOP, tự động bỏ qua Thứ 7 & Chủ Nhật.</p>
+                        <div className="max-w-4xl mx-auto space-y-8 flex gap-8">
 
-                            {/* Panel 1: Info & Team */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-                                <h4 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-                                    <span className="bg-slate-800 text-slate-300 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                                    Thông tin Hành chính & Đội ngũ
-                                </h4>
+                            {/* Left Column: Form Inputs */}
+                            <div className="flex-1 space-y-6">
+                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                                    Điền thông tin dự án, AI sẽ tự động phân rã WBS và xếp lịch công việc chuẩn xác theo SOP, tự động bỏ qua Thứ 7 & Chủ Nhật.
+                                </p>
 
-                                <div className="grid grid-cols-2 gap-5 mb-5">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tên Dự Án</label>
-                                        <input
-                                            type="text"
-                                            value={projectName}
-                                            onChange={(e) => setProjectName(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600"
-                                            placeholder="VD: Căn hộ Vinhomes 3PN..."
-                                            autoFocus
-                                        />
+                                {/* Panel 1: Info & Team */}
+                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner">
+                                    <h4 className="text-[13px] font-black font-mono text-slate-300 mb-5 flex items-center gap-3 tracking-wider uppercase">
+                                        <span className="bg-indigo-500/20 text-indigo-400 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                                        Hành chính & Đội ngũ
+                                    </h4>
+
+                                    <div className="grid grid-cols-2 gap-5 mb-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Dự Án</label>
+                                            <input
+                                                type="text"
+                                                value={projectName}
+                                                onChange={(e) => setProjectName(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600 font-medium"
+                                                placeholder="VD: Căn hộ Vinhomes 3PN..."
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Khách Hàng</label>
+                                            <input
+                                                type="text"
+                                                value={clientName}
+                                                onChange={(e) => setClientName(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600 font-medium"
+                                                placeholder="VD: Anh Tuấn, Chị Lan..."
+                                            />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Tên Khách Hàng</label>
-                                        <input
-                                            type="text"
-                                            value={clientName}
-                                            onChange={(e) => setClientName(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600"
-                                            placeholder="VD: Anh Tuấn, Chị Lan..."
-                                        />
+
+                                    <div className="grid grid-cols-3 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><Calendar size={14} /> Bắt đầu</label>
+                                            <input
+                                                type="date"
+                                                value={startDate}
+                                                onChange={(e) => setStartDate(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors [color-scheme:dark] font-mono"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><User size={14} /> Chủ trì (Lead)</label>
+                                            <select
+                                                value={leadId}
+                                                onChange={(e) => setLeadId(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-medium"
+                                            >
+                                                <option value="">Chọn Lead</option>
+                                                {profiles.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.full_name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><User size={14} className="text-slate-500" /> Hỗ trợ (Support)</label>
+                                            <select
+                                                value={supportId}
+                                                onChange={(e) => setSupportId(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-medium"
+                                            >
+                                                <option value="">(Tùy chọn)</option>
+                                                {profiles.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.full_name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-5">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><Calendar size={12} /> Ngày bắt đầu</label>
-                                        <input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors [color-scheme:dark]"
-                                        />
+                                {/* Panel 2: Specs */}
+                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner">
+                                    <h4 className="text-[13px] font-black font-mono text-slate-300 mb-5 flex items-center gap-3 tracking-wider uppercase">
+                                        <span className="bg-indigo-500/20 text-indigo-400 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                                        Kỹ thuật & Phân khúc
+                                    </h4>
+
+                                    <div className="grid grid-cols-2 gap-5 mb-5">
+                                        <div className="col-span-2 sm:col-span-1">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><Briefcase size={14} /> Loại hình</label>
+                                            <select
+                                                value={projectType}
+                                                onChange={(e) => setProjectType(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-medium"
+                                            >
+                                                {PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
+                                        </div>
+                                        {/* Optional Checkbox for MEP/Struct if Townhouse/Villa */}
+                                        {(projectType.includes('Nhà phố') || projectType.includes('Biệt thự') || projectType.includes('Cải tạo')) && (
+                                            <div className="col-span-2 sm:col-span-1 flex items-center pt-6">
+                                                <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-slate-700 bg-[#0f172a] hover:bg-slate-800 transition-colors w-full">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={hasMepStruct}
+                                                        onChange={(e) => setHasMepStruct(e.target.checked)}
+                                                        className="w-5 h-5 rounded border-slate-600 text-indigo-500 focus:ring-indigo-500/50 bg-slate-900"
+                                                    />
+                                                    <div className="text-sm font-bold text-slate-300">
+                                                        Phải ra <span className="text-indigo-400">Kết Cấu / MEP</span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><User size={12} /> Chủ trì thiết kế (Lead)</label>
-                                        <select
-                                            value={leadId}
-                                            onChange={(e) => setLeadId(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
-                                        >
-                                            <option value="">Chọn Lead</option>
-                                            {profiles.map(p => (
-                                                <option key={p.id} value={p.id}>{p.role} - {p.full_name}</option>
-                                            ))}
-                                        </select>
+
+                                    <div className="grid grid-cols-2 gap-5 mb-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><LayoutIcon size={14} /> Phong cách (Style)</label>
+                                            <select
+                                                value={style}
+                                                onChange={(e) => setStyle(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-medium"
+                                            >
+                                                {STYLES.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><FileText size={14} /> Mức đầu tư</label>
+                                            <select
+                                                value={investment}
+                                                onChange={(e) => setInvestment(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-amber-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-bold"
+                                            >
+                                                {INVESTMENT_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><User size={12} /> Người hỗ trợ (Support)</label>
-                                        <select
-                                            value={supportId}
-                                            onChange={(e) => setSupportId(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
-                                        >
-                                            <option value="">Chọn Support</option>
-                                            {profiles.map(p => (
-                                                <option key={p.id} value={p.id}>{p.role} - {p.full_name}</option>
-                                            ))}
-                                        </select>
+
+                                    <div className="grid grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Diện tích (m²)</label>
+                                            <input
+                                                type="number"
+                                                value={area}
+                                                onChange={(e) => setArea(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm font-mono text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Ghi chú (Tùy chọn)</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600"
+                                                placeholder="VD: Cần ưu tiên thiết kế..."
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Panel 2: Specs */}
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-                                <h4 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-                                    <span className="bg-slate-800 text-slate-300 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                                    Thông số Kỹ thuật & Phân khúc
-                                </h4>
+                            {/* Right Column: AI TIMELINE PREVIEW BLOCK */}
+                            <div className="w-80 shrink-0 mt-[1.5rem]">
+                                <div className="bg-[#1e293b]/70 border border-[#334155] rounded-3xl p-6 shadow-2xl sticky top-0 relative overflow-hidden">
+                                    {/* Background glow */}
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl rounded-full pointer-events-none"></div>
 
-                                <div className="mb-5">
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><Briefcase size={12} /> Loại hình dự án</label>
-                                    <select
-                                        value={projectType}
-                                        onChange={(e) => setProjectType(e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
-                                    >
-                                        {PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </div>
+                                    <h4 className="text-sm font-black text-indigo-400 mb-6 flex items-center gap-2 uppercase tracking-wide">
+                                        <Sparkles size={16} /> AI TIMELINE PREVIEW
+                                    </h4>
 
-                                <div className="grid grid-cols-2 gap-5 mb-5">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><LayoutIcon size={12} /> Phong cách (Style)</label>
-                                        <select
-                                            value={style}
-                                            onChange={(e) => setStyle(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
-                                        >
-                                            {STYLES.map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5 flex items-center gap-1"><FileText size={12} /> Mức đầu tư</label>
-                                        <select
-                                            value={investment}
-                                            onChange={(e) => setInvestment(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors appearance-none"
-                                        >
-                                            {INVESTMENT_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-baseline border-b border-slate-700/50 pb-4">
+                                            <span className="text-sm text-slate-300 font-medium">Tổng ngày làm (Nội bộ):</span>
+                                            <div className="text-right">
+                                                <span className="text-3xl font-black text-white">{timelineData.internalWd}</span>
+                                                <span className="text-sm text-slate-500 ml-1 font-mono">WD</span>
+                                            </div>
+                                        </div>
 
-                                <div className="grid grid-cols-2 gap-5">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Diện tích tổng (m²)</label>
-                                        <input
-                                            type="number"
-                                            value={area}
-                                            onChange={(e) => setArea(e.target.value)}
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-1.5">Ghi chú thêm (Tùy chọn)</label>
-                                        <input
-                                            type="text"
-                                            className="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600"
-                                            placeholder="VD: Cần ưu tiên thiết kế phòng ngủ master trước..."
-                                        />
+                                        <div className="flex justify-between items-center border-b border-slate-700/50 pb-4">
+                                            <span className="text-sm text-slate-400">Chờ KH duyệt (Buffer):</span>
+                                            <span className="text-sm font-bold text-amber-500">+{timelineData.bufferKh} ngày</span>
+                                        </div>
+
+                                        <div className="pt-2">
+                                            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Tỉ trọng Giai đoạn</div>
+                                            {/* Horizontal stacked bar representing phases */}
+                                            <div className="h-3 w-full bg-slate-800 rounded-full flex overflow-hidden mb-2 shadow-inner">
+                                                <div style={{ width: `${(timelineData.phases.c / timelineData.internalWd) * 100}%` }} className="bg-blue-500 hover:opacity-80 transition-opacity" title={`Concept: ${timelineData.phases.c} WD`}></div>
+                                                <div style={{ width: `${(timelineData.phases.d3 / timelineData.internalWd) * 100}%` }} className="bg-amber-500 hover:opacity-80 transition-opacity" title={`3D: ${timelineData.phases.d3} WD`}></div>
+                                                <div style={{ width: `${(timelineData.phases.s / timelineData.internalWd) * 100}%` }} className="bg-rose-500 hover:opacity-80 transition-opacity" title={`Shop Drawing: ${timelineData.phases.s} WD`}></div>
+                                                <div style={{ width: `${(timelineData.phases.kt / timelineData.internalWd) * 100}%` }} className="bg-emerald-500 hover:opacity-80 transition-opacity" title={`Kỹ thuật: ${timelineData.phases.kt} WD`}></div>
+                                                <div style={{ width: `${(timelineData.phases.qc / timelineData.internalWd) * 100}%` }} className="bg-purple-500 hover:opacity-80 transition-opacity" title={`QC: ${timelineData.phases.qc} WD`}></div>
+                                            </div>
+                                            <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold px-1">
+                                                <span>C</span>
+                                                <span>3D</span>
+                                                <span>S</span>
+                                                <span>KT</span>
+                                                <span>QC</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mt-8 flex flex-col items-center justify-center">
+                                            <span className="text-xs text-slate-500 font-bold uppercase mb-1">Dự kiến hoàn thiện nộp File</span>
+                                            <span className="text-xl font-mono font-black text-emerald-400">~{timelineData.totalCalendar}</span>
+                                            <span className="text-xs text-slate-400">Ngày lịch (Bao gồm T7/CN)</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -461,23 +589,31 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
 
                     {!showPreview ? (
-                        <button
-                            onClick={handleGenerate}
-                            disabled={!projectName.trim() || !clientName.trim() || isGenerating}
-                            className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isGenerating ? (
-                                <>
-                                    <Loader2 size={16} className="animate-spin" />
+                        <>
+                            {!projectName.trim() || !clientName.trim() ? (
+                                <button
+                                    disabled
+                                    className="px-6 py-3 bg-slate-800 text-slate-500 rounded-xl text-sm font-bold transition-all w-full md:w-auto uppercase tracking-wide cursor-not-allowed border border-slate-700"
+                                >
+                                    Nhập Tên Dự Án & Khách Hàng
+                                </button>
+                            ) : isGenerating ? (
+                                <button
+                                    disabled
+                                    className="px-8 py-3 bg-indigo-600/50 text-indigo-300 rounded-xl text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-3 w-full md:w-auto cursor-not-allowed border border-indigo-500/30"
+                                >
+                                    <Loader2 size={18} className="animate-spin" />
                                     AI Đang phân tích SOP...
-                                </>
+                                </button>
                             ) : (
-                                <>
-                                    <Sparkles size={16} />
-                                    Tạo Tiến Độ AI
-                                </>
+                                <button
+                                    onClick={handleGenerate}
+                                    className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-[0_0_20px_rgba(79,70,229,0.4)] transition-all flex items-center justify-center gap-3 w-full md:w-auto uppercase tracking-wide border border-indigo-500 active:scale-95"
+                                >
+                                    Khởi tạo Dự Án & Sinh Timeline <ArrowRight size={16} />
+                                </button>
                             )}
-                        </button>
+                        </>
                     ) : (
                         <button
                             onClick={handleSaveToDatabase}
