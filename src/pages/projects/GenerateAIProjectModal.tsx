@@ -114,12 +114,14 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             // 1. Insert Project
             const descriptionStr = `Khách hàng: ${clientName}\nLoại hình: ${projectType}\nPhong cách: ${style}\nMức đầu tư: ${investment}\nDiện tích: ${area}m2`;
 
+            const pCode = `AI-${Math.floor(Math.random() * 10000)}`;
+
             const { data: projectData, error: projectError } = await supabase
                 .from('projects')
                 .insert([{
                     name: projectName,
                     description: descriptionStr,
-                    project_code: `AI-${Math.floor(Math.random() * 10000)}`,
+                    project_code: pCode,
                     status: 'Chưa bắt đầu',
                     start_date: startDate,
                     manager_id: currentUserProfile?.id || leadId
@@ -142,7 +144,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
                 return {
                     project_id: projectId,
-                    task_code: t.code,
+                    task_code: `${pCode}-${t.code}`,
                     name: t.title,
                     description: t.note || `Phase: ${t.phaseId}`,
                     priority: 'Trung bình',
