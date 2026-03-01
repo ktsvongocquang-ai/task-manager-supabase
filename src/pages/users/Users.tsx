@@ -71,21 +71,21 @@ export const Users = () => {
                 }
 
                 if (form.password) {
-                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-                    if (!serviceKey) {
-                        alert('Lỗi: Tính năng cập nhật mật khẩu yêu cầu VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env');
-                        return;
-                    }
                     try {
-                        const res = await fetch(`${supabaseUrl}/auth/v1/admin/users/${editingProfile.id}`, {
-                            method: 'PUT',
-                            headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ password: form.password })
+                        const res = await fetch(`/api/admin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'update_password',
+                                payload: {
+                                    userId: editingProfile.id,
+                                    newPassword: form.password
+                                }
+                            })
                         });
                         if (!res.ok) {
                             const errData = await res.json();
-                            throw new Error(errData.message || res.statusText);
+                            throw new Error(errData.error || res.statusText);
                         }
                     } catch (passwordError: any) {
                         console.error('Update password error:', passwordError)
@@ -99,31 +99,26 @@ export const Users = () => {
                     return
                 }
 
-                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-                const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
-                if (!serviceKey) {
-                    alert('Lỗi: Tính năng tạo nhân viên yêu cầu VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env');
-                    return;
-                }
-
                 let newUserId = '';
                 try {
-                    const res = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+                    const res = await fetch(`/api/admin`, {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey, 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            email: form.email,
-                            password: form.password,
-                            email_confirm: true,
-                            user_metadata: { full_name: form.full_name }
+                            action: 'create_user',
+                            payload: {
+                                email: form.email,
+                                password: form.password,
+                                full_name: form.full_name
+                            }
                         })
                     });
                     if (!res.ok) {
                         const errData = await res.json();
-                        throw new Error(errData.message || res.statusText);
+                        throw new Error(errData.error || res.statusText);
                     }
-                    const authData = await res.json();
-                    newUserId = authData.id;
+                    const data = await res.json();
+                    newUserId = data.user.id;
                 } catch (authError: any) {
                     console.error('Sign up error:', authError)
                     alert(`Lỗi tạo tài khoản: ${authError.message}`)
