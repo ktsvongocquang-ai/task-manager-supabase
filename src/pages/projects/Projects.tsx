@@ -137,6 +137,32 @@ export const Projects = () => {
 
             let result;
             if (editingProject) {
+                // IF project_code changed, we must cascade the prefix update to all child tasks
+                if (form.project_code !== editingProject.project_code && editingProject.project_code) {
+                    const oldPrefix = editingProject.project_code;
+                    const newPrefix = form.project_code;
+                    
+                    const { data: tasksToUpdate } = await supabase
+                        .from('tasks')
+                        .select('id, task_code')
+                        .eq('project_id', editingProject.id);
+                        
+                    if (tasksToUpdate && tasksToUpdate.length > 0) {
+                        const updates = tasksToUpdate.map(t => {
+                            let newCode = t.task_code || '';
+                            if (newCode.startsWith(oldPrefix)) {
+                                newCode = newCode.replace(oldPrefix, newPrefix);
+                            }
+                            return { id: t.id, task_code: newCode };
+                        });
+                        
+                        // Bulk update safely
+                        await Promise.all(updates.map(u => 
+                            supabase.from('tasks').update({ task_code: u.task_code }).eq('id', u.id)
+                        ));
+                    }
+                }
+
                 result = await supabase.from('projects').update(payload).eq('id', editingProject.id)
             } else {
                 result = await supabase.from('projects').insert(payload)
