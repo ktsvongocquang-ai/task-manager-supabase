@@ -73,11 +73,9 @@ export const Tasks = () => {
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || isProjectManager);
+            isVisible = Boolean(isAssigned || isProjectManager || t.supporter_id === profile?.id);
         } else if (userRole === 'Quản lý') {
-            isVisible = Boolean(isProjectManager || isAssigned); // Assuming Manager can see all their project tasks
-            // Wait, reference says "Xem tất cả nhiệm vụ: Manager: Flase, Admin: True"
-            // But manager CAN see tasks in projects they manage.
+            isVisible = true;
         }
 
         if (!isVisible) return false;
@@ -212,14 +210,12 @@ export const Tasks = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
-                    {profile?.role !== 'Nhân viên' && (
-                        <button
-                            onClick={() => openAddModal()}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                        >
-                            <Plus size={18} /> Tạo mới nhiệm vụ
-                        </button>
-                    )}
+                    <button
+                        onClick={() => openAddModal()}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                    >
+                        <Plus size={18} /> Tạo mới nhiệm vụ
+                    </button>
                 </div>
             </div>
 
@@ -319,7 +315,7 @@ export const Tasks = () => {
                                                                 checked={task.status?.includes('Hoàn thành')}
                                                                 onChange={() => toggleComplete(task)}
                                                                 className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                                disabled={!(profile?.role === 'Admin' || project?.manager_id === profile?.id || task.assignee_id === profile?.id)}
+                                                                disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id)}
                                                             />
                                                         </td>
                                                         <td className="px-4 py-3">
@@ -378,7 +374,7 @@ export const Tasks = () => {
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center justify-center gap-2">
-                                                                {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
+                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
                                                                     <button
                                                                         onClick={(e) => { e.stopPropagation(); handleCopy(task); }}
                                                                         className="w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100"
@@ -386,13 +382,15 @@ export const Tasks = () => {
                                                                         <Copy size={13} />
                                                                     </button>
                                                                 )}
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
-                                                                    className="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100"
-                                                                >
-                                                                    <Edit3 size={13} />
-                                                                </button>
-                                                                {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
+                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id) && (
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
+                                                                        className="w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100"
+                                                                    >
+                                                                        <Edit3 size={13} />
+                                                                    </button>
+                                                                )}
+                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
                                                                     <button
                                                                         onClick={(e) => { e.stopPropagation(); handleDelete(task.id); }}
                                                                         className="w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100"

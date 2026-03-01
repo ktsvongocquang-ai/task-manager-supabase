@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
     LayoutDashboard,
@@ -22,7 +23,8 @@ import {
     History as HistoryIcon,
     Kanban as KanbanIcon,
     CalendarDays,
-    ListTodo
+    ListTodo,
+    X
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -49,6 +51,11 @@ export const Layout = () => {
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
     const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
 
+    // Password change state
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+    const [newPassword, setNewPassword] = useState('')
+    const [isChangingPassword, setIsChangingPassword] = useState(false)
+
     useEffect(() => {
         const fetchUnreadCount = async () => {
             if (profile?.id) {
@@ -72,6 +79,29 @@ export const Layout = () => {
         navigate('/login')
     }
 
+    const handleChangePassword = async () => {
+        if (!newPassword || newPassword.length < 6) {
+            alert('Mật khẩu mới phải có ít nhất 6 ký tự.');
+            return;
+        }
+        setIsChangingPassword(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) {
+                console.error('Lỗi đổi mật khẩu:', error);
+                alert(`Lỗi đổi mật khẩu: ${error.message}`);
+            } else {
+                alert('Đổi mật khẩu thành công!');
+                setIsPasswordModalOpen(false);
+                setNewPassword('');
+            }
+        } catch (err: any) {
+            alert('Lỗi: ' + err.message);
+        } finally {
+            setIsChangingPassword(false);
+        }
+    }
+
     const handleRefresh = () => {
         setIsRefreshing(true)
         window.location.reload()
@@ -90,10 +120,13 @@ export const Layout = () => {
         { name: 'Lịch trình', path: '/schedule', icon: CalendarDays },
         { name: 'Gantt', path: '/gantt', icon: GanttChart },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
-        { name: 'Lịch sử', path: '/history', icon: HistoryIcon },
     ]
 
-    if (profile?.role === 'Admin' || profile?.role === 'Quản lý') {
+    if (profile?.role !== 'Nhân viên') {
+        navItems.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon })
+    }
+
+    if (profile?.role === 'Admin') {
         navItems.push({ name: 'Người dùng', path: '/users', icon: Users })
     }
 
@@ -143,7 +176,7 @@ export const Layout = () => {
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 mt-4">
-                            <button className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
+                            <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
                             </button>
                             <button onClick={handleSignOut} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
@@ -341,6 +374,37 @@ export const Layout = () => {
                     <Outlet />
                 </div>
             </main>
+
+            {/* Password Change Modal */}
+            {isPasswordModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">Đổi Mật Khẩu</h3>
+                            <button onClick={() => setIsPasswordModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Mật khẩu mới</label>
+                            <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium mb-4"
+                                placeholder="Nhập mật khẩu mới..."
+                            />
+                            <button
+                                onClick={handleChangePassword}
+                                disabled={isChangingPassword}
+                                className={`w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95 ${isChangingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {isChangingPassword ? 'Đang cập nhật...' : 'Xác nhận đổi mật khẩu'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

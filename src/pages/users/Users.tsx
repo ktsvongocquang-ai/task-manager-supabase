@@ -71,7 +71,15 @@ export const Users = () => {
                 }
 
                 if (form.password) {
-                    console.warn('Việc cập nhật mật khẩu cho user khác qua client không được hỗ trợ bảo mật. Thay đổi này sẽ bị bỏ qua ở phía Client.')
+                    const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
+                        editingProfile.id,
+                        { password: form.password }
+                    )
+                    if (passwordError) {
+                        console.error('Update password error:', passwordError)
+                        alert(`Lỗi cập nhật mật khẩu: ${passwordError.message}. Lưu ý: Tính năng này yêu cầu thêm VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env.`)
+                        return
+                    }
                 }
             } else {
                 if (!form.full_name || !form.email || !form.password) {

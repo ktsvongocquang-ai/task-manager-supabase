@@ -96,7 +96,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const shouldDisableTopFields = () => {
         if (currentUserProfile?.role === 'Admin') return false;
-        if (currentUserProfile?.role === 'Quản lý' && isCurrentUserManagerOfSelectedProject()) return false;
+        if (currentUserProfile?.role === 'Quản lý') return false;
         if (currentUserProfile?.role === 'Nhân viên' && isCurrentUserManagerOfSelectedProject()) return false;
         return editingTask !== null;
     }

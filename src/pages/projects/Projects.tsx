@@ -69,9 +69,8 @@ export const Projects = () => {
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = isUserProject || allTasks.some(t => t.project_id === p.id);
-        } else if (userRole === 'Quản lý') {
-            isVisible = isUserProject;
+            // Xem dự án mình làm manager, hoặc có task mình làm assignee/supporter
+            isVisible = isUserProject || allTasks.some(t => t.project_id === p.id && (t.assignee_id === profile?.id || t.supporter_id === profile?.id));
         }
 
         if (!isVisible) return false;
@@ -319,26 +318,26 @@ export const Projects = () => {
                             </span>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
+                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">
                                         <Plus size={14} />
                                     </button>
                                 )}
-                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Xem chi tiết">
                                     <Eye size={14} />
                                 </button>
-                                {profile?.role !== 'Nhân viên' && (
-                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto">
+                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto" title="Sao chép dự án">
                                         <Copy size={14} />
                                     </button>
                                 )}
-                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto">
+                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Sửa dự án">
                                         <Edit3 size={14} />
                                     </button>
                                 )}
-                                {(profile?.role === 'Admin' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto">
+                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto" title="Xóa dự án">
                                         <Trash2 size={14} />
                                     </button>
                                 )}
@@ -464,10 +463,10 @@ export const Projects = () => {
                                     value={form.manager_id}
                                     onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
                                     className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    disabled={profile?.role !== 'Admin'}
+                                    disabled={profile?.role !== 'Admin' && profile?.role !== 'Quản lý'}
                                 >
                                     <option value="">Chọn quản lý</option>
-                                    {profiles.filter(p => profile?.role === 'Admin' || p.id === profile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    {profiles.filter(p => profile?.role === 'Admin' || profile?.role === 'Quản lý' || p.id === profile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                 </select>
                             </div>
                             <div>

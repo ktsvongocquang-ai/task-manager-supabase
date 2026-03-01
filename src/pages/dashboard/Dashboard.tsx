@@ -70,9 +70,22 @@ export const Dashboard = () => {
                 supabase.from('profiles').select('*')
             ])
 
-            const fetchedTasks = (tasks || []) as Task[]
-            const fetchedProjects = (projects || []) as Project[]
+            let fetchedTasks = (tasks || []) as Task[]
+            let fetchedProjects = (projects || []) as Project[]
             const fetchedProfiles = (profiles || []) as any[]
+
+            if (profile?.role === 'Nhân viên') {
+                fetchedTasks = fetchedTasks.filter(t =>
+                    t.assignee_id === profile.id ||
+                    t.supporter_id === profile.id ||
+                    fetchedProjects.find(p => p.id === t.project_id)?.manager_id === profile.id
+                );
+                fetchedProjects = fetchedProjects.filter(p =>
+                    p.manager_id === profile.id ||
+                    fetchedTasks.some(t => t.project_id === p.id)
+                );
+            }
+
             setAllTasks(fetchedTasks)
             setAllProjects(fetchedProjects)
             setAllProfiles(fetchedProfiles)
@@ -141,8 +154,12 @@ export const Dashboard = () => {
                 return t.priority === 'Cao' || t.priority === 'Khẩn cấp' || (t.due_date && new Date(t.due_date) < today)
             }).slice(0, 6))
 
-            const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(6)
-            if (logs) setRecentActivities(logs as ActivityLog[])
+            const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
+            let fetchedLogs = (logs || []) as ActivityLog[];
+            if (profile?.role === 'Nhân viên') {
+                fetchedLogs = fetchedLogs.filter(log => !log.project_id || fetchedProjects.some(p => p.id === log.project_id));
+            }
+            if (fetchedLogs) setRecentActivities(fetchedLogs.slice(0, 6))
         } catch (error) { console.error('Error:', error) } finally { setLoading(false) }
     }
 
