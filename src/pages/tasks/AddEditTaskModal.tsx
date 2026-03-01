@@ -39,8 +39,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         result_links: '', notes: ''
     });
 
-    const [subTasks, setSubTasks] = useState<{ id: string, text: string, completed: boolean }[]>([]);
+    const [subTasks, setSubTasks] = useState<Task[]>([]);
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
+    const [newSubtaskName, setNewSubtaskName] = useState('');
+    const [isLoadingSubtasks, setIsLoadingSubtasks] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -51,16 +53,25 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: editingTask.due_date || '', result_links: editingTask.result_links || '', notes: editingTask.notes || ''
                 });
 
-                // Parse subtasks from JSON in notes column if available
-                try {
-                    if (editingTask.notes && editingTask.notes.startsWith('[')) {
-                        setSubTasks(JSON.parse(editingTask.notes));
-                    } else {
-                        setSubTasks([]);
+                // Fetch actual subtasks from Supabase
+                const fetchSubtasks = async () => {
+                    setIsLoadingSubtasks(true);
+                    try {
+                        const { data, error } = await supabase
+                            .from('tasks')
+                            .select('*')
+                            .eq('parent_id', editingTask.id)
+                            .order('created_at', { ascending: true });
+                        if (!error && data) {
+                            setSubTasks(data as Task[]);
+                        }
+                    } catch (e) {
+                        console.error('Error fetching subtasks:', e);
+                    } finally {
+                        setIsLoadingSubtasks(false);
                     }
-                } catch (e) {
-                    setSubTasks([]);
-                }
+                };
+                fetchSubtasks();
 
             } else {
                 setForm({
@@ -69,6 +80,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: '', result_links: '', notes: ''
                 });
                 setSubTasks([]);
+                setNewSubtaskName('');
             }
         }
     }, [isOpen, editingTask, initialData]);
@@ -113,7 +125,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 priority: form.priority,
                 due_date: form.due_date || null,
                 result_links: form.result_links || null,
-                notes: subTasks.length > 0 ? JSON.stringify(subTasks) : null
+                notes: form.notes || null 
             }
 
             let result;
@@ -182,11 +194,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     changes.push(`Hạn chót: ${oldDate} -> ${newDate}`);
                 }
 
-                // Compare notes (sub-tasks) simply
-                const oldNotes = editingTask.notes || '[]';
-                const newNotes = payload.notes || '[]';
-                if (oldNotes !== newNotes) {
-                    changes.push('Công việc con đã thay đổi');
+                if (editingTask.notes !== form.notes) {
+                    changes.push(`Ghi chú đã thay đổi`);
                 }
 
                 if (changes.length > 0) {
@@ -204,22 +213,77 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             console.error('Task Catch Error:', err)
             alert('Lỗi hệ thống khi lưu nhiệm vụ.')
         }
-    }
+    }; // <-- Missing this closing brace before handleAddSubtask
 
-    const addSubTask = () => {
-        setSubTasks([...subTasks, { id: crypto.randomUUID(), text: '', completed: false }]);
+    const handleAddSubtask = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && newSubtaskName.trim()) {
+            if (!editingTask?.id) {
+                alert('Vui lòng tạo (Lưu) công việc chính trước khi thêm nhiệm vụ con.');
+                return;
+            }
+
+            const subTaskName = newSubtaskName.trim();
+            setNewSubtaskName(''); // Clear immediately for snappy UX
+
+            try {
+                // Determine next code for subtask (e.g., AD-01-01)
+                const currentCount = subTasks.length + 1;
+                const newCode = `${editingTask.task_code}-${String(currentCount).padStart(2, '0')}`;
+
+                const { data, error } = await supabase.from('tasks').insert({
+                    name: subTaskName,
+                    project_id: editingTask.project_id,
+                    parent_id: editingTask.id,
+                    task_code: newCode,
+                    status: 'Chưa bắt đầu',
+                    priority: 'Trung bình',
+                    completion_pct: 0
+                }).select().single();
+
+                if (error) throw error;
+                if (data) {
+                    setSubTasks(prev => [...prev, data as Task]);
+                }
+            } catch (err) {
+                console.error('Error adding subtask:', err);
+                alert('Lỗi tạo nhiệm vụ con.');
+            }
+        }
     };
 
-    const updateSubTask = (id: string, text: string) => {
-        setSubTasks(subTasks.map(st => st.id === id ? { ...st, text } : st));
+    const toggleSubTask = async (id: string, isCompleted: boolean) => {
+        // Optimistic update
+        const newStatus = isCompleted ? 'Hoàn thành' : 'Chưa bắt đầu';
+        const newPct = isCompleted ? 100 : 0;
+        
+        setSubTasks(prev => prev.map(st => st.id === id ? { ...st, status: newStatus, completion_pct: newPct } : st));
+
+        try {
+            const { error } = await supabase.from('tasks').update({
+                status: newStatus,
+                completion_pct: newPct,
+                completion_date: isCompleted ? new Date().toISOString().split('T')[0] : null
+            }).eq('id', id);
+
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error updating subtask:', err);
+            // Revert on error could be implemented here
+        }
     };
 
-    const toggleSubTask = (id: string, completed: boolean) => {
-        setSubTasks(subTasks.map(st => st.id === id ? { ...st, completed } : st));
-    };
+    const removeSubTask = async (id: string) => {
+        if (!confirm('Bạn có chắc chắn muốn xóa nhiệm vụ con này?')) return;
+        
+        // Optimistic remove
+        setSubTasks(prev => prev.filter(st => st.id !== id));
 
-    const removeSubTask = (id: string) => {
-        setSubTasks(subTasks.filter(st => st.id !== id));
+        try {
+            const { error } = await supabase.from('tasks').delete().eq('id', id);
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error deleting subtask:', err);
+        }
     };
 
     if (!isOpen) return null;
@@ -434,38 +498,62 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                             {/* Tab Content: Subtasks */}
                             {activeTab === 'subtasks' && (
-                                <div className="space-y-3 animate-in fade-in duration-200">
-                                    {subTasks.map((st) => (
-                                        <div key={st.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group">
-                                            <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={st.completed}
-                                                    onChange={(e) => toggleSubTask(st.id, e.target.checked)}
-                                                    className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
-                                                />
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
-                                                    {st.completed && <CheckCircle2 size={14} className="stroke-[3]" />}
-                                                </div>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={st.text}
-                                                onChange={(e) => updateSubTask(st.id, e.target.value)}
-                                                placeholder="Viết nhiệm vụ con..."
-                                                className={`flex-1 bg-transparent border-none text-sm font-medium focus:outline-none text-slate-800 ${st.completed ? 'line-through text-slate-400' : ''}`}
-                                            />
-                                            <button onClick={() => removeSubTask(st.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                                <X size={16} />
-                                            </button>
+                                <div className="space-y-4 animate-in fade-in duration-200">
+                                    {isLoadingSubtasks ? (
+                                        <div className="text-center py-4 text-slate-400 text-sm">Đang tải nhiệm vụ con...</div>
+                                    ) : subTasks.length === 0 && !editingTask?.id ? (
+                                        <div className="text-center py-6 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-sm font-medium">
+                                            Vui lòng lưu công việc chính trước khi thêm nhiệm vụ con.
                                         </div>
-                                    ))}
-                                    <button
-                                        onClick={addSubTask}
-                                        className="w-full py-3 border border-dashed border-slate-300 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Plus size={16} /> Thêm Subtask mới
-                                    </button>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {subTasks.map((st) => {
+                                                const isCompleted = st.status === 'Hoàn thành';
+                                                return (
+                                                    <div key={st.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors">
+                                                        <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isCompleted}
+                                                                onChange={(e) => toggleSubTask(st.id, e.target.checked)}
+                                                                className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
+                                                            />
+                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isCompleted ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
+                                                                {isCompleted && <CheckCircle2 size={14} className="stroke-[3]" />}
+                                                            </div>
+                                                        </div>
+                                                        <div className={`flex-1 text-sm font-medium transition-colors ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                                                            {st.name}
+                                                        </div>
+                                                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                                                            {st.task_code}
+                                                        </span>
+                                                        <button 
+                                                            onClick={() => removeSubTask(st.id)} 
+                                                            className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2 bg-slate-50 hover:bg-red-50 rounded-lg"
+                                                            title="Xóa Subtask"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {editingTask?.id && (
+                                                <div className="relative mt-4">
+                                                    <input
+                                                        type="text"
+                                                        value={newSubtaskName}
+                                                        onChange={(e) => setNewSubtaskName(e.target.value)}
+                                                        onKeyDown={handleAddSubtask}
+                                                        placeholder="Nhập nhiệm vụ con và nhấn Enter..."
+                                                        className="w-full py-3 pl-12 pr-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
+                                                    />
+                                                    <Plus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

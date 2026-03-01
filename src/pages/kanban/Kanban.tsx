@@ -127,8 +127,10 @@ export const Kanban = () => {
         } else if (userRole === 'Quản lý') {
             isVisible = true;
         }
-
         if (!isVisible) return false;
+        
+        // ONLY SHOW TOP-LEVEL TASKS IN KANBAN
+        if (t.parent_id) return false;
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
@@ -193,16 +195,11 @@ export const Kanban = () => {
                                         >
                                             {colTasks.map((task, index) => {
                                                 const assignee = getAssignee(task.assignee_id)
-                                                let subTasks: any[] = [];
-                                                try {
-                                                    if (task.notes && task.notes.startsWith('[')) {
-                                                        subTasks = JSON.parse(task.notes);
-                                                    }
-                                                } catch (e) {
-                                                    subTasks = [];
-                                                }
-                                                const totalSub = subTasks.length;
-                                                const completedSub = subTasks.filter(st => st.completed).length;
+                                                
+                                                // Calculate subtasks from actual tasks table
+                                                const childTasks = tasks.filter(ct => ct.parent_id === task.id);
+                                                const totalSub = childTasks.length;
+                                                const completedSub = childTasks.filter(ct => ct.status === 'Hoàn thành').length;
 
                                                 const project = projects.find(p => p.id === task.project_id);
                                                 const isDraggable = Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
