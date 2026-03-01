@@ -370,7 +370,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     type="text"
                                     value={form.task_code}
                                     onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                    className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-32 transition-colors"
+                                    className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-48 sm:w-64 transition-colors"
                                     placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                 />
                             </div>
@@ -456,7 +456,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <select
                                     value={form.assignee_id}
                                     onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                    className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     disabled={shouldDisableTopFields()}
                                 >
                                     <option value="" className="text-slate-400 font-normal">Chọn người phụ trách...</option>
@@ -466,7 +466,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <select
                                     value={form.supporter_id}
                                     onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                    className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                     disabled={shouldDisableTopFields()}
                                 >
                                     <option value="" className="text-slate-400 font-normal">+ Hỗ trợ (Tùy chọn)</option>
@@ -608,7 +608,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                     value={st.task_code || ''}
                                                                                     onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
                                                                                     onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
-                                                                                    className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 w-24 transition-colors cursor-text"
+                                                                                    className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 min-w-[140px] transition-colors cursor-text"
                                                                                     placeholder="Mã..."
                                                                                 />
                                                                                 <button 
