@@ -63,52 +63,87 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     const [generatedTasks, setGeneratedTasks] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState(false);
 
-    // --- Dynamic Calculation ---
-    // Base 44-task SOP is ~14.5 WD internal. We modify it based on complexity factors.
-    const computeTimeline = () => {
-        let baseWd = 14.5;
-        let c = 2, d3 = 4.25, s = 3.5, kt = 3, qc = 1.75; // Baseline phases
+    // --- Linear Interpolation Calculator ---
+    const areaAnchors = [60, 100, 150, 250];
 
-        let multiplier = 1.0;
+    // Baseline internal WD for each Phase at those exact area anchors
+    const wdAnchors = {
+        C: [1.5, 2.0, 3.0, 4.0],
+        D3: [3.0, 4.25, 6.0, 8.0],
+        S: [2.5, 3.5, 5.0, 7.0],
+        KT: [2.0, 3.0, 4.5, 6.0],
+        QC: [1.0, 1.75, 2.5, 3.5],
+        BUFFER: [3.0, 4.25, 6.0, 8.0]
+    };
 
-        // 1. Type multiplier
-        if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) multiplier += 0.3;
-        if (projectType === 'Văn phòng') multiplier -= 0.1;
+    // Helper: Round strictly up to nearest 0.25
+    const roundUp025 = (val: number) => Math.ceil(val * 4) / 4;
 
-        // 2. Investment multiplier
-        if (investment.includes('> 1 Tỷ') || investment.includes('Cao cấp')) multiplier += 0.2;
-        if (investment.includes('< 300Tr')) multiplier -= 0.15;
-
-        // 3. Area multiplier (Base 100m2)
-        const numArea = parseFloat(area) || 100;
-        if (numArea > 150) multiplier += 0.15;
-        if (numArea > 300) multiplier += 0.3;
-
-        // 4. MEP/Struct Dependency
-        if (hasMepStruct) {
-            baseWd += 4; // Add 4 days explicitly for structural/MEP coordination
-            kt += 2;
-            qc += 1;
+    const interpolate = (areaInput: number, values: number[]) => {
+        // Find segment
+        let i = 0;
+        while (i < areaAnchors.length - 1 && areaInput > areaAnchors[i + 1]) {
+            i++;
         }
 
-        const internalWd = Number((baseWd * multiplier).toFixed(1));
-        const bufferKh = Number((4.25 * multiplier).toFixed(1));
+        // Handle edge cases (smaller than min or larger than max)
+        if (areaInput <= areaAnchors[0]) return values[0];
+        if (i >= areaAnchors.length - 1) {
+            // For sizes > 250, we extrapolate slightly based on the last segment slope
+            const slope = (values[i] - values[i - 1]) / (areaAnchors[i] - areaAnchors[i - 1]);
+            const extraArea = areaInput - areaAnchors[i];
+            return roundUp025(values[i] + (slope * extraArea));
+        }
+
+        const areaStart = areaAnchors[i];
+        const areaEnd = areaAnchors[i + 1];
+        const valStart = values[i];
+        const valEnd = values[i + 1];
+
+        const ratio = (areaInput - areaStart) / (areaEnd - areaStart);
+        const exactWd = valStart + ratio * (valEnd - valStart);
+
+        return roundUp025(exactWd);
+    };
+
+    const computeTimeline = () => {
+        const numArea = parseFloat(area) || 100;
+
+        let curC = interpolate(numArea, wdAnchors.C);
+        let curD3 = interpolate(numArea, wdAnchors.D3);
+        let curS = interpolate(numArea, wdAnchors.S);
+        let curKT = interpolate(numArea, wdAnchors.KT);
+        let curQC = interpolate(numArea, wdAnchors.QC);
+        let curBuffer = interpolate(numArea, wdAnchors.BUFFER);
+
+        // MEP/Struct Penalty
+        if (hasMepStruct) {
+            curKT += 2.0;
+            curQC += 1.0;
+        }
+
+        // Style / Investment Penalty
+        let styleInvMultiplier = 1.0;
+        if (investment.includes('> 1 Tỷ') || investment.includes('Cao cấp') || style.includes('Luxury')) styleInvMultiplier = 1.2;
+        else if (investment.includes('< 300Tr')) styleInvMultiplier = 0.9;
+
+        curC = roundUp025(curC * styleInvMultiplier);
+        curD3 = roundUp025(curD3 * styleInvMultiplier);
+        curS = roundUp025(curS * styleInvMultiplier);
+
+        const internalWd = curC + curD3 + curS + curKT + curQC;
+        const bufferKh = roundUp025(curBuffer * styleInvMultiplier);
 
         // Approximate calendar days: (WD / 5) * 7
         const totalWd = internalWd + bufferKh;
         const totalCalendar = Math.round((totalWd / 5) * 7);
 
-        // Adjust phase weights proportionally to the new internalWd for the visual bar
-        // We ensure they roughly sum up to internalWd
-        const adjustedPhaseWd = {
-            c: Number((c * multiplier).toFixed(2)),
-            d3: Number((d3 * multiplier).toFixed(2)),
-            s: Number((s * multiplier).toFixed(2)),
-            kt: kt, // KT and QC logic already handled above if MEP
-            qc: qc
-        }
-
-        return { internalWd, bufferKh, totalCalendar, phases: adjustedPhaseWd };
+        return {
+            internalWd,
+            bufferKh,
+            totalCalendar,
+            phases: { c: curC, d3: curD3, s: curS, kt: curKT, qc: curQC }
+        };
     };
 
     const timelineData = computeTimeline();
@@ -133,7 +168,9 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 projectType,
                 style,
                 investment,
-                area
+                area,
+                phasesWd: timelineData.phases, // Send the exact calculated WD per phase to the backend
+                bufferKh: timelineData.bufferKh
             };
 
             const res = await fetch('/api/generate-project', {
