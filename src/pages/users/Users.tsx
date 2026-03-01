@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase, supabaseAdmin } from '../../services/supabase'
+import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
 import { Search, UserPlus } from 'lucide-react'
@@ -71,13 +71,25 @@ export const Users = () => {
                 }
 
                 if (form.password) {
-                    const { error: passwordError } = await supabaseAdmin.auth.admin.updateUserById(
-                        editingProfile.id,
-                        { password: form.password }
-                    )
-                    if (passwordError) {
+                    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                    const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+                    if (!serviceKey) {
+                        alert('Lỗi: Tính năng cập nhật mật khẩu yêu cầu VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env');
+                        return;
+                    }
+                    try {
+                        const res = await fetch(`${supabaseUrl}/auth/v1/admin/users/${editingProfile.id}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: form.password })
+                        });
+                        if (!res.ok) {
+                            const errData = await res.json();
+                            throw new Error(errData.message || res.statusText);
+                        }
+                    } catch (passwordError: any) {
                         console.error('Update password error:', passwordError)
-                        alert(`Lỗi cập nhật mật khẩu: ${passwordError.message}. Lưu ý: Tính năng này yêu cầu thêm VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env.`)
+                        alert(`Lỗi cập nhật mật khẩu: ${passwordError.message}`)
                         return
                     }
                 }
@@ -87,23 +99,37 @@ export const Users = () => {
                     return
                 }
 
-                const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
-                    email: form.email,
-                    password: form.password,
-                    options: {
-                        data: {
-                            full_name: form.full_name
-                        }
-                    }
-                })
+                const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+                const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+                if (!serviceKey) {
+                    alert('Lỗi: Tính năng tạo nhân viên yêu cầu VITE_SUPABASE_SERVICE_ROLE_KEY trong file .env');
+                    return;
+                }
 
-                if (authError) {
+                let newUserId = '';
+                try {
+                    const res = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${serviceKey}`, 'apikey': serviceKey, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: form.email,
+                            password: form.password,
+                            email_confirm: true,
+                            user_metadata: { full_name: form.full_name }
+                        })
+                    });
+                    if (!res.ok) {
+                        const errData = await res.json();
+                        throw new Error(errData.message || res.statusText);
+                    }
+                    const authData = await res.json();
+                    newUserId = authData.id;
+                } catch (authError: any) {
                     console.error('Sign up error:', authError)
                     alert(`Lỗi tạo tài khoản: ${authError.message}`)
                     return
                 }
 
-                const newUserId = authData?.user?.id
                 if (!newUserId) {
                     alert('Không thể lấy ID người dùng mới.')
                     return
