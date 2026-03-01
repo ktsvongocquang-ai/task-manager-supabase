@@ -509,97 +509,111 @@ export const Tasks = () => {
                                                                                                     ref={provided.innerRef}
                                                                                                     {...provided.draggableProps}
                                                                                                     onClick={() => openEditModal(child)}
-                                                                                                    className={`group cursor-pointer flex w-full
-                                                                                                        ${snapshot.isDragging ? 'bg-indigo-50 shadow-lg border-indigo-200 z-50 rounded-xl' : 'bg-slate-50/20 hover:bg-slate-50 hover:shadow-sm'}
+                                                                                                    className={`group cursor-pointer hover:bg-slate-50 hover:shadow-[0_0_15px_rgba(0,0,0,0.03)] transition-all duration-200 border-b border-slate-50 last:border-none relative
+                                                                                                        ${snapshot.isDragging ? 'bg-indigo-50 shadow-lg border-indigo-200 z-50 rounded-xl' : 'bg-white'}
                                                                                                     `}
-                                                                                                    style={{ ...provided.draggableProps.style, display: 'flex', width: '100%' }}
+                                                                                                    style={{ ...provided.draggableProps.style }}
                                                                                                 >
-                                                                                                    <td className="px-2 py-3 flex items-center justify-center shrink-0 w-8" {...provided.dragHandleProps}>
-                                                                                                        <GripVertical size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                                                                    {/* Add a subtle left border to indicate subtask hierarchy visually */}
+                                                                                                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-100 group-hover:bg-indigo-200 transition-colors z-0 pointer-events-none"></div>
+
+                                                                                                    {/* Drag Handle & Checkbox Combine Column */}
+                                                                                                    <td className="px-5 py-3 relative z-10 w-16">
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <div {...provided.dragHandleProps} className="text-slate-300 group-hover:text-slate-500 cursor-grab px-1 shrink-0">
+                                                                                                                <GripVertical size={14} />
+                                                                                                            </div>
+                                                                                                            <input
+                                                                                                                type="checkbox"
+                                                                                                                checked={isCompleted}
+                                                                                                                onChange={(e) => { e.stopPropagation(); toggleComplete(child); }}
+                                                                                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer shrink-0 ml-1"
+                                                                                                                disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id)}
+                                                                                                            />
+                                                                                                        </div>
                                                                                                     </td>
-                                                                                                    <td className="px-5 py-3 w-10 flex shrink-0 items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                                                                                                        <input
-                                                                                                            type="checkbox"
-                                                                                                            checked={isCompleted}
-                                                                                                            onChange={() => toggleComplete(child)}
-                                                                                                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                                                                            disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id)}
-                                                                                                        />
-                                                                                                    </td>
-                                                                                                    <td className={`px-4 py-3 flex-1 min-w-[300px]`}>
-                                                                                                        <div>
-                                                                                                            <div className="flex items-center gap-2 mb-0.5">
-                                                                                                                <div className="w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0 -mt-2"></div>
-                                                                                                                <p className={`font-bold text-slate-800 leading-tight text-[11px]`}>{child.name}</p>
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
+                                                                                                        <div className="pl-6">
+                                                                                                            <div className="flex items-center gap-2 mb-0.5 relative">
+                                                                                                                <div className="absolute -left-4 top-1/2 -mt-1 w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0"></div>
+                                                                                                                <p className={`font-bold text-slate-700 leading-tight text-sm`}>{child.name}</p>
                                                                                                             </div>
                                                                                                             <div className="flex items-center gap-2">
                                                                                                                 <p className="text-[10px] text-slate-400 font-medium">{child.task_code}</p>
                                                                                                             </div>
                                                                                                         </div>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 text-slate-600 font-medium w-40 shrink-0 flex items-center">
+
+                                                                                                    <td className="px-4 py-3 text-slate-600 font-medium relative z-10">
                                                                                                         <div className="flex items-center gap-2">
-                                                                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                                 {getAssigneeName(child.assignee_id).charAt(0)}
                                                                                                             </div>
-                                                                                                            {getAssigneeName(child.assignee_id)}
+                                                                                                            <span className="text-sm">{getAssigneeName(child.assignee_id)}</span>
                                                                                                         </div>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center">
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
                                                                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm ${getStatusBadge(child.status)}`}>
                                                                                                             {child.status}
                                                                                                         </span>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 w-28 shrink-0 flex items-center">
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
                                                                                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(child.priority)}`}>
                                                                                                             {child.priority}
                                                                                                         </span>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center">
-                                                                                                        <div className="flex items-center gap-2 w-full">
-                                                                                                            <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1">
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1 max-w-[80px]">
                                                                                                                 <div
                                                                                                                     className={`h-1.5 rounded-full ${child.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`}
                                                                                                                     style={{ width: `${child.completion_pct}%` }}
                                                                                                                 ></div>
                                                                                                             </div>
-                                                                                                            <span className="font-bold text-slate-500 min-w-[3ch] text-[10px]">{child.completion_pct}%</span>
+                                                                                                            <span className="font-bold text-slate-500 min-w-[3ch] text-xs">{child.completion_pct}%</span>
                                                                                                         </div>
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 w-24 shrink-0 flex items-center">
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
                                                                                                         {child.result_links ? (
-                                                                                                            <a href={child.result_links} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold text-[10px]">
-                                                                                                                <ExternalLink size={12} /> LINK
+                                                                                                            <a href={child.result_links} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold text-xs uppercase">
+                                                                                                                <ExternalLink size={12} className="shrink-0" /> <span className="truncate max-w-[100px] inline-block">LINK</span>
                                                                                                             </a>
-                                                                                                        ) : <span className="text-slate-400">---</span>}
+                                                                                                        ) : <span className="text-slate-400 text-sm">---</span>}
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 text-slate-500 font-medium w-28 shrink-0 flex items-center">
+
+                                                                                                    <td className="px-4 py-3 text-slate-500 font-medium text-sm relative z-10 whitespace-nowrap">
                                                                                                         {child.due_date ? format(parseISO(child.due_date), 'dd/MM/yyyy') : '---'}
                                                                                                     </td>
-                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center justify-center">
-                                                                                                        <div className="flex items-center justify-center gap-3">
+
+                                                                                                    <td className="px-4 py-3 relative z-10">
+                                                                                                        <div className="flex items-center justify-center gap-2">
                                                                                                             {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
                                                                                                                 <button
                                                                                                                     onClick={(e) => { e.stopPropagation(); handleCopy(child); }}
-                                                                                                                    className="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-blue-600 transition-opacity"
+                                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity shrink-0"
                                                                                                                 >
-                                                                                                                    <Copy size={14} />
+                                                                                                                    <Copy size={13} />
                                                                                                                 </button>
                                                                                                             )}
                                                                                                             {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id) && (
                                                                                                                 <button
                                                                                                                     onClick={(e) => { e.stopPropagation(); openEditModal(child); }}
-                                                                                                                    className="opacity-0 group-hover:opacity-100 text-amber-400 hover:text-amber-600 transition-opacity"
+                                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity shrink-0"
                                                                                                                 >
-                                                                                                                    <Edit3 size={14} />
+                                                                                                                    <Edit3 size={13} />
                                                                                                                 </button>
                                                                                                             )}
                                                                                                             {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
                                                                                                                 <button
                                                                                                                     onClick={(e) => { e.stopPropagation(); handleDelete(child.id); }}
-                                                                                                                    className="opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-500 transition-opacity"
+                                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity shrink-0"
                                                                                                                 >
-                                                                                                                    <Trash2 size={14} />
+                                                                                                                    <Trash2 size={13} />
                                                                                                                 </button>
                                                                                                             )}
                                                                                                         </div>
