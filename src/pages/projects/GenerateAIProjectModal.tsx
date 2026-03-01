@@ -572,10 +572,11 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                     <thead className="bg-[#1e293b] text-slate-400 text-[11px] uppercase font-black tracking-wider border-b border-slate-700">
                                         <tr>
                                             <th className="px-4 py-3 w-16">Code</th>
-                                            <th className="px-4 py-3 w-2/5">Tên Task</th>
-                                            <th className="px-4 py-3 text-center w-24">Số ngày</th>
-                                            <th className="px-4 py-3 w-36">Bắt đầu</th>
-                                            <th className="px-4 py-3 w-36">Kết thúc</th>
+                                            <th className="px-4 py-3 w-3/12">Tên Task</th>
+                                            <th className="px-4 py-3 text-center w-20">Số ngày</th>
+                                            <th className="px-4 py-3 w-32">Bắt đầu</th>
+                                            <th className="px-4 py-3 w-32">Kết thúc</th>
+                                            <th className="px-4 py-3 w-40">Phụ trách</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/50 text-slate-300">
@@ -614,6 +615,18 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                             onChange={(e) => handleTaskChange(idx, 'end', e.target.value)}
                                                             className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-slate-300 focus:text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark] transition-colors"
                                                         />
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <select
+                                                            value={task.assignee}
+                                                            onChange={(e) => handleTaskChange(idx, 'assignee', e.target.value)}
+                                                            className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-amber-300 focus:text-amber-400 focus:outline-none focus:bg-slate-950 font-medium transition-colors cursor-pointer"
+                                                        >
+                                                            <option value="" className="text-slate-500">Chưa chọn (AI đề xuất)</option>
+                                                            {profiles.map(p => (
+                                                                <option key={p.id} value={p.full_name} className="bg-slate-900 text-white">{p.full_name}</option>
+                                                            ))}
+                                                        </select>
                                                     </td>
                                                 </tr>
                                             );
