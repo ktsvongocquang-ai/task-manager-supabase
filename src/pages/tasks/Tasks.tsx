@@ -294,7 +294,7 @@ export const Tasks = () => {
                                             {projectTasks.filter(t => !t.parent_id).map((task) => {
 
                                                 // Function to render a single row (used for both parent and child)
-                                                const renderTaskRow = (t: Task, isChild: boolean = false) => {
+                                                const renderTaskRow = (t: Task, isChild: boolean = false, overridePct?: number) => {
                                                     let subTasks: any[] = [];
                                                     try {
                                                         if (t.notes && t.notes.startsWith('[')) {
@@ -307,8 +307,10 @@ export const Tasks = () => {
                                                     const totalSub = subTasks.length;
                                                     const completedSub = subTasks.filter(st => st.completed).length;
 
-                                                    // Dynamic completion mapping based on sub-tasks if they exist
-                                                    const displayPct = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : t.completion_pct;
+                                                    // Dynamic completion mapping based on sub-tasks if they exist, or use overridePct for Parent Phases
+                                                    const displayPct = overridePct !== undefined
+                                                        ? overridePct
+                                                        : (totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : t.completion_pct);
 
                                                     return (
                                                         <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group ${isChild ? 'bg-slate-50/20' : 'bg-white'}`}>
@@ -411,9 +413,16 @@ export const Tasks = () => {
                                                 // Find children of this parent task
                                                 const childTasks = projectTasks.filter(child => child.parent_id === task.id);
 
+                                                // Compute dynamic % for Parent phase based on children completion
+                                                let phaseDisplayPct = task.completion_pct;
+                                                if (childTasks.length > 0) {
+                                                    const completedChildren = childTasks.filter(c => c.status?.includes('Hoàn thành')).length;
+                                                    phaseDisplayPct = Math.round((completedChildren / childTasks.length) * 100);
+                                                }
+
                                                 return (
                                                     <React.Fragment key={task.id}>
-                                                        {renderTaskRow(task, false)}
+                                                        {renderTaskRow(task, false, phaseDisplayPct)}
                                                         {childTasks.map(child => renderTaskRow(child, true))}
                                                     </React.Fragment>
                                                 )
