@@ -25,6 +25,7 @@ export interface Task {
     id: string
     task_code: string
     project_id: string
+    parent_id?: string | null
     name: string
     description: string | null
     assignee_id: string | null

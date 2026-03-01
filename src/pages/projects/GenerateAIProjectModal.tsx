@@ -57,6 +57,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
     // --- State: Processing & Preview ---
     const [isGenerating, setIsGenerating] = useState(false);
+    const [generatedPhases, setGeneratedPhases] = useState<any[]>([]);
     const [generatedTasks, setGeneratedTasks] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState(false);
 
@@ -95,8 +96,9 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             }
 
             const data = await res.json();
-            // Expected tasks format: [{code, title, phase, startDate, endDate, assignee, note}]
-            setGeneratedTasks(data.tasks);
+            // Expected tasks format: { phases: [], tasks: [] }
+            setGeneratedPhases(data.phases || []);
+            setGeneratedTasks(data.tasks || []);
             setShowPreview(true);
         } catch (error: any) {
             console.error(error);
@@ -132,21 +134,55 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             if (projectError) throw projectError;
             const projectId = projectData.id;
 
-            // 2. Insert Tasks
+            // 2. Insert Phases (Parent Tasks)
+            let phaseIdMap: Record<string, string> = {}; // Maps GD1 -> UUID
+            if (generatedPhases && generatedPhases.length > 0) {
+                const phasesToInsert = generatedPhases.map((p: any, idx: number) => ({
+                    project_id: projectId,
+                    task_code: `${pCode}-PHASE-${idx + 1}`,
+                    name: p.name,
+                    description: `Giai đoạn Hệ thống - ID: ${p.id}`,
+                    priority: 'Trung bình',
+                    status: 'Chưa bắt đầu',
+                    start_date: p.start,
+                    due_date: p.end,
+                    assignee_id: leadId,
+                    completion_pct: 0
+                }));
+
+                const { data: insertedPhases, error: phasesError } = await supabase
+                    .from('tasks')
+                    .insert(phasesToInsert)
+                    .select();
+
+                if (phasesError) throw phasesError;
+
+                // Create Mapping dictionary
+                insertedPhases.forEach(dbPhase => {
+                    // Extract original ID from description (e.g., "Giai đoạn Hệ thống - ID: GD1" -> "GD1")
+                    const match = dbPhase.description?.match(/ID: (GD\d+)/);
+                    if (match && match[1]) {
+                        phaseIdMap[match[1]] = dbPhase.id;
+                    }
+                });
+            }
+
+            // 3. Insert Child Tasks
             // Map the assignee string name back to an ID if possible, else default to lead
             const tasksToInsert = generatedTasks.map((t: any) => {
                 let assignedUserId = leadId; // Default
                 if (t.assignee) {
                     const matchedProfile = profiles.find(p => p.full_name.includes(t.assignee) || t.assignee.includes(p.full_name));
                     if (matchedProfile) assignedUserId = matchedProfile.id;
-                    else if (t.assignee.includes('Hỗ trợ') || t.assignee.includes('Support')) assignedUserId = supportId || leadId;
+                    else if (t.assignee.includes('Hỗ trợ') || t.assignee.includes('Support') || t.assignee.includes('Designer')) assignedUserId = supportId || leadId;
                 }
 
                 return {
                     project_id: projectId,
+                    parent_id: phaseIdMap[t.phaseId] || null, // Link to Parent Task
                     task_code: `${pCode}-${t.code}`,
                     name: t.title,
-                    description: t.note || `Phase: ${t.phaseId}`,
+                    description: t.note || `Child Task của Phase: ${t.phaseId}`,
                     priority: 'Trung bình',
                     status: 'Mới tạo',
                     start_date: t.start,
@@ -159,7 +195,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             const { error: tasksError } = await supabase.from('tasks').insert(tasksToInsert);
             if (tasksError) throw tasksError;
 
-            alert('Tạo dự án bằng AI thành công!');
+            alert('Tạo dự án bằng AI (Phân cấp) thành công!');
             onSuccess();
             onClose();
         } catch (error: any) {
