@@ -142,13 +142,15 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
                 return {
                     project_id: projectId,
-                    title: `[${t.code}] ${t.title}`,
+                    task_code: t.code,
+                    name: t.title,
                     description: t.note || `Phase: ${t.phase}`,
                     priority: 'Trung bình',
                     status: 'Mới tạo',
                     start_date: t.startDate,
-                    end_date: t.endDate,
-                    assignee_id: assignedUserId
+                    due_date: t.endDate,
+                    assignee_id: assignedUserId,
+                    completion_pct: 0
                 };
             });
 
