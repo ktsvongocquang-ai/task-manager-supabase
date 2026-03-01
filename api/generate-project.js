@@ -36,7 +36,9 @@ export default async function handler(req, res) {
             projectType,
             style,
             investment,
-            area
+            area,
+            phasesWd,
+            bufferKh
         } = req.body;
 
         if (!projectName || !startDate) {
@@ -120,50 +122,23 @@ Bạn không bị giới hạn ở 44 Tasks, có thể sinh ra 60, 80 hoặc rú
 1. Thuộc tính \`phaseId\` của mỗi Task Con phải khớp chính xác với \`id\` của Phase chứa nó.
 2. OVERLAPPING: Các task vẽ kỹ thuật phải gối đầu song song với thời gian "Chờ KH phản hồi".
 
-[CẤU TRÚC CƠ BẢN (CHUNG CƯ 100M2 - DÙNG ĐỂ THAM KHẢO VÀ MỞ RỘNG)]
-* PHASE 1 (ID: GD1, Name: Giai đoạn 1: Concept & Chốt Layout)
+[CẤU TRÚC PHASES BẮT BUỘC VÀ THỜI LƯỢNG (DỰA THEO TÍNH TOÁN CỦA HỆ THỐNG)]
+Hệ thống đã nội suy toán học ra thời gian chính xác cho dự án này. BẠN PHẢI phân bổ thời gian (duration) của các Tasks Con sao cho tổng thời gian của chúng vừa vặn khớp với thời gian của mỗi Phase dưới đây:
+
+* PHASE 1 (ID: GD1, Name: Giai đoạn 1: Concept & Chốt Layout) => THỜI LƯỢNG: ~${phasesWd?.c || 2} ngày
 1.1 Khảo sát, 1.2 Layout PA1, 1.3 Layout PA2, 1.4 Moodboard, 1.5 Gặp khách chốt...
 
-* PHASE 2 (ID: GD2, Name: Giai đoạn 2: Dựng 3D & Render)
+* PHASE 2 (ID: GD2, Name: Giai đoạn 2: Dựng 3D & Render) => THỜI LƯỢNG: ~${phasesWd?.d3 || 5} ngày
 Dựng hình các phòng, Ánh sáng, Vật liệu, Hậu kỳ, Gửi khách...
 
 * PHASE 3 (ID: GD3, Name: Giai đoạn 3: Chỉnh sửa & Gối đầu KT)
-Chờ khách phản hồi (gối đầu với ->), MB Bố trí, MB Xây tường, MB Trần/Sàn/MEP...
+Khách hàng suy nghĩ, chờ phản hồi (Buffer): Kéo dài ~${bufferKh || 4} ngày (Gối đầu với ->) MB Bố trí, MB Xây tường, MB Trần/Sàn/MEP...
 
-* PHASE 4 (ID: GD4, Name: Giai đoạn 4: Bổ hồ sơ kỹ thuật)
-Bổ đồ nội thất các phòng, Dim kích thước, Thống kê khối lượng...
+* PHASE 4 (ID: GD4, Name: Giai đoạn 4: Bổ hồ sơ kỹ thuật) => THỜI LƯỢNG CHO BẢN VẼ: S(~${phasesWd?.s || 3} ngày) + KT(~${phasesWd?.kt || 3} ngày)
+Bổ chi tiết đồ nội thất các phòng (S), Vẽ M&E, Kiến trúc, Dim kích thước, Thống kê khối lượng (KT)...
 
-* PHASE 5 (ID: GD5, Name: Giai đoạn 5: QC & Bàn giao)
+* PHASE 5 (ID: GD5, Name: Giai đoạn 5: QC & Bàn giao) => THỜI LƯỢNG: ~${phasesWd?.qc || 2} ngày
 Self-check, Leader check, Sửa lỗi, Bàn giao...
-
-* PHASE 1 (ID: GD1, Name: Giai đoạn 1: Concept & Chốt Layout) => Kéo dài từ DAY 1 đến DAY 2
-DAY 1: 1.1 (Khảo sát Tường), 1.2 (Khảo sát Trần/Dầm), 1.3 (Định vị ME), 1.4 (Chụp ảnh), 1.5 (Vẽ CAD hiện trạng), 1.6 (Layout PA1), 1.7 (Layout PA2)
-DAY 2: 1.8 (Tìm Moodboard), 1.9 (Soạn trình bày), 1.10 (Gặp khách & Ký duyệt)
-
-* PHASE 2 (ID: GD2, Name: Giai đoạn 2: Dựng 3D & Render) => Kéo dài từ DAY 3 đến DAY 7
-DAY 3: 2.1 (Dựng khung bao), 2.2 (Model P.Khách)
-DAY 4: 2.3 (Model Bếp)
-DAY 5: 2.4 (Model Master), 2.5 (Model Ngủ Con), 2.6 (Khu phụ)
-DAY 6: 2.7 (Decor), 2.8 (Ánh sáng), 2.9 (Vật liệu), 2.10 (Camera), 2.11 (Batch Render)
-DAY 7: 2.12 (Hậu kỳ PTS), 2.13 (Gửi khách 3D Lần 1)
-
-* PHASE 3 (ID: GD3, Name: Giai đoạn 3: Chỉnh sửa & Gối đầu KT) => Kéo dài từ DAY 8 đến DAY 12
-DAY 8: 3.0 (Chờ KH phản hồi - Kéo dài 2 ngày), 3.1 (MB bố trí nội thất - Gối đầu)
-DAY 9: 3.2 (MB Xây tường), 3.3 (MB Lát sàn), 3.4 (MB Trần đèn), 3.5 (MB Ổ cắm)
-DAY 10: 3.6 (Trao đổi sửa đổi), 3.7 (Tổng hợp Word)
-DAY 11: 3.8 (Sửa Model 3D), 3.9 (Gửi Final 3D)
-DAY 12: 3.10 (Chờ KH chốt vật liệu - Kéo dài 1 ngày)
-
-* PHASE 4 (ID: GD4, Name: Giai đoạn 4: Bổ hồ sơ kỹ thuật) => Kéo dài từ DAY 12 đến DAY 16 (Gối đầu với 3.10)
-DAY 12: 4.1 (Bổ đồ gỗ P.Khách - Gối đầu với 3.10)
-DAY 14: 4.2 (Bổ đồ Bếp), 4.3 (Bổ Ngủ), 4.4 (Bổ WC)
-DAY 15: 4.5 (Dim kích thước)
-DAY 16: 4.6 (Ghi chú quy cách), 4.7 (Trích xuất 3D), 4.8 (Thống kê khối lượng)
-
-* PHASE 5 (ID: GD5, Name: Giai đoạn 5: QC & Bàn giao) => Kéo dài từ DAY 17 đến DAY 19
-DAY 17: 5.1 (Tự check QC), 5.2 (Leader check), 5.3 (Sửa lỗi theo Leader)
-DAY 18: 5.4 (Xuất hồ sơ in), 5.5 (Đóng gói Server)
-DAY 19: 6.1 (Khởi động dự án tiếp theo)
 
 [QUY TẮC TÍNH NGÀY (Start / End Date)]
 - Start và End date của PHASE = Thời điểm bắt đầu sớm nhất và kết thúc muộn nhất của các task con bên trong nó.
