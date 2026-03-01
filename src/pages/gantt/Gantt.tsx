@@ -95,7 +95,7 @@ export const Gantt = () => {
         const items: any[] = []
 
         projects.forEach((p) => {
-            if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.project_code.toLowerCase().includes(search.toLowerCase())) return
+            if (search && !(p.name || '').toLowerCase().includes(search.toLowerCase()) && !(p.project_code || '').toLowerCase().includes(search.toLowerCase())) return
 
             const start = p.start_date ? new Date(p.start_date) : null
             const end = p.end_date ? new Date(p.end_date) : null

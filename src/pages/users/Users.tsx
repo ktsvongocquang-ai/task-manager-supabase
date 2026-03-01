@@ -24,9 +24,9 @@ export const Users = () => {
     }, [])
 
     const filteredProfiles = profiles.filter(p =>
-        p.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        p.email.toLowerCase().includes(search.toLowerCase()) ||
-        p.staff_id.toLowerCase().includes(search.toLowerCase())
+        (p.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.email || '').toLowerCase().includes(search.toLowerCase()) ||
+        (p.staff_id || '').toLowerCase().includes(search.toLowerCase())
     )
 
     const fetchProfiles = async () => {

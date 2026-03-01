@@ -133,8 +133,8 @@ export const Kanban = () => {
 
         if (!isVisible) return false;
 
-        const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
-            t.task_code.toLowerCase().includes(search.toLowerCase())
+        const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (t.task_code || '').toLowerCase().includes(search.toLowerCase())
 
         return matchSearch
     })
