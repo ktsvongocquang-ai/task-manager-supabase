@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
 import { LogIn } from 'lucide-react'
+import { useAuthStore } from '../store/authStore'
 
 export const Login = () => {
     const [email, setEmail] = useState('')
@@ -9,6 +10,15 @@ export const Login = () => {
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState('')
     const navigate = useNavigate()
+    
+    const { checkSession, user } = useAuthStore()
+
+    // If user is already logged in (e.g. from a previous session check), redirect them
+    useEffect(() => {
+        if (user) {
+            navigate('/dashboard', { replace: true })
+        }
+    }, [user, navigate])
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -28,7 +38,9 @@ export const Login = () => {
             }
             setLoading(false)
         } else {
-            navigate('/dashboard')
+            // Wait for global auth state to sync with Supabase session BEFORE routing
+            await checkSession()
+            navigate('/dashboard', { replace: true })
         }
     }
 
