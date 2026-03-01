@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2 } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { CommentSection } from '../../components/chat/CommentSection';
@@ -40,6 +40,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     });
 
     const [subTasks, setSubTasks] = useState<{ id: string, text: string, completed: boolean }[]>([]);
+    const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
 
     useEffect(() => {
         if (isOpen) {
@@ -224,192 +225,300 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        {editingTask ? 'Chi Tiết Công Việc' : 'Tạo mới Công Việc'}
-                        {editingTask && <Trash2 size={18} className="text-red-500 hover:text-red-600 cursor-pointer ml-2" />}
-                    </h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
-                        <X size={20} />
-                    </button>
-                </div>
-                <div className="p-6 overflow-y-auto max-h-[75vh] space-y-5 bg-white">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
-                    {/* Tiêu đề */}
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Tiêu đề <span className="text-red-500">*</span></label>
-                        <input
-                            type="text"
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                            placeholder="Nhập tiêu đề công việc..."
-                            disabled={shouldDisableTopFields()}
-                        />
+                {/* Header */}
+                <div className="px-8 py-6 flex justify-between items-start bg-white shrink-0">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                            {/* Nút delete nhỏ ở góc thay vì nằm cạnh title */}
+                            <div className="bg-slate-100 p-2.5 rounded-xl text-slate-500">
+                                <AlignLeft size={20} />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800">
+                                {editingTask ? form.name || 'Chi Tiết Công Việc' : 'Tạo Công Việc Mới'}
+                            </h2>
+                            {editingTask && (
+                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 ${form.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' :
+                                    form.priority === 'Cao' ? 'bg-orange-50 text-orange-600' :
+                                        form.priority === 'Trung bình' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
+                                    }`}>
+                                    {form.priority}
+                                </span>
+                            )}
+                        </div>
+                        {editingTask && form.task_code && (
+                            <p className="text-sm font-medium text-slate-400 mt-1 ml-14">{form.task_code}</p>
+                        )}
                     </div>
 
-                    {/* Trạng thái & Mức độ ưu tiên */}
-                    <div className="grid grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Trạng thái</label>
-                            <select
-                                value={form.status}
-                                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
-                            >
-                                <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                <option value="Đang làm">Đang làm</option>
-                                <option value="Đang thực hiện">Đang thực hiện</option>
-                                <option value="Hoàn thành">Hoàn thành</option>
-                                <option value="Tạm dừng">Tạm dừng</option>
-                                <option value="Hủy bỏ">Hủy bỏ</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Mức độ ưu tiên</label>
-                            <select
-                                value={form.priority}
-                                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                                disabled={shouldDisableTopFields()}
-                            >
-                                <option value="Thấp">Thấp</option>
-                                <option value="Trung bình">Trung bình</option>
-                                <option value="Cao">Cao</option>
-                                <option value="Khẩn cấp">Khẩn cấp</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Phụ trách & Người hỗ trợ */}
-                    <div className="grid grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Phụ trách <span className="text-red-500">*</span></label>
-                            <select
-                                value={form.assignee_id}
-                                onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                                disabled={shouldDisableTopFields()}
-                            >
-                                <option value="">Chọn người</option>
-                                {profiles.filter(p => currentUserProfile?.role === 'Admin' || isCurrentUserManagerOfSelectedProject() || p.id === currentUserProfile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Người hỗ trợ</label>
-                            <select
-                                value={form.supporter_id}
-                                onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                                disabled={shouldDisableTopFields()}
-                            >
-                                <option value="">Chọn người hỗ trợ</option>
-                                {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Tên Dự Án & Hạn chót */}
-                    <div className="grid grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Tên Dự Án <span className="text-red-500">*</span></label>
-                            <select
-                                value={form.project_id}
-                                onChange={(e) => handleProjectChange(e.target.value)}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                                disabled={shouldDisableTopFields()}
-                            >
-                                <option value="">Chọn dự án</option>
-                                {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-2">Hạn chót <span className="text-red-500">*</span></label>
-                            <input
-                                type="date"
-                                value={form.due_date}
-                                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
-                                className={`w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-500' : ''}`}
-                                disabled={shouldDisableTopFields()}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Công việc con / Ghi chú (Checklist) */}
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-3">Công việc con / Ghi chú</label>
-                        <div className="space-y-2 mb-3">
-                            {subTasks.map((st) => (
-                                <div key={st.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-lg p-3 group">
-                                    <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={st.completed}
-                                            onChange={(e) => toggleSubTask(st.id, e.target.checked)}
-                                            className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
-                                        />
-                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
-                                            {st.completed && <CheckCircle2 size={14} className="stroke-[3]" />}
-                                        </div>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={st.text}
-                                        onChange={(e) => updateSubTask(st.id, e.target.value)}
-                                        placeholder="Mô tả công việc con..."
-                                        className={`flex-1 bg-transparent border-none text-sm focus:outline-none text-slate-800 ${st.completed ? 'line-through text-slate-400' : ''}`}
-                                    />
-                                    <button onClick={() => removeSubTask(st.id)} className="text-red-500/50 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <X size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={addSubTask}
-                            className="w-full py-3 border border-dashed border-slate-300 rounded-lg text-sm font-medium text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <Plus size={16} /> Thêm mục
+                    <div className="flex items-center gap-2">
+                        {editingTask && (
+                            <button onClick={() => {/* TODO Delete Confirm */ }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                                <Trash2 size={18} />
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
+                            <X size={20} />
                         </button>
                     </div>
+                </div>
 
-                    {/* Link kết quả */}
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Link kết quả</label>
-                        <textarea
-                            value={form.result_links}
-                            onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[80px] resize-none"
-                            placeholder="Nhập link kết quả..."
-                        />
-                    </div>
+                {/* Body scrollable */}
+                <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar">
 
-                    {/* Chat & Comment Section - Chỉ hiện khi đang sửa (đã có ID) */}
-                    {editingTask?.id && (
-                        <div className="mt-6 pt-6 border-t border-slate-200">
-                            <CommentSection
-                                taskId={editingTask.id}
-                                currentUserProfile={currentUserProfile}
-                                profiles={profiles}
-                                itemName={editingTask.name}
+                    {!editingTask && (
+                        <div className="mb-6 ml-14">
+                            <input
+                                type="text"
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                className="w-full text-xl font-bold text-slate-800 placeholder:text-slate-300 border-none focus:ring-0 p-0"
+                                placeholder="Nhập tiêu đề công việc..."
+                                disabled={shouldDisableTopFields()}
+                                autoFocus
                             />
                         </div>
                     )}
+
+                    {/* Form Grid Layout - SaaS Style */}
+                    <div className="space-y-4 ml-14">
+
+                        {/* Status */}
+                        <div className="flex items-center min-h-[40px]">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                <CheckCircle2 size={16} /> Trạng thái
+                            </div>
+                            <div className="flex-1">
+                                <select
+                                    value={form.status}
+                                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px]"
+                                >
+                                    <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                    <option value="Đang làm">Đang làm</option>
+                                    <option value="Đang thực hiện">Đang thực hiện</option>
+                                    <option value="Hoàn thành">Hoàn thành</option>
+                                    <option value="Tạm dừng">Tạm dừng</option>
+                                    <option value="Hủy bỏ">Hủy bỏ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Due Date */}
+                        <div className="flex items-center min-h-[40px]">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                <Calendar size={16} /> Hạn chót
+                            </div>
+                            <div className="flex-1">
+                                <input
+                                    type="date"
+                                    value={form.due_date}
+                                    onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                    max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
+                                    className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-400' : ''}`}
+                                    disabled={shouldDisableTopFields()}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Assignee */}
+                        <div className="flex items-center min-h-[40px]">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                <User size={16} /> Phụ trách
+                            </div>
+                            <div className="flex-1 flex gap-2 items-center flex-wrap">
+                                <select
+                                    value={form.assignee_id}
+                                    onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                                    className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    disabled={shouldDisableTopFields()}
+                                >
+                                    <option value="" className="text-slate-400 font-normal">Chọn người phụ trách...</option>
+                                    {profiles.filter(p => currentUserProfile?.role === 'Admin' || isCurrentUserManagerOfSelectedProject() || p.id === currentUserProfile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                </select>
+
+                                <select
+                                    value={form.supporter_id}
+                                    onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
+                                    className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    disabled={shouldDisableTopFields()}
+                                >
+                                    <option value="" className="text-slate-400 font-normal">+ Hỗ trợ (Tùy chọn)</option>
+                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Project / Tags */}
+                        <div className="flex items-center min-h-[40px]">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                <Folder size={16} /> Dự án (Tags)
+                            </div>
+                            <div className="flex-1">
+                                <select
+                                    value={form.project_id}
+                                    onChange={(e) => handleProjectChange(e.target.value)}
+                                    className={`px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium cursor-pointer hover:bg-slate-100 transition-colors w-full max-w-[250px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    disabled={shouldDisableTopFields()}
+                                >
+                                    <option value="">Chọn dự án...</option>
+                                    {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Priority */}
+                        <div className="flex items-center min-h-[40px]">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                <Flag size={16} /> Ưu tiên
+                            </div>
+                            <div className="flex-1">
+                                <select
+                                    value={form.priority}
+                                    onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                                    className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px] focus:outline-none ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
+                                        form.priority === 'Cao' ? 'text-orange-600' :
+                                            form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
+                                        } ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
+                                    disabled={shouldDisableTopFields()}
+                                >
+                                    <option value="Thấp">Thấp</option>
+                                    <option value="Trung bình">Trung bình</option>
+                                    <option value="Cao">Cao</option>
+                                    <option value="Khẩn cấp">Khẩn cấp</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Description */}
+                        <div className="flex items-start min-h-[40px] pt-2">
+                            <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0 mt-2">
+                                <AlignLeft size={16} /> Mô tả
+                            </div>
+                            <div className="flex-1">
+                                <textarea
+                                    value={form.description}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                    className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all min-h-[80px] resize-none"
+                                    placeholder="Thêm mô tả chi tiết cho nhiệm vụ này..."
+                                />
+                            </div>
+                        </div>
+
+                        <hr className="border-t border-slate-100 my-6" />
+
+                        {/* Tabs Section */}
+                        <div className="mt-8">
+                            <div className="flex gap-6 border-b border-slate-200 mb-6">
+                                <button
+                                    onClick={() => setActiveTab('subtasks')}
+                                    className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    <ListTodo size={16} /> Subtasks <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('comments')}
+                                    className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    <MessageSquare size={16} /> Comments
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('links')}
+                                    className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'links' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                >
+                                    <LinkIcon size={16} /> Đính kèm / Link
+                                </button>
+                            </div>
+
+                            {/* Tab Content: Subtasks */}
+                            {activeTab === 'subtasks' && (
+                                <div className="space-y-3 animate-in fade-in duration-200">
+                                    {subTasks.map((st) => (
+                                        <div key={st.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group">
+                                            <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={st.completed}
+                                                    onChange={(e) => toggleSubTask(st.id, e.target.checked)}
+                                                    className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
+                                                />
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${st.completed ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
+                                                    {st.completed && <CheckCircle2 size={14} className="stroke-[3]" />}
+                                                </div>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={st.text}
+                                                onChange={(e) => updateSubTask(st.id, e.target.value)}
+                                                placeholder="Viết nhiệm vụ con..."
+                                                className={`flex-1 bg-transparent border-none text-sm font-medium focus:outline-none text-slate-800 ${st.completed ? 'line-through text-slate-400' : ''}`}
+                                            />
+                                            <button onClick={() => removeSubTask(st.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={addSubTask}
+                                        className="w-full py-3 border border-dashed border-slate-300 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Plus size={16} /> Thêm Subtask mới
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Tab Content: Comments */}
+                            {activeTab === 'comments' && (
+                                <div className="animate-in fade-in duration-200 bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+                                    {editingTask?.id ? (
+                                        <CommentSection
+                                            taskId={editingTask.id}
+                                            currentUserProfile={currentUserProfile}
+                                            profiles={profiles}
+                                            itemName={editingTask.name}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-8 text-slate-400 text-sm font-medium">
+                                            Vui lòng lưu nhiệm vụ trước khi có thể trao đổi bình luận.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Tab Content: Links */}
+                            {activeTab === 'links' && (
+                                <div className="animate-in fade-in duration-200">
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                                            <LinkIcon size={16} /> Đường dẫn kết quả / File Google Drive
+                                        </label>
+                                        <textarea
+                                            value={form.result_links}
+                                            onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[100px] resize-none"
+                                            placeholder="Paste link Figma, Google Drive, Docs vào đây..."
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
                 </div>
 
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between gap-3 rounded-b-2xl">
+                {/* Footer fixed */}
+                <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0 rounded-b-3xl">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 border border-slate-300 bg-white rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+                        className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
                     >
-                        Đóng
+                        Hủy
                     </button>
                     <button
                         onClick={handleSave}
-                        className="px-8 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95"
+                        className="px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
                     >
                         Lưu Lại
                     </button>
