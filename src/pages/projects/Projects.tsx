@@ -5,6 +5,7 @@ import { type Project, type Task } from '../../types'
 import { Plus, Search, Edit3, Trash2, Copy, X, Calendar, Users, Eye, List } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ProjectDetailsModal } from './ProjectDetailsModal'
+import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 
 export const Projects = () => {
@@ -275,14 +276,12 @@ export const Projects = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
-                    {profile?.role !== 'Nhân viên' && (
-                        <button
-                            onClick={openAddModal}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                        >
-                            <Plus size={18} /> Tạo mới dự án
-                        </button>
-                    )}
+                    <button
+                        onClick={openAddModal}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                    >
+                        <Plus size={18} /> Tạo mới dự án
+                    </button>
                 </div>
             </div>
 
@@ -336,7 +335,7 @@ export const Projects = () => {
                                         <Edit3 size={14} />
                                     </button>
                                 )}
-                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
+                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
                                     <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto" title="Xóa dự án">
                                         <Trash2 size={14} />
                                     </button>
@@ -391,112 +390,16 @@ export const Projects = () => {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <h3 className="text-lg font-bold text-slate-800">{editingProject ? 'Sửa dự án' : 'Tạo dự án mới'}</h3>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-white rounded-lg">
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mã dự án</label>
-                                    <input
-                                        type="text"
-                                        value={form.project_code}
-                                        onChange={(e) => setForm({ ...form, project_code: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                        disabled={!!editingProject}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Trạng thái</label>
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    >
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
-                                        <option value="Hủy bỏ">Hủy bỏ</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tên dự án</label>
-                                <input
-                                    type="text"
-                                    value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
-                                    placeholder="Nhập tên dự án..."
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày kết thúc</label>
-                                    <input
-                                        type="date"
-                                        value={form.end_date}
-                                        onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Quản lý dự án</label>
-                                <select
-                                    value={form.manager_id}
-                                    onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    disabled={profile?.role !== 'Admin' && profile?.role !== 'Quản lý'}
-                                >
-                                    <option value="">Chọn quản lý</option>
-                                    {profiles.filter(p => profile?.role === 'Admin' || profile?.role === 'Quản lý' || p.id === profile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mô tả</label>
-                                <textarea
-                                    value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
-                                    placeholder="Mô tả tóm tắt dự án..."
-                                />
-                            </div>
-                        </div>
-                        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="px-5 py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
-                            >
-                                Hủy bỏ
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all active:scale-95 uppercase tracking-wider"
-                            >
-                                {editingProject ? 'Cập nhật' : 'Tạo dự án'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <AddEditProjectModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onSave={handleSave}
+                editingProject={editingProject}
+                form={form}
+                setForm={setForm}
+                profiles={profiles}
+                currentUserProfile={profile}
+            />
 
             {/* Project Details Modal */}
             <ProjectDetailsModal
