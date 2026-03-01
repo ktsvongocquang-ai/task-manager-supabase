@@ -58,13 +58,14 @@ export default async function handler(req, res) {
             properties: {
                 code: { type: Type.STRING, description: "Mã công việc (VD: 1.1, 1.2, 2.1)" },
                 title: { type: Type.STRING, description: "Tên công việc" },
-                phase: { type: Type.STRING, description: "Giai đoạn (VD: Concept, 3D Render, Khớp nối kỹ thuật)" },
-                startDate: { type: Type.STRING, description: "Ngày bắt đầu (YYYY-MM-DD)" },
-                endDate: { type: Type.STRING, description: "Ngày kết thúc (YYYY-MM-DD)" },
+                phaseId: { type: Type.STRING, description: "ID của Giai đoạn (VD: concept, 3d, technic, deliver)" },
+                start: { type: Type.STRING, description: "Ngày bắt đầu (YYYY-MM-DD)" },
+                end: { type: Type.STRING, description: "Ngày kết thúc (YYYY-MM-DD)" },
                 assignee: { type: Type.STRING, description: "Người phụ trách (Tên Lead hoặc Support)" },
-                note: { type: Type.STRING, description: "Ghi chú thêm về task (nếu có)" }
+                duration: { type: Type.INTEGER, description: "Thời lượng công việc tính bằng ngày" },
+                note: { type: Type.STRING, description: "Ghi chú thêm về task (mặc định rỗng)" }
             },
-            required: ["code", "title", "phase", "startDate", "endDate", "assignee"]
+            required: ["code", "title", "phaseId", "start", "end", "assignee", "duration"]
         };
 
         const responseSchema = {
@@ -79,106 +80,61 @@ export default async function handler(req, res) {
             required: ["tasks"]
         };
 
-        // JFLOW V2.0 Formula: Calculate area scale multiplier (Base 100m2 = 1.0 multiplier).
-        const areaNum = parseFloat(area) || 100;
-        let scaleRatio = 1.0;
-        if (areaNum <= 60) {
-            scaleRatio = 0.75;
-        } else if (areaNum <= 100) {
-            scaleRatio = 0.75 + ((areaNum - 60) / 40.0) * (1.0 - 0.75);
-        } else if (areaNum <= 140) {
-            scaleRatio = 1.0 + ((areaNum - 100) / 40.0) * (1.5 - 1.0);
-        } else if (areaNum <= 180) {
-            scaleRatio = 1.5 + ((areaNum - 140) / 40.0) * (2.0 - 1.5);
-        } else {
-            scaleRatio = 2.0;
-        }
-
         const systemInstruction = `
-Bạn là một AI Timeline Engine (JFLOW v2.0), chuyên khởi tạo Workflow Kiến trúc dựa trên thuật toán nội suy.
-Trọng trách của bạn là xuất ra JSON mảng tasks gồm ĐÚNG 38 TASK TỪ 1.1 ĐẾN 5.5, không được thêm hoặc bớt bất kỳ task nào.
+[VAI TRÒ & NHIỆM VỤ]
+Bạn là một AI Project Manager cấp cao chuyên lập kế hoạch dự án Thiết kế Nội thất theo chuẩn SOP cực kỳ khắt khe của JFLOW.
+Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và sinh ra một Lịch trình JSON chuẩn xác.
+
+[RÀNG BUỘC TỐI THƯỢNG - CRITICAL RULES]
+1. KHÔNG ĐƯỢC LƯỜI BIẾNG. KHÔNG ĐƯỢC TÓM TẮT. KHÔNG ĐƯỢC DÙNG "...".
+2. BẠN BẮT BUỘC PHẢI TRẢ VỀ MẢNG JSON CHỨA ĐÚNG VÀ ĐỦ 44 TASKS BÊN DƯỚI. Nếu thiếu dù chỉ 1 task, hệ thống sẽ bị lỗi.
+3. KỸ THUẬT GỐI ĐẦU (OVERLAPPING): Các task vẽ kỹ thuật (3.1 -> 3.5) PHẢI CÓ ngày bắt đầu trùng với ngày bắt đầu của task Chờ phản hồi (3.0). Không được cộng dồn ngày.
 
 [THÔNG TIN DỰ ÁN]
-- Tên DA: ${projectName}
+- Tên dự án: ${projectName}
 - Khách hàng: ${clientName}
 - Vai trò: Lead = '${leadName}', Support = '${supportName}'
-- Cấu hình: ${projectType} | ${style} | ${investment} | ${area}m2
 
-[JFLOW V2.0 - BẢNG TASK & WD TIÊU CHUẨN 100m2]
-Giai đoạn 1: Concept & Chốt Layout
-1.1 Khảo sát: Đo thông thủy, trần, dầm, cột | Designer | 0.25 WD
-1.2 Khảo sát: Định vị hộp KT, cấp thoát nước | Designer | 0.125 WD
-1.3 Chụp ảnh hiện trạng (toàn cảnh + góc khó) | Designer | 0.125 WD
-1.4 Vẽ lại hiện trạng CAD (clean layer rác) | Designer | 0.25 WD
-1.5 Lên Layout 2D: PA1 (Công năng tối ưu) | Designer | 0.5 WD
-1.6 Lên Layout 2D: PA2 (Sáng tạo/Phá cách) | Designer | 0.5 WD
-1.7 Tìm Moodboard: Style, Tone màu, Vật liệu | Designer | 0.5 WD
-1.8 Soạn file trình bày (PPT/PDF) | Designer | 0.5 WD
-1.9 REVIEW NỘI BỘ: Leader duyệt Concept (Gate) | Leader | 0.25 WD
-1.10 GẶP KHÁCH & KÝ DUYỆT LAYOUT (Client) | Leader + DS | 0.5 WD
+[WORKFLOW CHUẨN ĐÚNG 44 TASKS - BẮT BUỘC RÁP THEO MÃ NÀY]
+DAY 1: 1.1 (Khảo sát Tường), 1.2 (Khảo sát Trần/Dầm), 1.3 (Định vị ME), 1.4 (Chụp ảnh), 1.5 (Vẽ CAD hiện trạng), 1.6 (Layout PA1), 1.7 (Layout PA2)
+DAY 2: 1.8 (Tìm Moodboard), 1.9 (Soạn trình bày), 1.10 (Gặp khách & Ký duyệt)
+DAY 3: 2.1 (Dựng khung bao), 2.2 (Model P.Khách)
+DAY 4: 2.3 (Model Bếp)
+DAY 5: 2.4 (Model Master), 2.5 (Model Ngủ Con), 2.6 (Khu phụ)
+DAY 6: 2.7 (Decor), 2.8 (Ánh sáng), 2.9 (Vật liệu), 2.10 (Camera), 2.11 (Batch Render)
+DAY 7: 2.12 (Hậu kỳ PTS), 2.13 (Gửi khách 3D Lần 1)
+DAY 8: 3.0 (Chờ KH phản hồi - Kéo dài 2 ngày), 3.1 (MB bố trí nội thất - Gối đầu)
+DAY 9: 3.2 (MB Xây tường), 3.3 (MB Lát sàn), 3.4 (MB Trần đèn), 3.5 (MB Ổ cắm)
+DAY 10: 3.6 (Trao đổi sửa đổi), 3.7 (Tổng hợp Word)
+DAY 11: 3.8 (Sửa Model 3D), 3.9 (Gửi Final 3D)
+DAY 12: 3.10 (Chờ KH chốt vật liệu - Kéo dài 1 ngày), 4.1 (Bổ đồ gỗ P.Khách - Gối đầu)
+DAY 14: 4.2 (Bổ đồ Bếp), 4.3 (Bổ Ngủ), 4.4 (Bổ WC)
+DAY 15: 4.5 (Dim kích thước)
+DAY 16: 4.6 (Ghi chú quy cách), 4.7 (Trích xuất 3D), 4.8 (Thống kê khối lượng)
+DAY 17: 5.1 (Tự check QC), 5.2 (Leader check), 5.3 (Sửa lỗi theo Leader)
+DAY 18: 5.4 (Xuất hồ sơ in), 5.5 (Đóng gói Server)
+DAY 19: 6.1 (Khởi động dự án tiếp theo)
 
-Giai đoạn 2: Dựng 3D & Render
-2.1 Dựng khung bao: Tường, Trần, Sàn, Cửa | Designer | 0.5 WD
-2.2 Model P.Khách: Vách TV, Sofa, Bàn trà | Designer | 0.5 WD
-2.3 Model Bếp: Tủ bếp trên/dưới, Đảo bếp | Designer | 0.5 WD
-2.4 Model P.Ngủ Master: Giường, Tủ áo, Bàn phấn | Designer | 1 WD
-2.5 Model P.Ngủ Con: Giường, Bàn học | Designer | 0.5 WD
-2.6 Model Khu phụ: Tủ giày, Lavabo | Designer | 0.5 WD
-2.7 Decor chi tiết: Rèm, Thảm, Tranh, Đèn | Designer | 0.5 WD
-2.8 Setup ánh sáng (Sunlight, HDRI, IES) | Designer | 0.25 WD
-2.9 Ốp vật liệu (Map gỗ, đá, vải, kính) | Designer | 0.25 WD
-2.10 Đặt góc Camera | Designer | 0.125 WD
-2.11 BATCH RENDER | Designer | 0.125 WD
-2.12 Photoshop: Cân sáng, màu | Designer | 0.25 WD
-2.13 REVIEW NỘI BỘ: Leader duyệt 3D (Gate) | Leader | 0.25 WD
-2.14 GỬI KHÁCH HÀNG 3D (Lần 1) (Client) | Leader | 0.5 WD
-
-Giai đoạn 3: Chỉnh sửa & Gối đầu KT
-3.0 [WAITING] CHỜ KHÁCH XEM & PHẢN HỒI | Khách | 2.0 WD
-3.1 VẼ KT: MB Bố trí nội thất | Designer | 0.5 WD
-3.2 VẼ KT: MB Xây tường / Phá dỡ | Designer | 0.25 WD
-3.3 VẼ KT: MB Lát sàn | Designer | 0.25 WD
-3.4 VẼ KT: MB Trần đèn | Designer | 0.25 WD
-3.5 VẼ KT: MB Ổ cắm / Công tắc | Designer | 0.25 WD
-3.6 TRAO ĐỔI: Chốt PA sửa đổi (Call/Meeting) | Leader + DS | 0.25 WD
-3.7 Tổng hợp feedback ra file Word | Designer | 0.125 WD
-3.8 Sửa Model 3D & Re-render | Designer | 1 WD
-3.9 Gửi khách chốt Final 3D | Leader | 0.25 WD
-3.10 [WAITING] CHỜ KHÁCH CHỐT MÃ VẬT LIỆU/MÀU | Khách | 1.0 WD
-
-Giai đoạn 4: Bổ hồ sơ kỹ thuật
-4.1 Bổ đồ gỗ P.Khách | Designer | 1 WD
-4.2 Bổ đồ gỗ Bếp | Designer | 1 WD
-4.3 Bổ đồ gỗ P.Ngủ | Designer | 0.5 WD
-4.4 Bổ đồ gỗ WC/Khác | Designer | 0.5 WD
-4.5 Dim kích thước chi tiết | Designer | 0.5 WD
-4.6 Ghi chú quy cách | Designer | 0.25 WD
-4.7 Trích xuất 3D vào bản vẽ 2D | Designer | 0.25 WD
-4.8 Thống kê khối lượng | Designer | 0.25 WD
-
-Giai đoạn 5: QC & Bàn giao
-5.1 TỰ CHECK LỖI (Super-QC) | Designer | 0.5 WD
-5.2 LEADER CHECK: Gửi PDF cho quản lý | Leader | 0.25 WD
-5.3 Sửa lỗi theo comment Leader | Designer | 0.5 WD
-5.4 Xuất hồ sơ in ấn | Designer | 0.25 WD
-5.5 Đóng gói thư mục Project | Designer | 0.25 WD
-
-[THUẬT TOÁN XẾP LỊCH THEO DIỆN TÍCH (${area}m2)]
-1. Hệ số Scale diện tích của dự án này đang là: x${scaleRatio.toFixed(3)}.
-2. NHIỆM VỤ ĐẦU TIÊN: Nhân tất cả WD trong bảng mẫu cho Hệ số ${scaleRatio.toFixed(3)}, sau đó LÀM TRÒN THIÊN LÊN 0.25 gần nhất. (Riêng Task Wait Buffer giữ nguyên).
-3. ĐIỀN CHÍNH XÁC assignee: 'Designer' phải điền tên '${supportName}'. 'Leader' điền tên '${leadName}'. 'Khách' điền tên '${clientName}'. Nếu là 'Leader + DS', điền tên '${leadName}, ${supportName}'.
-4. TÍNH TOÁN NGÀY LỊCH (startDate, endDate):
-- 1 WD tương đương 1 Ngày lịch hợp lệ trong Mảng sau đây:
+[QUY TẮC TÍNH NGÀY CỦA AI CỰC KỲ CHÍNH XÁC]
+- Start Date của mỗi task = (DAY của task đó - 1) Lấy index trong mảng Calendar bên dưới.
+- Ví dụ task ở DAY 1 -> Index 0. Task ở DAY 4 -> Index 3. 
+- MỘT SỐ NGOẠI LỆ: 
+   + Task 3.0 (Chờ KH phản hồi) ở DAY 8 (Index 7), kéo dài 2 ngày nên End Date = Index 8.
+   + Task 3.1 (MB Bố trí) nằm ở DAY 8 (Index 7), có duration mặc định 1 ngày nên End Date = Index 7. 
+   + LƯU Ý: DAY 13 BỊ NHẢY CÓC. Nghĩa là task DAY 14 -> Index 13.
+Đây là mảng Calendar chứa danh sách các ngày làm việc (đã bỏ qua T7, CN):
 ${JSON.stringify(workingDaysCalendar)}
-- Tuyệt đối không tự bịa ra ngày khác.
-- Rất nhiều task có WD < 1 (vd: 0.25 WD, 0.5 WD). BẠN PHẢI GỘP CHÚNG VÀO CÙNG 1 NGÀY LỊCH (cộng dồn cho tới khi cán mốc 1 WD thì mới nhảy sang ngày tiếp theo trong mảng Calendar).
-- Ví dụ: 1.1 (0.25WD), 1.2 (0.125WD), 1.3 (0.125WD), 1.4 (0.25WD) tổng cộng 0.75WD -> TẤT CẢ PHẢI CÓ CHUNG startDate và endDate là 1 ngày đầu tiên (index 0). Sang task 1.5, vì nó cần thêm 0.5WD nên sẽ vắt sang index 1.
-Chỉ trả về chuỗi JSON Array. Đảm bảo ĐỦ TOÀN BỘ 38 TASKS kể trên.
+Tuyệt đối KHÔNG gán startDate hay endDate nào nằm ngoài các chuỗi ngày trong mảng trên.
+
+[QUY TẮC GÁN NGƯỜI (ASSIGNEE)]
+- Assignee: Các task vẽ Layout, Render, Ánh sáng, Gặp khách, Leader check -> Gán cho '${leadName}'. Các task bổ CAD, Dựng hình thô, QC nội bộ -> Gán cho '${supportName}'. Các task Chờ phản hồi -> Gán cho '${clientName}'.
+
+CHỈ ĐƯỢC PHÉP TRẢ VỀ JSON ARRAY CHỨA ĐÚNG VÀ ĐỦ TOÀN BỘ 44 OBJECT TASKS.
 `;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: "Tiến hành mô phỏng Timeline và xuất JSON:",
+            contents: "Tạo Gantt Chart JSON array gồm 44 tasks theo đúng quy định gối đầu và bỏ qua ngày nghỉ:",
             config: {
                 systemInstruction: systemInstruction,
                 responseMimeType: 'application/json',
