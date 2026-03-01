@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
 
 export const Tasks = () => {
@@ -196,6 +197,65 @@ export const Tasks = () => {
         }
     }
 
+    const onDragEnd = async (result: DropResult) => {
+        const { source, destination, draggableId } = result;
+
+        if (!destination) return;
+        if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+        // Ensure we're dragging within the same parent
+        if (source.droppableId !== destination.droppableId) {
+            alert("Chỉ có thể sắp xếp nhiệm vụ trong cùng một Giai đoạn.");
+            return;
+        }
+
+        const parentId = source.droppableId;
+        const allChildTasks = tasks.filter(t => t.parent_id === parentId)
+            // Need to sort them by current task_code to reflect visual order before moving
+            .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true }));
+
+        const draggedTaskIndex = allChildTasks.findIndex(t => t.id === draggableId);
+        if (draggedTaskIndex === -1) return;
+
+        const draggedTask = allChildTasks[draggedTaskIndex];
+        
+        // Create a new array and move the item
+        const newChildArray = Array.from(allChildTasks);
+        newChildArray.splice(source.index, 1);
+        newChildArray.splice(destination.index, 0, draggedTask);
+
+        // Find parent to construct the new prefix
+        const parentTask = tasks.find(t => t.id === parentId);
+        if (!parentTask) return;
+
+        const parentCode = parentTask.task_code; // e.g. (PR02)-INF-PHASE-1
+
+        // 1. Optimistically update UI
+        setTasks(prevTasks => {
+            const nextTasks = [...prevTasks];
+            newChildArray.forEach((child, idx) => {
+                const newCode = `${parentCode.replace('-PHASE', '')}.${idx + 1}`;
+                const tIndex = nextTasks.findIndex(t => t.id === child.id);
+                if (tIndex > -1) {
+                    nextTasks[tIndex] = { ...nextTasks[tIndex], task_code: newCode };
+                }
+            });
+            return nextTasks;
+        });
+
+        // 2. Perform DB Updates sequentially
+        try {
+            for (let i = 0; i < newChildArray.length; i++) {
+                const child = newChildArray[i];
+                const newCode = `${parentCode.replace('-PHASE', '')}.${i + 1}`;
+                await supabase.from('tasks').update({ task_code: newCode }).eq('id', child.id);
+            }
+        } catch (err) {
+            console.error('Lỗi khi cập nhật vị trí:', err);
+            fetchAll(); // revert on fail
+        }
+    }
+
     if (loading) {
         return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
     }
@@ -283,6 +343,7 @@ export const Tasks = () => {
                                     <table className="w-full text-xs">
                                         <thead>
                                             <tr className="bg-slate-50/30 border-b border-slate-100 text-slate-500 uppercase font-bold tracking-wider">
+                                                <th className="px-5 py-3 text-left w-10"></th>
                                                 <th className="px-5 py-3 text-left w-10">
                                                     <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                                                 </th>
@@ -296,30 +357,26 @@ export const Tasks = () => {
                                                 <th className="px-4 py-3 text-center">Thao tác</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-50">
+                                        <DragDropContext onDragEnd={onDragEnd}>
                                             {projectTasks.filter(t => !t.parent_id).map((task) => {
 
-                                                // Function to render a single row (used for both parent and child)
-                                                const renderTaskRow = (t: Task, isChild: boolean = false, overridePct?: number) => {
+                                                // Function to render Parent Row
+                                                const renderParentRow = (t: Task, overridePct?: number) => {
                                                     let subTasks: any[] = [];
                                                     try {
-                                                        if (t.notes && t.notes.startsWith('[')) {
-                                                            subTasks = JSON.parse(t.notes);
-                                                        }
-                                                    } catch (e) {
-                                                        subTasks = [];
-                                                    }
+                                                        if (t.notes && t.notes.startsWith('[')) subTasks = JSON.parse(t.notes);
+                                                    } catch (e) { subTasks = []; }
 
                                                     const totalSub = subTasks.length;
                                                     const completedSub = subTasks.filter(st => st.completed).length;
 
-                                                    // Dynamic completion mapping based on sub-tasks if they exist, or use overridePct for Parent Phases
                                                     const displayPct = overridePct !== undefined
                                                         ? overridePct
                                                         : (totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : t.completion_pct);
 
                                                     return (
-                                                        <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group ${isChild ? 'bg-slate-50/20' : 'bg-white'}`}>
+                                                        <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group bg-white`}>
+                                                            <td className="px-2 py-3"></td>
                                                             <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                                                                 <input
                                                                     type="checkbox"
@@ -329,11 +386,10 @@ export const Tasks = () => {
                                                                     disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || t.assignee_id === profile?.id)}
                                                                 />
                                                             </td>
-                                                            <td className={`px-4 py-3 ${isChild ? 'pl-10' : ''}`}>
+                                                            <td className={`px-4 py-3`}>
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                                        {isChild && <div className="w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0 -mt-2"></div>}
-                                                                        <p className={`font-bold text-slate-800 leading-tight ${isChild ? 'text-[11px]' : ''}`}>{t.name}</p>
+                                                                        <p className={`font-bold text-slate-800 leading-tight`}>{t.name}</p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <p className="text-[10px] text-slate-400 font-medium">{t.task_code}</p>
@@ -416,8 +472,10 @@ export const Tasks = () => {
                                                     );
                                                 };
 
-                                                // Find children of this parent task
-                                                const childTasks = projectTasks.filter(child => child.parent_id === task.id);
+                                                // Find children to render inside Droppable
+                                                const childTasks = projectTasks
+                                                    .filter(child => child.parent_id === task.id)
+                                                    .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true }));
 
                                                 // Compute dynamic % for Parent phase based on children completion
                                                 let phaseDisplayPct = task.completion_pct;
@@ -427,15 +485,141 @@ export const Tasks = () => {
                                                 }
 
                                                 return (
-                                                    <React.Fragment key={task.id}>
-                                                        {renderTaskRow(task, false, phaseDisplayPct)}
-                                                        {childTasks.map(child => renderTaskRow(child, true))}
-                                                    </React.Fragment>
-                                                )
-                                            }
+                                                    <tbody key={task.id} className="divide-y divide-slate-50">
+                                                        {/* Parent Row */}
+                                                        {renderParentRow(task, phaseDisplayPct)}
 
-                                            )}
-                                        </tbody>
+                                                        {/* Child Rows in Droppable */}
+                                                        <Droppable droppableId={task.id} type="task">
+                                                            {(provided) => (
+                                                                <tr className="p-0 m-0 border-0 bg-transparent">
+                                                                    <td colSpan={10} className="p-0 border-0">
+                                                                        <table className="w-full">
+                                                                            <tbody
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.droppableProps}
+                                                                                className="divide-y divide-slate-50 w-full block"
+                                                                            >
+                                                                                {childTasks.map((child, index) => {
+                                                                                    const isCompleted = child.status?.includes('Hoàn thành');
+                                                                                    return (
+                                                                                        <Draggable key={child.id} draggableId={child.id} index={index}>
+                                                                                            {(provided, snapshot) => (
+                                                                                                <tr
+                                                                                                    ref={provided.innerRef}
+                                                                                                    {...provided.draggableProps}
+                                                                                                    onClick={() => openEditModal(child)}
+                                                                                                    className={`group cursor-pointer flex w-full
+                                                                                                        ${snapshot.isDragging ? 'bg-indigo-50 shadow-lg border-indigo-200 z-50 rounded-xl' : 'bg-slate-50/20 hover:bg-slate-50 hover:shadow-sm'}
+                                                                                                    `}
+                                                                                                    style={{ ...provided.draggableProps.style, display: 'flex', width: '100%' }}
+                                                                                                >
+                                                                                                    <td className="px-2 py-3 flex items-center justify-center shrink-0 w-8" {...provided.dragHandleProps}>
+                                                                                                        <GripVertical size={14} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                                                                                                    </td>
+                                                                                                    <td className="px-5 py-3 w-10 flex shrink-0 items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                                                                                                        <input
+                                                                                                            type="checkbox"
+                                                                                                            checked={isCompleted}
+                                                                                                            onChange={() => toggleComplete(child)}
+                                                                                                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                                                                                                            disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id)}
+                                                                                                        />
+                                                                                                    </td>
+                                                                                                    <td className={`px-4 py-3 flex-1 min-w-[300px]`}>
+                                                                                                        <div>
+                                                                                                            <div className="flex items-center gap-2 mb-0.5">
+                                                                                                                <div className="w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0 -mt-2"></div>
+                                                                                                                <p className={`font-bold text-slate-800 leading-tight text-[11px]`}>{child.name}</p>
+                                                                                                            </div>
+                                                                                                            <div className="flex items-center gap-2">
+                                                                                                                <p className="text-[10px] text-slate-400 font-medium">{child.task_code}</p>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 text-slate-600 font-medium w-40 shrink-0 flex items-center">
+                                                                                                        <div className="flex items-center gap-2">
+                                                                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                                                                {getAssigneeName(child.assignee_id).charAt(0)}
+                                                                                                            </div>
+                                                                                                            {getAssigneeName(child.assignee_id)}
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center">
+                                                                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm ${getStatusBadge(child.status)}`}>
+                                                                                                            {child.status}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 w-28 shrink-0 flex items-center">
+                                                                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(child.priority)}`}>
+                                                                                                            {child.priority}
+                                                                                                        </span>
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center">
+                                                                                                        <div className="flex items-center gap-2 w-full">
+                                                                                                            <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1">
+                                                                                                                <div
+                                                                                                                    className={`h-1.5 rounded-full ${child.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`}
+                                                                                                                    style={{ width: `${child.completion_pct}%` }}
+                                                                                                                ></div>
+                                                                                                            </div>
+                                                                                                            <span className="font-bold text-slate-500 min-w-[3ch] text-[10px]">{child.completion_pct}%</span>
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 w-24 shrink-0 flex items-center">
+                                                                                                        {child.result_links ? (
+                                                                                                            <a href={child.result_links} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold text-[10px]">
+                                                                                                                <ExternalLink size={12} /> LINK
+                                                                                                            </a>
+                                                                                                        ) : <span className="text-slate-400">---</span>}
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 text-slate-500 font-medium w-28 shrink-0 flex items-center">
+                                                                                                        {child.due_date ? format(parseISO(child.due_date), 'dd/MM/yyyy') : '---'}
+                                                                                                    </td>
+                                                                                                    <td className="px-4 py-3 w-32 shrink-0 flex items-center justify-center">
+                                                                                                        <div className="flex items-center justify-center gap-3">
+                                                                                                            {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
+                                                                                                                <button
+                                                                                                                    onClick={(e) => { e.stopPropagation(); handleCopy(child); }}
+                                                                                                                    className="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-blue-600 transition-opacity"
+                                                                                                                >
+                                                                                                                    <Copy size={14} />
+                                                                                                                </button>
+                                                                                                            )}
+                                                                                                            {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id) && (
+                                                                                                                <button
+                                                                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(child); }}
+                                                                                                                    className="opacity-0 group-hover:opacity-100 text-amber-400 hover:text-amber-600 transition-opacity"
+                                                                                                                >
+                                                                                                                    <Edit3 size={14} />
+                                                                                                                </button>
+                                                                                                            )}
+                                                                                                            {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
+                                                                                                                <button
+                                                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(child.id); }}
+                                                                                                                    className="opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-500 transition-opacity"
+                                                                                                                >
+                                                                                                                    <Trash2 size={14} />
+                                                                                                                </button>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            )}
+                                                                                        </Draggable>
+                                                                                    );
+                                                                                })}
+                                                                                {provided.placeholder}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </Droppable>
+                                                    </tbody >
+                                                )
+                                            })}
+                                        </DragDropContext>
                                     </table>
                                 </div>
                             )}

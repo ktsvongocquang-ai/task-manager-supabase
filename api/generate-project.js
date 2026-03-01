@@ -110,34 +110,43 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và si
 - Vai trò: Lead = '${leadName}', Support = '${supportName}'
 - Chi tiết: Loại hình: ${projectType}, Diện tích: ${area}m2, Phong cách: ${style}, Mức đầu tư: ${investment}
 
-[HƯỚNG DẪN TẠO WBS ĐỘNG (DYNAMIC WBS)]
-Bên dưới là CẤU TRÚC CƠ BẢN dành cho một dự án "Chung cư 100m2, 3 Phòng ngủ". 
-Dựa vào Thông tin Dự án thực tế ở trên, BẠN PHẢI TỰ PHÂN TÍCH VÀ PHÁT TRIỂN khối lượng Task:
-1. Nếu là "Nhà Phố", "Biệt Thự" -> BẮT BUỘC thêm các Task khảo sát địa chất, kết cấu, MEP, xin phép xây dựng, kiến trúc mặt tiền vào các giai đoạn tương ứng.
-2. Nếu là "Thương mại - Dịch vụ (Shop/F&B)" -> BẮT BUỘC thêm các Task phát triển nhận diện thương hiệu (Branding/Signage) vào giai đoạn Concept, và chi tiết quầy kệ trưng bày, hệ thống pha chế/bếp công nghiệp vào giai đoạn Shop Drawing.
-3. Nếu là "Văn phòng" -> Ưu tiên các Task liên quan đến Layout chỗ ngồi tối ưu, hệ thống mạng lưới điện/mạng (IT/M&E), không gian pantry, phòng họp.
-4. Nếu "Diện tích" lớn hơn -> Thêm thời gian (duration) vào các khâu dựng 3D, bổ kỹ thuật (Ví dụ bổ thêm các phòng). Nếu nhỏ hơn thì rút ngắn lại.
-5. Nếu "Mức đầu tư" cao (Luxury) -> Thêm các bước kiểm duyệt vật liệu, làm mẫu (mockup), ánh sáng chuyên sâu.
-Bạn không bị giới hạn ở 44 Tasks, có thể sinh ra 60, 80 hoặc rút gọn xuống 30 Tasks tùy quy mô, MIỄN LÀ ĐỦ CHI TIẾT.
+[HƯỚNG DẪN TẠO WBS ĐỘNG (DYNAMIC WBS) VÀ QUY TẮC THỜI GIAN BẮT BUỘC]
+Bên dưới là CẤU TRÚC CƠ BẢN dành cho một dự án. 
+Dựa vào Thông tin Dự án thực tế ở trên, BẠN PHẢI TỰ PHÂN TÍCH VÀ PHÁT TRIỂN khối lượng Task, ĐỒNG THỜI TUÂN THỦ TUYỆT ĐỐI CÁC LUẬT VỀ THỜI GIAN SAU:
 
-[RÀNG BUỘC TỐI THƯỢNG]
-1. Thuộc tính \`phaseId\` của mỗi Task Con phải khớp chính xác với \`id\` của Phase chứa nó.
-2. OVERLAPPING: Các task vẽ kỹ thuật phải gối đầu song song với thời gian "Chờ KH phản hồi".
+1. THỜI GIAN CONCEPT (PHASE 1): Task lập "Moodboard" (Concept/Vật liệu) LUÔN CỐ ĐỊNH LÀ 3 NGÀY, không quan tâm loại hình gì.
+2. THỜI GIAN 3D (PHASE 2): Dựng 3D lần 1 phải mất từ 7 đến 10 ngày (tùy diện tích lớn nhỏ).
+3. THỜI GIAN CHỈNH SỬA Khách hàng (PHASE 3): 
+   - Quá trình Khách phản hồi và Sửa 3D lần 2, lần 3 sẽ diễn ra. MỖI LẦN sửa 3D cộng thêm 4-5 ngày. 
+   - Tổng thời gian 3D (Phase 2 + Phase 3) kéo dài từ 7 đến 15 ngày.
+4. THỜI GIAN TRIỂN KHAI BẢN VẼ (PHASE 4):
+   - Chung cư: Kéo dài 5-7 ngày.
+   - Nhà Phố / Biệt thự / Nhà ở: Kéo dài 10-15 ngày.
+   - NẾU phong cách là "Tân cổ điển" (Neo-classic): CỘNG THÊM 5 ngày cho chung cư, CỘNG THÊM 10 ngày cho nhà phố vào tổng thời gian Triển khai bản vẽ.
+5. GỐI ĐẦU VÀ OVERLAPPING QUAN TRỌNG:
+   - TRONG KHI khách hàng đang Sửa 3D lần 2-3 (đang ở Phase 3), BẮT BUỘC phải bắt đầu tiến hành triển khai mặt bằng (MB Bố trí, MB Xây tường, MEP...). Do đó ngày Start của các task đầu tiên trong Phase 4 phải lồng ghép (overlap) bắt đầu cùng lúc với các task Sửa 3D ở Phase 3.
+   - NGAY KHI VỪA XONG 3D (Task chốt 3D cuối cùng kết thúc), phải ngay lập tức có task "Bóc khối lượng & Báo giá".
 
-[CẤU TRÚC PHASES BẮT BUỘC VÀ THỜI LƯỢNG (DỰA THEO TÍNH TOÁN CỦA HỆ THỐNG)]
-Hệ thống đã nội suy toán học ra thời gian chính xác cho dự án này. BẠN PHẢI phân bổ thời gian (duration) của các Tasks Con sao cho tổng thời gian của chúng vừa vặn khớp với thời gian của mỗi Phase dưới đây:
+[RÀNG BUỘC CÁC LOẠI HÌNH]
+- Nếu là "Nhà Phố", "Biệt Thự" -> Thêm các Task: khảo sát địa chất, kết cấu, MEP, xin phép xây dựng, kiến trúc mặt tiền.
+- Nếu là "Thương mại - Dịch vụ (Shop/F&B)" -> Thêm các Task: nhận diện thương hiệu (Branding) vào Concept, chi tiết quầy kệ, MEP công nghiệp vào Shop Drawing.
+- Nếu là "Văn phòng" -> Thêm Task: Layout chỗ ngồi, vẽ hệ thống IT/M&E, pantry.
+Bạn không bị giới hạn ở 44 Tasks, có thể sinh ra 40-70 Tasks tùy quy mô, MIỄN LÀ ĐỦ CHI TIẾT.
 
-* PHASE 1 (ID: GD1, Name: Giai đoạn 1: Concept & Chốt Layout) => THỜI LƯỢNG: ~${phasesWd?.c || 2} ngày
-1.1 Khảo sát, 1.2 Layout PA1, 1.3 Layout PA2, 1.4 Moodboard, 1.5 Gặp khách chốt...
+[RÀNG BUỘC PHASES VÀ THỜI LƯỢNG MỤC TIÊU]
+Thuộc tính \`phaseId\` của mỗi Task Con phải khớp chính xác với \`id\` của Phase chứa nó. Phân bổ timeline của các Tasks sao cho khớp với TỔNG THỜI LƯỢNG lý thuyết sau (Đã được thuật toán nội suy dựa trên diện tích và phong cách):
 
-* PHASE 2 (ID: GD2, Name: Giai đoạn 2: Dựng 3D & Render) => THỜI LƯỢNG: ~${phasesWd?.d3 || 5} ngày
+* PHASE 1 (ID: GD1, Name: Giai đoạn 1: Concept & Chốt Layout) => THỜI LƯỢNG: ~${phasesWd?.c || 3} ngày
+1.1 Khảo sát, 1.2 Layout PA1, 1.3 Layout PA2, 1.4 Moodboard (Fix 3 ngày), 1.5 Gặp khách chốt...
+
+* PHASE 2 (ID: GD2, Name: Giai đoạn 2: Dựng 3D & Render) => THỜI LƯỢNG: ~${phasesWd?.d3 || 7} ngày 
 Dựng hình các phòng, Ánh sáng, Vật liệu, Hậu kỳ, Gửi khách...
 
-* PHASE 3 (ID: GD3, Name: Giai đoạn 3: Chỉnh sửa & Gối đầu KT)
-Khách hàng suy nghĩ, chờ phản hồi (Buffer): Kéo dài ~${bufferKh || 4} ngày (Gối đầu với ->) MB Bố trí, MB Xây tường, MB Trần/Sàn/MEP...
+* PHASE 3 (ID: GD3, Name: Giai đoạn 3: Chỉnh sửa & Gối đầu KT) => THỜI LƯỢNG BUFFER: ~${bufferKh || 9} ngày
+Chờ KH phản hồi, Sửa 3D lần 2, Sửa 3D lần 3... (LƯU Ý: Gối đầu gọi Phase 4 triển khai lúc này)
 
-* PHASE 4 (ID: GD4, Name: Giai đoạn 4: Bổ hồ sơ kỹ thuật) => THỜI LƯỢNG CHO BẢN VẼ: S(~${phasesWd?.s || 3} ngày) + KT(~${phasesWd?.kt || 3} ngày)
-Bổ chi tiết đồ nội thất các phòng (S), Vẽ M&E, Kiến trúc, Dim kích thước, Thống kê khối lượng (KT)...
+* PHASE 4 (ID: GD4, Name: Giai đoạn 4: Bổ hồ sơ kỹ thuật) => THỜI LƯỢNG: S(~${phasesWd?.s || 3} ngày) + KT(~${phasesWd?.kt || 4} ngày)
+Triển khai MB Xây tường/Điện nước (bắt đầu sớm gối đầu Phase 3), Bổ chi tiết đồ nội thất, Bóc khối lượng & Báo giá (Ngay sau khi chốt 3D)...
 
 * PHASE 5 (ID: GD5, Name: Giai đoạn 5: QC & Bàn giao) => THỜI LƯỢNG: ~${phasesWd?.qc || 2} ngày
 Self-check, Leader check, Sửa lỗi, Bàn giao...

@@ -86,97 +86,65 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     const [generatedTasks, setGeneratedTasks] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState(false);
 
-    // --- Linear Interpolation Calculator ---
-    const areaAnchors = [60, 100, 150, 250];
-
-    // Baseline internal WD for each Phase at those exact area anchors
-    const wdAnchors = {
-        C: [1.5, 2.0, 3.0, 4.0],
-        D3: [3.0, 4.25, 6.0, 8.0],
-        S: [2.5, 3.5, 5.0, 7.0],
-        KT: [2.0, 3.0, 4.5, 6.0],
-        QC: [1.0, 1.75, 2.5, 3.5],
-        BUFFER: [3.0, 4.25, 6.0, 8.0]
-    };
+    // --- Timeline Calculator ---
 
     // Helper: Round strictly up to nearest 0.25
     const roundUp025 = (val: number) => Math.ceil(val * 4) / 4;
 
-    const interpolate = (areaInput: number, values: number[]) => {
-        // Find segment
-        let i = 0;
-        while (i < areaAnchors.length - 1 && areaInput > areaAnchors[i + 1]) {
-            i++;
-        }
-
-        // Handle edge cases (smaller than min or larger than max)
-        if (areaInput <= areaAnchors[0]) return values[0];
-        if (i >= areaAnchors.length - 1) {
-            // For sizes > 250, we extrapolate slightly based on the last segment slope
-            const slope = (values[i] - values[i - 1]) / (areaAnchors[i] - areaAnchors[i - 1]);
-            const extraArea = areaInput - areaAnchors[i];
-            return roundUp025(values[i] + (slope * extraArea));
-        }
-
-        const areaStart = areaAnchors[i];
-        const areaEnd = areaAnchors[i + 1];
-        const valStart = values[i];
-        const valEnd = values[i + 1];
-
-        const ratio = (areaInput - areaStart) / (areaEnd - areaStart);
-        const exactWd = valStart + ratio * (valEnd - valStart);
-
-        return roundUp025(exactWd);
-    };
-
     const computeTimeline = () => {
         const numArea = parseFloat(area) || 100;
 
-        let curC = interpolate(numArea, wdAnchors.C);
-        let curD3 = interpolate(numArea, wdAnchors.D3);
-        let curS = interpolate(numArea, wdAnchors.S);
-        let curKT = interpolate(numArea, wdAnchors.KT);
-        let curQC = interpolate(numArea, wdAnchors.QC);
-        let curBuffer = interpolate(numArea, wdAnchors.BUFFER);
+        // FIXED Moodboard (Duyệt Concept) Time: 3 ngày
+        let curC = 3;
+
+        // 3D Time: 7 to 15 days based on area (interpolate between 7 and 15)
+        // Area 60 -> 7 days, Area 250 -> 15 days
+        const d3Ratio = Math.min(Math.max((numArea - 60) / (250 - 60), 0), 1);
+        let curD3 = roundUp025(7 + d3Ratio * (15 - 7)); // 7 to 15 days
+
+        // Triển khai (S + KT) - 5-7 ngày cho chung cư, 10-15 ngày cho nhà ở
+        let baseTrienKhai = 5;
+        if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) {
+             baseTrienKhai = 10 + d3Ratio * (15 - 10); // 10 to 15
+        } else {
+             baseTrienKhai = 5 + d3Ratio * (7 - 5);    // 5 to 7
+        }
+
+        // Style Penalty (Tân cổ điển: +5 chung cư, +10 nhà ở)
+        if (style.includes('Tân cổ điển') || style.includes('Neo-classic')) {
+             if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) {
+                 baseTrienKhai += 10;
+             } else {
+                 baseTrienKhai += 5; // Cho chung cư và các loại khác
+             }
+        }
+
+        // Split Triển khai into Shop Drawing (S) and Kỹ thuật (KT) roughly 40/60
+        let curS = roundUp025(baseTrienKhai * 0.4);
+        let curKT = roundUp025(baseTrienKhai * 0.6);
 
         // MEP/Struct Penalty
-        if (hasMepStruct) {
-            curKT += 7.0; // Tăng tròn 7 ngày cho task MEP theo yêu cầu user
+        if (hasMepStruct && !projectType.includes('Nhà phố') && !projectType.includes('Biệt thự')) {
+            curKT += 2.0; 
         }
 
-        // Commercial / Office Penalty (Usually faster Concept, but more Shop Drawing / M&E)
-        let typeMultiplier = 1.0;
-        if (projectType.includes('Thương mại') || projectType.includes('Shop') || projectType.includes('F&B')) {
-            curC = Math.max(1.0, curC - 0.5); // Concept is usually quicker for commercial
-            curS += 1.0; // Shop drawing needs to be tight
-            typeMultiplier = 0.9;
-        } else if (projectType.includes('Văn phòng')) {
-            curC = Math.max(1.0, curC - 0.5);
-            typeMultiplier = 0.85;
-        }
+        // QC Time
+        let curQC = 2;
 
-        // Style / Investment Penalty
-        let styleInvMultiplier = 1.0;
-        if (investment.includes('> 1 Tỷ') || investment.includes('Cao cấp') || style.includes('Luxury')) styleInvMultiplier = 1.2;
-        else if (investment.includes('< 300Tr')) styleInvMultiplier = 0.9;
-
-        // Apply global multipliers
-        const finalMultiplier = typeMultiplier * styleInvMultiplier;
-
-        curC = roundUp025(curC * finalMultiplier);
-        curD3 = roundUp025(curD3 * finalMultiplier);
-        curS = roundUp025(curS * finalMultiplier);
+        // Buffer Time (Khách hàng suy nghĩ) - Chỉnh sửa 3D lần 2-3 = Mỗi lần 4-5 ngày -> Total ~9 days
+        let curBuffer = roundUp025(8 + d3Ratio * (10 - 8));
 
         const internalWd = curC + curD3 + curS + curKT + curQC;
-        const bufferKh = roundUp025(curBuffer * styleInvMultiplier);
 
         // Approximate calendar days: (WD / 5) * 7
-        const totalWd = internalWd + bufferKh;
+        // Gối đầu: Triển khai chạy song song một phần với Sửa 3D (curBuffer).
+        // Total WD is approximately internalWd + (curBuffer / 2) because of overlapping.
+        const totalWd = internalWd + (curBuffer / 2);
         const totalCalendar = Math.round((totalWd / 5) * 7);
 
         return {
             internalWd,
-            bufferKh,
+            bufferKh: curBuffer,
             totalCalendar,
             phases: { c: curC, d3: curD3, s: curS, kt: curKT, qc: curQC }
         };
