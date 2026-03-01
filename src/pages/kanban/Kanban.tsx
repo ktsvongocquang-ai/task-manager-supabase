@@ -126,7 +126,9 @@ export const Kanban = () => {
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || isProjectManager);
+            isVisible = Boolean(isAssigned || isProjectManager || t.supporter_id === profile?.id);
+        } else if (userRole === 'Quản lý') {
+            isVisible = true;
         }
 
         if (!isVisible) return false;
@@ -200,11 +202,12 @@ export const Kanban = () => {
                                     const totalSub = subTasks.length;
                                     const completedSub = subTasks.filter(st => st.completed).length;
 
+                                    const project = projects.find(p => p.id === task.project_id);
                                     return (
                                         <div
                                             key={task.id}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, task.id)}
+                                            draggable={profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id}
+                                            onDragStart={(e) => (profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id) ? handleDragStart(e, task.id) : null}
                                             onClick={() => openEditModal(task)}
                                             className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
                                         >

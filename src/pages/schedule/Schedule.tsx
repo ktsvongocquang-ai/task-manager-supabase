@@ -89,7 +89,9 @@ export const Schedule = () => {
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || isProjectManager);
+            isVisible = Boolean(isAssigned || isProjectManager || t.supporter_id === profile?.id);
+        } else if (userRole === 'Quản lý') {
+            isVisible = true;
         }
 
         if (!isVisible) return false;
