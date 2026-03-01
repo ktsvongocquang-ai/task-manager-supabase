@@ -80,8 +80,8 @@ export const Tasks = () => {
 
         if (!isVisible) return false;
 
-        const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
-            t.task_code.toLowerCase().includes(search.toLowerCase())
+        const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (t.task_code || '').toLowerCase().includes(search.toLowerCase())
         const matchStatus = statusFilter ? t.status === statusFilter : true
         return matchSearch && matchStatus
     })

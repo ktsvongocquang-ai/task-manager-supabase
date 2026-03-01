@@ -235,14 +235,14 @@ export const Dashboard = () => {
 
     // Filtered data for popups
     const filteredPopupProjects = allProjects.filter(p =>
-        p.name.toLowerCase().includes(searchProjects.toLowerCase()) ||
-        p.project_code.toLowerCase().includes(searchProjects.toLowerCase())
+        (p.name || '').toLowerCase().includes(searchProjects.toLowerCase()) ||
+        (p.project_code || '').toLowerCase().includes(searchProjects.toLowerCase())
     )
 
     const filteredPopupTasks = allTasks.filter(t => {
         const today = new Date(); today.setHours(0, 0, 0, 0)
-        const matchSearch = t.name.toLowerCase().includes(searchTasks.toLowerCase()) ||
-            t.task_code.toLowerCase().includes(searchTasks.toLowerCase())
+        const matchSearch = (t.name || '').toLowerCase().includes(searchTasks.toLowerCase()) ||
+            (t.task_code || '').toLowerCase().includes(searchTasks.toLowerCase())
         if (!matchSearch) return false
         if (taskFilter === 'ongoing') return t.status?.includes('Đang')
         if (taskFilter === 'overdue') return !t.status?.includes('Hoàn thành') && t.due_date && new Date(t.due_date) < today

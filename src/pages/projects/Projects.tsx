@@ -75,8 +75,8 @@ export const Projects = () => {
 
         if (!isVisible) return false;
 
-        const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-            p.project_code.toLowerCase().includes(search.toLowerCase())
+        const matchSearch = (p.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            (p.project_code || '').toLowerCase().includes(search.toLowerCase())
         const matchStatus = statusFilter ? p.status === statusFilter : true
         return matchSearch && matchStatus
     })
