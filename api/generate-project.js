@@ -1,8 +1,26 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 
-// Initialize the Gemini SDK
 // Requires process.env.GEMINI_API_KEY
 const ai = new GoogleGenAI({});
+
+// Helper: Generate a list of the next N working days (skipping weekends)
+function getNextWorkingDays(startDateStr, numDays = 30) {
+    const dates = [];
+    let current = new Date(startDateStr);
+
+    // If start date is invalid, fallback to today
+    if (isNaN(current.getTime())) current = new Date();
+
+    while (dates.length < numDays) {
+        const dayOfWeek = current.getDay();
+        // 0 = Sunday, 6 = Saturday
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+            dates.push(current.toISOString().split('T')[0]);
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -10,80 +28,114 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, startDate } = req.body;
+        const {
+            projectName,
+            clientName,
+            startDate,
+            leadName,
+            supportName,
+            projectType,
+            style,
+            investment,
+            area
+        } = req.body;
 
-        if (!prompt) {
-            return res.status(400).json({ error: 'Missing prompt text.' });
+        if (!projectName || !startDate) {
+            return res.status(400).json({ error: 'Missing required fields.' });
         }
 
         if (!process.env.GEMINI_API_KEY) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
-        // Define the expected output format for Gemini
+        // Generate a reference calendar so the LLM doesn't have to "guess" weekends
+        const workingDaysCalendar = getNextWorkingDays(startDate, 40);
+
+        // Define the strictly required output format for Tasks
+        const taskSchema = {
+            type: Type.OBJECT,
+            properties: {
+                code: { type: Type.STRING, description: "Mã công việc (VD: 1.1, 1.2, 2.1)" },
+                title: { type: Type.STRING, description: "Tên công việc" },
+                phase: { type: Type.STRING, description: "Giai đoạn (VD: Concept, 3D Render, Khớp nối kỹ thuật)" },
+                startDate: { type: Type.STRING, description: "Ngày bắt đầu (YYYY-MM-DD)" },
+                endDate: { type: Type.STRING, description: "Ngày kết thúc (YYYY-MM-DD)" },
+                assignee: { type: Type.STRING, description: "Người phụ trách (Tên Lead hoặc Support)" },
+                note: { type: Type.STRING, description: "Ghi chú thêm về task (nếu có)" }
+            },
+            required: ["code", "title", "phase", "startDate", "endDate", "assignee"]
+        };
+
         const responseSchema = {
             type: Type.OBJECT,
             properties: {
-                project_name: {
-                    type: Type.STRING,
-                    description: "A short, concise, and professional name for the project.",
-                },
-                project_description: {
-                    type: Type.STRING,
-                    description: "A detailed description explaining the scope and objectives of the project.",
-                },
                 tasks: {
                     type: Type.ARRAY,
-                    description: "A list of actionable tasks to complete this project.",
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            task_name: {
-                                type: Type.STRING,
-                                description: "The title of the task (e.g., 'Thiết kế giao diện', 'Setup Database').",
-                            },
-                            description: {
-                                type: Type.STRING,
-                                description: "Detailed description of what needs to be done for this task.",
-                            },
-                            priority: {
-                                type: Type.STRING,
-                                description: "Priority level. Must be exactly one of: 'Thấp', 'Trung bình', 'Cao'.",
-                            },
-                            duration_days: {
-                                type: Type.INTEGER,
-                                description: "Estimated number of working days required to complete this task. Must be at least 1.",
-                            },
-                        },
-                        required: ["task_name", "description", "priority", "duration_days"],
-                    },
-                },
+                    description: "Danh sách tuần tự các công việc (tasks) theo SOP workflow.",
+                    items: taskSchema
+                }
             },
-            required: ["project_name", "project_description", "tasks"],
+            required: ["tasks"]
         };
 
         const systemInstruction = `
-        Bạn là một Giám đốc Dự án (Project Manager) cực kỳ chuyên nghiệp chuyên lập kế hoạch công việc.
-        Nhiệm vụ của bạn là đọc yêu cầu của khách hàng, sau đó tự động phân tách nó thành một cấu trúc Dự án hoàn chỉnh, bao gồm Tên dự án, Mô tả chi tiết, và một danh sách các đầu việc (Tasks) rành mạch.
-        Mỗi Task phải có Tên, Mô tả, Độ ưu tiên cụ thể và Số ngày làm việc dự kiến (duration_days).
-        Hãy luôn trả lời bằng Tiếng Việt. Trả về đúng dữ liệu chuẩn JSON được mô tả.
-        `;
+Bạn là một Giám đốc Quản lý Dự án Thiết kế Nội Thất / Kiến Trúc chuyên nghiệp.
+Hệ thống yêu cầu bạn nạp thông tin dự án và tạo ra một bảng Tiến độ (Gantt Chart Tasks) chuẩn xác theo SOP (Standard Operating Procedure).
+
+[INPUT TỪ HỆ THỐNG]
+- Tên dự án: ${projectName}
+- Khách hàng: ${clientName}
+- Ngày bắt đầu: ${startDate}
+- KTS Chủ trì (Lead): ${leadName}
+- Người hỗ trợ (Support): ${supportName}
+- Yêu cầu cấu hình: Loại hình ${projectType}, Phong cách ${style}, Mức đầu tư ${investment}, Diện tích ${area}m2
+
+[BASE TEMPLATE WORKFLOW - BẮT BUỘC TRỌNG TÂM]
+Hãy chia task theo luồng chuẩn sau đây (chỉnh bù trừ thời gian tùy theo diện tích/phong cách cho hợp lý):
+Giai đoạn 1 (Concept/Layout):
+- 1.1 Khảo sát hiện trạng & Đo đạc
+- 1.2 Vẽ lại CAD hiện trạng
+- 1.3 Lên Layout Mặt bằng 2D (2 Phương án)
+- 1.4 Làm Moodboard & File trình bày Concept
+- 1.5 Review nội bộ với Leader (Duyệt)
+- 1.6 Gặp khách hàng & Ký chốt Layout (Buffer time)
+Giai đoạn 2 (3D Render):
+- 2.1 Dựng khung bao 3D
+- 2.2 Model Nội thất chính
+- 2.3 Decor & Chi tiết phụ
+- 2.4 Ánh sáng (Lighting) & Vật liệu (Material)
+- 2.5 Review nội bộ 3D với Leader
+- 2.6 Gửi khách hàng xem 3D lần 1
+
+[QUY TẮC QUAN TRỌNG VỀ NHÂN SỰ]
+- Các task Dựng hình, Vẽ CAD, Decor thường do '${supportName}' (Support/Designer) làm.
+- Các task Review, Lên Layout chính, Gặp khách, Lighting & Material thường do '${leadName}' (Lead) đảm nhiệm hoặc rà soát.
+- Task chờ khách hàng (quyết định/duyệt) có thể gán cho "Khách hàng" (${clientName}).
+
+[QUY TẮC LỊCH LÀM VIỆC (CỰC KỲ QUAN TRỌNG)]
+Tuyệt đối KHÔNG gán startDate hay endDate vào Thứ 7 và Chủ Nhật.
+Để giúp bạn tính toán chính xác tuyệt đối, đây là danh sách 40 NGÀY LÀM VIỆC TIẾP THEO (đã bỏ qua T7, CN) tính từ ngày bắt đầu (${startDate}):
+${JSON.stringify(workingDaysCalendar)}
+Hãy CHỈ sử dụng các ngày trong mảng trên cho startDate và endDate! Nếu một task kéo dài 3 ngày làm việc và bắt đầu vào index 0, endDate của nó sẽ là index 2.
+
+Hãy suy luận số ngày thực tế dựa trên "Diện tích ${area}m2" và "Phong cách ${style}". Ví dụ Tân Cổ Điển sẽ tốn nhiều ngày Model hơn Hiện đại.
+TRẢ VỀ DUY NHẤT 1 ARRAY JSON GỒM CÁC TASKS.
+`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Please create a project plan for the following request, assuming it starts around ${startDate || 'today'}:\n\n"${prompt}"`,
+            contents: `Please generate the full project timeline tasks according to the strict SOP and Output Schema constraints based on the provided inputs.`,
             config: {
                 systemInstruction: systemInstruction,
                 responseMimeType: 'application/json',
                 responseSchema: responseSchema,
-                temperature: 0.2, // Low temperature for consistent JSON structure
+                temperature: 0.1, // Very low temperature for high precision and compliance
             }
         });
 
-        // Parse the returned JSON text mapping to our desired schema
-        const generatedProject = JSON.parse(response.text);
+        const generatedData = JSON.parse(response.text);
 
-        return res.status(200).json({ success: true, project: generatedProject });
+        return res.status(200).json(generatedData);
 
     } catch (err) {
         console.error("Gemini Generation Error:", err);
