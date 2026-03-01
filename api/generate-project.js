@@ -113,9 +113,11 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và si
 [HƯỚNG DẪN TẠO WBS ĐỘNG (DYNAMIC WBS)]
 Bên dưới là CẤU TRÚC CƠ BẢN dành cho một dự án "Chung cư 100m2, 3 Phòng ngủ". 
 Dựa vào Thông tin Dự án thực tế ở trên, BẠN PHẢI TỰ PHÂN TÍCH VÀ PHÁT TRIỂN khối lượng Task:
-1. Nếu là "Nhà Phố", "Biệt Thự" -> BẮT BUỘC thêm các Task khảo sát địa chất, kết cấu, MEP, xin phép xây dựng (nếu xây mới), kiến trúc mặt tiền vào các giai đoạn tương ứng.
-2. Nếu "Diện tích" lớn hơn -> Thêm thời gian (duration) vào các khâu dựng 3D, bổ kỹ thuật (Ví dụ bổ thêm các phòng). Nếu nhỏ hơn thì rút ngắn lại.
-3. Nếu "Mức đầu tư" cao (Luxury) -> Thêm các bước kiểm duyệt vật liệu, làm mẫu (mockup), ánh sáng chuyên sâu.
+1. Nếu là "Nhà Phố", "Biệt Thự" -> BẮT BUỘC thêm các Task khảo sát địa chất, kết cấu, MEP, xin phép xây dựng, kiến trúc mặt tiền vào các giai đoạn tương ứng.
+2. Nếu là "Thương mại - Dịch vụ (Shop/F&B)" -> BẮT BUỘC thêm các Task phát triển nhận diện thương hiệu (Branding/Signage) vào giai đoạn Concept, và chi tiết quầy kệ trưng bày, hệ thống pha chế/bếp công nghiệp vào giai đoạn Shop Drawing.
+3. Nếu là "Văn phòng" -> Ưu tiên các Task liên quan đến Layout chỗ ngồi tối ưu, hệ thống mạng lưới điện/mạng (IT/M&E), không gian pantry, phòng họp.
+4. Nếu "Diện tích" lớn hơn -> Thêm thời gian (duration) vào các khâu dựng 3D, bổ kỹ thuật (Ví dụ bổ thêm các phòng). Nếu nhỏ hơn thì rút ngắn lại.
+5. Nếu "Mức đầu tư" cao (Luxury) -> Thêm các bước kiểm duyệt vật liệu, làm mẫu (mockup), ánh sáng chuyên sâu.
 Bạn không bị giới hạn ở 44 Tasks, có thể sinh ra 60, 80 hoặc rút gọn xuống 30 Tasks tùy quy mô, MIỄN LÀ ĐỦ CHI TIẾT.
 
 [RÀNG BUỘC TỐI THƯỢNG]

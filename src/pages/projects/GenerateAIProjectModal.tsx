@@ -15,6 +15,7 @@ const PROJECT_TYPES = [
     'Nhà phố - Cải tạo',
     'Nhà phố - Xây mới',
     'Biệt thự',
+    'Thương mại - Dịch vụ (Shop/F&B)',
     'Văn phòng'
 ];
 
@@ -122,14 +123,28 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             curQC += 1.0;
         }
 
+        // Commercial / Office Penalty (Usually faster Concept, but more Shop Drawing / M&E)
+        let typeMultiplier = 1.0;
+        if (projectType.includes('Thương mại') || projectType.includes('Shop') || projectType.includes('F&B')) {
+            curC = Math.max(1.0, curC - 0.5); // Concept is usually quicker for commercial
+            curS += 1.0; // Shop drawing needs to be tight
+            typeMultiplier = 0.9;
+        } else if (projectType.includes('Văn phòng')) {
+            curC = Math.max(1.0, curC - 0.5);
+            typeMultiplier = 0.85;
+        }
+
         // Style / Investment Penalty
         let styleInvMultiplier = 1.0;
         if (investment.includes('> 1 Tỷ') || investment.includes('Cao cấp') || style.includes('Luxury')) styleInvMultiplier = 1.2;
         else if (investment.includes('< 300Tr')) styleInvMultiplier = 0.9;
 
-        curC = roundUp025(curC * styleInvMultiplier);
-        curD3 = roundUp025(curD3 * styleInvMultiplier);
-        curS = roundUp025(curS * styleInvMultiplier);
+        // Apply global multipliers
+        const finalMultiplier = typeMultiplier * styleInvMultiplier;
+
+        curC = roundUp025(curC * finalMultiplier);
+        curD3 = roundUp025(curD3 * finalMultiplier);
+        curS = roundUp025(curS * finalMultiplier);
 
         const internalWd = curC + curD3 + curS + curKT + curQC;
         const bufferKh = roundUp025(curBuffer * styleInvMultiplier);
