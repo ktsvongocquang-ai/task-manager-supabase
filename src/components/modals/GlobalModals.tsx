@@ -29,7 +29,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     });
 
     // Task Form State
-    const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' });
+    const [taskModalInitialData] = useState({ task_code: '', project_id: '' });
 
     // Fetch dependencies when any modal opens
     useEffect(() => {
