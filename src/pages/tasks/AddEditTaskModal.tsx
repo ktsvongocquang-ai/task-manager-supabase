@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { CommentSection } from '../../components/chat/CommentSection';
 import { format, parseISO } from 'date-fns';
 
@@ -43,6 +44,16 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
     const [newSubtaskName, setNewSubtaskName] = useState('');
     const [isLoadingSubtasks, setIsLoadingSubtasks] = useState(false);
+    
+    // Deep link state for subtasks
+    const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
+
+    const handleOpenDeepLink = async (subtaskId: string) => {
+        const { data } = await supabase.from('tasks').select('*').eq('id', subtaskId).single();
+        if (data) {
+            setDrilledSubtask(data as Task);
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -296,9 +307,40 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
+    const onDragEndSubtasks = async (result: DropResult) => {
+        if (!result.destination || !editingTask) return;
+
+        const sourceIndex = result.source.index;
+        const destinationIndex = result.destination.index;
+
+        if (sourceIndex === destinationIndex) return;
+
+        const newSubTasks = Array.from(subTasks);
+        const [movedItem] = newSubTasks.splice(sourceIndex, 1);
+        newSubTasks.splice(destinationIndex, 0, movedItem);
+
+        // Optimistically update state
+        setSubTasks(newSubTasks.map((st, index) => {
+            const newCode = `${editingTask.task_code}-${String(index + 1).padStart(2, '0')}`;
+            return { ...st, task_code: newCode };
+        }));
+
+        // Fire DB updates sequentially
+        try {
+            for (let i = 0; i < newSubTasks.length; i++) {
+                const subTask = newSubTasks[i];
+                const newCode = `${editingTask.task_code}-${String(i + 1).padStart(2, '0')}`;
+                await supabase.from('tasks').update({ task_code: newCode }).eq('id', subTask.id);
+            }
+        } catch (err) {
+            console.error('Error reordering subtasks:', err);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
+        <>
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
@@ -525,42 +567,74 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </div>
                                     ) : (
                                         <div className="space-y-3">
-                                            {subTasks.map((st) => {
-                                                const isCompleted = st.status === 'Hoàn thành';
-                                                return (
-                                                    <div key={st.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors">
-                                                        <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isCompleted}
-                                                                onChange={(e) => toggleSubTask(st.id, e.target.checked)}
-                                                                className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
-                                                            />
-                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isCompleted ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
-                                                                {isCompleted && <CheckCircle2 size={14} className="stroke-[3]" />}
-                                                            </div>
+                                            <DragDropContext onDragEnd={onDragEndSubtasks}>
+                                                <Droppable droppableId={`subtasks-${editingTask?.id || 'new'}`}>
+                                                    {(provided) => (
+                                                        <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                                                            {subTasks.map((st, index) => {
+                                                                const isCompleted = st.status === 'Hoàn thành';
+                                                                return (
+                                                                    <Draggable key={st.id} draggableId={st.id} index={index}>
+                                                                        {(provided, snapshot) => (
+                                                                            <div
+                                                                                ref={provided.innerRef}
+                                                                                {...provided.draggableProps}
+                                                                                className={`flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors
+                                                                                    ${snapshot.isDragging ? 'shadow-lg border-indigo-400 rotate-1 z-50' : ''}
+                                                                                `}
+                                                                            >
+                                                                                <div {...provided.dragHandleProps} className="text-slate-300 hover:text-slate-500 cursor-grab px-1">
+                                                                                    <GripVertical size={16} />
+                                                                                </div>
+                                                                                <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={isCompleted}
+                                                                                        onChange={(e) => toggleSubTask(st.id, e.target.checked)}
+                                                                                        className="w-5 h-5 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 z-10 opacity-0 absolute cursor-pointer"
+                                                                                    />
+                                                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isCompleted ? 'bg-indigo-500 border-indigo-500 text-white' : 'bg-transparent border-slate-300'}`}>
+                                                                                        {isCompleted && <CheckCircle2 size={14} className="stroke-[3]" />}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <button 
+                                                                                    onClick={() => handleOpenDeepLink(st.id)}
+                                                                                    className={`flex-1 text-sm font-medium text-left transition-colors hover:text-indigo-600 focus:outline-none ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}
+                                                                                >
+                                                                                    {st.name}
+                                                                                </button>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={st.task_code || ''}
+                                                                                    onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
+                                                                                    onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
+                                                                                    className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 w-24 transition-colors cursor-text"
+                                                                                    placeholder="Mã..."
+                                                                                />
+                                                                                <button 
+                                                                                    onClick={() => handleOpenDeepLink(st.id)} 
+                                                                                    className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-slate-50 hover:bg-white border border-transparent shadow-sm hover:border-slate-200 hover:shadow rounded-lg ml-2"
+                                                                                    title="Mở chi tiết (Cửa sổ mới)"
+                                                                                >
+                                                                                    <ExternalLink size={16} />
+                                                                                </button>
+                                                                                <button 
+                                                                                    onClick={() => removeSubTask(st.id)} 
+                                                                                    className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-1 bg-slate-50 hover:bg-red-50 rounded-lg"
+                                                                                    title="Xóa Subtask"
+                                                                                >
+                                                                                    <Trash2 size={16} />
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </Draggable>
+                                                                );
+                                                            })}
+                                                            {provided.placeholder}
                                                         </div>
-                                                        <div className={`flex-1 text-sm font-medium transition-colors ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                                                            {st.name}
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            value={st.task_code || ''}
-                                                            onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
-                                                            onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
-                                                            className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 w-24 transition-colors cursor-text"
-                                                            placeholder="Mã..."
-                                                        />
-                                                        <button 
-                                                            onClick={() => removeSubTask(st.id)} 
-                                                            className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2 bg-slate-50 hover:bg-red-50 rounded-lg"
-                                                            title="Xóa Subtask"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
+                                                    )}
+                                                </Droppable>
+                                            </DragDropContext>
 
                                             {editingTask?.id && (
                                                 <div className="relative mt-4">
@@ -636,5 +710,28 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 </div>
             </div>
         </div>
+
+            {/* Recursively render another AddEditTaskModal for deep-linking into subtasks */}
+            {drilledSubtask && (
+                <AddEditTaskModal
+                    isOpen={!!drilledSubtask}
+                    onClose={() => setDrilledSubtask(null)}
+                    onSaved={() => {
+                        setDrilledSubtask(null);
+                        // Force subtasks refresh to get latest names/codes/statuses
+                        if (editingTask?.id) {
+                            supabase.from('tasks').select('*').eq('parent_id', editingTask.id).order('task_code', { ascending: true })
+                                .then(({ data }) => setSubTasks((data || []) as Task[]));
+                        }
+                    }}
+                    editingTask={drilledSubtask}
+                    initialData={{ task_code: drilledSubtask.task_code, project_id: drilledSubtask.project_id }}
+                    projects={projects}
+                    profiles={profiles}
+                    currentUserProfile={currentUserProfile}
+                    generateNextTaskCode={generateNextTaskCode}
+                />
+            )}
+        </>
     )
 }

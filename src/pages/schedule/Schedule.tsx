@@ -100,6 +100,14 @@ export const Schedule = () => {
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
 
         return matchSearch
+    }).sort((a, b) => {
+        // Stable sorting by task_code to prevent jumping
+        const codeA = a.task_code || '';
+        const codeB = b.task_code || '';
+        if (!codeA && !codeB) return (a.created_at || '').localeCompare(b.created_at || '');
+        if (!codeA) return 1;
+        if (!codeB) return -1;
+        return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
     })
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
