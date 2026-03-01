@@ -1,7 +1,6 @@
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 
-// Requires process.env.GEMINI_API_KEY
-const ai = new GoogleGenAI({});
+// Will initialize inside handler to avoid cold start missing env errors
 
 // Helper: Generate a list of the next N working days (skipping weekends)
 function getNextWorkingDays(startDateStr, numDays = 30) {
@@ -47,6 +46,8 @@ export default async function handler(req, res) {
         if (!process.env.GEMINI_API_KEY) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
+
+        const ai = new GoogleGenAI({});
 
         // Generate a reference calendar so the LLM doesn't have to "guess" weekends
         const workingDaysCalendar = getNextWorkingDays(startDate, 40);
