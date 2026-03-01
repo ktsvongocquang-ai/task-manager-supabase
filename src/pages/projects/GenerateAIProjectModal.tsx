@@ -28,7 +28,13 @@ const STYLES = [
     'Luxury'
 ];
 
-const INVESTMENT_LEVELS = [
+const RESIDENTIAL_INVESTMENT_LEVELS = [
+    '< 2 Tỷ',
+    '3 - 5 Tỷ',
+    '> 5 Tỷ'
+];
+
+const COMMERCIAL_INVESTMENT_LEVELS = [
     'Tiết kiệm (< 300Tr)',
     'Tiêu chuẩn (300 - 500Tr)',
     'Khá (500 - 800Tr)',
@@ -53,11 +59,26 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     const [leadId, setLeadId] = useState(currentUserProfile?.id || '');
     const [supportId, setSupportId] = useState('');
 
+    const getInvestmentLevels = (type: string) => {
+        if (type.includes('Nhà phố') || type.includes('Biệt thự')) {
+            return RESIDENTIAL_INVESTMENT_LEVELS;
+        }
+        return COMMERCIAL_INVESTMENT_LEVELS;
+    };
+
     const [projectType, setProjectType] = useState(PROJECT_TYPES[0]);
     const [style, setStyle] = useState(STYLES[0]);
-    const [investment, setInvestment] = useState(INVESTMENT_LEVELS[2]);
+    const [investment, setInvestment] = useState(getInvestmentLevels(PROJECT_TYPES[0])[2]);
     const [area, setArea] = useState('100');
     const [hasMepStruct, setHasMepStruct] = useState(false); // For Nhà Phố/Biệt thự
+
+    // Auto-update investment selection when projectType changes to prevent invalid states
+    React.useEffect(() => {
+        const currentLevels = getInvestmentLevels(projectType);
+        if (!currentLevels.includes(investment)) {
+            setInvestment(currentLevels[0]); // fallback to first valid option
+        }
+    }, [projectType, investment]);
 
     // --- State: Processing & Preview ---
     const [isGenerating, setIsGenerating] = useState(false);
@@ -476,9 +497,11 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             <select
                                                 value={investment}
                                                 onChange={(e) => setInvestment(e.target.value)}
-                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-amber-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-bold"
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm font-bold text-amber-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
                                             >
-                                                {INVESTMENT_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                                                {getInvestmentLevels(projectType).map(lvl => (
+                                                    <option key={lvl} value={lvl}>{lvl}</option>
+                                                ))}
                                             </select>
                                         </div>
                                     </div>
