@@ -4,6 +4,8 @@ import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
 import { Plus, Search } from 'lucide-react'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import type { DropResult } from '@hello-pangea/dnd'
 
 const KANBAN_COLUMNS = [
     { id: 'Cần làm', title: 'Cần làm', matchStatuses: ['Chưa bắt đầu', 'Cần làm'] },
@@ -75,48 +77,43 @@ export const Kanban = () => {
         setShowModal(true)
     }
 
-    const handleDragStart = (e: React.DragEvent, taskId: string) => {
-        e.dataTransfer.setData('taskId', taskId)
-    }
+    const onDragEnd = async (result: DropResult) => {
+        const { destination, source, draggableId } = result;
 
-    const handleDragOver = (e: React.DragEvent) => {
-        e.preventDefault()
-    }
+        if (!destination) return;
+        if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-    const handleDrop = async (e: React.DragEvent, toColumnId: string) => {
-        e.preventDefault()
-        const taskId = e.dataTransfer.getData('taskId')
-        if (!taskId) return
+        const taskId = draggableId;
+        const toColumnId = destination.droppableId;
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
 
-        const task = tasks.find(t => t.id === taskId)
-        if (!task) return
-
-        // Update exact status to column id
+        // Determine exact status mapped to column
         let newStatus = toColumnId;
         if (toColumnId === 'Cần làm') newStatus = 'Chưa bắt đầu';
         if (toColumnId === 'Đang làm') newStatus = 'Đang thực hiện';
 
         const isCompleted = toColumnId === 'Hoàn thành';
 
-        // Optimistic update
+        // Optimistic update for snappy UI
         setTasks(prev => prev.map(t => {
             if (t.id === taskId) {
-                return { ...t, status: newStatus, completion_pct: isCompleted ? 100 : t.completion_pct }
+                return { ...t, status: newStatus, completion_pct: isCompleted ? 100 : t.completion_pct };
             }
-            return t
-        }))
+            return t;
+        }));
 
         const { error } = await supabase.from('tasks').update({
             status: newStatus,
             completion_pct: isCompleted ? 100 : task.completion_pct,
             completion_date: isCompleted ? new Date().toISOString().split('T')[0] : null
-        }).eq('id', taskId)
+        }).eq('id', taskId);
 
         if (error) {
-            console.error('Error updating task status:', error)
-            fetchAll() // revert on error
+            console.error('Error updating task status:', error);
+            fetchAll(); // Revert on error
         }
-    }
+    };
 
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
@@ -163,92 +160,116 @@ export const Kanban = () => {
             </div>
 
             {/* Kanban Columns */}
-            <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
-                {KANBAN_COLUMNS.map(column => {
-                    const colTasks = filteredTasks.filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
+            <DragDropContext onDragEnd={onDragEnd}>
+                <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
+                    {KANBAN_COLUMNS.map(column => {
+                        const colTasks = filteredTasks.filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
 
-                    return (
-                        <div
-                            key={column.id}
-                            className="flex-1 min-w-[300px] max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col"
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, column.id)}
-                        >
-                            {/* Column Header */}
-                            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-bold text-slate-700">{column.title}</h3>
-                                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">
-                                        {colTasks.length}
-                                    </span>
+                        return (
+                            <div
+                                key={column.id}
+                                className="flex-1 min-w-[300px] max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col"
+                            >
+                                {/* Column Header */}
+                                <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-slate-700">{column.title}</h3>
+                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                                            {colTasks.length}
+                                        </span>
+                                    </div>
+                                    <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+                                        <Plus size={18} />
+                                    </button>
                                 </div>
-                                <button className="text-slate-400 hover:text-indigo-600 transition-colors">
-                                    <Plus size={18} />
-                                </button>
-                            </div>
 
-                            {/* Column Body */}
-                            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                                {colTasks.map(task => {
-                                    const assignee = getAssignee(task.assignee_id)
-                                    let subTasks: any[] = [];
-                                    try {
-                                        if (task.notes && task.notes.startsWith('[')) {
-                                            subTasks = JSON.parse(task.notes);
-                                        }
-                                    } catch (e) {
-                                        subTasks = [];
-                                    }
-                                    const totalSub = subTasks.length;
-                                    const completedSub = subTasks.filter(st => st.completed).length;
-
-                                    const project = projects.find(p => p.id === task.project_id);
-                                    return (
+                                {/* Column Body */}
+                                <Droppable droppableId={column.id}>
+                                    {(provided, snapshot) => (
                                         <div
-                                            key={task.id}
-                                            draggable={profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id}
-                                            onDragStart={(e) => (profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id) ? handleDragStart(e, task.id) : null}
-                                            onClick={() => openEditModal(task)}
-                                            className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group"
+                                            {...provided.droppableProps}
+                                            ref={provided.innerRef}
+                                            className={`flex-1 overflow-y-auto p-3 space-y-3 transition-colors ${snapshot.isDraggingOver ? 'bg-indigo-50/50 rounded-b-2xl' : ''}`}
                                         >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                                                    {task.task_code}
-                                                </span>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                    task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                        task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                            'bg-slate-50 text-slate-500 border-slate-100'
-                                                    }`}>
-                                                    {task.priority || 'Bình thường'}
-                                                </span>
-                                            </div>
+                                            {colTasks.map((task, index) => {
+                                                const assignee = getAssignee(task.assignee_id)
+                                                let subTasks: any[] = [];
+                                                try {
+                                                    if (task.notes && task.notes.startsWith('[')) {
+                                                        subTasks = JSON.parse(task.notes);
+                                                    }
+                                                } catch (e) {
+                                                    subTasks = [];
+                                                }
+                                                const totalSub = subTasks.length;
+                                                const completedSub = subTasks.filter(st => st.completed).length;
 
-                                            <h4 className="font-bold text-slate-800 text-sm mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
-                                                {task.name}
-                                            </h4>
+                                                const project = projects.find(p => p.id === task.project_id);
+                                                const isDraggable = Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
 
-                                            <div className="flex items-center justify-between mt-auto">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600" title={assignee?.full_name}>
-                                                        {assignee?.full_name?.charAt(0) || 'U'}
-                                                    </div>
-                                                </div>
+                                                return (
+                                                    <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={!isDraggable}>
+                                                        {(provided, snapshot) => (
+                                                            <div
+                                                                ref={provided.innerRef}
+                                                                {...provided.draggableProps}
+                                                                {...provided.dragHandleProps}
+                                                                onClick={() => {
+                                                                    // Only open edit modal if we didn't just drag it
+                                                                    if (provided.dragHandleProps && !snapshot.isDragging) {
+                                                                        openEditModal(task);
+                                                                    }
+                                                                }}
+                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group
+                                                                    ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-2 scale-105 z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
+                                                                    ${!isDraggable && !snapshot.isDragging ? 'opacity-80 cursor-not-allowed' : ''}
+                                                                `}
+                                                                style={provided.draggableProps.style}
+                                                            >
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                                                        {task.task_code}
+                                                                    </span>
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                        task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                                            task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                                                'bg-slate-50 text-slate-500 border-slate-100'
+                                                                        }`}>
+                                                                        {task.priority || 'Bình thường'}
+                                                                    </span>
+                                                                </div>
 
-                                                {totalSub > 0 && (
-                                                    <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
-                                                        <span>{completedSub}/{totalSub}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                                <h4 className="font-bold text-slate-800 text-sm mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
+                                                                    {task.name}
+                                                                </h4>
+
+                                                                <div className="flex items-center justify-between mt-auto">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600" title={assignee?.full_name}>
+                                                                            {assignee?.full_name?.charAt(0) || 'U'}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {totalSub > 0 && (
+                                                                        <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
+                                                                            <span>{completedSub}/{totalSub}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </Draggable>
+                                                )
+                                            })}
+                                            {provided.placeholder}
                                         </div>
-                                    )
-                                })}
+                                    )}
+                                </Droppable>
                             </div>
-                        </div>
-                    )
-                })}
-            </div>
+                        )
+                    })}
+                </div>
+            </DragDropContext>
 
             {/* Modal */}
             <AddEditTaskModal
