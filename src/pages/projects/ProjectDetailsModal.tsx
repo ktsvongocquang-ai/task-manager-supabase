@@ -33,23 +33,16 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
 }) => {
     if (!isOpen || !project) return null;
 
-    const projectTasks = tasks.filter(t => t.project_id === project.id);
+    const projectTasks = tasks.filter(t => t.project_id === project.id && !t.parent_id);
     const today = startOfDay(new Date());
 
     const tasksWithProgress = projectTasks.map(t => {
-        let subTasks: any[] = [];
-        try {
-            if (t.notes && t.notes.startsWith('[')) {
-                subTasks = JSON.parse(t.notes);
-            }
-        } catch (e) {
-            subTasks = [];
-        }
+        const subTasks = tasks.filter(ct => ct.parent_id === t.id);
         const totalSub = subTasks.length;
-        const completedSub = subTasks.filter(st => st.completed).length;
+        const completedSub = subTasks.filter(st => st.status === 'Hoàn thành').length;
         const displayPct = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : (t.completion_pct || 0);
         return { ...t, subTasks, totalSub, completedSub, displayPct };
-    });
+    }).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
 
     const stats = {
         total: tasksWithProgress.length,

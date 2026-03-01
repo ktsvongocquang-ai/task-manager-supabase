@@ -165,7 +165,9 @@ export const Kanban = () => {
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
                     {KANBAN_COLUMNS.map(column => {
-                        const colTasks = filteredTasks.filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
+                        const colTasks = filteredTasks
+                            .filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
+                            .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
 
                         return (
                             <div

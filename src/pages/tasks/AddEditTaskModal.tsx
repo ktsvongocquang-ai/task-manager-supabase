@@ -61,7 +61,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             .from('tasks')
                             .select('*')
                             .eq('parent_id', editingTask.id)
-                            .order('created_at', { ascending: true });
+                            .order('task_code', { ascending: true });
                         if (!error && data) {
                             setSubTasks(data as Task[]);
                         }
@@ -118,6 +118,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         try {
             const payload = {
                 name: form.name,
+                task_code: form.task_code,
                 description: form.description || null,
                 assignee_id: form.assignee_id || null,
                 supporter_id: form.supporter_id || null,
@@ -272,6 +273,15 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
+    const updateSubTaskCode = async (id: string, newCode: string) => {
+        try {
+            const { error } = await supabase.from('tasks').update({ task_code: newCode }).eq('id', id);
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error updating task_code:', err);
+        }
+    };
+
     const removeSubTask = async (id: string) => {
         if (!confirm('Bạn có chắc chắn muốn xóa nhiệm vụ con này?')) return;
         
@@ -313,7 +323,15 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             )}
                         </div>
                         {editingTask && form.task_code && (
-                            <p className="text-sm font-medium text-slate-400 mt-1 ml-14">{form.task_code}</p>
+                            <div className="mt-1 ml-14 flex items-center">
+                                <input
+                                    type="text"
+                                    value={form.task_code}
+                                    onChange={(e) => setForm({ ...form, task_code: e.target.value })}
+                                    className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-32 transition-colors"
+                                    placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
+                                />
+                            </div>
                         )}
                     </div>
 
@@ -400,7 +418,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     disabled={shouldDisableTopFields()}
                                 >
                                     <option value="" className="text-slate-400 font-normal">Chọn người phụ trách...</option>
-                                    {profiles.filter(p => currentUserProfile?.role === 'Admin' || isCurrentUserManagerOfSelectedProject() || p.id === currentUserProfile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    {profiles.filter(p => ['Admin', 'Quản lý'].includes(currentUserProfile?.role || '') || isCurrentUserManagerOfSelectedProject() || p.id === currentUserProfile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                 </select>
 
                                 <select
@@ -525,9 +543,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                         <div className={`flex-1 text-sm font-medium transition-colors ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}>
                                                             {st.name}
                                                         </div>
-                                                        <span className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                                                            {st.task_code}
-                                                        </span>
+                                                        <input
+                                                            type="text"
+                                                            value={st.task_code || ''}
+                                                            onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
+                                                            onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
+                                                            className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 w-24 transition-colors cursor-text"
+                                                            placeholder="Mã..."
+                                                        />
                                                         <button 
                                                             onClick={() => removeSubTask(st.id)} 
                                                             className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2 bg-slate-50 hover:bg-red-50 rounded-lg"
