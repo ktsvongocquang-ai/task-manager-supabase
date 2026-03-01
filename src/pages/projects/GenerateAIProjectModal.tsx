@@ -555,63 +555,69 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                     <h3 className="text-xl font-bold text-white mb-1">Preview Tiến Độ AI Đề Xuất</h3>
                                     <p className="text-sm text-slate-400">Bạn có thể tinh chỉnh lại Ngày tháng hoặc Phân đoạn thủ công trước khi lưu.</p>
                                 </div>
-                                <div className="bg-slate-800 px-4 py-2 rounded-lg flex items-center gap-4 border border-slate-700">
-                                    <div className="text-center">
+                                <div className="flex gap-4">
+                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px]">
+                                        <div className="text-[10px] text-slate-400 uppercase font-bold">Tổng Ngày</div>
+                                        <div className="text-lg font-bold text-amber-400">~{timelineData.totalCalendar}</div>
+                                    </div>
+                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px]">
                                         <div className="text-[10px] text-slate-400 uppercase font-bold">Tổng Tasks</div>
                                         <div className="text-lg font-bold text-indigo-400">{generatedTasks.length}</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
                                 <table className="w-full text-left text-sm whitespace-nowrap">
-                                    <thead className="bg-slate-800/50 text-slate-400 text-xs uppercase font-semibold">
+                                    <thead className="bg-[#1e293b] text-slate-400 text-[11px] uppercase font-black tracking-wider border-b border-slate-700">
                                         <tr>
-                                            <th className="px-4 py-3">Code</th>
-                                            <th className="px-4 py-3 w-1/3">Tên Task</th>
-                                            <th className="px-4 py-3">Bắt đầu</th>
-                                            <th className="px-4 py-3">Kết thúc</th>
-                                            <th className="px-4 py-3">Phụ trách</th>
+                                            <th className="px-4 py-3 w-16">Code</th>
+                                            <th className="px-4 py-3 w-2/5">Tên Task</th>
+                                            <th className="px-4 py-3 text-center w-24">Số ngày</th>
+                                            <th className="px-4 py-3 w-36">Bắt đầu</th>
+                                            <th className="px-4 py-3 w-36">Kết thúc</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-800 text-slate-300">
-                                        {generatedTasks.map((task, idx) => (
-                                            <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-4 py-3 font-mono text-xs text-indigo-300">{task.code}</td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={task.title}
-                                                        onChange={(e) => handleTaskChange(idx, 'title', e.target.value)}
-                                                        className="w-full bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="date"
-                                                        value={task.start}
-                                                        onChange={(e) => handleTaskChange(idx, 'start', e.target.value)}
-                                                        className="bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark]"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="date"
-                                                        value={task.end}
-                                                        onChange={(e) => handleTaskChange(idx, 'end', e.target.value)}
-                                                        className="bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark]"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={task.assignee}
-                                                        onChange={(e) => handleTaskChange(idx, 'assignee', e.target.value)}
-                                                        className="w-full bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-amber-300 focus:outline-none focus:bg-slate-950"
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
+                                    <tbody className="divide-y divide-slate-800/50 text-slate-300">
+                                        {generatedTasks.map((task, idx) => {
+                                            const s = new Date(task.start).getTime();
+                                            const e = new Date(task.end).getTime();
+                                            const days = !isNaN(s) && !isNaN(e) ? Math.round((e - s) / 86400000) + 1 : 0;
+                                            return (
+                                                <tr key={idx} className="hover:bg-slate-800/40 transition-colors group">
+                                                    <td className="px-4 py-2 font-mono text-xs text-indigo-400 font-bold">{task.code}</td>
+                                                    <td className="px-4 py-2">
+                                                        <input
+                                                            type="text"
+                                                            value={task.title}
+                                                            onChange={(e) => handleTaskChange(idx, 'title', e.target.value)}
+                                                            className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950 font-medium transition-colors"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-2 text-center">
+                                                        <span className="inline-flex items-center justify-center bg-slate-800 text-slate-300 text-xs font-bold px-2 py-1 rounded w-10">
+                                                            {days > 0 ? days : '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <input
+                                                            type="date"
+                                                            value={task.start}
+                                                            onChange={(e) => handleTaskChange(idx, 'start', e.target.value)}
+                                                            className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-slate-300 focus:text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark] transition-colors"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-2">
+                                                        <input
+                                                            type="date"
+                                                            value={task.end}
+                                                            onChange={(e) => handleTaskChange(idx, 'end', e.target.value)}
+                                                            className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-slate-300 focus:text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark] transition-colors"
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
