@@ -144,11 +144,11 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                     project_id: projectId,
                     task_code: t.code,
                     name: t.title,
-                    description: t.note || `Phase: ${t.phase}`,
+                    description: t.note || `Phase: ${t.phaseId}`,
                     priority: 'Trung bình',
                     status: 'Mới tạo',
-                    start_date: t.startDate,
-                    due_date: t.endDate,
+                    start_date: t.start,
+                    due_date: t.end,
                     assignee_id: assignedUserId,
                     completion_pct: 0
                 };
@@ -371,16 +371,16 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="date"
-                                                        value={task.startDate}
-                                                        onChange={(e) => handleTaskChange(idx, 'startDate', e.target.value)}
+                                                        value={task.start}
+                                                        onChange={(e) => handleTaskChange(idx, 'start', e.target.value)}
                                                         className="bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark]"
                                                     />
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="date"
-                                                        value={task.endDate}
-                                                        onChange={(e) => handleTaskChange(idx, 'endDate', e.target.value)}
+                                                        value={task.end}
+                                                        onChange={(e) => handleTaskChange(idx, 'end', e.target.value)}
                                                         className="bg-transparent border border-transparent hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:bg-slate-950 [color-scheme:dark]"
                                                     />
                                                 </td>
