@@ -92,6 +92,12 @@ export const Tasks = () => {
         groupedTasks[t.project_id].push(t)
     })
 
+    Object.keys(groupedTasks).forEach(projectId => {
+        groupedTasks[projectId].sort((a, b) => 
+            (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' })
+        );
+    });
+
     const toggleProject = (id: string) => {
         const next = new Set(expandedProjects)
         if (next.has(id)) next.delete(id)

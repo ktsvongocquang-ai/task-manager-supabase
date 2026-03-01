@@ -46,6 +46,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     if (!isOpen) return null;
 
     // --- State: Form Inputs ---
+    const [projectCode, setProjectCode] = useState(`AI-${Math.floor(Math.random() * 10000)}`);
     const [projectName, setProjectName] = useState('');
     const [clientName, setClientName] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -119,8 +120,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
         // MEP/Struct Penalty
         if (hasMepStruct) {
-            curKT += 2.0;
-            curQC += 1.0;
+            curKT += 7.0; // Tăng tròn 7 ngày cho task MEP theo yêu cầu user
         }
 
         // Commercial / Office Penalty (Usually faster Concept, but more Shop Drawing / M&E)
@@ -220,7 +220,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             // 1. Insert Project
             const descriptionStr = `Khách hàng: ${clientName}\nLoại hình: ${projectType}\nPhong cách: ${style}\nMức đầu tư: ${investment}\nDiện tích: ${area}m2`;
 
-            const pCode = `AI-${Math.floor(Math.random() * 10000)}`;
+            const pCode = projectCode.trim() || `AI-${Math.floor(Math.random() * 10000)}`;
 
             const { data: projectData, error: projectError } = await supabase
                 .from('projects')
@@ -351,8 +351,18 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                         Hành chính & Đội ngũ
                                     </h4>
 
-                                    <div className="grid grid-cols-2 gap-5 mb-5">
-                                        <div>
+                                    <div className="grid grid-cols-12 gap-5 mb-5">
+                                        <div className="col-span-3">
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Mã Dự Án</label>
+                                            <input
+                                                type="text"
+                                                value={projectCode}
+                                                onChange={(e) => setProjectCode(e.target.value)}
+                                                className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600 font-mono"
+                                                placeholder="VD: AI-2655"
+                                            />
+                                        </div>
+                                        <div className="col-span-5">
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Dự Án</label>
                                             <input
                                                 type="text"
@@ -363,7 +373,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                 autoFocus
                                             />
                                         </div>
-                                        <div>
+                                        <div className="col-span-4">
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Khách Hàng</label>
                                             <input
                                                 type="text"

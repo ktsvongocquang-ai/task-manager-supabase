@@ -90,7 +90,6 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                                 value={form.project_code}
                                 onChange={(e) => setForm({ ...form, project_code: e.target.value })}
                                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                disabled={!!editingProject}
                             />
                         </div>
                         <div>
