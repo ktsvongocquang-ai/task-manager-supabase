@@ -8,6 +8,8 @@ import { Tasks } from './pages/tasks/Tasks'
 import { Users } from './pages/users/Users'
 import { Gantt } from './pages/gantt/Gantt'
 import { History } from './pages/history/History'
+import { Kanban } from './pages/kanban/Kanban'
+import { Schedule } from './pages/schedule/Schedule'
 
 function App() {
   return (
@@ -21,8 +23,10 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="gantt" element={<Gantt />} />
+          <Route path="kanban" element={<Kanban />} />
           <Route path="projects" element={<Projects />} />
           <Route path="tasks" element={<Tasks />} />
+          <Route path="schedule" element={<Schedule />} />
           <Route path="users" element={<Users />} />
           <Route path="history" element={<History />} />
         </Route>

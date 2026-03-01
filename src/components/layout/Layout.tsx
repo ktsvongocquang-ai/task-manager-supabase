@@ -5,7 +5,6 @@ import {
     LayoutDashboard,
     GanttChart,
     FolderKanban,
-    CheckSquare,
     Users,
     LogOut,
     Rocket,
@@ -20,16 +19,21 @@ import {
     KeyRound,
     Menu,
     Bell, // Added Bell icon
-    History as HistoryIcon
+    History as HistoryIcon,
+    Kanban as KanbanIcon,
+    CalendarDays,
+    ListTodo
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
 
 const viewTitles: Record<string, string> = {
-    '/dashboard': 'Tổng Quan',
+    '/dashboard': 'Thống kê',
+    '/kanban': 'Kanban',
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
-    '/tasks': 'Quản lý Nhiệm vụ',
+    '/tasks': 'Danh sách',
+    '/schedule': 'Lịch Trình',
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
 }
@@ -80,10 +84,12 @@ export const Layout = () => {
     }
 
     const navItems = [
-        { name: 'Tổng quan', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
+        { name: 'Thống kê', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
+        { name: 'Danh sách', path: '/tasks', icon: ListTodo },
+        { name: 'Lịch trình', path: '/schedule', icon: CalendarDays },
+        { name: 'Gantt', path: '/gantt', icon: GanttChart },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
-        { name: 'Nhiệm vụ', path: '/tasks', icon: CheckSquare },
         { name: 'Lịch sử', path: '/history', icon: HistoryIcon },
     ]
 
