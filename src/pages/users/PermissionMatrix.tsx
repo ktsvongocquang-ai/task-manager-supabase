@@ -7,7 +7,7 @@ const PERMISSIONS = {
             name: 'Tạo dự án mới',
             admin: { value: true, note: '' },
             manager: { value: true, note: 'Chỉ tạo cho bản thân phụ trách' },
-            staff: { value: false, note: '' }
+            staff: { value: true, note: '' }
         },
         {
             name: 'Xem tất cả dự án',
@@ -19,13 +19,13 @@ const PERMISSIONS = {
             name: 'Sửa/xóa dự án được phân công',
             admin: { value: true, note: '' },
             manager: { value: true, note: '' },
-            staff: { value: false, note: 'Chỉ sửa được trạng thái dự án' }
+            staff: { value: true, note: '' }
         },
         {
             name: 'Sao chép dự án',
             admin: { value: true, note: '' },
             manager: { value: true, note: '' },
-            staff: { value: false, note: '' }
+            staff: { value: true, note: '' }
         },
     ],
     'QUẢN LÝ NHIỆM VỤ': [
@@ -33,13 +33,13 @@ const PERMISSIONS = {
             name: 'Tạo nhiệm vụ mới',
             admin: { value: true, note: '' },
             manager: { value: true, note: '' },
-            staff: { value: false, note: 'Trong dự án được giao' }
+            staff: { value: true, note: '' }
         },
         {
             name: 'Giao việc cho người khác',
             admin: { value: true, note: '' },
             manager: { value: true, note: '' },
-            staff: { value: false, note: 'Nếu là người phụ trách dự án' }
+            staff: { value: true, note: '' }
         },
         {
             name: 'Xem tất cả nhiệm vụ',
@@ -57,7 +57,7 @@ const PERMISSIONS = {
             name: 'Sao chép nhiệm vụ',
             admin: { value: true, note: '' },
             manager: { value: true, note: '' },
-            staff: { value: false, note: 'Nếu là người phụ trách dự án' }
+            staff: { value: true, note: '' }
         },
     ]
 }
