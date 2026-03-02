@@ -472,14 +472,6 @@ export const Gantt = () => {
                                                                 <span className="flex items-center gap-1">
                                                                     {item.task.status}
                                                                 </span>
-                                                                {item.task.priority && (
-                                                                    <>
-                                                                        <span>&bull;</span>
-                                                                        <span className="flex items-center gap-1">
-                                                                            {item.task.priority}
-                                                                        </span>
-                                                                    </>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
