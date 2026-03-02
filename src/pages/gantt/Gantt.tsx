@@ -412,7 +412,7 @@ export const Gantt = () => {
                                     const showText = barWidth > 150;
                                     const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM') : '';
                                     const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM') : '';
-                                    const dateRangeStr = formattedStart && formattedEnd ? `${formattedStart} - ${formattedEnd}` : '';
+                                    const dateRangeStr = formattedStart && formattedEnd ? `${formattedStart} - ${formattedEnd} (${item.duration} ngày)` : '';
 
                                     return (
                                         <div key={item.id} className="flex border-b border-slate-50 hover:bg-slate-50/80 transition-colors group/row">

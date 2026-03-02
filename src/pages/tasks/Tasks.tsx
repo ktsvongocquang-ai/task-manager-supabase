@@ -524,30 +524,24 @@ export const Tasks = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <div className="flex items-center justify-center gap-2">
-                                                                        {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); handleCopy(t); }}
-                                                                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
-                                                                            >
-                                                                                <Copy size={13} />
-                                                                            </button>
-                                                                        )}
-                                                                        {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || t.assignee_id === profile?.id) && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
-                                                                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity"
-                                                                            >
-                                                                                <Edit3 size={13} />
-                                                                            </button>
-                                                                        )}
-                                                                        {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
-                                                                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
-                                                                            >
-                                                                                <Trash2 size={13} />
-                                                                            </button>
-                                                                        )}
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handleCopy(t); }}
+                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
+                                                                        >
+                                                                            <Copy size={13} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
+                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity"
+                                                                        >
+                                                                            <Edit3 size={13} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
+                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
+                                                                        >
+                                                                            <Trash2 size={13} />
+                                                                        </button>
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -683,30 +677,24 @@ export const Tasks = () => {
                                                                                         {/* 10. Actions */}
                                                                                         <td className="px-4 py-3 relative z-10">
                                                                                             <div className="flex items-center justify-center gap-2">
-                                                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
-                                                                                                    <button
-                                                                                                        onClick={(e) => { e.stopPropagation(); handleCopy(child); }}
-                                                                                                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity shrink-0"
-                                                                                                    >
-                                                                                                        <Copy size={13} />
-                                                                                                    </button>
-                                                                                                )}
-                                                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id) && (
-                                                                                                    <button
-                                                                                                        onClick={(e) => { e.stopPropagation(); openEditModal(child); }}
-                                                                                                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity shrink-0"
-                                                                                                    >
-                                                                                                        <Edit3 size={13} />
-                                                                                                    </button>
-                                                                                                )}
-                                                                                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id) && (
-                                                                                                    <button
-                                                                                                        onClick={(e) => { e.stopPropagation(); handleDelete(child.id); }}
-                                                                                                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity shrink-0"
-                                                                                                    >
-                                                                                                        <Trash2 size={13} />
-                                                                                                    </button>
-                                                                                                )}
+                                                                                                <button
+                                                                                                    onClick={(e) => { e.stopPropagation(); handleCopy(child); }}
+                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity shrink-0"
+                                                                                                >
+                                                                                                    <Copy size={13} />
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(child); }}
+                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity shrink-0"
+                                                                                                >
+                                                                                                    <Edit3 size={13} />
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(child.id); }}
+                                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity shrink-0"
+                                                                                                >
+                                                                                                    <Trash2 size={13} />
+                                                                                                </button>
                                                                                             </div>
                                                                                         </td>
                                                                                     </tr>
