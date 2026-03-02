@@ -439,8 +439,17 @@ export const Tasks = () => {
                                                 const allProjectTasksDB = tasks.filter(t => t.project_id === projectId);
                                                 const parentsToRender = allProjectTasksDB.filter(t => !t.parent_id && visibleParentIds.has(t.id));
 
-                                                // Sort parent tasks visually
-                                                parentsToRender.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true }));
+                                                // Sort parent tasks visually by extracting trailing numbers first (works for Phase-1 vs P3)
+                                                parentsToRender.sort((a, b) => {
+                                                    const aCode = a.task_code || '';
+                                                    const bCode = b.task_code || '';
+                                                    const aMatch = aCode.match(/(\d+)$/);
+                                                    const bMatch = bCode.match(/(\d+)$/);
+                                                    if (aMatch && bMatch) {
+                                                        return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
+                                                    }
+                                                    return aCode.localeCompare(bCode, undefined, { numeric: true, sensitivity: 'base' });
+                                                });
 
                                                 return parentsToRender.map((task) => {
                                                     const renderParentRow = (t: Task, overridePct?: number) => {
@@ -519,8 +528,15 @@ export const Tasks = () => {
                                                                         </a>
                                                                     ) : <span className="text-slate-400">---</span>}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-500 font-medium">
-                                                                    {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : '---'}
+                                                                <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap">
+                                                                    <div className="flex flex-col gap-1 items-start">
+                                                                        {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
+                                                                        {t.start_date && t.due_date && (
+                                                                            <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100" title={`Từ ${format(parseISO(t.start_date), 'dd/MM/yyyy')}`}>
+                                                                                {Math.max(0, Math.ceil((new Date(t.due_date).getTime() - new Date(t.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1} ngày
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <div className="flex items-center justify-center gap-2">
@@ -669,9 +685,15 @@ export const Tasks = () => {
                                                                                             ) : <span className="text-slate-400">---</span>}
                                                                                         </td>
 
-                                                                                        {/* 9. Due Date */}
                                                                                         <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap">
-                                                                                            {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : '---'}
+                                                                                            <div className="flex flex-col gap-1 items-start">
+                                                                                                {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
+                                                                                                {child.start_date && child.due_date && (
+                                                                                                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100" title={`Từ ${format(parseISO(child.start_date), 'dd/MM/yyyy')}`}>
+                                                                                                        {Math.max(0, Math.ceil((new Date(child.due_date).getTime() - new Date(child.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1} ngày
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
                                                                                         </td>
 
                                                                                         {/* 10. Actions */}
