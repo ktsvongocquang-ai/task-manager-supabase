@@ -40,7 +40,7 @@ export const Kanban = () => {
             const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name, role, email, avatar_url')
+                supabase.from('profiles').select('id, full_name, role, email')
             ])
             setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
