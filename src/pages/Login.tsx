@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../services/supabase'
-import { LogIn } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 export const Login = () => {
@@ -10,7 +9,7 @@ export const Login = () => {
     const [loading, setLoading] = useState(false)
     const [errorMsg, setErrorMsg] = useState('')
     const navigate = useNavigate()
-    
+
     const { checkSession, user } = useAuthStore()
 
     // If user is already logged in (e.g. from a previous session check), redirect them
@@ -47,12 +46,9 @@ export const Login = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
             <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
-                <div className="text-center mb-8">
-                    <div className="bg-indigo-600 text-white w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <LogIn size={24} />
-                    </div>
-                    <h1 className="text-3xl font-bold text-slate-800">Task Manager</h1>
-                    <p className="text-slate-500 text-sm mt-2">Hệ thống Quản lý Giao việc Nội bộ</p>
+                <div className="text-center mb-10">
+                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-24 mx-auto mb-6 object-contain" />
+                    <p className="text-slate-500 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
