@@ -94,7 +94,7 @@ export const Tasks = () => {
     })
 
     Object.keys(groupedTasks).forEach(projectId => {
-        groupedTasks[projectId].sort((a, b) => 
+        groupedTasks[projectId].sort((a, b) =>
             (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' })
         );
     });
@@ -113,6 +113,22 @@ export const Tasks = () => {
         if (status?.includes('Hủy')) return 'bg-red-400 text-white'
         return 'bg-slate-200 text-slate-600'
     }
+
+    const getDueDateStyle = (dueDate: string | null | undefined, status: string | undefined): string => {
+        if (!dueDate || status?.includes('Hoàn thành')) return 'text-slate-500';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = parseISO(dueDate);
+
+        if (format(due, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')) {
+            return 'text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200';
+        }
+
+        if (due < today) {
+            return 'text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200';
+        }
+        return 'text-slate-500';
+    };
 
     const getPriorityBadge = (priority: string) => {
         if (priority === 'Khẩn cấp') return 'bg-red-50 text-red-600 border-red-100'
@@ -218,7 +234,7 @@ export const Tasks = () => {
         if (draggedTaskIndex === -1) return;
 
         const draggedTask = allChildTasks[draggedTaskIndex];
-        
+
         // Create a new array and move the item
         const newChildArray = Array.from(allChildTasks);
         newChildArray.splice(source.index, 1);
@@ -322,7 +338,30 @@ export const Tasks = () => {
                                     <div className="text-slate-400">
                                         {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                     </div>
-                                    <h3 className="text-sm font-bold text-slate-800">{project?.name} ({project?.project_code})</h3>
+                                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-3">
+                                        {project?.name} ({project?.project_code})
+                                        {project?.start_date && project?.end_date && (() => {
+                                            const start = parseISO(project.start_date);
+                                            const end = parseISO(project.end_date);
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+
+                                            const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+                                            const remainingDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+                                            return (
+                                                <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                                    <span className="text-indigo-600 font-bold">{format(start, 'dd/MM/yyyy')}</span>
+                                                    <span>→</span>
+                                                    <span className="text-rose-600 font-bold">{format(end, 'dd/MM/yyyy')}</span>
+                                                    <span className="mx-1 text-slate-300">|</span>
+                                                    <span>Tổng: <strong className="text-slate-700">{totalDays} ngày</strong></span>
+                                                    <span className="mx-1 text-slate-300">|</span>
+                                                    <span>Còn lại: <strong className={remainingDays < 0 ? 'text-red-500' : remainingDays <= 3 ? 'text-orange-500' : 'text-emerald-500'}>{remainingDays} ngày</strong></span>
+                                                </div>
+                                            );
+                                        })()}
+                                    </h3>
                                     <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-indigo-100">
                                         {projectTasks.length} NHIỆM VỤ
                                     </span>
@@ -438,7 +477,7 @@ export const Tasks = () => {
                                                                 ) : <span className="text-slate-400">---</span>}
                                                             </td>
                                                             <td className="px-4 py-3 text-slate-500 font-medium">
-                                                                {t.due_date ? format(parseISO(t.due_date), 'dd/MM/yyyy') : '---'}
+                                                                {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : '---'}
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <div className="flex items-center justify-center gap-2">
@@ -512,7 +551,7 @@ export const Tasks = () => {
                                                                                 >
                                                                                     {/* 1. Drag Handle */}
                                                                                     <td className="px-2 py-3 relative z-10 w-10">
-                                                                                         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200 group-hover:bg-indigo-300 transition-colors z-0 pointer-events-none"></div>
+                                                                                        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200 group-hover:bg-indigo-300 transition-colors z-0 pointer-events-none"></div>
                                                                                         <div className="flex justify-center relative z-10 w-full h-full">
                                                                                             <div {...provided.dragHandleProps} className="text-slate-300 group-hover:text-slate-500 cursor-grab px-1">
                                                                                                 <GripVertical size={14} />
@@ -592,7 +631,7 @@ export const Tasks = () => {
 
                                                                                     {/* 9. Due Date */}
                                                                                     <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap">
-                                                                                        {child.due_date ? format(parseISO(child.due_date), 'dd/MM/yyyy') : '---'}
+                                                                                        {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : '---'}
                                                                                     </td>
 
                                                                                     {/* 10. Actions */}
