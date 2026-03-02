@@ -12,7 +12,7 @@ const PERMISSIONS = {
         {
             name: 'Xem tất cả dự án',
             admin: { value: true, note: '' },
-            manager: { value: false, note: '' },
+            manager: { value: true, note: '' },
             staff: { value: false, note: '' }
         },
         {
@@ -44,7 +44,7 @@ const PERMISSIONS = {
         {
             name: 'Xem tất cả nhiệm vụ',
             admin: { value: true, note: '' },
-            manager: { value: false, note: '' },
+            manager: { value: true, note: '' },
             staff: { value: false, note: '' }
         },
         {
