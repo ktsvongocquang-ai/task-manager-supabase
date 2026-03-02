@@ -465,6 +465,10 @@ export const Gantt = () => {
                                                                     <User size={10} /> {getAssigneeName(item.task.assignee_id)}
                                                                 </span>
                                                                 <span>&bull;</span>
+                                                                <span className="flex items-center gap-1 font-semibold text-emerald-600">
+                                                                    <Calendar size={10} /> {item.duration} ngày
+                                                                </span>
+                                                                <span>&bull;</span>
                                                                 <span className="flex items-center gap-1">
                                                                     {item.task.status}
                                                                 </span>
