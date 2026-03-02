@@ -23,7 +23,7 @@ export const Gantt = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
-    const [draggingItem, setDraggingItem] = useState<{ id: string, type: string, startX: number, deltaDays: number } | null>(null)
+    const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -92,61 +92,108 @@ export const Gantt = () => {
     const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
     const resetMonth = () => setCurrentDate(new Date())
 
+    // Calculate Project Dates
+    const updatedProjects = projects.map((p): Project & { computed_start?: string, computed_end?: string } => {
+        const pTasks = tasks.filter(t => t.project_id === p.id)
+        if (pTasks.length === 0) return p
+
+        let validTasks = pTasks.filter(t => t.start_date || t.due_date);
+        if (validTasks.length === 0) return p;
+
+        const startDates = validTasks.map(t => t.start_date ? new Date(t.start_date).getTime() : new Date(t.due_date!).getTime())
+        const endDates = validTasks.map(t => t.due_date ? new Date(t.due_date).getTime() : new Date(t.start_date!).getTime())
+
+        const minDate = new Date(Math.min(...startDates))
+        const maxDate = new Date(Math.max(...endDates))
+
+        return {
+            ...p,
+            computed_start: minDate.toISOString(),
+            computed_end: maxDate.toISOString()
+        }
+    })
+
     const ganttItems = useMemo(() => {
-        const items: any[] = []
+        let items: any[] = []
 
-        projects.forEach((p) => {
-            if (search && !(p.name || '').toLowerCase().includes(search.toLowerCase()) && !(p.project_code || '').toLowerCase().includes(search.toLowerCase())) return
+        updatedProjects.forEach(p => {
+            if (!p.computed_start && !p.start_date) return
 
-            const start = p.start_date ? new Date(p.start_date) : null
-            const end = p.end_date ? new Date(p.end_date) : null
+            const startDate = p.computed_start || p.start_date
+            const endDate = p.computed_end || p.end_date || p.start_date
 
-            if (!start && !end) return
+            const start = new Date(startDate!)
+            const end = new Date(endDate!)
 
-            const monthStart = new Date(year, month, 1)
-            const monthEnd = new Date(year, month + 1, 0)
+            if (start.getFullYear() === year && start.getMonth() === month ||
+                end.getFullYear() === year && end.getMonth() === month ||
+                (start < new Date(year, month, 1) && end > new Date(year, month + 1, 0))) {
 
-            const effectiveStart = start && start >= monthStart ? start : monthStart
-            const effectiveEnd = end && end <= monthEnd ? end : monthEnd
+                const startDay = start.getMonth() === month ? start.getDate() : 1
+                const endDay = end.getMonth() === month ? end.getDate() : daysInMonth
+                const duration = Math.max(1, endDay - startDay + 1)
 
-            if (effectiveStart > monthEnd || (end && end < monthStart)) return
-
-            const projTasks = tasks.filter(t => t.project_id === p.id)
-
-            items.push({
-                id: p.id,
-                name: p.name,
-                taskCount: projTasks.length,
-                startDate: p.start_date,
-                endDate: p.end_date,
-                startDay: effectiveStart.getDate(),
-                endDay: effectiveEnd.getDate(),
-                color: 'bg-red-500', // Projects use red in the screenshot
-                type: 'project',
-                projectCode: p.project_code,
-                isExpanded: expandedProjects.has(p.id)
-            })
+                items.push({
+                    id: p.id,
+                    name: p.name,
+                    startDay,
+                    duration,
+                    color: 'bg-red-500',
+                    isProject: true,
+                    isExpanded: expandedProjects.has(p.id),
+                    taskCount: tasks.filter(t => t.project_id === p.id).length,
+                    startDate: startDate,
+                    endDate: endDate,
+                    type: 'project',
+                    projectCode: p.project_code
+                })
+            }
 
             if (expandedProjects.has(p.id)) {
-                projTasks.forEach(t => {
+                const projectTasks = tasks.filter(t => t.project_id === p.id).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                projectTasks.forEach(t => {
                     const tStart = t.start_date ? new Date(t.start_date) : null
                     const tEnd = t.due_date ? new Date(t.due_date) : null
-                    if (!tStart && !tEnd) return
 
-                    const tEffStart = tStart && tStart >= monthStart ? tStart : monthStart
-                    const tEffEnd = tEnd && tEnd <= monthEnd ? tEnd : monthEnd
+                    let renderStartDay = null
+                    let renderEndDay = null
 
-                    if (tEffStart > monthEnd || (tEnd && tEnd < monthStart)) return
+                    if (tStart && tStart.getFullYear() === year && tStart.getMonth() === month) {
+                        renderStartDay = tStart.getDate()
+                    } else if (tStart && tStart < new Date(year, month, 1)) {
+                        renderStartDay = 1
+                    }
+
+                    if (tEnd && tEnd.getFullYear() === year && tEnd.getMonth() === month) {
+                        renderEndDay = tEnd.getDate()
+                    } else if (tEnd && tEnd > new Date(year, month + 1, 0)) {
+                        renderEndDay = daysInMonth
+                    }
+
+                    if (renderStartDay === null && renderEndDay === null) {
+                        return;
+                    }
+
+                    if (renderStartDay !== null && renderEndDay === null) {
+                        renderEndDay = renderStartDay;
+                    }
+                    if (renderEndDay !== null && renderStartDay === null) {
+                        renderStartDay = renderEndDay;
+                    }
+
+                    const duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
+                    const isCompleted = t.status?.includes('Hoàn thành')
 
                     items.push({
                         id: t.id,
                         name: t.name,
-                        task: t, // Keep full task object for details
-                        startDate: t.start_date,
-                        endDate: t.due_date,
-                        startDay: tEffStart.getDate(),
-                        endDay: tEffEnd.getDate(),
-                        color: t.status?.includes('Hoàn thành') ? 'bg-emerald-500' : 'bg-emerald-500', // Tasks use green in screenshot
+                        startDay: renderStartDay,
+                        duration,
+                        color: isCompleted ? 'bg-slate-400 opacity-60' : 'bg-emerald-500',
+                        isProject: false,
+                        task: t,
+                        startDate: t.start_date || t.due_date,
+                        endDate: t.due_date || t.start_date,
                         type: 'task',
                         projectCode: p.project_code
                     })
@@ -155,7 +202,7 @@ export const Gantt = () => {
         })
 
         return items
-    }, [projects, tasks, year, month, search, expandedProjects])
+    }, [updatedProjects, tasks, year, month, search, expandedProjects])
 
     useEffect(() => {
         if (!draggingItem) return;
@@ -171,28 +218,51 @@ export const Gantt = () => {
             if (draggingItem && draggingItem.deltaDays !== 0) {
                 const item = ganttItems.find(i => i.id === draggingItem.id && i.type === draggingItem.type);
                 if (item) {
-                    const newStart = new Date(item.startDate);
-                    newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
+                    const updatePayload: any = {};
 
-                    const newEnd = item.endDate ? new Date(item.endDate) : null;
-                    if (newEnd) newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
+                    if (draggingItem.action === 'move') {
+                        const newStart = new Date(item.startDate);
+                        newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
+                        updatePayload.start_date = newStart.toISOString();
 
-                    const table = item.type === 'project' ? 'projects' : 'tasks';
-                    const updatePayload: any = { start_date: newStart.toISOString() };
+                        const newEnd = item.endDate ? new Date(item.endDate) : null;
+                        if (newEnd) {
+                            newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
+                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString();
+                            else updatePayload.due_date = newEnd.toISOString();
+                        }
+                    } else if (draggingItem.action === 'resize-left') {
+                        const newStart = new Date(item.startDate);
+                        newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
 
-                    if (item.type === 'project' && newEnd) {
-                        updatePayload.end_date = newEnd.toISOString();
-                    } else if (item.type === 'task' && newEnd) {
-                        updatePayload.due_date = newEnd.toISOString();
+                        // Prevent left edge passing right edge
+                        const currentEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
+                        if (newStart <= currentEnd) {
+                            updatePayload.start_date = newStart.toISOString();
+                        }
+                    } else if (draggingItem.action === 'resize-right') {
+                        const newEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
+                        newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
+
+                        // Prevent right edge passing left edge
+                        const currentStart = new Date(item.startDate);
+                        if (newEnd >= currentStart) {
+                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString();
+                            else updatePayload.due_date = newEnd.toISOString();
+                        }
                     }
 
-                    if (item.type === 'task') {
-                        setTasks(prev => prev.map(t => t.id === item.id ? { ...t, start_date: updatePayload.start_date, due_date: updatePayload.due_date } : t));
-                    } else {
-                        setProjects(prev => prev.map(p => p.id === item.id ? { ...p, start_date: updatePayload.start_date, end_date: updatePayload.end_date } : p));
-                    }
+                    if (Object.keys(updatePayload).length > 0) {
+                        const table = item.type === 'project' ? 'projects' : 'tasks';
 
-                    await supabase.from(table).update(updatePayload).eq('id', item.id);
+                        if (item.type === 'task') {
+                            setTasks(prev => prev.map(t => t.id === item.id ? { ...t, ...updatePayload } : t));
+                        } else {
+                            setProjects(prev => prev.map(p => p.id === item.id ? { ...p, ...updatePayload } : p));
+                        }
+
+                        await supabase.from(table).update(updatePayload).eq('id', item.id);
+                    }
                 }
             }
             setDraggingItem(null);
@@ -423,45 +493,94 @@ export const Gantt = () => {
                                                 ))}
 
                                                 {/* Bar component with tooltip */}
-                                                <div
-                                                    className={`absolute h-[22px] rounded-lg shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border border-red-400' : 'opacity-90 border border-emerald-400'} group/bar flex items-center overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'cursor-pointer hover:cursor-grab'}`}
-                                                    style={{
-                                                        left: `${(item.startDay - 1 + (draggingItem?.id === item.id ? (draggingItem?.deltaDays || 0) : 0)) * cellWidth + 4}px`,
-                                                        width: `${barWidth}px`,
-                                                        transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, opacity 0.3s'
-                                                    }}
-                                                    onMouseDown={(e) => {
-                                                        e.stopPropagation();
-                                                        e.preventDefault();
-                                                        setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0 });
-                                                    }}
-                                                    onDoubleClick={() => {
-                                                        if (item.type === 'task') {
-                                                            setEditingTask(item.task);
-                                                            setIsEditModalOpen(true);
+                                                {(() => {
+                                                    // Calculate visual position and width based on drag state
+                                                    let visualStartDay = item.startDay;
+                                                    let visualDuration = item.duration;
+
+                                                    if (draggingItem && draggingItem.id === item.id) {
+                                                        if (draggingItem.action === 'move') {
+                                                            visualStartDay += draggingItem.deltaDays;
+                                                        } else if (draggingItem.action === 'resize-left') {
+                                                            const maxDelta = item.duration - 1; // Prevent shrinking below 1 day
+                                                            const delta = Math.min(draggingItem.deltaDays, maxDelta);
+                                                            visualStartDay += delta;
+                                                            visualDuration -= delta;
+                                                        } else if (draggingItem.action === 'resize-right') {
+                                                            const minDelta = -(item.duration - 1); // Prevent shrinking below 1 day
+                                                            const delta = Math.max(draggingItem.deltaDays, minDelta);
+                                                            visualDuration += delta;
                                                         }
-                                                    }}
-                                                >
-                                                    {/* Stripe effect for project bars */}
-                                                    {item.type === 'project' && (
-                                                        <div className="absolute inset-0 opacity-20 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,1)_25%,rgba(255,255,255,1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,1)_75%,rgba(255,255,255,1)_100%)] bg-[length:10px_10px]"></div>
-                                                    )}
+                                                    }
 
-                                                    {/* Bar Text */}
-                                                    {showText && (
-                                                        <span className="text-[10px] font-bold text-white whitespace-nowrap px-3 drop-shadow-sm z-10">
-                                                            {dateRangeStr}: {item.name}
-                                                        </span>
-                                                    )}
+                                                    const visualLeft = (visualStartDay - 1) * cellWidth + 4;
+                                                    const visualWidth = Math.max(cellWidth * 0.5, (visualDuration * cellWidth) - 8);
 
-                                                    {/* Hover Tooltip */}
-                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[130%] bg-gray-900 border border-gray-700 shadow-xl rounded-xl p-3 text-white text-xs z-[100] w-max max-w-xs opacity-0 invisible group-hover/bar:opacity-100 group-hover/bar:visible transition-all duration-200 pointer-events-none">
-                                                        <div className="font-bold mb-1 line-clamp-2">{item.name}</div>
-                                                        {item.task?.description && <div className="text-gray-400 mb-2 line-clamp-3">{item.task.description}</div>}
-                                                        <div className="text-emerald-400 font-mono text-[10px] bg-gray-800 px-2 py-1 rounded inline-block">{dateRangeStr}</div>
-                                                        {/* Triangle pointer */}
-                                                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 border-b border-r border-gray-700 rotate-45"></div>
-                                                    </div>
+                                                    return (
+                                                        <div
+                                                            className={`absolute h-[22px] rounded-lg shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border border-red-400' : 'opacity-90 border border-emerald-400'} group/bar flex items-center justify-between overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id && draggingItem?.action === 'move' ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'hover:cursor-grab'}`}
+                                                            style={{
+                                                                left: `${visualLeft}px`,
+                                                                width: `${visualWidth}px`,
+                                                                transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, width 0.3s, opacity 0.3s'
+                                                            }}
+                                                            onMouseDown={(e) => {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
+                                                                setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'move' });
+                                                            }}
+                                                            onDoubleClick={() => {
+                                                                if (item.type === 'task') {
+                                                                    setEditingTask(item.task);
+                                                                    setIsEditModalOpen(true);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {/* Left Resize Handle */}
+                                                            <div
+                                                                className="h-full w-2 cursor-col-resize hover:bg-black/20 z-20 shrink-0"
+                                                                onMouseDown={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'resize-left' });
+                                                                }}
+                                                            ></div>
+
+                                                            {/* Stripe effect for project bars */}
+                                                            {item.type === 'project' && (
+                                                                <div className="absolute inset-0 opacity-20 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,1)_25%,rgba(255,255,255,1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,1)_75%,rgba(255,255,255,1)_100%)] bg-[length:10px_10px] pointer-events-none"></div>
+                                                            )}
+
+                                                            {/* Bar Text - Centered */}
+                                                            <div className="overflow-hidden whitespace-nowrap text-[9px] font-bold text-white px-1 leading-none drop-shadow flex-1 text-center pointer-events-none z-10">
+                                                                {item.startDate && item.endDate ? `${format(new Date(item.startDate), 'dd/MM')} - ${format(new Date(item.endDate), 'dd/MM')}: ` : ''}
+                                                                {item.name}
+                                                            </div>
+
+                                                            {/* Right Resize Handle */}
+                                                            <div
+                                                                className="h-full w-2 cursor-col-resize hover:bg-black/20 z-20 shrink-0"
+                                                                onMouseDown={(e) => {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'resize-right' });
+                                                                }}
+                                                            ></div>
+                                                        </div>
+                                                    )
+                                                })()}
+                                                {showText && (
+                                                    <span className="text-[10px] font-bold text-white whitespace-nowrap px-3 drop-shadow-sm z-10">
+                                                        {dateRangeStr}: {item.name}
+                                                    </span>
+                                                )}
+
+                                                {/* Hover Tooltip */}
+                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[130%] bg-gray-900 border border-gray-700 shadow-xl rounded-xl p-3 text-white text-xs z-[100] w-max max-w-xs opacity-0 invisible group-hover/bar:opacity-100 group-hover/bar:visible transition-all duration-200 pointer-events-none">
+                                                    <div className="font-bold mb-1 line-clamp-2">{item.name}</div>
+                                                    {item.task?.description && <div className="text-gray-400 mb-2 line-clamp-3">{item.task.description}</div>}
+                                                    <div className="text-emerald-400 font-mono text-[10px] bg-gray-800 px-2 py-1 rounded inline-block">{dateRangeStr}</div>
+                                                    {/* Triangle pointer */}
                                                 </div>
                                             </div>
                                         </div>
@@ -518,3 +637,5 @@ export const Gantt = () => {
         </div>
     )
 }
+
+export default Gantt;
