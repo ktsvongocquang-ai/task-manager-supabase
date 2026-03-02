@@ -379,8 +379,20 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {editingTask && (
-                                <button onClick={() => {/* TODO Delete Confirm */ }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                            {editingTask && (!shouldDisableTopFields() || editingTask.assignee_id === currentUserProfile?.id) && (
+                                <button onClick={async () => {
+                                    if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.')) {
+                                        try {
+                                            const { error } = await supabase.from('tasks').delete().eq('id', editingTask.id);
+                                            if (error) throw error;
+                                            onSaved();
+                                            onClose();
+                                        } catch (err) {
+                                            console.error('Lỗi khi xóa nhiệm vụ:', err);
+                                            alert('Lỗi khi xóa nhiệm vụ. Vui lòng thử lại.');
+                                        }
+                                    }
+                                }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
                                     <Trash2 size={18} />
                                 </button>
                             )}
@@ -461,7 +473,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">Chọn người phụ trách...</option>
-                                        {profiles.filter(p => ['Admin', 'Quản lý'].includes(currentUserProfile?.role || '') || isCurrentUserManagerOfSelectedProject() || p.id === currentUserProfile?.id).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
 
                                     <select
@@ -549,9 +561,15 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     >
                                         <MessageSquare size={16} /> Comments
                                     </button>
+                                    {/* Attachments Tab */}
                                     <button
                                         onClick={() => setActiveTab('links')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'links' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                        className={`flex items-center gap-2 pb-3 px-1 border-b-2 text-sm font-bold transition-colors ${activeTab === 'links'
+                                            ? 'border-indigo-500 text-indigo-600'
+                                            : form.result_links
+                                                ? 'border-transparent text-indigo-500 hover:border-slate-300 hover:text-indigo-600'
+                                                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                                            }`}
                                     >
                                         <LinkIcon size={16} /> Đính kèm / Link
                                     </button>
