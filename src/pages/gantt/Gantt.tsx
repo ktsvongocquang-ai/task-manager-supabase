@@ -23,6 +23,7 @@ export const Gantt = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
+    const [draggingItem, setDraggingItem] = useState<{ id: string, type: string, startX: number, deltaDays: number } | null>(null)
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -155,6 +156,55 @@ export const Gantt = () => {
 
         return items
     }, [projects, tasks, year, month, search, expandedProjects])
+
+    useEffect(() => {
+        if (!draggingItem) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const cellWidthNow = Math.max(24, Math.round(36 * zoom / 100));
+            const deltaX = e.clientX - draggingItem.startX;
+            const deltaDays = Math.round(deltaX / cellWidthNow);
+            setDraggingItem(prev => prev ? { ...prev, deltaDays } : null);
+        };
+
+        const handleMouseUp = async () => {
+            if (draggingItem && draggingItem.deltaDays !== 0) {
+                const item = ganttItems.find(i => i.id === draggingItem.id && i.type === draggingItem.type);
+                if (item) {
+                    const newStart = new Date(item.startDate);
+                    newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
+
+                    const newEnd = item.endDate ? new Date(item.endDate) : null;
+                    if (newEnd) newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
+
+                    const table = item.type === 'project' ? 'projects' : 'tasks';
+                    const updatePayload: any = { start_date: newStart.toISOString() };
+
+                    if (item.type === 'project' && newEnd) {
+                        updatePayload.end_date = newEnd.toISOString();
+                    } else if (item.type === 'task' && newEnd) {
+                        updatePayload.due_date = newEnd.toISOString();
+                    }
+
+                    if (item.type === 'task') {
+                        setTasks(prev => prev.map(t => t.id === item.id ? { ...t, start_date: updatePayload.start_date, due_date: updatePayload.due_date } : t));
+                    } else {
+                        setProjects(prev => prev.map(p => p.id === item.id ? { ...p, start_date: updatePayload.start_date, end_date: updatePayload.end_date } : p));
+                    }
+
+                    await supabase.from(table).update(updatePayload).eq('id', item.id);
+                }
+            }
+            setDraggingItem(null);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [draggingItem, zoom, ganttItems]);
 
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
@@ -374,12 +424,18 @@ export const Gantt = () => {
 
                                                 {/* Bar component with tooltip */}
                                                 <div
-                                                    className={`absolute h-[22px] rounded-lg shadow-sm z-10 transition-all ${item.color} ${item.type === 'project' ? 'opacity-80 border border-red-400' : 'opacity-90 border border-emerald-400'} group/bar flex items-center overflow-hidden hover:opacity-100 hover:shadow-md cursor-pointer`}
+                                                    className={`absolute h-[22px] rounded-lg shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border border-red-400' : 'opacity-90 border border-emerald-400'} group/bar flex items-center overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'cursor-pointer hover:cursor-grab'}`}
                                                     style={{
-                                                        left: `${(item.startDay - 1) * cellWidth + 4}px`,
-                                                        width: `${barWidth}px`
+                                                        left: `${(item.startDay - 1 + (draggingItem?.id === item.id ? (draggingItem?.deltaDays || 0) : 0)) * cellWidth + 4}px`,
+                                                        width: `${barWidth}px`,
+                                                        transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, opacity 0.3s'
                                                     }}
-                                                    onClick={() => {
+                                                    onMouseDown={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0 });
+                                                    }}
+                                                    onDoubleClick={() => {
                                                         if (item.type === 'task') {
                                                             setEditingTask(item.task);
                                                             setIsEditModalOpen(true);
