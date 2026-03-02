@@ -447,16 +447,16 @@ export const Dashboard = () => {
                                 {urgentTasks.map((task: any) => (
                                     <div key={task.id} onClick={() => openEditTask(task)} className="border border-slate-100 rounded-[20px] p-4 hover:shadow-xl transition-all duration-300 bg-white group ring-1 ring-black/5 hover:ring-indigo-100 transform hover:-translate-y-1 cursor-pointer">
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-[10px] font-black text-slate-400 tracking-widest">{task.task_code}</span>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 tracking-widest">{task.task_code}</span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
                                         </div>
                                         <h4 className="text-sm font-bold text-slate-800 line-clamp-2 mb-3 leading-tight group-hover:text-indigo-600 transition-colors uppercase italic tracking-tight">{task.name}</h4>
                                         <div className="flex items-center justify-between text-[10px] text-slate-500 mb-4 font-bold uppercase">
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black ${getStatusBadge(task.status)}`}>{task.status}</span>
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${getStatusBadge(task.status)}`}>{task.status}</span>
                                             <span className="text-slate-400">HẠN: {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
                                         </div>
                                         <div className="space-y-1.5">
-                                            <div className="flex justify-between items-center text-[10px] font-black text-slate-400">
+                                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-400">
                                                 <span>TIẾN ĐỘ</span>
                                                 <span className="text-emerald-500">{task.completion_pct || 0}%</span>
                                             </div>
@@ -475,7 +475,7 @@ export const Dashboard = () => {
             {/* Charts Section - 6 Premium Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-emerald-500 rounded-full"></div> Trạng thái nhiệm vụ
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -496,7 +496,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-indigo-500 rounded-full"></div> Tiến độ dự án (%)
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -518,7 +518,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-amber-500 rounded-full"></div> Mức độ ưu tiên
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -539,7 +539,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-blue-500 rounded-full"></div> Hiệu suất nhân viên
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -556,7 +556,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-purple-500 rounded-full"></div> Xu hướng hoàn thành
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -571,7 +571,7 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="glass-card p-6">
-                    <h3 className="text-xs font-black text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-sky-500 rounded-full"></div> So sánh trạng thái dự án
                     </h3>
                     <ResponsiveContainer width="100%" height={240}>
@@ -616,7 +616,7 @@ export const Dashboard = () => {
                                         <div className="flex items-center justify-between mb-2">
                                             <div>
                                                 <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{p.name}</h4>
-                                                <span className="text-[10px] font-black text-slate-400 tracking-widest">{p.project_code}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 tracking-widest">{p.project_code}</span>
                                             </div>
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : p.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                                                 {p.status}
@@ -653,7 +653,7 @@ export const Dashboard = () => {
                                     <button onClick={() => setActivePopup('projectList')} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg"><ArrowLeft size={18} /></button>
                                     <div>
                                         <h3 className="text-xl font-bold text-slate-800">{selectedProject.name}</h3>
-                                        <span className="text-[10px] font-black text-slate-400 tracking-widest">{selectedProject.project_code}</span>
+                                        <span className="text-[10px] font-bold text-slate-400 tracking-widest">{selectedProject.project_code}</span>
                                     </div>
                                 </div>
                                 <button onClick={closePopup} className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-full"><X size={20} /></button>
@@ -662,19 +662,19 @@ export const Dashboard = () => {
                                 {/* 4 Mini Stat Blocks */}
                                 <div className="grid grid-cols-4 gap-4">
                                     <div className="bg-indigo-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-black text-indigo-600">{projTasks.length}</div>
+                                        <div className="text-2xl font-bold text-indigo-600">{projTasks.length}</div>
                                         <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-1">Tổng nhiệm vụ</div>
                                     </div>
                                     <div className="bg-emerald-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-black text-emerald-600">{doneCount}</div>
+                                        <div className="text-2xl font-bold text-emerald-600">{doneCount}</div>
                                         <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mt-1">Hoàn thành</div>
                                     </div>
                                     <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-black text-blue-600">{ongoingCount}</div>
+                                        <div className="text-2xl font-bold text-blue-600">{ongoingCount}</div>
                                         <div className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mt-1">Đang làm</div>
                                     </div>
                                     <div className="bg-red-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-black text-red-600">{overdueCount}</div>
+                                        <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
                                         <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider mt-1">Quá hạn</div>
                                     </div>
                                 </div>
@@ -683,7 +683,7 @@ export const Dashboard = () => {
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiến độ dự án</span>
-                                        <span className="text-sm font-black text-indigo-600">{pct}%</span>
+                                        <span className="text-sm font-bold text-indigo-600">{pct}%</span>
                                     </div>
                                     <div className="bg-slate-100 rounded-full h-3 ring-1 ring-black/5">
                                         <div className={`h-3 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-blue-500'}`}
@@ -709,7 +709,7 @@ export const Dashboard = () => {
                                                     className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group">
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-black text-slate-400">{t.task_code}</span>
+                                                            <span className="text-[10px] font-bold text-slate-400">{t.task_code}</span>
                                                             <h5 className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">{t.name}</h5>
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1">
@@ -760,7 +760,7 @@ export const Dashboard = () => {
                                         className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl hover:shadow-lg hover:border-indigo-100 transition-all cursor-pointer group">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[10px] font-black text-slate-400">{t.task_code}</span>
+                                                <span className="text-[10px] font-bold text-slate-400">{t.task_code}</span>
                                                 {proj && <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-bold">{proj.project_code}</span>}
                                             </div>
                                             <h4 className="text-sm font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">{t.name}</h4>
