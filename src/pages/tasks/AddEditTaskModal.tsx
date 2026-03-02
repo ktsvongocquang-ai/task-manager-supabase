@@ -37,8 +37,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
-        result_links: '', notes: ''
+        result_links: '', notes: '', parent_id: ''
     });
+
+    const [phases, setPhases] = useState<Task[]>([]);
 
     const [subTasks, setSubTasks] = useState<Task[]>([]);
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
@@ -61,7 +63,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 setForm({
                     task_code: editingTask.task_code, project_id: editingTask.project_id, name: editingTask.name, description: editingTask.description || '',
                     assignee_id: editingTask.assignee_id || '', supporter_id: editingTask.supporter_id || '', status: editingTask.status, priority: editingTask.priority,
-                    start_date: editingTask.start_date || '', due_date: editingTask.due_date || '', result_links: editingTask.result_links || '', notes: editingTask.notes || ''
+                    start_date: editingTask.start_date || '', due_date: editingTask.due_date || '', result_links: editingTask.result_links || '', notes: editingTask.notes || '',
+                    parent_id: editingTask.parent_id || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -88,7 +91,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 setForm({
                     task_code: initialData.task_code, project_id: initialData.project_id, name: '', description: '',
                     assignee_id: '', supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình',
-                    start_date: '', due_date: '', result_links: '', notes: ''
+                    start_date: '', due_date: '', result_links: '', notes: '', parent_id: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -102,10 +105,36 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             return {
                 ...prev,
                 project_id: projectId,
-                task_code: nextCode
+                task_code: nextCode,
+                parent_id: '' // reset phase when project changes
             }
         });
     }
+
+    useEffect(() => {
+        if (!isOpen || !form.project_id) {
+            setPhases([]);
+            return;
+        }
+
+        const fetchPhases = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('tasks')
+                    .select('id, name')
+                    .eq('project_id', form.project_id)
+                    .is('parent_id', null)
+                    .order('created_at', { ascending: true });
+                if (!error && data) {
+                    setPhases(data as Task[]);
+                }
+            } catch (e) {
+                console.error('Error fetching phases:', e);
+            }
+        };
+
+        fetchPhases();
+    }, [isOpen, form.project_id]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -131,7 +160,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 start_date: form.start_date || null,
                 due_date: form.due_date || null,
                 result_links: form.result_links || null,
-                notes: form.notes || null
+                notes: form.notes || null,
+                parent_id: form.parent_id || null
             }
 
             let result;
@@ -534,6 +564,24 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     >
                                         <option value="">Chọn dự án...</option>
                                         {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Phase / Giai đoạn */}
+                            <div className="flex items-center min-h-[40px]">
+                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                    <ListTodo size={16} /> Giai đoạn
+                                </div>
+                                <div className="flex-1">
+                                    <select
+                                        value={form.parent_id}
+                                        onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+                                        className={`px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium cursor-pointer hover:bg-slate-100 transition-colors w-full max-w-[250px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields() || !form.project_id}
+                                    >
+                                        <option value="">Chọn giai đoạn (tùy chọn)...</option>
+                                        {phases.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                             </div>
