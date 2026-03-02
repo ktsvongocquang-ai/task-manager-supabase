@@ -164,7 +164,7 @@ export const Layout = () => {
                             <Rocket className="text-white" size={20} />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent leading-none">QUẢN LÝ DỰ ÁN</h1>
+                            <h1 className="text-2xl font-bold text-[#7A1216] leading-none tracking-tight">DQH</h1>
                             <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
                         </div>
                     </div>
