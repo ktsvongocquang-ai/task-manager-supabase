@@ -141,12 +141,12 @@ export const Projects = () => {
                 if (form.project_code !== editingProject.project_code && editingProject.project_code) {
                     const oldPrefix = editingProject.project_code;
                     const newPrefix = form.project_code;
-                    
+
                     const { data: tasksToUpdate } = await supabase
                         .from('tasks')
                         .select('id, task_code')
                         .eq('project_id', editingProject.id);
-                        
+
                     if (tasksToUpdate && tasksToUpdate.length > 0) {
                         const updates = tasksToUpdate.map(t => {
                             let newCode = t.task_code || '';
@@ -155,9 +155,9 @@ export const Projects = () => {
                             }
                             return { id: t.id, task_code: newCode };
                         });
-                        
+
                         // Bulk update safely
-                        await Promise.all(updates.map(u => 
+                        await Promise.all(updates.map(u =>
                             supabase.from('tasks').update({ task_code: u.task_code }).eq('id', u.id)
                         ));
                     }
@@ -374,15 +374,48 @@ export const Projects = () => {
                         <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
 
                         <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
-                                <Calendar size={14} className="text-emerald-500" />
-                                <span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
-                                <Calendar size={14} className="text-rose-500" />
-                                <span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                            {(() => {
+                                let totalDays = 0;
+                                let remainingDays = 0;
+                                if (project.start_date && project.end_date) {
+                                    const start = new Date(project.start_date);
+                                    start.setHours(0, 0, 0, 0);
+                                    const end = new Date(project.end_date);
+                                    end.setHours(0, 0, 0, 0);
+                                    totalDays = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    remainingDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                }
+
+                                return (
+                                    <>
+                                        <div className="flex flex-col gap-1.5">
+                                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                                                <Calendar size={14} className="text-emerald-500" />
+                                                <span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                                                <Calendar size={14} className="text-rose-500" />
+                                                <span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span>
+                                            </div>
+                                        </div>
+
+                                        {project.start_date && project.end_date && (
+                                            <div className="flex items-center justify-between border-t border-slate-200/50 pt-2 mt-2">
+                                                <div className="text-[10px] font-bold text-slate-500 bg-white px-2 py-1 rounded shadow-sm border border-slate-100">
+                                                    Tổng: <span className="text-slate-700">{totalDays} ngày</span>
+                                                </div>
+                                                <div className={`text-[10px] font-bold px-2 py-1 rounded shadow-sm border ${remainingDays < 0 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-white text-emerald-600 border-emerald-100'}`}>
+                                                    Còn lại: {remainingDays < 0 ? `${Math.abs(remainingDays)} ngày trễ` : `${remainingDays} ngày`}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )
+                            })()}
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1">
                                 <Users size={14} className="text-indigo-500" />
                                 <span>Quản lý: {getManagerName(project.manager_id || '')}</span>
                             </div>
