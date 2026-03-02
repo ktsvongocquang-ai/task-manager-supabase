@@ -343,29 +343,21 @@ export const Projects = () => {
                             </span>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">
-                                        <Plus size={14} />
-                                    </button>
-                                )}
+                                <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">
+                                    <Plus size={14} />
+                                </button>
                                 <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Xem chi tiết">
                                     <Eye size={14} />
                                 </button>
-                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto" title="Sao chép dự án">
-                                        <Copy size={14} />
-                                    </button>
-                                )}
-                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project.manager_id === profile?.id) && (
-                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Sửa dự án">
-                                        <Edit3 size={14} />
-                                    </button>
-                                )}
-                                {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto" title="Xóa dự án">
-                                        <Trash2 size={14} />
-                                    </button>
-                                )}
+                                <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto" title="Sao chép dự án">
+                                    <Copy size={14} />
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Sửa dự án">
+                                    <Edit3 size={14} />
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto" title="Xóa dự án">
+                                    <Trash2 size={14} />
+                                </button>
                             </div>
                         </div>
 
