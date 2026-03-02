@@ -47,7 +47,7 @@ export const Login = () => {
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
             <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
                 <div className="text-center mb-10">
-                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-24 mx-auto mb-6 object-contain" />
+                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-40 mx-auto mb-6 object-contain" />
                     <p className="text-slate-500 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
                 </div>
 
@@ -89,12 +89,6 @@ export const Login = () => {
                         {loading ? 'Đang xử lý...' : 'Đăng nhập vào hệ thống'}
                     </button>
                 </form>
-
-                <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-                    <p className="text-xs text-slate-500">
-                        Nếu bạn là Quản trị viên chưa có tài khoản, hãy tạo User từ trang <strong>Authentication</strong> của Supabase.
-                    </p>
-                </div>
             </div>
         </div>
     )
