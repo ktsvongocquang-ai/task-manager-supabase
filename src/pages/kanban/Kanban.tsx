@@ -128,8 +128,13 @@ export const Kanban = () => {
         }
         if (!isVisible) return false;
 
-        // ONLY SHOW TOP-LEVEL TASKS IN KANBAN
-        if (t.parent_id) return false;
+        if (userRole === 'Nhân viên') {
+            // SHow only subtasks for employees
+            if (!t.parent_id) return false;
+        } else {
+            // ONLY SHOW TOP-LEVEL TASKS IN KANBAN
+            if (t.parent_id) return false;
+        }
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
