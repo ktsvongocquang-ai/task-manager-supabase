@@ -351,11 +351,21 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <div className="bg-slate-100 p-2.5 rounded-xl text-slate-500">
                                     <AlignLeft size={20} />
                                 </div>
-                                <h2 className="text-2xl font-bold text-slate-800">
-                                    {editingTask ? form.name || 'Chi Tiết Công Việc' : 'Tạo Công Việc Mới'}
-                                </h2>
+                                {editingTask ? (
+                                    <input
+                                        type="text"
+                                        value={form.name}
+                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                        className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-full min-w-[300px] transition-colors"
+                                        placeholder="Nhập tiêu đề công việc..."
+                                    />
+                                ) : (
+                                    <h2 className="text-2xl font-bold text-slate-800">
+                                        Tạo Công Việc Mới
+                                    </h2>
+                                )}
                                 {editingTask && (
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 ${form.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' :
+                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 shrink-0 ${form.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' :
                                         form.priority === 'Cao' ? 'bg-orange-50 text-orange-600' :
                                             form.priority === 'Trung bình' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
                                         }`}>
