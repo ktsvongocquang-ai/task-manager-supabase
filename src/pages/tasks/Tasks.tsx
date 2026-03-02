@@ -94,9 +94,16 @@ export const Tasks = () => {
     })
 
     Object.keys(groupedTasks).forEach(projectId => {
-        groupedTasks[projectId].sort((a, b) =>
-            (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' })
-        );
+        groupedTasks[projectId].sort((a, b) => {
+            const aCode = a.task_code || '';
+            const bCode = b.task_code || '';
+            const aMatch = aCode.match(/(\d+)$/);
+            const bMatch = bCode.match(/(\d+)$/);
+            if (aMatch && bMatch) {
+                return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
+            }
+            return aCode.localeCompare(bCode, undefined, { numeric: true, sensitivity: 'base' });
+        });
     });
 
     const toggleProject = (id: string) => {
@@ -428,7 +435,7 @@ export const Tasks = () => {
                                                             <td className={`px-4 py-3`}>
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                                        <p className={`font-bold text-slate-800 leading-tight`}>{t.name}</p>
+                                                                        <p className={`font-bold leading-tight ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t.name}</p>
                                                                     </div>
                                                                     <div className="flex items-center gap-2">
                                                                         <p className="text-[10px] text-slate-400 font-medium">{t.task_code}</p>
@@ -575,7 +582,7 @@ export const Tasks = () => {
                                                                                         <div className="pl-6">
                                                                                             <div className="flex items-center gap-2 mb-0.5 relative">
                                                                                                 <div className="absolute -left-4 top-1/2 -mt-1 w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0"></div>
-                                                                                                <p className={`font-bold text-slate-700 leading-tight`}>{child.name}</p>
+                                                                                                <p className={`font-bold leading-tight ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{child.name}</p>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <p className="text-[10px] text-slate-400 font-medium">{child.task_code}</p>
