@@ -81,15 +81,19 @@ export const Tasks = () => {
     })
 
     const statusCounts = {
-        'Chưa bắt đầu': baseFilteredTasks.filter(t => t.status === 'Chưa bắt đầu').length,
-        'Đang thực hiện': baseFilteredTasks.filter(t => t.status?.includes('Đang')).length,
+        'Chưa bắt đầu': baseFilteredTasks.filter(t => t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo').length,
+        'Đang thực hiện': baseFilteredTasks.filter(t => t.status?.includes('Đang') || t.status === 'Chờ duyệt').length,
         'Hoàn thành': baseFilteredTasks.filter(t => t.status?.includes('Hoàn thành')).length,
-        'Tạm dừng': baseFilteredTasks.filter(t => t.status === 'Tạm dừng').length,
+        'Tạm dừng': baseFilteredTasks.filter(t => t.status?.includes('Tạm dừng') || t.status?.includes('Hủy')).length,
     }
 
     const filteredTasks = baseFilteredTasks.filter(t => {
-        const matchStatus = statusFilter ? t.status === statusFilter : true
-        return matchStatus
+        if (!statusFilter) return true;
+        if (statusFilter === 'Chưa bắt đầu') return t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo';
+        if (statusFilter === 'Đang thực hiện') return t.status?.includes('Đang') || t.status === 'Chờ duyệt';
+        if (statusFilter === 'Hoàn thành') return t.status?.includes('Hoàn thành');
+        if (statusFilter === 'Tạm dừng') return t.status?.includes('Tạm dừng') || t.status?.includes('Hủy');
+        return t.status === statusFilter;
     })
 
     const groupedTasks: Record<string, Task[]> = {}

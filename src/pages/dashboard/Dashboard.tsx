@@ -111,9 +111,9 @@ export const Dashboard = () => {
                 statusMap[status] = (statusMap[status] || 0) + 1
                 if (t.priority) priorityMap[t.priority] = (priorityMap[t.priority] || 0) + 1
                 if (status.includes('Hoàn thành')) completed++
-                else if (status.includes('Đang')) ongoing++
-                else if (status.includes('Tạm dừng')) paused++
-                else if (status.includes('Chưa')) notStarted++
+                else if (status.includes('Đang') || status === 'Chờ duyệt') ongoing++
+                else if (status.includes('Tạm dừng') || status.includes('Hủy')) paused++
+                else if (status.includes('Chưa') || status === 'Mới tạo') notStarted++
                 if (!status.includes('Hoàn thành') && t.due_date) {
                     if (new Date(t.due_date) < today) overdue++
                 }
@@ -157,7 +157,7 @@ export const Dashboard = () => {
 
             setProjectCompareData(fetchedProjects.map((p: any) => {
                 const projTasks = fetchedTasks.filter(t => t.project_id === p.id)
-                return { name: p.project_code || p.name?.substring(0, 8), 'Đang thực hiện': projTasks.filter(t => t.status?.includes('Đang')).length, 'Hoàn thành': projTasks.filter(t => t.status?.includes('Hoàn thành')).length }
+                return { name: p.project_code || p.name?.substring(0, 8), 'Đang thực hiện': projTasks.filter(t => t.status?.includes('Đang') || t.status === 'Chờ duyệt').length, 'Hoàn thành': projTasks.filter(t => t.status?.includes('Hoàn thành')).length }
             }).slice(0, 6))
 
             setUrgentTasks(fetchedTasks.filter(t => {
