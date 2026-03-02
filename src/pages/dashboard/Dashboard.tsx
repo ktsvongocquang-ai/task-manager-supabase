@@ -58,8 +58,9 @@ export const Dashboard = () => {
     const [allTasks, setAllTasks] = useState<Task[]>([])
     const [allProfiles, setAllProfiles] = useState<any[]>([])
     const [taskForm, setTaskForm] = useState(emptyTaskForm)
+    const [assigneeFilter, setAssigneeFilter] = useState('')
 
-    useEffect(() => { fetchDashboardData() }, [profile])
+    useEffect(() => { fetchDashboardData() }, [profile, assigneeFilter])
 
     const fetchDashboardData = async () => {
         try {
@@ -84,6 +85,11 @@ export const Dashboard = () => {
                     p.manager_id === profile.id ||
                     fetchedTasks.some(t => t.project_id === p.id)
                 );
+            }
+
+            // Apply assignee filter here
+            if (assigneeFilter) {
+                fetchedTasks = fetchedTasks.filter(t => t.assignee_id === assigneeFilter)
             }
 
             setAllTasks(fetchedTasks)
@@ -253,6 +259,21 @@ export const Dashboard = () => {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Dashboard Filter */}
+            <div className="flex items-center gap-3">
+                <span className="text-sm font-bold text-slate-700">Lọc người thực hiện:</span>
+                <select
+                    value={assigneeFilter}
+                    onChange={(e) => setAssigneeFilter(e.target.value)}
+                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 max-w-[250px]"
+                >
+                    <option value="">Tất cả / Từng nhân sự</option>
+                    {allProfiles.map(p => (
+                        <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                    ))}
+                </select>
+            </div>
+
             {/* Pro Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Total Projects */}
