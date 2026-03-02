@@ -488,11 +488,12 @@ export const Gantt = () => {
 
                                             {/* Timeline Grid */}
                                             <div className="flex-1 flex relative items-center" style={{ minHeight: item.type === 'project' ? '44px' : '56px' }}>
+                                                {/* Vertical Grid Lines - Full height */}
                                                 {days.map(day => (
                                                     <div
                                                         key={day}
                                                         style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px`, left: `${(day - 1) * cellWidth}px` }}
-                                                        className={`border-r border-slate-50/50 absolute h-full ${isToday(day) ? 'bg-orange-50/30' : ''}`}
+                                                        className={`border-r border-slate-200/50 absolute h-full top-0 bottom-0 z-0 pointer-events-none ${isToday(day) ? 'bg-orange-50/20' : ''}`}
                                                     ></div>
                                                 ))}
 
@@ -517,16 +518,21 @@ export const Gantt = () => {
                                                         }
                                                     }
 
-                                                    const visualLeft = (visualStartDay - 1) * cellWidth + 4;
-                                                    const visualWidth = Math.max(cellWidth * 0.5, (visualDuration * cellWidth) - 8);
+                                                    // Calculate precise grid alignment
+                                                    // Bar starts exactly at the left edge of its startDay cell
+                                                    const visualLeft = (visualStartDay - 1) * cellWidth;
+                                                    // Bar width exactly matches the number of duration days * cellWidth
+                                                    // (Subtract a tiny fraction so it doesn't overlap the right border, improving visual separation)
+                                                    const visualWidth = Math.max(cellWidth * 0.5, (visualDuration * cellWidth) - 4);
 
                                                     return (
                                                         <div
-                                                            className={`absolute h-[22px] rounded-lg shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border border-red-400' : 'opacity-90 border border-emerald-400'} group/bar flex items-center justify-between overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id && draggingItem?.action === 'move' ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'hover:cursor-grab'}`}
+                                                            className={`absolute h-[22px] rounded-sm shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border-t border-b border-red-500 rounded-none' : 'opacity-90 border-t border-b border-emerald-500 rounded-none'} group/bar flex items-center justify-between overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id && draggingItem?.action === 'move' ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'hover:cursor-grab'}`}
                                                             style={{
                                                                 left: `${visualLeft}px`,
                                                                 width: `${visualWidth}px`,
-                                                                transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, width 0.3s, opacity 0.3s'
+                                                                transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, width 0.3s, opacity 0.3s',
+                                                                marginLeft: '2px' // slight indent from the left grid line
                                                             }}
                                                             onMouseDown={(e) => {
                                                                 e.stopPropagation();
@@ -597,35 +603,37 @@ export const Gantt = () => {
             </div>
 
             {/* Completion Confirmation Modal */}
-            {taskToComplete && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="p-8 pb-6 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-                                <CheckCircle2 size={32} className="text-emerald-500" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">Hoàn thành nhiệm vụ?</h3>
-                            <p className="text-sm text-slate-500 mb-6">
-                                Bạn có chắc chắn muốn đánh dấu "{taskToComplete.name}" là đã hoàn thành không?
-                            </p>
-                            <div className="flex gap-3 w-full">
-                                <button
-                                    onClick={() => setTaskToComplete(null)}
-                                    className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors"
-                                >
-                                    Hủy bỏ
-                                </button>
-                                <button
-                                    onClick={handleConfirmComplete}
-                                    className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 shadow-md shadow-emerald-200 transition-all"
-                                >
-                                    Xác nhận
-                                </button>
+            {
+                taskToComplete && (
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                            <div className="p-8 pb-6 flex flex-col items-center text-center">
+                                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                                    <CheckCircle2 size={32} className="text-emerald-500" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Hoàn thành nhiệm vụ?</h3>
+                                <p className="text-sm text-slate-500 mb-6">
+                                    Bạn có chắc chắn muốn đánh dấu "{taskToComplete.name}" là đã hoàn thành không?
+                                </p>
+                                <div className="flex gap-3 w-full">
+                                    <button
+                                        onClick={() => setTaskToComplete(null)}
+                                        className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors"
+                                    >
+                                        Hủy bỏ
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmComplete}
+                                        className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600 shadow-md shadow-emerald-200 transition-all"
+                                    >
+                                        Xác nhận
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Edit Task Modal */}
             <AddEditTaskModal
@@ -638,7 +646,7 @@ export const Gantt = () => {
                 currentUserProfile={currentUserProfile}
                 projects={projects}
             />
-        </div>
+        </div >
     )
 }
 
