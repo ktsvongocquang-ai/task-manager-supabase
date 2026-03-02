@@ -376,7 +376,7 @@ export const Gantt = () => {
                     <div className="min-w-max">
                         {/* Day Headers - Themed background like screenshot */}
                         <div className="flex border-b border-slate-200">
-                            <div className="w-64 min-w-[16rem] px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-50 border-r border-slate-200 sticky left-0 z-10">
+                            <div className="w-64 min-w-[20rem] px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-50 border-r border-slate-200 sticky left-0 z-10">
                                 Tên
                             </div>
                             {days.map(day => (
