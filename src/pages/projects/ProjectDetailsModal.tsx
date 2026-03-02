@@ -42,7 +42,21 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
         const completedSub = subTasks.filter(st => st.status === 'Hoàn thành').length;
         const displayPct = totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : (t.completion_pct || 0);
         return { ...t, subTasks, totalSub, completedSub, displayPct };
-    }).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
+    }).sort((a, b) => {
+        const aCode = a.task_code || '';
+        const bCode = b.task_code || '';
+
+        // Extract numeric sequence after "PHASE-" or similar patterns if possible
+        const aMatch = aCode.match(/(\d+)$/);
+        const bMatch = bCode.match(/(\d+)$/);
+
+        if (aMatch && bMatch) {
+            return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
+        }
+
+        // Fallback to standard localeCompare with numeric sorting
+        return aCode.localeCompare(bCode, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
     const stats = {
         total: tasksWithProgress.length,
