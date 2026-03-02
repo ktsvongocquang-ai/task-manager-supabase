@@ -44,10 +44,10 @@ export const Login = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 to-red-100 flex items-center justify-center p-4">
             <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
                 <div className="text-center mb-10">
-                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-40 mx-auto mb-6 object-contain" />
+                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-32 mx-auto mb-6 object-contain" />
                     <p className="text-slate-500 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
                 </div>
 
@@ -58,7 +58,7 @@ export const Login = () => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all shadow-sm"
+                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
                             placeholder="VD: admin@congty.com"
                             required
                         />
@@ -69,7 +69,7 @@ export const Login = () => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all shadow-sm"
+                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
                             placeholder="••••••••"
                             required
                         />
@@ -84,7 +84,7 @@ export const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-[#7A1216] hover:bg-[#5C0E11] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7A1216] disabled:opacity-50 transition-colors"
                     >
                         {loading ? 'Đang xử lý...' : 'Đăng nhập vào hệ thống'}
                     </button>
