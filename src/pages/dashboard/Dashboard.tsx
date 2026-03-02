@@ -89,7 +89,12 @@ export const Dashboard = () => {
 
             // Apply assignee filter here
             if (assigneeFilter) {
-                fetchedTasks = fetchedTasks.filter(t => t.assignee_id === assigneeFilter)
+                const directlyMatchedTaskIds = new Set(fetchedTasks.filter(t => t.assignee_id === assigneeFilter).map(t => t.id));
+                const parentIdsToKeep = new Set(fetchedTasks.filter(t => directlyMatchedTaskIds.has(t.id) && t.parent_id).map(t => t.parent_id));
+
+                fetchedTasks = fetchedTasks.filter(t =>
+                    directlyMatchedTaskIds.has(t.id) || parentIdsToKeep.has(t.id) || (t.parent_id && directlyMatchedTaskIds.has(t.parent_id))
+                );
             }
 
             setAllTasks(fetchedTasks)
