@@ -41,14 +41,21 @@ export const Gantt = () => {
                 supabase.from('profiles').select('id, full_name'),
                 supabase.auth.getUser()
             ])
-            setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
             setProfiles((pr || []) as any[])
 
+            let currentProfile = null;
             if (authData?.user) {
                 const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single()
                 setCurrentUserProfile(userProfile)
+                currentProfile = userProfile;
             }
+
+            let fetchedTasks = (t || []) as Task[];
+            if (currentProfile?.role === 'Nhân viên') {
+                fetchedTasks = fetchedTasks.filter(task => task.assignee_id === currentProfile?.id || task.supporter_id === currentProfile?.id);
+            }
+            setTasks(fetchedTasks);
         } catch (err) {
             console.error(err)
         } finally {

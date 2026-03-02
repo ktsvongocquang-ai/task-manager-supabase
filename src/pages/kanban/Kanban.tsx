@@ -119,17 +119,15 @@ export const Kanban = () => {
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
-        const project = projects.find(p => p.id === t.project_id);
-        const isProjectManager = project && project.manager_id === profile?.id;
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || isProjectManager || t.supporter_id === profile?.id);
+            isVisible = Boolean(isAssigned || t.supporter_id === profile?.id);
         } else if (userRole === 'Quản lý') {
             isVisible = true;
         }
         if (!isVisible) return false;
-        
+
         // ONLY SHOW TOP-LEVEL TASKS IN KANBAN
         if (t.parent_id) return false;
 
@@ -198,7 +196,7 @@ export const Kanban = () => {
                                         >
                                             {colTasks.map((task, index) => {
                                                 const assignee = getAssignee(task.assignee_id)
-                                                
+
                                                 // Calculate subtasks from actual tasks table
                                                 const childTasks = tasks.filter(ct => ct.parent_id === task.id);
                                                 const totalSub = childTasks.length;

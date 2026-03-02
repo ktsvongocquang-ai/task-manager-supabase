@@ -78,8 +78,7 @@ export const Dashboard = () => {
             if (profile?.role === 'Nhân viên') {
                 fetchedTasks = fetchedTasks.filter(t =>
                     t.assignee_id === profile.id ||
-                    t.supporter_id === profile.id ||
-                    fetchedProjects.find(p => p.id === t.project_id)?.manager_id === profile.id
+                    t.supporter_id === profile.id
                 );
                 fetchedProjects = fetchedProjects.filter(p =>
                     p.manager_id === profile.id ||
