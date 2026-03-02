@@ -84,12 +84,10 @@ export const Schedule = () => {
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
-        const project = projects.find(p => p.id === t.project_id);
-        const isProjectManager = project && project.manager_id === profile?.id;
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || isProjectManager || t.supporter_id === profile?.id);
+            isVisible = Boolean(isAssigned || t.supporter_id === profile?.id);
         } else if (userRole === 'Quản lý') {
             isVisible = true;
         }
