@@ -36,7 +36,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
-        supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', due_date: '',
+        supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
         result_links: '', notes: ''
     });
 
@@ -61,7 +61,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 setForm({
                     task_code: editingTask.task_code, project_id: editingTask.project_id, name: editingTask.name, description: editingTask.description || '',
                     assignee_id: editingTask.assignee_id || '', supporter_id: editingTask.supporter_id || '', status: editingTask.status, priority: editingTask.priority,
-                    due_date: editingTask.due_date || '', result_links: editingTask.result_links || '', notes: editingTask.notes || ''
+                    start_date: editingTask.start_date || '', due_date: editingTask.due_date || '', result_links: editingTask.result_links || '', notes: editingTask.notes || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -88,7 +88,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 setForm({
                     task_code: initialData.task_code, project_id: initialData.project_id, name: '', description: '',
                     assignee_id: '', supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình',
-                    due_date: '', result_links: '', notes: ''
+                    start_date: '', due_date: '', result_links: '', notes: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -112,18 +112,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         // The modal logic no longer auto-calculates dates as heavily since fields were removed
     }, [form.status, isOpen]);
 
-    const isCurrentUserManagerOfSelectedProject = () => {
-        if (!form.project_id) return false;
-        const p = projects.find(x => x.id === form.project_id);
-        return p?.manager_id === currentUserProfile?.id;
-    }
+
 
     const shouldDisableTopFields = () => {
-        if (currentUserProfile?.role === 'Admin') return false;
-        if (currentUserProfile?.role === 'Quản lý') return false;
-        if (currentUserProfile?.role === 'Nhân viên' && isCurrentUserManagerOfSelectedProject()) return false;
-        if (editingTask && editingTask.assignee_id === currentUserProfile?.id) return false;
-        return editingTask !== null;
+        return false;
     }
 
     const handleSave = async () => {
@@ -136,6 +128,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 supporter_id: form.supporter_id || null,
                 status: form.status,
                 priority: form.priority,
+                start_date: form.start_date || null,
                 due_date: form.due_date || null,
                 result_links: form.result_links || null,
                 notes: form.notes || null
@@ -200,6 +193,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 }
                 if (editingTask.priority !== form.priority) {
                     changes.push(`Ưu tiên: ${editingTask.priority || 'Trống'} -> ${form.priority}`);
+                }
+                if ((editingTask.start_date || '') !== (form.start_date || '')) {
+                    const oldDate = editingTask.start_date ? format(parseISO(editingTask.start_date), 'dd/MM/yyyy') : 'Trống';
+                    const newDate = form.start_date ? format(parseISO(form.start_date), 'dd/MM/yyyy') : 'Trống';
+                    changes.push(`Ngày bắt đầu: ${oldDate} -> ${newDate}`);
                 }
                 if ((editingTask.due_date || '') !== (form.due_date || '')) {
                     const oldDate = editingTask.due_date ? format(parseISO(editingTask.due_date), 'dd/MM/yyyy') : 'Trống';
@@ -422,40 +420,64 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         {/* Form Grid Layout - SaaS Style */}
                         <div className="space-y-4 ml-14">
 
-                            {/* Status */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <CheckCircle2 size={16} /> Trạng thái
+                            {/* Status and Start Date row */}
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center min-h-[40px]">
+                                <div className="flex items-center min-h-[40px] flex-1">
+                                    <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                        <CheckCircle2 size={16} /> Trạng thái
+                                    </div>
+                                    <div className="flex-1">
+                                        <select
+                                            value={form.status}
+                                            onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px]"
+                                        >
+                                            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                            <option value="Đang làm">Đang làm</option>
+                                            <option value="Đang thực hiện">Đang thực hiện</option>
+                                            <option value="Hoàn thành">Hoàn thành</option>
+                                            <option value="Tạm dừng">Tạm dừng</option>
+                                            <option value="Hủy bỏ">Hủy bỏ</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px]"
-                                    >
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                        <option value="Đang làm">Đang làm</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
-                                        <option value="Hủy bỏ">Hủy bỏ</option>
-                                    </select>
+
+                                <div className="flex items-center gap-2 flex-1 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <div className="text-sm font-medium text-slate-500 whitespace-nowrap sr-only sm:not-sr-only sm:w-auto">Bắt đầu</div>
+                                    <input
+                                        type="date"
+                                        value={form.start_date}
+                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium flex-1`}
+                                    />
                                 </div>
                             </div>
 
-                            {/* Due Date */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <Calendar size={16} /> Hạn chót
+                            {/* Total Days and Due Date row */}
+                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center min-h-[40px]">
+                                <div className="flex items-center min-h-[40px] flex-1">
+                                    <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                        <Calendar size={16} /> Thời gian
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 w-full max-w-[200px]">
+                                            <span className="text-sm font-medium text-slate-600">Tổng số ngày:</span>
+                                            <span className="text-sm font-bold text-indigo-600">
+                                                {form.start_date && form.due_date
+                                                    ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
+                                                    : 0}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
+
+                                <div className="flex items-center gap-2 flex-1 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <div className="text-sm font-medium text-slate-500 whitespace-nowrap sr-only sm:not-sr-only sm:w-auto">Hạn chót</div>
                                     <input
                                         type="date"
                                         value={form.due_date}
                                         onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        max={form.project_id ? projects.find(p => p.id === form.project_id)?.end_date?.split('T')[0] : undefined}
-                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px] ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed text-slate-400' : ''}`}
-                                        disabled={shouldDisableTopFields()}
+                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium flex-1`}
                                     />
                                 </div>
                             </div>
