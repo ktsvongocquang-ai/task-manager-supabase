@@ -165,24 +165,51 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             }
 
             let result;
+            let finalTaskCode = form.task_code;
+
             if (editingTask) {
                 result = await supabase.from('tasks').update(payload).eq('id', editingTask.id)
+                if (result.error) {
+                    console.error('Supabase Task Error:', result.error)
+                    alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
+                    return
+                }
             } else {
                 if (!form.project_id) {
                     alert('Vui lòng chọn dự án cho nhiệm vụ này.')
                     return
                 }
-                result = await supabase.from('tasks').insert({
-                    ...payload,
-                    task_code: form.task_code,
-                    project_id: form.project_id
-                }).select()
-            }
 
-            if (result.error) {
-                console.error('Supabase Task Error:', result.error)
-                alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
-                return
+                let retryCount = 0;
+                let success = false;
+
+                while (!success && retryCount < 10) {
+                    result = await supabase.from('tasks').insert({
+                        ...payload,
+                        task_code: finalTaskCode,
+                        project_id: form.project_id
+                    }).select()
+
+                    if (result?.error && result.error.message?.includes('duplicate key') && result.error.message?.includes('tasks_task_code_key')) {
+                        retryCount++;
+                        // increment task code to retry
+                        const match = finalTaskCode.match(/^(.*?)-(\d+)$/);
+                        if (match) {
+                            const num = parseInt(match[2], 10);
+                            finalTaskCode = `${match[1]}-${String(num + 1).padStart(2, '0')}`;
+                        } else {
+                            finalTaskCode = `${finalTaskCode}-${retryCount}`;
+                        }
+                    } else {
+                        success = true;
+                    }
+                }
+
+                if (result?.error) {
+                    console.error('Supabase Task Error:', result.error)
+                    alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
+                    return
+                }
             }
 
             // --- Notifications ---
@@ -196,7 +223,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         `${currentUserProfile?.full_name || 'Admin'} đã giao cho bạn nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
-                        editingTask ? editingTask.id : (result.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
+                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
                         form.project_id
                     );
                 }
@@ -267,27 +294,53 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             setNewSubtaskName(''); // Clear immediately for snappy UX
 
             try {
-                // Determine next code for subtask (e.g., AD-01-01)
-                const currentCount = subTasks.length + 1;
-                const newCode = `${editingTask.task_code}-${String(currentCount).padStart(2, '0')}`;
+                let retryCount = 0;
+                let success = false;
+                let finalSubCode = `${editingTask.task_code}-${String(subTasks.length + 1).padStart(2, '0')}`;
+                let finalData = null;
 
-                const { data, error } = await supabase.from('tasks').insert({
-                    name: subTaskName,
-                    project_id: editingTask.project_id,
-                    parent_id: editingTask.id,
-                    task_code: newCode,
-                    status: 'Chưa bắt đầu',
-                    priority: 'Trung bình',
-                    completion_pct: 0
-                }).select().single();
+                while (!success && retryCount < 10) {
+                    const { data, error } = await supabase.from('tasks').insert({
+                        name: subTaskName,
+                        project_id: editingTask.project_id,
+                        parent_id: editingTask.id,
+                        task_code: finalSubCode,
+                        status: 'Chưa bắt đầu',
+                        priority: 'Trung bình',
+                        completion_pct: 0
+                    }).select().single();
 
-                if (error) throw error;
-                if (data) {
-                    setSubTasks(prev => [...prev, data as Task]);
+                    if (error && error.message?.includes('duplicate key') && error.message?.includes('tasks_task_code_key')) {
+                        retryCount++;
+                        // increment subtask code
+                        const match = finalSubCode.match(/^(.*?)-(\d+)$/);
+                        if (match) {
+                            const num = parseInt(match[2], 10);
+                            finalSubCode = `${match[1]}-${String(num + 1).padStart(2, '0')}`;
+                        } else {
+                            finalSubCode = `${finalSubCode}-${retryCount}`;
+                        }
+                    } else if (error) {
+                        throw error;
+                    } else {
+                        success = true;
+                        finalData = data;
+                    }
                 }
-            } catch (err) {
+
+                if (finalData) {
+                    // Update the list from server to ensure consistent ordering
+                    const { data: updatedSubTasks } = await supabase
+                        .from('tasks')
+                        .select('*')
+                        .eq('parent_id', editingTask.id)
+                        .order('task_code', { ascending: true });
+
+                    if (updatedSubTasks) setSubTasks(updatedSubTasks as Task[]);
+                }
+            } catch (err: any) {
                 console.error('Error adding subtask:', err);
-                alert('Lỗi tạo nhiệm vụ con.');
+                alert(`Lỗi tạo nhiệm vụ con: ${err?.message || ''}`);
             }
         }
     };
