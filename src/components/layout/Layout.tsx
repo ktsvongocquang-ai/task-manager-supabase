@@ -10,8 +10,6 @@ import {
     LogOut,
     Rocket,
     MessageSquare,
-    Send,
-    MessageCircle,
     FolderPlus,
     PlusCircle,
     UserPlus,
@@ -29,6 +27,7 @@ import {
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
+import { GlobalChat } from '../chat/GlobalChat'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -335,44 +334,11 @@ export const Layout = () => {
                     </div>
                 </header>
 
-                {/* Chat Dropdown logic (Absolute positioned relative to header) */}
-                {isChatOpen && (
-                    <div className="fixed inset-0 z-[60]" onClick={() => setIsChatOpen(false)}>
-                        <div
-                            className="absolute right-6 top-20 w-[400px] glass-card shadow-2xl z-[70] animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col max-h-[600px] border border-white/40"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="p-5 border-b border-gray-100/50 flex justify-between items-center bg-white/80">
-                                <div>
-                                    <h3 className="font-black text-gray-900 uppercase text-sm tracking-tight">Chat chung</h3>
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Kênh thảo luận nội bộ</p>
-                                </div>
-                                <div className="px-3 py-1 bg-blue-100 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-tighter">Sắp ra mắt</div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[300px] flex items-center justify-center bg-slate-50/30 backdrop-blur-sm">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-                                        <MessageCircle className="text-blue-300" size={32} />
-                                    </div>
-                                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest px-10">Kênh chat đang được hoàn thiện</p>
-                                </div>
-                            </div>
-                            <div className="p-5 border-t border-gray-100/50 bg-white/80">
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        disabled
-                                        className="flex-1 text-xs px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl cursor-not-allowed font-medium"
-                                        placeholder="Nhập tin nhắn..."
-                                    />
-                                    <button disabled className="p-3 bg-blue-50 text-blue-300 rounded-xl cursor-not-allowed">
-                                        <Send size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <GlobalChat
+                    isOpen={isChatOpen}
+                    onClose={() => setIsChatOpen(false)}
+                    currentUserProfile={profile}
+                />
 
                 {/* Page View */}
                 <div className="p-6 flex-1 overflow-y-auto">
