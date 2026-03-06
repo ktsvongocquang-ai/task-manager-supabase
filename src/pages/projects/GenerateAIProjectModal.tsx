@@ -209,32 +209,44 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
         let finalKT = curKT;
         let finalQC = curQC;
         let finalBuffer = curBuffer;
+        let totalCalendar = 0;
 
         // --- AI OVERRIDE LOGIC ---
-        // If AI gives an explicit duration (estimatedDays), we proportionately squash/stretch the phases 
-        // to equal exactly what AI says.
+        // If AI gives an explicit duration (estimatedDays), we proportionately squash/stretch the phases AND buffer 
+        // so that the Absolute Total is equal to what the AI says. 
         if (aiEstimatedDays && aiEstimatedDays > 0) {
-            const ratio = aiEstimatedDays / internalWd;
+            // First, AI's phrase "30 days" usually means 30 Calendar Days to the customer.
+            // Let's convert that back to Working Days allowed: ~ (30 / 7) * 5
+            const totalAllowedWd = Math.round((aiEstimatedDays / 7) * 5);
+
+            // The formula for total WD was: internalWd + (buffer / 2)
+            const sumWdComponents = internalWd + (curBuffer / 2);
+
+            // Ratio to squash everything down
+            const ratio = totalAllowedWd / sumWdComponents;
 
             finalC = roundUp025(curC * ratio);
             finalD3 = roundUp025(curD3 * ratio);
             finalS = roundUp025(curS * ratio);
             finalQC = roundUp025(curQC * ratio);
 
-            // Dump any rounding remainders into KT to make it exactly equal aiEstimatedDays
-            const tempSum = finalC + finalD3 + finalS + finalQC;
-            finalKT = aiEstimatedDays - tempSum;
+            // Dump any rounding remainders of internal work into KT
+            finalInternalWd = finalC + finalD3 + finalS + finalQC;
+            // Expected internal WD = internalWd * ratio
+            const expectedInternalWd = internalWd * ratio;
+            finalKT = roundUp025(expectedInternalWd - finalInternalWd);
             if (finalKT < 0) finalKT = 0; // Safeguard
 
-            finalInternalWd = aiEstimatedDays;
-            finalBuffer = roundUp025(curBuffer * ratio); // Squashing buffer too to respect rush speed
-        }
+            finalInternalWd = finalC + finalD3 + finalS + finalKT + finalQC;
+            finalBuffer = roundUp025(curBuffer * ratio); // Squash buffer
 
-        // Approximate calendar days: (WD / 5) * 7
-        // Gối đầu: Triển khai chạy song song một phần với Sửa 3D (curBuffer).
-        // Total WD is approximately internalWd + (curBuffer / 2) because of overlapping.
-        const totalWd = finalInternalWd + (finalBuffer / 2);
-        const totalCalendar = Math.round((totalWd / 5) * 7);
+            totalCalendar = aiEstimatedDays; // Force it to explicitly match what AI promised
+        } else {
+            // Approximate calendar days: (WD / 5) * 7
+            // Gối đầu: Triển khai chạy song song một phần với Sửa 3D (curBuffer).
+            const totalWd = finalInternalWd + (finalBuffer / 2);
+            totalCalendar = Math.round((totalWd / 5) * 7);
+        }
 
         return {
             internalWd: finalInternalWd,
