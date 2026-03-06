@@ -114,24 +114,18 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và si
 Bên dưới là CẤU TRÚC CƠ BẢN dành cho một dự án. 
 Dựa vào Thông tin Dự án thực tế ở trên, BẠN PHẢI TỰ PHÂN TÍCH VÀ PHÁT TRIỂN khối lượng Task, ĐỒNG THỜI TUÂN THỦ TUYỆT ĐỐI CÁC LUẬT VỀ THỜI GIAN SAU:
 
-1. THỜI GIAN CONCEPT (PHASE 1): Task lập "Moodboard" (Concept/Vật liệu) LUÔN CỐ ĐỊNH LÀ 3 NGÀY, không quan tâm loại hình gì.
-2. THỜI GIAN 3D (PHASE 2): Dựng 3D lần 1 phải mất từ 7 đến 10 ngày (tùy diện tích lớn nhỏ).
-3. THỜI GIAN CHỈNH SỬA Khách hàng (PHASE 3): 
-   - Quá trình Khách phản hồi và Sửa 3D lần 2, lần 3 sẽ diễn ra. MỖI LẦN sửa 3D cộng thêm 4-5 ngày. 
-   - Tổng thời gian 3D (Phase 2 + Phase 3) kéo dài từ 7 đến 15 ngày.
-4. THỜI GIAN TRIỂN KHAI BẢN VẼ (PHASE 4):
-   - Chung cư: Kéo dài 5-7 ngày.
-   - Nhà Phố / Biệt thự / Nhà ở: Kéo dài 10-15 ngày.
-   - NẾU phong cách là "Tân cổ điển" (Neo-classic): CỘNG THÊM 5 ngày cho chung cư, CỘNG THÊM 10 ngày cho nhà phố vào tổng thời gian Triển khai bản vẽ.
-5. GỐI ĐẦU VÀ OVERLAPPING QUAN TRỌNG:
-   - TRONG KHI khách hàng đang Sửa 3D lần 2-3 (đang ở Phase 3), BẮT BUỘC phải bắt đầu tiến hành triển khai mặt bằng (MB Bố trí, MB Xây tường, MEP...). Do đó ngày Start của các task đầu tiên trong Phase 4 phải lồng ghép (overlap) bắt đầu cùng lúc với các task Sửa 3D ở Phase 3.
+1. TUÂN THỦ NGHIÊM NGẶT THỜI LƯỢNG ĐÃ ĐỊNH TUYẾN: Tổng số ngày của các task con trong mỗi Phase KHÔNG ĐƯỢC VƯỢT QUÁ số ngày (THỜI LƯỢNG) quy định riêng cho từng Phase (được list ở dưới phần RÀNG BUỘC PHASES). Đặc biệt khi đang ép tiến độ gấp!
+2. GỐI ĐẦU VÀ OVERLAPPING QUAN TRỌNG:
+   - TRONG KHI khách hàng đang Sửa 3D (Phase 3), có thể bắt đầu tiến hành triển khai mặt bằng (MB Bố trí, MB Xây tường, MEP...). Do đó ngày Start của các task đầu tiên trong Phase 4 nên lồng ghép (overlap) bắt đầu cùng lúc với các task Sửa 3D ở Phase 3.
    - NGAY KHI VỪA XONG 3D (Task chốt 3D cuối cùng kết thúc), phải ngay lập tức có task "Bóc khối lượng & Báo giá".
 
 [RÀNG BUỘC CÁC LOẠI HÌNH]
 - Nếu là "Nhà Phố", "Biệt Thự" -> Thêm các Task: khảo sát địa chất, kết cấu, MEP, xin phép xây dựng, kiến trúc mặt tiền.
 - Nếu là "Thương mại - Dịch vụ (Shop/F&B)" -> Thêm các Task: nhận diện thương hiệu (Branding) vào Concept, chi tiết quầy kệ, MEP công nghiệp vào Shop Drawing.
 - Nếu là "Văn phòng" -> Thêm Task: Layout chỗ ngồi, vẽ hệ thống IT/M&E, pantry.
-Bạn không bị giới hạn ở 44 Tasks, có thể sinh ra 40-70 Tasks tùy quy mô, MIỄN LÀ ĐỦ CHI TIẾT.
+
+[TỐI ƯU TỐC ĐỘ (QUAN TRỌNG)]
+Bạn BẮT BUỘC phải TÓM GỌN WBS. KHÔNG sinh ra quá 15-25 Tasks. Hãy GỘP các công việc nhỏ lẻ vào một Task lớn (ví dụ: gộp "dựng hình phòng khách", "dựng hình phòng ngủ" thành "Dựng hình 3D toàn nhà"). Việc này giúp tối ưu tốc độ xử lý trả kết quả của bạn và giảm thời gian chờ của người dùng.
 
 [RÀNG BUỘC PHASES VÀ THỜI LƯỢNG MỤC TIÊU]
 Thuộc tính \`phaseId\` của mỗi Task Con phải khớp chính xác với \`id\` của Phase chứa nó. Phân bổ timeline của các Tasks sao cho khớp với TỔNG THỜI LƯỢNG lý thuyết sau (Đã được thuật toán nội suy dựa trên diện tích và phong cách):
