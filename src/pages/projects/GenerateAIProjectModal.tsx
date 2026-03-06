@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Sparkles, Loader2, ArrowRight, ArrowLeft, Calendar, User, Layout as LayoutIcon, Briefcase, FileText } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Sparkles, Loader2, ArrowRight, ArrowLeft, Calendar, User, Layout as LayoutIcon, Briefcase, FileText, MessageSquare, Image, Trash2 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 interface GenerateAIProjectModalProps {
@@ -51,13 +51,75 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 }) => {
     if (!isOpen) return null;
 
-    // --- State: Form Inputs ---
+    // --- State: Action Items ---
     const [projectCode, setProjectCode] = useState(`AI-${Math.floor(Math.random() * 10000)}`);
     const [projectName, setProjectName] = useState('');
     const [clientName, setClientName] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [leadId, setLeadId] = useState(currentUserProfile?.id || '');
     const [supportId, setSupportId] = useState('');
+
+    // --- State: AI Chat & Image ---
+    const [aiPrompt, setAiPrompt] = useState('');
+    const [imageBase64, setImageBase64] = useState<string | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [aiResponseText, setAiResponseText] = useState('');
+    const [aiNote, setAiNote] = useState(''); // Context note to pass to WBS generator
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImageBase64(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAnalyze = async () => {
+        if (!aiPrompt && !imageBase64) {
+            alert("Vui lòng nhập mô tả hoặc tải lên mặt bằng để phân tích.");
+            return;
+        }
+
+        setIsAnalyzing(true);
+        setAiResponseText('');
+        try {
+            const res = await fetch('/api/analyze-project', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: aiPrompt, imageBase64 })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Lỗi khi phân tích dự án');
+            }
+
+            const data = await res.json();
+
+            // Auto-fill form based on AI interpretation
+            if (data.projectName) setProjectName(data.projectName);
+            if (data.clientName) setClientName(data.clientName);
+            if (data.projectType && PROJECT_TYPES.includes(data.projectType)) setProjectType(data.projectType);
+            if (data.style && STYLES.includes(data.style)) setStyle(data.style);
+            if (data.area) setArea(data.area.toString());
+
+            // Store specific instructions/notes to pass along later
+            if (data.contextNote) setAiNote(data.contextNote);
+
+            // Show friendly message
+            if (data.aiMessage) setAiResponseText(data.aiMessage);
+
+        } catch (error: any) {
+            console.error(error);
+            alert(`Lỗi AI: ${error.message}`);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
 
     const getInvestmentLevels = (type: string) => {
         if (type.includes('Nhà phố') || type.includes('Biệt thự')) {
@@ -105,18 +167,18 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
         // Triển khai (S + KT) - 5-7 ngày cho chung cư, 10-15 ngày cho nhà ở
         let baseTrienKhai = 5;
         if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) {
-             baseTrienKhai = 10 + d3Ratio * (15 - 10); // 10 to 15
+            baseTrienKhai = 10 + d3Ratio * (15 - 10); // 10 to 15
         } else {
-             baseTrienKhai = 5 + d3Ratio * (7 - 5);    // 5 to 7
+            baseTrienKhai = 5 + d3Ratio * (7 - 5);    // 5 to 7
         }
 
         // Style Penalty (Tân cổ điển: +5 chung cư, +10 nhà ở)
         if (style.includes('Tân cổ điển') || style.includes('Neo-classic')) {
-             if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) {
-                 baseTrienKhai += 10;
-             } else {
-                 baseTrienKhai += 5; // Cho chung cư và các loại khác
-             }
+            if (projectType.includes('Nhà phố') || projectType.includes('Biệt thự')) {
+                baseTrienKhai += 10;
+            } else {
+                baseTrienKhai += 5; // Cho chung cư và các loại khác
+            }
         }
 
         // Split Triển khai into Shop Drawing (S) and Kỹ thuật (KT) roughly 40/60
@@ -125,7 +187,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
         // MEP/Struct Penalty
         if (hasMepStruct && !projectType.includes('Nhà phố') && !projectType.includes('Biệt thự')) {
-            curKT += 2.0; 
+            curKT += 2.0;
         }
 
         // QC Time
@@ -152,6 +214,32 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
     const timelineData = computeTimeline();
 
+    // Calculate dynamic total days from tasks array for preview
+    const calculateDynamicTotalDays = () => {
+        if (!generatedTasks || generatedTasks.length === 0) return timelineData.totalCalendar;
+
+        let minStart = new Date('2100-01-01').getTime();
+        let maxEnd = new Date('1900-01-01').getTime();
+        let hasValidDates = false;
+
+        generatedTasks.forEach(t => {
+            const s = new Date(t.start).getTime();
+            const e = new Date(t.end).getTime();
+            if (!isNaN(s) && !isNaN(e)) {
+                if (s < minStart) minStart = s;
+                if (e > maxEnd) maxEnd = e;
+                hasValidDates = true;
+            }
+        });
+
+        if (hasValidDates) {
+            return Math.round((maxEnd - minStart) / 86400000) + 1;
+        }
+        return timelineData.totalCalendar;
+    };
+
+    const dynamicTotalDays = showPreview ? calculateDynamicTotalDays() : timelineData.totalCalendar;
+
     const handleGenerate = async () => {
         if (!projectName || !clientName) {
             alert("Vui lòng nhập Tên dự án và Khách hàng");
@@ -174,7 +262,8 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 investment,
                 area,
                 phasesWd: timelineData.phases, // Send the exact calculated WD per phase to the backend
-                bufferKh: timelineData.bufferKh
+                bufferKh: timelineData.bufferKh,
+                note: aiNote // Pass along context note
             };
 
             const res = await fetch('/api/generate-project', {
@@ -305,6 +394,40 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
         setGeneratedTasks(newTasks);
     };
 
+    const handleRemoveTask = (index: number) => {
+        const newTasks = generatedTasks.filter((_, i) => i !== index);
+        setGeneratedTasks(newTasks);
+    };
+
+    const handleAddTask = () => {
+        // Find the last phase ID or use GD1
+        const lastPhaseId = generatedTasks.length > 0 ? generatedTasks[generatedTasks.length - 1].phaseId : 'GD1';
+
+        // Find a recent start/end date or use today
+        let newStart = new Date().toISOString().split('T')[0];
+        let newEnd = newStart;
+        if (generatedTasks.length > 0) {
+            const lastTask = generatedTasks[generatedTasks.length - 1];
+            newStart = lastTask.end || lastTask.start || newStart;
+            // Add 1 day to end
+            const d = new Date(newStart);
+            d.setDate(d.getDate() + 1);
+            newEnd = d.toISOString().split('T')[0];
+        }
+
+        const newTask = {
+            code: `NEW-${Math.floor(Math.random() * 1000)}`,
+            title: 'Tác vụ mới',
+            phaseId: lastPhaseId,
+            start: newStart,
+            end: newEnd,
+            assignee: '', // Will default to lead
+            duration: 1,
+            note: ''
+        };
+        setGeneratedTasks([...generatedTasks, newTask]);
+    };
+
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-[#0f172a] border border-slate-700/50 rounded-2xl shadow-2xl shadow-slate-900/50 w-full max-w-5xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
@@ -329,15 +452,83 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
                             {/* Left Column: Form Inputs */}
                             <div className="flex-1 space-y-6">
-                                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                                    Điền thông tin dự án, AI sẽ tự động phân rã WBS và xếp lịch công việc chuẩn xác theo SOP, tự động bỏ qua Thứ 7 & Chủ Nhật.
-                                </p>
+                                {/* Panel 0: Chat Input & Image Upload */}
+                                <div className="bg-[#1e293b]/80 border border-indigo-500/30 rounded-2xl p-6 shadow-inner relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                                    <h4 className="text-[13px] font-black font-mono text-indigo-300 mb-4 flex items-center gap-3 tracking-wider uppercase">
+                                        <MessageSquare size={16} /> Nhập đề bài (Chat AI & Mặt bằng)
+                                    </h4>
+
+                                    <div className="space-y-4">
+                                        <div className="flex gap-4">
+                                            {/* Image Upload Box */}
+                                            <div
+                                                className="w-32 h-32 shrink-0 border-2 border-dashed border-slate-600 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-500/5 transition-all overflow-hidden relative group"
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
+                                                {imageBase64 ? (
+                                                    <>
+                                                        <img src={imageBase64} alt="Layout" className="w-full h-full object-cover" />
+                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                            <span className="text-xs text-white font-bold">Thay ảnh đổi</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setImageBase64(null); }}
+                                                            className="absolute top-1 right-1 p-1 bg-red-500/80 text-white rounded-md hover:bg-red-500 transition-colors"
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Image size={24} className="text-slate-400 mb-2 group-hover:text-indigo-400" />
+                                                        <span className="text-[10px] text-slate-400 font-bold text-center px-2 group-hover:text-indigo-300">Tải Mặt Bằng (Tùy chọn)</span>
+                                                    </>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={handleImageUpload}
+                                                />
+                                            </div>
+
+                                            {/* Chat Textarea */}
+                                            <div className="flex-1 flex flex-col relative">
+                                                <textarea
+                                                    value={aiPrompt}
+                                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                                    placeholder="VD: Anh Nam có căn hộ này, muốn thiết kế style Wabi Sabi, làm sao trong 25 ngày phải xong thiết kế để còn thi công..."
+                                                    className="w-full h-32 px-4 py-3 bg-[#0f172a] border border-slate-700/80 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none placeholder:text-slate-600 custom-scrollbar"
+                                                />
+                                                <button
+                                                    onClick={handleAnalyze}
+                                                    disabled={isAnalyzing}
+                                                    className="absolute bottom-2 right-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors shadow-lg flex items-center gap-2 disabled:opacity-50"
+                                                >
+                                                    {isAnalyzing ? <><Loader2 size={12} className="animate-spin" /> Đang đọc...</> : <><Sparkles size={12} /> Phân Tích</>}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* AI Response Area */}
+                                        {aiResponseText && (
+                                            <div className="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex gap-3 animate-in fade-in slide-in-from-top-2">
+                                                <div className="mt-0.5"><Sparkles size={16} className="text-indigo-400" /></div>
+                                                <p className="text-sm text-indigo-200 leading-relaxed font-medium">
+                                                    {aiResponseText}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
                                 {/* Panel 1: Info & Team */}
-                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner">
+                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner opacity-60 hover:opacity-100 transition-opacity focus-within:opacity-100">
                                     <h4 className="text-[13px] font-black font-mono text-slate-300 mb-5 flex items-center gap-3 tracking-wider uppercase">
                                         <span className="bg-indigo-500/20 text-indigo-400 w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
-                                        Hành chính & Đội ngũ
+                                        Xác nhận Thông Tin Hành Chính
                                     </h4>
 
                                     <div className="grid grid-cols-12 gap-5 mb-5">
@@ -414,10 +605,10 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                 </div>
 
                                 {/* Panel 2: Specs */}
-                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner">
+                                <div className="bg-[#1e293b]/50 border border-slate-700/50 rounded-2xl p-6 shadow-inner opacity-60 hover:opacity-100 transition-opacity focus-within:opacity-100">
                                     <h4 className="text-[13px] font-black font-mono text-slate-300 mb-5 flex items-center gap-3 tracking-wider uppercase">
                                         <span className="bg-indigo-500/20 text-indigo-400 w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
-                                        Kỹ thuật & Phân khúc
+                                        Xác nhận Kỹ thuật & Phân khúc
                                     </h4>
 
                                     <div className="grid grid-cols-2 gap-5 mb-5">
@@ -488,6 +679,8 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Ghi chú (Tùy chọn)</label>
                                             <input
                                                 type="text"
+                                                value={aiNote}
+                                                onChange={(e) => setAiNote(e.target.value)}
                                                 className="w-full px-4 py-3 bg-[#0f172a] border border-slate-700 rounded-xl text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors placeholder:text-slate-600"
                                                 placeholder="VD: Cần ưu tiên thiết kế..."
                                             />
@@ -541,7 +734,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
                                         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mt-8 flex flex-col items-center justify-center">
                                             <span className="text-xs text-slate-500 font-bold uppercase mb-1">Dự kiến hoàn thiện nộp File</span>
-                                            <span className="text-xl font-mono font-black text-emerald-400">~{timelineData.totalCalendar}</span>
+                                            <span className="text-xl font-mono font-black text-emerald-400">~{dynamicTotalDays}</span>
                                             <span className="text-xs text-slate-400">Ngày lịch (Bao gồm T7/CN)</span>
                                         </div>
                                     </div>
@@ -554,16 +747,16 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h3 className="text-xl font-bold text-white mb-1">Preview Tiến Độ AI Đề Xuất</h3>
-                                    <p className="text-sm text-slate-400">Bạn có thể tinh chỉnh lại Ngày tháng hoặc Phân đoạn thủ công trước khi lưu.</p>
+                                    <p className="text-sm text-slate-400">Bạn có thể tinh chỉnh Ngày tháng, Thêm/Xóa Task. Tổng ngày sẽ <span className="text-amber-400 font-bold">tự động tính toán lại</span>.</p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px]">
-                                        <div className="text-[10px] text-slate-400 uppercase font-bold">Tổng Ngày</div>
-                                        <div className="text-lg font-bold text-amber-400">~{timelineData.totalCalendar}</div>
+                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px] shadow-inner">
+                                        <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center gap-1"><Calendar size={10} /> Tổng Ngày</div>
+                                        <div className="text-xl font-black text-amber-400">~{dynamicTotalDays}</div>
                                     </div>
-                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px]">
+                                    <div className="bg-slate-800 px-4 py-2 rounded-lg flex flex-col items-center justify-center border border-slate-700 min-w-[100px] shadow-inner">
                                         <div className="text-[10px] text-slate-400 uppercase font-bold">Tổng Tasks</div>
-                                        <div className="text-lg font-bold text-indigo-400">{generatedTasks.length}</div>
+                                        <div className="text-xl font-black text-indigo-400">{generatedTasks.length}</div>
                                     </div>
                                 </div>
                             </div>
@@ -578,6 +771,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             <th className="px-4 py-3 w-32">Bắt đầu</th>
                                             <th className="px-4 py-3 w-32">Kết thúc</th>
                                             <th className="px-4 py-3 w-40">Phụ trách</th>
+                                            <th className="px-4 py-3 w-12 text-center"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/50 text-slate-300">
@@ -629,11 +823,29 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                             ))}
                                                         </select>
                                                     </td>
+                                                    <td className="px-4 py-2 text-center">
+                                                        <button
+                                                            onClick={() => handleRemoveTask(idx)}
+                                                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                                            title="Xóa Task"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div className="flex justify-center mt-4">
+                                <button
+                                    onClick={handleAddTask}
+                                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-lg text-sm font-bold border border-slate-700/50 border-dashed transition-colors flex items-center gap-2"
+                                >
+                                    + Thêm Tác Vụ Mới
+                                </button>
                             </div>
                         </div>
                     )}

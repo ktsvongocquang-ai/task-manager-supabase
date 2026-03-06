@@ -1,0 +1,108 @@
+import { GoogleGenAI, Type } from '@google/genai';
+
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '10mb', // Allow large image uploads
+        },
+    },
+};
+
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    try {
+        const { prompt, imageBase64 } = req.body;
+
+        if (!prompt && !imageBase64) {
+            return res.status(400).json({ error: 'Vui lòng cung cấp mô tả dự án hoặc hình ảnh tham khảo.' });
+        }
+
+        if (!process.env.GEMINI_API_KEY) {
+            return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
+        }
+
+        const ai = new GoogleGenAI({});
+
+        const schema = {
+            type: Type.OBJECT,
+            properties: {
+                projectName: { type: Type.STRING, description: "Tên dự án AI tóm tắt được (VD: Căn hộ Vin, Nhà phố ABCD...)" },
+                clientName: { type: Type.STRING, description: "Tên khách hàng tóm tắt được, nếu có (VD: Anh Nam, Chị Nữ). Nếu không thấy để trống." },
+                projectType: { type: Type.STRING, description: "Phân loại dự án sát nhất trong các giá trị sau: 'Chung cư', 'Nhà phố - Cải tạo', 'Nhà phố - Xây mới', 'Biệt thự', 'Thương mại - Dịch vụ (Shop/F&B)', 'Văn phòng'. Nếu không có, hãy để 'Chung cư'." },
+                style: { type: Type.STRING, description: "Phong cách thiết kế trong: 'Hiện đại (Modern)', 'Tân cổ điển (Neo-classic)', 'Wabi Sabi', 'Indochine', 'Minimalism', 'Luxury'. Nếu không có, hãy để 'Hiện đại (Modern)'." },
+                area: { type: Type.STRING, description: "Diện tích m2 là SỐ nguyên. AI hãy dự đoán nếu có bản vẽ, hoặc bóc tách từ Text. (Mặc định 100 nếu không đoán được)." },
+                complexity: { type: Type.STRING, description: "Đánh giá sơ bộ độ phức tạp dựa trên bản vẽ (VD: Khó, Nhiều P.Ngủ, Bình thường, Đơn giản...)" },
+                aiMessage: { type: Type.STRING, description: "Câu trả lời thân thiện (khoảng 2-3 câu ngắn) phân tích cho user, ví dụ: 'Dựa vào mặt bằng đính kèm (khoảng chừng 90m2 với 3 PN) và đoạn chat, tôi đề xuất lịch trình thiết kế là khoảng 25 ngày làm việc do tính chất phong cách Wabi Sabi mất khá nhiều thời gian dựng vật liệu...' " },
+                contextNote: { type: Type.STRING, description: "Bất kỳ yêu cầu/ghi chú đặc biệt nào khác của người dùng để truyền lại cho bước tạo tiến độ (VD: Khách yêu cầu vẽ nhanh 3 ngày...)." }
+            },
+            required: ["projectName", "clientName", "projectType", "style", "area", "complexity", "aiMessage", "contextNote"]
+        };
+
+        const contents = [];
+
+        if (prompt) {
+            contents.push(prompt);
+        }
+
+        if (imageBase64) {
+            // Expecting base64 string starting with 'data:image/...;base64,'
+            // If client passed raw base64, adjust accordingly. Assume client sends the data part only or full Data URI.
+            let mimeType = 'image/jpeg';
+            let base64Data = imageBase64;
+
+            if (imageBase64.includes('data:image/')) {
+                const parts = imageBase64.split(';');
+                mimeType = parts[0].split(':')[1];
+                base64Data = parts[1].replace('base64,', '');
+            }
+
+            contents.push({
+                inlineData: {
+                    mimeType: mimeType,
+                    data: base64Data
+                }
+            });
+        }
+
+        const systemInstruction = `
+[VAI TRÒ CỦA AI]
+Bạn là Kiến trúc sư kiêm Trợ lý AI Quản lý Dự Án JFLOW (AI Project Manager).
+Nhiệm vụ của bạn là nhận thông tin đầu vào (gồm Hội thoại văn bản và/hoặc Ảnh mặt bằng Layout) từ User, sau đó ĐỌC HIỂU và trích xuất thông tin định tuyến (routing info) ra cấu trúc JSON để phần mềm tự động điền Form Khởi tạo.
+
+[HƯỚNG DẪN ĐỌC ẢNH & CHAT MÔ TẢ]
+1. TƯ DUY KIẾN TRÚC SƯ: Nếu người dùng gửi ảnh Layout Mặt Bằng:
+   - Hãy đếm số phòng ngủ/WC, nhìn diện tích phòng/kích thước hệ trục để ước lượng xấp xỉ "area" m2 (Ví dụ thấy 2 PN thì chừng 60-80m2, 3PN thì 90-120m2, nhà ống thì chừng 5x20...), nếu trong ảnh có ghi chữ số thì lấy text đó.
+   - Ước lượng độ phức tạp "complexity" (VD: Dễ vẽ vì vuông vức, Khó vì đập tường nhiều...).
+2. TRÍCH XUẤT THÔNG TIN TỪ CHAT:
+   - Nhặt ra tên khách (nếu có), ví dụ "Làm cho anh Nam" -> "Anh Nam".
+   - Nhặt loại hình: Nếu user nói "căn hộ" / "chung cư" -> Chung cư. Nếu nói "nhà thô" -> Nhà phố. Nếu nói "quán cà phê" -> Thương mại - Dịch vụ (Shop/F&B).
+   - Nhặt phong cách chuẩn nhất với từ khóa user cung cấp.
+3. PHẢN HỒI (aiMessage):
+   - Hãy đóng vai KTS giao tiếp thân thiện. Bắt đầu bằng việc xác nhận bạn đã tiếp nhận yêu cầu (Ví dụ: "Chào bạn, tôi đã nhận được mặt bằng và mô tả thiết kế căn Wabi Sabi của anh Nam.").
+   - Nêu một nhận định CHUYÊN MÔN về cái mặt bằng (VD: "Mặt bằng 3 ngủ này khá vuông vức nhưng layout bếp đang hơi hẹp...").
+   - Đưa ra 1 gợi ý về TIMELINE dựa trên dữ kiện diện tích/phong cách (VD: "Với diện tích ~100m2 và phong cách Wabi Sabi (đòi hỏi xử lý vật liệu cầu kỳ), tôi đề xuất lộ trình làm việc khoảng 22 - 25 ngày. Bạn hãy lướt xem Form bên dưới và bấm Tạo Nhé!").
+4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: contents,
+            config: {
+                systemInstruction: systemInstruction,
+                responseSchema: schema,
+                responseMimeType: 'application/json',
+                temperature: 0.1, // Low temp for extraction consistency
+            }
+        });
+
+        const generatedData = JSON.parse(response.text);
+
+        return res.status(200).json(generatedData);
+
+    } catch (err) {
+        console.error("Gemini Analysis Error:", err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi AI phân tích dự án.' });
+    }
+}
