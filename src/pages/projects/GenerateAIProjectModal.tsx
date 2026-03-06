@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Sparkles, Loader2, ArrowRight, ArrowLeft, Calendar, User, Layout as LayoutIcon, Briefcase, FileText, MessageSquare, Image, Trash2 } from 'lucide-react';
+import { X, Sparkles, Loader2, ArrowRight, ArrowLeft, Calendar, User, Layout as LayoutIcon, Briefcase, FileText, MessageSquare, Image, Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 
 interface GenerateAIProjectModalProps {
@@ -431,6 +431,35 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
         setGeneratedTasks(newTasks);
     };
 
+    const handleInsertTask = (index: number) => {
+        const currentTask = generatedTasks[index];
+        const newTask = {
+            code: `NEW-${Math.floor(Math.random() * 1000)}`,
+            title: 'Tác vụ mới',
+            phaseId: currentTask.phaseId,
+            start: currentTask.end || currentTask.start || new Date().toISOString().split('T')[0],
+            end: currentTask.end || currentTask.start || new Date().toISOString().split('T')[0],
+            assignee: '', // Will default to lead
+            duration: 1,
+            note: ''
+        };
+        const newTasks = [...generatedTasks];
+        newTasks.splice(index + 1, 0, newTask);
+        setGeneratedTasks(newTasks);
+    };
+
+    const handleMoveTask = (index: number, direction: 'up' | 'down') => {
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === generatedTasks.length - 1) return;
+
+        const newTasks = [...generatedTasks];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        const temp = newTasks[targetIndex];
+        newTasks[targetIndex] = newTasks[index];
+        newTasks[index] = temp;
+        setGeneratedTasks(newTasks);
+    };
+
     const handleAddTask = () => {
         // Find the last phase ID or use GD1
         const lastPhaseId = generatedTasks.length > 0 ? generatedTasks[generatedTasks.length - 1].phaseId : 'GD1';
@@ -797,6 +826,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                 <table className="w-full text-left text-sm whitespace-nowrap">
                                     <thead className="bg-[#1e293b] text-slate-400 text-[11px] uppercase font-black tracking-wider border-b border-slate-700">
                                         <tr>
+                                            <th className="px-2 py-3 w-10 text-center"></th>
                                             <th className="px-4 py-3 w-16">Code</th>
                                             <th className="px-4 py-3 w-3/12">Tên Task</th>
                                             <th className="px-4 py-3 text-center w-20">Số ngày</th>
@@ -813,6 +843,15 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             const days = !isNaN(s) && !isNaN(e) ? Math.round((e - s) / 86400000) + 1 : 0;
                                             return (
                                                 <tr key={idx} className="hover:bg-slate-800/40 transition-colors group">
+                                                    <td className="px-2 py-2 align-top pt-3">
+                                                        <div className="flex flex-col gap-2 items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button onClick={() => handleInsertTask(idx)} className="text-emerald-400 hover:bg-emerald-400/20 p-0.5 rounded" title="Thêm Task mới ngay bên dưới"><Plus size={14} /></button>
+                                                            <div className="flex gap-1 flex-col mt-1 bg-slate-800 rounded p-0.5">
+                                                                <button onClick={() => handleMoveTask(idx, 'up')} disabled={idx === 0} className="text-slate-400 hover:text-white disabled:opacity-20 p-0.5" title="Chuyển lên"><ArrowUp size={12} /></button>
+                                                                <button onClick={() => handleMoveTask(idx, 'down')} disabled={idx === generatedTasks.length - 1} className="text-slate-400 hover:text-white disabled:opacity-20 p-0.5" title="Chuyển xuống"><ArrowDown size={12} /></button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
                                                     <td className="px-4 py-2 font-mono text-xs text-indigo-400 font-bold">{task.code}</td>
                                                     <td className="px-4 py-2">
                                                         <input
