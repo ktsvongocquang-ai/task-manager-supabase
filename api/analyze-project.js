@@ -35,7 +35,8 @@ export default async function handler(req, res) {
                 style: { type: Type.STRING, description: "Phong cách thiết kế trong: 'Hiện đại (Modern)', 'Tân cổ điển (Neo-classic)', 'Wabi Sabi', 'Indochine', 'Minimalism', 'Luxury'. Nếu không có, hãy để 'Hiện đại (Modern)'." },
                 area: { type: Type.STRING, description: "Diện tích m2 là SỐ nguyên. AI hãy dự đoán nếu có bản vẽ, hoặc bóc tách từ Text. (Mặc định 100 nếu không đoán được)." },
                 complexity: { type: Type.STRING, description: "Đánh giá sơ bộ độ phức tạp dựa trên bản vẽ (VD: Khó, Nhiều P.Ngủ, Bình thường, Đơn giản...)" },
-                aiMessage: { type: Type.STRING, description: "Câu trả lời thân thiện (khoảng 2-3 câu ngắn) phân tích cho user, ví dụ: 'Dựa vào mặt bằng đính kèm (khoảng chừng 90m2 với 3 PN) và đoạn chat, tôi đề xuất lịch trình thiết kế là khoảng 25 ngày làm việc do tính chất phong cách Wabi Sabi mất khá nhiều thời gian dựng vật liệu...' " },
+                estimatedDays: { type: Type.INTEGER, description: "SỐ NGUYÊN. Số ngày làm việc dự kiến nộp file HOÀN THIỆN mà KTS/AI tư vấn. Nếu user nói '15 ngày phải xong', hãy trả về 15. Tối đa không quá 60 ngày. Trả về null nếu không ép cứng số ngày." },
+                aiMessage: { type: Type.STRING, description: "Câu trả lời thân thiện (khoảng 2-3 câu ngắn) phân tích cho user, ví dụ: 'Dựa vào mặt bằng đính kèm (khoảng chừng 90m2 với 3 PN) và đoạn chat, tôi đề xuất lộ trình làm việc khoảng 25 ngày làm việc do tính chất phong cách Wabi Sabi mất khá nhiều thời gian dựng vật liệu...' " },
                 contextNote: { type: Type.STRING, description: "Bất kỳ yêu cầu/ghi chú đặc biệt nào khác của người dùng để truyền lại cho bước tạo tiến độ (VD: Khách yêu cầu vẽ nhanh 3 ngày...)." }
             },
             required: ["projectName", "clientName", "projectType", "style", "area", "complexity", "aiMessage", "contextNote"]
@@ -80,10 +81,11 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào (gồm Hội thoại 
    - Nhặt ra tên khách (nếu có), ví dụ "Làm cho anh Nam" -> "Anh Nam".
    - Nhặt loại hình: Nếu user nói "căn hộ" / "chung cư" -> Chung cư. Nếu nói "nhà thô" -> Nhà phố. Nếu nói "quán cà phê" -> Thương mại - Dịch vụ (Shop/F&B).
    - Nhặt phong cách chuẩn nhất với từ khóa user cung cấp.
-3. PHẢN HỒI (aiMessage):
+3. PHẢN HỒI (aiMessage) VÀ SỐ NGÀY DỰ KIẾN (estimatedDays):
    - Hãy đóng vai KTS giao tiếp thân thiện. Bắt đầu bằng việc xác nhận bạn đã tiếp nhận yêu cầu (Ví dụ: "Chào bạn, tôi đã nhận được mặt bằng và mô tả thiết kế căn Wabi Sabi của anh Nam.").
    - Nêu một nhận định CHUYÊN MÔN về cái mặt bằng (VD: "Mặt bằng 3 ngủ này khá vuông vức nhưng layout bếp đang hơi hẹp...").
-   - Đưa ra 1 gợi ý về TIMELINE dựa trên dữ kiện diện tích/phong cách (VD: "Với diện tích ~100m2 và phong cách Wabi Sabi (đòi hỏi xử lý vật liệu cầu kỳ), tôi đề xuất lộ trình làm việc khoảng 22 - 25 ngày. Bạn hãy lướt xem Form bên dưới và bấm Tạo Nhé!").
+   - Đưa ra 1 gợi ý về TIMELINE dựa trên dữ kiện, hoặc DỰA TRÊN YÊU CẦU ÉP TIẾN ĐỘ của user (VD: user bảo làm 15 ngày thì bạn phải báo: "...tôi nhất trí lộ trình làm việc gói gọn trong 15 ngày như bạn mong muốn...").
+   - QUAN TRỌNG: Con số ngày bạn vừa nói trong chat BẮT BUỘC phải được trích xuất thành SỐ NGUYÊN và gán vào trường "estimatedDays"!
 4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.`;
 
         const response = await ai.models.generateContent({

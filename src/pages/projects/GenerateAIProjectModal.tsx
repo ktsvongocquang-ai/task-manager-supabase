@@ -64,6 +64,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     const [imageBase64, setImageBase64] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [aiResponseText, setAiResponseText] = useState('');
+    const [aiEstimatedDays, setAiEstimatedDays] = useState<number | null>(null); // New state to override timeline
     const [aiNote, setAiNote] = useState(''); // Context note to pass to WBS generator
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +107,9 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
             if (data.projectType && PROJECT_TYPES.includes(data.projectType)) setProjectType(data.projectType);
             if (data.style && STYLES.includes(data.style)) setStyle(data.style);
             if (data.area) setArea(data.area.toString());
+
+            // Override Timeline logic if AI gives a hard number
+            if (data.estimatedDays) setAiEstimatedDays(parseInt(data.estimatedDays, 10));
 
             // Store specific instructions/notes to pass along later
             if (data.contextNote) setAiNote(data.contextNote);
@@ -198,17 +202,45 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
 
         const internalWd = curC + curD3 + curS + curKT + curQC;
 
+        let finalInternalWd = internalWd;
+        let finalC = curC;
+        let finalD3 = curD3;
+        let finalS = curS;
+        let finalKT = curKT;
+        let finalQC = curQC;
+        let finalBuffer = curBuffer;
+
+        // --- AI OVERRIDE LOGIC ---
+        // If AI gives an explicit duration (estimatedDays), we proportionately squash/stretch the phases 
+        // to equal exactly what AI says.
+        if (aiEstimatedDays && aiEstimatedDays > 0) {
+            const ratio = aiEstimatedDays / internalWd;
+
+            finalC = roundUp025(curC * ratio);
+            finalD3 = roundUp025(curD3 * ratio);
+            finalS = roundUp025(curS * ratio);
+            finalQC = roundUp025(curQC * ratio);
+
+            // Dump any rounding remainders into KT to make it exactly equal aiEstimatedDays
+            const tempSum = finalC + finalD3 + finalS + finalQC;
+            finalKT = aiEstimatedDays - tempSum;
+            if (finalKT < 0) finalKT = 0; // Safeguard
+
+            finalInternalWd = aiEstimatedDays;
+            finalBuffer = roundUp025(curBuffer * ratio); // Squashing buffer too to respect rush speed
+        }
+
         // Approximate calendar days: (WD / 5) * 7
         // Gối đầu: Triển khai chạy song song một phần với Sửa 3D (curBuffer).
         // Total WD is approximately internalWd + (curBuffer / 2) because of overlapping.
-        const totalWd = internalWd + (curBuffer / 2);
+        const totalWd = finalInternalWd + (finalBuffer / 2);
         const totalCalendar = Math.round((totalWd / 5) * 7);
 
         return {
-            internalWd,
-            bufferKh: curBuffer,
+            internalWd: finalInternalWd,
+            bufferKh: finalBuffer,
             totalCalendar,
-            phases: { c: curC, d3: curD3, s: curS, kt: curKT, qc: curQC }
+            phases: { c: finalC, d3: finalD3, s: finalS, kt: finalKT, qc: finalQC }
         };
     };
 
@@ -261,7 +293,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 style,
                 investment,
                 area,
-                phasesWd: timelineData.phases, // Send the exact calculated WD per phase to the backend
+                phasesWd: timelineData.phases, // Send the squashed WD per phase to backend
                 bufferKh: timelineData.bufferKh,
                 note: aiNote // Pass along context note
             };
