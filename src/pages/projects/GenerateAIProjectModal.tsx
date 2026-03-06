@@ -189,9 +189,31 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
         let curS = roundUp025(baseTrienKhai * 0.4);
         let curKT = roundUp025(baseTrienKhai * 0.6);
 
-        // MEP/Struct Penalty
-        if (hasMepStruct && !projectType.includes('Nhà phố') && !projectType.includes('Biệt thự')) {
-            curKT += 2.0;
+        // --- NEW BUSINESS RULES ---
+
+        // 1. Area increment: +3 days for every 100m2
+        if (numArea > 100) {
+            const extraHundreds = Math.floor(numArea / 100);
+            curKT += extraHundreds * 3;
+        }
+
+        // 2. MEP / Kết cấu Penalty
+        if (hasMepStruct) {
+            curKT += Math.max(3, roundUp025(numArea / 50)); // Minimum 3 days, scales with area
+        }
+
+        // 3. Chung cư (Apartment) Penalties
+        if (projectType.includes('Chung cư') || projectType.includes('Apartment')) {
+            // Hoàn thiện nội thất (S)
+            curS += 2;
+        }
+
+        // 4. Nhận nhà thô (Bare shell) Penalty 
+        // We check if the user wrote "thô" or "bare" in the notes or if it's implicitly a large villa
+        const isBareshell = (prompt + area).toLowerCase().includes('thô') || projectType.includes('Biệt thự') || projectType.includes('Nhà phố');
+        if (isBareshell) {
+            // Thi công thô + MEP hoàn thiện
+            curKT += 7;
         }
 
         // QC Time
