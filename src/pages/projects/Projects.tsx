@@ -77,12 +77,10 @@ export const Projects = () => {
     const filteredProjects = projects.filter(p => {
         // Role-based filtering
         const userRole = profile?.role;
-        const isUserProject = p.manager_id === profile?.id;
 
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            // Xem dự án mình làm manager, hoặc có task mình làm assignee/supporter
-            isVisible = isUserProject || filteredAllTasks.some(t => t.project_id === p.id);
+            isVisible = filteredAllTasks.some(t => t.project_id === p.id);
         }
 
         if (!isVisible) return false;

@@ -61,7 +61,6 @@ export const Gantt = () => {
                 );
 
                 fetchedProjects = fetchedProjects.filter(proj =>
-                    proj.manager_id === currentProfile?.id ||
                     fetchedTasks.some(task => task.project_id === proj.id)
                 );
             }
