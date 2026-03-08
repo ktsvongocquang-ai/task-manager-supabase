@@ -539,11 +539,9 @@ export const Tasks = () => {
                                                                     >
                                                                         <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                                                         <option value="Cần làm">Cần làm</option>
-                                                                        <option value="Đang làm">Đang làm</option>
                                                                         <option value="Đang thực hiện">Đang thực hiện</option>
                                                                         <option value="Hoàn thành">Hoàn thành</option>
                                                                         <option value="Tạm dừng">Tạm dừng</option>
-                                                                        <option value="Hủy bỏ">Hủy bỏ</option>
                                                                     </select>
                                                                 </td>
                                                                 <td className="px-4 py-3">
@@ -718,11 +716,9 @@ export const Tasks = () => {
                                                                                             >
                                                                                                 <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                                                                                 <option value="Cần làm">Cần làm</option>
-                                                                                                <option value="Đang làm">Đang làm</option>
                                                                                                 <option value="Đang thực hiện">Đang thực hiện</option>
                                                                                                 <option value="Hoàn thành">Hoàn thành</option>
                                                                                                 <option value="Tạm dừng">Tạm dừng</option>
-                                                                                                <option value="Hủy bỏ">Hủy bỏ</option>
                                                                                             </select>
                                                                                         </td>
 
