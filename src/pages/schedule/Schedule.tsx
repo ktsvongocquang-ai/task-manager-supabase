@@ -37,6 +37,7 @@ export const Schedule = () => {
 
     // Filters
     const [search, setSearch] = useState('')
+    const [selectedProject, setSelectedProject] = useState('all')
 
     useEffect(() => {
         fetchAll()
@@ -94,6 +95,8 @@ export const Schedule = () => {
 
         if (!isVisible) return false;
 
+        if (selectedProject !== 'all' && t.project_id !== selectedProject) return false;
+
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
 
@@ -139,6 +142,24 @@ export const Schedule = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
                 <h1 className="text-xl font-bold text-slate-800">Lịch Biểu</h1>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                    {/* Project Filter */}
+                    <div className="relative w-full sm:w-48">
+                        <select
+                            value={selectedProject}
+                            onChange={(e) => setSelectedProject(e.target.value)}
+                            className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
+                        >
+                            <option value="all">Tất cả dự án</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+
+                    {/* Search */}
                     <div className="relative flex-1 sm:w-64">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
