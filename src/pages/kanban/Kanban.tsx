@@ -297,12 +297,12 @@ export const Kanban = () => {
                                                             >
                                                                 <div className="flex justify-between items-start mb-2">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <span className="text-sm font-black text-slate-800 tracking-tight">
-                                                                            {task.task_code}
-                                                                        </span>
-                                                                        <h4 className="font-semibold text-slate-500 text-xs leading-tight group-hover:text-indigo-600 transition-colors">
+                                                                        <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-indigo-600 transition-colors">
                                                                             {task.name}
                                                                         </h4>
+                                                                        <span className="text-[10px] font-medium text-slate-500 tracking-tight">
+                                                                            {task.task_code}
+                                                                        </span>
                                                                     </div>
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap ml-2 ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                         task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
