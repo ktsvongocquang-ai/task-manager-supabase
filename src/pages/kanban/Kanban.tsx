@@ -158,22 +158,26 @@ export const Kanban = () => {
             const todayStr = today.toLocaleDateString('sv-SE');
 
             // Show if:
-            // 1. Status is 'Đang thực hiện', 'Cần làm', or 'Chờ duyệt'
-            // 2. Completed TODAY
-            // 3. Overdue or due today
-            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Cần làm' || t.status === 'Chờ duyệt';
+            // 1. Status is 'Đang thực hiện' or 'Chờ duyệt' (Active work)
+            // 2. Status is 'Cần làm' / 'Chưa bắt đầu' AND (Due today or Overdue)
+            // 3. Completed TODAY
+            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Chờ duyệt';
             const isCompletedToday = t.status === 'Hoàn thành' && t.completion_date === todayStr;
-            let isOverdueOrToday = false;
+            let isRelevantTodo = false;
 
-            if (t.due_date) {
-                const dueDate = new Date(t.due_date);
-                dueDate.setHours(0, 0, 0, 0);
-                if (dueDate <= today && t.status !== 'Hoàn thành') {
-                    isOverdueOrToday = true;
+            if (t.status === 'Cần làm' || t.status === 'Chưa bắt đầu') {
+                if (!t.due_date) {
+                    isRelevantTodo = true; // If no due date, keep it in Kanban
+                } else {
+                    const dueDate = new Date(t.due_date);
+                    dueDate.setHours(0, 0, 0, 0);
+                    if (dueDate <= today) {
+                        isRelevantTodo = true;
+                    }
                 }
             }
 
-            if (!isOngoing && !isCompletedToday && !isOverdueOrToday) return false;
+            if (!isOngoing && !isCompletedToday && !isRelevantTodo) return false;
         }
 
         return true;
