@@ -440,6 +440,17 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
+    const updateSubTaskAssignee = async (id: string, assigneeId: string) => {
+        const newVal = assigneeId || null;
+        setSubTasks(prev => prev.map(st => st.id === id ? { ...st, assignee_id: newVal } : st));
+        try {
+            const { error } = await supabase.from('tasks').update({ assignee_id: newVal }).eq('id', id);
+            if (error) throw error;
+        } catch (err) {
+            console.error('Error updating subtask assignee:', err);
+        }
+    };
+
     const onDragEndSubtasks = async (result: DropResult) => {
         if (!result.destination || !editingTask) return;
 
@@ -806,6 +817,16 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                     >
                                                                                         {st.name}
                                                                                     </button>
+                                                                                    <select
+                                                                                        value={st.assignee_id || ''}
+                                                                                        onChange={(e) => updateSubTaskAssignee(st.id, e.target.value)}
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        className="text-[10px] font-bold bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
+                                                                                        title="Chỉ định người phụ trách"
+                                                                                    >
+                                                                                        <option value="">--</option>
+                                                                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                                                                    </select>
                                                                                     <input
                                                                                         type="text"
                                                                                         value={st.task_code || ''}

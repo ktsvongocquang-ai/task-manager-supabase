@@ -284,14 +284,12 @@ export const Kanban = () => {
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                                 onClick={() => {
-                                                                    // Only open edit modal if we didn't just drag it
-                                                                    if (provided.dragHandleProps && !snapshot.isDragging) {
+                                                                    if (!snapshot.isDragging) {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
                                                                 className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group
                                                                     ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-2 scale-105 z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
-                                                                    ${!isDraggable && !snapshot.isDragging ? 'opacity-80 cursor-not-allowed' : ''}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
