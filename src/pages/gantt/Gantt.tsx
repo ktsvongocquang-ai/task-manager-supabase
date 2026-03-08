@@ -52,10 +52,22 @@ export const Gantt = () => {
             }
 
             let fetchedTasks = (t || []) as Task[];
+            let fetchedProjects = (p || []) as Project[];
+
             if (currentProfile?.role === 'Nhân viên') {
-                fetchedTasks = fetchedTasks.filter(task => task.assignee_id === currentProfile?.id || task.supporter_id === currentProfile?.id);
+                fetchedTasks = fetchedTasks.filter(task =>
+                    task.assignee_id === currentProfile?.id ||
+                    task.supporter_id === currentProfile?.id
+                );
+
+                fetchedProjects = fetchedProjects.filter(proj =>
+                    proj.manager_id === currentProfile?.id ||
+                    fetchedTasks.some(task => task.project_id === proj.id)
+                );
             }
+
             setTasks(fetchedTasks);
+            setProjects(fetchedProjects);
         } catch (err) {
             console.error(err)
         } finally {
