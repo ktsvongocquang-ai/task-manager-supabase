@@ -68,12 +68,12 @@ export const Projects = () => {
     });
 
     const getProjectProgress = (projectId: string) => {
-        const projTasks = filteredAllTasks.filter(t => t.project_id === projectId && !t.parent_id);
+        const projTasks = allTasks.filter(t => t.project_id === projectId && !t.parent_id);
         if (projTasks.length === 0) return 0;
 
         let totalPct = 0;
         projTasks.forEach(t => {
-            const subTasks = filteredAllTasks.filter(ct => ct.parent_id === t.id);
+            const subTasks = allTasks.filter(ct => ct.parent_id === t.id);
             const completedSub = subTasks.filter(st => st.status?.includes('Hoàn thành')).length;
             const displayPct = subTasks.length > 0 ? Math.round((completedSub / subTasks.length) * 100) : (t.completion_pct || 0);
             totalPct += displayPct;
@@ -449,8 +449,8 @@ export const Projects = () => {
                                 >
                                     <List size={14} className="text-indigo-400" />
                                     {(() => {
-                                        const parentTasks = filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id);
-                                        const allSubtasks = filteredAllTasks.filter(t => t.project_id === project.id && t.parent_id);
+                                        const parentTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
+                                        const allSubtasks = allTasks.filter(t => t.project_id === project.id && t.parent_id);
                                         const completedSubs = allSubtasks.filter(t => t.status?.includes('Hoàn thành')).length;
                                         return (
                                             <>
