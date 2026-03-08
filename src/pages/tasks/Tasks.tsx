@@ -81,15 +81,17 @@ export const Tasks = () => {
 
     const statusCounts = {
         'Chưa bắt đầu': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')).length,
-        'Đang thực hiện': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Đang') || t.status === 'Chờ duyệt')).length,
+        'Đang thực hiện': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Đang thực hiện')).length,
+        'Chờ duyệt': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chờ duyệt')).length,
         'Hoàn thành': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')).length,
         'Tạm dừng': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Tạm dừng') || t.status?.includes('Hủy'))).length,
     }
 
     const filteredTasks = baseFilteredTasks.filter(t => {
         if (!statusFilter) return true;
-        if (statusFilter === 'Chưa bắt đầu') return t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo';
-        if (statusFilter === 'Đang thực hiện') return t.status?.includes('Đang') || t.status === 'Chờ duyệt';
+        if (statusFilter === 'Chưa bắt đầu') return t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm';
+        if (statusFilter === 'Đang thực hiện') return t.status === 'Đang thực hiện';
+        if (statusFilter === 'Chờ duyệt') return t.status === 'Chờ duyệt';
         if (statusFilter === 'Hoàn thành') return t.status?.includes('Hoàn thành');
         if (statusFilter === 'Tạm dừng') return t.status?.includes('Tạm dừng') || t.status?.includes('Hủy');
         return t.status === statusFilter;
@@ -123,7 +125,8 @@ export const Tasks = () => {
 
     const getStatusBadge = (status: string) => {
         if (status?.includes('Hoàn thành')) return 'bg-emerald-500 text-white'
-        if (status?.includes('Đang')) return 'bg-blue-400 text-white'
+        if (status === 'Đang thực hiện') return 'bg-blue-400 text-white'
+        if (status === 'Chờ duyệt') return 'bg-indigo-400 text-white'
         if (status?.includes('Tạm dừng')) return 'bg-amber-400 text-white'
         if (status?.includes('Hủy')) return 'bg-red-400 text-white'
         return 'bg-slate-200 text-slate-600'
@@ -348,7 +351,7 @@ export const Tasks = () => {
             </div>
 
             {/* Status Tabs - Circular style like screenshot */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => (
                     <button
                         key={status}
@@ -358,7 +361,8 @@ export const Tasks = () => {
                     >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
                             status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
-                                status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                                status === 'Chờ duyệt' ? 'bg-indigo-50 text-indigo-600' :
+                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
                             }`}>
                             {count}
                         </div>
@@ -540,6 +544,7 @@ export const Tasks = () => {
                                                                         <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                                                         <option value="Cần làm">Cần làm</option>
                                                                         <option value="Đang thực hiện">Đang thực hiện</option>
+                                                                        <option value="Chờ duyệt">Chờ duyệt</option>
                                                                         <option value="Hoàn thành">Hoàn thành</option>
                                                                         <option value="Tạm dừng">Tạm dừng</option>
                                                                     </select>

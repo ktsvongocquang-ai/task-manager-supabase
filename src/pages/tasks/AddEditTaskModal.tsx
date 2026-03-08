@@ -590,6 +590,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                             <option value="Cần làm">Cần làm</option>
                                             <option value="Đang thực hiện">Đang thực hiện</option>
+                                            <option value="Chờ duyệt">Chờ duyệt</option>
                                             <option value="Hoàn thành">Hoàn thành</option>
                                             <option value="Tạm dừng">Tạm dừng</option>
                                         </select>
@@ -636,29 +637,37 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Assignee */}
+                            {/* Assignee Row */}
                             <div className="flex items-center min-h-[40px]">
                                 <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
                                     <User size={16} /> Chủ trì
                                 </div>
-                                <div className="flex-1 flex gap-2 items-center flex-wrap">
+                                <div className="flex-1">
                                     <select
                                         value={form.assignee_id}
                                         onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                        className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors w-full max-w-[300px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">Chọn chủ trì...</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
+                                </div>
+                            </div>
 
+                            {/* Supporter Row */}
+                            <div className="flex items-center min-h-[40px]">
+                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
+                                    <User size={16} className="text-emerald-500" /> Thực hiện
+                                </div>
+                                <div className="flex-1">
                                     <select
                                         value={form.supporter_id}
                                         onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors w-full max-w-[300px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="" className="text-slate-400 font-normal">+ Người thực hiện</option>
+                                        <option value="" className="text-slate-400 font-normal">Chọn người thực hiện...</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
@@ -924,6 +933,37 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         >
                             Hủy
                         </button>
+
+                        {editingTask && form.status === 'Chờ duyệt' && (
+                            currentUserProfile?.role === 'Admin' ||
+                            currentUserProfile?.role === 'Quản lý' ||
+                            projects.find(p => p.id === form.project_id)?.manager_id === currentUserProfile?.id ||
+                            editingTask.assignee_id === currentUserProfile?.id
+                        ) && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            const { error } = await supabase.from('tasks').update({
+                                                status: 'Hoàn thành',
+                                                completion_pct: 100,
+                                                completion_date: new Date().toISOString().split('T')[0]
+                                            }).eq('id', editingTask.id);
+
+                                            if (error) throw error;
+                                            await logActivity('Duyệt nhiệm vụ', `Đã duyệt hoàn thành (Nhiệm vụ: ${form.name})`, form.project_id);
+                                            onSaved();
+                                            onClose();
+                                        } catch (err) {
+                                            console.error('Error approving task:', err);
+                                            alert('Lỗi khi duyệt nhiệm vụ.');
+                                        }
+                                    }}
+                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                                >
+                                    <CheckCircle2 size={18} /> Duyệt Hoàn Thành
+                                </button>
+                            )}
+
                         <button
                             onClick={handleSave}
                             className="px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
