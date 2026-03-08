@@ -444,11 +444,6 @@ export const Gantt = () => {
                                                         {item.isExpanded ? <ChevronDown size={14} className="text-slate-400 shrink-0" /> : <ChevronRight size={14} className="text-slate-400 shrink-0" />}
                                                         <Folder size={14} className="text-blue-500 fill-blue-500 shrink-0" />
                                                         <span className="text-xs font-bold text-slate-700 truncate" title={item.name}>{item.name}</span>
-                                                        {item.taskCount > 0 && (
-                                                            <span className="ml-auto bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full text-[10px] font-bold shadow-sm ring-1 ring-blue-100">
-                                                                {item.taskCount}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="flex items-start gap-3 w-full pl-6">
@@ -492,6 +487,9 @@ export const Gantt = () => {
                                                                 </span>
                                                             </div>
                                                         </div>
+                                                        <span className="ml-auto text-red-500 font-bold text-xs uppercase bg-red-50 px-2 py-0.5 rounded">
+                                                            Task
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
