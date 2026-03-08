@@ -6,6 +6,7 @@ import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalL
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
+import { logActivity } from '../../services/activity'
 
 export const Tasks = () => {
     const { profile } = useAuthStore()
@@ -79,10 +80,10 @@ export const Tasks = () => {
     })
 
     const statusCounts = {
-        'Chưa bắt đầu': baseFilteredTasks.filter(t => t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo').length,
-        'Đang thực hiện': baseFilteredTasks.filter(t => t.status?.includes('Đang') || t.status === 'Chờ duyệt').length,
-        'Hoàn thành': baseFilteredTasks.filter(t => t.status?.includes('Hoàn thành')).length,
-        'Tạm dừng': baseFilteredTasks.filter(t => t.status?.includes('Tạm dừng') || t.status?.includes('Hủy')).length,
+        'Chưa bắt đầu': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')).length,
+        'Đang thực hiện': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Đang') || t.status === 'Chờ duyệt')).length,
+        'Hoàn thành': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')).length,
+        'Tạm dừng': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Tạm dừng') || t.status?.includes('Hủy'))).length,
     }
 
     const filteredTasks = baseFilteredTasks.filter(t => {
@@ -194,6 +195,25 @@ export const Tasks = () => {
 
         if (error) console.error(error)
         fetchAll()
+    }
+
+    const updateTaskField = async (taskId: string, field: string, value: any) => {
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t));
+
+        try {
+            const { error } = await supabase.from('tasks').update({ [field]: value }).eq('id', taskId);
+            if (error) throw error;
+
+            // Log activity if needed
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                await logActivity('Sửa nhanh', `Cập nhật ${field}: ${value} (Nhiệm vụ: ${task.name})`, task.project_id);
+            }
+        } catch (err) {
+            console.error(`Error updating task ${field}:`, err);
+            fetchAll(); // Revert on error
+        }
     }
 
     const handleDelete = async (id: string) => {
@@ -497,18 +517,47 @@ export const Tasks = () => {
                                                                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
                                                                             {getAssigneeName(t.assignee_id).charAt(0)}
                                                                         </div>
-                                                                        {getAssigneeName(t.assignee_id)}
+                                                                        <select
+                                                                            value={t.assignee_id || ''}
+                                                                            onChange={(e) => updateTaskField(t.id, 'assignee_id', e.target.value || null)}
+                                                                            className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <option value="">Chưa gán</option>
+                                                                            {profiles.map(p => (
+                                                                                <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                                                            ))}
+                                                                        </select>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm ${getStatusBadge(t.status)}`}>
-                                                                        {t.status}
-                                                                    </span>
+                                                                    <select
+                                                                        value={t.status}
+                                                                        onChange={(e) => updateTaskField(t.id, 'status', e.target.value)}
+                                                                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(t.status)}`}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                                                        <option value="Cần làm">Cần làm</option>
+                                                                        <option value="Đang làm">Đang làm</option>
+                                                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                                                        <option value="Hoàn thành">Hoàn thành</option>
+                                                                        <option value="Tạm dừng">Tạm dừng</option>
+                                                                        <option value="Hủy bỏ">Hủy bỏ</option>
+                                                                    </select>
                                                                 </td>
                                                                 <td className="px-4 py-3">
-                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(t.priority)}`}>
-                                                                        {t.priority}
-                                                                    </span>
+                                                                    <select
+                                                                        value={t.priority}
+                                                                        onChange={(e) => updateTaskField(t.id, 'priority', e.target.value)}
+                                                                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(t.priority)}`}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <option value="Thấp">Thấp</option>
+                                                                        <option value="Trung bình">Trung bình</option>
+                                                                        <option value="Cao">Cao</option>
+                                                                        <option value="Khẩn cấp">Khẩn cấp</option>
+                                                                    </select>
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <div className="flex items-center gap-2">
@@ -645,22 +694,51 @@ export const Tasks = () => {
                                                                                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.assignee_id).charAt(0)}
                                                                                                 </div>
-                                                                                                <span>{getAssigneeName(child.assignee_id)}</span>
+                                                                                                <select
+                                                                                                    value={child.assignee_id || ''}
+                                                                                                    onChange={(e) => updateTaskField(child.id, 'assignee_id', e.target.value || null)}
+                                                                                                    className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                >
+                                                                                                    <option value="">Chưa gán</option>
+                                                                                                    {profiles.map(p => (
+                                                                                                        <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                                                                                    ))}
+                                                                                                </select>
                                                                                             </div>
                                                                                         </td>
 
                                                                                         {/* 5. Status */}
                                                                                         <td className="px-4 py-3 relative z-10">
-                                                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm ${getStatusBadge(child.status)}`}>
-                                                                                                {child.status}
-                                                                                            </span>
+                                                                                            <select
+                                                                                                value={child.status}
+                                                                                                onChange={(e) => updateTaskField(child.id, 'status', e.target.value)}
+                                                                                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(child.status)}`}
+                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                            >
+                                                                                                <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                                                                                <option value="Cần làm">Cần làm</option>
+                                                                                                <option value="Đang làm">Đang làm</option>
+                                                                                                <option value="Đang thực hiện">Đang thực hiện</option>
+                                                                                                <option value="Hoàn thành">Hoàn thành</option>
+                                                                                                <option value="Tạm dừng">Tạm dừng</option>
+                                                                                                <option value="Hủy bỏ">Hủy bỏ</option>
+                                                                                            </select>
                                                                                         </td>
 
                                                                                         {/* 6. Priority */}
                                                                                         <td className="px-4 py-3 relative z-10">
-                                                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${getPriorityBadge(child.priority)}`}>
-                                                                                                {child.priority}
-                                                                                            </span>
+                                                                                            <select
+                                                                                                value={child.priority}
+                                                                                                onChange={(e) => updateTaskField(child.id, 'priority', e.target.value)}
+                                                                                                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(child.priority)}`}
+                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                            >
+                                                                                                <option value="Thấp">Thấp</option>
+                                                                                                <option value="Trung bình">Trung bình</option>
+                                                                                                <option value="Cao">Cao</option>
+                                                                                                <option value="Khẩn cấp">Khẩn cấp</option>
+                                                                                            </select>
                                                                                         </td>
 
                                                                                         {/* 7. Progress */}

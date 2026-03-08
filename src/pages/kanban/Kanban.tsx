@@ -9,7 +9,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { DropResult } from '@hello-pangea/dnd'
 
 const KANBAN_COLUMNS = [
-    { id: 'Cần làm', title: 'Cần làm', matchStatuses: ['Chưa bắt đầu', 'Cần làm'] },
+    { id: 'Cần làm', title: 'Cần làm', matchStatuses: ['Cần làm', 'Chưa bắt đầu'] },
     { id: 'Đang làm', title: 'Đang làm', matchStatuses: ['Đang thực hiện', 'Đang làm', 'Tạm dừng'] },
     { id: 'Chờ duyệt', title: 'Chờ duyệt', matchStatuses: ['Chờ duyệt'] },
     { id: 'Hoàn thành', title: 'Hoàn thành', matchStatuses: ['Hoàn thành', 'Hủy'] }

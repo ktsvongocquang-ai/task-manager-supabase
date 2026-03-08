@@ -588,6 +588,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px]"
                                         >
                                             <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                            <option value="Cần làm">Cần làm</option>
                                             <option value="Đang làm">Đang làm</option>
                                             <option value="Đang thực hiện">Đang thực hiện</option>
                                             <option value="Hoàn thành">Hoàn thành</option>
