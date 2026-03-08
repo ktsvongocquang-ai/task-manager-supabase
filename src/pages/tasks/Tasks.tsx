@@ -387,7 +387,7 @@ export const Tasks = () => {
                                         })()}
                                     </h3>
                                     <span className="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-indigo-100">
-                                        {projectTasks.length} NHIỆM VỤ
+                                        {projectTasks.filter(t => !t.parent_id).length} NHIỆM VỤ
                                     </span>
                                 </div>
                                 {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
