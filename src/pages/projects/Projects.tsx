@@ -448,7 +448,11 @@ export const Projects = () => {
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-50 transition-all text-xs font-bold w-auto"
                                 >
                                     <List size={14} className="text-indigo-400" />
-                                    {filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id).length} nhiệm vụ
+                                    {(() => {
+                                        const projectTasks = filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id);
+                                        const completed = projectTasks.filter(t => t.status?.includes('Hoàn thành')).length;
+                                        return `${completed}/${projectTasks.length} nhiệm vụ`;
+                                    })()}
                                 </button>
                             </div>
                         </div>
