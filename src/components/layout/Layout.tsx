@@ -4,7 +4,6 @@ import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
     LayoutDashboard,
-    GanttChart,
     FolderKanban,
     Users,
     LogOut,
@@ -20,8 +19,6 @@ import {
     Bell, // Added Bell icon
     History as HistoryIcon,
     Kanban as KanbanIcon,
-    CalendarDays,
-    ListTodo,
     X,
     Send
 } from 'lucide-react'
@@ -153,10 +150,7 @@ export const Layout = () => {
     }
 
     const navItems = [
-        { name: 'Hôm nay (Kanban)', path: '/kanban', icon: KanbanIcon },
-        { name: 'Danh sách', path: '/tasks', icon: ListTodo },
-        { name: 'Lịch trình', path: '/schedule', icon: CalendarDays },
-        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
+        { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt'] },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
         { name: 'Thống kê (Dashboard)', path: '/dashboard', icon: LayoutDashboard },
     ]
@@ -230,26 +224,35 @@ export const Layout = () => {
 
                 {/* Navigation Menu */}
                 <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
-                    {navItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={({ isActive }) =>
-                                `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                                }`
+                    {navItems.map((item) => {
+                        const isMatch = (path: string) => {
+                            if (item.matchPrefix) {
+                                return item.matchPrefix.some(prefix => path.startsWith(prefix));
                             }
-                        >
-                            {({ isActive }) => (
-                                <>
-                                    <item.icon className={`mr-3 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
-                                    <span>{item.name}</span>
-                                </>
-                            )}
-                        </NavLink>
-                    ))}
+                            return path === item.path;
+                        };
+
+                        return (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className={() =>
+                                    `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                                    }`
+                                }
+                            >
+                                {() => (
+                                    <>
+                                        <item.icon className={`mr-3 ${isMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
+                                        <span>{item.name}</span>
+                                    </>
+                                )}
+                            </NavLink>
+                        )
+                    })}
                 </nav>
 
                 {/* Sidebar Footer */}
@@ -276,7 +279,25 @@ export const Layout = () => {
                             >
                                 <Menu size={20} />
                             </button>
-                            <h2 className="text-xl font-bold text-gray-900">{currentTitle()}</h2>
+                            <h2 className="text-xl font-bold text-gray-900 min-w-[150px]">{currentTitle()}</h2>
+
+                            {/* Horizontal Tabs for Task Views - Only show if current path is one of the task views */}
+                            {['/kanban', '/tasks', '/schedule', '/gantt'].includes(location.pathname) && (
+                                <div className="hidden md:flex items-center ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50">
+                                    <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Kanban
+                                    </NavLink>
+                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Danh sách
+                                    </NavLink>
+                                    <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Lịch trình
+                                    </NavLink>
+                                    <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Sơ đồ Gantt
+                                    </NavLink>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center space-x-3">
