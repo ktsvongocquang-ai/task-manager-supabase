@@ -188,7 +188,7 @@ export const Tasks = () => {
         const isCompleted = task.status?.includes('Hoàn thành')
         const newStatus = isCompleted ? 'Đang thực hiện' : 'Hoàn thành'
         const newPct = isCompleted ? 50 : 100
-        const newDate = !isCompleted ? new Date().toISOString().split('T')[0] : null
+        const newDate = !isCompleted ? new Date().toLocaleDateString('sv-SE') : null
 
         const { error } = await supabase.from('tasks').update({
             status: newStatus,

@@ -120,7 +120,7 @@ export const Kanban = () => {
         const { error } = await supabase.from('tasks').update({
             status: newStatus,
             completion_pct: isCompleted ? 100 : task.completion_pct,
-            completion_date: isCompleted ? new Date().toISOString().split('T')[0] : null
+            completion_date: isCompleted ? new Date().toLocaleDateString('sv-SE') : null
         }).eq('id', taskId);
 
         if (error) {
@@ -155,9 +155,14 @@ export const Kanban = () => {
         if (dateFilter === 'today') {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
+            const todayStr = today.toLocaleDateString('sv-SE');
 
-            // Show if due date is today or before (overdue), or status is 'Đang thực hiện', 'Cần làm', or 'Chờ duyệt'
+            // Show if:
+            // 1. Status is 'Đang thực hiện', 'Cần làm', or 'Chờ duyệt'
+            // 2. Completed TODAY
+            // 3. Overdue or due today
             const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Cần làm' || t.status === 'Chờ duyệt';
+            const isCompletedToday = t.status === 'Hoàn thành' && t.completion_date === todayStr;
             let isOverdueOrToday = false;
 
             if (t.due_date) {
@@ -168,7 +173,7 @@ export const Kanban = () => {
                 }
             }
 
-            if (!isOngoing && !isOverdueOrToday) return false;
+            if (!isOngoing && !isCompletedToday && !isOverdueOrToday) return false;
         }
 
         return true;
