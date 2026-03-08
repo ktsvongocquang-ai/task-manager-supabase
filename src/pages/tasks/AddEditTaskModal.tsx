@@ -247,6 +247,39 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 }
             }
 
+            const newSupporterId = form.supporter_id;
+            if (newSupporterId && newSupporterId !== currentUserProfile?.id) {
+                // Check if it's a new supporter assignment
+                const isNewSupporter = !editingTask || (editingTask.supporter_id !== newSupporterId);
+                if (isNewSupporter) {
+                    await createNotification(
+                        newSupporterId,
+                        `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm người hỗ trợ nhiệm vụ: "${form.name}"`,
+                        'assignment',
+                        currentUserProfile?.id,
+                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
+                        form.project_id
+                    );
+
+                    // Gửi thông báo qua Telegram ngầm cho người hỗ trợ
+                    try {
+                        const taskLink = `${window.location.origin}/tasks`;
+                        const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
+
+                        fetch('/api/send-telegram', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: newSupporterId,
+                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người hỗ trợ cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                taskUrl: taskLink
+                            })
+                        }).catch(e => console.error('Lỗi gọi Telegram API:', e));
+                    } catch (e) {
+                        console.error('Lỗi thiết lập thông báo Telegram:', e);
+                    }
+                }
+            }
             // --- Logging ---
             if (editingTask) {
                 let changes = [];
