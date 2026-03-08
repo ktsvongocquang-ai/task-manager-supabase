@@ -129,7 +129,7 @@ export const Kanban = () => {
         }
         if (!isVisible) return false;
 
-        // Removed the parent_id filter so standalone tasks and all items sync globally
+        if (t.parent_id) return false;
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())

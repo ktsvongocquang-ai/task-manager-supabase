@@ -159,7 +159,7 @@ export const Gantt = () => {
                     color: 'bg-red-500',
                     isProject: true,
                     isExpanded: expandedProjects.has(p.id),
-                    taskCount: tasks.filter(t => t.project_id === p.id).length,
+                    taskCount: tasks.filter(t => t.project_id === p.id && !t.parent_id).length,
                     startDate: startDate,
                     endDate: endDate,
                     type: 'project',
@@ -168,7 +168,7 @@ export const Gantt = () => {
             }
 
             if (expandedProjects.has(p.id)) {
-                const projectTasks = tasks.filter(t => t.project_id === p.id).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                const projectTasks = tasks.filter(t => t.project_id === p.id && !t.parent_id).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
                 projectTasks.forEach(t => {
                     const tStart = t.start_date ? new Date(t.start_date) : null
                     const tEnd = t.due_date ? new Date(t.due_date) : null

@@ -68,36 +68,43 @@ export const Projects = () => {
     });
 
     const getProjectProgress = (projectId: string) => {
-        const projTasks = filteredAllTasks.filter(t => t.project_id === projectId)
-        if (projTasks.length === 0) return 0
-        const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
-        return Math.round((done / projTasks.length) * 100)
+        const projTasks = filteredAllTasks.filter(t => t.project_id === projectId && !t.parent_id);
+        if (projTasks.length === 0) return 0;
+
+        let totalPct = 0;
+        projTasks.forEach(t => {
+            const subTasks = filteredAllTasks.filter(ct => ct.parent_id === t.id);
+            const completedSub = subTasks.filter(st => st.status?.includes('Hoàn thành')).length;
+            const displayPct = subTasks.length > 0 ? Math.round((completedSub / subTasks.length) * 100) : (t.completion_pct || 0);
+            totalPct += displayPct;
+        });
+
+        return Math.round(totalPct / projTasks.length);
     }
 
-    const filteredProjects = projects.filter(p => {
-        // Role-based filtering
+    const baseFilteredProjects = projects.filter(p => {
         const userRole = profile?.role;
-
         let isVisible = true;
         if (userRole === 'Nhân viên') {
             isVisible = filteredAllTasks.some(t => t.project_id === p.id);
         }
+        return isVisible;
+    });
 
-        if (!isVisible) return false;
+    const statusCounts = {
+        'Chưa bắt đầu': baseFilteredProjects.filter(p => p.status === 'Chưa bắt đầu' || p.status === 'Mới').length,
+        'Đang thực hiện': baseFilteredProjects.filter(p => p.status === 'Đang thực hiện').length,
+        'Hoàn thành': baseFilteredProjects.filter(p => p.status === 'Hoàn thành').length,
+        'Tạm dừng': baseFilteredProjects.filter(p => p.status === 'Tạm dừng').length,
+        'Hủy bỏ': baseFilteredProjects.filter(p => p.status === 'Hủy bỏ').length,
+    }
 
+    const filteredProjects = baseFilteredProjects.filter(p => {
         const matchSearch = (p.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (p.project_code || '').toLowerCase().includes(search.toLowerCase())
         const matchStatus = statusFilter ? p.status === statusFilter : true
         return matchSearch && matchStatus
     })
-
-    const statusCounts = {
-        'Chưa bắt đầu': projects.filter(p => p.status === 'Chưa bắt đầu' || p.status === 'Mới').length,
-        'Đang thực hiện': projects.filter(p => p.status === 'Đang thực hiện').length,
-        'Hoàn thành': projects.filter(p => p.status === 'Hoàn thành').length,
-        'Tạm dừng': projects.filter(p => p.status === 'Tạm dừng').length,
-        'Hủy bỏ': projects.filter(p => p.status === 'Hủy bỏ').length,
-    }
 
     const generateNextProjectCode = () => {
         let maxId = 0;
@@ -441,7 +448,7 @@ export const Projects = () => {
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-50 transition-all text-xs font-bold w-auto"
                                 >
                                     <List size={14} className="text-indigo-400" />
-                                    {filteredAllTasks.filter(t => t.project_id === project.id).length} nhiệm vụ
+                                    {filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id).length} nhiệm vụ
                                 </button>
                             </div>
                         </div>
