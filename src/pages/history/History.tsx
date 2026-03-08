@@ -120,7 +120,7 @@ export const History = () => {
 
                     {/* User Filter */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Người thực hiện</label>
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Chủ trì</label>
                         <select
                             value={userFilter}
                             onChange={(e) => setUserFilter(e.target.value)}
@@ -156,7 +156,7 @@ export const History = () => {
                                 <tr className="border-b border-slate-200 bg-slate-50">
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Ngày giờ</th>
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-32 uppercase tracking-wider">Thao tác</th>
-                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Người thực hiện</th>
+                                    <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Chủ trì</th>
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 uppercase tracking-wider">Dự án</th>
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 uppercase tracking-wider">Nội dung thực hiện</th>
                                 </tr>

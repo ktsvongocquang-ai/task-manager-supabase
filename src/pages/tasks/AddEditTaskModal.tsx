@@ -254,14 +254,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 if (isNewSupporter) {
                     await createNotification(
                         newSupporterId,
-                        `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm người hỗ trợ nhiệm vụ: "${form.name}"`,
+                        `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm Người thực hiện nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
                         editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
                         form.project_id
                     );
 
-                    // Gửi thông báo qua Telegram ngầm cho người hỗ trợ
+                    // Gửi thông báo qua Telegram ngầm cho Người thực hiện
                     try {
                         const taskLink = `${window.location.origin}/tasks`;
                         const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
@@ -271,7 +271,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId: newSupporterId,
-                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người hỗ trợ cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người thực hiện cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
                                 taskUrl: taskLink
                             })
                         }).catch(e => console.error('Lỗi gọi Telegram API:', e));
@@ -292,12 +292,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 if ((editingTask.assignee_id || '') !== (form.assignee_id || '')) {
                     const oldAssignee = profiles.find(p => p.id === editingTask.assignee_id)?.full_name || 'Trống';
                     const newAssignee = profiles.find(p => p.id === form.assignee_id)?.full_name || 'Trống';
-                    changes.push(`Phụ trách: ${oldAssignee} -> ${newAssignee}`);
+                    changes.push(`Chủ trì: ${oldAssignee} -> ${newAssignee}`);
                 }
                 if ((editingTask.supporter_id || '') !== (form.supporter_id || '')) {
                     const oldSup = profiles.find(p => p.id === editingTask.supporter_id)?.full_name || 'Trống';
                     const newSup = profiles.find(p => p.id === form.supporter_id)?.full_name || 'Trống';
-                    changes.push(`Người hỗ trợ: ${oldSup} -> ${newSup}`);
+                    changes.push(`Người thực hiện: ${oldSup} -> ${newSup}`);
                 }
                 if (editingTask.priority !== form.priority) {
                     changes.push(`Ưu tiên: ${editingTask.priority || 'Trống'} -> ${form.priority}`);
@@ -640,7 +640,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Assignee */}
                             <div className="flex items-center min-h-[40px]">
                                 <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <User size={16} /> Phụ trách
+                                    <User size={16} /> Chủ trì
                                 </div>
                                 <div className="flex-1 flex gap-2 items-center flex-wrap">
                                     <select
@@ -649,7 +649,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="" className="text-slate-400 font-normal">Chọn người phụ trách...</option>
+                                        <option value="" className="text-slate-400 font-normal">Chọn chủ trì...</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
 
@@ -659,7 +659,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors flex-1 w-auto min-w-[200px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="" className="text-slate-400 font-normal">+ Hỗ trợ (Tùy chọn)</option>
+                                        <option value="" className="text-slate-400 font-normal">+ Người thực hiện</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
@@ -822,7 +822,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         onChange={(e) => updateSubTaskAssignee(st.id, e.target.value)}
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                         className="text-[10px] font-bold bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
-                                                                                        title="Chỉ định người phụ trách"
+                                                                                        title="Chỉ định người thực hiện"
                                                                                     >
                                                                                         <option value="">--</option>
                                                                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
