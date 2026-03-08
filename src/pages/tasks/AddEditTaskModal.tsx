@@ -934,7 +934,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             Hủy
                         </button>
 
-                        {editingTask && form.status === 'Chờ duyệt' && (
+                        {editingTask && form.status === 'Chờ duyệt' && currentUserProfile?.role !== 'Nhân viên' && (
                             currentUserProfile?.role === 'Admin' ||
                             currentUserProfile?.role === 'Quản lý' ||
                             projects.find(p => p.id === form.project_id)?.manager_id === currentUserProfile?.id ||
@@ -946,7 +946,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             const { error } = await supabase.from('tasks').update({
                                                 status: 'Hoàn thành',
                                                 completion_pct: 100,
-                                                completion_date: new Date().toISOString().split('T')[0]
+                                                completion_date: new Date().toLocaleDateString('sv-SE')
                                             }).eq('id', editingTask.id);
 
                                             if (error) throw error;
