@@ -449,9 +449,17 @@ export const Projects = () => {
                                 >
                                     <List size={14} className="text-indigo-400" />
                                     {(() => {
-                                        const projectTasks = filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id);
-                                        const completed = projectTasks.filter(t => t.status?.includes('Hoàn thành')).length;
-                                        return `${completed}/${projectTasks.length} nhiệm vụ`;
+                                        const parentTasks = filteredAllTasks.filter(t => t.project_id === project.id && !t.parent_id);
+                                        const allSubtasks = filteredAllTasks.filter(t => t.project_id === project.id && t.parent_id);
+                                        const completedSubs = allSubtasks.filter(t => t.status?.includes('Hoàn thành')).length;
+                                        return (
+                                            <>
+                                                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-black">
+                                                    {completedSubs}/{allSubtasks.length}
+                                                </span>
+                                                {parentTasks.length} nhiệm vụ
+                                            </>
+                                        );
                                     })()}
                                 </button>
                             </div>
