@@ -658,7 +658,11 @@ export const Gantt = () => {
             <AddEditTaskModal
                 isOpen={isEditModalOpen}
                 onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }}
-                onSaved={fetchData}
+                onSaved={() => {
+                    setIsEditModalOpen(false);
+                    setEditingTask(null);
+                    fetchData();
+                }}
                 editingTask={editingTask}
                 initialData={{ task_code: '', project_id: '' }}
                 profiles={profiles}
