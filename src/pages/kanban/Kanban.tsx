@@ -10,9 +10,9 @@ import type { DropResult } from '@hello-pangea/dnd'
 
 const KANBAN_COLUMNS = [
     { id: 'Cần làm', title: 'Cần làm', matchStatuses: ['Cần làm', 'Chưa bắt đầu'] },
-    { id: 'Đang làm', title: 'Đang làm', matchStatuses: ['Đang thực hiện', 'Đang làm', 'Tạm dừng'] },
+    { id: 'Đang thực hiện', title: 'Đang thực hiện', matchStatuses: ['Đang thực hiện', 'Tạm dừng'] },
     { id: 'Chờ duyệt', title: 'Chờ duyệt', matchStatuses: ['Chờ duyệt'] },
-    { id: 'Hoàn thành', title: 'Hoàn thành', matchStatuses: ['Hoàn thành', 'Hủy'] }
+    { id: 'Hoàn thành', title: 'Hoàn thành', matchStatuses: ['Hoàn thành'] }
 ]
 
 export const Kanban = () => {
@@ -103,8 +103,8 @@ export const Kanban = () => {
 
         // Determine exact status mapped to column
         let newStatus = toColumnId;
-        if (toColumnId === 'Cần làm') newStatus = 'Chưa bắt đầu';
-        if (toColumnId === 'Đang làm') newStatus = 'Đang thực hiện';
+        if (toColumnId === 'Cần làm') newStatus = 'Cần làm';
+        if (toColumnId === 'Đang thực hiện') newStatus = 'Đang thực hiện';
 
         const isCompleted = toColumnId === 'Hoàn thành';
 
@@ -155,14 +155,14 @@ export const Kanban = () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Show if due date is today or before (overdue), or status is 'Đang thực hiện'
-            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Đang làm';
+            // Show if due date is today or before (overdue), or status is 'Đang thực hiện' or 'Cần làm'
+            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Cần làm';
             let isOverdueOrToday = false;
 
             if (t.due_date) {
                 const dueDate = new Date(t.due_date);
                 dueDate.setHours(0, 0, 0, 0);
-                if (dueDate <= today && t.status !== 'Hoàn thành' && t.status !== 'Hủy') {
+                if (dueDate <= today && t.status !== 'Hoàn thành') {
                     isOverdueOrToday = true;
                 }
             }

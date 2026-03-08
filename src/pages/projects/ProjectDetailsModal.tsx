@@ -152,7 +152,11 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                             {tasksWithProgress.map(task => {
                                 const statusStyle = getStatusStyle(task);
                                 return (
-                                    <div key={task.id} className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col`}>
+                                    <div
+                                        key={task.id}
+                                        onClick={() => onEditTask(task)}
+                                        className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                    >
 
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex gap-3">
@@ -201,17 +205,26 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
 
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto pb-1">
                                                     {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                        <button onClick={() => onCopyTask(task)} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); onCopyTask(task); }}
+                                                            className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50"
+                                                        >
                                                             <Copy size={14} />
                                                         </button>
                                                     )}
                                                     {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) && (
-                                                        <button onClick={() => onEditTask(task)} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-50">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
+                                                            className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-50"
+                                                        >
                                                             <Edit3 size={14} />
                                                         </button>
                                                     )}
                                                     {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                        <button onClick={() => onDeleteTask(task.id)} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 shadow-sm border border-red-50">
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
+                                                            className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 shadow-sm border border-red-50"
+                                                        >
                                                             <Trash2 size={14} />
                                                         </button>
                                                     )}
