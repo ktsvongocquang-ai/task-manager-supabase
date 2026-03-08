@@ -573,6 +573,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <AlignLeft size={20} />
                                 </div>
                                 {editingTask ? (
+                                    <>
                                         <input
                                             type="text"
                                             value={form.name}
@@ -597,6 +598,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                 {isRefining === 'name' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                                             </button>
                                         </div>
+                                    </>
                                 ) : (
                                     <h2 className="text-2xl font-bold text-slate-800">
                                         Tạo Công Việc Mới
