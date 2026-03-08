@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -49,6 +49,82 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     // Deep link state for subtasks
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
+
+    // AI & Speech states
+    const [isListening, setIsListening] = useState<'name' | 'description' | null>(null);
+    const [isRefining, setIsRefining] = useState<'name' | 'description' | null>(null);
+
+    const handleSpeechToText = (field: 'name' | 'description') => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+            return;
+        }
+
+        if (isListening === field) {
+            // Logic to stop listener if we need toggle, but standard implementation is one-shot or until end
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setIsListening(field);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setForm(prev => ({
+                ...prev,
+                [field]: prev[field as keyof typeof prev] ? `${prev[field as keyof typeof prev]} ${transcript}` : transcript
+            }));
+            setIsListening(null);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(null);
+        };
+
+        recognition.onend = () => {
+            setIsListening(null);
+        };
+
+        recognition.start();
+    };
+
+    const handleAIRefine = async (field: 'name' | 'description') => {
+        const textToRefine = form[field as keyof typeof form];
+        if (!textToRefine) {
+            alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
+            return;
+        }
+
+        setIsRefining(field);
+        try {
+            const res = await fetch('/api/refine-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToRefine, field })
+            });
+
+            if (!res.ok) throw new Error('Failed to refine text');
+
+            const data = await res.json();
+            if (data.refinedText) {
+                setForm(prev => ({ ...prev, [field]: data.refinedText }));
+            }
+        } catch (error) {
+            console.error('AI Refine error:', error);
+            alert("Lỗi khi AI tinh chỉnh nội dung.");
+        } finally {
+            setIsRefining(field);
+            setIsRefining(null);
+        }
+    };
 
     const handleOpenDeepLink = async (subtaskId: string) => {
         const { data } = await supabase.from('tasks').select('*').eq('id', subtaskId).single();
@@ -497,13 +573,30 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <AlignLeft size={20} />
                                 </div>
                                 {editingTask ? (
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                        className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-full min-w-[300px] transition-colors"
-                                        placeholder="Nhập tiêu đề công việc..."
-                                    />
+                                        <input
+                                            type="text"
+                                            value={form.name}
+                                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                            className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-[300px] transition-colors"
+                                            placeholder="Nhập tiêu đề công việc..."
+                                        />
+                                        <div className="flex gap-1 ml-2">
+                                            <button
+                                                onClick={() => handleSpeechToText('name')}
+                                                className={`p-1.5 rounded-lg transition-colors ${isListening === 'name' ? 'bg-red-50 text-red-500 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                                                title="Ghi âm tiêu đề"
+                                            >
+                                                {isListening === 'name' ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAIRefine('name')}
+                                                disabled={isRefining === 'name'}
+                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
+                                                title="AI tinh chỉnh"
+                                            >
+                                                {isRefining === 'name' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                            </button>
+                                        </div>
                                 ) : (
                                     <h2 className="text-2xl font-bold text-slate-800">
                                         Tạo Công Việc Mới
@@ -737,13 +830,30 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0 mt-2">
                                     <AlignLeft size={16} /> Mô tả
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 relative group/desc">
                                     <textarea
                                         value={form.description}
                                         onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all min-h-[80px] resize-none"
+                                        className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all min-h-[120px] resize-none"
                                         placeholder="Thêm mô tả chi tiết cho nhiệm vụ này..."
                                     />
+                                    <div className="absolute right-3 bottom-3 flex gap-2">
+                                        <button
+                                            onClick={() => handleSpeechToText('description')}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                            title="Ghi âm mô tả"
+                                        >
+                                            {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
+                                        </button>
+                                        <button
+                                            onClick={() => handleAIRefine('description')}
+                                            disabled={isRefining === 'description'}
+                                            className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                            title="AI tinh chỉnh"
+                                        >
+                                            {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
