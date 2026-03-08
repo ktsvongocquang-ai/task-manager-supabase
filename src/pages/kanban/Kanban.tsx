@@ -80,10 +80,8 @@ export const Kanban = () => {
         setShowModal(true)
     }
 
-    const openAddModalWithStatus = (columnId: string) => {
-        let initialStatus = columnId;
-        if (columnId === 'Cần làm') initialStatus = 'Chưa bắt đầu';
-        if (columnId === 'Đang làm') initialStatus = 'Đang thực hiện';
+    const openAddModalWithStatus = () => {
+        // initialStatus logic was here, removed because AddEditTaskModal doesn't accept initial custom status.
 
         setEditingTask(null)
         setInitialTaskData({ task_code: '', project_id: '' })
@@ -251,7 +249,7 @@ export const Kanban = () => {
                                         </span>
                                     </div>
                                     <button
-                                        onClick={() => openAddModalWithStatus(column.id)}
+                                        onClick={() => openAddModalWithStatus()}
                                         className="text-slate-400 hover:text-indigo-600 transition-colors p-1 hover:bg-slate-50 rounded-lg"
                                         title={`Thêm nhiệm vụ "${column.title}"`}
                                     >
