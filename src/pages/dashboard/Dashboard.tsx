@@ -81,7 +81,6 @@ export const Dashboard = () => {
                     t.supporter_id === profile.id
                 );
                 fetchedProjects = fetchedProjects.filter(p =>
-                    p.manager_id === profile.id ||
                     fetchedTasks.some(t => t.project_id === p.id)
                 );
             }
