@@ -264,7 +264,7 @@ export const Dashboard = () => {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Dashboard Filter */}
             <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-slate-700">Lọc người thực hiện:</span>
+                <span className="text-sm font-bold text-slate-700">Lọc chủ trì:</span>
                 <select
                     value={assigneeFilter}
                     onChange={(e) => setAssigneeFilter(e.target.value)}

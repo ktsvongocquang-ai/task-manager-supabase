@@ -411,7 +411,7 @@ export const Tasks = () => {
                                                     <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                                                 </th>
                                                 <th className="px-4 py-3 text-left">Nhiệm vụ</th>
-                                                <th className="px-4 py-3 text-left">Người thực hiện</th>
+                                                <th className="px-4 py-3 text-left">Chủ trì</th>
                                                 <th className="px-4 py-3 text-left">Trạng thái</th>
                                                 <th className="px-4 py-3 text-left">Ưu tiên</th>
                                                 <th className="px-4 py-3 text-left">Tiến độ</th>
