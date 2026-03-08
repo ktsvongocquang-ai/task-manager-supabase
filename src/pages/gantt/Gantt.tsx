@@ -92,7 +92,15 @@ export const Gantt = () => {
         return DAY_NAMES[d.getDay()]
     }
 
-    const getSubtasksCount = (notes: string | undefined | null) => {
+    const getSubtasksCount = (taskId: string, notes: string | undefined | null) => {
+        const childTasks = tasks.filter(t => t.parent_id === taskId);
+        if (childTasks.length > 0) {
+            return {
+                completed: childTasks.filter(t => t.status?.includes('Hoàn thành')).length,
+                total: childTasks.length
+            };
+        }
+
         if (!notes) return null;
         try {
             const parsed = JSON.parse(notes);
@@ -467,11 +475,6 @@ export const Gantt = () => {
                                                                 <div className="text-[11px] font-semibold text-slate-700 truncate hover:text-blue-600 transition-colors" title={item.name}>
                                                                     {item.name}
                                                                 </div>
-                                                                {getSubtasksCount(item.task.notes) && (
-                                                                    <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[9px] font-bold border border-blue-100">
-                                                                        {getSubtasksCount(item.task.notes)?.completed}/{getSubtasksCount(item.task.notes)?.total}
-                                                                    </span>
-                                                                )}
                                                             </div>
                                                             <div className="flex items-center gap-2 text-[9px] text-slate-500 flex-wrap">
                                                                 <span className="flex items-center gap-1">
@@ -487,9 +490,17 @@ export const Gantt = () => {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <span className="ml-auto text-red-500 font-bold text-xs uppercase bg-red-50 px-2 py-0.5 rounded">
-                                                            Task
-                                                        </span>
+                                                        {(() => {
+                                                            const stats = getSubtasksCount(item.task.id, item.task.notes);
+                                                            if (!stats) return null;
+                                                            return (
+                                                                <span className="ml-auto text-blue-600 font-bold text-[11px] bg-blue-50 px-2.5 py-1 rounded-md shadow-sm border border-blue-200/60 inline-flex items-center gap-1.5 whitespace-nowrap">
+                                                                    <span className={stats.completed === stats.total ? "text-emerald-600" : ""}>{stats.completed}</span>
+                                                                    <span className="text-blue-300">/</span>
+                                                                    <span>{stats.total}</span>
+                                                                </span>
+                                                            )
+                                                        })()}
                                                     </div>
                                                 )}
                                             </div>
