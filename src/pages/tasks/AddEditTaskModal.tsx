@@ -51,10 +51,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
 
     // AI & Speech states
-    const [isListening, setIsListening] = useState<'name' | 'description' | null>(null);
+    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | null>(null);
     const [isRefining, setIsRefining] = useState<'name' | 'description' | null>(null);
 
-    const handleSpeechToText = (field: 'name' | 'description') => {
+    const handleSpeechToText = (field: 'name' | 'description' | 'subtask') => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
             alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
@@ -77,10 +77,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
-            setForm(prev => ({
-                ...prev,
-                [field]: prev[field as keyof typeof prev] ? `${prev[field as keyof typeof prev]} ${transcript}` : transcript
-            }));
+            if (field === 'subtask') {
+                setNewSubtaskName(prev => prev ? `${prev} ${transcript}` : transcript);
+            } else {
+                setForm(prev => ({
+                    ...prev,
+                    [field]: prev[field as keyof typeof prev] ? `${prev[field as keyof typeof prev]} ${transcript}` : transcript
+                }));
+            }
             setIsListening(null);
         };
 
@@ -981,16 +985,25 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                 </DragDropContext>
 
                                                 {editingTask?.id && (
-                                                    <div className="relative mt-4">
-                                                        <input
-                                                            type="text"
-                                                            value={newSubtaskName}
-                                                            onChange={(e) => setNewSubtaskName(e.target.value)}
-                                                            onKeyDown={handleAddSubtask}
-                                                            placeholder="Nhập nhiệm vụ con và nhấn Enter..."
-                                                            className="w-full py-3 pl-12 pr-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
-                                                        />
-                                                        <Plus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <div className="relative mt-4 flex items-center gap-2">
+                                                        <div className="relative flex-1">
+                                                            <input
+                                                                type="text"
+                                                                value={newSubtaskName}
+                                                                onChange={(e) => setNewSubtaskName(e.target.value)}
+                                                                onKeyDown={handleAddSubtask}
+                                                                placeholder="Nhập nhiệm vụ con và nhấn Enter..."
+                                                                className="w-full py-3 pl-12 pr-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
+                                                            />
+                                                            <Plus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleSpeechToText('subtask')}
+                                                            className={`p-2.5 rounded-xl transition-all border ${isListening === 'subtask' ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white shadow-sm'}`}
+                                                            title="Ghi âm nhiệm vụ con"
+                                                        >
+                                                            {isListening === 'subtask' ? <MicOff size={20} /> : <Mic size={20} />}
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
