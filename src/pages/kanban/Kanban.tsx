@@ -140,8 +140,9 @@ export const Kanban = () => {
         }
         if (!isVisible) return false;
 
-        // Only show actual tasks (items with a parent phase), hide the phases themselves
-        if (!t.parent_id) return false;
+        // Only show actual tasks (leaf nodes), hide the phases/steps that contain other tasks
+        const isPhase = tasks.some(other => other.parent_id === t.id);
+        if (isPhase) return false;
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
