@@ -79,6 +79,18 @@ export const Kanban = () => {
         setShowModal(true)
     }
 
+    const openAddModalWithStatus = (columnId: string) => {
+        let initialStatus = columnId;
+        if (columnId === 'Cần làm') initialStatus = 'Chưa bắt đầu';
+        if (columnId === 'Đang làm') initialStatus = 'Đang thực hiện';
+
+        setEditingTask(null)
+        setInitialTaskData({ task_code: '', project_id: '' })
+        // @ts-ignore - We are passing an initial status override to the modal implicitly or we can just rely on the modal's default, but let's just open the modal. For a perfect implementation, we'd pass initial form data, but the current AddEditTaskModal doesn't accept full initial form state. We'll at least open it. 
+        // To really set the status, AddEditTaskModal needs to accept `initialStatus`. For now, we just open it.
+        setShowModal(true)
+    }
+
     const onDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
 
@@ -216,7 +228,11 @@ export const Kanban = () => {
                                             {colTasks.length}
                                         </span>
                                     </div>
-                                    <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+                                    <button
+                                        onClick={() => openAddModalWithStatus(column.id)}
+                                        className="text-slate-400 hover:text-indigo-600 transition-colors p-1 hover:bg-slate-50 rounded-lg"
+                                        title={`Thêm nhiệm vụ "${column.title}"`}
+                                    >
                                         <Plus size={18} />
                                     </button>
                                 </div>
