@@ -56,8 +56,19 @@ export const Projects = () => {
         if (data) setAllTasks(data as Task[])
     }
 
+    const filteredAllTasks = allTasks.filter(t => {
+        const userRole = profile?.role;
+        const isAssigned = t.assignee_id === profile?.id;
+
+        let isVisible = true;
+        if (userRole === 'Nhân viên') {
+            isVisible = Boolean(isAssigned || t.supporter_id === profile?.id);
+        }
+        return isVisible;
+    });
+
     const getProjectProgress = (projectId: string) => {
-        const projTasks = allTasks.filter(t => t.project_id === projectId)
+        const projTasks = filteredAllTasks.filter(t => t.project_id === projectId)
         if (projTasks.length === 0) return 0
         const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
         return Math.round((done / projTasks.length) * 100)
@@ -71,7 +82,7 @@ export const Projects = () => {
         let isVisible = true;
         if (userRole === 'Nhân viên') {
             // Xem dự án mình làm manager, hoặc có task mình làm assignee/supporter
-            isVisible = isUserProject || allTasks.some(t => t.project_id === p.id && (t.assignee_id === profile?.id || t.supporter_id === profile?.id));
+            isVisible = isUserProject || filteredAllTasks.some(t => t.project_id === p.id);
         }
 
         if (!isVisible) return false;
@@ -432,7 +443,7 @@ export const Projects = () => {
                                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-50 transition-all text-xs font-bold w-auto"
                                 >
                                     <List size={14} className="text-indigo-400" />
-                                    {allTasks.filter(t => t.project_id === project.id).length} nhiệm vụ
+                                    {filteredAllTasks.filter(t => t.project_id === project.id).length} nhiệm vụ
                                 </button>
                             </div>
                         </div>
