@@ -324,14 +324,12 @@ export const Layout = () => {
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setIsQuickAddOpen(false)}></div>
                                         <div className="absolute right-0 mt-2 w-56 glass-card shadow-2xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2 overflow-hidden border border-white/40">
-                                            {profile?.role !== 'Nhân viên' && (
-                                                <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddProjectOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
-                                                    <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
-                                                        <FolderPlus className="text-purple-600" size={18} />
-                                                    </div>
-                                                    <span className="font-bold text-slate-700">Dự án mới</span>
+                                            <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddProjectOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
+                                                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
+                                                    <FolderPlus className="text-purple-600" size={18} />
                                                 </div>
-                                            )}
+                                                <span className="font-bold text-slate-700">Dự án mới</span>
+                                            </div>
                                             <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddTaskOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
                                                 <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
                                                     <PlusCircle className="text-emerald-600" size={18} />
