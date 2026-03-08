@@ -428,18 +428,18 @@ export const Tasks = () => {
                                     <table className="w-full text-xs">
                                         <thead>
                                             <tr className="bg-slate-50/30 border-b border-slate-100 text-slate-500 uppercase font-bold tracking-wider">
-                                                <th className="px-5 py-3 text-left w-10"></th>
-                                                <th className="px-5 py-3 text-left w-10">
+                                                <th className="px-5 py-3 text-left w-[40px] min-w-[40px]"></th>
+                                                <th className="px-5 py-3 text-left w-[40px] min-w-[40px]">
                                                     <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                                                 </th>
-                                                <th className="px-4 py-3 text-left">Nhiệm vụ</th>
-                                                <th className="px-4 py-3 text-left">Chủ trì</th>
-                                                <th className="px-4 py-3 text-left">Trạng thái</th>
-                                                <th className="px-4 py-3 text-left">Ưu tiên</th>
-                                                <th className="px-4 py-3 text-left">Tiến độ</th>
-                                                <th className="px-4 py-3 text-left">Link kết quả</th>
-                                                <th className="px-4 py-3 text-left">Hạn chót</th>
-                                                <th className="px-4 py-3 text-center">Thao tác</th>
+                                                <th className="px-4 py-3 text-left min-w-[250px]">Nhiệm vụ</th>
+                                                <th className="px-4 py-3 text-left w-[150px] min-w-[150px]">Chủ trì</th>
+                                                <th className="px-4 py-3 text-left w-[140px] min-w-[140px]">Trạng thái</th>
+                                                <th className="px-4 py-3 text-left w-[120px] min-w-[120px]">Ưu tiên</th>
+                                                <th className="px-4 py-3 text-left w-[140px] min-w-[140px]">Tiến độ</th>
+                                                <th className="px-4 py-3 text-left w-[100px] min-w-[100px]">Kết quả</th>
+                                                <th className="px-4 py-3 text-left w-[120px] min-w-[120px]">Hạn chót</th>
+                                                <th className="px-4 py-3 text-center w-[120px] min-w-[120px]">Thao tác</th>
                                             </tr>
                                         </thead>
                                         <DragDropContext onDragEnd={onDragEnd}>
@@ -486,9 +486,9 @@ export const Tasks = () => {
                                                             : (totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : t.completion_pct);
 
                                                         return (
-                                                            <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group bg-white`}>
-                                                                <td className="px-2 py-3"></td>
-                                                                <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                                                            <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group bg-white border-b border-slate-50`}>
+                                                                <td className="px-2 py-3 w-[40px] min-w-[40px]"></td>
+                                                                <td className="px-5 py-3 w-[40px] min-w-[40px]" onClick={(e) => e.stopPropagation()}>
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={t.status?.includes('Hoàn thành')}
@@ -497,7 +497,7 @@ export const Tasks = () => {
                                                                         disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || t.assignee_id === profile?.id)}
                                                                     />
                                                                 </td>
-                                                                <td className={`px-4 py-3`}>
+                                                                <td className={`px-4 py-3 min-w-[250px]`}>
                                                                     <div>
                                                                         <div className="flex items-center gap-2 mb-0.5">
                                                                             <p className={`font-bold leading-tight ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t.name}</p>
@@ -512,15 +512,15 @@ export const Tasks = () => {
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-600 font-medium">
+                                                                <td className="px-4 py-3 text-slate-600 font-medium w-[150px] min-w-[150px]">
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                             {getAssigneeName(t.assignee_id).charAt(0)}
                                                                         </div>
                                                                         <select
                                                                             value={t.assignee_id || ''}
                                                                             onChange={(e) => updateTaskField(t.id, 'assignee_id', e.target.value || null)}
-                                                                            className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                                                                            className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
                                                                             onClick={(e) => e.stopPropagation()}
                                                                         >
                                                                             <option value="">Chưa gán</option>
@@ -530,7 +530,7 @@ export const Tasks = () => {
                                                                         </select>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3">
+                                                                <td className="px-4 py-3 w-[140px] min-w-[140px]">
                                                                     <select
                                                                         value={t.status}
                                                                         onChange={(e) => updateTaskField(t.id, 'status', e.target.value)}
@@ -544,7 +544,7 @@ export const Tasks = () => {
                                                                         <option value="Tạm dừng">Tạm dừng</option>
                                                                     </select>
                                                                 </td>
-                                                                <td className="px-4 py-3">
+                                                                <td className="px-4 py-3 w-[120px] min-w-[120px]">
                                                                     <select
                                                                         value={t.priority}
                                                                         onChange={(e) => updateTaskField(t.id, 'priority', e.target.value)}
@@ -557,7 +557,7 @@ export const Tasks = () => {
                                                                         <option value="Khẩn cấp">Khẩn cấp</option>
                                                                     </select>
                                                                 </td>
-                                                                <td className="px-4 py-3">
+                                                                <td className="px-4 py-3 w-[140px] min-w-[140px]">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1">
                                                                             <div
@@ -568,14 +568,14 @@ export const Tasks = () => {
                                                                         <span className="font-bold text-slate-500 min-w-[3ch]">{displayPct}%</span>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3">
+                                                                <td className="px-4 py-3 w-[100px] min-w-[100px]">
                                                                     {t.result_links ? (
-                                                                        <a href={t.result_links} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold">
+                                                                        <a href={t.result_links} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold">
                                                                             <ExternalLink size={12} /> LINK
                                                                         </a>
                                                                     ) : <span className="text-slate-400">---</span>}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap">
+                                                                <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap w-[120px] min-w-[120px]">
                                                                     <div className="flex flex-col gap-1 items-start">
                                                                         {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
                                                                         {t.start_date && t.due_date && (
@@ -585,7 +585,7 @@ export const Tasks = () => {
                                                                         )}
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3">
+                                                                <td className="px-4 py-3 w-[120px] min-w-[120px]">
                                                                     <div className="flex items-center justify-center gap-2">
                                                                         <button
                                                                             onClick={(e) => { e.stopPropagation(); handleCopy(t); }}
@@ -653,7 +653,7 @@ export const Tasks = () => {
                                                                                         style={{ ...provided.draggableProps.style }}
                                                                                     >
                                                                                         {/* 1. Drag Handle */}
-                                                                                        <td className="px-2 py-3 relative z-10 w-10">
+                                                                                        <td className="px-2 py-3 relative z-10 w-[40px] min-w-[40px]">
                                                                                             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200 group-hover:bg-indigo-300 transition-colors z-0 pointer-events-none"></div>
                                                                                             <div className="flex justify-center relative z-10 w-full h-full">
                                                                                                 <div {...provided.dragHandleProps} className="text-slate-300 group-hover:text-slate-500 cursor-grab px-1">
@@ -663,7 +663,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 2. Checkbox */}
-                                                                                        <td className="px-5 py-3 relative z-10 w-10" onClick={(e) => e.stopPropagation()}>
+                                                                                        <td className="px-5 py-3 relative z-10 w-[40px] min-w-[40px]" onClick={(e) => e.stopPropagation()}>
                                                                                             <input
                                                                                                 type="checkbox"
                                                                                                 checked={isCompleted}
@@ -674,7 +674,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 3. Name */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 min-w-[250px]">
                                                                                             <div className="pl-6">
                                                                                                 <div className="flex items-center gap-2 mb-0.5 relative">
                                                                                                     <div className="absolute -left-4 top-1/2 -mt-1 w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0"></div>
@@ -687,7 +687,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 4. Assignee */}
-                                                                                        <td className="px-4 py-3 text-slate-600 font-medium relative z-10">
+                                                                                        <td className="px-4 py-3 text-slate-600 font-medium relative z-10 w-[150px] min-w-[150px]">
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.assignee_id).charAt(0)}
@@ -695,7 +695,7 @@ export const Tasks = () => {
                                                                                                 <select
                                                                                                     value={child.assignee_id || ''}
                                                                                                     onChange={(e) => updateTaskField(child.id, 'assignee_id', e.target.value || null)}
-                                                                                                    className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors"
+                                                                                                    className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
                                                                                                     onClick={(e) => e.stopPropagation()}
                                                                                                 >
                                                                                                     <option value="">Chưa gán</option>
@@ -707,7 +707,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 5. Status */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 w-[140px] min-w-[140px]">
                                                                                             <select
                                                                                                 value={child.status}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'status', e.target.value)}
@@ -723,7 +723,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 6. Priority */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 w-[120px] min-w-[120px]">
                                                                                             <select
                                                                                                 value={child.priority}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'priority', e.target.value)}
@@ -738,7 +738,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 7. Progress */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 w-[140px] min-w-[140px]">
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1 max-w-[80px]">
                                                                                                     <div
@@ -751,7 +751,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 8. Link */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 w-[100px] min-w-[100px]">
                                                                                             {child.result_links ? (
                                                                                                 <a href={child.result_links} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1 font-bold uppercase">
                                                                                                     <ExternalLink size={12} className="shrink-0" /> <span className="truncate max-w-[100px] inline-block">LINK</span>
@@ -759,7 +759,7 @@ export const Tasks = () => {
                                                                                             ) : <span className="text-slate-400">---</span>}
                                                                                         </td>
 
-                                                                                        <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap">
+                                                                                        <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap w-[120px] min-w-[120px]">
                                                                                             <div className="flex flex-col gap-1 items-start">
                                                                                                 {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
                                                                                                 {child.start_date && child.due_date && (
@@ -771,7 +771,7 @@ export const Tasks = () => {
                                                                                         </td>
 
                                                                                         {/* 10. Actions */}
-                                                                                        <td className="px-4 py-3 relative z-10">
+                                                                                        <td className="px-4 py-3 relative z-10 w-[120px] min-w-[120px]">
                                                                                             <div className="flex items-center justify-center gap-2">
                                                                                                 <button
                                                                                                     onClick={(e) => { e.stopPropagation(); handleCopy(child); }}
