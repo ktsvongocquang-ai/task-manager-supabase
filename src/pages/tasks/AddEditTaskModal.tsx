@@ -226,6 +226,24 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
                         form.project_id
                     );
+
+                    // Gửi thông báo qua Telegram ngầm
+                    try {
+                        const taskLink = `${window.location.origin}/tasks`;
+                        const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
+
+                        fetch('/api/send-telegram', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                userId: newAssigneeId,
+                                message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                taskUrl: taskLink
+                            })
+                        }).catch(e => console.error('Lỗi gọi Telegram API:', e));
+                    } catch (e) {
+                        console.error('Lỗi thiết lập thông báo Telegram:', e);
+                    }
                 }
             }
 

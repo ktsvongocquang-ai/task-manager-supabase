@@ -20,7 +20,7 @@ function App() {
 
         {/* Protected Routes */}
         <Route path="/" element={<AuthGuard><Layout /></AuthGuard>}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="/kanban" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="gantt" element={<Gantt />} />
           <Route path="kanban" element={<Kanban />} />

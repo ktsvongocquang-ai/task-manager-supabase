@@ -5,6 +5,7 @@ export interface Profile {
     email: string
     position: string | null
     role: string | 'Nhân viên' | 'Admin'
+    telegram_chat_id?: string | null
     created_at: string
 }
 

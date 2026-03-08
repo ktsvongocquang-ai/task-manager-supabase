@@ -22,7 +22,8 @@ import {
     Kanban as KanbanIcon,
     CalendarDays,
     ListTodo,
-    X
+    X,
+    Send
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -59,6 +60,40 @@ export const Layout = () => {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+    // Telegram state
+    const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false)
+    const [telegramChatId, setTelegramChatId] = useState(profile?.telegram_chat_id || '')
+    const [isUpdatingTelegram, setIsUpdatingTelegram] = useState(false)
+
+    useEffect(() => {
+        if (profile?.telegram_chat_id) {
+            setTelegramChatId(profile.telegram_chat_id)
+        }
+    }, [profile?.telegram_chat_id])
+
+    const handleUpdateTelegram = async () => {
+        if (!profile?.id) return;
+        setIsUpdatingTelegram(true);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ telegram_chat_id: telegramChatId })
+                .eq('id', profile.id);
+            if (error) {
+                console.error('Lỗi cập nhật Telegram ID:', error);
+                alert(`Lỗi cập nhật: ${error.message}`);
+            } else {
+                alert('Cập nhật Telegram Chat ID thành công!');
+                setIsTelegramModalOpen(false);
+                useAuthStore.getState().checkSession();
+            }
+        } catch (err: any) {
+            alert('Lỗi: ' + err.message);
+        } finally {
+            setIsUpdatingTelegram(false);
+        }
+    }
 
     useEffect(() => {
         const fetchUnreadCount = async () => {
@@ -118,12 +153,12 @@ export const Layout = () => {
     }
 
     const navItems = [
-        { name: 'Thống kê', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
+        { name: 'Hôm nay (Kanban)', path: '/kanban', icon: KanbanIcon },
         { name: 'Danh sách', path: '/tasks', icon: ListTodo },
         { name: 'Lịch trình', path: '/schedule', icon: CalendarDays },
-        { name: 'Gantt', path: '/gantt', icon: GanttChart },
+        { name: 'Sơ đồ Gantt', path: '/gantt', icon: GanttChart },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
+        { name: 'Thống kê (Dashboard)', path: '/dashboard', icon: LayoutDashboard },
     ]
 
     if (profile?.role !== 'Nhân viên') {
@@ -183,10 +218,13 @@ export const Layout = () => {
                             <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
                             </button>
-                            <button onClick={handleSignOut} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
-                                <LogOut size={14} /> Đăng xuất
+                            <button onClick={() => setIsTelegramModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#0088cc]/10 text-xs font-semibold text-[#0088cc] rounded-lg border border-[#0088cc]/20 hover:bg-[#0088cc]/20 transition-colors">
+                                <Send size={14} /> Telegram ID
                             </button>
                         </div>
+                        <button onClick={handleSignOut} className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-red-600 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
+                            <LogOut size={14} /> Đăng xuất
+                        </button>
                     </div>
                 </div>
 
@@ -265,12 +303,14 @@ export const Layout = () => {
                                     <>
                                         <div className="fixed inset-0 z-10" onClick={() => setIsQuickAddOpen(false)}></div>
                                         <div className="absolute right-0 mt-2 w-56 glass-card shadow-2xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2 overflow-hidden border border-white/40">
-                                            <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddProjectOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
-                                                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
-                                                    <FolderPlus className="text-purple-600" size={18} />
+                                            {profile?.role !== 'Nhân viên' && (
+                                                <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddProjectOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
+                                                    <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
+                                                        <FolderPlus className="text-purple-600" size={18} />
+                                                    </div>
+                                                    <span className="font-bold text-slate-700">Dự án mới</span>
                                                 </div>
-                                                <span className="font-bold text-slate-700">Dự án mới</span>
-                                            </div>
+                                            )}
                                             <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddTaskOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
                                                 <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
                                                     <PlusCircle className="text-emerald-600" size={18} />
@@ -371,6 +411,48 @@ export const Layout = () => {
                                 className={`w-full px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95 ${isChangingPassword ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 {isChangingPassword ? 'Đang cập nhật...' : 'Xác nhận đổi mật khẩu'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Telegram Chat ID Modal */}
+            {isTelegramModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <Send className="text-[#0088cc]" size={20} />
+                                Cài đặt Telegram
+                            </h3>
+                            <button onClick={() => setIsTelegramModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6 bg-slate-50/50">
+                            <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+                                Nhận thông báo công việc tức thì qua Telegram.
+                                Để lấy ID của bạn, hãy lên Telegram tìm kiếm Bot <strong className="text-[#0088cc]">@JFLOW_Task_Bot</strong> (hoặc bot quản lý của bạn) và bấm <strong>START</strong>.
+                            </p>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Telegram Chat ID</label>
+                            <input
+                                type="text"
+                                value={telegramChatId}
+                                onChange={(e) => setTelegramChatId(e.target.value)}
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0088cc]/20 focus:border-[#0088cc] transition-all font-medium mb-4 shadow-inner"
+                                placeholder="Ví dụ: 987654321..."
+                            />
+                            <button
+                                onClick={handleUpdateTelegram}
+                                disabled={isUpdatingTelegram}
+                                className={`w-full px-4 py-2.5 bg-gradient-to-r from-[#0088cc] to-[#0077b3] hover:from-[#0077b3] hover:to-[#006699] text-white rounded-lg text-sm font-bold shadow-md shadow-[#0088cc]/20 transition-all active:scale-95 flex items-center justify-center gap-2 ${isUpdatingTelegram ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {isUpdatingTelegram ? 'Đang cập nhật...' : (
+                                    <>
+                                        <Send size={16} /> Lưu Cài Đặt
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

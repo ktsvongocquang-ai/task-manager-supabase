@@ -29,6 +29,7 @@ export const Kanban = () => {
 
     // Filters
     const [search, setSearch] = useState('')
+    const [dateFilter, setDateFilter] = useState<'today' | 'all'>('today')
 
     useEffect(() => {
         fetchAll()
@@ -134,7 +135,28 @@ export const Kanban = () => {
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
 
-        return matchSearch
+        if (!matchSearch) return false;
+
+        if (dateFilter === 'today') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Show if due date is today or before (overdue), or status is 'Đang thực hiện'
+            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Đang làm';
+            let isOverdueOrToday = false;
+
+            if (t.due_date) {
+                const dueDate = new Date(t.due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                if (dueDate <= today && t.status !== 'Hoàn thành' && t.status !== 'Hủy') {
+                    isOverdueOrToday = true;
+                }
+            }
+
+            if (!isOngoing && !isOverdueOrToday) return false;
+        }
+
+        return true;
     })
 
     if (loading) {
@@ -147,6 +169,20 @@ export const Kanban = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
                 <h1 className="text-xl font-bold text-slate-800">Kanban Board</h1>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setDateFilter('today')}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Hôm nay
+                        </button>
+                        <button
+                            onClick={() => setDateFilter('all')}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Tất cả
+                        </button>
+                    </div>
                     <div className="relative flex-1 sm:w-64">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
