@@ -57,26 +57,43 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const handleSpeechToText = (field: 'name' | 'description' | 'subtask') => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử dùng Chrome hoặc Safari mới nhất.");
             return;
         }
 
-        if (isListening === field) {
-            // Logic to stop listener if we need toggle, but standard implementation is one-shot or until end
+        if (isListening) {
+            // Already listening, don't start another
             return;
         }
 
         const recognition = new SpeechRecognition();
         recognition.lang = 'vi-VN';
-        recognition.interimResults = false;
+        recognition.interimResults = false; // Keep it simple for reliable results
         recognition.maxAlternatives = 1;
+        recognition.continuous = false;
+
+        let silenceTimer: any;
+
+        const stopRecognition = () => {
+            clearTimeout(silenceTimer);
+            try {
+                recognition.stop();
+            } catch (e) { }
+            setIsListening(null);
+        };
 
         recognition.onstart = () => {
             setIsListening(field);
+            // Safety timeout: stop after 10 seconds of no result
+            silenceTimer = setTimeout(() => {
+                stopRecognition();
+            }, 10000);
         };
 
         recognition.onresult = (event: any) => {
+            clearTimeout(silenceTimer);
             const transcript = event.results[0][0].transcript;
+
             if (field === 'subtask') {
                 setNewSubtaskName(prev => prev ? `${prev} ${transcript}` : transcript);
             } else {
@@ -85,19 +102,37 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     [field]: prev[field as keyof typeof prev] ? `${prev[field as keyof typeof prev]} ${transcript}` : transcript
                 }));
             }
-            setIsListening(null);
+            stopRecognition();
         };
 
         recognition.onerror = (event: any) => {
+            clearTimeout(silenceTimer);
             console.error('Speech recognition error:', event.error);
+
+            let messageStr = "Lỗi nhận diện giọng nói.";
+            if (event.error === 'not-allowed') {
+                messageStr = "Không có quyền truy cập Micro. Hãy kiểm tra cài đặt trình duyệt/điện thoại.";
+            } else if (event.error === 'service-not-allowed') {
+                messageStr = "Công cụ giọng nói bị chặn (có thể do Siri đang bật hoặc hết hạn mức).";
+            } else if (event.error === 'no-speech') {
+                messageStr = "Không nghe thấy tiếng. Vui lòng thử lại.";
+            }
+
+            alert(messageStr);
             setIsListening(null);
         };
 
         recognition.onend = () => {
             setIsListening(null);
+            clearTimeout(silenceTimer);
         };
 
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (err) {
+            console.error('Failed to start recognition:', err);
+            setIsListening(null);
+        }
     };
 
     const handleAIRefine = async (field: 'name' | 'description') => {
