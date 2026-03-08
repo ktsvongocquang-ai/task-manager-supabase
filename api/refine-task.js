@@ -16,14 +16,6 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
-        const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
-        const model = ai.getGenerativeModel({
-            model: 'gemini-2.0-flash',
-            generationConfig: {
-                responseMimeType: 'application/json',
-            }
-        });
-
         const schema = {
             type: Type.OBJECT,
             properties: {
@@ -31,6 +23,8 @@ export default async function handler(req, res) {
             },
             required: ["refinedText"]
         };
+
+        const ai = new GoogleGenAI({});
 
         const systemInstruction = `
 [VAI TRÒ]
@@ -41,23 +35,25 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
 
 [QUY TẮC]
 1. Nếu field là 'name': Tạo tiêu đề ngắn gọn (dưới 10 từ), mang tính hành động.
-2. If field là 'description': Viết chi tiết hơn, liệt kê các ý chính nếu cần, giữ phong cách chuyên nghiệp.
+2. Nếu field là 'description': Viết chi tiết hơn, liệt kê các ý chính nếu cần, giữ phong cách chuyên nghiệp.
 3. Giữ nguyên các thông tin quan trọng như tên riêng, con số, thời hạn.
 4. Trả về kết quả dưới dạng JSON theo đúng schema.
 `;
 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
-        const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-                responseMimeType: 'application/json',
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [prompt],
+            config: {
+                systemInstruction: systemInstruction,
                 responseSchema: schema,
-            },
-            systemInstruction: systemInstruction
+                responseMimeType: 'application/json',
+                temperature: 0.1,
+            }
         });
 
-        const generatedData = JSON.parse(result.response.text());
+        const generatedData = JSON.parse(response.text);
 
         return res.status(200).json(generatedData);
 
