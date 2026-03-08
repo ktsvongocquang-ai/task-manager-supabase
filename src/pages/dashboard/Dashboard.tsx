@@ -85,9 +85,12 @@ export const Dashboard = () => {
                 );
             }
 
-            // Apply assignee filter here
+            // Apply assignee filter here (Include both Lead and Performer)
             if (assigneeFilter) {
-                const directlyMatchedTaskIds = new Set(fetchedTasks.filter(t => t.assignee_id === assigneeFilter).map(t => t.id));
+                const directlyMatchedTaskIds = new Set(fetchedTasks.filter(t =>
+                    t.assignee_id === assigneeFilter ||
+                    t.supporter_id === assigneeFilter
+                ).map(t => t.id));
                 const parentIdsToKeep = new Set(fetchedTasks.filter(t => directlyMatchedTaskIds.has(t.id) && t.parent_id).map(t => t.parent_id));
 
                 fetchedTasks = fetchedTasks.filter(t =>
@@ -139,10 +142,12 @@ export const Dashboard = () => {
 
             const empMap: Record<string, { total: number, done: number }> = {}
             fetchedTasks.forEach((t: any) => {
-                if (!t.assignee_id) return
-                if (!empMap[t.assignee_id]) empMap[t.assignee_id] = { total: 0, done: 0 }
-                empMap[t.assignee_id].total++
-                if (t.status?.includes('Hoàn thành')) empMap[t.assignee_id].done++
+                const roles = Array.from(new Set([t.assignee_id, t.supporter_id].filter(id => !!id)));
+                roles.forEach(roleId => {
+                    if (!empMap[roleId]) empMap[roleId] = { total: 0, done: 0 }
+                    empMap[roleId].total++
+                    if (t.status?.includes('Hoàn thành')) empMap[roleId].done++
+                })
             })
             setEmployeeData(Object.entries(empMap).map(([id, data]) => {
                 const prof = profiles?.find((p: any) => p.id === id)
