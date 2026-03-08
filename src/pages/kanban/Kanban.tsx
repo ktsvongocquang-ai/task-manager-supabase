@@ -105,6 +105,7 @@ export const Kanban = () => {
         let newStatus = toColumnId;
         if (toColumnId === 'Cần làm') newStatus = 'Cần làm';
         if (toColumnId === 'Đang thực hiện') newStatus = 'Đang thực hiện';
+        if (toColumnId === 'Chờ duyệt') newStatus = 'Chờ duyệt';
 
         const isCompleted = toColumnId === 'Hoàn thành';
 
@@ -155,8 +156,8 @@ export const Kanban = () => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Show if due date is today or before (overdue), or status is 'Đang thực hiện' or 'Cần làm'
-            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Cần làm';
+            // Show if due date is today or before (overdue), or status is 'Đang thực hiện', 'Cần làm', or 'Chờ duyệt'
+            const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Cần làm' || t.status === 'Chờ duyệt';
             let isOverdueOrToday = false;
 
             if (t.due_date) {
