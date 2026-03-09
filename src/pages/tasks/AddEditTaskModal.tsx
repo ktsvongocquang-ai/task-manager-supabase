@@ -203,10 +203,23 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 fetchSubtasks();
 
             } else {
+                const today = new Date().toISOString().split('T')[0];
+                const project = projects.find(p => p.id === initialData.project_id);
+
                 setForm({
-                    task_code: initialData.task_code, project_id: initialData.project_id, name: '', description: '',
-                    assignee_id: '', supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình',
-                    start_date: '', due_date: '', result_links: '', notes: '', parent_id: ''
+                    task_code: initialData.task_code,
+                    project_id: initialData.project_id,
+                    name: '',
+                    description: '',
+                    assignee_id: project?.manager_id || '',
+                    supporter_id: currentUserProfile?.id || '',
+                    status: 'Chưa bắt đầu',
+                    priority: 'Trung bình',
+                    start_date: today,
+                    due_date: today,
+                    result_links: '',
+                    notes: '',
+                    parent_id: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -215,12 +228,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     }, [isOpen, editingTask, initialData]);
 
     const handleProjectChange = (projectId: string) => {
+        const project = projects.find(p => p.id === projectId);
         setForm(prev => {
             const nextCode = generateNextTaskCode ? generateNextTaskCode(projectId) : prev.task_code;
             return {
                 ...prev,
                 project_id: projectId,
                 task_code: nextCode,
+                assignee_id: project?.manager_id || prev.assignee_id,
                 parent_id: '' // reset phase when project changes
             }
         });
