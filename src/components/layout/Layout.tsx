@@ -35,7 +35,7 @@ const viewTitles: Record<string, string> = {
     '/users': 'Quản lý Nhân viên',
     '/construction': 'Quản lý Thi công',
     '/moodboard': 'Tạo Moodboard',
-    '/customers': 'Chăm sóc Khách hàng',
+    '/customers': 'CRM',
 }
 
 export const Layout = () => {
