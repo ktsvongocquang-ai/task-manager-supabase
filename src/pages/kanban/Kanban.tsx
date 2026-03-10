@@ -305,44 +305,48 @@ export const Kanban = () => {
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
-                                                                <div className="flex justify-between items-start gap-1.5">
+                                                                {/* Row 1: Name, Code, Priority & Deadline */}
+                                                                <div className="flex justify-between items-start gap-1.5 min-h-[32px]">
                                                                     <div className="flex-1 min-w-0">
-                                                                        <h4 className="font-bold text-slate-800 text-[13px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
-                                                                            {task.name}
-                                                                        </h4>
-                                                                        <span className="text-[9px] font-medium text-slate-400 tracking-tight">
-                                                                            {task.task_code}
-                                                                        </span>
+                                                                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                                                                            <h4 className="font-bold text-slate-800 text-[13px] leading-tight group-hover:text-indigo-600 transition-colors truncate max-w-[180px]">
+                                                                                {task.name}
+                                                                            </h4>
+                                                                            <span className="text-[9px] font-medium text-slate-400 shrink-0">
+                                                                                {task.task_code}
+                                                                            </span>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="flex flex-col items-end gap-1 shrink-0">
-                                                                        <span className={`text-[8px] font-bold px-1 py-0.5 rounded border whitespace-nowrap ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                    <div className="flex items-center gap-1 shrink-0 mt-0.5">
+                                                                        <span className={`text-[8px] font-bold px-1 py-0.25 rounded border whitespace-nowrap ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                             task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
                                                                                 task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
                                                                                     'bg-slate-50 text-slate-500 border-slate-100'
                                                                             }`}>
-                                                                            {task.priority || 'Bình thường'}
+                                                                            {task.priority?.charAt(0) || 'B'}
                                                                         </span>
                                                                         {task.due_date && (
-                                                                            <div className="flex items-center gap-1 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded border border-indigo-100">
-                                                                                <Calendar size={9} />
+                                                                            <div className="flex items-center gap-0.5 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1 py-0.25 rounded border border-indigo-100">
+                                                                                <Calendar size={8} />
                                                                                 {format(parseISO(task.due_date), 'dd/MM')}
                                                                             </div>
                                                                         )}
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-slate-50">
+                                                                {/* Row 2: Assignee & Subtasks */}
+                                                                <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-50">
                                                                     <div className="flex items-center gap-1.5">
                                                                         <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600" title={assignee?.full_name || 'Chưa gán'}>
                                                                             {assignee?.full_name?.charAt(0) || '?'}
                                                                         </div>
-                                                                        <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[90px]">
-                                                                            {assignee?.full_name?.charAt(0)}. {assignee?.full_name?.split(' ').pop()}
+                                                                        <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[120px]">
+                                                                            {assignee?.full_name || 'Chưa gán'}
                                                                         </span>
                                                                     </div>
 
                                                                     {totalSub > 0 && (
-                                                                        <div className="text-[9px] font-bold text-slate-400 flex items-center gap-1 bg-slate-50 px-1 py-0.5 rounded">
+                                                                        <div className="text-[9px] font-bold text-slate-400 flex items-center gap-1 bg-slate-50 px-1 py-0.25 rounded">
                                                                             <span>{completedSub}/{totalSub}</span>
                                                                         </div>
                                                                     )}
