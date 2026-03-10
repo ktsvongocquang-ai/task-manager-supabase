@@ -226,12 +226,12 @@ export const Customers = () => {
   );
 
   return (
-    <div className="h-full w-full bg-slate-50 font-sans flex flex-col overflow-hidden">
+    <div className="w-full bg-slate-50 font-sans">
       {/* Content Area */}
-      <div className="flex-1 w-full overflow-y-auto p-4 sm:p-6 lg:p-8">
-        <div className="max-w-[1600px] mx-auto flex flex-col h-full space-y-6">
+      <div className="w-full p-4 sm:p-6 lg:p-8">
+        <div className="max-w-[1600px] mx-auto space-y-6">
           {/* Active View Content */}
-          <div className="flex-1 min-h-0 container mx-auto">
+          <div className="container mx-auto">
             {activeTab === 'DASHBOARD' && renderDashboard()}
             {activeTab === 'CUSTOMERS' && <CustomerList />}
             {activeTab === 'LEADS' && <Leads />}
