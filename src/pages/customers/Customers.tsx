@@ -231,7 +231,7 @@ export const Customers = () => {
   );
 
   return (
-    <div className="h-full w-full bg-slate-50 font-sans flex flex-col md:flex-row overflow-hidden border-t border-slate-200">
+    <div className="h-full w-full bg-slate-50 font-sans flex flex-col md:flex-row overflow-hidden">
       {/* Vertical Sidebar */}
       <div className="w-full md:w-64 lg:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0 z-10">
         <div className="p-6 pb-2 hidden md:block">
