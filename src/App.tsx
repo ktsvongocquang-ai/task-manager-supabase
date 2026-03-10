@@ -12,6 +12,7 @@ import { Kanban } from './pages/kanban/Kanban'
 import { Schedule } from './pages/schedule/Schedule'
 import { Construction } from './pages/construction/Construction'
 import { Customers } from './pages/customers/Customers'
+import { Moodboard } from './pages/moodboard/Moodboard'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="users" element={<Users />} />
           <Route path="history" element={<History />} />
           <Route path="construction" element={<Construction />} />
+          <Route path="moodboard" element={<Moodboard />} />
           <Route path="customers" element={<Customers />} />
         </Route>
 
