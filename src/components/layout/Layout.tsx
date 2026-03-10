@@ -3,8 +3,6 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
-    LayoutDashboard,
-    FolderKanban,
     Users,
     LogOut,
     Rocket,
@@ -151,11 +149,9 @@ export const Layout = () => {
     }
 
     const navItems = [
-        { name: 'Thi Công', path: '/construction', icon: HardHat },
+        { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'] },
         { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate },
-        { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt'] },
-        { name: 'Dự án', path: '/projects', icon: FolderKanban },
-        { name: 'Thống kê (Dashboard)', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Thi Công', path: '/construction', icon: HardHat },
         { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake },
     ]
 
@@ -286,7 +282,7 @@ export const Layout = () => {
                             <h2 className="text-xl font-bold text-gray-900 min-w-[150px]">{currentTitle()}</h2>
 
                             {/* Horizontal Tabs for Task Views */}
-                            {['/kanban', '/tasks', '/schedule', '/gantt'].includes(location.pathname) && (
+                            {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
                                 <div className="flex items-center ml-0 mt-3 md:mt-0 md:ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto max-w-[calc(100vw-48px)] md:max-w-none scrollbar-hide shrink-0">
                                     <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
@@ -299,6 +295,12 @@ export const Layout = () => {
                                     </NavLink>
                                     <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Sơ đồ Gantt
+                                    </NavLink>
+                                    <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Dự án
+                                    </NavLink>
+                                    <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Dashboard
                                     </NavLink>
                                 </div>
                             )}

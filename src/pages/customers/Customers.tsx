@@ -51,6 +51,7 @@ export const Customers = () => {
     { id: 'PROJECTS', name: 'Dự án', icon: Briefcase },
     { id: 'GANTT', name: 'Gantt Chart', icon: Clock },
     { id: 'INVOICES', name: 'Hóa đơn', icon: FileText },
+    { id: 'ACTIVITY_LOG', name: 'Nhật ký', icon: Clock },
   ];
 
   const renderDashboard = () => (
@@ -230,28 +231,63 @@ export const Customers = () => {
   );
 
   return (
-    <div className="h-full w-full bg-slate-50 font-sans flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
-      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
-        {/* CRM Navigation Bar */}
-        <div className="mb-6 shrink-0 bg-white border border-slate-200 rounded-2xl p-2 flex overflow-x-auto shadow-sm mx-auto w-full gap-2 text-center items-center justify-between sm:justify-start">
-           {menuItems.map(item => {
-             const Icon = item.icon;
-             const isActive = activeTab === item.id;
-             return (
-               <button
-                 key={item.id}
-                 onClick={() => setActiveTab(item.id)}
-                 className={`flex-none flex flex-col items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all min-w-[120px] flex-1 ${isActive ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'}`}
-               >
-                 <Icon className="w-5 h-5" />
-                 <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap">{item.name}</span>
-               </button>
-             )
-           })}
+    <div className="h-full w-full bg-slate-50 font-sans flex flex-col md:flex-row overflow-hidden border-t border-slate-200">
+      {/* Vertical Sidebar */}
+      <div className="w-full md:w-64 lg:w-72 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0 z-10">
+        <div className="p-6 pb-2 hidden md:block">
+          <h1 className="text-3xl font-black text-indigo-600">CRM Master</h1>
         </div>
+        
+        <div className="p-4 md:p-6 md:pt-4 md:flex-1 md:overflow-y-auto">
+          <h2 className="text-[13px] font-bold text-slate-400 uppercase tracking-[0.1em] mb-4 hidden md:block">Menu Quản Lý</h2>
+          
+          <nav className="flex md:flex-col gap-1 overflow-x-auto snap-x scrollbar-hide md:overflow-visible pb-2 md:pb-0">
+            {menuItems.slice(0, 3).map(item => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex-none snap-center flex items-center gap-3 md:gap-4 px-5 py-3 md:py-3.5 rounded-xl transition-all text-sm font-bold min-w-[160px] md:min-w-0 w-full ${
+                    isActive 
+                      ? 'bg-indigo-50/80 text-indigo-700' 
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} />
+                  <span className="truncate">{item.name}</span>
+                </button>
+              );
+            })}
 
-        {/* Content Area */}
-        <div className="flex-1 w-full">
+            <div className="hidden md:block my-3 border-t border-slate-200 mx-2"></div>
+
+            {menuItems.slice(3).map(item => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex-none snap-center flex items-center gap-3 md:gap-4 px-5 py-3 md:py-3.5 rounded-xl transition-all text-sm font-bold min-w-[160px] md:min-w-0 w-full ${
+                    isActive 
+                      ? 'bg-indigo-50/80 text-indigo-700' 
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} />
+                  <span className="truncate">{item.name}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 w-full overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto flex flex-col h-full">
           {activeTab === 'DASHBOARD' && renderDashboard()}
           {activeTab === 'CUSTOMERS' && <CustomerList />}
           {activeTab === 'LEADS' && <Leads />}
