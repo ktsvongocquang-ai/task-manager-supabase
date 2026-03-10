@@ -22,6 +22,7 @@ import {
     X,
     Send,
     HardHat,
+    LayoutTemplate,
     HeartHandshake
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
@@ -39,6 +40,7 @@ const viewTitles: Record<string, string> = {
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
     '/construction': 'Quản lý Thi công',
+    '/moodboard': 'Tạo Moodboard',
     '/customers': 'Chăm sóc Khách hàng',
 }
 
@@ -155,6 +157,7 @@ export const Layout = () => {
 
     const navItems = [
         { name: 'Thi Công', path: '/construction', icon: HardHat },
+        { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate },
         { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt'] },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
         { name: 'Thống kê (Dashboard)', path: '/dashboard', icon: LayoutDashboard },
