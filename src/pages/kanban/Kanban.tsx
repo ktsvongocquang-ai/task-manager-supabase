@@ -81,12 +81,8 @@ export const Kanban = () => {
     }
 
     const openAddModalWithStatus = () => {
-        // initialStatus logic was here, removed because AddEditTaskModal doesn't accept initial custom status.
-
         setEditingTask(null)
         setInitialTaskData({ task_code: '', project_id: '' })
-        // @ts-ignore - We are passing an initial status override to the modal implicitly or we can just rely on the modal's default, but let's just open the modal. For a perfect implementation, we'd pass initial form data, but the current AddEditTaskModal doesn't accept full initial form state. We'll at least open it. 
-        // To really set the status, AddEditTaskModal needs to accept `initialStatus`. For now, we just open it.
         setShowModal(true)
     }
 
@@ -101,7 +97,6 @@ export const Kanban = () => {
         const task = tasks.find(t => t.id === taskId);
         if (!task) return;
 
-        // Determine exact status mapped to column
         let newStatus = toColumnId;
         if (toColumnId === 'Cần làm') newStatus = 'Cần làm';
         if (toColumnId === 'Đang thực hiện') newStatus = 'Đang thực hiện';
@@ -109,7 +104,6 @@ export const Kanban = () => {
 
         const isCompleted = toColumnId === 'Hoàn thành';
 
-        // Optimistic update for snappy UI
         setTasks(prev => prev.map(t => {
             if (t.id === taskId) {
                 return { ...t, status: newStatus, completion_pct: isCompleted ? 100 : t.completion_pct };
@@ -125,7 +119,7 @@ export const Kanban = () => {
 
         if (error) {
             console.error('Error updating task status:', error);
-            fetchAll(); // Revert on error
+            fetchAll();
         }
     };
 
@@ -141,7 +135,6 @@ export const Kanban = () => {
         }
         if (!isVisible) return false;
 
-        // Only show actual tasks (leaf nodes), hide the phases/steps that contain other tasks
         const isPhase = tasks.some(other => other.parent_id === t.id);
         if (isPhase) return false;
 
@@ -157,17 +150,13 @@ export const Kanban = () => {
             today.setHours(0, 0, 0, 0);
             const todayStr = today.toLocaleDateString('sv-SE');
 
-            // Show if:
-            // 1. Status is 'Đang thực hiện' or 'Chờ duyệt' (Active work)
-            // 2. Status is 'Cần làm' / 'Chưa bắt đầu' AND (Due today or Overdue)
-            // 3. Completed TODAY
             const isOngoing = t.status === 'Đang thực hiện' || t.status === 'Chờ duyệt';
             const isCompletedToday = t.status === 'Hoàn thành' && t.completion_date === todayStr;
             let isRelevantTodo = false;
 
             if (t.status === 'Cần làm' || t.status === 'Chưa bắt đầu') {
                 if (!t.due_date) {
-                    isRelevantTodo = true; // If no due date, keep it in Kanban
+                    isRelevantTodo = true;
                 } else {
                     const dueDate = new Date(t.due_date);
                     dueDate.setHours(0, 0, 0, 0);
@@ -208,7 +197,6 @@ export const Kanban = () => {
                         </button>
                     </div>
 
-                    {/* Project Filter */}
                     <div className="relative w-full sm:w-48">
                         <select
                             value={selectedProject}
@@ -225,7 +213,6 @@ export const Kanban = () => {
                         </div>
                     </div>
 
-                    {/* Search */}
                     <div className="relative flex-1 sm:w-64">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
@@ -239,7 +226,6 @@ export const Kanban = () => {
                 </div>
             </div>
 
-            {/* Kanban Columns */}
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
                     {KANBAN_COLUMNS.map(column => {
@@ -252,7 +238,6 @@ export const Kanban = () => {
                                 key={column.id}
                                 className="flex-1 min-w-[300px] max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col"
                             >
-                                {/* Column Header */}
                                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-slate-700">{column.title}</h3>
@@ -269,7 +254,6 @@ export const Kanban = () => {
                                     </button>
                                 </div>
 
-                                {/* Column Body */}
                                 <Droppable droppableId={column.id}>
                                     {(provided, snapshot) => (
                                         <div
@@ -279,12 +263,9 @@ export const Kanban = () => {
                                         >
                                             {colTasks.map((task, index) => {
                                                 const assignee = getAssignee(task.assignee_id)
-
-                                                // Calculate subtasks from actual tasks table
                                                 const childTasks = tasks.filter(ct => ct.parent_id === task.id);
                                                 const totalSub = childTasks.length;
                                                 const completedSub = childTasks.filter(ct => ct.status === 'Hoàn thành').length;
-
                                                 const project = projects.find(p => p.id === task.project_id);
                                                 const isDraggable = Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
 
@@ -306,7 +287,6 @@ export const Kanban = () => {
                                                                 style={provided.draggableProps.style}
                                                             >
                                                                 <div className="flex justify-between items-start gap-4">
-                                                                    {/* Left Column: Name & Code */}
                                                                     <div className="flex-1 min-w-0">
                                                                         <h4 className="font-bold text-slate-800 text-[13px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
                                                                             {task.name}
@@ -318,7 +298,6 @@ export const Kanban = () => {
                                                                         </div>
                                                                     </div>
 
-                                                                    {/* Right Column: Priority & Assignee */}
                                                                     <div className="flex flex-col items-end shrink-0 gap-2 min-w-[80px]">
                                                                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                             task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
@@ -340,52 +319,50 @@ export const Kanban = () => {
                                                                 </div>
 
                                                                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                                                                    {task.due_date && (
-                                                                        <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
-                                                                            <Calendar size={9} className="text-slate-400" />
-                                                                            {format(parseISO(task.due_date), 'dd/MM')}
-                                                                        </div>
-                                                                    )}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {task.due_date && (
+                                                                            <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
+                                                                                <Calendar size={9} className="text-slate-400" />
+                                                                                {format(parseISO(task.due_date), 'dd/MM')}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
 
                                                                     {totalSub > 0 && (
-                                                                        <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                                                                        <div className="text-[9px] font-bold text-slate-400">
                                                                             <span>{completedSub}/{totalSub}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            </div>
-                                                )
-                                            }
+                                                        )}
                                                     </Draggable>
-                                    )
-                                    })}
-                                    {provided.placeholder}
+                                                )
+                                            })}
+                                            {provided.placeholder}
+                                        </div>
+                                    )}
+                                </Droppable>
                             </div>
                         )
-                    }
-                                </Droppable>
-        </div>
-    )
-})}
-                </div >
-            </DragDropContext >
+                    })}
+                </div>
+            </DragDropContext>
 
-    {/* Modal */ }
-    < AddEditTaskModal
-isOpen = { showModal }
-onClose = {() => setShowModal(false)}
-onSaved = {() => {
-    setShowModal(false);
-    fetchAll();
-}}
-editingTask = { editingTask }
-initialData = { initialTaskData }
-projects = { projects }
-profiles = { profiles }
-currentUserProfile = { profile }
-generateNextTaskCode = { generateNextTaskCode }
-    />
-        </div >
+            <AddEditTaskModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                onSaved={() => {
+                    setShowModal(false);
+                    fetchAll();
+                }}
+                editingTask={editingTask}
+                initialData={initialTaskData}
+                projects={projects}
+                profiles={profiles}
+                currentUserProfile={profile}
+                generateNextTaskCode={generateNextTaskCode}
+            />
+        </div>
     )
 }
