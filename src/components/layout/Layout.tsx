@@ -20,7 +20,9 @@ import {
     History as HistoryIcon,
     Kanban as KanbanIcon,
     X,
-    Send
+    Send,
+    HardHat,
+    HeartHandshake
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -36,6 +38,8 @@ const viewTitles: Record<string, string> = {
     '/schedule': 'Lịch Trình',
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
+    '/construction': 'Quản lý Thi công',
+    '/customers': 'Chăm sóc Khách hàng',
 }
 
 export const Layout = () => {
@@ -150,9 +154,11 @@ export const Layout = () => {
     }
 
     const navItems = [
+        { name: 'Thi Công', path: '/construction', icon: HardHat },
         { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt'] },
         { name: 'Dự án', path: '/projects', icon: FolderKanban },
         { name: 'Thống kê (Dashboard)', path: '/dashboard', icon: LayoutDashboard },
+        { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake },
     ]
 
     if (profile?.role !== 'Nhân viên') {
