@@ -339,15 +339,7 @@ export const Kanban = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto pt-3 border-t border-slate-50">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div className="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600" title={assignee?.full_name || 'Chưa gán'}>
-                                                                            {assignee?.full_name?.charAt(0) || '?'}
-                                                                        </div>
-                                                                        <span className="text-[12px] font-bold text-slate-600 truncate max-w-[100px]">
-                                                                            {assignee?.full_name || 'Chưa gán'}
-                                                                        </span>
-                                                                    </div>
+                                                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
 
                                                                     <div className="flex items-center gap-3">
                                                                         {task.due_date && (
