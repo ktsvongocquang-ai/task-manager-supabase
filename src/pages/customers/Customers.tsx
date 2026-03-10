@@ -7,6 +7,12 @@ import {
   LayoutDashboard, Users, Target, CheckSquare, Briefcase, FileText, 
   Clock, DollarSign, TrendingUp, ChevronLeft 
 } from 'lucide-react';
+import CustomerList from './CustomerList';
+import Leads from './Leads';
+import TaskTracking from './TaskTracking';
+import Projects from './Projects';
+import GanttChart from './GanttChart';
+import Invoices from './Invoices';
 
 const conversionData = [
   { name: 'Mới', value: 400 },
@@ -227,7 +233,13 @@ export const Customers = () => {
     <div className="h-full w-full bg-slate-50 font-sans flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
       <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
         {activeTab === 'DASHBOARD' && renderDashboard()}
-        {activeTab !== 'DASHBOARD' && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
+        {activeTab === 'CUSTOMERS' && <CustomerList />}
+        {activeTab === 'LEADS' && <Leads />}
+        {activeTab === 'TASKS' && <TaskTracking />}
+        {activeTab === 'PROJECTS' && <Projects />}
+        {activeTab === 'GANTT' && <GanttChart />}
+        {activeTab === 'INVOICES' && <Invoices />}
+        {!['DASHBOARD', 'CUSTOMERS', 'LEADS', 'TASKS', 'PROJECTS', 'GANTT', 'INVOICES'].includes(activeTab) && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
 
         {/* Mobile/Tablet Sticky Bottom Navigation or Desktop Top Navigation equivalent for the CRM module */}
         <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-2 flex overflow-x-auto shadow-sm mx-auto w-full gap-2 snap-x scrollbar-hide shrink-0 pb-2">
