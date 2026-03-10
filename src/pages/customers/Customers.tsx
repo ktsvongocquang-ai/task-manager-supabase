@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 import { 
   LayoutDashboard, Users, Target, CheckSquare, Briefcase, FileText, 
-  Clock, DollarSign, TrendingUp, ChevronLeft 
+  Clock, DollarSign, TrendingUp
 } from 'lucide-react';
 import CustomerList from './CustomerList';
 import Leads from './Leads';
@@ -41,7 +41,8 @@ const trendData = [
 ];
 
 export const Customers = () => {
-  const [activeTab, setActiveTab] = useState('DASHBOARD');
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'DASHBOARD';
 
   const menuItems = [
     { id: 'DASHBOARD', name: 'Tổng quan', icon: LayoutDashboard },
@@ -221,12 +222,6 @@ export const Customers = () => {
       <p className="text-slate-500 max-w-md">
         Phân hệ {title.toLowerCase()} đang được phát triển theo giao diện Light Theme mới. Vui lòng quay lại Tổng quan.
       </p>
-      <button 
-        onClick={() => setActiveTab('DASHBOARD')}
-        className="mt-8 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
-      >
-        <ChevronLeft className="w-5 h-5" /> Về Tổng quan
-      </button>
     </div>
   );
 
@@ -235,35 +230,8 @@ export const Customers = () => {
       {/* Content Area */}
       <div className="flex-1 w-full overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto flex flex-col h-full space-y-6">
-          
-          {/* Header & Horizontal Navigation */}
-          <div className="flex flex-col gap-4 shrink-0 sticky top-0 z-20 bg-slate-50 pb-2">
-            <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-slate-800">Chăm sóc Khách hàng</h1>
-            </div>
-
-            <div className="flex overflow-x-auto bg-slate-100 p-1 rounded-xl w-max max-w-full scrollbar-hide">
-              {menuItems.map(item => {
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                      isActive 
-                        ? 'bg-white text-indigo-600 shadow-sm border-slate-200/50' 
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                    }`}
-                  >
-                    <span>{item.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Active View Content */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 container mx-auto">
             {activeTab === 'DASHBOARD' && renderDashboard()}
             {activeTab === 'CUSTOMERS' && <CustomerList />}
             {activeTab === 'LEADS' && <Leads />}

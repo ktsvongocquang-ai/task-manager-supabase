@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -42,6 +42,8 @@ export const Layout = () => {
     const { profile, signOut } = useAuthStore()
     const navigate = useNavigate()
     const location = useLocation()
+    const [searchParams] = useSearchParams()
+    const activeCrmTab = searchParams.get('tab') || 'DASHBOARD'
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
@@ -302,6 +304,33 @@ export const Layout = () => {
                                     <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Dashboard
                                     </NavLink>
+                                </div>
+                            )}
+
+                            {/* Horizontal Tabs for CRM Views */}
+                            {location.pathname === '/customers' && (
+                                <div className="flex items-center ml-0 mt-3 md:mt-0 md:ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto max-w-[calc(100vw-48px)] md:max-w-none scrollbar-hide shrink-0">
+                                    {[
+                                        { id: 'DASHBOARD', name: 'Tổng quan' },
+                                        { id: 'CUSTOMERS', name: 'Khách hàng' },
+                                        { id: 'LEADS', name: 'KH Tiềm năng' },
+                                        { id: 'TASKS', name: 'Theo dõi Task' },
+                                        { id: 'PROJECTS', name: 'Dự án' },
+                                        { id: 'GANTT', name: 'Gantt Chart' },
+                                        { id: 'INVOICES', name: 'Hóa đơn' },
+                                        { id: 'ACTIVITY_LOG', name: 'Nhật ký' },
+                                    ].map(item => {
+                                        const isActive = activeCrmTab === item.id;
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => navigate(`/customers?tab=${item.id}`)}
+                                                className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                                            >
+                                                {item.name}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
