@@ -1,0 +1,5 @@
+{
+  "name": "CRM Master",
+  "description": "Hệ thống Chăm Sóc Khách Hàng (CRM) với cấu trúc Master-Detail Layout, quản lý khách hàng, theo dõi task và báo cáo.",
+  "requestFramePermissions": []
+}
