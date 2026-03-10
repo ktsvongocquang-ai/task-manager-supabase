@@ -10,6 +10,8 @@ import { Gantt } from './pages/gantt/Gantt'
 import { History } from './pages/history/History'
 import { Kanban } from './pages/kanban/Kanban'
 import { Schedule } from './pages/schedule/Schedule'
+import { Construction } from './pages/construction/Construction'
+import { Customers } from './pages/customers/Customers'
 
 function App() {
   return (
@@ -29,6 +31,8 @@ function App() {
           <Route path="schedule" element={<Schedule />} />
           <Route path="users" element={<Users />} />
           <Route path="history" element={<History />} />
+          <Route path="construction" element={<Construction />} />
+          <Route path="customers" element={<Customers />} />
         </Route>
 
         {/* Catch all */}
