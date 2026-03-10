@@ -24,6 +24,7 @@ export const Gantt = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
+    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
     const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
 
     const year = currentDate.getFullYear()
@@ -120,8 +121,12 @@ export const Gantt = () => {
     const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
     const resetMonth = () => setCurrentDate(new Date())
 
-    // Calculate Project Dates
-    const updatedProjects = projects.map((p): Project & { computed_start?: string, computed_end?: string } => {
+    // Calculate Project Dates and filter by selected project
+    const filteredProjectsBase = selectedProjectId
+        ? projects.filter(p => p.id === selectedProjectId)
+        : projects;
+
+    const updatedProjects = filteredProjectsBase.map((p): Project & { computed_start?: string, computed_end?: string } => {
         const pTasks = tasks.filter(t => t.project_id === p.id)
         if (pTasks.length === 0) return p
 
@@ -361,6 +366,22 @@ export const Gantt = () => {
                         <button onClick={resetMonth} className="text-[10px] font-bold text-blue-300 hover:text-blue-100 hover:underline px-2 py-0.5 rounded transition-all uppercase whitespace-nowrap">
                             Đặt lại
                         </button>
+                    </div>
+
+                    {/* Project Filter - New Styled Dropdown */}
+                    <div className="relative">
+                        <Folder size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <select
+                            value={selectedProjectId || ''}
+                            onChange={(e) => setSelectedProjectId(e.target.value || null)}
+                            className="bg-white border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-48 appearance-none cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700"
+                        >
+                            <option value="">Tất cả dự án</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                     </div>
 
                     <div className="relative">

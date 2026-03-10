@@ -86,7 +86,8 @@ export const Projects = () => {
         const userRole = profile?.role;
         let isVisible = true;
         if (userRole === 'Nhân viên') {
-            isVisible = filteredAllTasks.some(t => t.project_id === p.id);
+            // Visible if user is the manager OR has tasks in the project
+            isVisible = p.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === p.id);
         }
         return isVisible;
     });
