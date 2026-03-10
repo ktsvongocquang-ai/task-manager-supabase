@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Bell, Camera, Upload, Download, Folder, FileText, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, Copy, X, MessageSquare, Clock, FileSearch, ChevronRight } from 'lucide-react';
+import { Plus, Bell, Camera, Upload, Download, Folder, FileText, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, Copy, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings } from 'lucide-react';
 
 // Mock Data
 const initialProjects = [
