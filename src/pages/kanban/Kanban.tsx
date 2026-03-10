@@ -300,28 +300,43 @@ export const Kanban = () => {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
-                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group
-                                                                    ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-2 scale-105 z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
+                                                                className={`bg-white p-3 rounded-lg shadow-sm border transition-all cursor-pointer group
+                                                                    ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-1 scale-[1.02] z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
-                                                                <div className="flex justify-between items-start mb-2">
-                                                                    <h4 className="font-bold text-slate-800 text-sm leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
-                                                                        {task.name}
-                                                                    </h4>
-                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap ml-2 ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                                        task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                                            task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                                                'bg-slate-50 text-slate-500 border-slate-100'
-                                                                        }`}>
-                                                                        {task.priority || 'Trung bình'}
-                                                                    </span>
-                                                                </div>
+                                                                <div className="flex justify-between items-start gap-4">
+                                                                    {/* Left Column: Name & Code */}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <h4 className="font-bold text-slate-800 text-[13px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                                            {task.name}
+                                                                        </h4>
+                                                                        <div className="mt-1">
+                                                                            <span className="text-[10px] font-medium text-slate-400 tracking-tight">
+                                                                                {task.task_code}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
 
-                                                                <div className="mb-4">
-                                                                    <span className="text-[11px] font-medium text-slate-500 tracking-tight">
-                                                                        {task.task_code}
-                                                                    </span>
+                                                                    {/* Right Column: Priority & Assignee */}
+                                                                    <div className="flex flex-col items-end shrink-0 gap-2 min-w-[80px]">
+                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                            task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                                                task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                                                    'bg-slate-50 text-slate-500 border-slate-100'
+                                                                            }`}>
+                                                                            {task.priority || 'Trung bình'}
+                                                                        </span>
+
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500" title={assignee?.full_name || 'Chưa gán'}>
+                                                                                {assignee?.full_name?.charAt(0) || '?'}
+                                                                            </div>
+                                                                            <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[70px]">
+                                                                                {assignee?.full_name?.split(' ').pop() || 'Chưa gán'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
 
                                                                 <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto pt-3 border-t border-slate-50">
