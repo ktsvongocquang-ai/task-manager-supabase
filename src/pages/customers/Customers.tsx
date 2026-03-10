@@ -232,17 +232,8 @@ export const Customers = () => {
   return (
     <div className="h-full w-full bg-slate-50 font-sans flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
       <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
-        {activeTab === 'DASHBOARD' && renderDashboard()}
-        {activeTab === 'CUSTOMERS' && <CustomerList />}
-        {activeTab === 'LEADS' && <Leads />}
-        {activeTab === 'TASKS' && <TaskTracking />}
-        {activeTab === 'PROJECTS' && <Projects />}
-        {activeTab === 'GANTT' && <GanttChart />}
-        {activeTab === 'INVOICES' && <Invoices />}
-        {!['DASHBOARD', 'CUSTOMERS', 'LEADS', 'TASKS', 'PROJECTS', 'GANTT', 'INVOICES'].includes(activeTab) && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
-
-        {/* Mobile/Tablet Sticky Bottom Navigation or Desktop Top Navigation equivalent for the CRM module */}
-        <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-2 flex overflow-x-auto shadow-sm mx-auto w-full gap-2 snap-x scrollbar-hide shrink-0 pb-2">
+        {/* CRM Navigation Bar */}
+        <div className="mb-6 shrink-0 bg-white border border-slate-200 rounded-2xl p-2 flex overflow-x-auto shadow-sm mx-auto w-full gap-2 text-center items-center justify-between sm:justify-start">
            {menuItems.map(item => {
              const Icon = item.icon;
              const isActive = activeTab === item.id;
@@ -250,13 +241,25 @@ export const Customers = () => {
                <button
                  key={item.id}
                  onClick={() => setActiveTab(item.id)}
-                 className={`flex-none snap-center flex flex-row lg:flex-col items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all min-w-[120px] lg:min-w-0 lg:flex-1 ${isActive ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'}`}
+                 className={`flex-none flex flex-col items-center justify-center gap-2 px-6 py-3 rounded-xl transition-all min-w-[120px] flex-1 ${isActive ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'}`}
                >
-                 <Icon className="w-5 h-5 flex-shrink-0" />
+                 <Icon className="w-5 h-5" />
                  <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap">{item.name}</span>
                </button>
              )
            })}
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 w-full">
+          {activeTab === 'DASHBOARD' && renderDashboard()}
+          {activeTab === 'CUSTOMERS' && <CustomerList />}
+          {activeTab === 'LEADS' && <Leads />}
+          {activeTab === 'TASKS' && <TaskTracking />}
+          {activeTab === 'PROJECTS' && <Projects />}
+          {activeTab === 'GANTT' && <GanttChart />}
+          {activeTab === 'INVOICES' && <Invoices />}
+          {!['DASHBOARD', 'CUSTOMERS', 'LEADS', 'TASKS', 'PROJECTS', 'GANTT', 'INVOICES'].includes(activeTab) && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
         </div>
       </div>
     </div>
