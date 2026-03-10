@@ -9,11 +9,7 @@ import {
     LogOut,
     Rocket,
     MessageSquare,
-    FolderPlus,
-    PlusCircle,
-    UserPlus,
     RefreshCw,
-    Plus,
     KeyRound,
     Menu,
     Bell, // Added Bell icon
@@ -50,7 +46,6 @@ export const Layout = () => {
     const location = useLocation()
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
-    const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
     const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
@@ -319,44 +314,7 @@ export const Layout = () => {
                                 <RefreshCw size={18} strokeWidth={2.5} />
                             </button>
 
-                            {/* Quick Add Button */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsQuickAddOpen(!isQuickAddOpen)}
-                                    className="flex items-center px-5 py-2.5 bg-gradient-to-r from-[#3a31d8] to-[#6366f1] text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-200/50 hover:scale-105 active:scale-95 transition-all gap-2"
-                                >
-                                    <Plus size={18} strokeWidth={3} />
-                                    <span>Tạo mới</span>
-                                </button>
 
-                                {isQuickAddOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-10" onClick={() => setIsQuickAddOpen(false)}></div>
-                                        <div className="absolute right-0 mt-2 w-56 glass-card shadow-2xl z-20 animate-in fade-in zoom-in duration-200 origin-top-right py-2 overflow-hidden border border-white/40">
-                                            <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddProjectOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
-                                                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
-                                                    <FolderPlus className="text-purple-600" size={18} />
-                                                </div>
-                                                <span className="font-bold text-slate-700">Dự án mới</span>
-                                            </div>
-                                            <div onClick={() => { setIsQuickAddOpen(false); setIsGlobalAddTaskOpen(true); }} className="quick-add-item mx-2 cursor-pointer">
-                                                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
-                                                    <PlusCircle className="text-emerald-600" size={18} />
-                                                </div>
-                                                <span className="font-bold text-slate-700">Nhiệm vụ mới</span>
-                                            </div>
-                                            {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
-                                                <div onClick={() => { setIsQuickAddOpen(false); navigate('/users'); }} className="quick-add-item mx-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center mr-3">
-                                                        <UserPlus className="text-amber-600" size={18} />
-                                                    </div>
-                                                    <span className="font-bold text-slate-700">Nhân viên mới</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
 
                             {/* Notification Bell */}
                             <div className="relative">
