@@ -319,22 +319,25 @@ export const Kanban = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                                                                    <div className="flex items-center gap-2">
-                                                                        {task.due_date && (
-                                                                            <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
-                                                                                <Calendar size={9} className="text-slate-400" />
-                                                                                {format(parseISO(task.due_date), 'dd/MM')}
+                                                                {/* Only render bottom section if there is data to show */}
+                                                                {(task.due_date || totalSub > 0) && (
+                                                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                                                                        <div className="flex items-center gap-2">
+                                                                            {task.due_date && (
+                                                                                <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
+                                                                                    <Calendar size={9} className="text-slate-400" />
+                                                                                    {format(parseISO(task.due_date), 'dd/MM')}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {totalSub > 0 && (
+                                                                            <div className="text-[9px] font-bold text-slate-400">
+                                                                                <span>{completedSub}/{totalSub}</span>
                                                                             </div>
                                                                         )}
                                                                     </div>
-
-                                                                    {totalSub > 0 && (
-                                                                        <div className="text-[9px] font-bold text-slate-400">
-                                                                            <span>{completedSub}/{totalSub}</span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </Draggable>
