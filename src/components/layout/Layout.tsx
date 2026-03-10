@@ -277,7 +277,7 @@ export const Layout = () => {
             <main className="flex-1 md:ml-64 flex flex-col min-h-screen relative bg-app-bg">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-6 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={() => setIsMobileMenuOpen(true)}
@@ -287,9 +287,9 @@ export const Layout = () => {
                             </button>
                             <h2 className="text-xl font-bold text-gray-900 min-w-[150px]">{currentTitle()}</h2>
 
-                            {/* Horizontal Tabs for Task Views - Only show if current path is one of the task views */}
+                            {/* Horizontal Tabs for Task Views */}
                             {['/kanban', '/tasks', '/schedule', '/gantt'].includes(location.pathname) && (
-                                <div className="hidden md:flex items-center ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50">
+                                <div className="flex items-center ml-0 mt-3 md:mt-0 md:ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto max-w-[calc(100vw-48px)] md:max-w-none scrollbar-hide shrink-0">
                                     <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
                                     </NavLink>
@@ -306,7 +306,7 @@ export const Layout = () => {
                             )}
                         </div>
 
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 self-end md:self-auto">
                             {/* Refresh Button */}
                             <button
                                 onClick={handleRefresh}
@@ -406,7 +406,7 @@ export const Layout = () => {
                 />
 
                 {/* Page View */}
-                <div className="p-6 flex-1 overflow-y-auto">
+                <div className="p-3 sm:p-6 flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full">
                     <Outlet />
                 </div>
             </main>
