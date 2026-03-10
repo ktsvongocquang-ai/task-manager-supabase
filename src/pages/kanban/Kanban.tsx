@@ -340,52 +340,52 @@ export const Kanban = () => {
                                                                 </div>
 
                                                                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                                                                    {task.due_date && (
+                                                                        <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
+                                                                            <Calendar size={9} className="text-slate-400" />
+                                                                            {format(parseISO(task.due_date), 'dd/MM')}
+                                                                        </div>
+                                                                    )}
 
-                                                                    <div className="flex items-center gap-3">
-                                                                        {task.due_date && (
-                                                                            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded">
-                                                                                <Calendar size={11} className="text-slate-400" />
-                                                                                {format(parseISO(task.due_date), 'dd/MM')}
-                                                                            </div>
-                                                                        )}
-
-                                                                        {totalSub > 0 && (
-                                                                            <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
-                                                                                <span>{completedSub}/{totalSub}</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
+                                                                    {totalSub > 0 && (
+                                                                        <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+                                                                            <span>{completedSub}/{totalSub}</span>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
-                                                        )}
-                                                    </Draggable>
+                                                            </div>
                                                 )
-                                            })}
-                                            {provided.placeholder}
-                                        </div>
-                                    )}
-                                </Droppable>
+                                            }
+                                                    </Draggable>
+                                    )
+                                    })}
+                                    {provided.placeholder}
                             </div>
                         )
-                    })}
-                </div>
-            </DragDropContext>
-
-            {/* Modal */}
-            <AddEditTaskModal
-                isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                onSaved={() => {
-                    setShowModal(false);
-                    fetchAll();
-                }}
-                editingTask={editingTask}
-                initialData={initialTaskData}
-                projects={projects}
-                profiles={profiles}
-                currentUserProfile={profile}
-                generateNextTaskCode={generateNextTaskCode}
-            />
+                    }
+                                </Droppable>
         </div>
+    )
+})}
+                </div >
+            </DragDropContext >
+
+    {/* Modal */ }
+    < AddEditTaskModal
+isOpen = { showModal }
+onClose = {() => setShowModal(false)}
+onSaved = {() => {
+    setShowModal(false);
+    fetchAll();
+}}
+editingTask = { editingTask }
+initialData = { initialTaskData }
+projects = { projects }
+profiles = { profiles }
+currentUserProfile = { profile }
+generateNextTaskCode = { generateNextTaskCode }
+    />
+        </div >
     )
 }
