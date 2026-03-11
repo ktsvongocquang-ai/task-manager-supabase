@@ -4,6 +4,7 @@ import { type Task, type Project } from '../../types'
 import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User } from 'lucide-react'
 import { format } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { Plus, Trash2 } from 'lucide-react'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
@@ -607,9 +608,9 @@ export const Gantt = () => {
                                                             <button 
                                                                 onClick={(e) => handleQuickAdd(item.id, item.projectCode, e)}
                                                                 className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-500 hover:text-blue-600"
-                                                                title="Thêm nhiệm vụ"
+                                                                title="Thêm nhiệm vụ mới vào giai đoạn này"
                                                             >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                                <Plus size={14} />
                                                             </button>
                                                         </div>
                                                     ) : (
@@ -644,19 +645,28 @@ export const Gantt = () => {
                                                                     )}
                                                                 </div>
                                                             </div>
-                                                            <button 
-                                                                onClick={async (e) => {
-                                                                    e.stopPropagation();
-                                                                    if (confirm('Bạn có chắc chắn muốn xóa tác vụ này?')) {
-                                                                        await supabase.from('tasks').delete().eq('id', item.id);
-                                                                        setTasks(prev => prev.filter(t => t.id !== item.id));
-                                                                    }
-                                                                }}
-                                                                className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/task:opacity-100 hover:bg-red-100 p-1 rounded-md transition-all text-red-400 hover:text-red-600"
-                                                                title="Xóa nhiệm vụ"
-                                                            >
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                                            </button>
+                                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity">
+                                                                <button 
+                                                                    onClick={(e) => handleQuickAdd(item.task.parent_id, item.projectCode, e)}
+                                                                    className="hover:bg-blue-100 p-1 rounded-md transition-all text-blue-500 hover:text-blue-600 bg-white shadow-sm"
+                                                                    title="Chèn nhiệm vụ mới"
+                                                                >
+                                                                    <Plus size={12} />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={async (e) => {
+                                                                        e.stopPropagation();
+                                                                        if (confirm('Bạn có chắc chắn muốn xóa tác vụ này?')) {
+                                                                            await supabase.from('tasks').delete().eq('id', item.id);
+                                                                            setTasks(prev => prev.filter(t => t.id !== item.id));
+                                                                        }
+                                                                    }}
+                                                                    className="hover:bg-red-100 p-1 rounded-md transition-all text-red-500 hover:text-red-600 bg-white shadow-sm"
+                                                                    title="Xóa nhiệm vụ"
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </button>
+                                                            </div>
                                                         </div>                                                    )}
                                                 </div>
 

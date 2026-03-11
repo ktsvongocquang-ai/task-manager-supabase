@@ -204,15 +204,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
             } else {
                 const today = new Date().toISOString().split('T')[0];
-                const project = projects.find(p => p.id === initialData.project_id);
 
                 setForm({
                     task_code: initialData.task_code,
                     project_id: initialData.project_id,
                     name: '',
                     description: '',
-                    assignee_id: project?.manager_id || '',
-                    supporter_id: currentUserProfile?.id || '',
+                    assignee_id: currentUserProfile?.id || '',
+                    supporter_id: '',
                     status: 'Chưa bắt đầu',
                     priority: 'Trung bình',
                     start_date: today,
@@ -228,14 +227,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     }, [isOpen, editingTask, initialData]);
 
     const handleProjectChange = (projectId: string) => {
-        const project = projects.find(p => p.id === projectId);
         setForm(prev => {
             const nextCode = generateNextTaskCode ? generateNextTaskCode(projectId) : prev.task_code;
             return {
                 ...prev,
                 project_id: projectId,
                 task_code: nextCode,
-                assignee_id: project?.manager_id || prev.assignee_id,
+                assignee_id: currentUserProfile?.id || prev.assignee_id,
                 parent_id: '' // reset phase when project changes
             }
         });
@@ -268,8 +266,16 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     useEffect(() => {
         if (!isOpen) return;
-        // The modal logic no longer auto-calculates dates as heavily since fields were removed
-    }, [form.status, isOpen]);
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
 
 
 
