@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle } from 'lucide-react';
+import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle, FileText, Minus } from 'lucide-react';
 import { format, addDays, parseISO } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -82,11 +82,19 @@ export const Construction = () => {
   const [personnel] = useState(initialPersonnel);
   
   const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDate, setNewProjectDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newProjectBudget, setNewProjectBudget] = useState('');
   
   // App states
   const [isUploading, setIsUploading] = useState(false);
   const [uploadType, setUploadType] = useState<'EXCEL' | 'PDF' | null>(null);
   const [hasData, setHasData] = useState(true); // Default true for demo project 1
+  const [isDraggingExcel, setIsDraggingExcel] = useState(false);
+  const [isDraggingPdf, setIsDraggingPdf] = useState(false);
+  
+  // Data Check states
+  const [selectedParsedItems, setSelectedParsedItems] = useState<string[]>(mockParsedData.map(i => i.id));
+  const [activeDataTab, setActiveDataTab] = useState<'ALL' | 'SELECTED'>('ALL');
   
   // Quote Modal states
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
@@ -147,15 +155,17 @@ export const Construction = () => {
       const newProject: Project = {
         id: Date.now().toString(),
         name: newProjectName,
-        date: new Date().toLocaleDateString('vi-VN'),
+        date: format(parseISO(newProjectDate), 'dd/MM/yyyy'),
         status: 'MỚI',
-        budget: 0,
+        budget: parseInt(newProjectBudget.replace(/[^0-9]/g, '')) || 0,
         actualCost: 0,
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: newProjectDate,
         hasInputData: false
       };
       setProjects([newProject, ...projects]);
       setNewProjectName('');
+      setNewProjectDate(new Date().toISOString().split('T')[0]);
+      setNewProjectBudget('');
       setCurrentView('HOME');
     }
   };
@@ -339,15 +349,33 @@ export const Construction = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 relative group hover:border-indigo-500/30 transition-all">
                 <Calendar className="w-6 h-6 text-indigo-400 mb-3" />
-                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</span>
-                <span className="text-white font-bold">{new Date().toLocaleDateString('vi-VN')}</span>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">Ngày bắt đầu</label>
+                <input 
+                  type="date"
+                  value={newProjectDate}
+                  onChange={(e) => setNewProjectDate(e.target.value)}
+                  className="w-full bg-transparent text-white font-bold text-lg outline-none cursor-pointer"
+                />
              </div>
-             <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+             <div className="bg-white/5 p-6 rounded-2xl border border-white/5 relative group hover:border-emerald-500/30 transition-all">
                 <DollarSign className="w-6 h-6 text-emerald-400 mb-3" />
-                <span className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngân sách dự kiến</span>
-                <span className="text-white font-bold">Chưa định</span>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 group-hover:text-emerald-400 transition-colors">Ngân sách dự kiến</label>
+                <input 
+                  type="text"
+                  placeholder="VD: 50.000.000"
+                  value={newProjectBudget}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    if (val) {
+                      setNewProjectBudget(parseInt(val).toLocaleString('vi-VN'));
+                    } else {
+                      setNewProjectBudget('');
+                    }
+                  }}
+                  className="w-full bg-transparent text-white font-bold text-lg outline-none placeholder:text-slate-600"
+                />
              </div>
           </div>
 
@@ -413,53 +441,110 @@ export const Construction = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  <button 
+                  <div 
                     onClick={() => handleUploadFile('EXCEL')}
-                    className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group flex flex-col items-center gap-4"
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingExcel(true); }}
+                    onDragLeave={() => setIsDraggingExcel(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingExcel(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleUploadFile('EXCEL');
+                      }
+                    }}
+                    className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingExcel ? 'bg-indigo-500/20 border-indigo-500 border-dashed border-2' : ''}`}
                   >
-                    <FileSpreadsheet className="w-12 h-12 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    <FileSpreadsheet className={`w-12 h-12 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
                     <span className="font-black text-white uppercase tracking-widest text-xs">Excel BOQ</span>
-                  </button>
-                  <button 
+                    <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
+                  </div>
+                  <div 
                     onClick={() => handleUploadFile('PDF')}
-                    className="p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all group flex flex-col items-center gap-4"
+                    onDragOver={(e) => { e.preventDefault(); setIsDraggingPdf(true); }}
+                    onDragLeave={() => setIsDraggingPdf(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingPdf(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleUploadFile('PDF');
+                      }
+                    }}
+                    className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingPdf ? 'bg-rose-500/20 border-rose-500 border-dashed border-2' : ''}`}
                   >
-                    <FileSearch className="w-12 h-12 text-rose-400 group-hover:scale-110 transition-transform" />
+                    <FileSearch className={`w-12 h-12 text-rose-400 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
                     <span className="font-black text-white uppercase tracking-widest text-xs">PDF AI Scan</span>
-                  </button>
+                    <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
+                  </div>
                 </div>
              </div>
            ) : (
-             <div className="space-y-8 animate-in fade-in duration-500 flex flex-col flex-1">
-                <div className="flex items-center justify-between">
-                   <div>
-                      <h2 className="text-2xl font-black text-white tracking-tight">Dữ Liệu Bóc Tách</h2>
-                      <p className="text-slate-400 font-medium text-sm">Hệ thống AI đã phân tích thành công biểu mẫu</p>
+             <div className="space-y-6 animate-in fade-in duration-500 flex flex-col flex-1 bg-white/5 backdrop-blur-xl rounded-[32px] p-2 border border-white/10">
+                <div className="p-6 pb-0">
+                   <h2 className="text-2xl font-black text-white tracking-tight mb-2">Kiểm Tra Dữ Liệu</h2>
+                   <p className="text-slate-400 font-medium text-sm leading-relaxed mb-6">Hệ thống sẽ ẩn các dòng đã chọn. Vui lòng chọn hết các hạng mục cần thiết từ cột trái.</p>
+                   
+                   <button 
+                      onClick={() => setCurrentView('PLANNING')}
+                      className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 mb-4"
+                   >
+                      <CheckCircle2 className="w-5 h-5" /> Tiếp tục
+                   </button>
+                   
+                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center font-bold text-white mb-6">
+                      Đã chọn: <span className="text-emerald-400">{selectedParsedItems.length}</span> mục
                    </div>
-                   <div className="flex gap-2">
-                      <button className="p-3 bg-white/5 rounded-xl border border-white/10 text-slate-400 hover:text-white transition-all"><X className="w-5 h-5" /></button>
+
+                   <div className="flex bg-slate-950/50 rounded-2xl border border-white/5 p-1 mb-4">
+                      <button 
+                        onClick={() => setActiveDataTab('ALL')}
+                        className={`flex-1 py-3 text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 ${activeDataTab === 'ALL' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                         <FileText className="w-4 h-4" /> Excel Gốc
+                      </button>
+                      <button 
+                        onClick={() => setActiveDataTab('SELECTED')}
+                        className={`flex-1 py-3 text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 ${activeDataTab === 'SELECTED' ? 'bg-emerald-500/20 text-emerald-400 shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                      >
+                         <CheckCircle2 className="w-4 h-4" /> Đã Chọn ({selectedParsedItems.length})
+                      </button>
                    </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-                   {mockParsedData.map((item, idx) => (
-                     <div key={item.id} className="bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-all">
-                        <div className="flex items-center gap-5">
-                           <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center font-black text-slate-500 text-sm border border-white/5">{idx + 1}</div>
-                           <div>
-                              <div className="font-bold text-white mb-1">{item.name}</div>
-                              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-                                 <span>{item.quantity} {item.unit}</span>
-                                 <span className="w-1 h-1 bg-slate-700 rounded-full"></span>
-                                 <span className="text-indigo-400">{item.price.toLocaleString('vi-VN')} đ</span>
-                              </div>
-                           </div>
-                        </div>
-                        <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        </div>
-                     </div>
-                   ))}
+                <div className="flex-1 overflow-y-auto px-6 space-y-3 pb-6">
+                   {mockParsedData
+                     .filter(item => activeDataTab === 'ALL' || selectedParsedItems.includes(item.id))
+                     .map((item, idx) => {
+                       const isSelected = selectedParsedItems.includes(item.id);
+                       return (
+                         <div key={item.id} className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-all">
+                            <div className="flex items-center gap-4 flex-1">
+                               <div className="font-black text-emerald-500 w-6">{idx + 1}</div>
+                               <div className="flex-1">
+                                  <div className="font-bold text-white mb-1.5">{item.name}</div>
+                                  <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
+                                     <span>SL: {item.quantity}</span>
+                                     <span>ĐV: {item.unit}</span>
+                                     <span className="px-2 py-1 bg-indigo-500/10 text-indigo-400 rounded-md border border-indigo-500/20 tracking-wider">
+                                       {item.price.toLocaleString('vi-VN')} đ
+                                     </span>
+                                  </div>
+                               </div>
+                            </div>
+                            <button 
+                               onClick={() => {
+                                 if (isSelected) {
+                                   setSelectedParsedItems(prev => prev.filter(id => id !== item.id));
+                                 } else {
+                                   setSelectedParsedItems(prev => [...prev, item.id]);
+                                 }
+                               }}
+                               className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}`}
+                            >
+                               {isSelected ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            </button>
+                         </div>
+                       );
+                   })}
                 </div>
              </div>
            )}
@@ -535,46 +620,80 @@ export const Construction = () => {
           <div key={task.id} className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] group hover:bg-white/10 transition-all relative overflow-hidden">
             <div className={`absolute top-0 left-0 w-1.5 h-full ${task.approved ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-              <div className="flex items-center gap-6">
-                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center font-black text-slate-500 text-lg border border-white/5">
-                   {index + 1}
-                </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                     <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-500/20">{task.category}</span>
-                     {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-500/10 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-500/20 animate-pulse">TRỄ HẠN</span>}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center font-black text-slate-500 text-sm border border-white/5">
+                       {index + 1}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                         <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-500/20">{task.category}</span>
+                         {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-500/10 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-500/20 animate-pulse">TRỄ HẠN</span>}
+                      </div>
+                      <h3 className="text-lg font-black text-white tracking-tight group-hover:text-indigo-300 transition-colors uppercase">{task.name}</h3>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-black text-white tracking-tight group-hover:text-indigo-300 transition-colors uppercase">{task.name}</h3>
+                  <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:w-1/2">
-                <div>
-                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">THẦU PHỤ</label>
-                   <select 
-                      className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-2 text-sm text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none"
-                      value={task.subcontractor}
-                      onChange={(e) => {
-                         const newTasks = [...tasks];
-                         newTasks[index].subcontractor = e.target.value;
-                         setTasks(newTasks);
-                      }}
-                   >
-                      <option value="">-- Chọn Đội --</option>
-                      {subcontractorsList.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                   </select>
-                </div>
-                <div>
-                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">THỜI GIAN</label>
-                   <div className="flex items-center gap-2 text-white font-bold">
-                      <Clock className="w-4 h-4 text-indigo-400" />
-                      <span>{task.days} ngày</span>
-                   </div>
-                </div>
-                <div>
-                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">NGÂN SÁCH</label>
-                   <span className="text-emerald-400 font-bold">{task.budget.toLocaleString('vi-VN')} đ</span>
+                <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 space-y-4">
+                  <div className="flex items-center gap-4">
+                     <select 
+                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                        value={task.subcontractor}
+                        onChange={(e) => {
+                           const newTasks = [...tasks];
+                           newTasks[index].subcontractor = e.target.value;
+                           setTasks(newTasks);
+                        }}
+                     >
+                        <option value="">-- Chọn Đội --</option>
+                        {subcontractorsList.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                     </select>
+                     <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 cursor-help">
+                        <AlertTriangle className="w-4 h-4" />
+                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm">
+                     <div className="flex items-center gap-3 text-slate-400">
+                        <span className="font-medium">Thời gian:</span>
+                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-indigo-500/50 transition-colors">
+                           <Clock className="w-4 h-4 mr-2" />
+                           <input 
+                             type="number" 
+                             className="w-12 bg-transparent text-white font-bold text-center outline-none"
+                             value={task.days}
+                             onChange={(e) => {
+                               const newTasks = [...tasks];
+                               newTasks[index].days = parseInt(e.target.value) || 0;
+                               setTasks(newTasks);
+                             }}
+                           />
+                        </div>
+                        <span className="font-medium">ngày</span>
+                     </div>
+                     <div className="flex items-center gap-3 text-slate-400">
+                        <span className="font-medium">Nhân sự:</span>
+                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-emerald-500/50 transition-colors">
+                           <Users className="w-4 h-4 mr-2" />
+                           <input 
+                             type="number" 
+                             className="w-10 bg-transparent text-white font-bold text-center outline-none"
+                             value={task.personnel}
+                             onChange={(e) => {
+                               const newTasks = [...tasks];
+                               newTasks[index].personnel = parseInt(e.target.value) || 0;
+                               setTasks(newTasks);
+                             }}
+                           />
+                        </div>
+                     </div>
+                  </div>
                 </div>
               </div>
 
