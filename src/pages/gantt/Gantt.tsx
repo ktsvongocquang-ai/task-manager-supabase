@@ -20,12 +20,13 @@ export const Gantt = () => {
     const [zoom, setZoom] = useState(100)
     const [profiles, setProfiles] = useState<any[]>([])
     const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
+    const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
     const [taskToComplete, setTaskToComplete] = useState<Task | null>(null)
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
-    const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
+    const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project' | 'phase', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -183,59 +184,107 @@ export const Gantt = () => {
             }
 
             if (expandedProjects.has(p.id)) {
-                const projectTasks = tasks.filter(t => t.project_id === p.id && !t.parent_id).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
-                projectTasks.forEach(t => {
-                    const tStart = t.start_date ? new Date(t.start_date) : null
-                    const tEnd = t.due_date ? new Date(t.due_date) : null
+                // Get phases (tasks without parent_id)
+                const projectPhases = tasks.filter(t => t.project_id === p.id && !t.parent_id)
+                    .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                
+                projectPhases.forEach(phase => {
+                    const phaseStart = phase.start_date ? new Date(phase.start_date) : null
+                    const phaseEnd = phase.due_date ? new Date(phase.due_date) : null
 
                     let renderStartDay = null
                     let renderEndDay = null
 
-                    if (tStart && tStart.getFullYear() === year && tStart.getMonth() === month) {
-                        renderStartDay = tStart.getDate()
-                    } else if (tStart && tStart < new Date(year, month, 1)) {
+                    if (phaseStart && phaseStart.getFullYear() === year && phaseStart.getMonth() === month) {
+                        renderStartDay = phaseStart.getDate()
+                    } else if (phaseStart && phaseStart < new Date(year, month, 1)) {
                         renderStartDay = 1
                     }
 
-                    if (tEnd && tEnd.getFullYear() === year && tEnd.getMonth() === month) {
-                        renderEndDay = tEnd.getDate()
-                    } else if (tEnd && tEnd > new Date(year, month + 1, 0)) {
+                    if (phaseEnd && phaseEnd.getFullYear() === year && phaseEnd.getMonth() === month) {
+                        renderEndDay = phaseEnd.getDate()
+                    } else if (phaseEnd && phaseEnd > new Date(year, month + 1, 0)) {
                         renderEndDay = daysInMonth
                     }
 
-                    if (renderStartDay === null && renderEndDay === null) {
-                        return;
+                    if (renderStartDay !== null || renderEndDay !== null) {
+                        if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
+                        if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
+
+                        const duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
+                        const isCompleted = phase.status?.includes('Hoàn thành')
+
+                        items.push({
+                            id: phase.id,
+                            name: phase.name,
+                            startDay: renderStartDay,
+                            duration,
+                            color: isCompleted ? 'bg-slate-400' : 'bg-emerald-500',
+                            isProject: false,
+                            isPhase: true,
+                            isExpanded: expandedPhases.has(phase.id),
+                            task: phase,
+                            startDate: phase.start_date || phase.due_date,
+                            endDate: phase.due_date || phase.start_date,
+                            type: 'phase',
+                            projectCode: p.project_code
+                        })
                     }
 
-                    if (renderStartDay !== null && renderEndDay === null) {
-                        renderEndDay = renderStartDay;
-                    }
-                    if (renderEndDay !== null && renderStartDay === null) {
-                        renderStartDay = renderEndDay;
-                    }
+                    // Get subtasks if phase is expanded
+                    if (expandedPhases.has(phase.id)) {
+                        const phaseTasks = tasks.filter(t => t.parent_id === phase.id)
+                            .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                        
+                        phaseTasks.forEach(t => {
+                            const tStart = t.start_date ? new Date(t.start_date) : null
+                            const tEnd = t.due_date ? new Date(t.due_date) : null
 
-                    const duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
-                    const isCompleted = t.status?.includes('Hoàn thành')
+                            let tRenderStartDay = null
+                            let tRenderEndDay = null
 
-                    items.push({
-                        id: t.id,
-                        name: t.name,
-                        startDay: renderStartDay,
-                        duration,
-                        color: isCompleted ? 'bg-slate-400 opacity-60' : 'bg-emerald-500',
-                        isProject: false,
-                        task: t,
-                        startDate: t.start_date || t.due_date,
-                        endDate: t.due_date || t.start_date,
-                        type: 'task',
-                        projectCode: p.project_code
-                    })
+                            if (tStart && tStart.getFullYear() === year && tStart.getMonth() === month) {
+                                tRenderStartDay = tStart.getDate()
+                            } else if (tStart && tStart < new Date(year, month, 1)) {
+                                tRenderStartDay = 1
+                            }
+
+                            if (tEnd && tEnd.getFullYear() === year && tEnd.getMonth() === month) {
+                                tRenderEndDay = tEnd.getDate()
+                            } else if (tEnd && tEnd > new Date(year, month + 1, 0)) {
+                                tRenderEndDay = daysInMonth
+                            }
+
+                            if (tRenderStartDay !== null || tRenderEndDay !== null) {
+                                if (tRenderStartDay !== null && tRenderEndDay === null) tRenderEndDay = tRenderStartDay;
+                                if (tRenderEndDay !== null && tRenderStartDay === null) tRenderStartDay = tRenderEndDay;
+
+                                const tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1)
+                                const tIsCompleted = t.status?.includes('Hoàn thành')
+
+                                items.push({
+                                    id: t.id,
+                                    name: t.name,
+                                    startDay: tRenderStartDay,
+                                    duration: tDuration,
+                                    color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
+                                    isProject: false,
+                                    isPhase: false,
+                                    task: t,
+                                    startDate: t.start_date || t.due_date,
+                                    endDate: t.due_date || t.start_date,
+                                    type: 'task',
+                                    projectCode: p.project_code
+                                })
+                            }
+                        })
+                    }
                 })
             }
         })
 
         return items
-    }, [updatedProjects, tasks, year, month, search, expandedProjects])
+    }, [updatedProjects, tasks, year, month, search, expandedProjects, expandedPhases])
 
     useEffect(() => {
         if (!draggingItem) return;
@@ -314,6 +363,15 @@ export const Gantt = () => {
             const next = new Set(prev)
             if (next.has(projectId)) next.delete(projectId)
             else next.add(projectId)
+            return next
+        })
+    }
+
+    const togglePhase = (phaseId: string) => {
+        setExpandedPhases(prev => {
+            const next = new Set(prev)
+            if (next.has(phaseId)) next.delete(phaseId)
+            else next.add(phaseId)
             return next
         })
     }
@@ -425,8 +483,22 @@ export const Gantt = () => {
                     <div className="min-w-max">
                         {/* Day Headers - Themed background like screenshot */}
                         <div className="flex border-b border-slate-200">
-                            <div className="w-64 min-w-[20rem] px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-50 border-r border-slate-200 sticky left-0 z-10">
-                                Tên
+                            <div className="flex sticky left-0 z-20 bg-slate-50 border-r border-slate-200">
+                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center">
+                                    MÔ TẢ
+                                </div>
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center">
+                                    THỜI GIAN
+                                </div>
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center">
+                                    THỜI GIAN
+                                </div>
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center">
+                                    NGÀY
+                                </div>
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center">
+                                    TIẾN %
+                                </div>
                             </div>
                             {days.map(day => (
                                 <div
@@ -457,129 +529,144 @@ export const Gantt = () => {
                                 </div>
                             ) : (
                                 ganttItems.map((item) => {
-                                    const barWidth = Math.max((item.endDay - item.startDay + 1) * cellWidth - 8, cellWidth - 8);
-                                    const showText = barWidth > 150;
-                                    const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM') : '';
-                                    const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM') : '';
-                                    const dateRangeStr = formattedStart && formattedEnd ? `${formattedStart} - ${formattedEnd} (${item.duration} ngày)` : '';
+                                    const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM/yyyy') : '';
+                                    const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM/yyyy') : '';
+                                    // Calculate total days including weekends
+                                    const totalDays = (item.startDate && item.endDate) ? Math.max(1, Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
+                                    const progressAmount = item.task?.completion_pct || 0;
 
                                     return (
-                                        <div key={item.id} className="flex border-b border-slate-50 hover:bg-slate-50/80 transition-colors group/row">
+                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50/80 transition-colors group/row ${item.type === 'project' ? 'bg-[#98a586]/30' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
                                             {/* Left Column Data */}
-                                            <div className="w-64 min-w-[20rem] px-5 py-3 border-r border-slate-100 sticky left-0 bg-white z-20 group-hover/row:bg-slate-50 transition-colors flex items-center shrink-0">
-                                                {item.type === 'project' ? (
-                                                    <div
-                                                        className="flex items-center gap-2 cursor-pointer w-full select-none"
-                                                        onClick={() => toggleProject(item.id)}
-                                                    >
-                                                        {item.isExpanded ? <ChevronDown size={14} className="text-slate-400 shrink-0" /> : <ChevronRight size={14} className="text-slate-400 shrink-0" />}
-                                                        <Folder size={14} className="text-blue-500 fill-blue-500 shrink-0" />
-                                                        <span className="text-xs font-bold text-slate-700 truncate" title={item.name}>{item.name}</span>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-start gap-3 w-full pl-6">
-                                                        <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={item.task.status?.includes('Hoàn thành')}
-                                                                onChange={() => {
-                                                                    if (!item.task.status?.includes('Hoàn thành')) {
-                                                                        setTaskToComplete(item.task)
-                                                                    }
-                                                                }}
-                                                                className="w-4 h-4 rounded text-blue-500 border-slate-300 focus:ring-blue-500 z-10 opacity-0 absolute cursor-pointer"
-                                                            />
-                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${item.task.status?.includes('Hoàn thành') ? 'bg-blue-500 border-blue-500 text-white' : 'bg-white border-slate-300'}`}>
-                                                                {item.task.status?.includes('Hoàn thành') && <CheckCircle2 size={12} />}
-                                                            </div>
+                                            <div className={`flex sticky left-0 z-20 transition-colors shrink-0 ${item.type === 'project' ? 'bg-[#98a586]/30 group-hover/row:bg-[#98a586]/40' : item.type === 'phase' ? 'bg-slate-100 group-hover/row:bg-slate-200/50' : 'bg-white group-hover/row:bg-slate-50'}`}>
+                                                
+                                                {/* Tên Mô Tả */}
+                                                <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center">
+                                                    {item.type === 'project' ? (
+                                                        <div
+                                                            className="flex items-center gap-2 cursor-pointer w-full select-none"
+                                                            onClick={() => toggleProject(item.id)}
+                                                        >
+                                                            {item.isExpanded ? <ChevronDown size={14} className="text-slate-800 shrink-0" /> : <ChevronRight size={14} className="text-slate-800 shrink-0" />}
+                                                            <span className="text-xs font-black text-slate-800 truncate uppercase">{item.name}</span>
                                                         </div>
-                                                        <div className="min-w-0 flex-1 cursor-pointer" onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <div className="text-[11px] font-semibold text-slate-700 truncate hover:text-blue-600 transition-colors" title={item.name}>
+                                                    ) : item.type === 'phase' ? (
+                                                        <div
+                                                            className="flex items-center gap-2 cursor-pointer w-full select-none pl-4"
+                                                            onClick={() => togglePhase(item.id)}
+                                                        >
+                                                            {item.isExpanded ? <ChevronDown size={14} className="text-slate-700 shrink-0" /> : <ChevronRight size={14} className="text-slate-700 shrink-0" />}
+                                                            <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-start gap-3 w-full pl-10">
+                                                            <div className="min-w-0 flex-1 cursor-pointer" onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
+                                                                <div className="text-[11px] text-slate-700 hover:text-blue-600 transition-colors line-clamp-2" title={item.name}>
                                                                     {item.name}
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-[9px] text-slate-500 flex-wrap">
-                                                                <span className="flex items-center gap-1">
-                                                                    <User size={10} /> {getAssigneeName(item.task.assignee_id)}
-                                                                </span>
-                                                                <span>&bull;</span>
-                                                                <span className="flex items-center gap-1 font-semibold text-emerald-600">
-                                                                    <Calendar size={10} /> {item.duration} ngày
-                                                                </span>
-                                                                <span>&bull;</span>
-                                                                <span className="flex items-center gap-1">
-                                                                    {item.task.status}
-                                                                </span>
+                                                                {/* Assignee if any */}
+                                                                {item.task.assignee_id && (
+                                                                    <div className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1">
+                                                                        <User size={10} /> {getAssigneeName(item.task.assignee_id)}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                        {(() => {
-                                                            const stats = getSubtasksCount(item.task.id, item.task.notes);
-                                                            if (!stats) return null;
-                                                            return (
-                                                                <span className="ml-auto text-blue-600 font-bold text-[11px] bg-blue-50 px-2.5 py-1 rounded-md shadow-sm border border-blue-200/60 inline-flex items-center gap-1.5 whitespace-nowrap">
-                                                                    <span className={stats.completed === stats.total ? "text-emerald-600" : ""}>{stats.completed}</span>
-                                                                    <span className="text-blue-300">/</span>
-                                                                    <span>{stats.total}</span>
-                                                                </span>
-                                                            )
-                                                        })()}
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
+
+                                                {/* Bắt Đầu */}
+                                                <div className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                                    {formattedStart}
+                                                </div>
+
+                                                {/* Kết Thúc */}
+                                                <div className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                                    {formattedEnd}
+                                                </div>
+
+                                                {/* Số Lượng Ngày */}
+                                                <div className={`w-[50px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                                    {totalDays > 0 ? totalDays : '-'}
+                                                </div>
+
+                                                {/* Tiến Độ % */}
+                                                <div className={`w-[50px] px-2 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                                    {item.type !== 'project' ? `${progressAmount}%` : '0%'}
+                                                </div>
+                                                
+                                                {/* Dải phân cách mờ */}
+                                                <div className="w-px h-full bg-slate-200 absolute right-0 top-0 shadow-[1px_0_3px_rgba(0,0,0,0.1)]"></div>
                                             </div>
 
-                                            {/* Timeline Grid */}
-                                            <div className="flex-1 flex relative items-center" style={{ minHeight: item.type === 'project' ? '44px' : '56px' }}>
-                                                {/* Vertical Grid Lines - Full height */}
-                                                {days.map(day => (
-                                                    <div
-                                                        key={day}
-                                                        style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px`, left: `${(day - 1) * cellWidth}px` }}
-                                                        className={`border-r border-slate-200/50 absolute h-full top-0 bottom-0 z-0 pointer-events-none ${isToday(day) ? 'bg-orange-50/20' : ''}`}
-                                                    ></div>
-                                                ))}
-
-                                                {/* Bar component with tooltip */}
-                                                {(() => {
-                                                    // Calculate visual position and width based on drag state
-                                                    let visualStartDay = item.startDay;
-                                                    let visualDuration = item.duration;
-
-                                                    if (draggingItem && draggingItem.id === item.id) {
+                                            {/* Timeline Grid (Right Side) */}
+                                            <div className="flex-1 flex relative" style={{ minHeight: '36px' }}>
+                                                {Array.from({ length: daysInMonth }).map((_, index) => {
+                                                    const day = index + 1;
+                                                    // Determine if this day falls within the item's duration
+                                                    let isWithinRange = false;
+                                                    
+                                                    // Determine logical range limits based on dragging
+                                                    let logicalStartDay = item.startDay;
+                                                    let logicalDuration = item.duration;
+                                                    
+                                                    if (draggingItem && draggingItem.id === item.id && draggingItem.type === item.type) {
                                                         if (draggingItem.action === 'move') {
-                                                            visualStartDay += draggingItem.deltaDays;
+                                                            logicalStartDay += draggingItem.deltaDays;
                                                         } else if (draggingItem.action === 'resize-left') {
-                                                            const maxDelta = item.duration - 1; // Prevent shrinking below 1 day
+                                                            const maxDelta = item.duration - 1;
                                                             const delta = Math.min(draggingItem.deltaDays, maxDelta);
-                                                            visualStartDay += delta;
-                                                            visualDuration -= delta;
+                                                            logicalStartDay += delta;
+                                                            logicalDuration -= delta;
                                                         } else if (draggingItem.action === 'resize-right') {
-                                                            const minDelta = -(item.duration - 1); // Prevent shrinking below 1 day
+                                                            const minDelta = -(item.duration - 1);
                                                             const delta = Math.max(draggingItem.deltaDays, minDelta);
-                                                            visualDuration += delta;
+                                                            logicalDuration += delta;
                                                         }
                                                     }
+                                                    
+                                                    const logicalEndDay = logicalStartDay + logicalDuration - 1;
 
-                                                    // Calculate precise grid alignment
-                                                    // Bar starts exactly at the left edge of its startDay cell
-                                                    const visualLeft = (visualStartDay - 1) * cellWidth;
-                                                    // Bar width exactly matches the number of duration days * cellWidth
-                                                    // (Subtract a tiny fraction so it doesn't overlap the right border, improving visual separation)
-                                                    const visualWidth = Math.max(cellWidth * 0.5, (visualDuration * cellWidth) - 4);
+                                                    if (day >= logicalStartDay && day <= logicalEndDay) {
+                                                        isWithinRange = true;
+                                                    }
 
+                                                    // Cell Background Color Logic
+                                                    let cellBgClass = "";
+                                                    if (isWithinRange) {
+                                                        if (item.type === 'project') cellBgClass = "bg-[#4a80bc]"; // Xanh biển đậm
+                                                        else if (item.type === 'phase') cellBgClass = "bg-[#4a80bc]"; // Xanh biển
+                                                        else cellBgClass = "bg-[#71d9a2]"; // Xanh lá mạ
+                                                    } else {
+                                                        if (isWeekend(day)) cellBgClass = "bg-slate-100/50";
+                                                    }
+                                                    
                                                     return (
                                                         <div
-                                                            className={`absolute h-[22px] rounded-sm shadow-sm z-10 ${item.color} ${item.type === 'project' ? 'opacity-80 border-t border-b border-red-500 rounded-none' : 'opacity-90 border-t border-b border-emerald-500 rounded-none'} group/bar flex items-center justify-between overflow-hidden hover:opacity-100 hover:shadow-md ${draggingItem?.id === item.id && draggingItem?.action === 'move' ? 'opacity-100 z-50 cursor-grabbing shadow-lg' : 'hover:cursor-grab'}`}
-                                                            style={{
-                                                                left: `${visualLeft}px`,
-                                                                width: `${visualWidth}px`,
-                                                                transition: draggingItem?.id === item.id ? 'none' : 'left 0.3s, width 0.3s, opacity 0.3s',
-                                                                marginLeft: '2px' // slight indent from the left grid line
+                                                            key={day}
+                                                            style={{ 
+                                                                width: `${cellWidth}px`, 
+                                                                minWidth: `${cellWidth}px`,
+                                                                left: `${(day - 1) * cellWidth}px`
                                                             }}
+                                                            className={`absolute top-0 bottom-0 border-r border-slate-200/50 flex flex-col justify-center items-center transition-colors group/cell ${cellBgClass}
+                                                                ${isWithinRange && item.type !== 'project' ? 'hover:brightness-95 cursor-grab active:cursor-grabbing' : ''}
+                                                            `}
                                                             onMouseDown={(e) => {
-                                                                e.stopPropagation();
-                                                                e.preventDefault();
-                                                                setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'move' });
+                                                                if (isWithinRange && item.type !== 'project') {
+                                                                    e.stopPropagation();
+                                                                    e.preventDefault();
+                                                                    
+                                                                    // Determine action (resize if near edges)
+                                                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                                                    const clickX = e.clientX - rect.left;
+                                                                    let action: 'move' | 'resize-left' | 'resize-right' = 'move';
+                                                                    
+                                                                    if (day === logicalStartDay && clickX < 10) action = 'resize-left';
+                                                                    else if (day === logicalEndDay && clickX > rect.width - 10) action = 'resize-right';
+                                                                    
+                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action });
+                                                                }
                                                             }}
                                                             onDoubleClick={() => {
                                                                 if (item.type === 'task') {
@@ -588,52 +675,23 @@ export const Gantt = () => {
                                                                 }
                                                             }}
                                                         >
-                                                            {/* Left Resize Handle */}
-                                                            <div
-                                                                className="h-full w-2 cursor-col-resize hover:bg-black/20 z-20 shrink-0"
-                                                                onMouseDown={(e) => {
-                                                                    e.stopPropagation();
-                                                                    e.preventDefault();
-                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'resize-left' });
-                                                                }}
-                                                            ></div>
-
-                                                            {/* Stripe effect for project bars */}
-                                                            {item.type === 'project' && (
-                                                                <div className="absolute inset-0 opacity-20 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,1)_25%,rgba(255,255,255,1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,1)_75%,rgba(255,255,255,1)_100%)] bg-[length:10px_10px] pointer-events-none"></div>
+                                                            {/* If it's the first day of the range, we can optionally show progress text */}
+                                                            {day === logicalStartDay && isWithinRange && item.type !== 'project' && (
+                                                                <span className="text-[8px] font-bold text-slate-800 whitespace-nowrap z-10 select-none px-1 block truncate w-full text-center">
+                                                                    {progressAmount > 0 ? `${progressAmount}%` : ''}
+                                                                </span>
                                                             )}
-
-                                                            {/* Bar Text - Centered */}
-                                                            <div className="overflow-hidden whitespace-nowrap text-[9px] font-bold text-white px-1 leading-none drop-shadow flex-1 text-center pointer-events-none z-10">
-                                                                {item.startDate && item.endDate ? `${format(new Date(item.startDate), 'dd/MM')} - ${format(new Date(item.endDate), 'dd/MM')}: ` : ''}
-                                                                {item.name}
-                                                            </div>
-
-                                                            {/* Right Resize Handle */}
-                                                            <div
-                                                                className="h-full w-2 cursor-col-resize hover:bg-black/20 z-20 shrink-0"
-                                                                onMouseDown={(e) => {
-                                                                    e.stopPropagation();
-                                                                    e.preventDefault();
-                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action: 'resize-right' });
-                                                                }}
-                                                            ></div>
+                                                            
+                                                            {/* Resize handle visuals (optional tooltip for edges) */}
+                                                            {isWithinRange && day === logicalStartDay && item.type !== 'project' && (
+                                                                <div className="absolute left-0 top-0 bottom-0 w-1 hover:cursor-col-resize z-20"></div>
+                                                            )}
+                                                            {isWithinRange && day === logicalEndDay && item.type !== 'project' && (
+                                                                <div className="absolute right-0 top-0 bottom-0 w-1 hover:cursor-col-resize z-20"></div>
+                                                            )}
                                                         </div>
                                                     )
-                                                })()}
-                                                {showText && (
-                                                    <span className="text-[10px] font-bold text-white whitespace-nowrap px-3 drop-shadow-sm z-10">
-                                                        {dateRangeStr}: {item.name}
-                                                    </span>
-                                                )}
-
-                                                {/* Hover Tooltip */}
-                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[130%] bg-gray-900 border border-gray-700 shadow-xl rounded-xl p-3 text-white text-xs z-[100] w-max max-w-xs opacity-0 invisible group-hover/bar:opacity-100 group-hover/bar:visible transition-all duration-200 pointer-events-none">
-                                                    <div className="font-bold mb-1 line-clamp-2">{item.name}</div>
-                                                    {item.task?.description && <div className="text-gray-400 mb-2 line-clamp-3">{item.task.description}</div>}
-                                                    <div className="text-emerald-400 font-mono text-[10px] bg-gray-800 px-2 py-1 rounded inline-block">{dateRangeStr}</div>
-                                                    {/* Triangle pointer */}
-                                                </div>
+                                                })}
                                             </div>
                                         </div>
                                     )
