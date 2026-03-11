@@ -26,6 +26,8 @@ export const Gantt = () => {
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
     const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project' | 'phase', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
+    const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null)
+    const [editValue, setEditValue] = useState<string>('')
 
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -374,6 +376,64 @@ export const Gantt = () => {
         return p?.full_name || 'N/A'
     }
 
+    const handleCellClick = (item: any, field: string, currentValue: string, e: React.MouseEvent) => {
+        if (item.type === 'project') return; // Don't allow inline edits for projects
+        e.stopPropagation();
+        setEditingCell({ id: item.id, field });
+        setEditValue(currentValue || '');
+    };
+
+    const saveCellEdit = async (item: any) => {
+        if (!editingCell) return;
+        const { id, field } = editingCell;
+        
+        let updatePayload: any = {};
+        
+        if (field === 'assignee_id') {
+            updatePayload.assignee_id = editValue;
+        } else if (field === 'start_date') {
+            updatePayload.start_date = editValue ? new Date(editValue).toISOString() : null;
+        } else if (field === 'end_date') {
+            updatePayload.due_date = editValue ? new Date(editValue).toISOString() : null;
+        } else if (field === 'duration') {
+            if (!item.startDate) return; // Cannot calc duration without start
+            const daysCount = parseInt(editValue, 10);
+            if (isNaN(daysCount) || daysCount < 1) return;
+            const newEnd = new Date(item.startDate);
+            newEnd.setDate(newEnd.getDate() + (daysCount - 1));
+            updatePayload.due_date = newEnd.toISOString();
+        }
+
+        if (Object.keys(updatePayload).length > 0) {
+            const table = 'tasks';
+            setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updatePayload } : t));
+            await supabase.from(table).update(updatePayload).eq('id', id);
+        }
+
+        setEditingCell(null);
+    };
+
+    const handleQuickAdd = async (parentId: string, projectId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        
+        const newTask = {
+            name: 'Nhiệm vụ mới',
+            project_id: projectId,
+            parent_id: parentId,
+            status: 'Chưa bắt đầu',
+            priority: 'Bình thường',
+            task_code: `T${Date.now()}`
+        };
+
+        const { data, error } = await supabase.from('tasks').insert([newTask]).select();
+        
+        if (!error && data) {
+            setTasks(prev => [...prev, data[0] as Task]);
+            // Automatically expand the phase so the user can see it
+            setExpandedPhases(prev => new Set(prev).add(parentId));
+        }
+    };
+
     const cellWidth = Math.max(24, Math.round(36 * zoom / 100))
 
     if (loading) {
@@ -519,7 +579,7 @@ export const Gantt = () => {
                                             <div className={`flex sticky left-0 z-20 transition-colors shrink-0 ${item.type === 'project' ? 'bg-[#98a586]/30 group-hover/row:bg-[#98a586]/40' : item.type === 'phase' ? 'bg-slate-100 group-hover/row:bg-slate-200/50' : 'bg-white group-hover/row:bg-slate-50'}`}>
                                                 
                                                 {/* Tên Mô Tả */}
-                                                <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center">
+                                                <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">
                                                     {item.type === 'project' ? (
                                                         <div
                                                             className="flex items-center gap-2 cursor-pointer w-full select-none"
@@ -530,42 +590,134 @@ export const Gantt = () => {
                                                         </div>
                                                     ) : item.type === 'phase' ? (
                                                         <div
-                                                            className="flex items-center gap-2 cursor-pointer w-full select-none pl-4"
-                                                            onClick={() => togglePhase(item.id)}
+                                                            className="flex items-center justify-between cursor-pointer w-full select-none pl-4 pr-2"
                                                         >
-                                                            {item.isExpanded ? <ChevronDown size={14} className="text-slate-700 shrink-0" /> : <ChevronRight size={14} className="text-slate-700 shrink-0" />}
-                                                            <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
+                                                            <div className="flex items-center gap-2 flex-1 min-w-0" onClick={() => togglePhase(item.id)}>
+                                                                {item.isExpanded ? <ChevronDown size={14} className="text-slate-700 shrink-0" /> : <ChevronRight size={14} className="text-slate-700 shrink-0" />}
+                                                                <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
+                                                            </div>
+                                                            <button 
+                                                                onClick={(e) => handleQuickAdd(item.id, item.projectCode, e)}
+                                                                className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-500 hover:text-blue-600"
+                                                                title="Thêm nhiệm vụ"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                                            </button>
                                                         </div>
                                                     ) : (
-                                                        <div className="flex items-start gap-3 w-full pl-10">
-                                                            <div className="min-w-0 flex-1 cursor-pointer" onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
-                                                                <div className="text-[11px] text-slate-700 hover:text-blue-600 transition-colors line-clamp-2" title={item.name}>
+                                                        <div className="flex items-start gap-3 w-full pl-10 pr-6 relative group/task">
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="text-[11px] text-slate-700 cursor-pointer hover:text-blue-600 transition-colors line-clamp-2" title={item.name} onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
                                                                     {item.name}
                                                                 </div>
                                                                 {/* Assignee if any */}
-                                                                {item.task.assignee_id && (
-                                                                    <div className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1">
-                                                                        <User size={10} /> {getAssigneeName(item.task.assignee_id)}
-                                                                    </div>
-                                                                )}
+                                                                <div 
+                                                                    className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1 cursor-pointer hover:bg-slate-100 px-1 -ml-1 rounded transition-colors"
+                                                                    onDoubleClick={(e) => handleCellClick(item, 'assignee_id', item.task.assignee_id || '', e)}
+                                                                >
+                                                                    <User size={10} /> 
+                                                                    {editingCell?.id === item.id && editingCell?.field === 'assignee_id' ? (
+                                                                        <select
+                                                                            value={editValue}
+                                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                                            onBlur={() => saveCellEdit(item)}
+                                                                            onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
+                                                                            autoFocus
+                                                                            className="text-[9px] py-0 px-1 h-5 bg-white border border-blue-400 rounded outline-none"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <option value="">Chọn người gán</option>
+                                                                            {profiles.map(p => (
+                                                                                <option key={p.id} value={p.id}>{p.full_name}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    ) : (
+                                                                        <span className="truncate max-w-[150px]">{getAssigneeName(item.task.assignee_id)}</span>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                            <button 
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (confirm('Bạn có chắc chắn muốn xóa tác vụ này?')) {
+                                                                        await supabase.from('tasks').delete().eq('id', item.id);
+                                                                        setTasks(prev => prev.filter(t => t.id !== item.id));
+                                                                    }
+                                                                }}
+                                                                className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/task:opacity-100 hover:bg-red-100 p-1 rounded-md transition-all text-red-400 hover:text-red-600"
+                                                                title="Xóa nhiệm vụ"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                            </button>
+                                                        </div>                                                    )}
                                                 </div>
 
                                                 {/* Bắt Đầu */}
-                                                <div className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                    {formattedStart}
+                                                <div 
+                                                    className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                                    onDoubleClick={(e) => handleCellClick(item, 'start_date', item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '', e)}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'start_date' ? (
+                                                        <input 
+                                                            type="date"
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => saveCellEdit(item)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
+                                                            autoFocus
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
+                                                    ) : (
+                                                        <span className={item.type !== 'project' && !formattedStart ? 'text-slate-300 italic' : ''}>
+                                                            {formattedStart || '—'}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Kết Thúc */}
-                                                <div className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                    {formattedEnd}
+                                                <div 
+                                                    className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                                    onDoubleClick={(e) => handleCellClick(item, 'end_date', item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '', e)}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'end_date' ? (
+                                                        <input 
+                                                            type="date"
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => saveCellEdit(item)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
+                                                            autoFocus
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
+                                                    ) : (
+                                                        <span className={item.type !== 'project' && !formattedEnd ? 'text-slate-300 italic' : ''}>
+                                                            {formattedEnd || '—'}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Số Lượng Ngày */}
-                                                <div className={`w-[50px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                    {totalDays > 0 ? totalDays : '-'}
+                                                <div 
+                                                    className={`w-[50px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                                    onDoubleClick={(e) => handleCellClick(item, 'duration', totalDays.toString(), e)}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'duration' ? (
+                                                        <input 
+                                                            type="number"
+                                                            min="1"
+                                                            value={editValue}
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => saveCellEdit(item)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
+                                                            autoFocus
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
+                                                            onClick={e => e.stopPropagation()}
+                                                        />
+                                                    ) : (
+                                                        totalDays > 0 ? totalDays : '-'
+                                                    )}
                                                 </div>
 
                                                 {/* Tiến Độ % */}
