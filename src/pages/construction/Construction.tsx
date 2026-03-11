@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle, FileText, Minus } from 'lucide-react';
-import { format, addDays, parseISO } from 'date-fns';
+import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle, Minus, Sparkles, Trash2 } from 'lucide-react';
+import { format, addDays, parseISO, differenceInDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import * as xlsx from 'xlsx';
+import { parseConstructionExcel } from '../../lib/gemini';
 
 // -------------------------------------------------------------
 // TYPES & MOCK DATA INITIALIZATION
@@ -19,6 +21,7 @@ interface Task {
   personnel: number;
   budget: number;
   approved: boolean;
+  progress?: number;
   startDate?: string; // ISO date
   endDate?: string;   // ISO date
   status?: 'Chưa bắt đầu' | 'Đang chờ' | 'Đang thực hiện' | 'Hoàn thành' | 'Trễ hạn';
@@ -36,8 +39,8 @@ interface Project {
 }
 
 const initialProjects: Project[] = [
-  { id: '1', name: 'Nhà cô Lan', date: '30/1/2026', status: 'ĐANG CHẠY', budget: 150000000, actualCost: 45000000, startDate: '2026-01-30', hasInputData: true },
-  { id: '2', name: 'Biệt thự Anh Hùng', date: '15/2/2026', status: 'MỚI', budget: 0, actualCost: 0, startDate: '2026-02-15', hasInputData: false }
+  { id: '1', name: 'Nhà cô Lan', date: '06/05/2024', status: 'ĐANG CHẠY', budget: 150000000, actualCost: 45000000, startDate: '2024-05-06', hasInputData: true },
+  { id: '2', name: 'Biệt thự Anh Hùng', date: '15/05/2024', status: 'MỚI', budget: 0, actualCost: 0, startDate: '2024-05-15', hasInputData: false }
 ];
 
 const mockParsedData = [
@@ -48,10 +51,10 @@ const mockParsedData = [
 ];
 
 const initialTasks: Task[] = [
-  { id: 't1', name: 'Công tác thiết kế và chuẩn bị hồ sơ', category: 'KHÁC', subcontractor: '', days: 5, personnel: 2, budget: 15000000, approved: true, startDate: '2026-01-30', endDate: '2026-02-04', status: 'Hoàn thành' },
-  { id: 't2', name: 'Tháo dỡ - Vận chuyển khỏi căn hộ', category: 'THI CÔNG', subcontractor: 'Hùng (Đào móng)', days: 2, personnel: 4, budget: 5000000, approved: true, startDate: '2026-02-05', endDate: '2026-02-07', status: 'Hoàn thành' },
-  { id: 't3', name: 'Thi công hệ thống điện và chiếu sáng', category: 'MEP', subcontractor: 'Công ty Điện Beta (MEP)', days: 10, personnel: 4, budget: 45000000, approved: false, startDate: '2026-02-08', endDate: '2026-02-18', status: 'Đang thực hiện' },
-  { id: 't4', name: 'Thi công trang trí mặt tiền', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 12, personnel: 6, budget: 85000000, approved: true, startDate: '2026-02-19', endDate: '2026-03-03', status: 'Chưa bắt đầu' }
+  { id: 't1', name: 'Công tác thiết kế và chuẩn bị hồ sơ', category: 'KHÁC', subcontractor: '', days: 5, personnel: 2, budget: 15000000, approved: true, startDate: '2024-05-06', endDate: '2024-05-10', status: 'Hoàn thành', progress: 0 },
+  { id: 't2', name: 'Tháo dỡ - Vận chuyển khỏi căn hộ', category: 'THI CÔNG', subcontractor: 'Hùng (Đào móng)', days: 2, personnel: 4, budget: 5000000, approved: true, startDate: '2024-05-11', endDate: '2024-05-12', status: 'Hoàn thành', progress: 0 },
+  { id: 't3', name: 'Thi công hệ thống điện và chiếu sáng', category: 'MEP', subcontractor: 'Công ty Điện Beta (MEP)', days: 10, personnel: 4, budget: 45000000, approved: false, startDate: '2024-05-13', endDate: '2024-05-22', status: 'Đang thực hiện', progress: 0 },
+  { id: 't4', name: 'Thi công trang trí mặt tiền', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 12, personnel: 6, budget: 85000000, approved: true, startDate: '2024-05-23', endDate: '2024-06-03', status: 'Chưa bắt đầu', progress: 0 }
 ];
 
 const initialPersonnel = [
@@ -92,9 +95,39 @@ export const Construction = () => {
   const [isDraggingExcel, setIsDraggingExcel] = useState(false);
   const [isDraggingPdf, setIsDraggingPdf] = useState(false);
   
-  // Data Check states
+  const [parsedData, setParsedData] = useState<{id: string, name: string, quantity: number, unit: string, price: number}[]>(mockParsedData);
   const [selectedParsedItems, setSelectedParsedItems] = useState<string[]>(mockParsedData.map(i => i.id));
   const [activeDataTab, setActiveDataTab] = useState<'ALL' | 'SELECTED'>('ALL');
+  
+  // Project Info states for Gantt
+  const [projectStartDate, setProjectStartDate] = useState('2024-05-06');
+  const [currentWeek, setCurrentWeek] = useState(3);
+  const [leadArchitect, setLeadArchitect] = useState('VÕ NGỌC QUANG');
+  const [supervisor, setSupervisor] = useState('NGÔ HỮU THẮNG');
+
+  // Inline Editing states
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
+  
+  // Project Info editing state
+  const [isEditingProjInfo, setIsEditingProjInfo] = useState<string | null>(null);
+
+  // Highlighted cells state: taskId-dayIndex
+  const [highlightedCells, setHighlightedCells] = useState<Record<string, boolean>>({});
+
+  const toggleCellHighlight = (taskId: string, dayIndex: number) => {
+    const key = `${taskId}-${dayIndex}`;
+    setHighlightedCells(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const shiftProjectDate = (days: number) => {
+    const newDate = addDays(parseISO(projectStartDate), days);
+    setProjectStartDate(format(newDate, 'yyyy-MM-dd'));
+  };
   
   // Quote Modal states
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
@@ -119,7 +152,10 @@ export const Construction = () => {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        if (currentView === 'REMINDERS' || currentView === 'CREATE_PROJECT' || currentView === 'PLANNING' || currentView === 'GANTT') {
+        if (editingTaskId) {
+            setEditingTaskId(null);
+            setEditingField(null);
+        } else if (currentView === 'REMINDERS' || currentView === 'CREATE_PROJECT' || currentView === 'PLANNING' || currentView === 'GANTT') {
           setCurrentView('HOME');
         }
         if (isQuoteOpen) setIsQuoteOpen(false);
@@ -129,25 +165,95 @@ export const Construction = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [currentView, isQuoteOpen]);
 
-  const addNewTask = () => {
-    const lastTask = tasks[tasks.length - 1];
-    const startDateStr = lastTask ? (lastTask.endDate || lastTask.startDate || new Date().toISOString()) : new Date().toISOString();
+  const addNewTask = (category: string = 'THI CÔNG', insertAfterId?: string) => {
+    let startDateStr = new Date().toISOString();
+    let insertIndex = tasks.length;
+    
+    if (insertAfterId) {
+        const targetIdx = tasks.findIndex(t => t.id === insertAfterId);
+        if (targetIdx !== -1) {
+            insertIndex = targetIdx + 1;
+            startDateStr = tasks[targetIdx].endDate || tasks[targetIdx].startDate || new Date().toISOString();
+        }
+    } else {
+        const lastTask = tasks[tasks.length - 1];
+        startDateStr = lastTask ? (lastTask.endDate || lastTask.startDate || new Date().toISOString()) : new Date().toISOString();
+    }
     const startDate = addDays(parseISO(startDateStr), 1);
     
     const newTask: Task = {
       id: `t_new_${Date.now()}`,
       name: 'Hạng mục thi công mới',
-      category: 'THI CÔNG',
-      subcontractor: settings.planner, // Auto-select creator/planner
-      days: 5,
+      category: category,
+      subcontractor: '',
+      days: 2,
       personnel: 2,
-      budget: 1000000,
+      budget: 0,
       approved: false,
+      progress: 0,
       startDate: startDate.toISOString().split('T')[0],
-      endDate: addDays(startDate, 5).toISOString().split('T')[0],
+      endDate: addDays(startDate, 1).toISOString().split('T')[0],
       status: 'Chưa bắt đầu'
     };
-    setTasks([...tasks, newTask]);
+    
+    const newTasks = [...tasks];
+    newTasks.splice(insertIndex, 0, newTask);
+    setTasks(newTasks);
+  };
+
+  const handleEditStart = (taskId: string, field: string, initialValue: string | number) => {
+    setEditingTaskId(taskId);
+    setEditingField(field);
+    setEditValue(initialValue.toString());
+  };
+
+  const handleEditSave = () => {
+    if (editingTaskId && editingField) {
+      setTasks(tasks.map(t => {
+        if (t.id === editingTaskId) {
+           let updatedTask = { ...t };
+           const newValue = editingField === 'days' || editingField === 'progress' ? Number(editValue) : editValue;
+           updatedTask[editingField as keyof Task] = newValue as never;
+
+           // Auto adjust dates
+           if (editingField === 'days') {
+               if (updatedTask.startDate) {
+                   updatedTask.endDate = addDays(parseISO(updatedTask.startDate), Math.max(0, updatedTask.days - 1)).toISOString().split('T')[0];
+               }
+           } else if (editingField === 'startDate') {
+               if (updatedTask.days && updatedTask.startDate) {
+                   updatedTask.endDate = addDays(parseISO(updatedTask.startDate), Math.max(0, updatedTask.days - 1)).toISOString().split('T')[0];
+               }
+           } else if (editingField === 'endDate') {
+               if (updatedTask.startDate && updatedTask.endDate) {
+                   const start = parseISO(updatedTask.startDate);
+                   const end = parseISO(updatedTask.endDate);
+                   const diff = differenceInDays(end, start) + 1;
+                   if (diff > 0) {
+                       updatedTask.days = diff;
+                   } else {
+                       // invalid end date, fallback
+                       updatedTask.endDate = updatedTask.startDate;
+                       updatedTask.days = 1;
+                   }
+               }
+           }
+
+           return updatedTask;
+        }
+        return t;
+      }));
+    }
+    setEditingTaskId(null);
+    setEditingField(null);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleEditSave();
+    if (e.key === 'Escape') {
+        setEditingTaskId(null);
+        setEditingField(null);
+    }
   };
 
   const handleCreateProject = () => {
@@ -170,49 +276,103 @@ export const Construction = () => {
     }
   };
 
-  const handleUploadFile = (type: 'EXCEL' | 'PDF') => {
+  const handleUploadFile = (type: 'EXCEL' | 'PDF', file?: File) => {
     setUploadType(type);
     setIsUploading(true);
-    setTimeout(() => {
-      setIsUploading(false);
-      setHasData(true);
-      
-      // Auto generate tasks from BOQ mock data
-      let currentStartDate = parseISO(selectedProject?.startDate || new Date().toISOString());
-      const newTasks: Task[] = mockParsedData.map((item, index) => {
-        const days = Math.floor(Math.random() * 5) + 2; // Random 2-6 days
-        const endDate = addDays(currentStartDate, days);
-        const task: Task = {
-          id: `t_${Date.now()}_${index}`,
-          name: item.name,
-          category: 'THI CÔNG',
-          subcontractor: '',
-          days: days,
-          personnel: Math.floor(Math.random() * 4) + 1,
-          budget: item.price * item.quantity,
-          approved: false,
-          startDate: currentStartDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
-          status: 'Chưa bắt đầu'
-        };
-        currentStartDate = addDays(endDate, 1);
-        return task;
-      });
-      
-      setTasks(newTasks);
-      
-      // Update project status
-      if (selectedProjectId) {
-         setProjects(projects.map(p => {
-             if (p.id === selectedProjectId) {
-                 return {...p, status: 'ĐANG CHẠY', hasInputData: true, budget: newTasks.reduce((sum, t) => sum + t.budget, 0)};
-             }
-             return p;
-         }));
-      }
 
-      setCurrentView('DATA_CHECK');
-    }, 2500);
+    if (type === 'EXCEL' && file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = xlsx.read(data, { type: 'binary' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+          
+          // Use AI Parse (Gemini)
+          const extractedData = await parseConstructionExcel(json);
+
+          if (extractedData.length > 0) {
+            setParsedData(extractedData);
+            setSelectedParsedItems(extractedData.map(i => i.id));
+            generateTasksFromData(extractedData);
+          } else {
+             generateTasksFromData(mockParsedData);
+          }
+        } catch (err) {
+          console.error("Error parsing EXCEL", err);
+          generateTasksFromData(mockParsedData);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+       // Mock for PDF or missing file
+       setTimeout(() => {
+         setParsedData(mockParsedData);
+         setSelectedParsedItems(mockParsedData.map(i => i.id));
+         generateTasksFromData(mockParsedData);
+       }, 2000);
+    }
+  };
+
+  const generateTasksFromData = (dataList: any[]) => {
+    setIsUploading(false);
+    setHasData(true);
+    
+    // Auto generate tasks with Logical Timeline thinking
+    // Sort tasks by category priority if available (Chuẩn bị -> Cải tạo -> Nội thất)
+    const priority = { 
+      '1. CÔNG TÁC CHUẨN BỊ TRƯỚC THI CÔNG': 1, 
+      '2. HẠNG MỤC CẢI TẠO KIẾN TRÚC': 2, 
+      '3. HẠNG MỤC LẮP ĐẶT NỘI THẤT': 3, 
+      '4. NGHIỆM THU NỘI BỘ - DEFECT': 4, 
+      '5. NGHIỆM THU BÀN GIAO KHÁCH HÀNG': 5 
+    };
+    const sortedData = [...dataList].sort((a, b) => {
+      const pA = priority[a.category as keyof typeof priority] || 99;
+      const pB = priority[b.category as keyof typeof priority] || 99;
+      return pA - pB;
+    });
+
+    let currentStartDate = parseISO(selectedProject?.startDate || new Date().toISOString());
+    const newTasks: Task[] = sortedData.map((item, index) => {
+      const days = item.days || Math.floor(Math.random() * 5) + 2; 
+      const endDate = addDays(currentStartDate, days - 1); // Task ends at the end of the day count
+      
+      const task: Task = {
+        id: `t_${Date.now()}_${index}`,
+        name: item.name,
+        category: (item.category || '1. CÔNG TÁC CHUẨN BỊ TRƯỚC THI CÔNG').trim(),
+        subcontractor: '',
+        days: days,
+        personnel: item.days > 3 ? 4 : 2, // Auto allocate personnel
+        budget: item.price * item.quantity,
+        approved: false,
+        startDate: currentStartDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        status: 'Chưa bắt đầu'
+      };
+      
+      // Next task starts the day after this one ends (Sequential)
+      currentStartDate = addDays(endDate, 1);
+      return task;
+    });
+    
+    setTasks(newTasks);
+    
+    // Update project status and Total Budget
+    if (selectedProjectId) {
+        setProjects(projects.map(p => {
+            if (p.id === selectedProjectId) {
+                const totalBudget = newTasks.reduce((sum, t) => sum + t.budget, 0);
+                return {...p, status: 'ĐANG CHẠY', hasInputData: true, budget: totalBudget};
+            }
+            return p;
+        }));
+    }
+
+    setCurrentView('DATA_CHECK');
   };
 
   const handleUploadQuote = () => {
@@ -427,9 +587,9 @@ export const Construction = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl min-h-[400px] flex flex-col relative overflow-hidden">
+        <div className="md:col-span-2 space-y-6">
            {!hasData ? (
-             <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in-95 duration-500">
+             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl min-h-[400px] flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in-95 duration-500">
                 <div className="w-24 h-24 bg-indigo-500/10 rounded-[32px] flex items-center justify-center border border-indigo-500/20 shadow-[0_0_30px_rgba(79,70,229,0.2)]">
                    <Upload className="w-10 h-10 text-indigo-400" />
                 </div>
@@ -441,15 +601,14 @@ export const Construction = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  <div 
-                    onClick={() => handleUploadFile('EXCEL')}
+                  <label 
                     onDragOver={(e) => { e.preventDefault(); setIsDraggingExcel(true); }}
                     onDragLeave={() => setIsDraggingExcel(false)}
                     onDrop={(e) => {
                       e.preventDefault();
                       setIsDraggingExcel(false);
                       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                        handleUploadFile('EXCEL');
+                        handleUploadFile('EXCEL', e.dataTransfer.files[0]);
                       }
                     }}
                     className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingExcel ? 'bg-indigo-500/20 border-indigo-500 border-dashed border-2' : ''}`}
@@ -457,16 +616,21 @@ export const Construction = () => {
                     <FileSpreadsheet className={`w-12 h-12 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
                     <span className="font-black text-white uppercase tracking-widest text-xs">Excel BOQ</span>
                     <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
-                  </div>
-                  <div 
-                    onClick={() => handleUploadFile('PDF')}
+                    <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleUploadFile('EXCEL', e.target.files[0]);
+                        e.target.value = ''; // Reset for re-upload
+                      }
+                    }} />
+                  </label>
+                  <label 
                     onDragOver={(e) => { e.preventDefault(); setIsDraggingPdf(true); }}
                     onDragLeave={() => setIsDraggingPdf(false)}
                     onDrop={(e) => {
                       e.preventDefault();
                       setIsDraggingPdf(false);
                       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                        handleUploadFile('PDF');
+                        handleUploadFile('PDF', e.dataTransfer.files[0]);
                       }
                     }}
                     className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingPdf ? 'bg-rose-500/20 border-rose-500 border-dashed border-2' : ''}`}
@@ -474,79 +638,110 @@ export const Construction = () => {
                     <FileSearch className={`w-12 h-12 text-rose-400 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
                     <span className="font-black text-white uppercase tracking-widest text-xs">PDF AI Scan</span>
                     <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
-                  </div>
+                    <input type="file" className="hidden" accept=".pdf" onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        handleUploadFile('PDF', e.target.files[0]);
+                        e.target.value = ''; // Reset for re-upload
+                      }
+                    }} />
+                  </label>
                 </div>
              </div>
            ) : (
-             <div className="space-y-6 animate-in fade-in duration-500 flex flex-col flex-1 bg-white/5 backdrop-blur-xl rounded-[32px] p-2 border border-white/10">
-                <div className="p-6 pb-0">
-                   <h2 className="text-2xl font-black text-white tracking-tight mb-2">Kiểm Tra Dữ Liệu</h2>
-                   <p className="text-slate-400 font-medium text-sm leading-relaxed mb-6">Hệ thống sẽ ẩn các dòng đã chọn. Vui lòng chọn hết các hạng mục cần thiết từ cột trái.</p>
-                   
+             <>
+               <div className="bg-slate-900 border border-white/10 p-6 rounded-[24px]">
+                 <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Dữ Liệu Đầu Vào</h2>
+                 <p className="text-slate-400 text-sm mb-5">Tải lên file Excel BOQ hoặc dự toán để bắt đầu.</p>
+                 <div className="flex gap-4">
                    <button 
-                      onClick={() => setCurrentView('PLANNING')}
-                      className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 mb-4"
+                     onClick={() => { setHasData(false); setTasks([]); }} 
+                     className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors shadow-sm"
                    >
-                      <CheckCircle2 className="w-5 h-5" /> Tiếp tục
+                     Làm mới
                    </button>
-                   
-                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center font-bold text-white mb-6">
-                      Đã chọn: <span className="text-emerald-400">{selectedParsedItems.length}</span> mục
-                   </div>
+                   <label className="bg-indigo-600 cursor-pointer hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                     <Upload className="w-5 h-5"/> Tải Excel
+                     <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
+                       if (e.target.files && e.target.files.length > 0) {
+                         handleUploadFile('EXCEL', e.target.files[0]);
+                         e.target.value = '';
+                       }
+                     }} />
+                   </label>
+                 </div>
+               </div>
+               
+               <div className="bg-slate-50 rounded-[24px] overflow-hidden shadow-2xl flex flex-col min-h-[500px] animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="p-6 bg-slate-50 border-b border-slate-200">
+                     <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Kiểm Tra Dữ Liệu</h2>
+                     <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">Hệ thống sẽ ẩn các dòng đã chọn. Vui lòng chọn hết các hạng mục cần thiết từ cột trái.</p>
+                     
+                     <button 
+                        onClick={() => setCurrentView('PLANNING')}
+                        className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-2 mb-6"
+                     >
+                        <Sparkles className="w-5 h-5" /> Tiếp tục
+                     </button>
+                     
+                     <div className="bg-white border border-slate-200 rounded-full py-3 px-6 text-center font-bold text-slate-500 mb-6 shadow-sm mx-auto max-w-[250px]">
+                        Đã chọn: <span className="text-slate-900">{selectedParsedItems.length}</span> mục
+                     </div>
 
-                   <div className="flex bg-slate-950/50 rounded-2xl border border-white/5 p-1 mb-4">
-                      <button 
-                        onClick={() => setActiveDataTab('ALL')}
-                        className={`flex-1 py-3 text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 ${activeDataTab === 'ALL' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-                      >
-                         <FileText className="w-4 h-4" /> Excel Gốc
-                      </button>
-                      <button 
-                        onClick={() => setActiveDataTab('SELECTED')}
-                        className={`flex-1 py-3 text-sm font-black rounded-xl transition-all flex items-center justify-center gap-2 ${activeDataTab === 'SELECTED' ? 'bg-emerald-500/20 text-emerald-400 shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
-                      >
-                         <CheckCircle2 className="w-4 h-4" /> Đã Chọn ({selectedParsedItems.length})
-                      </button>
-                   </div>
-                </div>
+                     <div className="flex border-b border-slate-200">
+                        <button 
+                          onClick={() => setActiveDataTab('ALL')}
+                          className={`flex-1 py-4 text-sm font-black transition-all flex items-center justify-center gap-2 border-b-2 ${activeDataTab === 'ALL' ? 'text-slate-900 border-slate-900' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                        >
+                           <FileSpreadsheet className="w-4 h-4" /> Excel Gốc
+                        </button>
+                        <button 
+                          onClick={() => setActiveDataTab('SELECTED')}
+                          className={`flex-1 py-4 text-sm font-black transition-all flex items-center justify-center gap-2 border-b-2 ${activeDataTab === 'SELECTED' ? 'text-emerald-600 border-emerald-600' : 'text-slate-400 border-transparent hover:text-slate-600'}`}
+                        >
+                           <Sparkles className="w-4 h-4" /> Đã Chọn ({selectedParsedItems.length})
+                        </button>
+                     </div>
+                  </div>
 
-                <div className="flex-1 overflow-y-auto px-6 space-y-3 pb-6">
-                   {mockParsedData
-                     .filter(item => activeDataTab === 'ALL' || selectedParsedItems.includes(item.id))
-                     .map((item, idx) => {
-                       const isSelected = selectedParsedItems.includes(item.id);
-                       return (
-                         <div key={item.id} className="bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-between group hover:bg-white/10 transition-all">
-                            <div className="flex items-center gap-4 flex-1">
-                               <div className="font-black text-emerald-500 w-6">{idx + 1}</div>
-                               <div className="flex-1">
-                                  <div className="font-bold text-white mb-1.5">{item.name}</div>
-                                  <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
-                                     <span>SL: {item.quantity}</span>
-                                     <span>ĐV: {item.unit}</span>
-                                     <span className="px-2 py-1 bg-indigo-500/10 text-indigo-400 rounded-md border border-indigo-500/20 tracking-wider">
-                                       {item.price.toLocaleString('vi-VN')} đ
-                                     </span>
-                                  </div>
-                               </div>
-                            </div>
-                            <button 
-                               onClick={() => {
-                                 if (isSelected) {
-                                   setSelectedParsedItems(prev => prev.filter(id => id !== item.id));
-                                 } else {
-                                   setSelectedParsedItems(prev => [...prev, item.id]);
-                                 }
-                               }}
-                               className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'}`}
-                            >
-                               {isSelected ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                            </button>
-                         </div>
-                       );
-                   })}
-                </div>
-             </div>
+                  <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-slate-50">
+                     {parsedData
+                       .filter(item => activeDataTab === 'ALL' || selectedParsedItems.includes(item.id))
+                       .map((item, idx) => {
+                         const isSelected = selectedParsedItems.includes(item.id);
+                         return (
+                           <div key={item.id} className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center justify-between hover:shadow-md transition-all group">
+                              <div className="flex items-start gap-3 flex-1">
+                                 <div className="font-bold text-slate-400 w-10 pt-0.5 text-sm">[{idx + 1}]</div>
+                                 <div className="flex-1">
+                                    <div className="font-bold text-slate-900 leading-snug mb-2 text-[15px]">{item.name}</div>
+                                    <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                       <span>Số lượng: {item.quantity}</span>
+                                       <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                       <span>Đơn vị: {item.unit}</span>
+                                       <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                         {item.price.toLocaleString('vi-VN')} đ
+                                       </span>
+                                    </div>
+                                 </div>
+                              </div>
+                              <button 
+                                 onClick={() => {
+                                   if (isSelected) {
+                                     setSelectedParsedItems(prev => prev.filter(id => id !== item.id));
+                                   } else {
+                                     setSelectedParsedItems(prev => [...prev, item.id]);
+                                   }
+                                 }}
+                                 className={`w-10 h-10 flex-shrink-0 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100' : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                              >
+                                 {isSelected ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                              </button>
+                           </div>
+                         );
+                     })}
+                  </div>
+               </div>
+             </>
            )}
         </div>
 
@@ -601,7 +796,7 @@ export const Construction = () => {
         
         <div className="flex items-center gap-4">
            <button 
-               onClick={addNewTask}
+               onClick={() => addNewTask()}
                className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-4 rounded-2xl transition-all flex items-center gap-3 shadow-xl shadow-emerald-600/20 active:scale-95"
            >
                + CHÈN HẠNG MỤC
@@ -654,7 +849,10 @@ export const Construction = () => {
                         <option value="">-- Chọn Đội --</option>
                         {subcontractorsList.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                      </select>
-                     <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 cursor-help">
+                     <div 
+                        className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${!task.subcontractor ? 'bg-rose-500/20 border-rose-500/50 text-rose-500 animate-pulse' : 'bg-white/5 border-white/10 text-slate-400'}`}
+                        title={!task.subcontractor ? "Cần chọn thầu phụ" : "Thông tin thầu phụ"}
+                     >
                         <AlertTriangle className="w-4 h-4" />
                      </div>
                   </div>
@@ -727,61 +925,286 @@ export const Construction = () => {
           </div>
         </div>
 
-        <button 
-          onClick={() => {
-            const element = document.getElementById('gantt-chart-container');
-            if (element) {
-              html2canvas(element, { scale: 2, backgroundColor: '#020617' }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('l', 'mm', 'a3');
-                const imgProps = pdf.getImageProperties(imgData);
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                pdf.save(`Tien-do.pdf`);
-              });
-            }
-          }}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-4 rounded-2xl transition-all flex items-center gap-3 shadow-xl shadow-indigo-600/20 active:scale-95"
-        >
-          <Printer className="w-5 h-5" /> XUẤT PDF A3
-        </button>
+        <div className="flex gap-4">
+          <button 
+            className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
+          >
+            <FileSpreadsheet className="w-5 h-5" /> Excel
+          </button>
+          <button 
+            onClick={() => {
+              const element = document.getElementById('gantt-chart-container');
+              if (element) {
+                // Change background color of pdf to white for clean printing
+                html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+                  const imgData = canvas.toDataURL('image/png');
+                  const pdf = new jsPDF('l', 'mm', 'a3');
+                  const imgProps = pdf.getImageProperties(imgData);
+                  const pdfWidth = pdf.internal.pageSize.getWidth();
+                  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                  pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                  pdf.save(`Tien-do-kem-chu-ky.pdf`);
+                });
+              }
+            }}
+            className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
+          >
+            <Printer className="w-5 h-5" /> In PDF
+          </button>
+          <button 
+            className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
+          >
+             <DollarSign className="w-5 h-5" /> Yêu Cầu Báo Giá
+          </button>
+        </div>
       </div>
 
-      <div id="gantt-chart-container" className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <div className="min-w-[1200px] p-8 text-white">
+      <div className="flex justify-between items-end mb-4 px-2">
+        <div className="space-y-1 text-[12px] font-medium text-slate-700">
+           <div className="flex gap-10">
+              <div className="w-[150px]">Ngày bắt đầu dự án:</div>
+              <div className="font-black cursor-pointer hover:text-blue-600 transition-colors flex items-center gap-2" onClick={() => setIsEditingProjInfo('startDate')}>
+                 {isEditingProjInfo === 'startDate' ? (
+                    <input autoFocus type="date" value={projectStartDate} onChange={e => setProjectStartDate(e.target.value)} onBlur={() => setIsEditingProjInfo(null)} className="bg-blue-50 border border-blue-400 rounded px-1 outline-none text-[11px]" />
+                 ) : format(parseISO(projectStartDate), 'dd/MM/yyyy')}
+              </div>
+              <div className="ml-20">TUẦN</div>
+              <div className="font-black text-blue-600 ml-5 cursor-pointer hover:scale-110 transition-transform flex items-center gap-2" onClick={() => setIsEditingProjInfo('week')}>
+                 {isEditingProjInfo === 'week' ? (
+                    <input autoFocus type="number" value={currentWeek} onChange={e => setCurrentWeek(Number(e.target.value))} onBlur={() => setIsEditingProjInfo(null)} className="w-12 bg-blue-50 border border-blue-400 rounded px-1 outline-none text-[11px]" />
+                 ) : currentWeek}
+              </div>
+           </div>
+           <div className="flex gap-10">
+              <div className="w-[150px]">Kiến trúc sư Chủ trì:</div>
+              <div className="font-black opacity-80 cursor-pointer hover:opacity-100" onClick={() => setIsEditingProjInfo('arch')}>
+                 {isEditingProjInfo === 'arch' ? (
+                    <input autoFocus value={leadArchitect} onChange={e => setLeadArchitect(e.target.value)} onBlur={() => setIsEditingProjInfo(null)} className="bg-blue-50 border border-blue-400 rounded px-1 outline-none text-[11px]" />
+                 ) : leadArchitect}
+              </div>
+           </div>
+           <div className="flex gap-10">
+              <div className="w-[150px]">Giám sát Thi công:</div>
+              <div className="font-black opacity-80 cursor-pointer hover:opacity-100" onClick={() => setIsEditingProjInfo('super')}>
+                 {isEditingProjInfo === 'super' ? (
+                    <input autoFocus value={supervisor} onChange={e => setSupervisor(e.target.value)} onBlur={() => setIsEditingProjInfo(null)} className="bg-blue-50 border border-blue-400 rounded px-1 outline-none text-[11px]" />
+                 ) : supervisor}
+              </div>
+           </div>
+        </div>
+      </div>
+
+      <div id="gantt-chart-container" className="bg-white rounded-xl overflow-hidden shadow-2xl border border-slate-200">
+        <div className="overflow-x-auto text-slate-800 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+          <div className="min-w-[1250px]">
              {/* Gantt Header */}
-             <div className="grid grid-cols-[300px_1fr] border-b border-white/10 pb-4 mb-4">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Hạng mục thi công</div>
-                <div className="grid grid-cols-31 gap-1 text-[10px] font-black text-slate-500 text-center">
-                   {Array.from({length: 31}).map((_, i) => <div key={i}>{i+1}</div>)}
+             <div className="grid grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr] bg-[#f1f5f9] border-b border-slate-300 text-[10px] font-bold text-slate-800 text-center items-stretch uppercase">
+                <div className="flex items-center justify-center border-r border-slate-300 py-3 leading-tight px-1 col-span-2">STT MÔ TẢ</div>
+                <div className="flex items-center justify-center border-r border-slate-300 py-3">GHI CHÚ</div>
+                <div className="flex items-center justify-center border-r border-slate-300 py-3 col-span-2">THỜI GIAN</div>
+                <div className="flex items-center justify-center border-r border-slate-300 py-3 bg-[#e2e8d8]">NGÀY</div>
+                <div className="flex items-center justify-center border-r border-slate-300 py-3 bg-[#e2e8d8] relative">
+                   %
+                   <button 
+                      onClick={() => shiftProjectDate(-7)}
+                      className="absolute -right-3 top-1/2 -translate-y-1/2 z-50 bg-white shadow-xl border-2 border-blue-500 rounded-full p-1.5 text-blue-600 hover:scale-110 transition-all flex items-center justify-center"
+                      title="Trượt về trước 1 tuần"
+                   >
+                      <ChevronLeft className="w-3 h-3" strokeWidth={3} />
+                   </button>
+                </div>
+                <div className="flex flex-col relative">
+                   <button 
+                      onClick={() => shiftProjectDate(7)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-50 bg-white shadow-xl border-2 border-blue-500 rounded-full p-1.5 text-blue-600 hover:scale-110 transition-all flex items-center justify-center"
+                      title="Trượt về sau 1 tuần"
+                   >
+                      <ChevronRight className="w-3 h-3" strokeWidth={3} />
+                   </button>
+                   {/* Tầng 1: Tuần */}
+                   <div className="grid grid-cols-3 border-b border-slate-300 h-1/3">
+                      {Array.from({length: 3}).map((_, i) => (
+                         <div key={`week-${i}`} className={`border-r border-slate-400 flex items-center justify-center bg-white text-[10px] font-black uppercase ${i === 2 ? 'border-r-0' : ''}`}>
+                            TUẦN {i + 1}
+                         </div>
+                      ))}
+                   </div>
+                   {/* Tầng 2: Ngày bắt đầu tuần */}
+                   <div className="grid grid-cols-3 border-b border-slate-300 h-1/3 bg-white/50">
+                      {Array.from({length: 3}).map((_, i) => {
+                         const startOfProject = parseISO(projectStartDate);
+                         const weekStart = addDays(startOfProject, i * 7);
+                         return (
+                            <div key={`wdate-${i}`} className={`border-r border-slate-400 flex items-center justify-center text-[9px] py-0.5 ${i === 2 ? 'border-r-0' : ''}`}>
+                               {format(weekStart, 'dd/MM/yyyy')}
+                            </div>
+                         );
+                      })}
+                   </div>
+                   {/* Tầng 3: Day + Thứ */}
+                   <div className="grid grid-cols-21 h-1/3 bg-[#f3f3f3]">
+                      {Array.from({length: 21}).map((_, i) => {
+                         const startOfProject = parseISO(projectStartDate);
+                         const currentDate = addDays(startOfProject, i);
+                         const dayNum = format(currentDate, 'd');
+                         const dayName = i % 7 === 6 ? 'CN' : `T${(i % 7) + 2}`;
+                         const isWeekEnd = i % 7 === 6;
+                         return (
+                            <div key={i} className={`flex flex-col items-center justify-center border-r ${isWeekEnd ? 'border-r-slate-400' : 'border-r-slate-300'} text-[8px] ${i % 7 === 6 ? 'text-red-600 bg-red-50' : 'text-slate-600'} ${i === 20 ? 'border-r-0' : ''}`}>
+                               <span className="leading-none font-bold">{dayNum}</span>
+                               <span className="leading-none">{dayName}</span>
+                            </div>
+                         );
+                      })}
+                   </div>
                 </div>
              </div>
              
-             {/* Gantt Rows */}
-             <div className="space-y-2">
-                {tasks.filter(t => t.approved).map(task => {
-                    const startDay = parseInt(task.startDate?.split('-')[2] || '1');
-                    return (
-                       <div key={task.id} className="grid grid-cols-[300px_1fr] items-center py-2 group">
-                          <div className="pr-4">
-                             <div className="text-xs font-bold text-white uppercase group-hover:text-indigo-400 transition-colors truncate">{task.name}</div>
-                             <div className="text-[10px] text-slate-500">{task.subcontractor}</div>
-                          </div>
-                          <div className="grid grid-cols-31 gap-1 h-8 bg-white/5 rounded-lg overflow-hidden relative border border-white/5">
-                             <div 
-                                className="absolute bg-gradient-to-r from-indigo-500 to-purple-600 h-full flex items-center px-2 text-[9px] font-black rounded-r-md border-r-2 border-white/30"
-                                style={{ gridColumnStart: startDay, gridColumnEnd: startDay + task.days }}
-                             >
-                                {task.subcontractor}
-                             </div>
-                          </div>
-                       </div>
-                    );
-                })}
-             </div>
-          </div>
+             {/* Gantt Rows grouped by Category */}
+             <div className="bg-white">
+                {Array.from(new Set(tasks.map(t => t.category))).map((cat, catIdx) => (
+                   <div key={cat} className="group/cat">
+                     <div className="grid grid-cols-[40px_1fr] bg-[#e5e5e5] border-b border-slate-300 text-[11px] font-bold text-slate-800 uppercase items-stretch group/header hover:bg-[#d5d5d5] transition-colors relative">
+                        <div className="text-center font-black border-r border-slate-300 py-1.5 flex items-center justify-center min-h-[28px]">{catIdx + 1}</div>
+                        <div className="px-4 py-1.5 flex items-center relative">
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-1 opacity-0 group-hover/header:opacity-100 transition-all z-30">
+                               <button 
+                                  onClick={() => addNewTask(cat)} 
+                                  className="bg-emerald-50 text-emerald-600 rounded border border-emerald-400 p-0.5 hover:bg-emerald-100 hover:scale-125 shadow-md flex items-center justify-center"
+                                  title="Chèn công tác"
+                               >
+                                  <Plus className="w-3.5 h-3.5" strokeWidth={3} />
+                               </button>
+                            </div>
+                            <span>{cat}</span>
+                        </div>
+                     </div>
+                     {tasks.filter(t => t.category === cat).map((task, taskIdx) => {
+                         const startDay = task.startDate ? differenceInDays(parseISO(task.startDate), parseISO(projectStartDate)) + 1 : 1; 
+                         const startDateFmt = task.startDate ? format(parseISO(task.startDate), 'dd/MM/yyyy') : '--/--/----';
+                         const endDateFmt = task.endDate ? format(parseISO(task.endDate), 'dd/MM/yyyy') : '--/--/----';
+
+                         const isEditingName = editingTaskId === task.id && editingField === 'name';
+                         const isEditingSub = editingTaskId === task.id && editingField === 'subcontractor';
+                         const isEditingStart = editingTaskId === task.id && editingField === 'startDate';
+                         const isEditingEnd = editingTaskId === task.id && editingField === 'endDate';
+                         const isEditingDays = editingTaskId === task.id && editingField === 'days';
+                         const isEditingProgress = editingTaskId === task.id && editingField === 'progress';
+
+                         return (
+                            <div key={task.id} className="grid grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr] items-stretch border-b border-slate-200 group hover:bg-yellow-50/50 transition-colors bg-white">
+                               <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center border-r border-slate-200 bg-[#f9fafb]">
+                                  <span>{taskIdx + 1}</span>
+                               </div>
+                               
+                               <div className="border-r border-slate-200 pl-4 pr-2 py-1.5 flex items-center cursor-text relative" onClick={() => !isEditingName && handleEditStart(task.id, 'name', task.name)}>
+                                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all z-30">
+                                      <button onClick={(e) => { e.stopPropagation(); addNewTask(cat, task.id); }} className="bg-emerald-50 border border-emerald-400 text-emerald-600 rounded p-[3px] hover:bg-emerald-100 hover:scale-125 transition-transform shadow-md" title="Chèn công tác bên dưới">
+                                          <Plus className="w-3 h-3" strokeWidth={3} />
+                                      </button>
+                                      <button onClick={(e) => { e.stopPropagation(); setTasks(tasks.filter(t => t.id !== task.id)); }} className="bg-rose-50 border border-rose-400 text-rose-500 rounded p-[3px] hover:bg-rose-100 hover:scale-125 transition-transform shadow-md" title="Xóa công tác">
+                                          <Trash2 className="w-3 h-3" strokeWidth={3} />
+                                      </button>
+                                  </div>
+
+                                  {isEditingName ? (
+                                      <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-full bg-blue-50 border border-blue-400 rounded px-1.5 py-0.5 text-[11px] text-slate-800 outline-none relative z-10" />
+                                  ) : (
+                                     <div className="text-[11px] text-slate-700 truncate min-w-0">{task.name}</div>
+                                  )}
+                               </div>
+                               
+                               <div className="border-r border-slate-200 px-2 py-1.5 flex items-center cursor-text" onClick={() => !isEditingSub && handleEditStart(task.id, 'subcontractor', task.subcontractor || '')}>
+                                  {isEditingSub ? (
+                                      <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-full bg-blue-50 border border-blue-400 rounded px-1.5 py-0.5 text-[11px] text-slate-800 outline-none" placeholder="Nhập thầu..." />
+                                  ) : (
+                                      <span className="text-[10px] text-slate-600 truncate">{task.subcontractor || <span className="italic text-slate-400 font-light">+ Thêm...</span>}</span>
+                                  )}
+                               </div>
+                               
+                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingStart && handleEditStart(task.id, 'startDate', task.startDate || '')}>
+                                  {isEditingStart ? (
+                                     <input type="date" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="bg-blue-50 border border-blue-400 rounded px-1 text-[9px] text-slate-800 outline-none w-[95%]" />
+                                  ) : (
+                                     <span className="text-[9px] text-slate-700">{startDateFmt}</span>
+                                  )}
+                               </div>
+
+                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingEnd && handleEditStart(task.id, 'endDate', task.endDate || '')}>
+                                  {isEditingEnd ? (
+                                     <input type="date" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="bg-blue-50 border border-blue-400 rounded px-1 text-[9px] text-slate-800 outline-none w-[95%]" />
+                                  ) : (
+                                     <span className="text-[9px] text-slate-700">{endDateFmt}</span>
+                                  )}
+                               </div>
+                               
+                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text bg-[#f9fafb]" onClick={() => !isEditingDays && handleEditStart(task.id, 'days', task.days)}>
+                                  {isEditingDays ? (
+                                     <input type="number" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-10 text-center bg-blue-50 border-2 border-blue-400 rounded px-1 text-[11px] font-bold text-slate-800 outline-none" />
+                                  ) : (
+                                     <span className="text-[12px] font-black text-slate-900">{task.days}</span>
+                                  )}
+                               </div>
+                               
+                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text" onClick={() => !isEditingProgress && handleEditStart(task.id, 'progress', task.progress || 0)}>
+                                  {isEditingProgress ? (
+                                     <input type="number" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-8 text-center bg-blue-50 border border-blue-400 rounded px-1 text-[11px] text-slate-800 outline-none" />
+                                  ) : (
+                                     <span className="text-[10px] text-slate-700">{task.progress || 0}%</span>
+                                  )}
+                               </div>
+
+                               <div className="grid grid-cols-21 relative bg-white group-hover:bg-yellow-50/20">
+                                  {Array.from({length: 21}).map((_, i) => {
+                                      const isWeekEnd = i % 7 === 6;
+                                      const cellKey = `${task.id}-${i}`;
+                                      const isHighlighted = highlightedCells[cellKey];
+                                      return (
+                                          <div 
+                                            key={`col-${i}`} 
+                                            onClick={() => toggleCellHighlight(task.id, i)}
+                                            className={`border-r cursor-pointer transition-colors ${isHighlighted ? 'bg-emerald-500/80 hover:bg-emerald-500' : isWeekEnd ? 'bg-red-50/40 hover:bg-slate-100' : 'hover:bg-slate-100'} ${isWeekEnd ? 'border-r-slate-400' : 'border-r-slate-200'} ${i === 20 ? 'border-r-0' : ''}`} 
+                                          />
+                                      );
+                                  })}
+
+                                  <div 
+                                     className="absolute inset-0 flex items-center justify-center bg-[#4a86e8] border-r border-white/30"
+                                     style={{ 
+                                       gridColumnStart: Math.max(1, startDay), 
+                                       gridColumnEnd: Math.min(22, startDay + task.days),
+                                       zIndex: 10
+                                     }}
+                                  >
+                                      {/* Fill full cell style */}
+                                  </div>
+                               </div>
+                            </div>
+                         );
+                     })}
+                   </div>
+                 ))}
+
+                 {/* Signature Block for Print/PDF */}
+                 <div className="bg-white px-12 pt-16 pb-32 flex justify-between items-start mt-8 border-t-2 border-slate-800">
+                    <div className="text-center w-64">
+                      <h3 className="font-extrabold text-[15px] mb-2 text-slate-900 uppercase tracking-widest">NGƯỜI LẬP BIỂU</h3>
+                      <p className="italic text-sm text-slate-500 mb-24">(Ký, ghi rõ họ tên)</p>
+                      <p className="font-bold text-[15px] text-slate-900">{settings.planner}</p>
+                    </div>
+                    <div className="text-center w-64">
+                      <h3 className="font-extrabold text-[15px] mb-2 text-slate-900 uppercase tracking-widest">NGƯỜI KIỂM TRA</h3>
+                      <p className="italic text-sm text-slate-500 mb-24">(Ký, ghi rõ họ tên)</p>
+                      <p className="font-bold text-[15px] text-slate-900">{settings.checker}</p>
+                    </div>
+                    <div className="text-center w-64">
+                      <h3 className="font-extrabold text-[15px] mb-2 text-slate-900 uppercase tracking-widest">PHÊ DUYỆT</h3>
+                      <p className="italic text-sm text-slate-500 mb-24">(Ký, ghi rõ họ tên)</p>
+                      <p className="font-bold text-[15px] text-slate-900">{settings.approver}</p>
+                    </div>
+                 </div>
+              </div>
+           </div>
         </div>
       </div>
     </div>
