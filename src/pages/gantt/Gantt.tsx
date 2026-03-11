@@ -12,7 +12,6 @@ const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 export const Gantt = () => {
     const [tasks, setTasks] = useState<Task[]>([])
-    const [allTasks, setAllTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [currentDate, setCurrentDate] = useState(new Date())
@@ -69,7 +68,6 @@ export const Gantt = () => {
             }
 
             setTasks(fetchedTasks);
-            setAllTasks((t || []) as Task[]);
             setProjects(fetchedProjects);
         } catch (err) {
             console.error(err)
@@ -96,27 +94,7 @@ export const Gantt = () => {
         return DAY_NAMES[d.getDay()]
     }
 
-    const getSubtasksCount = (taskId: string, notes: string | undefined | null) => {
-        const childTasks = allTasks.filter(t => t.parent_id === taskId);
-        if (childTasks.length > 0) {
-            return {
-                completed: childTasks.filter(t => t.status?.includes('Hoàn thành')).length,
-                total: childTasks.length
-            };
-        }
 
-        if (!notes) return null;
-        try {
-            const parsed = JSON.parse(notes);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                const completed = parsed.filter(st => st.completed).length;
-                return { completed, total: parsed.length };
-            }
-        } catch (e) {
-            return null;
-        }
-        return null;
-    }
 
     const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
     const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
