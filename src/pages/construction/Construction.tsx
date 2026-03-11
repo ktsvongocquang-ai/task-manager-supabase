@@ -1,27 +1,65 @@
 import { useState } from 'react';
-import { Plus, Bell, Camera, Upload, Download, Folder, FileText, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, Copy, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings } from 'lucide-react';
+import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, Copy, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, MapPin, UserCheck, Edit } from 'lucide-react';
+import { format, addDays, parseISO } from 'date-fns';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
-// Mock Data
-const initialProjects = [
-  { id: '1', name: 'Nhà cô Lan', date: '30/1/2026', status: 'ĐANG CHẠY' },
-  { id: '2', name: 'Biệt thự Anh Hùng', date: '15/2/2026', status: 'MỚI' }
+// -------------------------------------------------------------
+// TYPES & MOCK DATA INITIALIZATION
+// -------------------------------------------------------------
+type ViewState = 'HOME' | 'CREATE_PROJECT' | 'PROJECT_DETAIL' | 'DATA_CHECK' | 'PLANNING' | 'GANTT' | 'REMINDERS';
+type TabState = 'DỰ ÁN' | 'THU CHI' | 'NHÂN SỰ' | 'CÀI ĐẶT';
+
+interface Task {
+  id: string;
+  name: string;
+  category: string;
+  subcontractor: string;
+  days: number;
+  personnel: number;
+  budget: number;
+  approved: boolean;
+  startDate?: string; // ISO date
+  endDate?: string;   // ISO date
+  status?: 'Chưa bắt đầu' | 'Đang chờ' | 'Đang thực hiện' | 'Hoàn thành' | 'Trễ hạn';
+}
+
+interface Project {
+  id: string;
+  name: string;
+  date: string;
+  status: string;
+  budget: number;
+  actualCost: number;
+  startDate?: string;
+  hasInputData?: boolean;
+}
+
+const initialProjects: Project[] = [
+  { id: '1', name: 'Nhà cô Lan', date: '30/1/2026', status: 'ĐANG CHẠY', budget: 150000000, actualCost: 45000000, startDate: '2026-01-30', hasInputData: true },
+  { id: '2', name: 'Biệt thự Anh Hùng', date: '15/2/2026', status: 'MỚI', budget: 0, actualCost: 0, startDate: '2026-02-15', hasInputData: false }
 ];
 
 const mockParsedData = [
-  { id: 1, name: 'Ốp lam gỗ nhựa mặt tiền', quantity: 12, unit: 'm²', price: 1000000 },
-  { id: 2, name: 'Sơn lại lô đề + khung cửa kính mặt tiền', quantity: 1, unit: 'gói', price: 2000000 },
-  { id: 3, name: 'Ốp lam nhôm đứng mặt tiền', quantity: 1, unit: 'gói', price: 3000000 },
-  { id: 4, name: 'Ốp alu tạo hình mặt tiền', quantity: 1, unit: 'gói', price: 12000000 },
+  { id: 'b1', name: 'Ốp lam gỗ nhựa mặt tiền', quantity: 12, unit: 'm²', price: 1000000 },
+  { id: 'b2', name: 'Sơn lại lô đề + khung cửa kính mặt tiền', quantity: 1, unit: 'gói', price: 2000000 },
+  { id: 'b3', name: 'Ốp lam nhôm đứng mặt tiền', quantity: 1, unit: 'gói', price: 3000000 },
+  { id: 'b4', name: 'Ốp alu tạo hình mặt tiền', quantity: 1, unit: 'gói', price: 12000000 },
 ];
 
-const mockTasks = [
-  { id: 1, name: 'Công tác thiết kế và chuẩn bị hồ sơ', category: 'KHÁC', subcontractor: '', days: 7, personnel: 2, budget: 15000000, approved: true },
-  { id: 2, name: 'Thi công hệ thống điện và chiếu sáng', category: 'MEP', subcontractor: 'Công ty Điện Beta (MEP)', days: 10, personnel: 4, budget: 45000000, approved: false },
-  { id: 3, name: 'Thi công trang trí mặt tiền', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 12, personnel: 6, budget: 85000000, approved: true },
-  { id: 4, name: 'Sơn nước và lát sàn hoàn thiện', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 15, personnel: 8, budget: 120000000, approved: false },
+const initialTasks: Task[] = [
+  { id: 't1', name: 'Công tác thiết kế và chuẩn bị hồ sơ', category: 'KHÁC', subcontractor: '', days: 5, personnel: 2, budget: 15000000, approved: true, startDate: '2026-01-30', endDate: '2026-02-04', status: 'Hoàn thành' },
+  { id: 't2', name: 'Tháo dỡ - Vận chuyển khỏi căn hộ', category: 'THI CÔNG', subcontractor: 'Hùng (Đào móng)', days: 2, personnel: 4, budget: 5000000, approved: true, startDate: '2026-02-05', endDate: '2026-02-07', status: 'Hoàn thành' },
+  { id: 't3', name: 'Thi công hệ thống điện và chiếu sáng', category: 'MEP', subcontractor: 'Công ty Điện Beta (MEP)', days: 10, personnel: 4, budget: 45000000, approved: false, startDate: '2026-02-08', endDate: '2026-02-18', status: 'Đang thực hiện' },
+  { id: 't4', name: 'Thi công trang trí mặt tiền', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 12, personnel: 6, budget: 85000000, approved: true, startDate: '2026-02-19', endDate: '2026-03-03', status: 'Chưa bắt đầu' }
 ];
 
-const subcontractors = [
+const initialPersonnel = [
+  { id: 'p1', name: 'Trần Sơn Hải', position: 'Giám đốc', phone: '0901234567', status: 'Đang làm việc' },
+  { id: 'p2', name: 'Jacky Lee', position: 'Giám sát', phone: '0987654321', status: 'Đang làm việc' }
+];
+
+const subcontractorsList = [
   'Tuấn (Kết cấu)',
   'Công ty Điện Beta (MEP)',
   'Cô Lan (MEP (Nước))',
@@ -30,35 +68,52 @@ const subcontractors = [
 ];
 
 export const Construction = () => {
-  const [currentView, setCurrentView] = useState('HOME');
-  const [activeTab, setActiveTab] = useState('DỰ ÁN');
-  const [projects, setProjects] = useState(initialProjects);
-  const [selectedProject, setSelectedProject] = useState<any>(null);
+  // -------------------------------------------------------------
+  // STATE MANAGEMENT
+  // -------------------------------------------------------------
+  const [currentView, setCurrentView] = useState<ViewState>('HOME');
+  const [activeTab, setActiveTab] = useState<TabState>('DỰ ÁN');
   
-  // State for Create Project
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('1');
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [personnel] = useState(initialPersonnel);
+  
   const [newProjectName, setNewProjectName] = useState('');
   
-  // State for Data Upload
+  // App states
   const [isUploading, setIsUploading] = useState(false);
-  const [hasData, setHasData] = useState(false);
   const [uploadType, setUploadType] = useState<'EXCEL' | 'PDF' | null>(null);
+  const [hasData, setHasData] = useState(true); // Default true for demo project 1
   
-  // State for Planning
-  const [tasks, setTasks] = useState(mockTasks);
-  
-  // State for Quote
+  // Quote Modal states
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [quoteSubcontractor, setQuoteSubcontractor] = useState('');
   const [quoteTone, setQuoteTone] = useState('Thường');
   const [isQuoteUploading, setIsQuoteUploading] = useState(false);
 
+  // Settings state
+  const [settings] = useState({
+    companyName: 'CÔNG TY TNHH J.ARCHITECT',
+    address: 'TP. Hồ Chí Minh, Việt Nam',
+    planner: 'Trần Sơn Hải',
+    checker: 'Jacky Lee',
+    approver: 'Giám Đốc'
+  });
+
   const handleCreateProject = () => {
     if (newProjectName.trim()) {
-      const newProject = {
+      const newProject: Project = {
         id: Date.now().toString(),
         name: newProjectName,
         date: new Date().toLocaleDateString('vi-VN'),
-        status: 'MỚI'
+        status: 'MỚI',
+        budget: 0,
+        actualCost: 0,
+        startDate: new Date().toISOString().split('T')[0],
+        hasInputData: false
       };
       setProjects([newProject, ...projects]);
       setNewProjectName('');
@@ -72,6 +127,41 @@ export const Construction = () => {
     setTimeout(() => {
       setIsUploading(false);
       setHasData(true);
+      
+      // Auto generate tasks from BOQ mock data
+      let currentStartDate = parseISO(selectedProject?.startDate || new Date().toISOString());
+      const newTasks: Task[] = mockParsedData.map((item, index) => {
+        const days = Math.floor(Math.random() * 5) + 2; // Random 2-6 days
+        const endDate = addDays(currentStartDate, days);
+        const task: Task = {
+          id: `t_${Date.now()}_${index}`,
+          name: item.name,
+          category: 'THI CÔNG',
+          subcontractor: '',
+          days: days,
+          personnel: Math.floor(Math.random() * 4) + 1,
+          budget: item.price * item.quantity,
+          approved: false,
+          startDate: currentStartDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          status: 'Chưa bắt đầu'
+        };
+        currentStartDate = addDays(endDate, 1);
+        return task;
+      });
+      
+      setTasks(newTasks);
+      
+      // Update project status
+      if (selectedProjectId) {
+         setProjects(projects.map(p => {
+             if (p.id === selectedProjectId) {
+                 return {...p, status: 'ĐANG CHẠY', hasInputData: true, budget: newTasks.reduce((sum, t) => sum + t.budget, 0)};
+             }
+             return p;
+         }));
+      }
+
       setCurrentView('DATA_CHECK');
     }, 2500);
   };
@@ -87,6 +177,47 @@ export const Construction = () => {
     const newTasks = [...tasks];
     newTasks[index].approved = !newTasks[index].approved;
     setTasks(newTasks);
+  };
+
+  const handlePrintGantt = async () => {
+    const input = document.getElementById('gantt-export-template');
+    if (!input) return;
+    
+    // Temporarily show the template
+    input.style.display = 'block';
+    setIsUploading(true);
+    setUploadType('PDF');
+
+    try {
+      const canvas = await html2canvas(input, {
+        scale: 2, // Tăng chất lượng ảnh
+        useCORS: true,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      
+      // Khổ A3 Ngang: 420 x 297 mm
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a3'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Tien-do-thi-cong-${selectedProject?.name || 'Du-An'}.pdf`);
+    } catch (error) {
+      console.error('Lỗi khi xuất PDF:', error);
+      alert('Đã xảy ra lỗi khi tạo PDF. Vui lòng thử lại.');
+    } finally {
+      // Hide template again
+      input.style.display = 'none';
+      setIsUploading(false);
+      setUploadType(null);
+    }
   };
 
   const renderHome = () => (
@@ -140,8 +271,9 @@ export const Construction = () => {
           {projects.map(project => (
             <div 
               key={project.id}
-              onClick={() => {
-                setSelectedProject(project);
+                onClick={() => {
+                setSelectedProjectId(project.id);
+                setHasData(!!project.hasInputData);
                 setCurrentView('PROJECT_DETAIL');
               }}
               className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all gap-4"
@@ -222,30 +354,33 @@ export const Construction = () => {
       </div>
 
       <div className="p-4 border-b border-slate-100">
-        <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 max-w-md mx-auto">
-          <button 
-            className={`flex-1 py-2 rounded-lg flex justify-center items-center transition-all font-medium ${!hasData ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-            onClick={() => !hasData && setCurrentView('PROJECT_DETAIL')}
-          >
-            <Folder className="w-5 h-5 mr-2" /> Dữ liệu
-          </button>
-          <button 
-            className={`flex-1 py-2 rounded-lg flex justify-center items-center transition-all font-medium ${hasData ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-            onClick={() => hasData && setCurrentView('PLANNING')}
-          >
-            <Calendar className="w-5 h-5 mr-2" /> Kế hoạch
-          </button>
-          <button className="flex-1 py-2 rounded-lg flex justify-center items-center text-slate-500 hover:text-slate-700 transition-all font-medium">
-            <DollarSign className="w-5 h-5 mr-2" /> Chi phí
-          </button>
+          <div className="flex bg-slate-100 rounded-xl p-1 border border-slate-200 max-w-md mx-auto">
+            <button 
+              className={`flex-1 py-2 rounded-lg flex justify-center items-center transition-all font-medium ${!hasData ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => !hasData && setCurrentView('PROJECT_DETAIL')}
+            >
+              <Folder className="w-5 h-5 mr-2" /> Dữ liệu
+            </button>
+            <button 
+              className={`flex-1 py-2 rounded-lg flex justify-center items-center transition-all font-medium ${hasData ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => hasData && setCurrentView('PLANNING')}
+            >
+              <Calendar className="w-5 h-5 mr-2" /> Kế hoạch
+            </button>
+            <button 
+              className="flex-1 py-2 rounded-lg flex justify-center items-center text-slate-500 hover:text-slate-700 transition-all font-medium"
+              onClick={() => setActiveTab('THU CHI')}
+            >
+              <DollarSign className="w-5 h-5 mr-2" /> Chi phí
+            </button>
+          </div>
         </div>
-      </div>
-
-      {!hasData ? (
+  
+        {!hasData ? (
         <div className="flex-1 p-6 flex flex-col items-center justify-center max-w-2xl mx-auto w-full">
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 max-w-xl">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Dữ Liệu Đầu Vào</h2>
-            <p className="text-slate-500">Tải lên file Excel BOQ hoặc PDF hồ sơ thiết kế để AI tự động bóc tách khối lượng.</p>
+            <p className="text-slate-500 text-sm">Tải lên file Excel BOQ hoặc PDF hồ sơ thiết kế để AI tự động bóc tách khối lượng và sinh thời gian thi công dự kiến.</p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-8">
@@ -375,7 +510,10 @@ export const Construction = () => {
           <button className="flex-1 py-2 rounded-lg flex justify-center items-center bg-white shadow-sm text-indigo-600 transition-all font-medium">
             <Calendar className="w-5 h-5 mr-2" /> Kế hoạch
           </button>
-          <button className="flex-1 py-2 rounded-lg flex justify-center items-center text-slate-500 hover:text-slate-700 transition-all font-medium">
+          <button 
+            className="flex-1 py-2 rounded-lg flex justify-center items-center text-slate-500 hover:text-slate-700 transition-all font-medium"
+            onClick={() => setActiveTab('THU CHI')}
+          >
             <DollarSign className="w-5 h-5 mr-2" /> Chi phí
           </button>
         </div>
@@ -438,7 +576,7 @@ export const Construction = () => {
                     }}
                   >
                     <option value="">-- Click để chọn thầu phụ --</option>
-                    {subcontractors.map(sub => (
+                    {subcontractorsList.map(sub => (
                       <option key={sub} value={sub}>{sub}</option>
                     ))}
                   </select>
@@ -499,17 +637,19 @@ export const Construction = () => {
     </div>
   );
 
-  const renderGantt = () => (
+  const renderGantt = () => {
+    // Component for Gantt PDF feature that requires real-date rendering
+    return (
     <div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="p-4 flex flex-wrap items-center justify-between gap-4 bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
         <div className="flex items-center gap-4">
             <button onClick={() => setCurrentView('PLANNING')} className="p-2 bg-white border border-slate-200 rounded-full hover:bg-slate-50 text-slate-600 transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold text-slate-800 truncate">{selectedProject?.name} - Gantt</h1>
+            <h1 className="text-xl font-bold text-slate-800 truncate">{selectedProject?.name} - Tiến Độ Chi Tiết</h1>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-600 font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-          <Calendar className="w-4 h-4 text-indigo-500" /> Bắt đầu: 30/01/2026
+          <Calendar className="w-4 h-4 text-indigo-500" /> Bắt đầu: {selectedProject?.startDate ? format(parseISO(selectedProject.startDate), 'dd/MM/yyyy') : 'Chưa xác định'}
         </div>
       </div>
 
@@ -517,8 +657,11 @@ export const Construction = () => {
         <button className="flex-1 min-w-[120px] bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition-colors">
           <FileSpreadsheet className="w-4 h-4 text-emerald-500" /> Xuất Excel
         </button>
-        <button className="flex-1 min-w-[120px] bg-slate-50 border border-slate-200 text-slate-700 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition-colors">
-          <FileText className="w-4 h-4 text-rose-500" /> In PDF PDF
+        <button 
+          onClick={handlePrintGantt}
+          className="flex-1 min-w-[120px] bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+        >
+          <Printer className="w-4 h-4" /> In PDF (A3 Ngang)
         </button>
         <button 
           onClick={() => setIsQuoteOpen(true)}
@@ -535,32 +678,43 @@ export const Construction = () => {
         </div>
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg px-4 py-2 text-center">
           <div className="text-xs text-slate-500 font-semibold uppercase">Tổng thời gian</div>
-          <div className="font-black text-indigo-600 text-lg">51 ngày</div>
+          <div className="font-black text-indigo-600 text-lg">{tasks.reduce((sum, t) => sum + t.days, 0)} ngày</div>
         </div>
       </div>
 
       <div className="flex-1 overflow-auto p-4 bg-white">
         {/* Mock Gantt Chart Visual */}
-        <div className="min-w-[800px] border border-slate-200 rounded-xl overflow-hidden">
+        <div className="min-w-[800px] border border-slate-200 rounded-xl overflow-hidden" id="gantt-chart-export">
           <div className="flex border-b border-slate-200 bg-slate-50">
             <div className="w-1/3 p-3 font-bold text-slate-600 text-xs uppercase tracking-wider border-r border-slate-200">HẠNG MỤC CÔNG VIỆC</div>
             <div className="w-2/3 flex p-3 justify-between text-xs text-slate-500 font-bold">
-              <span>30/1</span>
-              <span>4/2</span>
-              <span>9/2</span>
-              <span>14/2</span>
-              <span>19/2</span>
-              <span>24/2</span>
+              <span>Tuần 1</span>
+              <span>Tuần 2</span>
+              <span>Tuần 3</span>
+              <span>Tuần 4</span>
+              <span>Tuần 5</span>
+              <span>Tuần 6</span>
             </div>
           </div>
           
           <div className="divide-y divide-slate-100">
             {tasks.map((task, idx) => (
               <div key={task.id} className="flex items-center hover:bg-slate-50 transition-colors">
-                <div className="w-1/3 p-3 border-r border-slate-200">
+                <div className="w-1/3 p-3 border-r border-slate-200 relative">
+                  {task.status === 'Trễ hạn' && (
+                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 animate-pulse"></div>
+                  )}
                   <div className="font-bold text-sm text-slate-800 truncate mb-1">{task.name}</div>
-                  <div className="text-xs font-medium text-slate-500 truncate flex items-center gap-1">
-                      <Users className="w-3 h-3" /> {task.subcontractor || 'Chưa phân công'}
+                  <div className="flex gap-2">
+                      <div className="text-[10px] font-medium text-slate-500 truncate flex items-center gap-1 bg-slate-100 px-1.5 py-0.5 rounded">
+                          <Users className="w-3 h-3" /> {task.subcontractor || 'Chưa phân công'}
+                      </div>
+                      <div className="text-[10px] font-bold truncate flex items-center px-1.5 py-0.5 rounded border border-transparent" style={{
+                         backgroundColor: task.status === 'Trễ hạn' ? '#fee2e2' : task.status === 'Hoàn thành' ? '#dcfce7' : '#f1f5f9',
+                         color: task.status === 'Trễ hạn' ? '#ef4444' : task.status === 'Hoàn thành' ? '#16a34a' : '#64748b'
+                      }}>
+                          {task.status}
+                      </div>
                   </div>
                 </div>
                 <div className="w-2/3 p-3 relative h-16">
@@ -575,10 +729,13 @@ export const Construction = () => {
                   </div>
                   
                   <div 
-                    className="absolute top-1/2 -translate-y-1/2 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center px-3 text-white text-xs font-bold shadow-sm z-10 border border-indigo-700/20"
+                    className={`absolute top-1/2 -translate-y-1/2 h-8 rounded-lg flex items-center px-3 text-white text-xs font-bold shadow-sm z-10 border ${
+                       task.status === 'Trễ hạn' ? 'bg-gradient-to-r from-red-500 to-red-600 border-red-700/20' : 
+                       'bg-gradient-to-r from-indigo-500 to-indigo-600 border-indigo-700/20'
+                    }`}
                     style={{ 
-                      left: `${10 + idx * 15}%`, 
-                      width: `${task.days * 2.5}%` 
+                      left: `${(idx % 4) * 15}%`, 
+                      width: `${task.days * 2.5 + 5}%` 
                     }}
                   >
                     <span className="truncate">{task.days} ngày</span>
@@ -590,7 +747,8 @@ export const Construction = () => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderQuoteModal = () => {
     if (!isQuoteOpen) return null;
@@ -623,7 +781,7 @@ export const Construction = () => {
                     onChange={(e) => setQuoteSubcontractor(e.target.value)}
                     >
                     <option value="">-- Chọn Thầu Phụ --</option>
-                    {subcontractors.map(sub => (
+                    {subcontractorsList.map(sub => (
                         <option key={sub} value={sub}>{sub}</option>
                     ))}
                     </select>
@@ -678,6 +836,218 @@ Cảm ơn anh/chị!`}
     );
   };
 
+  const renderFinancial = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full overflow-hidden flex flex-col">
+      <div className="p-4 sm:p-6 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+         <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+             <Camera className="w-5 h-5 text-indigo-600" />
+         </div>
+         <div>
+            <h2 className="text-xl font-bold text-slate-800">Tổng Hợp Chi Phí</h2>
+            <p className="text-sm text-slate-500">Danh sách chi tiết theo từng dự án thi công.</p>
+         </div>
+      </div>
+      
+      <div className="flex-1 p-6 flex flex-col items-center justify-center bg-slate-50/50">
+          <div className="max-w-md w-full">
+              {projects.map(p => (
+                 <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-5 mb-4 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="font-bold text-lg text-slate-800 mb-3 flex items-center gap-2"><Building2 className="w-5 h-5 text-indigo-500" /> {p.name}</h3>
+                    
+                    <div className="space-y-4">
+                        <div>
+                           <div className="flex justify-between text-sm mb-1">
+                               <span className="text-slate-500 font-medium">Ngân sách (Kế hoạch)</span>
+                               <span className="font-bold text-slate-800">{p.budget.toLocaleString('vi-VN')} đ</span>
+                           </div>
+                           <div className="w-full bg-slate-100 rounded-full h-2">
+                               <div className="bg-emerald-500 h-2 rounded-full" style={{width: '100%'}}></div>
+                           </div>
+                        </div>
+                        
+                        <div>
+                           <div className="flex justify-between text-sm mb-1">
+                               <span className="text-slate-500 font-medium">Thực chi</span>
+                               <span className={`font-bold ${p.actualCost > p.budget && p.budget > 0 ? 'text-red-500' : 'text-blue-600'}`}>
+                                   {p.actualCost.toLocaleString('vi-VN')} đ
+                               </span>
+                           </div>
+                           <div className="w-full bg-slate-100 rounded-full h-2 flex">
+                               <div className={`h-2 rounded-l-full ${p.actualCost > p.budget && p.budget > 0 ? 'bg-red-500' : 'bg-blue-500'} ${p.actualCost >= p.budget ? 'rounded-r-full' : ''}`} style={{width: `${Math.min((p.actualCost / (p.budget || 1)) * 100, 100)}%`}}></div>
+                               {p.actualCost > p.budget && p.budget > 0 && (
+                                  <div className="animate-pulse flex items-center justify-end flex-1 pl-2 text-xs font-bold text-red-500">
+                                      VƯỢT {((p.actualCost - p.budget) / p.budget * 100).toFixed(0)}%
+                                  </div>
+                               )}
+                           </div>
+                        </div>
+
+                        {p.actualCost > p.budget && p.budget > 0 && (
+                           <div className="mt-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-xs font-medium flex items-start gap-2">
+                               <Bell className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                               <p>Cảnh báo: Dự án đã vượt chi phí dự kiến. Vui lòng trình CĐT duyệt phát sinh (Variation Order).</p>
+                           </div>
+                        )}
+                    </div>
+                 </div>
+              ))}
+
+              <div className="mt-6 flex gap-3">
+                 <button 
+                   onClick={() => {
+                       // Demo trigger cost overrun
+                       setProjects(projects.map(p => p.id === '1' ? {...p, actualCost: p.budget + 25000000} : p));
+                   }}
+                   className="flex-1 bg-red-50 text-red-600 border border-red-200 py-3 rounded-xl font-bold text-sm"
+                 >
+                     Test Rủi Ro Lỗ
+                 </button>
+                 <button className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-sm text-sm">Nhập Phiếu Chi Mới</button>
+              </div>
+          </div>
+      </div>
+    </div>
+  );
+
+  const renderPersonnel = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full overflow-hidden flex flex-col">
+       <div className="p-4 sm:p-6 border-b border-slate-200 bg-slate-50">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Users className="w-6 h-6 text-indigo-600" /> Danh Sách Nhân Sự Công Ty
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">Quản lý toàn bộ hồ sơ nhân viên thực địa.</p>
+       </div>
+       
+       <div className="p-6 border-b border-slate-100 flex-shrink-0">
+          <h3 className="font-bold text-sm text-slate-700 mb-4 flex items-center gap-2"><UserCheck className="w-4 h-4" /> THÊM NHÂN VIÊN MỚI</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+             <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Xưng hô</label>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500">
+                   <option>Anh</option>
+                   <option>Chị</option>
+                </select>
+             </div>
+             <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Họ và Tên</label>
+                <input type="text" placeholder="Nhập tên..." className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500" />
+             </div>
+             <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Chức vụ</label>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500">
+                   <option>Giám sát</option>
+                   <option>Chỉ huy trưởng</option>
+                   <option>Công nhân</option>
+                </select>
+             </div>
+             <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Điện thoại</label>
+                <input type="text" placeholder="09xx..." className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500" />
+             </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+             <button className="bg-slate-500 hover:bg-slate-600 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-colors text-sm">
+                Lưu Hồ Sơ
+             </button>
+          </div>
+       </div>
+
+       <div className="flex-1 overflow-auto">
+          <table className="w-full text-left border-collapse">
+             <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                   <th className="p-4 text-xs font-bold text-slate-500 uppercase">Nhân viên</th>
+                   <th className="p-4 text-xs font-bold text-slate-500 uppercase">Chức vụ</th>
+                   <th className="p-4 text-xs font-bold text-slate-500 uppercase">Trạng thái</th>
+                   <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Thao tác</th>
+                </tr>
+             </thead>
+             <tbody className="divide-y divide-slate-100">
+                {personnel.map(p => (
+                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4">
+                         <div className="font-bold text-slate-800">{p.name}</div>
+                         <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3" /> {p.phone}</div>
+                      </td>
+                      <td className="p-4">
+                         <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700">
+                             {p.position}
+                         </span>
+                      </td>
+                      <td className="p-4">
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">{p.status}</span>
+                      </td>
+                      <td className="p-4 text-right">
+                          <button className="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"><Edit className="w-4 h-4" /></button>
+                      </td>
+                   </tr>
+                ))}
+             </tbody>
+          </table>
+       </div>
+    </div>
+  );
+
+  const renderSettings = () => (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-full overflow-hidden flex flex-col">
+       <div className="p-4 sm:p-6 border-b border-slate-200 bg-slate-50">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">Cài Đặt</h2>
+          <p className="text-sm text-slate-500 mt-1">Thông tin doanh nghiệp & Quản lý thầu phụ</p>
+       </div>
+       
+       <div className="flex border-b border-slate-200 px-6 pt-4 gap-6 bg-slate-50/50">
+          <button className="pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2">
+             <Settings className="w-4 h-4" /> Thông tin chung
+          </button>
+          <button className="pb-3 text-sm font-bold text-slate-500 border-b-2 border-transparent hover:text-slate-700 flex items-center gap-2">
+             <Users className="w-4 h-4" /> Danh sách Thầu Phụ
+          </button>
+       </div>
+
+       <div className="flex-1 p-6 overflow-y-auto w-full max-w-2xl">
+          <div className="space-y-6">
+             {/* General Settings form mock */}
+             <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Tên Công Ty / Đơn Vị</label>
+                <div className="relative">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><Building2 className="w-5 h-5" /></div>
+                   <input type="text" defaultValue={settings.companyName} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-slate-800 font-bold focus:ring-2 focus:ring-indigo-500" />
+                </div>
+             </div>
+             
+             <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Địa Chỉ Văn Phòng</label>
+                <div className="relative">
+                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400"><MapPin className="w-5 h-5" /></div>
+                   <input type="text" defaultValue={settings.address} className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-slate-800 font-bold focus:ring-2 focus:ring-indigo-500" />
+                </div>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Người Lập (Kế hoạch)</label>
+                    <input type="text" defaultValue={settings.planner} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium" />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Người Kiểm Tra</label>
+                    <input type="text" defaultValue={settings.checker} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium" />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Người Phê Duyệt (Giám Đốc)</label>
+                    <input type="text" defaultValue={settings.approver} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium" />
+                </div>
+             </div>
+             
+             <div className="pt-6">
+                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-colors">
+                   Lưu Thay Đổi
+                </button>
+             </div>
+          </div>
+       </div>
+    </div>
+  );
+
   return (
     <div className="h-full w-full bg-white font-sans flex flex-col">
       {/* Main Content Area */}
@@ -700,50 +1070,86 @@ Cảm ơn anh/chị!`}
           </div>
         )}
         
-        {currentView === 'HOME' && activeTab === 'DỰ ÁN' && renderHome()}
-        {currentView === 'CREATE_PROJECT' && renderCreateProject()}
-        {currentView === 'PROJECT_DETAIL' && renderProjectDetail()}
-        {currentView === 'DATA_CHECK' && renderProjectDetail()}
-        {currentView === 'PLANNING' && renderPlanning()}
-        {currentView === 'GANTT' && renderGantt()}
+        {activeTab === 'DỰ ÁN' && currentView === 'HOME' && renderHome()}
+        {activeTab === 'DỰ ÁN' && currentView === 'CREATE_PROJECT' && renderCreateProject()}
+        {activeTab === 'DỰ ÁN' && currentView === 'PROJECT_DETAIL' && renderProjectDetail()}
+        {activeTab === 'DỰ ÁN' && currentView === 'DATA_CHECK' && renderProjectDetail()}
+        {activeTab === 'DỰ ÁN' && currentView === 'PLANNING' && renderPlanning()}
+        {activeTab === 'DỰ ÁN' && currentView === 'GANTT' && renderGantt()}
+        
+        {activeTab === 'THU CHI' && renderFinancial()}
+        {activeTab === 'NHÂN SỰ' && renderPersonnel()}
+        {activeTab === 'CÀI ĐẶT' && renderSettings()}
       </div>
 
-      {/* Internal Tab Navigation for Construction Domain (replacing bottom nav with a top/internal local nav if needed, but keeping logic consistent) */}
-      {currentView === 'HOME' && (
-        <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-2 flex flex-wrap sm:flex-nowrap justify-between items-center shadow-sm max-w-3xl mx-auto w-full gap-2">
-          <button 
-            onClick={() => setActiveTab('DỰ ÁN')}
-            className={`flex-1 flex flex-row sm:flex-col items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all ${activeTab === 'DỰ ÁN' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-          >
-            <Folder className="w-5 h-5" />
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Dự án</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('THU CHI')}
-            className={`flex-1 flex flex-row sm:flex-col items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all ${activeTab === 'THU CHI' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-          >
-            <FileText className="w-5 h-5" />
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Thu Chi</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('NHÂN SỰ')}
-            className={`flex-1 flex flex-row sm:flex-col items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all ${activeTab === 'NHÂN SỰ' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-          >
-            <Users className="w-5 h-5" />
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Nhân Sự</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('CÀI ĐẶT')}
-            className={`flex-1 flex flex-row sm:flex-col items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all ${activeTab === 'CÀI ĐẶT' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
-          >
-            <Settings className="w-5 h-5" />
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Cài Đặt</span>
-          </button>
+      {/* Bottom Modal for Notifications */}
+      {currentView === 'REMINDERS' && (
+        <div className="fixed inset-0 z-[100] flex justify-center items-end sm:items-center p-0 sm:p-4">
+           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setCurrentView('HOME')}></div>
+           <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-200">
+               <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-2xl">
+                  <div className="flex items-center gap-2">
+                      <Bell className="w-5 h-5 text-rose-500" />
+                      <div>
+                         <h3 className="font-bold text-slate-800">NHẮC VIỆC HÔM NAY</h3>
+                         <p className="text-xs text-slate-500">Ngày {format(new Date(), 'dd/MM/yyyy')}</p>
+                      </div>
+                  </div>
+                  <button onClick={() => setCurrentView('HOME')} className="p-2 bg-white rounded-full border border-slate-200 text-slate-500"><X className="w-4 h-4" /></button>
+               </div>
+               
+               <div className="flex border-b border-slate-100 px-2 py-1">
+                  <button className="flex-1 py-2 font-bold text-sm text-slate-800 border-b-2 border-indigo-600">Thầu Phụ (1)</button>
+                  <button className="flex-1 py-2 font-bold text-sm text-slate-500 border-b-2 border-transparent">Nhân Sự (0)</button>
+               </div>
+               
+               <div className="p-4 max-h-[60vh] overflow-y-auto space-y-3 bg-slate-50/50">
+                  <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                      <div className="flex items-center gap-3 mb-3">
+                         <div className="w-10 h-10 bg-slate-800 text-white font-bold rounded-full flex items-center justify-center">T</div>
+                         <div>
+                            <div className="font-bold text-slate-800">Anh Tuấn</div>
+                            <div className="text-xs text-slate-500">0901234567</div>
+                         </div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-3 border-l-2 border-indigo-500 mb-4">
+                         <div className="text-xs font-bold text-slate-800 mb-1">BIỆT THỰ ANH HÙNG</div>
+                         <div className="text-sm text-slate-600">Công tác thiết kế và chuẩn bị hồ sơ</div>
+                      </div>
+                      <button className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+                         <MessageSquare className="w-4 h-4" /> Gửi Zalo
+                      </button>
+                  </div>
+                  
+                  {/* Trễ hạn alert (nếu có logic chạy) */}
+                  {tasks.some(t => t.status === 'Trễ hạn') && (
+                     <div className="bg-white rounded-xl border border-red-200 p-4 shadow-sm relative overflow-hidden">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                        <div className="flex items-center gap-3 mb-3 pl-2">
+                           <div className="w-10 h-10 bg-red-100 text-red-600 font-bold rounded-full flex items-center justify-center"><Bell className="w-5 h-5"/></div>
+                           <div>
+                              <div className="font-bold text-red-600">Báo Động Trễ Hạn</div>
+                              <div className="text-xs text-slate-500">Có {tasks.filter(t => t.status === 'Trễ hạn').length} hạng mục đang trễ</div>
+                           </div>
+                        </div>
+                        <button 
+                          className="w-full ml-2 bg-red-50 text-red-600 font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm border border-red-200"
+                          onClick={() => {
+                             setActiveTab('DỰ ÁN');
+                             setCurrentView('GANTT');
+                          }}
+                        >
+                           Kiểm tra Gantt ngay
+                        </button>
+                     </div>
+                  )}
+               </div>
+           </div>
         </div>
       )}
-      
+
       {renderQuoteModal()}
+      
     </div>
   );
 };
