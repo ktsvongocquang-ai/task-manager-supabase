@@ -59,9 +59,17 @@ export const Gantt = () => {
             let fetchedProjects = (p || []) as Project[];
 
             if (currentProfile?.role === 'Nhân viên') {
-                fetchedTasks = fetchedTasks.filter(task =>
+                const employeeTasks = fetchedTasks.filter(task =>
                     task.assignee_id === currentProfile?.id ||
                     task.supporter_id === currentProfile?.id
+                );
+                
+                const parentIds = new Set(employeeTasks.map(t => t.parent_id).filter(Boolean));
+                
+                fetchedTasks = fetchedTasks.filter(task => 
+                    task.assignee_id === currentProfile?.id ||
+                    task.supporter_id === currentProfile?.id ||
+                    parentIds.has(task.id)
                 );
 
                 fetchedProjects = fetchedProjects.filter(proj =>
@@ -187,29 +195,29 @@ export const Gantt = () => {
                         renderEndDay = daysInMonth
                     }
 
+                    let duration = 0;
                     if (renderStartDay !== null || renderEndDay !== null) {
                         if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
                         if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
-
-                        const duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
-                        const isCompleted = phase.status?.includes('Hoàn thành')
-
-                        items.push({
-                            id: phase.id,
-                            name: phase.name,
-                            startDay: renderStartDay,
-                            duration,
-                            color: isCompleted ? 'bg-slate-400' : 'bg-emerald-500',
-                            isProject: false,
-                            isPhase: true,
-                            isExpanded: expandedPhases.has(phase.id),
-                            task: phase,
-                            startDate: phase.start_date || phase.due_date,
-                            endDate: phase.due_date || phase.start_date,
-                            type: 'phase',
-                            projectCode: p.project_code
-                        })
+                        duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
                     }
+                    const isCompleted = phase.status?.includes('Hoàn thành')
+
+                    items.push({
+                        id: phase.id,
+                        name: phase.name || phase.task_code,
+                        startDay: renderStartDay,
+                        duration,
+                        color: isCompleted ? 'bg-slate-400' : 'bg-emerald-500',
+                        isProject: false,
+                        isPhase: true,
+                        isExpanded: expandedPhases.has(phase.id),
+                        task: phase,
+                        startDate: phase.start_date || phase.due_date,
+                        endDate: phase.due_date || phase.start_date,
+                        type: 'phase',
+                        projectCode: p.project_code
+                    })
 
                     // Get subtasks if phase is expanded
                     if (expandedPhases.has(phase.id)) {
@@ -235,28 +243,28 @@ export const Gantt = () => {
                                 tRenderEndDay = daysInMonth
                             }
 
+                            let tDuration = 0;
                             if (tRenderStartDay !== null || tRenderEndDay !== null) {
                                 if (tRenderStartDay !== null && tRenderEndDay === null) tRenderEndDay = tRenderStartDay;
                                 if (tRenderEndDay !== null && tRenderStartDay === null) tRenderStartDay = tRenderEndDay;
-
-                                const tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1)
-                                const tIsCompleted = t.status?.includes('Hoàn thành')
-
-                                items.push({
-                                    id: t.id,
-                                    name: t.name,
-                                    startDay: tRenderStartDay,
-                                    duration: tDuration,
-                                    color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
-                                    isProject: false,
-                                    isPhase: false,
-                                    task: t,
-                                    startDate: t.start_date || t.due_date,
-                                    endDate: t.due_date || t.start_date,
-                                    type: 'task',
-                                    projectCode: p.project_code
-                                })
+                                tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1)
                             }
+                            const tIsCompleted = t.status?.includes('Hoàn thành')
+
+                            items.push({
+                                id: t.id,
+                                name: t.name || t.task_code,
+                                startDay: tRenderStartDay,
+                                duration: tDuration,
+                                color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
+                                isProject: false,
+                                isPhase: false,
+                                task: t,
+                                startDate: t.start_date || t.due_date,
+                                endDate: t.due_date || t.start_date,
+                                type: 'task',
+                                projectCode: p.project_code
+                            })
                         })
                     }
                 })
