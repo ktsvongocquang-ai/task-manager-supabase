@@ -113,6 +113,8 @@ export const Construction = () => {
   // Project Info editing state
   const [isEditingProjInfo, setIsEditingProjInfo] = useState<string | null>(null);
 
+  const [activeProjectTab, setActiveProjectTab] = useState<'NHAT_KI' | 'TIMELINE' | 'CHI_PHI'>('TIMELINE');
+
   // Highlighted cells state: taskId-dayIndex
   const [highlightedCells, setHighlightedCells] = useState<Record<string, boolean>>({});
 
@@ -254,6 +256,25 @@ export const Construction = () => {
         setEditingTaskId(null);
         setEditingField(null);
     }
+  };
+
+  const exportToExcel = () => {
+    const exportData = tasks.map((t, index) => ({
+      'STT': index + 1,
+      'MÔ TẢ': t.name,
+      'GHI CHÚ': t.subcontractor || '',
+      'THỜI LƯỢNG (NGÀY)': t.days,
+      'BẮT ĐẦU': t.startDate ? format(parseISO(t.startDate), 'dd/MM/yyyy') : '',
+      'KẾT THÚC': t.endDate ? format(parseISO(t.endDate), 'dd/MM/yyyy') : '',
+      'TIẾN ĐỘ (%)': t.progress || 0,
+      'NGÂN SÁCH (VNĐ)': t.budget || 0,
+      'TRẠNG THÁI': t.status || 'Chưa bắt đầu',
+      'ĐÃ DUYỆT': t.approved ? 'Có' : 'Không'
+    }));
+    const worksheet = xlsx.utils.json_to_sheet(exportData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, "Tiến Độ");
+    xlsx.writeFile(workbook, `Tien-Do-Du-An-${selectedProject?.name || 'Moi'}.xlsx`);
   };
 
   const handleCreateProject = () => {
@@ -573,7 +594,12 @@ export const Construction = () => {
           </div>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center flex-wrap justify-end">
+            <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+                <button onClick={() => setActiveProjectTab('NHAT_KI')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'NHAT_KI' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>NHẬT KÍ</button>
+                <button onClick={() => setActiveProjectTab('TIMELINE')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'TIMELINE' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>TIMELINE</button>
+                <button onClick={() => setActiveProjectTab('CHI_PHI')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'CHI_PHI' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>CHI PHÍ</button>
+            </div>
           <button className="bg-white/5 hover:bg-white/10 text-white font-bold px-6 py-3 rounded-xl border border-white/10 transition-all flex items-center gap-2">
             <Settings className="w-4 h-4" /> Cấu hình
           </button>
@@ -586,21 +612,113 @@ export const Construction = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {activeProjectTab === 'NHAT_KI' && (
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-500 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-black text-white tracking-tight mb-8">Nhật Kí Thi Công - Hôm Nay, {format(new Date(), 'dd/MM/yyyy')}</h2>
+            
+            <div className="grid grid-cols-1 gap-8">
+                <div className="bg-slate-900/50 border border-white/10 rounded-3xl p-6">
+                    <h3 className="text-emerald-400 font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                       <Clock className="w-5 h-5" /> ĐẦU NGÀY: CÔNG VIỆC CÔNG NHÂN LÀ GÌ?
+                    </h3>
+                    <textarea 
+                        className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white font-medium outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all"
+                        rows={4}
+                        placeholder="Mô tả chi tiết công việc phân công cho công nhân trong ngày..."
+                    ></textarea>
+                    <div className="mt-4 flex gap-4">
+                        <button className="flex items-center gap-2 bg-white/5 text-slate-300 border border-white/10 px-5 py-3 rounded-xl font-bold hover:bg-white/10 hover:text-white transition-all">
+                            <Camera className="w-5 h-5" /> Chụp hình báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-slate-900/50 border border-white/10 rounded-3xl p-6">
+                    <h3 className="text-rose-400 font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                       <Clock className="w-5 h-5" /> CUỐI NGÀY: NGHIỆM THU & BÁO CÁO
+                    </h3>
+                    <textarea 
+                        className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white font-medium outline-none focus:border-rose-500/50 focus:ring-1 focus:ring-rose-500/50 transition-all"
+                        rows={4}
+                        placeholder="Kết quả công việc hôm nay đã hoàn thành những gì? Có vướng mắc gì không?"
+                    ></textarea>
+                    <div className="mt-4 flex gap-4">
+                        <button className="flex items-center gap-2 bg-white/5 text-slate-300 border border-white/10 px-5 py-3 rounded-xl font-bold hover:bg-white/10 hover:text-white transition-all">
+                            <Camera className="w-5 h-5" /> Chụp hình báo cáo
+                        </button>
+                    </div>
+                </div>
+
+                <div className="bg-slate-900/50 border border-white/10 rounded-3xl p-6">
+                    <h3 className="text-blue-400 font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                       <Calendar className="w-5 h-5" /> CÔNG VIỆC NGÀY MAI LÀ GÌ?
+                    </h3>
+                    <textarea 
+                        className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white font-medium outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                        rows={3}
+                        placeholder="Mô tả dự kiến công việc ngày mai..."
+                    ></textarea>
+                </div>
+                
+                <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black py-5 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all uppercase tracking-widest text-lg">
+                    LƯU NHẬT KÍ NGÀY {format(new Date(), 'dd/MM')}
+                </button>
+            </div>
+        </div>
+      )}
+
+      {activeProjectTab === 'CHI_PHI' && (
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-500">
+           <h2 className="text-2xl font-black text-white tracking-tight mb-8">Tổng Quan Chi Phí Dự Án</h2>
+           {selectedProject && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 relative overflow-hidden group">
+                       <div className="flex justify-between text-[12px] font-black text-slate-500 uppercase tracking-widest mb-4 relative z-10">
+                           <span>Ngân sách kế hoạch</span>
+                       </div>
+                       <div className="text-4xl font-black text-emerald-400 tracking-tighter mb-6 relative z-10">
+                          {selectedProject.budget.toLocaleString('vi-VN')} đ
+                       </div>
+                       <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/5 relative z-10">
+                           <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full" style={{width: '100%'}}></div>
+                       </div>
+                       <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-emerald-500/5 group-hover:text-emerald-500/10 transition-colors z-0" />
+                  </div>
+                  <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 relative overflow-hidden group">
+                       <div className="flex justify-between text-[12px] font-black text-slate-500 uppercase tracking-widest mb-4 relative z-10">
+                           <span>Thực tế giải ngân</span>
+                       </div>
+                       <div className={`text-4xl font-black tracking-tighter mb-6 relative z-10 ${selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 ? 'text-rose-500' : 'text-indigo-400'}`}>
+                          {selectedProject.actualCost.toLocaleString('vi-VN')} đ
+                       </div>
+                       <div className="w-full bg-white/5 rounded-full h-3 flex overflow-hidden border border-white/5 relative z-10">
+                           <div className={`h-full rounded-full ${selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min((selectedProject.actualCost / (selectedProject.budget || 1)) * 100, 100)}%`}}></div>
+                       </div>
+                       {selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 && (
+                          <div className="mt-4 text-xs font-bold text-rose-500/80 uppercase tracking-wider relative z-10">
+                              Vượt ngân sách {((selectedProject.actualCost - selectedProject.budget) / selectedProject.budget * 100).toFixed(0)}%
+                          </div>
+                       )}
+                       <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors z-0" />
+                  </div>
+              </div>
+           )}
+        </div>
+      )}
+
+      {activeProjectTab === 'TIMELINE' && (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in zoom-in-95 duration-500">
         <div className="md:col-span-2 space-y-6">
            {!hasData ? (
-             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl min-h-[400px] flex flex-col items-center justify-center text-center space-y-8 animate-in zoom-in-95 duration-500">
-                <div className="w-24 h-24 bg-indigo-500/10 rounded-[32px] flex items-center justify-center border border-indigo-500/20 shadow-[0_0_30px_rgba(79,70,229,0.2)]">
-                   <Upload className="w-10 h-10 text-indigo-400" />
-                </div>
-                <div className="space-y-2">
-                   <h2 className="text-2xl font-black text-white tracking-tight">Dữ Liệu Đầu Vào</h2>
-                   <p className="text-slate-400 font-medium max-w-sm mx-auto">
-                     Tải lên file Excel BOQ hoặc PDF hồ sơ thiết kế để AI tự động bóc tách và sinh thời gian thi công.
+             <div className="space-y-6">
+                <div className="mb-4">
+                   <h2 className="text-xl font-black text-white tracking-tight mb-2">Dữ Liệu Đầu Vào</h2>
+                   <p className="text-slate-400 text-sm">
+                     Tải lên file Excel BOQ hoặc PDF hồ sơ thiết kế để AI tự động bóc tách khối lượng.
                    </p>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                   <label 
                     onDragOver={(e) => { e.preventDefault(); setIsDraggingExcel(true); }}
                     onDragLeave={() => setIsDraggingExcel(false)}
@@ -611,11 +729,10 @@ export const Construction = () => {
                         handleUploadFile('EXCEL', e.dataTransfer.files[0]);
                       }
                     }}
-                    className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingExcel ? 'bg-indigo-500/20 border-indigo-500 border-dashed border-2' : ''}`}
+                    className={`p-10 rounded-[20px] cursor-pointer bg-[#2E284D] border border-transparent hover:bg-[#39315D] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingExcel ? 'border-indigo-500 border-dashed border-2' : ''}`}
                   >
-                    <FileSpreadsheet className={`w-12 h-12 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
-                    <span className="font-black text-white uppercase tracking-widest text-xs">Excel BOQ</span>
-                    <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
+                    <FileSpreadsheet className={`w-10 h-10 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
+                    <span className="font-bold text-white text-md tracking-wide">Tải Excel BOQ</span>
                     <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
                         handleUploadFile('EXCEL', e.target.files[0]);
@@ -633,11 +750,13 @@ export const Construction = () => {
                         handleUploadFile('PDF', e.dataTransfer.files[0]);
                       }
                     }}
-                    className={`p-8 rounded-3xl cursor-pointer bg-white/5 border border-white/10 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all group flex flex-col items-center gap-4 ${isDraggingPdf ? 'bg-rose-500/20 border-rose-500 border-dashed border-2' : ''}`}
+                    className={`p-10 rounded-[20px] cursor-pointer bg-[#232035] border border-transparent hover:bg-[#2A2640] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingPdf ? 'border-rose-500 border-dashed border-2' : ''}`}
                   >
-                    <FileSearch className={`w-12 h-12 text-rose-400 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
-                    <span className="font-black text-white uppercase tracking-widest text-xs">PDF AI Scan</span>
-                    <span className="text-slate-500 text-[10px] font-medium mt-[-10px] hidden group-hover:block transition-all">Nhấp hoặc Kéo thả file</span>
+                    <FileSearch className={`w-10 h-10 text-rose-500 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
+                    <div className="text-center">
+                        <span className="font-bold text-white text-md tracking-wide block">AI Bóc Tách</span>
+                        <span className="font-bold text-white text-md tracking-wide block">từ PDF</span>
+                    </div>
                     <input type="file" className="hidden" accept=".pdf" onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
                         handleUploadFile('PDF', e.target.files[0]);
@@ -646,10 +765,16 @@ export const Construction = () => {
                     }} />
                   </label>
                 </div>
+
+                <div className="bg-[#1C182B] rounded-[24px] p-12 flex flex-col items-center justify-center text-center mt-6 h-[400px]">
+                    <Upload className="w-12 h-12 text-slate-500 mb-6" />
+                    <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Chưa có dữ liệu</h3>
+                    <p className="text-slate-500 text-sm max-w-[280px]">Hệ thống hỗ trợ phân tích tự động từ file Excel dự toán hoặc dùng AI bóc tách từ bản vẽ PDF.</p>
+                </div>
              </div>
            ) : (
              <>
-               <div className="bg-slate-900 border border-white/10 p-6 rounded-[24px]">
+               <div className="bg-[#1C182B] border border-transparent p-6 rounded-[24px]">
                  <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Dữ Liệu Đầu Vào</h2>
                  <p className="text-slate-400 text-sm mb-5">Tải lên file Excel BOQ hoặc dự toán để bắt đầu.</p>
                  <div className="flex gap-4">
@@ -659,7 +784,7 @@ export const Construction = () => {
                    >
                      Làm mới
                    </button>
-                   <label className="bg-indigo-600 cursor-pointer hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                   <label className="bg-[#6B4BFF] cursor-pointer hover:bg-[#5A3EE0] text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg shadow-[#6B4BFF]/30">
                      <Upload className="w-5 h-5"/> Tải Excel
                      <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
                        if (e.target.files && e.target.files.length > 0) {
@@ -770,10 +895,9 @@ export const Construction = () => {
                  ))}
                  <div className="w-10 h-10 rounded-xl border-2 border-slate-900 bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
                     +5
-                 </div>
-              </div>
-           </div>
-        </div>
+               </div>
+            </div>
+         </div>
       </div>
     </div>
   );
@@ -784,13 +908,13 @@ export const Construction = () => {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => setCurrentView('PROJECT_DETAIL')}
-            className="w-14 h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all"
+            className="w-14 h-14 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 shadow-sm transition-all"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Lập Kế Hoạch</h1>
-            <p className="text-slate-400 font-medium">Sắp xếp nhân sự, thời gian và thầu phụ cho các hạng mục</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Lập Kế Hoạch</h1>
+            <p className="text-slate-500 font-medium">Sắp xếp nhân sự, thời gian và thầu phụ cho các hạng mục</p>
           </div>
         </div>
         
@@ -803,7 +927,7 @@ export const Construction = () => {
            </button>
            <button 
                onClick={() => setCurrentView('GANTT')}
-               className="bg-white/5 hover:bg-white/10 text-indigo-400 font-black px-8 py-4 rounded-2xl border border-indigo-500/30 transition-all flex items-center gap-3 shadow-xl shadow-indigo-500/5 active:scale-95"
+               className="bg-white hover:bg-slate-50 text-indigo-600 font-black px-8 py-4 rounded-2xl border border-indigo-200 transition-all flex items-center gap-3 shadow-sm active:scale-95"
            >
                XEM TIẾN ĐỘ (GANTT) <ChevronRight className="w-5 h-5" />
            </button>
@@ -812,33 +936,33 @@ export const Construction = () => {
 
       <div className="grid grid-cols-1 gap-4">
         {tasks.map((task, index) => (
-          <div key={task.id} className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] group hover:bg-white/10 transition-all relative overflow-hidden">
-            <div className={`absolute top-0 left-0 w-1.5 h-full ${task.approved ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
+          <div key={task.id} className="bg-white border border-slate-200 p-8 rounded-[32px] group hover:border-indigo-300 hover:shadow-md transition-all relative overflow-hidden">
+            <div className={`absolute top-0 left-0 w-1.5 h-full ${task.approved ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
             
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center font-black text-slate-500 text-sm border border-white/5">
+                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center font-black text-slate-600 text-sm border border-slate-200">
                        {index + 1}
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                         <span className="px-2 py-0.5 bg-indigo-500/10 text-indigo-400 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-500/20">{task.category}</span>
-                         {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-500/10 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-500/20 animate-pulse">TRỄ HẠN</span>}
+                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-200">{task.category}</span>
+                         {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-200 animate-pulse">TRỄ HẠN</span>}
                       </div>
-                      <h3 className="text-lg font-black text-white tracking-tight group-hover:text-indigo-300 transition-colors uppercase">{task.name}</h3>
+                      <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors uppercase">{task.name}</h3>
                     </div>
                   </div>
-                  <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                  <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
                     <MessageSquare className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="bg-slate-950/50 rounded-2xl p-4 border border-white/5 space-y-4">
+                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4">
                   <div className="flex items-center gap-4">
                      <select 
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none hover:border-indigo-300 transition-all"
                         value={task.subcontractor}
                         onChange={(e) => {
                            const newTasks = [...tasks];
@@ -850,7 +974,7 @@ export const Construction = () => {
                         {subcontractorsList.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                      </select>
                      <div 
-                        className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${!task.subcontractor ? 'bg-rose-500/20 border-rose-500/50 text-rose-500 animate-pulse' : 'bg-white/5 border-white/10 text-slate-400'}`}
+                        className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${!task.subcontractor ? 'bg-rose-50 border-rose-200 text-rose-500 animate-pulse' : 'bg-white border-slate-200 text-slate-400'}`}
                         title={!task.subcontractor ? "Cần chọn thầu phụ" : "Thông tin thầu phụ"}
                      >
                         <AlertTriangle className="w-4 h-4" />
@@ -858,13 +982,13 @@ export const Construction = () => {
                   </div>
 
                   <div className="flex items-center gap-6 text-sm">
-                     <div className="flex items-center gap-3 text-slate-400">
+                     <div className="flex items-center gap-3 text-slate-500">
                         <span className="font-medium">Thời gian:</span>
-                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-indigo-500/50 transition-colors">
+                        <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus-within:border-indigo-500/50 transition-colors shadow-sm">
                            <Clock className="w-4 h-4 mr-2" />
                            <input 
                              type="number" 
-                             className="w-12 bg-transparent text-white font-bold text-center outline-none"
+                             className="w-12 bg-transparent text-slate-800 font-bold text-center outline-none"
                              value={task.days}
                              onChange={(e) => {
                                const newTasks = [...tasks];
@@ -875,13 +999,13 @@ export const Construction = () => {
                         </div>
                         <span className="font-medium">ngày</span>
                      </div>
-                     <div className="flex items-center gap-3 text-slate-400">
+                     <div className="flex items-center gap-3 text-slate-500">
                         <span className="font-medium">Nhân sự:</span>
-                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-emerald-500/50 transition-colors">
+                        <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus-within:border-emerald-500/50 transition-colors shadow-sm">
                            <Users className="w-4 h-4 mr-2" />
                            <input 
                              type="number" 
-                             className="w-10 bg-transparent text-white font-bold text-center outline-none"
+                             className="w-10 bg-transparent text-slate-800 font-bold text-center outline-none"
                              value={task.personnel}
                              onChange={(e) => {
                                const newTasks = [...tasks];
@@ -897,7 +1021,7 @@ export const Construction = () => {
 
               <button 
                   onClick={() => toggleTaskApproval(index)}
-                  className={`w-full lg:w-32 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all active:scale-95 ${task.approved ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'}`}
+                  className={`w-full lg:w-32 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all active:scale-95 ${task.approved ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 shadow-sm'}`}
               >
                   {task.approved ? 'Đã Duyệt' : 'Duyệt'}
               </button>
@@ -927,6 +1051,7 @@ export const Construction = () => {
 
         <div className="flex gap-4">
           <button 
+            onClick={exportToExcel}
             className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
           >
             <FileSpreadsheet className="w-5 h-5" /> Excel
@@ -952,6 +1077,7 @@ export const Construction = () => {
             <Printer className="w-5 h-5" /> In PDF
           </button>
           <button 
+            onClick={() => setIsQuoteOpen(true)}
             className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
           >
              <DollarSign className="w-5 h-5" /> Yêu Cầu Báo Giá
@@ -1343,9 +1469,11 @@ export const Construction = () => {
                      </tr>
                   ))}
                </tbody>
-            </table>
-         </div>
-      </div>
+             </table>
+          </div>
+             </div>
+          </div>
+       </div>
     </div>
   );
 
@@ -1407,7 +1535,6 @@ export const Construction = () => {
                   Lưu thiết lập
                </button>
             </div>
-         </div>
       </div>
     </div>
   );
@@ -1476,10 +1603,10 @@ export const Construction = () => {
                     Chọn File để Phân Tích
                  </button>
               </div>
+              </div>
            </div>
         </div>
-      </div>
-    )
+      )
   );
 
   return (
@@ -1643,3 +1770,5 @@ export const Construction = () => {
     </div>
   );
 };
+
+export default Construction;
