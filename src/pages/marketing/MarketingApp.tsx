@@ -15,7 +15,8 @@ import {
   Target,
   MessageCircle,
   GanttChartSquare,
-  X
+  X,
+  Archive
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -253,6 +254,7 @@ export default function MarketingApp() {
   const [showKanbanFilters, setShowKanbanFilters] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<typeof videos[0] | null>(null);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
+  const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
 
   const toggleCard = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -390,16 +392,57 @@ export default function MarketingApp() {
                   if (formatFilter !== 'Tất cả' && v.format !== formatFilter) return false;
                   return true;
                 });
+
+                const activeVideos = columnVideos.filter((v: any) => !v.isArchived);
+                const archivedVideos = columnVideos.filter((v: any) => v.isArchived);
+
                 return (
-                  <div key={column.id} className="w-80 flex flex-col h-full">
+                  <div key={column.id} className="w-80 flex flex-col h-full relative">
                     <div className={`px-4 py-3 rounded-t-xl border-t border-l border-r font-bold text-sm flex justify-between items-center ${column.color}`}>
                       <span>{column.name}</span>
                       <div className="flex items-center gap-2">
-                        <span className="bg-white/60 px-2.5 py-0.5 rounded-full text-xs">{columnVideos.length}</span>
+                        {archivedVideos.length > 0 && (
+                          <button
+                            onClick={() => setShowArchivePopup(showArchivePopup === column.id ? null : column.id)}
+                            className="flex items-center gap-1 text-red-600 bg-white border border-red-500 hover:bg-red-50 px-2 py-0.5 rounded-md transition-colors shadow-sm"
+                            title="Hiển thị lưu trữ"
+                          >
+                            <Archive className="w-3.5 h-3.5" />
+                            <span className="text-xs font-bold">{archivedVideos.length}</span>
+                          </button>
+                        )}
+                        <span className="bg-white/60 px-2.5 py-0.5 rounded-full text-xs">{activeVideos.length}</span>
                       </div>
                     </div>
+                    
+                    {/* Archive Popup */}
+                    {showArchivePopup === column.id && (
+                      <div className="absolute top-14 left-0 right-0 z-50 bg-yellow-50/95 backdrop-blur-sm border border-yellow-200 shadow-xl rounded-xl p-3 max-h-[400px] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-3">
+                          <h3 className="text-sm font-bold text-yellow-800 flex items-center gap-1"><span className="bg-yellow-100 px-2 py-0.5 rounded text-xs border border-yellow-200">{archivedVideos.length}</span> Đã lưu trữ</h3>
+                          <button onClick={() => setShowArchivePopup(null)} className="text-yellow-600 hover:text-yellow-800 bg-yellow-100 hover:bg-yellow-200 p-1.5 rounded-full transition-colors"><X className="w-3 h-3"/></button>
+                        </div>
+                        <div className="space-y-3">
+                          {archivedVideos.map(video => (
+                            <div key={video.id} className="bg-white border border-yellow-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+                              <h4 className="text-xs font-bold text-gray-800 mb-1 line-clamp-2">{video.title}</h4>
+                              <p className="text-[10px] text-gray-500 mb-2 truncate flex items-center gap-1"><LayoutTemplate className="w-3 h-3"/> {video.project}</p>
+                              <div className="flex justify-end border-t border-gray-50 pt-2 mt-2">
+                                 <button 
+                                   onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: false } as any); if(archivedVideos.length === 1) setShowArchivePopup(null); }}
+                                   className="text-[10px] font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded transition-colors border border-emerald-100"
+                                 >
+                                   Khôi phục
+                                 </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex-1 bg-gray-100/50 border border-gray-200 rounded-b-xl p-3 overflow-y-auto space-y-3">
-                      {columnVideos.map(video => {
+                      {activeVideos.map(video => {
                         const statusDef = STATUS_MAP[video.status];
                         const isExpanded = expandedCards[video.id];
                         const isIdeaCol = column.id === 'COL_IDEA';
@@ -515,8 +558,8 @@ export default function MarketingApp() {
                                         Từ chối
                                       </button>
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'IDEA' }); }}
-                                        className="px-2 py-1 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded text-[11px] font-medium transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -545,6 +588,12 @@ export default function MarketingApp() {
                                         className="flex-1 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-medium transition-colors"
                                       >
                                         Từ chối (Edit)
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
+                                      >
+                                        Để sau
                                       </button>
                                     </div>
                                   )}
@@ -580,6 +629,12 @@ export default function MarketingApp() {
                                         className="flex-1 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-medium transition-colors"
                                       >
                                         Từ chối
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
+                                      >
+                                        Để sau
                                       </button>
                                     </div>
                                   )}
