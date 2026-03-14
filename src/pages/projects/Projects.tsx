@@ -32,6 +32,23 @@ export const Projects = () => {
         fetchProjects()
         fetchProfiles()
         fetchTasks()
+
+        const channel = supabase.channel('projects_tasks_changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'projects' },
+                () => fetchProjects()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'tasks' },
+                () => fetchTasks()
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
 
     const fetchProjects = async () => {
@@ -297,6 +314,46 @@ export const Projects = () => {
         return 'bg-slate-100 text-slate-700 border-slate-200'
     }
 
+    const getTrafficLight = (project: Project) => {
+        const progress = getProjectProgress(project.id);
+        
+        let remainingDays = 0;
+        let totalDays = 1;
+        if (project.start_date && project.end_date) {
+            const start = new Date(project.start_date);
+            const end = new Date(project.end_date);
+            const today = new Date();
+            totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+            remainingDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        }
+
+        const expectedProgress = Math.max(0, Math.min(100, 100 - (remainingDays / totalDays) * 100));
+        
+        if (project.status === 'Hoàn thành' || project.status === 'Hủy bỏ') return 'gray';
+        if (project.status === 'Chưa bắt đầu' || project.status === 'Mới') return 'blue';
+
+        // Mocking actual cost since it isn't strictly tracked in the `projects` table for this demo
+        const mockActualCost = project.budget ? project.budget * (progress / 100) * (1 + (Math.random() * 0.2 - 0.05)) : 0; 
+        
+        const delay = expectedProgress - progress;
+        const overBudget = project.budget ? (mockActualCost / project.budget) > 1 : false;
+
+        if (delay > 15) return 'red'; // Chậm > 15% -> Nguy hiểm đỏ
+        if (delay > 5 || overBudget) return 'yellow'; // Chậm > 5% hoặc vượt tiền -> Vàng
+        return 'green'; // Mọi thứ Ổn -> Xanh
+    }
+
+    const renderTrafficLight = (project: Project) => {
+        const light = getTrafficLight(project);
+        return (
+            <div className="flex gap-1 bg-slate-100 border border-slate-200 p-1.5 rounded-full shadow-inner items-center ml-2" title={light === 'green' ? 'Ổn định' : light === 'yellow' ? 'Cảnh báo chậm/vượt ngân sách' : light === 'red' ? 'Rủi ro cao' : ''}>
+                <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'red' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
+                <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'yellow' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
+                <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'green' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
+            </div>
+        );
+    }
+
     const getManagerName = (id: string) => {
         return profiles.find(p => p.id === id)?.full_name || id
     }
@@ -355,9 +412,12 @@ export const Projects = () => {
                     <div key={project.id} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1">
                         {/* Status badge in top left */}
                         <div className="flex justify-between items-start mb-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${getStatusBadge(project.status)}`}>
-                                {project.status}
-                            </span>
+                            <div className="flex items-center">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${getStatusBadge(project.status)}`}>
+                                    {project.status}
+                                </span>
+                                {renderTrafficLight(project)}
+                            </div>
                             {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
                                 <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">

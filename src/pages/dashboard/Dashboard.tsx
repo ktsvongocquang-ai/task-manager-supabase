@@ -60,7 +60,26 @@ export const Dashboard = () => {
     const [taskForm, setTaskForm] = useState(emptyTaskForm)
     const [assigneeFilter, setAssigneeFilter] = useState('')
 
-    useEffect(() => { fetchDashboardData() }, [profile, assigneeFilter])
+    useEffect(() => { 
+        fetchDashboardData();
+
+        const channel = supabase.channel('dashboard_tasks_changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'projects' },
+                () => fetchDashboardData()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'tasks' },
+                () => fetchDashboardData()
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [profile, assigneeFilter])
 
     const fetchDashboardData = async () => {
         try {

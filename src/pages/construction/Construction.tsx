@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle, Minus, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Bell, Camera, Upload, Download, Folder, Users, ChevronLeft, Calendar, DollarSign, FileSpreadsheet, X, MessageSquare, Clock, FileSearch, ChevronRight, Settings, Phone, Printer, Building2, UserCheck, AlertTriangle, Minus, Sparkles, Trash2, Mic } from 'lucide-react';
 import { format, addDays, parseISO, differenceInDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -9,7 +9,7 @@ import { parseConstructionExcel } from '../../lib/gemini';
 // -------------------------------------------------------------
 // TYPES & MOCK DATA INITIALIZATION
 // -------------------------------------------------------------
-type ViewState = 'HOME' | 'CREATE_PROJECT' | 'PROJECT_DETAIL' | 'DATA_CHECK' | 'PLANNING' | 'GANTT' | 'REMINDERS';
+type ViewState = 'HOME' | 'CREATE_PROJECT' | 'PROJECT_DETAIL' | 'DATA_CHECK' | 'DATA_UPLOAD' | 'PLANNING' | 'GANTT' | 'REMINDERS';
 type TabState = 'DỰ ÁN' | 'THU CHI' | 'NHÂN SỰ' | 'CÀI ĐẶT';
 
 interface Task {
@@ -58,8 +58,9 @@ const initialTasks: Task[] = [
 ];
 
 const initialPersonnel = [
-  { id: 'p1', name: 'Trần Sơn Hải', position: 'Giám đốc', phone: '0901234567', status: 'Đang làm việc' },
-  { id: 'p2', name: 'Jacky Lee', position: 'Giám sát', phone: '0987654321', status: 'Đang làm việc' }
+  { id: 'p1', name: 'Trần Sơn Hải', position: 'Giám đốc', type: 'NỘI BỘ', phone: '0901234567', status: 'Đang làm việc' },
+  { id: 'p2', name: 'Ngô Hữu Thắng', position: 'Trưởng ban giám sát', type: 'NỘI BỘ', phone: '0987654321', status: 'Đang làm việc' },
+  { id: 'p3', name: 'Đội thi công Alpha', position: 'Thầu Thạch Cao', type: 'THẦU PHỤ', phone: '0933123456', status: 'Nghỉ' }
 ];
 
 const subcontractorsList = [
@@ -92,6 +93,7 @@ export const Construction = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadType, setUploadType] = useState<'EXCEL' | 'PDF' | null>(null);
   const [hasData, setHasData] = useState(true); // Default true for demo project 1
+  const [isClientView, setIsClientView] = useState(false);
   const [isDraggingExcel, setIsDraggingExcel] = useState(false);
   const [isDraggingPdf, setIsDraggingPdf] = useState(false);
   
@@ -113,29 +115,41 @@ export const Construction = () => {
   // Project Info editing state
   const [isEditingProjInfo, setIsEditingProjInfo] = useState<string | null>(null);
 
+  // Diary/Timeline states
+  const [isDiaryOpen, setIsDiaryOpen] = useState(false);
+  const [diaryTaskId, setDiaryTaskId] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [diaryNote, setDiaryNote] = useState('');
+  
+  // Progress/Images Gallery states
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryTaskId, setGalleryTaskId] = useState<string | null>(null);
+
+  // Financials Transaction Modal state
+  const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+  const [isOcrScanning, setIsOcrScanning] = useState(false);
+  const [formTransaction, setFormTransaction] = useState({ supplier: '', amount: '', date: '', reason: '' });
+
   const [activeProjectTab, setActiveProjectTab] = useState<'NHAT_KI' | 'TIMELINE' | 'CHI_PHI'>('TIMELINE');
 
-  // Highlighted cells state: taskId-dayIndex
-  const [highlightedCells, setHighlightedCells] = useState<Record<string, boolean>>({});
-
-  const toggleCellHighlight = (taskId: string, dayIndex: number) => {
-    const key = `${taskId}-${dayIndex}`;
-    setHighlightedCells(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
   const shiftProjectDate = (days: number) => {
-    const newDate = addDays(parseISO(projectStartDate), days);
-    setProjectStartDate(format(newDate, 'yyyy-MM-dd'));
+    const weeksToShift = days / 7;
+    setCurrentWeek(prev => Math.max(1, prev + weeksToShift));
   };
   
   // Quote Modal states
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [quoteSubcontractor, setQuoteSubcontractor] = useState('');
+  const [quoteTaskName, setQuoteTaskName] = useState('');
   const [quoteTone, setQuoteTone] = useState('Thường');
   const [isQuoteUploading, setIsQuoteUploading] = useState(false);
+
+  // Risk Simulation Modal
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
+  const [riskFactor, setRiskFactor] = useState(10);
+
+  // GPS Check-in Simulation
+  const [gpsCheckingId, setGpsCheckingId] = useState<string | null>(null);
 
   // Settings state
   const [settings] = useState({
@@ -161,11 +175,14 @@ export const Construction = () => {
           setCurrentView('HOME');
         }
         if (isQuoteOpen) setIsQuoteOpen(false);
+        if (isDiaryOpen) setIsDiaryOpen(false);
+        if (isGalleryOpen) setIsGalleryOpen(false);
+        if (isTransactionOpen) setIsTransactionOpen(false);
       }
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
-  }, [currentView, isQuoteOpen]);
+  }, [currentView, isQuoteOpen, isDiaryOpen, isGalleryOpen, isTransactionOpen]);
 
   const addNewTask = (category: string = 'THI CÔNG', insertAfterId?: string) => {
     let startDateStr = new Date().toISOString();
@@ -415,11 +432,25 @@ export const Construction = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Quản Lý Dự Án Thi Công</h1>
+          <div className="flex items-center gap-3">
+             <h1 className="text-2xl font-bold text-slate-800">Quản Lý Dự Án Thi Công</h1>
+             {isClientView && <span className="px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase rounded-lg shadow-sm">Client View</span>}
+          </div>
           <p className="text-sm text-slate-500 mt-1">Hệ thống lập kế hoạch và phân bổ thầu phụ thông minh</p>
         </div>
-        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-700">
-          JA
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-none">Góc nhìn Khách</span>
+            <button 
+              onClick={() => setIsClientView(!isClientView)}
+              className={`w-10 h-6 rounded-full transition-colors relative shadow-inner ${isClientView ? 'bg-amber-500' : 'bg-slate-300'}`}
+            >
+               <span className={`block w-4 h-4 rounded-full bg-white shadow-sm transition-transform absolute top-1 ${isClientView ? 'translate-x-[20px]' : 'translate-x-[4px]'}`}></span>
+            </button>
+          </div>
+          <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-700">
+            JA
+          </div>
         </div>
       </div>
 
@@ -439,7 +470,7 @@ export const Construction = () => {
           <span className="font-medium text-slate-700">THÔNG BÁO</span>
         </button>
 
-        <button className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 aspect-square sm:aspect-auto sm:h-32 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all">
+        <button onClick={() => setIsTransactionOpen(true)} className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 aspect-square sm:aspect-auto sm:h-32 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all">
           <Camera className="w-8 h-8 text-indigo-500" />
           <span className="font-medium text-slate-700">CHỤP HĐ NHANH</span>
         </button>
@@ -459,37 +490,54 @@ export const Construction = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h2 className="text-xl font-bold text-slate-800 mb-4">Danh Sách Dự Án</h2>
         <div className="space-y-3">
-          {projects.map(project => (
-            <div 
-              key={project.id}
-                onClick={() => {
-                setSelectedProjectId(project.id);
-                setHasData(!!project.hasInputData);
-                setCurrentView('PROJECT_DETAIL');
-              }}
-              className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all gap-4"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center">
-                  <Folder className="w-6 h-6 text-indigo-500" />
+          {projects.map(project => {
+            let health = { color: 'bg-emerald-500', text: 'TỐT (Đúng ngân sách/tiến độ)', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+            if (project.budget > 0) {
+                const ratio = project.actualCost / project.budget;
+                if (ratio > 1.15) health = { color: 'bg-rose-500', text: 'NGUY HIỂM (Vượt chi/trễ >15%)', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
+                else if (ratio > 1) health = { color: 'bg-amber-500', text: 'CẢNH BÁO (Vượt chi/trễ >5%)', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
+            }
+
+            return (
+              <div 
+                key={project.id}
+                  onClick={() => {
+                  setSelectedProjectId(project.id);
+                  setHasData(!!project.hasInputData);
+                  setCurrentView('PROJECT_DETAIL');
+                }}
+                className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all gap-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center">
+                    <Folder className="w-6 h-6 text-indigo-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3">
+                        <h3 className="font-semibold text-slate-800 text-lg">{project.name}</h3>
+                        <div className="flex items-center gap-1.5" title={health.text}>
+                            <div className={`w-3 h-3 rounded-full shadow-sm ${health.color}`}></div>
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${health.bg} whitespace-nowrap hidden md:inline-block`}>
+                                {health.text}
+                            </span>
+                        </div>
+                    </div>
+                    <p className="text-sm text-slate-500">{project.date}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800 text-lg">{project.name}</h3>
-                  <p className="text-sm text-slate-500">{project.date}</p>
+                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
+                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-semibold rounded-full">
+                    {project.status}
+                  </span>
+                  <div className="flex -space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-slate-300 border-2 border-slate-50"></div>
+                    <div className="w-6 h-6 rounded-full bg-slate-400 border-2 border-slate-50"></div>
+                    <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center text-[10px] text-slate-600 font-bold">+6</div>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
-                <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-semibold rounded-full">
-                  {project.status}
-                </span>
-                <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-slate-300 border-2 border-slate-50"></div>
-                  <div className="w-6 h-6 rounded-full bg-slate-400 border-2 border-slate-50"></div>
-                  <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center text-[10px] text-slate-600 font-bold">+6</div>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -585,6 +633,8 @@ export const Construction = () => {
             <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-4xl font-black text-white tracking-tight">{selectedProject?.name}</h1>
                 <span className="px-3 py-1 bg-indigo-500/20 text-indigo-400 text-[10px] font-black rounded-lg border border-indigo-500/20 tracking-widest">{selectedProject?.status}</span>
+                <span className="w-1.5 h-1.5 bg-slate-700 rounded-full"></span>
+                <span>ID: #{selectedProject?.id}</span>
             </div>
             <div className="flex items-center gap-4 text-slate-400 font-bold text-sm">
                 <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Bắt đầu: {selectedProject?.date}</span>
@@ -597,18 +647,24 @@ export const Construction = () => {
         <div className="flex gap-3 items-center flex-wrap justify-end">
             <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
                 <button onClick={() => setActiveProjectTab('NHAT_KI')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'NHAT_KI' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>NHẬT KÍ</button>
-                <button onClick={() => setActiveProjectTab('TIMELINE')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'TIMELINE' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>TIMELINE</button>
-                <button onClick={() => setActiveProjectTab('CHI_PHI')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'CHI_PHI' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>CHI PHÍ</button>
+                {hasData && (
+                  <button onClick={() => setActiveProjectTab('TIMELINE')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'TIMELINE' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>TIMELINE</button>
+                )}
+                {!isClientView && (
+                  <button onClick={() => setActiveProjectTab('CHI_PHI')} className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${activeProjectTab === 'CHI_PHI' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>CHI PHÍ</button>
+                )}
             </div>
           <button className="bg-white/5 hover:bg-white/10 text-white font-bold px-6 py-3 rounded-xl border border-white/10 transition-all flex items-center gap-2">
             <Settings className="w-4 h-4" /> Cấu hình
           </button>
-          <button 
-            onClick={() => setCurrentView('PLANNING')}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
-          >
-            LẬP KẾ HOẠCH <ChevronRight className="w-5 h-5" />
-          </button>
+          {!hasData && (
+             <button 
+               onClick={() => setCurrentView('DATA_UPLOAD')}
+               className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"
+             >
+               LẬP KẾ HOẠCH <ChevronRight className="w-5 h-5" />
+             </button>
+          )}
         </div>
       </div>
 
@@ -680,7 +736,7 @@ export const Construction = () => {
                           {selectedProject.budget.toLocaleString('vi-VN')} đ
                        </div>
                        <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/5 relative z-10">
-                           <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full" style={{width: '100%'}}></div>
+                           <div className="h-full bg-white w-2/3 rounded-full"></div>
                        </div>
                        <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-emerald-500/5 group-hover:text-emerald-500/10 transition-colors z-0" />
                   </div>
@@ -707,109 +763,115 @@ export const Construction = () => {
       )}
 
       {activeProjectTab === 'TIMELINE' && (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in zoom-in-95 duration-500">
-        <div className="md:col-span-2 space-y-6">
-           {!hasData ? (
-             <div className="space-y-6">
-                <div className="mb-4">
-                   <h2 className="text-xl font-black text-white tracking-tight mb-2">Dữ Liệu Đầu Vào</h2>
-                   <p className="text-slate-400 text-sm">
-                     Tải lên file Excel BOQ hoặc PDF hồ sơ thiết kế để AI tự động bóc tách khối lượng.
-                   </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                  <label 
-                    onDragOver={(e) => { e.preventDefault(); setIsDraggingExcel(true); }}
-                    onDragLeave={() => setIsDraggingExcel(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDraggingExcel(false);
-                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                        handleUploadFile('EXCEL', e.dataTransfer.files[0]);
-                      }
-                    }}
-                    className={`p-10 rounded-[20px] cursor-pointer bg-[#2E284D] border border-transparent hover:bg-[#39315D] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingExcel ? 'border-indigo-500 border-dashed border-2' : ''}`}
-                  >
-                    <FileSpreadsheet className={`w-10 h-10 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
-                    <span className="font-bold text-white text-md tracking-wide">Tải Excel BOQ</span>
-                    <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        handleUploadFile('EXCEL', e.target.files[0]);
-                        e.target.value = ''; // Reset for re-upload
-                      }
-                    }} />
-                  </label>
-                  <label 
-                    onDragOver={(e) => { e.preventDefault(); setIsDraggingPdf(true); }}
-                    onDragLeave={() => setIsDraggingPdf(false)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setIsDraggingPdf(false);
-                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                        handleUploadFile('PDF', e.dataTransfer.files[0]);
-                      }
-                    }}
-                    className={`p-10 rounded-[20px] cursor-pointer bg-[#232035] border border-transparent hover:bg-[#2A2640] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingPdf ? 'border-rose-500 border-dashed border-2' : ''}`}
-                  >
-                    <FileSearch className={`w-10 h-10 text-rose-500 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
-                    <div className="text-center">
-                        <span className="font-bold text-white text-md tracking-wide block">AI Bóc Tách</span>
-                        <span className="font-bold text-white text-md tracking-wide block">từ PDF</span>
-                    </div>
-                    <input type="file" className="hidden" accept=".pdf" onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        handleUploadFile('PDF', e.target.files[0]);
-                        e.target.value = ''; // Reset for re-upload
-                      }
-                    }} />
-                  </label>
-                </div>
+         <div className="animate-in fade-in duration-500 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[32px] p-6 sm:p-8 shadow-2xl">
+             {renderGantt(true)}
+         </div>
+      )}
+    </div>
+  );
 
-                <div className="bg-[#1C182B] rounded-[24px] p-12 flex flex-col items-center justify-center text-center mt-6 h-[400px]">
-                    <Upload className="w-12 h-12 text-slate-500 mb-6" />
-                    <h3 className="text-lg font-bold text-white mb-2 tracking-tight">Chưa có dữ liệu</h3>
-                    <p className="text-slate-500 text-sm max-w-[280px]">Hệ thống hỗ trợ phân tích tự động từ file Excel dự toán hoặc dùng AI bóc tách từ bản vẽ PDF.</p>
+  const renderDataUpload = () => (
+     <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto">
+        <div className="flex items-center gap-6 mb-8">
+          <button 
+            onClick={() => setCurrentView('PROJECT_DETAIL')}
+            className="w-14 h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all group shadow-xl"
+          >
+            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight">Thiết lập Dữ Liệu</h1>
+            <p className="text-slate-400 font-medium">Phân tích BOQ và bóc tách khối lượng</p>
+          </div>
+        </div>
+
+        {!hasData ? (
+             <div className="space-y-6">
+                <div className="bg-[#1C182B] rounded-[24px] p-8 border border-white/5">
+                   <h2 className="text-xl font-black text-white tracking-tight mb-2">Tải Lên Dữ Liệu Đầu Vào</h2>
+                   <p className="text-slate-400 text-sm mb-6">
+                     Hỗ trợ file Excel dự toán (.xlsx) hoặc bản vẽ (.pdf) để AI tự động bóc tách.
+                   </p>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                     <label 
+                       onDragOver={(e) => { e.preventDefault(); setIsDraggingExcel(true); }}
+                       onDragLeave={() => setIsDraggingExcel(false)}
+                       onDrop={(e) => {
+                         e.preventDefault();
+                         setIsDraggingExcel(false);
+                         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                           handleUploadFile('EXCEL', e.dataTransfer.files[0]);
+                         }
+                       }}
+                       className={`p-10 rounded-[20px] cursor-pointer bg-[#2E284D] border border-transparent hover:bg-[#39315D] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingExcel ? 'border-indigo-500 border-dashed border-2' : ''}`}
+                     >
+                       <FileSpreadsheet className={`w-10 h-10 text-emerald-400 transition-transform ${isDraggingExcel ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
+                       <span className="font-bold text-white text-md tracking-wide">Tải Excel BOQ</span>
+                       <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
+                         if (e.target.files && e.target.files.length > 0) {
+                           handleUploadFile('EXCEL', e.target.files[0]);
+                           e.target.value = ''; // Reset for re-upload
+                         }
+                       }} />
+                     </label>
+                     <label 
+                       onDragOver={(e) => { e.preventDefault(); setIsDraggingPdf(true); }}
+                       onDragLeave={() => setIsDraggingPdf(false)}
+                       onDrop={(e) => {
+                         e.preventDefault();
+                         setIsDraggingPdf(false);
+                         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                           handleUploadFile('PDF', e.dataTransfer.files[0]);
+                         }
+                       }}
+                       className={`p-10 rounded-[20px] cursor-pointer bg-[#232035] border border-transparent hover:bg-[#2A2640] transition-all group flex flex-col items-center justify-center gap-4 ${isDraggingPdf ? 'border-rose-500 border-dashed border-2' : ''}`}
+                     >
+                       <FileSearch className={`w-10 h-10 text-rose-500 transition-transform ${isDraggingPdf ? 'scale-125 animate-bounce' : 'group-hover:scale-110'}`} />
+                       <div className="text-center">
+                           <span className="font-bold text-white text-md tracking-wide block">AI Bóc Tách</span>
+                           <span className="font-bold text-white text-md tracking-wide block">từ PDF</span>
+                       </div>
+                       <input type="file" className="hidden" accept=".pdf" onChange={(e) => {
+                         if (e.target.files && e.target.files.length > 0) {
+                           handleUploadFile('PDF', e.target.files[0]);
+                           e.target.value = ''; // Reset for re-upload
+                         }
+                       }} />
+                     </label>
+                   </div>
                 </div>
              </div>
-           ) : (
-             <>
-               <div className="bg-[#1C182B] border border-transparent p-6 rounded-[24px]">
-                 <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Dữ Liệu Đầu Vào</h2>
-                 <p className="text-slate-400 text-sm mb-5">Tải lên file Excel BOQ hoặc dự toán để bắt đầu.</p>
-                 <div className="flex gap-4">
-                   <button 
-                     onClick={() => { setHasData(false); setTasks([]); }} 
-                     className="bg-white text-slate-900 px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors shadow-sm"
-                   >
-                     Làm mới
-                   </button>
-                   <label className="bg-[#6B4BFF] cursor-pointer hover:bg-[#5A3EE0] text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg shadow-[#6B4BFF]/30">
-                     <Upload className="w-5 h-5"/> Tải Excel
-                     <input type="file" className="hidden" accept=".xlsx,.xls,.csv" onChange={(e) => {
-                       if (e.target.files && e.target.files.length > 0) {
-                         handleUploadFile('EXCEL', e.target.files[0]);
-                         e.target.value = '';
-                       }
-                     }} />
-                   </label>
+        ) : (
+             <div className="space-y-6">
+               <div className="bg-[#1C182B] border border-white/5 p-6 rounded-[24px]">
+                 <div className="flex justify-between items-center">
+                     <div>
+                         <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Dữ Liệu Đã Tải Lên</h2>
+                         <p className="text-slate-400 text-sm">Hệ thống đã phân tích thành công.</p>
+                     </div>
+                     <button 
+                       onClick={() => { setHasData(false); setTasks([]); }} 
+                       className="bg-white/10 text-white px-6 py-3 rounded-xl font-bold hover:bg-white/20 transition-colors shadow-sm"
+                     >
+                       Tải lại file khác
+                     </button>
                  </div>
                </div>
                
-               <div className="bg-slate-50 rounded-[24px] overflow-hidden shadow-2xl flex flex-col min-h-[500px] animate-in slide-in-from-bottom-4 duration-500">
+               <div className="bg-slate-50 rounded-[24px] overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom-4 duration-500">
                   <div className="p-6 bg-slate-50 border-b border-slate-200">
-                     <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Kiểm Tra Dữ Liệu</h2>
-                     <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">Hệ thống sẽ ẩn các dòng đã chọn. Vui lòng chọn hết các hạng mục cần thiết từ cột trái.</p>
+                     <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Kiểm Tra Hạng Mục</h2>
+                     <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">Chọn các hạng mục thi công cần đưa vào bảng tiến độ kế hoạch.</p>
                      
                      <button 
                         onClick={() => setCurrentView('PLANNING')}
-                        className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-xl shadow-xl shadow-slate-900/10 transition-all flex items-center justify-center gap-2 mb-6"
+                        className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-xl shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 mb-6 active:scale-95"
                      >
-                        <Sparkles className="w-5 h-5" /> Tiếp tục
+                        DI CHUYỂN ĐẾN LẬP KẾ HOẠCH <ChevronRight className="w-5 h-5" />
                      </button>
                      
                      <div className="bg-white border border-slate-200 rounded-full py-3 px-6 text-center font-bold text-slate-500 mb-6 shadow-sm mx-auto max-w-[250px]">
-                        Đã chọn: <span className="text-slate-900">{selectedParsedItems.length}</span> mục
+                        Đã chọn: <span className="text-indigo-600"> {selectedParsedItems.length} </span> mục
                      </div>
 
                      <div className="flex border-b border-slate-200">
@@ -828,7 +890,7 @@ export const Construction = () => {
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-slate-50">
+                  <div className="max-h-[500px] overflow-y-auto p-6 space-y-3 bg-slate-50">
                      {parsedData
                        .filter(item => activeDataTab === 'ALL' || selectedParsedItems.includes(item.id))
                        .map((item, idx) => {
@@ -840,7 +902,7 @@ export const Construction = () => {
                                  <div className="flex-1">
                                     <div className="font-bold text-slate-900 leading-snug mb-2 text-[15px]">{item.name}</div>
                                     <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                                       <span>Số lượng: {item.quantity}</span>
+                                       <span>Khối lượng: {item.quantity}</span>
                                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                                        <span>Đơn vị: {item.unit}</span>
                                        <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
@@ -866,40 +928,9 @@ export const Construction = () => {
                      })}
                   </div>
                </div>
-             </>
-           )}
-        </div>
-
-        <div className="space-y-6">
-           {/* Sidebar Info Cards */}
-           <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-[32px] shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-2xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700"></div>
-              <DollarSign className="w-10 h-10 text-white/50 mb-6" />
-              <h3 className="text-white/60 font-black text-xs uppercase tracking-widest mb-1">Tổng Ngân Sách</h3>
-              <div className="text-4xl font-black text-white tracking-tighter mb-4">
-                 {selectedProject?.budget.toLocaleString('vi-VN')} đ
-              </div>
-              <div className="h-2 bg-black/20 rounded-full overflow-hidden">
-                 <div className="h-full bg-white w-2/3 rounded-full"></div>
-              </div>
-           </div>
-
-           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[32px] shadow-xl">
-              <Users className="w-8 h-8 text-indigo-400 mb-6" />
-              <h3 className="text-slate-500 font-black text-xs uppercase tracking-widest mb-4">Nhân Sự Hiện Trường</h3>
-              <div className="flex -space-x-3">
-                 {[1,2,3,4].map(idx => (
-                    <div key={idx} className="w-10 h-10 rounded-xl border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-black text-white overflow-hidden shadow-lg">
-                       <Users className="w-5 h-5 text-slate-500" />
-                    </div>
-                 ))}
-                 <div className="w-10 h-10 rounded-xl border-2 border-slate-900 bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
-                    +5
-               </div>
-            </div>
-         </div>
-      </div>
-    </div>
+             </div>
+        )}
+     </div>
   );
 
   const renderPlanning = () => (
@@ -1033,23 +1064,25 @@ export const Construction = () => {
   );
 
 
-  const renderGantt = () => (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => setCurrentView('PLANNING')}
-            className="w-14 h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Sơ Đồ Tiến Độ (Gantt)</h1>
-            <p className="text-slate-400 font-medium">Theo dõi thời gian thi công thực tế</p>
+  const renderGantt = (isEmbedded = false) => (
+    <div className={`space-y-8 animate-in fade-in duration-500 ${isEmbedded ? '' : ''}`}>
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-6 ${isEmbedded ? 'flex-row-reverse' : ''}`}>
+        {!isEmbedded && (
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setCurrentView('PLANNING')}
+              className="w-14 h-14 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-black text-white tracking-tight">Sơ Đồ Tiến Độ (Gantt)</h1>
+              <p className="text-slate-400 font-medium">Theo dõi thời gian thi công thực tế</p>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex gap-4">
+        <div className={`flex gap-4 ${isEmbedded ? 'w-full justify-end' : ''}`}>
           <button 
             onClick={exportToExcel}
             className="bg-white hover:bg-slate-50 text-slate-800 font-bold px-6 py-3.5 rounded-xl transition-all flex items-center gap-2 shadow-sm border border-slate-200 active:scale-95 text-sm"
@@ -1124,9 +1157,9 @@ export const Construction = () => {
         <div className="overflow-x-auto text-slate-800 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
           <div className="min-w-[1250px]">
              {/* Gantt Header */}
-             <div className="grid grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr] bg-[#f1f5f9] border-b border-slate-300 text-[10px] font-bold text-slate-800 text-center items-stretch uppercase">
+             <div className={`grid ${!isClientView ? 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_90px_1fr]' : 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr]'} bg-[#f1f5f9] border-b border-slate-300 text-[10px] font-bold text-slate-800 text-center items-stretch uppercase sticky top-0 z-40`}>
                 <div className="flex items-center justify-center border-r border-slate-300 py-3 leading-tight px-1 col-span-2">STT MÔ TẢ</div>
-                <div className="flex items-center justify-center border-r border-slate-300 py-3">GHI CHÚ</div>
+                <div className="flex items-center justify-center border-r border-slate-300 py-3">GHI CHÚ & THẦU</div>
                 <div className="flex items-center justify-center border-r border-slate-300 py-3 col-span-2">THỜI GIAN</div>
                 <div className="flex items-center justify-center border-r border-slate-300 py-3 bg-[#e2e8d8]">NGÀY</div>
                 <div className="flex items-center justify-center border-r border-slate-300 py-3 bg-[#e2e8d8] relative">
@@ -1139,6 +1172,9 @@ export const Construction = () => {
                       <ChevronLeft className="w-3 h-3" strokeWidth={3} />
                    </button>
                 </div>
+                {!isClientView && (
+                  <div className="flex items-center justify-center border-r border-slate-300 py-3 bg-[#e2e8d8]">NGÂN SÁCH</div>
+                )}
                 <div className="flex flex-col relative">
                    <button 
                       onClick={() => shiftProjectDate(7)}
@@ -1151,7 +1187,7 @@ export const Construction = () => {
                    <div className="grid grid-cols-3 border-b border-slate-300 h-1/3">
                       {Array.from({length: 3}).map((_, i) => (
                          <div key={`week-${i}`} className={`border-r border-slate-400 flex items-center justify-center bg-white text-[10px] font-black uppercase ${i === 2 ? 'border-r-0' : ''}`}>
-                            TUẦN {i + 1}
+                            TUẦN {currentWeek + i}
                          </div>
                       ))}
                    </div>
@@ -1159,7 +1195,8 @@ export const Construction = () => {
                    <div className="grid grid-cols-3 border-b border-slate-300 h-1/3 bg-white/50">
                       {Array.from({length: 3}).map((_, i) => {
                          const startOfProject = parseISO(projectStartDate);
-                         const weekStart = addDays(startOfProject, i * 7);
+                         const viewStartDate = addDays(startOfProject, (currentWeek - 1) * 7);
+                         const weekStart = addDays(viewStartDate, i * 7);
                          return (
                             <div key={`wdate-${i}`} className={`border-r border-slate-400 flex items-center justify-center text-[9px] py-0.5 ${i === 2 ? 'border-r-0' : ''}`}>
                                {format(weekStart, 'dd/MM/yyyy')}
@@ -1171,7 +1208,8 @@ export const Construction = () => {
                    <div className="grid grid-cols-21 h-1/3 bg-[#f3f3f3]">
                       {Array.from({length: 21}).map((_, i) => {
                          const startOfProject = parseISO(projectStartDate);
-                         const currentDate = addDays(startOfProject, i);
+                         const viewStartDate = addDays(startOfProject, (currentWeek - 1) * 7);
+                         const currentDate = addDays(viewStartDate, i);
                          const dayNum = format(currentDate, 'd');
                          const dayName = i % 7 === 6 ? 'CN' : `T${(i % 7) + 2}`;
                          const isWeekEnd = i % 7 === 6;
@@ -1206,7 +1244,8 @@ export const Construction = () => {
                         </div>
                      </div>
                      {tasks.filter(t => t.category === cat).map((task, taskIdx) => {
-                         const startDay = task.startDate ? differenceInDays(parseISO(task.startDate), parseISO(projectStartDate)) + 1 : 1; 
+                         const viewStartDate = addDays(parseISO(projectStartDate), (currentWeek - 1) * 7);
+                         const startDay = task.startDate ? differenceInDays(parseISO(task.startDate), viewStartDate) + 1 : 1; 
                          const startDateFmt = task.startDate ? format(parseISO(task.startDate), 'dd/MM/yyyy') : '--/--/----';
                          const endDateFmt = task.endDate ? format(parseISO(task.endDate), 'dd/MM/yyyy') : '--/--/----';
 
@@ -1218,7 +1257,7 @@ export const Construction = () => {
                          const isEditingProgress = editingTaskId === task.id && editingField === 'progress';
 
                          return (
-                            <div key={task.id} className="grid grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr] items-stretch border-b border-slate-200 group hover:bg-yellow-50/50 transition-colors bg-white">
+                            <div key={task.id} className={`grid ${!isClientView ? 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_90px_1fr]' : 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr]'} items-stretch border-b border-slate-200 group hover:bg-yellow-50/50 transition-colors bg-white ${task.progress === 100 ? 'opacity-50 grayscale' : ''}`}>
                                <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center border-r border-slate-200 bg-[#f9fafb]">
                                   <span>{taskIdx + 1}</span>
                                </div>
@@ -1228,6 +1267,15 @@ export const Construction = () => {
                                       <button onClick={(e) => { e.stopPropagation(); addNewTask(cat, task.id); }} className="bg-emerald-50 border border-emerald-400 text-emerald-600 rounded p-[3px] hover:bg-emerald-100 hover:scale-125 transition-transform shadow-md" title="Chèn công tác bên dưới">
                                           <Plus className="w-3 h-3" strokeWidth={3} />
                                       </button>
+                                      <button onClick={(e) => { e.stopPropagation(); setGalleryTaskId(task.id); setIsGalleryOpen(true); }} className="bg-blue-50 border border-blue-400 text-blue-600 rounded p-[3px] hover:bg-blue-100 hover:scale-125 transition-transform shadow-md" title="Xem ảnh nghiệm thu">
+                                          <Camera className="w-3 h-3" strokeWidth={3} />
+                                      </button>
+                                      <button onClick={(e) => { e.stopPropagation(); setDiaryTaskId(task.id); setIsDiaryOpen(true); }} className="bg-indigo-50 border border-indigo-400 text-indigo-600 rounded p-[3px] hover:bg-indigo-100 hover:scale-125 transition-transform shadow-md" title="Ghi nhật ký / Cập nhật tiến độ">
+                                          <MessageSquare className="w-3 h-3" strokeWidth={3} />
+                                      </button>
+                                      <button onClick={(e) => { e.stopPropagation(); setQuoteSubcontractor(task.subcontractor || ''); setQuoteTaskName(task.name); setIsQuoteOpen(true); }} className="bg-orange-50 border border-orange-400 text-orange-600 rounded p-[3px] hover:bg-orange-100 hover:scale-125 transition-transform shadow-md" title="Tự động yêu cầu báo giá">
+                                          <DollarSign className="w-3 h-3" strokeWidth={3} />
+                                      </button>
                                       <button onClick={(e) => { e.stopPropagation(); setTasks(tasks.filter(t => t.id !== task.id)); }} className="bg-rose-50 border border-rose-400 text-rose-500 rounded p-[3px] hover:bg-rose-100 hover:scale-125 transition-transform shadow-md" title="Xóa công tác">
                                           <Trash2 className="w-3 h-3" strokeWidth={3} />
                                       </button>
@@ -1236,16 +1284,26 @@ export const Construction = () => {
                                   {isEditingName ? (
                                       <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-full bg-blue-50 border border-blue-400 rounded px-1.5 py-0.5 text-[11px] text-slate-800 outline-none relative z-10" />
                                   ) : (
-                                     <div className="text-[11px] text-slate-700 truncate min-w-0">{task.name}</div>
+                                     <div className="text-[11px] text-slate-700 truncate min-w-0 flex items-center gap-1">
+                                        {task.name}
+                                        {task.progress && task.progress > 0 && (
+                                           <button onClick={(e) => { e.stopPropagation(); setGalleryTaskId(task.id); setIsGalleryOpen(true); }} className="text-blue-500 flex items-center shrink-0">
+                                              <Camera className="w-3 h-3" />
+                                           </button>
+                                        )}
+                                     </div>
                                   )}
                                </div>
                                
-                               <div className="border-r border-slate-200 px-2 py-1.5 flex items-center cursor-text" onClick={() => !isEditingSub && handleEditStart(task.id, 'subcontractor', task.subcontractor || '')}>
+                               <div className="border-r border-slate-200 px-2 py-1.5 flex items-center justify-between cursor-text group/note relative" onClick={() => !isEditingSub && handleEditStart(task.id, 'subcontractor', task.subcontractor || '')}>
                                   {isEditingSub ? (
-                                      <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-full bg-blue-50 border border-blue-400 rounded px-1.5 py-0.5 text-[11px] text-slate-800 outline-none" placeholder="Nhập thầu..." />
+                                      <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-full bg-blue-50 border border-blue-400 rounded px-1.5 py-0.5 text-[11px] text-slate-800 outline-none" placeholder="Đọc hoặc nhập nội dung..." />
                                   ) : (
-                                      <span className="text-[10px] text-slate-600 truncate">{task.subcontractor || <span className="italic text-slate-400 font-light">+ Thêm...</span>}</span>
+                                      <span className="text-[10px] text-slate-600 truncate">{task.subcontractor || <span className="italic text-slate-400 font-light pr-4">+ Ghi chú...</span>}</span>
                                   )}
+                                  <button onClick={(e) => { e.stopPropagation(); setDiaryTaskId(task.id); setIsDiaryOpen(true); }} className="opacity-0 group-hover/note:opacity-100 text-indigo-400 hover:text-indigo-600 transition-opacity bg-white/80 p-0.5 rounded-md absolute right-1">
+                                      <Mic className="w-3.5 h-3.5" />
+                                  </button>
                                </div>
                                
                                <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingStart && handleEditStart(task.id, 'startDate', task.startDate || '')}>
@@ -1283,23 +1341,21 @@ export const Construction = () => {
                                <div className="grid grid-cols-21 relative bg-white group-hover:bg-yellow-50/20">
                                   {Array.from({length: 21}).map((_, i) => {
                                       const isWeekEnd = i % 7 === 6;
-                                      const cellKey = `${task.id}-${i}`;
-                                      const isHighlighted = highlightedCells[cellKey];
                                       return (
                                           <div 
                                             key={`col-${i}`} 
-                                            onClick={() => toggleCellHighlight(task.id, i)}
-                                            className={`border-r cursor-pointer transition-colors ${isHighlighted ? 'bg-emerald-500/80 hover:bg-emerald-500' : isWeekEnd ? 'bg-red-50/40 hover:bg-slate-100' : 'hover:bg-slate-100'} ${isWeekEnd ? 'border-r-slate-400' : 'border-r-slate-200'} ${i === 20 ? 'border-r-0' : ''}`} 
+                                            className={`border-r transition-colors ${isWeekEnd ? 'bg-red-50/40 hover:bg-slate-100' : 'hover:bg-slate-100'} ${isWeekEnd ? 'border-r-slate-400' : 'border-r-slate-200'} ${i === 20 ? 'border-r-0' : ''}`} 
                                           />
                                       );
                                   })}
 
                                   <div 
-                                     className="absolute inset-0 flex items-center justify-center bg-[#4a86e8] border-r border-white/30"
+                                     className="absolute inset-0 flex items-center justify-center bg-[#4a86e8]/50 border-r border-white/30"
                                      style={{ 
                                        gridColumnStart: Math.max(1, startDay), 
-                                       gridColumnEnd: Math.min(22, startDay + task.days),
-                                       zIndex: 10
+                                       gridColumnEnd: Math.max(1, Math.min(22, startDay + task.days)),
+                                       zIndex: 10,
+                                       display: (startDay + task.days <= 1) || (startDay >= 22) ? 'none' : 'flex'
                                      }}
                                   >
                                       {/* Fill full cell style */}
@@ -1328,10 +1384,169 @@ export const Construction = () => {
                       <p className="italic text-sm text-slate-500 mb-24">(Ký, ghi rõ họ tên)</p>
                       <p className="font-bold text-[15px] text-slate-900">{settings.approver}</p>
                     </div>
-                 </div>
-              </div>
-           </div>
-        </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         
+         {/* Diary Modal */}
+         {isDiaryOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
+               <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsDiaryOpen(false)}></div>
+               <div className="relative bg-white rounded-3xl w-[90%] md:w-[600px] shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+                  <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                     <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                           <MessageSquare className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <div>
+                           <h2 className="text-xl font-bold text-slate-800">Nhật Ký Hiện Trường (Auto-Timeline)</h2>
+                           <p className="text-xs font-medium text-slate-500">Báo cáo tiến độ thời gian thực cho hạng mục: <span className="text-indigo-600 font-bold">{tasks.find(t => t.id === diaryTaskId)?.name}</span></p>
+                        </div>
+                     </div>
+                     <button onClick={() => setIsDiaryOpen(false)} className="text-slate-400 hover:text-rose-500 transition-colors p-2 bg-white rounded-xl shadow-sm hover:bg-rose-50">
+                        <X className="w-5 h-5" />
+                     </button>
+                  </div>
+                  
+                  <div className="p-6 space-y-6">
+                     <div className="space-y-3">
+                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Nội dung báo cáo (Hỗ trợ giọng nói)</label>
+                        <div className="relative">
+                           <textarea 
+                              value={diaryNote}
+                              onChange={e => setDiaryNote(e.target.value)}
+                              placeholder="Kỹ sư giám sát nhập hoặc đọc ghi chú thi công hôm nay..."
+                              className="w-full h-32 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 text-slate-700 text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all resize-none pr-14"
+                           ></textarea>
+                           <button 
+                              onClick={() => {
+                                 if (!isListening) {
+                                    setIsListening(true);
+                                    setDiaryNote('');
+                                    let dots = 0;
+                                    const mockText = "Hôm nay tổ thi công đã hoàn thiện 50% khối lượng, vật tư xi măng thiếu 2 bao, cần bổ sung gấp vào sáng mai. Thời tiết tốt.";
+                                    const interval = setInterval(() => {
+                                       dots++;
+                                       setDiaryNote("Đang phân tích giọng nói" + ".".repeat(dots % 4));
+                                    }, 400);
+                                    
+                                    setTimeout(() => {
+                                       clearInterval(interval);
+                                       setIsListening(false);
+                                       setDiaryNote(mockText);
+                                    }, 3000);
+                                 }
+                              }}
+                              className={`absolute bottom-4 right-4 p-3 rounded-xl shadow-md transition-all ${isListening ? 'bg-rose-500 text-white animate-pulse shadow-rose-500/30' : 'bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white shadow-indigo-600/20'}`}
+                              title="Speech to Text"
+                           >
+                              <Mic className="w-5 h-5" /> 
+                           </button>
+                        </div>
+                     </div>
+                     
+                     <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex gap-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                           <Sparkles className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                           <h4 className="text-sm font-bold text-blue-900 mb-1">AI Tự Động Phân Tích Timeline</h4>
+                           <p className="text-xs text-blue-700 leading-relaxed">
+                              Khi nhấn Gửi, AI sẽ đọc nội dung nhật ký để tự động: <br/>
+                              1. Cập nhật <span className="font-bold border-b border-blue-300">Tiến độ (%)</span> dựa trên khối lượng báo cáo.<br/>
+                              2. Phát cảnh báo rủi ro nếu có vật tư thiếu hoặc thời tiết xấu.<br/>
+                              3. Gửi thông báo Push đến Khách hàng (Nếu bật chế độ Client View).
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-4">
+                     <button onClick={() => setIsDiaryOpen(false)} className="px-6 py-3 font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-all">
+                        Đóng
+                     </button>
+                     <button 
+                        onClick={() => {
+                           // Simulate AI Auto-Update Progress
+                           if (diaryTaskId && diaryNote.includes('50%')) {
+                              setTasks(tasks.map(t => t.id === diaryTaskId ? {...t, progress: 50} : t));
+                           }
+                           setDiaryNote('');
+                           setIsDiaryOpen(false);
+                        }}
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+                     >
+                        LƯU & CẬP NHẬT TIẾN ĐỘ
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Photo Gallery Modal */}
+         {isGalleryOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto">
+               <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsGalleryOpen(false)}></div>
+               <div className="relative bg-white rounded-3xl w-[90%] md:w-[800px] max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col">
+                  <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 shrink-0">
+                     <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200">
+                           <Camera className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                           <h2 className="text-xl font-black text-slate-800 tracking-tight">Ảnh Nghiệm Thu Hiện Trường</h2>
+                           <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">Hạng mục: <span className="text-blue-600">{tasks.find(t => t.id === galleryTaskId)?.name}</span></p>
+                        </div>
+                     </div>
+                     <button onClick={() => setIsGalleryOpen(false)} className="text-slate-400 hover:text-rose-500 transition-colors p-3 bg-white rounded-xl shadow-sm border border-slate-200 hover:bg-rose-50">
+                        <X className="w-6 h-6" />
+                     </button>
+                  </div>
+                  
+                  <div className="p-8 overflow-y-auto space-y-8 flex-1">
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                         {[1, 2, 3].map((imgNum) => (
+                             <div key={imgNum} className="group relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm aspect-square bg-slate-100">
+                                 {/* Mock Image Placeholder */}
+                                 <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                                     <Sparkles className="w-8 h-8 text-white/50" />
+                                 </div>
+                                 <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/40 transition-all flex flex-col justify-end p-4">
+                                     <p className="text-white font-bold text-sm translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">Góc thi công {imgNum}</p>
+                                     <p className="text-slate-300 text-[10px] translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">{format(new Date(), 'dd/mm/yyyy HH:mm')}</p>
+                                 </div>
+                             </div>
+                         ))}
+                         
+                         {/* Upload New Photo Card */}
+                         <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:border-blue-400 hover:bg-blue-50 hover:text-blue-500 transition-all aspect-square gap-3">
+                             <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                 <Plus className="w-6 h-6" />
+                             </div>
+                             <span className="font-bold text-sm">Thêm Ảnh Mới</span>
+                         </div>
+                     </div>
+                  </div>
+                  
+                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-4 shrink-0">
+                     <button onClick={() => setIsGalleryOpen(false)} className="px-6 py-4 font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-all">
+                        Đóng Quy Trình
+                     </button>
+                     <button 
+                        onClick={() => {
+                           // Mock sending to marketing
+                           setIsGalleryOpen(false);
+                           alert("Đã tự động tag [Dự án + Hạng mục] và gửi thẳng vào kho lưu trữ nội dung của team Marketing!");
+                        }}
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                     >
+                        <Sparkles className="w-5 h-5" /> Push Auto-Feed to Marketing
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
       </div>
     </div>
   );
@@ -1383,14 +1598,39 @@ export const Construction = () => {
                              {p.actualCost.toLocaleString('vi-VN')} đ
                          </span>
                      </div>
-                     <div className="w-full bg-white/5 rounded-full h-3 flex overflow-hidden border border-white/5">
-                         <div className={`h-full rounded-full ${p.actualCost > p.budget && p.budget > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min((p.actualCost / (p.budget || 1)) * 100, 100)}%`}}></div>
+                     <div className="w-full bg-white/5 rounded-full h-3 flex overflow-hidden border border-white/5 relative">
+                         {/* Break-Even Marker */}
+                         <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400 z-20" style={{left: '80%'}} title="Điểm hòa vốn (80%)"></div>
+                         <div className={`h-full rounded-full relative z-10 transition-all ${p.actualCost > p.budget && p.budget > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min((p.actualCost / (p.budget || 1)) * 100, 100)}%`}}></div>
                      </div>
                      {p.actualCost > p.budget && p.budget > 0 && (
-                        <div className="mt-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 px-6 py-4 rounded-2xl text-xs font-bold leading-relaxed">
-                            CẢNH BÁO: Dự án đã vượt ngân sách {((p.actualCost - p.budget) / p.budget * 100).toFixed(0)}%. Vui lòng đề xuất Phụ lục hợp đồng hoặc rà soát lại các khoản chi.
+                        <div className="mt-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 p-6 rounded-3xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-4 opacity-10 blur-sm group-hover:blur-none transition-all duration-700 pointer-events-none">
+                              <AlertTriangle className="w-32 h-32" />
+                           </div>
+                           <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                               <div className="w-16 h-16 rounded-2xl bg-rose-500/20 flex flex-col items-center justify-center border border-rose-500/30 shrink-0">
+                                   <span className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-0.5">VƯỢT</span>
+                                   <span className="text-xl font-black">{((p.actualCost - p.budget) / p.budget * 100).toFixed(0)}%</span>
+                               </div>
+                               <div>
+                                   <h4 className="font-black text-rose-400 mb-2 uppercase tracking-tight">Cảnh báo rủi ro bồi thường / lỗ</h4>
+                                   <p className="text-sm font-medium leading-relaxed text-rose-200">
+                                       Dự án đã vượt ngân sách. Hệ thống phân tích AI cho thấy nguyên nhân chủ yếu do <strong className="text-white">vật tư tăng giá (60%)</strong> và <strong className="text-white">tiến độ thi công kéo dài (40%)</strong>. Vui lòng rà soát hoặc đề xuất phụ lục phát sinh.
+                                   </p>
+                                   <div className="flex gap-2 mt-4">
+                                       <button className="bg-rose-500 text-white text-xs font-black uppercase px-4 py-2 rounded-xl shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-colors">Yêu cầu Phụ Lục</button>
+                                       <button className="bg-white/5 text-rose-400 border border-rose-500/30 text-xs font-black uppercase px-4 py-2 rounded-xl hover:bg-white/10 transition-colors">Chi tiết Phân Tích</button>
+                                   </div>
+                               </div>
+                           </div>
                         </div>
                      )}
+                     <div className="flex justify-between items-center mt-2 text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                         <span>0%</span>
+                         <span className="text-amber-400/80 translate-x-[20px] pb-1 border-b border-amber-400/30">Điểm hòa vốn (80%)</span>
+                         <span>100%</span>
+                     </div>
                   </div>
               </div>
            </div>
@@ -1399,12 +1639,12 @@ export const Construction = () => {
 
       <div className="flex gap-4">
          <button 
-           onClick={() => setProjects(projects.map(p => p.id === '1' ? {...p, actualCost: p.budget + 25000000} : p))}
-           className="bg-white/5 hover:bg-rose-500/20 text-rose-400 px-8 py-4 rounded-2xl border border-white/10 font-black text-sm transition-all"
+           onClick={() => setIsRiskModalOpen(true)}
+           className="bg-white/5 hover:bg-rose-500/20 text-rose-400 px-8 py-4 rounded-2xl border border-white/10 font-black text-sm transition-all flex items-center gap-2 shadow-sm"
          >
-             GIẢ LẬP RỦI RO LỖ
+             <AlertTriangle className="w-5 h-5" /> GIẢ LẬP RỦI RO LỖ BẰNG AI
          </button>
-         <button className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95">
+         <button onClick={() => setIsTransactionOpen(true)} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-indigo-600/20 transition-all active:scale-95">
              TẠO PHIẾU CHI MỚI
          </button>
       </div>
@@ -1428,9 +1668,11 @@ export const Construction = () => {
             <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-3">
                <UserCheck className="w-6 h-6 text-indigo-500" /> DANH SÁCH ĐANG TRỰC
             </h3>
-            <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-3 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-600/20">
-               + THÊM NHÂN SỰ
-            </button>
+            {!isClientView && (
+               <button className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-6 py-3 rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-600/20">
+                  + THÊM N/S & CHECK GPS
+               </button>
+            )}
          </div>
 
          <div className="overflow-x-auto">
@@ -1438,9 +1680,9 @@ export const Construction = () => {
                <thead>
                   <tr className="border-b border-white/5">
                      <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Họ tên & Liên hệ</th>
-                     <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Chức vụ</th>
+                     <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Vai trò</th>
                      <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Dự án hiện tại</th>
-                     <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Trạng thái</th>
+                     <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Định vị & Trạng thái</th>
                   </tr>
                </thead>
                <tbody className="divide-y divide-white/[0.03]">
@@ -1448,12 +1690,17 @@ export const Construction = () => {
                      <tr key={p.id} className="group hover:bg-white/[0.02] transition-colors">
                         <td className="py-6">
                            <div className="font-bold text-white group-hover:text-indigo-400 transition-colors uppercase">{p.name}</div>
-                           <div className="text-xs text-slate-500 flex items-center gap-2 mt-1 font-medium"><Phone className="w-3 h-3" /> {p.phone}</div>
+                           {!isClientView && <div className="text-xs text-slate-500 flex items-center gap-2 mt-1 font-medium"><Phone className="w-3 h-3" /> {p.phone}</div>}
                         </td>
                         <td className="py-6">
-                           <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-slate-300">
-                               {p.position}
-                           </span>
+                           <div className="flex flex-col items-start gap-1.5">
+                              <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded border ${p.type === 'NỘI BỘ' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'}`}>
+                                  {p.type}
+                              </span>
+                              <span className="text-xs font-bold text-slate-300">
+                                  {p.position}
+                              </span>
+                           </div>
                         </td>
                         <td className="py-6">
                            <div className="text-sm font-bold text-white/80 flex items-center gap-2">
@@ -1461,19 +1708,39 @@ export const Construction = () => {
                            </div>
                         </td>
                         <td className="py-6 text-right">
-                           <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20">
-                              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
-                              {p.status}
-                           </span>
+                           <div className="flex justify-end gap-3 items-center">
+                               {p.status === 'Đang làm việc' && (
+                                  <div 
+                                     onClick={() => {
+                                        if(gpsCheckingId) return;
+                                        setGpsCheckingId(p.id);
+                                        setTimeout(() => {
+                                            alert(`Đã xác thực vị trí GPS của ${p.name} hợp lệ tại tọa độ: 10.762622, 106.660172 (Công trường Biệt thự Anh Hùng)`);
+                                            setGpsCheckingId(null);
+                                        }, 2000);
+                                     }}
+                                     className={`cursor-pointer text-[10px] px-2 py-1 rounded flex items-center gap-1 border transition-all ${gpsCheckingId === p.id ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' : 'text-emerald-500/70 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20'}`} 
+                                     title={gpsCheckingId === p.id ? 'Đang truy xuất vị trí GPS...' : 'Bấm để kiểm tra lại định vị GPS thực tế'}
+                                  >
+                                      {gpsCheckingId === p.id ? (
+                                          <><div className="w-2 h-2 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div> AI Checking...</>
+                                      ) : (
+                                          <><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 border border-emerald-300"></div> GPS Đã Check</>
+                                      )}
+                                  </div>
+                               )}
+                               <span className={`inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full border ${p.status === 'Đang làm việc' ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20' : 'text-slate-400 bg-white/5 border-white/10'}`}>
+                                  {p.status === 'Đang làm việc' && <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>}
+                                  {p.status}
+                               </span>
+                           </div>
                         </td>
                      </tr>
                   ))}
                </tbody>
              </table>
           </div>
-             </div>
-          </div>
-       </div>
+      </div>
     </div>
   );
 
@@ -1536,6 +1803,7 @@ export const Construction = () => {
                </button>
             </div>
       </div>
+      </div>
     </div>
   );
 
@@ -1590,24 +1858,238 @@ export const Construction = () => {
                  </div>
               </div>
 
-              <div className="border-2 border-dashed border-white/10 rounded-[32px] p-12 flex flex-col items-center justify-center group hover:border-emerald-500/50 transition-all bg-white/[0.02]">
-                 <div className="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                    <Upload className="w-10 h-10 text-emerald-500" />
+              <div className="border-2 border-dashed border-white/10 rounded-[32px] p-8 flex flex-col items-center justify-center group hover:border-emerald-500/50 transition-all bg-white/[0.02] relative overflow-hidden">
+                 {quoteTaskName && (
+                    <div className="absolute top-0 left-0 w-full bg-emerald-500/10 border-b border-emerald-500/10 p-3 text-emerald-400 text-xs text-center font-bold tracking-widest uppercase">
+                       Tạo báo giá cho: {quoteTaskName}
+                    </div>
+                 )}
+                 <div className={`w-full max-w-sm mt-8 ${quoteTaskName ? '' : 'hidden'}`}>
+                    <textarea 
+                        readOnly 
+                        className="w-full bg-slate-900 border border-white/10 rounded-2xl p-4 text-slate-300 text-sm h-32 outline-none mb-6 resize-none custom-scrollbar"
+                        value={`Gửi anh/chị${quoteSubcontractor ? ' ' + quoteSubcontractor : ''},\n\nNhờ anh/chị báo giá giúp em hạng mục "${quoteTaskName}" với khối lượng đính kèm.\nPhản hồi giúp em trong thời gian sớm nhất nhé.\n\nCảm ơn anh/chị.`}
+                    />
                  </div>
-                 <p className="text-white font-black text-lg mb-2">Tải lên báo giá</p>
-                 <p className="text-slate-500 text-xs font-medium mb-8">Hỗ trợ .doc, .docx, .xlsx, .pdf (Max 10MB)</p>
-                 <button 
-                   onClick={() => handleUploadQuote()}
-                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-10 py-4 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all active:scale-95 uppercase text-xs tracking-widest"
-                 >
-                    Chọn File để Phân Tích
-                 </button>
+                 
+                 <div className="w-16 h-16 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-4 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                    <Upload className="w-8 h-8 text-emerald-500" />
+                 </div>
+                 <p className="text-white font-black text-lg mb-1">Tải lên file khối lượng (*.xlsx, *.pdf)</p>
+                 <p className="text-slate-500 text-xs font-medium mb-6">AI sẽ tự động đọc bảng khối lượng này và soạn tin nhắn WhatsApp/Zalo mẫu cho thầu phụ.</p>
+                 <div className="flex gap-4">
+                     <button 
+                       onClick={() => handleUploadQuote()}
+                       className="bg-slate-700 hover:bg-slate-600 text-white font-black px-6 py-3 rounded-2xl shadow-xl transition-all active:scale-95 uppercase text-[11px] tracking-widest"
+                     >
+                        Tải Lên Báo Giá Thầu (OCR)
+                     </button>
+                     <button 
+                       onClick={() => {
+                           setIsQuoteOpen(false);
+                           setQuoteTaskName('');
+                           alert('Đang mở màn hình chia sẻ tin nhắn Zalo kèm bảng khối lượng Import ban đầu...');
+                       }}
+                       className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-3 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all active:scale-95 flex items-center gap-2 uppercase text-[11px] tracking-widest"
+                     >
+                        <MessageSquare className="w-4 h-4" /> Gửi Tin Nhắn Data Gốc
+                     </button>
+                 </div>
               </div>
               </div>
            </div>
         </div>
       )
   );
+
+  const renderTransactionModal = () => (
+      isTransactionOpen && (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 pointer-events-auto">
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsTransactionOpen(false)}></div>
+              <div className="relative bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                  <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                      <div>
+                          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Tạo Phiếu Chi AI</h2>
+                          <p className="text-slate-500 font-medium text-sm mt-1">Hệ thống hỗ trợ quét hóa đơn nhận diện chữ</p>
+                      </div>
+                      <button onClick={() => setIsTransactionOpen(false)} className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors">
+                          <X className="w-6 h-6" />
+                      </button>
+                  </div>
+
+                  <div className="p-8 space-y-6">
+                      <div className="border-2 border-dashed border-indigo-200 rounded-2xl p-6 bg-indigo-50/50 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all group relative overflow-hidden">
+                          {!isOcrScanning ? (
+                              <>
+                                  <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 mb-3 group-hover:scale-110 transition-transform">
+                                      <Camera className="w-6 h-6" />
+                                  </div>
+                                  <p className="font-bold text-indigo-900 text-center">Chụp / Tải lên Hóa Đơn</p>
+                                  <p className="text-xs text-indigo-500 mt-1 font-medium">AI OCR sẽ tự động điền các thông tin bên dưới</p>
+                                  <div 
+                                     className="absolute inset-0 z-10"
+                                     onClick={(e) => {
+                                         e.stopPropagation();
+                                         setIsOcrScanning(true);
+                                         setFormTransaction({ supplier: '', amount: '', date: '', reason: '' });
+                                         setTimeout(() => {
+                                             setIsOcrScanning(false);
+                                             setFormTransaction({ 
+                                                 supplier: 'Công ty Cổ phần Bê tông Vinaconex', 
+                                                 amount: '45,000,000', 
+                                                 date: format(new Date(), 'yyyy-MM-dd'), 
+                                                 reason: 'Thanh toán đợt 2 tiền cọc bê tông móng.' 
+                                             });
+                                         }, 2500);
+                                     }}
+                                  ></div>
+                              </>
+                          ) : (
+                              <div className="flex flex-col items-center justify-center w-full py-4 relative z-20">
+                                  <div className="w-full h-1.5 bg-indigo-200 rounded-full overflow-hidden mb-4 relative">
+                                      <div className="absolute top-0 bottom-0 left-0 bg-indigo-500 w-1/3 animate-[slideRight_1s_ease-in-out_infinite_alternate]"></div>
+                                  </div>
+                                  <p className="text-sm font-black text-indigo-700 uppercase tracking-widest animate-pulse flex items-center gap-2">
+                                      <Sparkles className="w-4 h-4" /> ĐANG PHÂN TÍCH OCR...
+                                  </p>
+                              </div>
+                          )}
+                      </div>
+
+                      <div className="space-y-4">
+                          <div>
+                              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Đơn vị thụ hưởng / NCC</label>
+                              <input type="text" value={formTransaction.supplier} onChange={e => setFormTransaction({...formTransaction, supplier: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-400" placeholder="VD: Vật liệu xây dựng ABC..." />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Số tiền (VNĐ)</label>
+                                  <input type="text" value={formTransaction.amount} onChange={e => setFormTransaction({...formTransaction, amount: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-emerald-600 outline-none focus:border-indigo-400" placeholder="0" />
+                              </div>
+                              <div>
+                                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Ngày chi</label>
+                                  <input type="date" value={formTransaction.date} onChange={e => setFormTransaction({...formTransaction, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-400" />
+                              </div>
+                          </div>
+                          <div>
+                              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Lý do chi</label>
+                              <textarea value={formTransaction.reason} onChange={e => setFormTransaction({...formTransaction, reason: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-indigo-400 h-24 resize-none" placeholder="Chi tiết..."></textarea>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="p-8 bg-slate-50 border-t border-slate-100 flex gap-4">
+                      <button onClick={() => setIsTransactionOpen(false)} className="px-6 py-4 font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-xl transition-all">
+                          Hủy
+                      </button>
+                      <button 
+                          onClick={() => {
+                              setIsTransactionOpen(false);
+                              alert("Đã tạo đề xuất chi thành công!");
+                          }}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black py-4 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2"
+                      >
+                          LƯU PHIẾU CHI
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )
+  );
+
+  const renderRiskModal = () => {
+     if (!isRiskModalOpen || !selectedProject) return null;
+     
+     const currentBudget = selectedProject.budget;
+     const currentCost = selectedProject.actualCost;
+     const simulatedCost = currentCost + (currentCost * (riskFactor / 100));
+     const expectedProfit = Math.max(0, currentBudget - simulatedCost);
+     const simulatedLoss = Math.max(0, simulatedCost - currentBudget);
+     
+     const total = simulatedCost + expectedProfit;
+     const costPct = (simulatedCost / (total || 1)) * 100;
+     
+     return (
+        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={() => setIsRiskModalOpen(false)}></div>
+            <div className="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+                   <div className="flex items-center gap-5">
+                      <div className="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center border border-rose-500/20">
+                         <AlertTriangle className="w-7 h-7 text-rose-500" />
+                      </div>
+                      <div>
+                         <h3 className="font-black text-white text-xl tracking-tight uppercase">AI Giả Lập Rủi Ro: {selectedProject.name}</h3>
+                         <p className="text-xs text-slate-400 font-medium">Phân tích khả năng sinh lời dự kiến khi có biến đổi về giá vật tư</p>
+                      </div>
+                   </div>
+                   <button onClick={() => setIsRiskModalOpen(false)} className="p-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all"><X className="w-6 h-6" /></button>
+                </div>
+                
+                <div className="p-8 space-y-8">
+                   <div className="bg-white/5 p-6 rounded-2xl border border-white/10">
+                      <div className="flex justify-between items-center mb-6">
+                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Kịch bản: Giá biến động</label>
+                         <span className="text-3xl font-black text-rose-400">+{riskFactor}%</span>
+                      </div>
+                      <input 
+                         type="range" 
+                         min="0" 
+                         max="60" 
+                         step="5"
+                         value={riskFactor} 
+                         onChange={(e) => setRiskFactor(Number(e.target.value))}
+                         className="w-full appearance-none bg-slate-800 h-2 rounded-full outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-rose-500 [&::-webkit-slider-thumb]:rounded-full cursor-pointer transition-all"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-500 mt-3 font-bold">
+                         <span>Bình thường (0%)</span>
+                         <span>Khủng hoảng (60%)</span>
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                      <div className="flex justify-center">
+                         <div 
+                             className="w-48 h-48 rounded-full relative shadow-[0_0_50px_rgba(244,63,94,0.15)] transition-all duration-500 border-4 border-slate-800"
+                             style={{
+                                 background: `conic-gradient(#6366f1 0% ${costPct}%, ${expectedProfit > 0 ? '#10b981' : '#f43f5e'} ${costPct}% 100%)`
+                             }}
+                         >
+                            <div className="absolute inset-4 bg-slate-900 rounded-full flex flex-col items-center justify-center border-4 border-slate-800 shadow-inner">
+                               <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-none mb-1">
+                                  {expectedProfit > 0 ? 'LỢI NHUẬN' : 'LỖ DỰ KIẾN'}
+                               </span>
+                               <span className={`text-xl font-black ${expectedProfit > 0 ? 'text-emerald-400' : 'text-rose-500'}`}>
+                                  {expectedProfit > 0 ? expectedProfit.toLocaleString('vi-VN') : simulatedLoss.toLocaleString('vi-VN')} đ
+                               </span>
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="space-y-4">
+                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-2">
+                            <div className="flex items-center gap-3">
+                               <div className="w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tổng chi (Simulated)</span>
+                            </div>
+                            <span className="font-black text-white text-lg">{simulatedCost.toLocaleString('vi-VN')} đ</span>
+                         </div>
+                         <div className="bg-white/5 p-5 rounded-2xl border border-white/10 flex flex-col gap-2">
+                            <div className="flex items-center gap-3">
+                               <div className={`w-3 h-3 rounded-full ${expectedProfit > 0 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]'}`}></div>
+                               <span className={`text-xs font-bold uppercase tracking-widest ${expectedProfit > 0 ? 'text-emerald-500/70' : 'text-rose-500/70'}`}>{expectedProfit > 0 ? 'Lãi còn lại' : 'Lỗ dự báo'}</span>
+                            </div>
+                            <span className={`font-black text-lg ${expectedProfit > 0 ? 'text-emerald-400' : 'text-rose-500'}`}>
+                               {expectedProfit > 0 ? expectedProfit.toLocaleString('vi-VN') : simulatedLoss.toLocaleString('vi-VN')} đ
+                            </span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+            </div>
+        </div>
+     );
+  };
 
   return (
     <div className="h-full w-full bg-slate-950 text-slate-200 font-sans flex flex-col relative overflow-hidden">
@@ -1642,15 +2124,18 @@ export const Construction = () => {
               {currentView === 'HOME' && renderHome()}
               {currentView === 'CREATE_PROJECT' && renderCreateProject()}
               {currentView === 'PROJECT_DETAIL' && renderProjectDetail()}
-              {currentView === 'DATA_CHECK' && renderProjectDetail()}
+              {currentView === 'DATA_UPLOAD' && renderDataUpload()}
               {currentView === 'PLANNING' && renderPlanning()}
               {currentView === 'GANTT' && renderGantt()}
             </>
           )}
           
-          {activeTab === 'THU CHI' && renderFinancial()}
+          {activeTab === 'THU CHI' && !isClientView && renderFinancial()}
           {activeTab === 'NHÂN SỰ' && renderPersonnel()}
-          {activeTab === 'CÀI ĐẶT' && renderSettings()}
+          {activeTab === 'CÀI ĐẶT' && !isClientView && renderSettings()}
+          {renderQuoteModal()}
+          {renderTransactionModal()}
+          {renderRiskModal()}
         </div>
       </div>
 
@@ -1658,9 +2143,9 @@ export const Construction = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-2xl border-t border-white/10 px-6 py-4 z-[100] flex justify-around items-center max-w-lg mx-auto mb-6 rounded-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] border-x border-b">
         {[
           { id: 'DỰ ÁN', icon: Folder, label: 'DỰ ÁN' },
-          { id: 'THU CHI', icon: DollarSign, label: 'THU CHI' },
+          ...(!isClientView ? [{ id: 'THU CHI', icon: DollarSign, label: 'THU CHI' }] : []),
           { id: 'NHÂN SỰ', icon: Users, label: 'NHÂN SỰ' },
-          { id: 'CÀI ĐẶT', icon: Settings, label: 'CÀI ĐẶT' }
+          ...(!isClientView ? [{ id: 'CÀI ĐẶT', icon: Settings, label: 'CÀI ĐẶT' }] : [])
         ].map((tab) => (
           <button
             key={tab.id}

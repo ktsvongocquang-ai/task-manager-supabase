@@ -17,7 +17,8 @@ import {
     Send,
     HardHat,
     LayoutTemplate,
-    HeartHandshake
+    HeartHandshake,
+    Video
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -36,6 +37,7 @@ const viewTitles: Record<string, string> = {
     '/construction': 'Quản lý Thi công',
     '/moodboard': 'Tạo Moodboard',
     '/customers': 'CRM',
+    '/marketing': 'Marketing',
 }
 
 export const Layout = () => {
@@ -152,6 +154,7 @@ export const Layout = () => {
 
     const navItems = [
         { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'] },
+        { name: 'Marketing', path: '/marketing', icon: Video },
         { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate },
         { name: 'Thi Công', path: '/construction', icon: HardHat },
         { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake },
@@ -177,7 +180,7 @@ export const Layout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
+        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
                 <div
@@ -270,7 +273,7 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64 flex flex-col min-h-screen relative bg-app-bg">
+            <main className="flex-1 md:ml-64 flex flex-col h-screen relative bg-app-bg">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-6 py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
