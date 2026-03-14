@@ -13,6 +13,7 @@ import { Schedule } from './pages/schedule/Schedule'
 import { Construction } from './pages/construction/Construction'
 import { Customers } from './pages/customers/Customers'
 import { Moodboard } from './pages/moodboard/Moodboard'
+import MarketingApp from './pages/marketing/MarketingApp'
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="construction" element={<Construction />} />
           <Route path="moodboard" element={<Moodboard />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="marketing" element={<MarketingApp />} />
         </Route>
 
         {/* Catch all */}
