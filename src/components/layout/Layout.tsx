@@ -9,7 +9,6 @@ import {
     MessageSquare,
     RefreshCw,
     KeyRound,
-    Menu,
     Bell, // Added Bell icon
     History as HistoryIcon,
     Kanban as KanbanIcon,
@@ -24,6 +23,7 @@ import { getUnreadNotificationCount, checkScheduledNotifications } from '../../s
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
+import { BottomTabBar } from './BottomTabBar'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -46,7 +46,6 @@ export const Layout = () => {
     const location = useLocation()
     const [searchParams] = useSearchParams()
     const activeCrmTab = searchParams.get('tab') || 'DASHBOARD'
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
@@ -180,17 +179,9 @@ export const Layout = () => {
     }
 
     return (
-        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
-            {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                ></div>
-            )}
-
-            {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter overflow-hidden">
+            {/* Sidebar - Pro Glassmorphism Style (Hidden on Mobile) */}
+            <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50">
                 <div className="p-6 border-b border-border-main">
                     <div className="flex items-center space-x-3 mb-6">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -241,7 +232,6 @@ export const Layout = () => {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
-                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={() =>
                                     `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
@@ -273,17 +263,11 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64 flex flex-col h-screen relative bg-app-bg">
+            <main className="flex-1 md:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-6 py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => setIsMobileMenuOpen(true)}
-                                className="md:hidden p-2 rounded-xl bg-gray-100 text-gray-600"
-                            >
-                                <Menu size={20} />
-                            </button>
                             <h2 className="text-xl font-bold text-gray-900 min-w-[150px]">{currentTitle()}</h2>
 
                             {/* Horizontal Tabs for Task Views */}
@@ -486,6 +470,8 @@ export const Layout = () => {
                 onCloseProjectModal={() => setIsGlobalAddProjectOpen(false)}
                 onCloseTaskModal={() => setIsGlobalAddTaskOpen(false)}
             />
+
+            <BottomTabBar />
         </div>
     )
 }

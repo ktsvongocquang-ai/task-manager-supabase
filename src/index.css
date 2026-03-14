@@ -37,6 +37,8 @@
 @layer base {
   body {
     @apply bg-app-bg min-h-screen font-inter text-text-main antialiased;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
 }
 
