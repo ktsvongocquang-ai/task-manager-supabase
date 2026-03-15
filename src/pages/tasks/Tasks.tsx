@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical, List, SlidersHorizontal, CheckCircle2 } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical, List, CheckCircle2, Calendar } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
 import { logActivity } from '../../services/activity'
 
 export const Tasks = () => {
+    const navigate = useNavigate();
     const { profile } = useAuthStore()
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
@@ -349,8 +351,12 @@ export const Tasks = () => {
                         Của tôi
                     </button>
                 </div>
-                <button className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-[#5B5FC7] rounded-full hover:bg-indigo-100 transition-colors shrink-0">
-                    <SlidersHorizontal size={20} />
+                <button 
+                    onClick={() => navigate('/schedule')} 
+                    className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-[#5B5FC7] rounded-full hover:bg-indigo-100 transition-colors shadow-sm shrink-0"
+                    title="Xem lịch trình"
+                >
+                    <Calendar size={20} />
                 </button>
             </div>
 
