@@ -866,29 +866,28 @@ export const Tasks = () => {
                 {mobileGroups.map(group => {
                     const isExpanded = expandedMobileGroups.has(group.id);
                     return (
-                        <div key={group.id} className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden">
+                        <div key={group.id} className="bg-[#f8fafc] rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
                             {/* Accordion Header */}
                             <div 
                                 onClick={() => toggleMobileGroup(group.id)}
-                                className="px-5 py-4 flex items-center justify-between border-b border-slate-100 cursor-pointer active:bg-slate-50 transition-colors"
+                                className="p-4 flex items-center justify-between border-b border-slate-200 bg-white shadow-sm cursor-pointer active:bg-slate-50 transition-colors"
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-slate-400 shrink-0">
-                                        {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                                    </span>
-                                    <h3 className="font-bold text-slate-800 text-[15px]">{group.label}</h3>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-slate-700">{group.label}</h3>
                                     {group.items.length > 0 && (
-                                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{group.items.length}</span>
+                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">{group.items.length}</span>
                                     )}
                                 </div>
-                                <button className="text-slate-400 p-1 hover:text-slate-600"><span className="tracking-widest leading-none font-bold">...</span></button>
+                                <span className="text-slate-400 shrink-0">
+                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                </span>
                             </div>
                             
                             {/* Accordion Content */}
                             {isExpanded && (
-                                <div className="divide-y divide-slate-100 p-2">
+                                <div className="p-3 space-y-3">
                                     {group.items.length === 0 ? (
-                                        <div className="p-6 text-center text-slate-400 text-sm italic font-medium">Chưa có bản ghi nào</div>
+                                        <div className="p-4 text-center text-slate-400 text-sm italic font-medium bg-white rounded-xl border border-slate-200 border-dashed">Chưa có bản ghi nào</div>
                                     ) : (
                                         group.items.map(task => {
                                             const isCompleted = task.status?.includes('Hoàn thành');
@@ -897,13 +896,13 @@ export const Tasks = () => {
                                                 <div 
                                                     key={task.id} 
                                                     onClick={() => openEditModal(task)}
-                                                    className="p-4 rounded-2xl cursor-pointer transition-all flex gap-3 hover:bg-slate-50 active:scale-[0.98] group"
+                                                    className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all cursor-pointer group flex gap-3 hover:border-[#5B5FC7]/30 hover:shadow-md active:scale-[0.98]"
                                                 >
                                                     {/* Quick Complete - iOS style radio */}
                                                     <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                                                         <div 
                                                             onClick={() => toggleComplete(task)}
-                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-white'}`}
+                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-slate-50'}`}
                                                         >
                                                             {isCompleted && <div className="w-5 h-5 rounded-full text-white flex items-center justify-center"><CheckCircle2 size={16} strokeWidth={3} /></div>}
                                                         </div>
@@ -911,9 +910,23 @@ export const Tasks = () => {
                                                     
                                                     {/* Task Info */}
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className={`text-[15px] font-bold leading-snug truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-[#5B5FC7] transition-colors'}`}>
+                                                        <h4 className={`text-[14px] font-bold leading-tight line-clamp-2 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 flex-1 group-hover:text-[#5B5FC7] transition-colors'}`}>
                                                             {task.name}
                                                         </h4>
+                                                        {(task.task_code || task.priority) && (
+                                                            <div className="flex items-center justify-between mt-2.5">
+                                                                <span className="text-[10px] font-medium text-slate-400 tracking-tight">{task.task_code}</span>
+                                                                {task.priority && (
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'Khẩn cấp' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
+                                                                    task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                                    task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                                    'bg-slate-50 text-slate-500 border-slate-100'
+                                                                    }`}>
+                                                                        {task.priority}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -923,7 +936,7 @@ export const Tasks = () => {
                                     {/* Add Task Button per group */}
                                     <div 
                                         onClick={() => openAddModal()}
-                                        className="p-3 mt-2 rounded-xl text-center text-[15px] font-medium text-slate-400 hover:text-[#5B5FC7] hover:bg-slate-50 cursor-pointer transition-colors"
+                                        className="p-3 w-full border-2 border-dashed border-slate-200 rounded-xl text-center text-[14px] font-bold text-slate-400 hover:text-[#5B5FC7] hover:border-[#5B5FC7]/30 hover:bg-indigo-50/50 cursor-pointer transition-colors"
                                     >
                                         + Thêm nhiệm vụ
                                     </div>
