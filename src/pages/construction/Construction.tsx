@@ -4,10 +4,12 @@ import { format, addDays, parseISO, differenceInDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import * as xlsx from 'xlsx';
-import { parseConstructionExcel } from '../../lib/gemini';
+// Removed unused gemini import
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { type Project, type Task } from '../../types';
+import { SmartCard } from '../../components/layout/SmartCard';
+import { BottomSheet } from '../../components/layout/BottomSheet';
 
 // -------------------------------------------------------------
 // TYPES & MOCK DATA INITIALIZATION
@@ -41,7 +43,7 @@ export const Construction = () => {
   // STATE MANAGEMENT
   // -------------------------------------------------------------
   const { profile } = useAuthStore();
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -60,13 +62,14 @@ export const Construction = () => {
   
   // App states
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadType, setUploadType] = useState<'EXCEL' | 'PDF' | null>(null);
+  const [uploadType, _setUploadType] = useState<'EXCEL' | 'PDF' | null>(null);
   const [hasData, setHasData] = useState(true); // Default true for demo project 1
   const [isClientView, setIsClientView] = useState(false);
   const [isDraggingExcel, setIsDraggingExcel] = useState(false);
   const [isDraggingPdf, setIsDraggingPdf] = useState(false);
   
-  const [parsedData, setParsedData] = useState<{id: string, name: string, quantity: number, unit: string, price: number}[]>(mockParsedData);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [parsedData, _setParsedData] = useState<{id: string, name: string, quantity: number, unit: string, price: number}[]>(mockParsedData);
   const [selectedParsedItems, setSelectedParsedItems] = useState<string[]>(mockParsedData.map(i => i.id));
   const [activeDataTab, setActiveDataTab] = useState<'ALL' | 'SELECTED'>('ALL');
   
@@ -176,7 +179,7 @@ export const Construction = () => {
       }
   };
 
-  const displayTasks = tasks.filter(t => t.project_id === selectedProjectId);
+  // Removed unused displayTasks
 
   // ESC to exit logic
   useEffect(() => {
@@ -198,7 +201,8 @@ export const Construction = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [currentView, isQuoteOpen, isDiaryOpen, isGalleryOpen, isTransactionOpen]);
 
-  const addNewTask = async (category: string = 'THI CÔNG', insertAfterId?: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const addNewTask = async (_category: string = 'THI CÔNG', _insertAfterId?: string) => {
     if (!selectedProjectId) return;
     try {
         let maxId = 0;
@@ -299,6 +303,7 @@ export const Construction = () => {
     xlsx.writeFile(workbook, `Tien-Do-Du-An-${selectedProject?.name || 'Moi'}.xlsx`);
   };
 
+  // @ts-expect-error unused
   const generateTasksFromData = async (dataList: any[]) => {
     setIsUploading(false);
     
@@ -367,10 +372,21 @@ export const Construction = () => {
     }, 2000);
   };
 
+  // @ts-expect-error unused
   const toggleTaskApproval = (index: number) => {
     const newTasks = [...tasks];
     newTasks[index].approved = !newTasks[index].approved;
     setTasks(newTasks);
+  };
+
+  const handleCreateProject = () => {
+    // TODO: Connect to supabase to create project
+    console.log("Create project: ", newProjectName, newProjectDate, newProjectBudget);
+  };
+
+  const handleUploadFile = (type: string, file: File) => {
+    console.log("Upload file: ", type, file.name);
+    // TODO: Implement file parsing
   };
 
 
@@ -438,52 +454,32 @@ export const Construction = () => {
         <h2 className="text-xl font-bold text-slate-800 mb-4">Danh Sách Dự Án</h2>
         <div className="space-y-3">
           {projects.map(project => {
-            let health = { color: 'bg-emerald-500', text: 'TỐT (Đúng ngân sách/tiến độ)', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
+            let health = { color: 'bg-emerald-500', text: 'TỐT', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
             const actualCost = 0; // Mock actual cost
             if (project.budget && project.budget > 0) {
                 const ratio = actualCost / project.budget;
-                if (ratio > 1.15) health = { color: 'bg-rose-500', text: 'NGUY HIỂM (Vượt chi/trễ >15%)', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
-                else if (ratio > 1) health = { color: 'bg-amber-500', text: 'CẢNH BÁO (Vượt chi/trễ >5%)', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
+                if (ratio > 1.15) health = { color: 'bg-rose-500', text: 'NGUY HIỂM', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
+                else if (ratio > 1) health = { color: 'bg-amber-500', text: 'CẢNH BÁO', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
             }
 
             return (
-              <div 
+              <SmartCard
                 key={project.id}
-                  onClick={() => {
+                id={project.id}
+                title={project.name}
+                subtitle={`Tạo ngày: ${project.created_at ? format(parseISO(project.created_at), 'dd/MM/yyyy') : '--/--/----'}`}
+                status={project.status}
+                statusColor="bg-indigo-50 text-indigo-700"
+                progress={(actualCost / (project.budget || 1)) * 100}
+                deadline={health.text}
+                avatarInitials="JA"
+                state="medium"
+                onClick={() => {
                   setSelectedProjectId(project.id);
                   setHasData(true); // Assuming data is present for now
                   setCurrentView('PROJECT_DETAIL');
                 }}
-                className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all gap-4"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white shadow-sm border border-slate-100 rounded-xl flex items-center justify-center">
-                    <Folder className="w-6 h-6 text-indigo-500" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-slate-800 text-lg">{project.name}</h3>
-                        <div className="flex items-center gap-1.5" title={health.text}>
-                            <div className={`w-3 h-3 rounded-full shadow-sm ${health.color}`}></div>
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${health.bg} whitespace-nowrap hidden md:inline-block`}>
-                                {health.text}
-                            </span>
-                        </div>
-                    </div>
-                    <p className="text-sm text-slate-500">{project.created_at ? format(parseISO(project.created_at), 'dd/MM/yyyy') : '--/--/----'}</p>
-                  </div>
-                </div>
-                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
-                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-semibold rounded-full">
-                    {project.status}
-                  </span>
-                  <div className="flex -space-x-2">
-                    <div className="w-6 h-6 rounded-full bg-slate-300 border-2 border-slate-50"></div>
-                    <div className="w-6 h-6 rounded-full bg-slate-400 border-2 border-slate-50"></div>
-                    <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-slate-50 flex items-center justify-center text-[10px] text-slate-600 font-bold">+6</div>
-                  </div>
-                </div>
-              </div>
+              />
             );
           })}
         </div>
@@ -681,7 +677,7 @@ export const Construction = () => {
                            <span>Ngân sách kế hoạch</span>
                        </div>
                        <div className="text-4xl font-black text-emerald-400 tracking-tighter mb-6 relative z-10">
-                          {selectedProject.budget.toLocaleString('vi-VN')} đ
+                          {(selectedProject.budget || 0).toLocaleString('vi-VN')} đ
                        </div>
                        <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/5 relative z-10">
                            <div className="h-full bg-white w-2/3 rounded-full"></div>
@@ -692,15 +688,15 @@ export const Construction = () => {
                        <div className="flex justify-between text-[12px] font-black text-slate-500 uppercase tracking-widest mb-4 relative z-10">
                            <span>Thực tế giải ngân</span>
                        </div>
-                       <div className={`text-4xl font-black tracking-tighter mb-6 relative z-10 ${selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 ? 'text-rose-500' : 'text-indigo-400'}`}>
-                          {selectedProject.actualCost.toLocaleString('vi-VN')} đ
+                       <div className={`text-4xl font-black tracking-tighter mb-6 relative z-10 ${(selectedProject.actualCost || 0) > (selectedProject.budget || 0) && (selectedProject.budget || 0) > 0 ? 'text-rose-500' : 'text-indigo-400'}`}>
+                          {(selectedProject.actualCost || 0).toLocaleString('vi-VN')} đ
                        </div>
                        <div className="w-full bg-white/5 rounded-full h-3 flex overflow-hidden border border-white/5 relative z-10">
-                           <div className={`h-full rounded-full ${selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min((selectedProject.actualCost / (selectedProject.budget || 1)) * 100, 100)}%`}}></div>
+                           <div className={`h-full rounded-full ${(selectedProject.actualCost || 0) > (selectedProject.budget || 0) && (selectedProject.budget || 0) > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min(((selectedProject.actualCost || 0) / (selectedProject.budget || 1)) * 100, 100)}%`}}></div>
                        </div>
-                       {selectedProject.actualCost > selectedProject.budget && selectedProject.budget > 0 && (
+                       {(selectedProject.actualCost || 0) > (selectedProject.budget || 0) && (selectedProject.budget || 0) > 0 && (
                           <div className="mt-4 text-xs font-bold text-rose-500/80 uppercase tracking-wider relative z-10">
-                              Vượt ngân sách {((selectedProject.actualCost - selectedProject.budget) / selectedProject.budget * 100).toFixed(0)}%
+                              Vượt ngân sách {(((selectedProject.actualCost || 0) - (selectedProject.budget || 0)) / (selectedProject.budget || 1) * 100).toFixed(0)}%
                           </div>
                        )}
                        <DollarSign className="absolute -right-4 -bottom-4 w-32 h-32 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors z-0" />
@@ -914,98 +910,28 @@ export const Construction = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {tasks.map((task, index) => (
-          <div key={task.id} className="bg-white border border-slate-200 p-8 rounded-[32px] group hover:border-indigo-300 hover:shadow-md transition-all relative overflow-hidden">
-            <div className={`absolute top-0 left-0 w-1.5 h-full ${task.approved ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
-            
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center font-black text-slate-600 text-sm border border-slate-200">
-                       {index + 1}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-200">{task.description || 'Chưa phân loại'}</span>
-                         {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-200 animate-pulse">TRỄ HẠN</span>}
-                      </div>
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors uppercase">{task.name}</h3>
-                    </div>
-                  </div>
-                  <button className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4">
-                  <div className="flex items-center gap-4">
-                     <select 
-                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none hover:border-indigo-300 transition-all"
-                        value={task.subcontractor || ''}
-                        onChange={(e) => {
-                           const newTasks = [...tasks];
-                           newTasks[index] = { ...newTasks[index], subcontractor: e.target.value };
-                           setTasks(newTasks);
-                        }}
-                     >
-                        <option value="">-- Chọn Đội --</option>
-                        {subcontractorsList.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                     </select>
-                     <div 
-                        className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${!task.subcontractor ? 'bg-rose-50 border-rose-200 text-rose-500 animate-pulse' : 'bg-white border-slate-200 text-slate-400'}`}
-                        title={!task.subcontractor ? "Cần chọn thầu phụ" : "Thông tin thầu phụ"}
-                     >
-                        <AlertTriangle className="w-4 h-4" />
-                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-6 text-sm">
-                     <div className="flex items-center gap-3 text-slate-500">
-                        <span className="font-medium">Thời gian:</span>
-                        <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus-within:border-indigo-500/50 transition-colors shadow-sm">
-                           <Clock className="w-4 h-4 mr-2" />
-                           <input 
-                             type="number" 
-                             className="w-12 bg-transparent text-slate-800 font-bold text-center outline-none"
-                             value={task.start_date && task.end_date ? Math.max(1, differenceInDays(parseISO(task.end_date), parseISO(task.start_date)) + 1) : 1}
-                             readOnly
-                           />
-                        </div>
-                        <span className="font-medium">ngày</span>
-                     </div>
-                     <div className="flex items-center gap-3 text-slate-500">
-                        <span className="font-medium">Nhân sự:</span>
-                        <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 focus-within:border-emerald-500/50 transition-colors shadow-sm">
-                           <Users className="w-4 h-4 mr-2" />
-                           <input 
-                             type="number" 
-                             className="w-10 bg-transparent text-slate-800 font-bold text-center outline-none"
-                             value={task.personnel || 0}
-                             onChange={(e) => {
-                               const newTasks = [...tasks];
-                               newTasks[index] = { ...newTasks[index], personnel: parseInt(e.target.value) || 0 };
-                               setTasks(newTasks);
-                             }}
-                           />
-                        </div>
-                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <button 
-                  onClick={async () => {
-                     const newApproval = !task.is_approved;
-                     await supabase.from('tasks').update({ is_approved: newApproval }).eq('id', task.id);
-                     fetchTasks();
-                  }}
-                  className={`w-full lg:w-32 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all active:scale-95 ${task.is_approved ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 shadow-sm'}`}
-              >
-                  {task.is_approved ? 'Đã Duyệt' : 'Duyệt'}
-              </button>
-            </div>
-          </div>
+        {tasks.map((task) => (
+           <SmartCard 
+             key={task.id}
+             id={task.id}
+             title={task.name}
+             subtitle={task.subcontractor || 'Chưa chọn thầu phụ'}
+             status={task.is_approved ? 'Đã Duyệt' : 'Chờ Duyệt'}
+             statusColor={task.is_approved ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}
+             progress={task.completion_pct || 0}
+             deadline={task.end_date ? format(parseISO(task.end_date), 'dd/MM/yyyy') : 'N/A'}
+             avatarInitials={task.subcontractor ? task.subcontractor.substring(0,2).toUpperCase() : 'N/A'}
+             state="medium"
+             onClick={() => {
+                // Future expansion: Open bottom sheet to edit task details
+                console.log("Edit task", task.id);
+             }}
+             onSwipeLeft={async () => {
+                 const newApproval = !task.is_approved;
+                 await supabase.from('tasks').update({ is_approved: newApproval }).eq('id', task.id);
+                 fetchTasks();
+             }}
+           />
         ))}
       </div>
     </div>
@@ -1181,7 +1107,7 @@ export const Construction = () => {
                         <div className="px-4 py-1.5 flex items-center relative">
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-1 opacity-0 group-hover/header:opacity-100 transition-all z-30">
                                <button 
-                                  onClick={() => addNewTask(cat)} 
+                                  onClick={() => addNewTask(cat || undefined)} 
                                   className="bg-emerald-50 text-emerald-600 rounded border border-emerald-400 p-0.5 hover:bg-emerald-100 hover:scale-125 shadow-md flex items-center justify-center"
                                   title="Chèn công tác"
                                >
@@ -1192,7 +1118,6 @@ export const Construction = () => {
                         </div>
                      </div>
                      {tasks.filter(t => t.description === cat).map((task, taskIdx) => {
-                         const maxId = 0;
                          const viewStartDate = addDays(parseISO(projectStartDate), (currentWeek - 1) * 7);
                          const startDay = task.start_date ? differenceInDays(parseISO(task.start_date), viewStartDate) + 1 : 1; 
                          const startDateFmt = task.start_date ? format(parseISO(task.start_date), 'dd/MM/yyyy') : '--/--/----';
@@ -1219,7 +1144,7 @@ export const Construction = () => {
                                
                                <div className="border-r border-slate-200 pl-4 pr-2 py-1.5 flex items-center cursor-text relative" onClick={() => !isEditingName && handleEditStart(task.id, 'name', task.name)}>
                                   <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-all z-30">
-                                      <button onClick={(e) => { e.stopPropagation(); addNewTask(cat, task.id); }} className="bg-emerald-50 border border-emerald-400 text-emerald-600 rounded p-[3px] hover:bg-emerald-100 hover:scale-125 transition-transform shadow-md" title="Chèn công tác bên dưới">
+                                      <button onClick={(e) => { e.stopPropagation(); addNewTask(cat || undefined, task.id); }} className="bg-emerald-50 border border-emerald-400 text-emerald-600 rounded p-[3px] hover:bg-emerald-100 hover:scale-125 transition-transform shadow-md" title="Chèn công tác bên dưới">
                                           <Plus className="w-3 h-3" strokeWidth={3} />
                                       </button>
                                       <button onClick={(e) => { e.stopPropagation(); setGalleryTaskId(task.id); setIsGalleryOpen(true); }} className="bg-blue-50 border border-blue-400 text-blue-600 rounded p-[3px] hover:bg-blue-100 hover:scale-125 transition-transform shadow-md" title="Xem ảnh nghiệm thu">
@@ -1540,7 +1465,7 @@ export const Construction = () => {
                    </h3>
                    <p className="text-xs text-slate-500 font-bold tracking-widest uppercase mt-1">Mã dự án: PRJ-00{p.id}</p>
                 </div>
-                {p.actualCost > p.budget && p.budget > 0 && (
+                {(p.actualCost || 0) > (p.budget || 0) && (p.budget || 0) > 0 && (
                   <div className="bg-rose-500/10 text-rose-500 p-2 rounded-xl border border-rose-500/20 animate-bounce">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
@@ -1551,7 +1476,7 @@ export const Construction = () => {
                   <div>
                      <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
                          <span>Ngân sách kế hoạch</span>
-                         <span className="text-white">{p.budget.toLocaleString('vi-VN')} đ</span>
+                         <span className="text-white">{(p.budget || 0).toLocaleString('vi-VN')} đ</span>
                      </div>
                      <div className="w-full bg-white/5 rounded-full h-3 overflow-hidden border border-white/5">
                          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 h-full rounded-full" style={{width: '100%'}}></div>
@@ -1561,16 +1486,16 @@ export const Construction = () => {
                   <div>
                      <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
                          <span>Thực tế giải ngân</span>
-                         <span className={`font-black ${p.actualCost > p.budget && p.budget > 0 ? 'text-rose-500' : 'text-indigo-400'}`}>
-                             {p.actualCost.toLocaleString('vi-VN')} đ
+                         <span className={`font-black ${(p.actualCost || 0) > (p.budget || 0) && (p.budget || 0) > 0 ? 'text-rose-500' : 'text-indigo-400'}`}>
+                             {(p.actualCost || 0).toLocaleString('vi-VN')} đ
                          </span>
                      </div>
                      <div className="w-full bg-white/5 rounded-full h-3 flex overflow-hidden border border-white/5 relative">
                          {/* Break-Even Marker */}
                          <div className="absolute top-0 bottom-0 w-0.5 bg-amber-400 z-20" style={{left: '80%'}} title="Điểm hòa vốn (80%)"></div>
-                         <div className={`h-full rounded-full relative z-10 transition-all ${p.actualCost > p.budget && p.budget > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min((p.actualCost / (p.budget || 1)) * 100, 100)}%`}}></div>
+                         <div className={`h-full rounded-full relative z-10 transition-all ${(p.actualCost || 0) > (p.budget || 0) && (p.budget || 0) > 0 ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]' : 'bg-indigo-500'}`} style={{width: `${Math.min(((p.actualCost || 0) / (p.budget || 1)) * 100, 100)}%`}}></div>
                      </div>
-                     {p.actualCost > p.budget && p.budget > 0 && (
+                     {(p.actualCost || 0) > (p.budget || 0) && (p.budget || 0) > 0 && (
                         <div className="mt-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 p-6 rounded-3xl relative overflow-hidden group">
                            <div className="absolute top-0 right-0 p-4 opacity-10 blur-sm group-hover:blur-none transition-all duration-700 pointer-events-none">
                               <AlertTriangle className="w-32 h-32" />
@@ -1578,7 +1503,7 @@ export const Construction = () => {
                            <div className="relative z-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
                                <div className="w-16 h-16 rounded-2xl bg-rose-500/20 flex flex-col items-center justify-center border border-rose-500/30 shrink-0">
                                    <span className="text-[10px] font-black uppercase tracking-widest text-rose-400 mb-0.5">VƯỢT</span>
-                                   <span className="text-xl font-black">{((p.actualCost - p.budget) / p.budget * 100).toFixed(0)}%</span>
+                                   <span className="text-xl font-black">{(((p.actualCost || 0) - (p.budget || 0)) / (p.budget || 1) * 100).toFixed(0)}%</span>
                                </div>
                                <div>
                                    <h4 className="font-black text-rose-400 mb-2 uppercase tracking-tight">Cảnh báo rủi ro bồi thường / lỗ</h4>
@@ -1775,37 +1700,28 @@ export const Construction = () => {
   );
 
   const renderQuoteModal = () => (
-    isQuoteOpen && (
-      <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" onClick={() => setIsQuoteOpen(false)}></div>
-        <div className="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <BottomSheet isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)}>
            {/* Modal Header */}
-           <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+           <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div className="flex items-center gap-5">
-                 <div className="w-14 h-14 bg-emerald-500/10 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                 <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-100">
                     <FileSpreadsheet className="w-7 h-7 text-emerald-500" />
                  </div>
                  <div>
-                    <h3 className="font-black text-white text-xl tracking-tight uppercase">Phân tích báo giá AI</h3>
-                    <p className="text-xs text-slate-400 font-medium">Bóc tách dữ liệu từ file Word/Excel/PDF của thầu phụ</p>
+                    <h3 className="font-black text-slate-800 text-xl tracking-tight uppercase">Phân tích báo giá AI</h3>
+                    <p className="text-xs text-slate-500 font-medium">Bóc tách dữ liệu từ file Word/Excel/PDF của thầu phụ</p>
                  </div>
               </div>
-              <button 
-                onClick={() => setIsQuoteOpen(false)}
-                className="p-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-2xl transition-all"
-              >
-                <X className="w-6 h-6" />
-              </button>
            </div>
            
-           <div className="p-8 space-y-8">
+           <div className="p-8 space-y-8 bg-white">
               <div className="grid grid-cols-2 gap-6">
                  <div>
                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Chọn thầu phụ</label>
                     <select 
                       value={quoteSubcontractor}
                       onChange={(e) => setQuoteSubcontractor(e.target.value)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 font-bold outline-none focus:ring-2 focus:ring-emerald-500/50"
                     >
                        <option value="">Chọn...</option>
                        {subcontractorsList.map(s => <option key={s} value={s}>{s}</option>)}
@@ -1816,7 +1732,7 @@ export const Construction = () => {
                     <select 
                       value={quoteTone}
                       onChange={(e) => setQuoteTone(e.target.value as any)}
-                      className="w-full bg-slate-950 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 font-bold outline-none focus:ring-2 focus:ring-emerald-500/50"
                     >
                        <option value="PROFESSIONAL">Chuyên nghiệp</option>
                        <option value="FRIENDLY">Thân thiện</option>
@@ -1825,24 +1741,24 @@ export const Construction = () => {
                  </div>
               </div>
 
-              <div className="border-2 border-dashed border-white/10 rounded-[32px] p-8 flex flex-col items-center justify-center group hover:border-emerald-500/50 transition-all bg-white/[0.02] relative overflow-hidden">
+              <div className="border-2 border-dashed border-slate-200 rounded-[32px] p-8 flex flex-col items-center justify-center group hover:border-emerald-500/50 transition-all bg-slate-50 relative overflow-hidden">
                  {quoteTaskName && (
-                    <div className="absolute top-0 left-0 w-full bg-emerald-500/10 border-b border-emerald-500/10 p-3 text-emerald-400 text-xs text-center font-bold tracking-widest uppercase">
+                    <div className="absolute top-0 left-0 w-full bg-emerald-50 border-b border-emerald-100 p-3 text-emerald-600 text-xs text-center font-bold tracking-widest uppercase">
                        Tạo báo giá cho: {quoteTaskName}
                     </div>
                  )}
                  <div className={`w-full max-w-sm mt-8 ${quoteTaskName ? '' : 'hidden'}`}>
                     <textarea 
                         readOnly 
-                        className="w-full bg-slate-900 border border-white/10 rounded-2xl p-4 text-slate-300 text-sm h-32 outline-none mb-6 resize-none custom-scrollbar"
+                        className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-slate-700 text-sm h-32 outline-none mb-6 resize-none custom-scrollbar"
                         value={`Gửi anh/chị${quoteSubcontractor ? ' ' + quoteSubcontractor : ''},\n\nNhờ anh/chị báo giá giúp em hạng mục "${quoteTaskName}" với khối lượng đính kèm.\nPhản hồi giúp em trong thời gian sớm nhất nhé.\n\nCảm ơn anh/chị.`}
                     />
                  </div>
                  
-                 <div className="w-16 h-16 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-4 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                 <div className="w-16 h-16 bg-emerald-50 rounded-3xl flex items-center justify-center mb-4 border border-emerald-100 group-hover:scale-110 transition-transform">
                     <Upload className="w-8 h-8 text-emerald-500" />
                  </div>
-                 <p className="text-white font-black text-lg mb-1">Tải lên file khối lượng (*.xlsx, *.pdf)</p>
+                 <p className="text-slate-800 font-black text-lg mb-1">Tải lên file khối lượng (*.xlsx, *.pdf)</p>
                  <p className="text-slate-500 text-xs font-medium mb-6">AI sẽ tự động đọc bảng khối lượng này và soạn tin nhắn WhatsApp/Zalo mẫu cho thầu phụ.</p>
                  <div className="flex gap-4">
                      <button 
@@ -1863,28 +1779,20 @@ export const Construction = () => {
                      </button>
                  </div>
               </div>
-              </div>
            </div>
-        </div>
-      )
+    </BottomSheet>
   );
 
   const renderTransactionModal = () => (
-      isTransactionOpen && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 pointer-events-auto">
-              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsTransactionOpen(false)}></div>
-              <div className="relative bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <BottomSheet isOpen={isTransactionOpen} onClose={() => setIsTransactionOpen(false)}>
                   <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                       <div>
                           <h2 className="text-2xl font-black text-slate-800 tracking-tight">Tạo Phiếu Chi AI</h2>
                           <p className="text-slate-500 font-medium text-sm mt-1">Hệ thống hỗ trợ quét hóa đơn nhận diện chữ</p>
                       </div>
-                      <button onClick={() => setIsTransactionOpen(false)} className="text-slate-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors">
-                          <X className="w-6 h-6" />
-                      </button>
                   </div>
 
-                  <div className="p-8 space-y-6">
+                  <div className="p-8 space-y-6 bg-white">
                       <div className="border-2 border-dashed border-indigo-200 rounded-2xl p-6 bg-indigo-50/50 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all group relative overflow-hidden">
                           {!isOcrScanning ? (
                               <>
@@ -1959,16 +1867,14 @@ export const Construction = () => {
                           LƯU PHIẾU CHI
                       </button>
                   </div>
-              </div>
-          </div>
-      )
+      </BottomSheet>
   );
 
   const renderRiskModal = () => {
      if (!isRiskModalOpen || !selectedProject) return null;
      
-     const currentBudget = selectedProject.budget;
-     const currentCost = selectedProject.actualCost;
+     const currentBudget = selectedProject.budget || 0;
+     const currentCost = selectedProject.actualCost || 0;
      const simulatedCost = currentCost + (currentCost * (riskFactor / 100));
      const expectedProfit = Math.max(0, currentBudget - simulatedCost);
      const simulatedLoss = Math.max(0, simulatedCost - currentBudget);

@@ -21,6 +21,8 @@ import {
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import MarketingRequestModal from './MarketingRequestModal';
+import { SmartCard } from '../../components/layout/SmartCard';
+import { BottomSheet } from '../../components/layout/BottomSheet';
 
 // Mock Data based on the Google Doc workflow
 const initialVideos = [
@@ -268,16 +270,16 @@ export default function MarketingApp() {
   const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
-    <div className="h-full flex flex-col max-w-[1600px] mx-auto min-h-0 bg-gray-50 w-full overflow-hidden">
+    <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 flex flex-col pt-4 shrink-0">
+      <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2">
         {/* Top Header Row */}
-        <div className="px-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[64px] min-w-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full min-h-[64px] min-w-0">
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">Marketing Workflow</h1>
+            <h1 className="text-xl font-bold text-slate-800 hidden md:block">Marketing Workflow</h1>
             <p className="text-sm text-gray-500 mt-1 truncate">Quy trình phối hợp DQH & Team Coach Hiếu</p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar pb-1 md:pb-0 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar shrink-0">
             <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -328,7 +330,7 @@ export default function MarketingApp() {
         
         {/* Optional Secondary Header for Kanban Filters */}
         {view === 'KANBAN' && (
-          <div className="px-6 py-2 bg-gray-50 border-t border-gray-200 flex flex-col gap-2 min-w-0">
+          <div className="flex flex-col gap-2 min-w-0 w-full mb-2">
             <div className="flex justify-end w-full min-w-0">
               <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
                 <button onClick={() => setShowKanbanFilters(!showKanbanFilters)} className={`flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-xs font-medium transition-colors shrink-0 whitespace-nowrap ${showKanbanFilters ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
@@ -373,8 +375,7 @@ export default function MarketingApp() {
       {view === 'KANBAN' ? (
         <>
            {/* Kanban Board */}
-           <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-            <div className="flex gap-6 h-full min-w-max">
+           <div className="flex-1 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 md:min-h-[500px]">
               {COLUMNS.map(column => {
                 const columnVideos = videos.filter(v => {
                   if (STATUS_MAP[v.status]?.col !== column.id) return false;
@@ -397,7 +398,7 @@ export default function MarketingApp() {
                 const archivedVideos = columnVideos.filter((v: any) => v.isArchived);
 
                 return (
-                  <div key={column.id} className="w-80 flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-200 shrink-0 relative">
+                  <div key={column.id} className="w-[90vw] sm:w-[300px] md:flex-1 md:min-w-[300px] md:max-w-[400px] h-full bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 snap-center md:snap-align-none relative max-h-full">
                     <div className={`p-4 border-b flex items-center justify-between rounded-t-2xl shadow-sm shrink-0 ${column.color}`}>
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-slate-700">{column.name}</h3>
@@ -457,23 +458,25 @@ export default function MarketingApp() {
                             onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
                             className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
                           >
-                            <div className="flex justify-between items-start mb-1.5">
+                            <div className="flex justify-between items-start mb-2">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${statusDef?.color}`}>
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color}`}>
                                   {statusDef?.name}
                                 </span>
-                                <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${PRIORITY_COLORS[video.priority] || 'bg-gray-100 text-gray-600'}`}>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[video.priority] || 'bg-gray-100 text-gray-600'}`}>
                                   {video.priority}
                                 </span>
+                                {!isIdeaCol && (
+                                  <button className="text-gray-400 hover:text-gray-600 opacity-100 transition-opacity p-2 -mr-2">
+                                    <MoreVertical className="w-5 h-5" />
+                                  </button>
+                                )}
                               </div>
-                              {!isIdeaCol && (
-                                <button className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-                              )}
                             </div>
                             
-                            <h3 className={`font-bold text-slate-800 ${isIdeaCol && !isExpanded ? 'text-xs line-clamp-1' : 'text-[15px] group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug'}`}>
+                            <h3 className={`font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors ${!isExpanded ? 'line-clamp-2' : ''}`}>
                               {video.title}
                             </h3>
                             
@@ -532,38 +535,38 @@ export default function MarketingApp() {
                                   </>
                                 )}
 
-                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-1">
-                                  <div className="flex items-center gap-1.5 text-slate-500">
-                                    <Clock className="w-3.5 h-3.5" />
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                  <div className="flex items-center gap-1.5 text-slate-500 min-h-[32px]">
+                                    <Clock className="w-4 h-4" />
                                     <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">Người thực hiện</span>
-                                    <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
+                                  <div className="flex items-center gap-2 min-h-[32px]">
+                                    <span className="text-[11px] text-slate-400 font-bold truncate max-w-[80px]">Thực hiện</span>
+                                    <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
                                       {video.assignee.substring(0, 2).toUpperCase()}
                                     </div>
                                   </div>
                                 </div>
 
-                                {/* Action Buttons */}
-                                <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
+                                {/* Action Buttons - Touch Target > 44px */}
+                                <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-2">
                                   {video.status === 'IDEA' && (
-                                    <div className="flex gap-1.5 w-full">
+                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1.5 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 min-h-[44px] bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'REJECTED' }); }}
-                                        className="px-2 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Từ chối
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -573,29 +576,29 @@ export default function MarketingApp() {
                                   {video.status === 'CONTENT_EDITING' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_DONE' }); }}
-                                      className="w-full py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[11px] font-bold transition-colors"
+                                      className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
                                     >
                                       Done
                                     </button>
                                   )}
                                   
                                   {video.status === 'CONTENT_DONE' && (
-                                    <div className="flex gap-1.5 w-full">
+                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Từ chối (Edit)
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -605,7 +608,7 @@ export default function MarketingApp() {
                                   {video.status === 'PROD_DOING' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DONE' }); }}
-                                      className="w-full py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-[11px] font-bold transition-colors"
+                                      className="w-full min-h-[44px] bg-[var(--color-primary-50)] text-[var(--color-primary)] hover:bg-[var(--color-primary-100)] rounded-xl text-[12px] font-bold transition-colors"
                                     >
                                       Đã xong
                                     </button>
@@ -614,29 +617,29 @@ export default function MarketingApp() {
                                   {video.status === 'PROD_DONE' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'VIDEO_REVIEW' }); }}
-                                      className="w-full py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-[11px] font-bold transition-colors"
+                                      className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
                                     >
                                       Gửi qua Cần Phê Duyệt
                                     </button>
                                   )}
 
                                   {video.status === 'VIDEO_REVIEW' && (
-                                    <div className="flex gap-1.5 w-full">
+                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'SCHEDULED' }); }}
-                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Từ chối
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -646,7 +649,7 @@ export default function MarketingApp() {
                                   {video.status === 'SCHEDULED' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PUBLISHED' }); }}
-                                      className="w-full py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
+                                      className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
                                     >
                                       Đánh dấu đã đăng
                                     </button>
@@ -655,7 +658,7 @@ export default function MarketingApp() {
                                   {video.status === 'REJECTED' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'IDEA' }); }}
-                                      className="w-full py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[11px] font-bold transition-colors"
+                                      className="w-full min-h-[44px] bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-[12px] font-bold transition-colors"
                                     >
                                       Khôi phục
                                     </button>
@@ -671,10 +674,9 @@ export default function MarketingApp() {
                 );
               })}
             </div>
-          </div>
         </>
       ) : view === 'LIST' ? (
-        <div className="flex-1 overflow-auto p-6 bg-white">
+        <div className="flex-1 overflow-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6 mx-1 md:mx-0">
           <div className="min-w-max">
             {/* Compute filtered */}
             {(() => {
@@ -820,74 +822,50 @@ export default function MarketingApp() {
               </div>
             </div>
 
-{/* Table */}
-            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-              <table className="w-full text-xs text-left whitespace-nowrap">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase text-[10px] tracking-wider">
-                  <tr>
-                    <th className="px-4 py-3 border-r border-gray-200">Tiêu đề / Nội dung chính</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Người thực hiện</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Trạng thái</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Loại nội dung</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Nền tảng</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Định dạng</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Mục tiêu</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Ngày đăng</th>
-                    <th className="px-4 py-3 border-r border-gray-200">Giờ đăng</th>
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredVideos.map((video) => {
-                    const statusDef = STATUS_MAP[video.status];
-                    
-                    // Determine row color based on conditions
-                    let rowColorClass = "hover:bg-gray-50";
-                    const today = format(new Date(), 'yyyy-MM-dd');
-                    if (video.dueDate && video.dueDate < today && video.status !== 'PUBLISHED') {
-                      rowColorClass = "bg-red-50 hover:bg-red-100"; // Overdue
-                    } else if (video.dueDate === today && video.status !== 'PUBLISHED') {
-                      rowColorClass = "bg-yellow-50 hover:bg-yellow-100"; // Due today
-                    } else if (video.demoDate === today) {
-                      rowColorClass = "bg-blue-50 hover:bg-blue-100"; // Demo today
-                    }
+            {/* Mobile-Friendly List using SmartCards */}
+            <div className="space-y-0">
+              {filteredVideos.length === 0 ? (
+                 <div className="text-center py-12 text-slate-400 text-sm bg-white rounded-xl border border-slate-200">Không tìm thấy bài đăng nào.</div>
+              ) : filteredVideos.map((video) => {
+                const statusDef = STATUS_MAP[video.status];
+                
+                // Determine if overdue or due today
+                let progress = 50; // Default progress
+                if (video.status === 'PUBLISHED') progress = 100;
+                else if (video.status === 'IDEA') progress = 10;
+                else if (video.status === 'CONTENT_EDITING') progress = 30;
+                else if (video.status === 'CONTENT_DONE') progress = 40;
+                else if (video.status === 'PROD_DOING') progress = 60;
+                else if (video.status === 'PROD_DONE') progress = 80;
+                else if (video.status === 'VIDEO_REVIEW') progress = 90;
+                else if (video.status === 'SCHEDULED') progress = 95;
 
-                    return (
-                      <tr key={video.id} onClick={() => setSelectedVideo(video)} className={`${rowColorClass} transition-colors cursor-pointer ${selectedVideo?.id === video.id ? 'bg-indigo-50/50 hover:bg-indigo-50/80' : ''}`}>
-                        <td className="px-4 py-3 border-r border-gray-200 font-medium max-w-[200px] truncate" title={video.title}>
-    <button onClick={(e) => {e.stopPropagation(); setShowVideoModal(video);}} className="text-left font-bold text-indigo-700 hover:text-indigo-500 hover:underline w-full truncate">
-      {video.title}
-    </button>
-  </td>
-                        <td className="px-4 py-3 border-r border-gray-200 text-blue-600 font-medium">{video.assignee}</td>
-                        <td className="px-4 py-3 border-r border-gray-200">
-                          <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${statusDef?.color}`}>
-                            {statusDef?.name}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-200">{video.contentType || '-'}</td>
-                        <td className="px-4 py-3 border-r border-gray-200">
-                          <span className="flex items-center gap-1">
-                            <div className={`w-2 h-2 rounded-full ${video.platform === 'TikTok' ? 'bg-black' : video.platform === 'Facebook' ? 'bg-blue-600' : video.platform === 'YouTube' ? 'bg-red-600' : 'bg-gray-400'}`}></div>
-                            {video.platform}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 border-r border-gray-200">{video.format}</td>
-                        <td className="px-4 py-3 border-r border-gray-200">{video.goal || '-'}</td>
-                        <td className="px-4 py-3 border-r border-gray-200">{video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : '-'}</td>
-                        <td className="px-4 py-3 border-r border-gray-200">{video.publishTime || '-'}</td>
-                        
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                const today = format(new Date(), 'yyyy-MM-dd');
+                let overdueWarning = '';
+                if (video.dueDate && video.dueDate < today && video.status !== 'PUBLISHED') {
+                  overdueWarning = ' (Quá hạn)';
+                } else if (video.dueDate === today && video.status !== 'PUBLISHED') {
+                  overdueWarning = ' (Hôm nay)';
+                }
+
+                return (
+                  <SmartCard 
+                    key={video.id}
+                    id={video.id}
+                    title={video.title}
+                    subtitle={`${video.format} • ${video.platform}${overdueWarning}`}
+                    status={statusDef?.name}
+                    statusColor={statusDef?.color}
+                    progress={progress}
+                    deadline={video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : 'N/A'}
+                    avatarInitials={video.assignee.substring(0, 2).toUpperCase()}
+                    state="medium" // Always show progress and deadline in List view
+                    onClick={() => { setSelectedVideo(video); setShowVideoModal(video); }}
+                    onSwipeLeft={() => updateVideo(video.id, { status: 'PUBLISHED' })}
+                    onSwipeRight={() => setIsRequestModalOpen(true)}
+                  />
+                );
+              })}
             </div>
             
             {/* Legend */}
@@ -1402,15 +1380,14 @@ export default function MarketingApp() {
           </div>
         </div>
       ) : null}
-            {/* Modals */}
-      {showVideoModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowVideoModal(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900 pr-4">{showVideoModal.title}</h3>
-              <button onClick={() => setShowVideoModal(null)} className="text-gray-400 hover:text-gray-600 flex-shrink-0"><X className="w-5 h-5"/></button>
-            </div>
-            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      {/* Modals -> BottomSheets */}
+      <BottomSheet 
+        isOpen={!!showVideoModal} 
+        onClose={() => setShowVideoModal(null)}
+        title={showVideoModal?.title || 'Chi tiết Content'}
+      >
+        {showVideoModal && (
+            <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div><span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Trạng thái</span><div className="mt-1"><span className={`px-2 py-1 rounded-md text-xs font-semibold ${STATUS_MAP[showVideoModal.status]?.color}`}>{STATUS_MAP[showVideoModal.status]?.name}</span></div></div>
                 <div><span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Người thực hiện</span><div className="mt-1 font-medium text-sm text-gray-900">{showVideoModal.assignee}</div></div>
@@ -1423,7 +1400,7 @@ export default function MarketingApp() {
                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Nội dung chi tiết</span>
                 <div className="mt-2 text-sm text-gray-700 whitespace-pre-line leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">{showVideoModal.contentDetails || 'Chưa có nội dung'}</div>
               </div>
-              <div className="pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
                 <div>
                   <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Hashtag</span>
                   <div className="mt-1 text-sm font-medium text-indigo-600 bg-indigo-50/50 inline-block px-2 py-1 rounded-md border border-indigo-100/50">{showVideoModal.hashtags || '-'}</div>
@@ -1434,9 +1411,8 @@ export default function MarketingApp() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+        )}
+      </BottomSheet>
       <MarketingRequestModal 
         isOpen={isRequestModalOpen} 
         onClose={() => setIsRequestModalOpen(false)} 

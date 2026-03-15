@@ -1,5 +1,6 @@
 
 import { Search, Filter, Plus, MoreVertical, Download, FileText } from 'lucide-react';
+import { SmartCard } from '../../components/layout/SmartCard';
 
 const mockInvoices = [
   { id: 'INV-2023-001', client: 'Công ty TNHH Alpha', amount: '150,000,000 ₫', status: 'Đã thanh toán', issueDate: '2023-10-01', dueDate: '2023-10-15' },
@@ -35,8 +36,29 @@ export default function Invoices() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto min-h-[400px]">
+          {/* Mobile Card View */}
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+            {mockInvoices.map((invoice) => (
+              <SmartCard
+                key={invoice.id}
+                id={invoice.id}
+                title={invoice.client}
+                subtitle={invoice.id}
+                status={invoice.status}
+                statusColor={
+                  invoice.status === 'Đã thanh toán' ? 'bg-green-100 text-green-800 border-green-200' :
+                  invoice.status === 'Chờ thanh toán' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                  invoice.status === 'Quá hạn' ? 'bg-red-100 text-red-800 border-red-200' :
+                  'bg-gray-100 text-gray-800 border-gray-200'
+                }
+                avatarInitials={invoice.client.charAt(0)}
+                deadline={`Hạn: ${invoice.dueDate}`}
+              />
+            ))}
+          </div>
+
+          <table className="hidden md:table w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mã Hóa đơn</th>

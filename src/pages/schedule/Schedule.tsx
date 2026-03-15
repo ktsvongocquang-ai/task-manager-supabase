@@ -189,8 +189,8 @@ export const Schedule = () => {
                 {/* Stats matching Kanban top, optional */}
             </div>
 
-            {/* Calendar Grid */}
-            <div className="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+            {/* Desktop Calendar Grid */}
+            <div className="hidden md:flex flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-col min-h-[600px]">
                 {/* Weekdays Header */}
                 <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50/50 shrink-0">
                     {WEEKDAYS.map(day => (
@@ -243,6 +243,65 @@ export const Schedule = () => {
                         )
                     })}
                 </div>
+            </div>
+
+            {/* Mobile Agenda View */}
+            <div className="md:hidden flex flex-col space-y-4">
+                {calendarDays.filter(day => {
+                    const dateStr = format(day, 'yyyy-MM-dd')
+                    const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
+                    return dayTasks.length > 0;
+                }).map(day => {
+                    const dateStr = format(day, 'yyyy-MM-dd')
+                    const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr)).sort((a,b) => (a.status || '').localeCompare(b.status || ''));
+                    const isToday = isSameDay(day, new Date())
+                    
+                    return (
+                        <div key={day.toString()} className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden">
+                            <div className={`px-5 py-4 border-b flex items-center gap-4 ${isToday ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}>
+                                <div className={`w-12 h-12 rounded-[14px] flex flex-col items-center justify-center shrink-0 ${isToday ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white text-slate-700 shadow-sm border border-slate-200'}`}>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{format(day, 'EEE', { locale: vi })}</span>
+                                    <span className="text-xl font-black leading-none mt-0.5">{format(day, 'd')}</span>
+                                </div>
+                                <div>
+                                    <h3 className={`font-bold text-base ${isToday ? 'text-indigo-900' : 'text-slate-800'}`}>{format(day, 'dd/MM/yyyy')}</h3>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{dayTasks.length} nhiệm vụ</p>
+                                </div>
+                            </div>
+                            
+                            <div className="divide-y divide-slate-100 p-2">
+                                {dayTasks.map(task => (
+                                    <div
+                                        key={task.id}
+                                        onClick={() => openEditModal(task)}
+                                        className={`p-3 rounded-2xl cursor-pointer transition-all flex items-start gap-4 hover:bg-slate-50 active:scale-[0.98] group`}
+                                    >
+                                        <div className={`w-2 h-2 rounded-full mt-2.5 shrink-0 shadow-sm ${task.status?.includes('Hoàn thành') ? 'bg-emerald-500 shadow-emerald-200' : task.status?.includes('Đang') ? 'bg-blue-500 shadow-blue-200' : task.status?.includes('Tạm dừng') ? 'bg-amber-500 shadow-amber-200' : 'bg-slate-300'}`}></div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <span className="text-[10px] font-black text-slate-400 tracking-wider uppercase">{task.task_code}</span>
+                                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-sm ${getStatusColor(task.status || '')}`}>
+                                                    {task.status}
+                                                </span>
+                                            </div>
+                                            <h4 className="text-sm font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors uppercase">{task.name}</h4>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )
+                })}
+                
+                {calendarDays.filter(day => {
+                    const dateStr = format(day, 'yyyy-MM-dd')
+                    return filteredTasks.some(t => t.due_date && t.due_date.startsWith(dateStr))
+                }).length === 0 && (
+                    <div className="py-24 text-center bg-slate-50/50 rounded-[32px] border border-slate-200">
+                        <div className="text-4xl text-slate-300 mb-4 opacity-50">🗓️</div>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tháng này trống</p>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}

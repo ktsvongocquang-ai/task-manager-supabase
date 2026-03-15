@@ -8,7 +8,6 @@ import {
     Clock,
     AlertTriangle,
     Search,
-    X,
     Plus,
     ArrowLeft,
 } from 'lucide-react'
@@ -17,6 +16,8 @@ import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import {
     PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line
 } from 'recharts'
+import { BottomSheet } from '../../components/layout/BottomSheet'
+import { SmartCard } from '../../components/layout/SmartCard'
 
 type PopupType = 'projectList' | 'projectDetail' | 'createTask' | 'taskList' | 'editTask' | null
 type TaskFilterType = 'all' | 'ongoing' | 'overdue'
@@ -302,21 +303,21 @@ export const Dashboard = () => {
             </div>
 
             {/* Pro Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {/* Total Projects */}
                 <div className="modern-stat-card group cursor-pointer" onClick={openProjectList}>
                     <div className="card-gradient bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700"></div>
-                    <div className="p-6">
-                        <div className="flex items-center gap-4 mb-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                                <FolderKanban size={24} />
+                    <div className="p-4 md:p-6 flex flex-col h-full justify-between">
+                        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5">
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-200 shrink-0">
+                                <FolderKanban size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
-                            <div className="flex-1">
-                                <span className="stat-number">{stats.totalProjects}</span>
-                                <span className="stat-label">Tổng dự án</span>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalProjects}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng dự án</span>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3 mt-auto">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                                     <CheckSquare size={10} />
@@ -336,17 +337,17 @@ export const Dashboard = () => {
                 {/* Total Tasks */}
                 <div className="modern-stat-card group cursor-pointer" onClick={() => openTaskList('all')}>
                     <div className="card-gradient bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700"></div>
-                    <div className="p-6">
-                        <div className="flex items-center gap-4 mb-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-                                <CheckSquare size={24} />
+                    <div className="p-4 md:p-6 flex flex-col h-full justify-between">
+                        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5">
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-emerald-200 shrink-0">
+                                <CheckSquare size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
-                            <div className="flex-1">
-                                <span className="stat-number">{stats.totalTasks}</span>
-                                <span className="stat-label">Tổng nhiệm vụ</span>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng NV</span>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3 mt-auto">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                                     <CheckSquare size={10} />
@@ -366,17 +367,17 @@ export const Dashboard = () => {
                 {/* Active Tasks */}
                 <div className="modern-stat-card group cursor-pointer" onClick={() => openTaskList('ongoing')}>
                     <div className="card-gradient bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"></div>
-                    <div className="p-6">
-                        <div className="flex items-center gap-4 mb-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg shadow-amber-200">
-                                <Clock size={24} />
+                    <div className="p-4 md:p-6 flex flex-col h-full justify-between">
+                        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5">
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-lg shadow-amber-200 shrink-0">
+                                <Clock size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
-                            <div className="flex-1">
-                                <span className="stat-number">{stats.ongoingTasks}</span>
-                                <span className="stat-label">Đang thực hiện</span>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.ongoingTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Đang làm</span>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3 mt-auto">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
                                     <Clock size={10} />
@@ -396,17 +397,17 @@ export const Dashboard = () => {
                 {/* Overdue Tasks */}
                 <div className="modern-stat-card group cursor-pointer" onClick={() => openTaskList('overdue')}>
                     <div className="card-gradient bg-gradient-to-br from-red-500 via-red-600 to-red-700"></div>
-                    <div className="p-6">
-                        <div className="flex items-center gap-4 mb-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-lg shadow-red-200">
-                                <AlertTriangle size={24} />
+                    <div className="p-4 md:p-6 flex flex-col h-full justify-between">
+                        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5">
+                            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white shadow-lg shadow-red-200 shrink-0">
+                                <AlertTriangle size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
-                            <div className="flex-1">
-                                <span className="stat-number">{stats.overdueTasks}</span>
-                                <span className="stat-label">Nhiệm vụ quá hạn</span>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.overdueTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Quá hạn</span>
                             </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2 md:space-y-3 mt-auto">
                             <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                                     <AlertTriangle size={10} />
@@ -637,202 +638,172 @@ export const Dashboard = () => {
             </div>
 
             {/* ========== POPUP 1: Danh sách dự án ========== */}
-            {activePopup === 'projectList' && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closePopup}>
-                    <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-xl font-bold text-slate-800">Danh sách dự án</h3>
-                            <button onClick={closePopup} className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-full"><X size={20} /></button>
-                        </div>
-                        <div className="px-8 py-4">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input type="text" value={searchProjects} onChange={e => setSearchProjects(e.target.value)}
-                                    placeholder="Tìm kiếm dự án..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                            </div>
-                        </div>
-                        <div className="px-8 pb-8 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-3">
-                            {filteredPopupProjects.length === 0 ? (
-                                <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy dự án nào.</div>
-                            ) : filteredPopupProjects.map(p => {
-                                const projTasks = allTasks.filter(t => t.project_id === p.id)
-                                const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
-                                const pct = projTasks.length > 0 ? Math.round((done / projTasks.length) * 100) : 0
-                                return (
-                                    <div key={p.id} onClick={() => openProjectDetail(p)}
-                                        className="border border-slate-100 rounded-2xl p-4 hover:shadow-lg hover:border-indigo-100 transition-all cursor-pointer group">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div>
-                                                <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{p.name}</h4>
-                                                <span className="text-[10px] font-bold text-slate-400 tracking-widest">{p.project_code}</span>
-                                            </div>
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : p.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                {p.status}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex-1 bg-slate-100 rounded-full h-1.5">
-                                                <div className="bg-gradient-to-r from-indigo-500 to-blue-500 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
-                                            </div>
-                                            <span className="text-[11px] font-bold text-slate-500">{pct}%</span>
-                                            <span className="text-[10px] text-slate-400">{projTasks.length} nhiệm vụ</span>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
+            <BottomSheet 
+                isOpen={activePopup === 'projectList'} 
+                onClose={closePopup}
+                title="Danh sách dự án"
+            >
+                <div className="mb-4">
+                    <div className="relative">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input type="text" value={searchProjects} onChange={e => setSearchProjects(e.target.value)}
+                            placeholder="Tìm kiếm dự án..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                 </div>
-            )}
+                
+                <div className="space-y-0 relative">
+                    {filteredPopupProjects.length === 0 ? (
+                        <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy dự án nào.</div>
+                    ) : filteredPopupProjects.map(p => {
+                        const projTasks = allTasks.filter(t => t.project_id === p.id)
+                        const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+                        const pct = projTasks.length > 0 ? Math.round((done / projTasks.length) * 100) : 0
+                        return (
+                            <SmartCard 
+                                key={p.id}
+                                id={p.id}
+                                title={p.name}
+                                subtitle={p.project_code}
+                                status={p.status}
+                                statusColor={p.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : p.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                progress={pct}
+                                state="medium"
+                                onClick={() => openProjectDetail(p)}
+                            />
+                        )
+                    })}
+                </div>
+            </BottomSheet>
 
             {/* ========== POPUP 2: Chi tiết dự án ========== */}
-            {activePopup === 'projectDetail' && selectedProject && (() => {
-                const projTasks = allTasks.filter(t => t.project_id === selectedProject.id)
-                const today = new Date(); today.setHours(0, 0, 0, 0)
-                const doneCount = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
-                const ongoingCount = projTasks.filter(t => t.status?.includes('Đang')).length
-                const overdueCount = projTasks.filter(t => !t.status?.includes('Hoàn thành') && t.due_date && new Date(t.due_date) < today).length
-                const pct = projTasks.length > 0 ? Math.round((doneCount / projTasks.length) * 100) : 0
-                return (
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closePopup}>
-                        <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-                            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <button onClick={() => setActivePopup('projectList')} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg"><ArrowLeft size={18} /></button>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-slate-800">{selectedProject.name}</h3>
-                                        <span className="text-[10px] font-bold text-slate-400 tracking-widest">{selectedProject.project_code}</span>
-                                    </div>
-                                </div>
-                                <button onClick={closePopup} className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-full"><X size={20} /></button>
+            <BottomSheet 
+                isOpen={activePopup === 'projectDetail' && !!selectedProject} 
+                onClose={closePopup}
+                title={selectedProject ? selectedProject.name : "Chi tiết dự án"}
+            >
+                {selectedProject && (() => {
+                    const projTasks = allTasks.filter(t => t.project_id === selectedProject.id)
+                    const today = new Date(); today.setHours(0, 0, 0, 0)
+                    const doneCount = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+                    const ongoingCount = projTasks.filter(t => t.status?.includes('Đang')).length
+                    const overdueCount = projTasks.filter(t => !t.status?.includes('Hoàn thành') && t.due_date && new Date(t.due_date) < today).length
+                    const pct = projTasks.length > 0 ? Math.round((doneCount / projTasks.length) * 100) : 0
+                    
+                    return (
+                        <div className="space-y-6">
+                            {/* Back Button & Code */}
+                            <div className="flex items-center gap-3 mb-2">
+                                <button onClick={() => setActivePopup('projectList')} className="text-slate-400 hover:text-slate-600 p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors">
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <span className="text-xs font-bold text-slate-500 tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                                    {selectedProject.project_code}
+                                </span>
                             </div>
-                            <div className="p-8 max-h-[75vh] overflow-y-auto custom-scrollbar space-y-6">
-                                {/* 4 Mini Stat Blocks */}
-                                <div className="grid grid-cols-4 gap-4">
-                                    <div className="bg-indigo-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-bold text-indigo-600">{projTasks.length}</div>
-                                        <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-1">Tổng nhiệm vụ</div>
-                                    </div>
-                                    <div className="bg-emerald-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-bold text-emerald-600">{doneCount}</div>
-                                        <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mt-1">Hoàn thành</div>
-                                    </div>
-                                    <div className="bg-blue-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-bold text-blue-600">{ongoingCount}</div>
-                                        <div className="text-[10px] font-bold text-blue-400 uppercase tracking-wider mt-1">Đang làm</div>
-                                    </div>
-                                    <div className="bg-red-50 rounded-2xl p-4 text-center">
-                                        <div className="text-2xl font-bold text-red-600">{overdueCount}</div>
-                                        <div className="text-[10px] font-bold text-red-400 uppercase tracking-wider mt-1">Quá hạn</div>
-                                    </div>
-                                </div>
 
-                                {/* Progress Bar */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiến độ dự án</span>
-                                        <span className="text-sm font-bold text-indigo-600">{pct}%</span>
-                                    </div>
-                                    <div className="bg-slate-100 rounded-full h-3 ring-1 ring-black/5">
-                                        <div className={`h-3 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-blue-500'}`}
-                                            style={{ width: `${pct}%` }}></div>
-                                    </div>
+                            {/* 4 Mini Stat Blocks */}
+                            <div className="grid grid-cols-4 gap-2 sm:gap-4">
+                                <div className="bg-indigo-50 rounded-2xl p-3 sm:p-4 text-center">
+                                    <div className="text-lg sm:text-2xl font-bold text-indigo-600">{projTasks.length}</div>
+                                    <div className="text-[9px] sm:text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-1">Tổng việc</div>
                                 </div>
+                                <div className="bg-emerald-50 rounded-2xl p-3 sm:p-4 text-center">
+                                    <div className="text-lg sm:text-2xl font-bold text-emerald-600">{doneCount}</div>
+                                    <div className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-wider mt-1">Xong</div>
+                                </div>
+                                <div className="bg-blue-50 rounded-2xl p-3 sm:p-4 text-center">
+                                    <div className="text-lg sm:text-2xl font-bold text-blue-600">{ongoingCount}</div>
+                                    <div className="text-[9px] sm:text-[10px] font-bold text-blue-400 uppercase tracking-wider mt-1">Đang làm</div>
+                                </div>
+                                <div className="bg-red-50 rounded-2xl p-3 sm:p-4 text-center">
+                                    <div className="text-lg sm:text-2xl font-bold text-red-600">{overdueCount}</div>
+                                    <div className="text-[9px] sm:text-[10px] font-bold text-red-400 uppercase tracking-wider mt-1">Quá hạn</div>
+                                </div>
+                            </div>
 
-                                {/* Task List */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Danh sách nhiệm vụ</h4>
-                                        <button onClick={() => openCreateTask(selectedProject.id)}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm">
-                                            <Plus size={14} /> Thêm nhiệm vụ
-                                        </button>
-                                    </div>
-                                    {projTasks.length === 0 ? (
-                                        <div className="text-center py-8 text-slate-400 text-xs italic">Chưa có nhiệm vụ nào.</div>
-                                    ) : (
-                                        <div className="space-y-2">
-                                            {projTasks.map(t => (
-                                                <div key={t.id} onClick={() => openEditTask(t)}
-                                                    className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:shadow-md hover:border-indigo-100 transition-all cursor-pointer group">
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-bold text-slate-400">{t.task_code}</span>
-                                                            <h5 className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">{t.name}</h5>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <span className="text-[10px] text-slate-400">{getAssigneeName(t.assignee_id)}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 ml-4">
-                                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                            {t.status}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-slate-400">{t.completion_pct}%</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                            {/* Progress Bar */}
+                            <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
+                                <div className="flex justify-between items-center mb-3">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiến độ dự án</span>
+                                    <span className="text-sm font-bold text-indigo-600">{pct}%</span>
                                 </div>
+                                <div className="bg-slate-100 rounded-full h-3 ring-1 ring-black/5">
+                                    <div className={`h-3 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-blue-500'}`}
+                                        style={{ width: `${pct}%` }}></div>
+                                </div>
+                            </div>
+
+                            {/* Task List */}
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Danh sách nhiệm vụ</h4>
+                                    <button onClick={() => openCreateTask(selectedProject.id)}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm">
+                                        <Plus size={14} /> Thêm việc
+                                    </button>
+                                </div>
+                                {projTasks.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">Chưa có nhiệm vụ nào.</div>
+                                ) : (
+                                    <div className="space-y-0 relative">
+                                        {projTasks.map(t => (
+                                            <SmartCard 
+                                                key={t.id}
+                                                id={t.id}
+                                                title={t.name}
+                                                subtitle={t.task_code}
+                                                status={t.status}
+                                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                                progress={t.completion_pct}
+                                                avatarInitials={getAssigneeName(t.assignee_id).substring(0, 2).toUpperCase()}
+                                                state="medium"
+                                                onClick={() => openEditTask(t)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
-                )
-            })()}
+                    );
+                })()}
+            </BottomSheet>
 
             {/* ========== POPUP 4: Danh sách nhiệm vụ ========== */}
-            {activePopup === 'taskList' && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closePopup}>
-                    <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-                        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="text-xl font-bold text-slate-800">
-                                {taskFilter === 'all' ? 'Tất cả nhiệm vụ' : taskFilter === 'ongoing' ? 'Nhiệm vụ đang làm' : 'Nhiệm vụ quá hạn'}
-                            </h3>
-                            <button onClick={closePopup} className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-full"><X size={20} /></button>
-                        </div>
-                        <div className="px-8 py-4">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <input type="text" value={searchTasks} onChange={e => setSearchTasks(e.target.value)}
-                                    placeholder="Tìm kiếm nhiệm vụ..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                            </div>
-                        </div>
-                        <div className="px-8 pb-8 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-2">
-                            {filteredPopupTasks.length === 0 ? (
-                                <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy nhiệm vụ nào.</div>
-                            ) : filteredPopupTasks.map(t => {
-                                const proj = allProjects.find(p => p.id === t.project_id)
-                                return (
-                                    <div key={t.id} onClick={() => openEditTask(t)}
-                                        className="flex items-center justify-between p-4 border border-slate-100 rounded-2xl hover:shadow-lg hover:border-indigo-100 transition-all cursor-pointer group">
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[10px] font-bold text-slate-400">{t.task_code}</span>
-                                                {proj && <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-bold">{proj.project_code}</span>}
-                                            </div>
-                                            <h4 className="text-sm font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">{t.name}</h4>
-                                            <div className="flex items-center gap-3 mt-1.5">
-                                                <span className="text-[10px] text-slate-400">{getAssigneeName(t.assignee_id)}</span>
-                                                <span className="text-[10px] text-slate-400">Hạn: {t.due_date ? format(parseISO(t.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1.5 ml-4">
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                                                {t.status}
-                                            </span>
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${t.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' : t.priority === 'Cao' ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-500'}`}>
-                                                {t.priority}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-slate-400">{t.completion_pct}%</span>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
+            <BottomSheet 
+                isOpen={activePopup === 'taskList'} 
+                onClose={closePopup}
+                title={taskFilter === 'all' ? 'Tất cả nhiệm vụ' : taskFilter === 'ongoing' ? 'Nhiệm vụ đang làm' : 'Nhiệm vụ quá hạn'}
+            >
+                <div className="mb-4">
+                    <div className="relative">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input type="text" value={searchTasks} onChange={e => setSearchTasks(e.target.value)}
+                            placeholder="Tìm kiếm nhiệm vụ..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                 </div>
-            )}
+                <div className="space-y-0 relative pb-12">
+                    {filteredPopupTasks.length === 0 ? (
+                        <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy nhiệm vụ nào.</div>
+                    ) : filteredPopupTasks.map(t => {
+                        const proj = allProjects.find(p => p.id === t.project_id)
+                        return (
+                            <SmartCard 
+                                key={t.id}
+                                id={t.id}
+                                title={t.name}
+                                subtitle={`${t.task_code} ${proj ? `• ${proj.project_code}` : ''}`}
+                                status={t.status}
+                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                progress={t.completion_pct}
+                                deadline={t.due_date ? format(parseISO(t.due_date), 'dd/MM/yyyy') : 'N/A'}
+                                avatarInitials={getAssigneeName(t.assignee_id).substring(0, 2).toUpperCase()}
+                                state="medium"
+                                onClick={() => openEditTask(t)}
+                            />
+                        )
+                    })}
+                </div>
+            </BottomSheet>
 
             {/* ========== POPUP 3 & 5: Form tạo/chỉnh sửa nhiệm vụ ========== */}
             <AddEditTaskModal

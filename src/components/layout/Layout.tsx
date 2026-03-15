@@ -9,7 +9,6 @@ import {
     MessageSquare,
     RefreshCw,
     KeyRound,
-    Menu,
     Bell, // Added Bell icon
     History as HistoryIcon,
     Kanban as KanbanIcon,
@@ -18,13 +17,20 @@ import {
     HardHat,
     LayoutTemplate,
     HeartHandshake,
-    Video
+    Video,
+    ChevronDown,
+    List,
+    Calendar,
+    BarChart2,
+    Folder,
+    PieChart
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
 import { BottomTabBar } from './BottomTabBar'
+import { FullscreenLauncher } from './FullscreenLauncher'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -47,11 +53,18 @@ export const Layout = () => {
     const location = useLocation()
     const [searchParams] = useSearchParams()
     const activeCrmTab = searchParams.get('tab') || 'DASHBOARD'
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
     const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
+    const [isLauncherOpen, setIsLauncherOpen] = useState(false) // Added Fullscreen Launcher state
+    
+    // Accordion sidebar state
+    const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Công việc': true })
+
+    const toggleNav = (name: string) => {
+        setExpandedNavs(prev => ({ ...prev, [name]: !prev[name] }))
+    }
 
     // Global Quick Add state
     const [isGlobalAddProjectOpen, setIsGlobalAddProjectOpen] = useState(false)
@@ -153,21 +166,89 @@ export const Layout = () => {
         return base
     }
 
-    const navItems = [
-        { name: 'Công việc', path: '/kanban', icon: KanbanIcon, matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'] },
-        { name: 'Marketing', path: '/marketing', icon: Video },
-        { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate },
-        { name: 'Thi Công', path: '/construction', icon: HardHat },
-        { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake },
-    ]
+    const getNavItemsByRole = (userRole?: string, department?: string): any[] => {
+        const adminRole = userRole === 'Admin' || userRole === 'Giám đốc';
 
-    if (profile?.role !== 'Nhân viên') {
-        navItems.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon })
-    }
+        // Base items for all users
+        const baseItems = [
+            { 
+                name: 'Công việc', 
+                path: '/kanban',
+                icon: KanbanIcon, 
+                matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'],
+                mobileChildren: [
+                    { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
+                    { name: 'Danh sách', path: '/tasks', icon: List },
+                    { name: 'Lịch trình', path: '/schedule', icon: Calendar },
+                    { name: 'Sơ đồ Gantt', path: '/gantt', icon: BarChart2 },
+                    { name: 'Dự án', path: '/projects', icon: Folder },
+                    { name: 'Dashboard', path: '/dashboard', icon: PieChart },
+                ]
+            }
+        ];
 
-    if (profile?.role === 'Admin') {
-        navItems.push({ name: 'Người dùng', path: '/users', icon: Users })
-    }
+        // 1. Quản lý Sale / Chăm sóc Khách hàng
+        if (userRole === 'Quản lý Sale' || department === 'Sale') {
+            return [
+                { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] },
+                ...baseItems,
+                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
+            ];
+        }
+
+        // 2. Giám sát - Quản lý / Thi Công
+        if (userRole === 'Giám sát - Quản lý' || department === 'Thi công') {
+            return [
+                { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
+                ...baseItems,
+                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
+            ];
+        }
+
+        // 3. Marketing - Quản lý
+        if (userRole === 'Quản lý Marketing' || department === 'Marketing') {
+            return [
+                { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] },
+                ...baseItems,
+                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
+            ];
+        }
+
+        // 4. Nhân viên Thiết kế
+        if (userRole === 'Nhân viên Thiết kế' || department === 'Thiết kế') {
+            return [
+                ...baseItems,
+                { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate, matchPrefix: ['/moodboard'] }
+            ];
+        }
+
+        // 5. Default Staff (Nếu không thuộc các nhóm trên)
+        if (userRole === 'Nhân viên') {
+            return [
+                ...baseItems,
+                { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
+                { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] }
+            ];
+        }
+
+        // Admin, Giám đốc, Quản lý chung nhìn thấy tất cả
+        const fullItems = [
+            ...baseItems,
+            { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] },
+            { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate, matchPrefix: ['/moodboard'] },
+            { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
+            { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] },
+            { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
+        ];
+
+        if (adminRole) {
+            fullItems.push({ name: 'Người dùng', path: '/users', icon: Users });
+        }
+
+        return fullItems;
+    };
+
+    const navItems = getNavItemsByRole(profile?.role || undefined, profile?.position || undefined);
 
     const getRoleBrand = (role?: string) => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
@@ -182,26 +263,18 @@ export const Layout = () => {
 
     return (
         <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter overflow-hidden">
-            {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                ></div>
-            )}
-
             {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className="fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out hidden lg:flex flex-col">
                 <div className="p-6 border-b border-border-main">
-                    <div className="flex items-center space-x-3 mb-6">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <button onClick={() => setIsLauncherOpen(true)} className="flex items-center space-x-3 mb-6 w-full text-left group hover:opacity-80 transition-opacity">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/30 transition-shadow">
                             <Rocket className="text-white" size={20} />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-[#7A1216] leading-none tracking-tight">DQH</h1>
                             <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
                         </div>
-                    </div>
+                    </button>
 
                     {/* User Profile Card */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-border-main mb-4">
@@ -229,35 +302,105 @@ export const Layout = () => {
                 </div>
 
                 {/* Navigation Menu */}
-                <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
+                <nav className="p-4 space-y-1 flex-1 overflow-y-auto hide-scrollbar">
                     {navItems.map((item) => {
                         const isMatch = (path: string) => {
                             if (item.matchPrefix) {
-                                return item.matchPrefix.some(prefix => path.startsWith(prefix));
+                                return item.matchPrefix.some((prefix: string) => path.startsWith(prefix));
                             }
                             return path === item.path;
                         };
 
-                        return (
+                        const linkContent = (
+                            <>
+                                <item.icon className={`mr-3 ${isMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
+                                <span>{item.name}</span>
+                            </>
+                        );
+
+                        const mainLink = (
                             <NavLink
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setIsMobileMenuOpen(false)}
+                                key={item.path || item.name}
+                                to={item.path || '#'}
                                 className={() =>
                                     `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
                                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
-                                    }`
+                                    } ${item.mobileChildren ? 'hidden lg:flex' : 'flex'}`
                                 }
                             >
-                                {() => (
-                                    <>
-                                        <item.icon className={`mr-3 ${isMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
-                                        <span>{item.name}</span>
-                                    </>
-                                )}
+                                {linkContent}
                             </NavLink>
-                        )
+                        );
+
+                        if (item.mobileChildren) {
+                            const isExpanded = expandedNavs[item.name]
+                            const isAnyChildActive = item.mobileChildren.some((child: any) => {
+                                if (child.matchPrefix) {
+                                    return child.matchPrefix.some((prefix: string) => location.pathname.startsWith(prefix))
+                                }
+                                return location.pathname === child.path
+                            })
+
+                            return (
+                                <div key={item.name} className="contents">
+                                    {/* Desktop view: normal link */}
+                                    {mainLink}
+                                    
+                                    {/* Mobile view: accordion */}
+                                    <div className="space-y-1 mb-2 lg:hidden">
+                                        <button
+                                            onClick={() => toggleNav(item.name)}
+                                            className={`w-full group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${isAnyChildActive && !isExpanded
+                                                ? 'bg-blue-50 text-blue-700'
+                                                : 'text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                        >
+                                            <div className="flex items-center">
+                                                <item.icon className={`mr-3 ${isAnyChildActive && !isExpanded ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`} size={18} />
+                                                <span>{item.name}</span>
+                                            </div>
+                                            <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        
+                                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            <div className="pl-3 pr-1 space-y-1 mt-1 border-l-2 border-slate-100 ml-4">
+                                                {item.mobileChildren.map((child: any) => {
+                                                    const isChildMatch = (path: string) => {
+                                                        if (child.matchPrefix) {
+                                                            return child.matchPrefix.some((prefix: string) => path.startsWith(prefix))
+                                                        }
+                                                        return path === child.path
+                                                    }
+
+                                                    return (
+                                                        <NavLink
+                                                            key={child.path}
+                                                            to={child.path}
+                                                            className={() =>
+                                                                `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isChildMatch(location.pathname)
+                                                                    ? 'bg-primary text-white shadow-sm'
+                                                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                                                                }`
+                                                            }
+                                                        >
+                                                            {() => (
+                                                                <>
+                                                                    <child.icon className={`mr-3 ${isChildMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
+                                                                    <span>{child.name}</span>
+                                                                </>
+                                                            )}
+                                                        </NavLink>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }
+
+                        return mainLink;
                     })}
                 </nav>
 
@@ -281,11 +424,8 @@ export const Layout = () => {
                         {/* Top Row: Title & Actions */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center space-x-2 sm:space-x-4">
-                                <button
-                                    onClick={() => setIsMobileMenuOpen(true)}
-                                    className="lg:hidden p-2 rounded-xl bg-gray-100 text-gray-600 shrink-0"
-                                >
-                                    <Menu size={20} />
+                                <button onClick={() => setIsLauncherOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
+                                    <Rocket className="text-white" size={16} />
                                 </button>
                                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">{currentTitle()}</h2>
                             </div>
@@ -294,7 +434,7 @@ export const Layout = () => {
                                 {/* Refresh Button */}
                                 <button
                                     onClick={handleRefresh}
-                                    className={`p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
+                                    className={`hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
                                     title="Làm mới dữ liệu"
                                 >
                                     <RefreshCw size={18} strokeWidth={2.5} />
@@ -335,7 +475,7 @@ export const Layout = () => {
                                         setIsChatOpen(!isChatOpen);
                                         if (isNotifOpen) setIsNotifOpen(false);
                                     }}
-                                    className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                                    className="hidden lg:flex relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                                 >
                                     <MessageSquare size={18} strokeWidth={2.5} />
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
@@ -343,33 +483,36 @@ export const Layout = () => {
                             </div>
                         </div>
 
-                        {/* Bottom Row: Horizontal Tabs for Task Views */}
-                        {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
-                            <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
-                                <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Kanban
-                                </NavLink>
-                                <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Danh sách
-                                </NavLink>
-                                <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Lịch trình
-                                </NavLink>
-                                <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Sơ đồ Gantt
-                                </NavLink>
-                                <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Dự án
-                                </NavLink>
-                                <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        )}
+                        {/* Bottom Row: Horizontal Tabs for Task Views (removed and moved to sidebar, hidden on mobile) */}
+                        <div className="hidden lg:block">
+                            {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
+                                <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                    <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Kanban
+                                    </NavLink>
+                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Danh sách
+                                    </NavLink>
+                                    <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Lịch trình
+                                    </NavLink>
+                                    <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Sơ đồ Gantt
+                                    </NavLink>
+                                    <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Dự án
+                                    </NavLink>
+                                    <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Dashboard
+                                    </NavLink>
+                                </div>
+                            )}
+                        </div>
 
-                        {/* Horizontal Tabs for CRM Views */}
-                        {location.pathname === '/customers' && (
-                            <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                        {/* Horizontal Tabs for CRM Views (hidden on mobile) */}
+                        <div className="hidden lg:block">
+                            {location.pathname === '/customers' && (
+                                <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
                                 {[
                                     { id: 'DASHBOARD', name: 'Tổng quan' },
                                     { id: 'CUSTOMERS', name: 'Khách hàng' },
@@ -392,9 +535,16 @@ export const Layout = () => {
                                     );
                                 })}
                             </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </header>
+
+                {/* Hub & Spoke Launcher */}
+                <FullscreenLauncher 
+                    isOpen={isLauncherOpen} 
+                    onClose={() => setIsLauncherOpen(false)} 
+                />
 
                 <GlobalChat
                     isOpen={isChatOpen}

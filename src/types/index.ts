@@ -19,6 +19,7 @@ export interface Project {
     end_date: string | null
     status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Hoàn thành' | 'Tạm dừng'
     budget: number | null
+    actualCost?: number | null
     created_at: string
 }
 
@@ -43,6 +44,13 @@ export interface Task {
     notes: string | null
     completion_date: string | null
     created_at: string
+    approved?: boolean | null
+    subcontractor?: string | null
+    end_date?: string | null
+    personnel?: number | null
+    is_approved?: boolean | null
+    category?: string | null
+    cost_estimate?: number | null
 }
 
 export interface ChatMessage {

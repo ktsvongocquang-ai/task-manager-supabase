@@ -229,17 +229,17 @@ export const Kanban = () => {
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-x-hidden md:overflow-x-auto pb-4 md:min-h-[500px]">
+                <div className="flex-1 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:min-h-[500px] hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                     {KANBAN_COLUMNS.map(column => {
                         const colTasks = filteredTasks
                             .filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
                             .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
 
                         return (
-                            <div
-                                key={column.id}
-                                className="flex-1 w-full md:min-w-[300px] md:max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col shrink-0 mb-4 md:mb-0"
-                            >
+                                <div
+                                    key={column.id}
+                                    className="w-[90vw] sm:w-[300px] md:flex-1 md:min-w-[300px] md:max-w-[400px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 snap-center md:snap-align-none h-full max-h-full"
+                                >
                                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-slate-700">{column.title}</h3>
@@ -249,10 +249,10 @@ export const Kanban = () => {
                                     </div>
                                     <button
                                         onClick={() => openAddModalWithStatus()}
-                                        className="text-slate-400 hover:text-indigo-600 transition-colors p-1 hover:bg-slate-50 rounded-lg"
+                                        className="text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center w-11 h-11 md:w-8 md:h-8 hover:bg-slate-50 rounded-lg shrink-0"
                                         title={`Thêm nhiệm vụ "${column.title}"`}
                                     >
-                                        <Plus size={18} />
+                                        <Plus size={20} className="md:w-[18px] md:h-[18px]" />
                                     </button>
                                 </div>
 
@@ -283,62 +283,56 @@ export const Kanban = () => {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
-                                                                className={`bg-white p-3 md:p-4 rounded-xl shadow-sm border transition-all cursor-pointer group
-                                                                    ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-1 scale-[1.02] z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
+                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group flex flex-col
+                                                                    ${snapshot.isDragging ? 'shadow-xl border-[#5B5FC7] rotate-1 scale-[1.02] z-50' : 'border-slate-200 hover:border-[#5B5FC7]/30 hover:shadow-md'}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
-                                                                <div className="flex justify-between items-start gap-4">
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h4 className="font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
-                                                                            {task.name}
-                                                                        </h4>
-                                                                        <div className="mt-1">
-                                                                            <span className="text-[10px] font-medium text-slate-400 tracking-tight">
-                                                                                {task.task_code}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="flex flex-col items-end shrink-0 gap-2 min-w-[80px]">
-                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${task.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                                            task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                                                task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                                                    'bg-slate-50 text-slate-500 border-slate-100'
-                                                                            }`}>
-                                                                            {task.priority || 'Trung bình'}
-                                                                        </span>
-
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500" title={assignee?.full_name || 'Chưa gán'}>
-                                                                                {assignee?.full_name?.charAt(0) || '?'}
-                                                                            </div>
-                                                                            <span className="text-[11px] font-semibold text-slate-500 truncate max-w-[80px]">
-                                                                                {assignee?.full_name?.split(' ').pop() || 'Chưa gán'}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
+                                                                <div className="flex justify-between items-start mb-1.5 gap-2">
+                                                                    <h4 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
+                                                                        {task.name}
+                                                                    </h4>
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'Khẩn cấp' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
+                                                                        task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                                                                            task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                                                'bg-slate-50 text-slate-500 border-slate-100'
+                                                                        }`}>
+                                                                        {task.priority || 'Trung bình'}
+                                                                    </span>
                                                                 </div>
 
-                                                                {/* Only render bottom section if there is data to show */}
-                                                                {(task.due_date || totalSub > 0) && (
-                                                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                                                                        <div className="flex items-center gap-2">
-                                                                            {task.due_date && (
-                                                                                <div className="flex items-center gap-1 text-[9px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
-                                                                                    <Calendar size={9} className="text-slate-400" />
-                                                                                    {format(parseISO(task.due_date), 'dd/MM')}
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
+                                                                <div className="text-[10px] font-medium text-slate-400 tracking-tight mb-3">
+                                                                    {task.task_code}
+                                                                </div>
 
+                                                                <div className="w-full bg-slate-100 rounded-full h-2 mb-3.5 overflow-hidden">
+                                                                    <div className="bg-[#5B5FC7] h-2 rounded-full transition-all" style={{ width: `${task.completion_pct || 0}%` }}></div>
+                                                                </div>
+
+                                                                <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
+                                                                    <div className="flex items-center gap-2">
+                                                                        {task.due_date && (
+                                                                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
+                                                                                <Calendar size={10} className="text-slate-400" />
+                                                                                {format(parseISO(task.due_date), 'dd/MM')}
+                                                                            </div>
+                                                                        )}
                                                                         {totalSub > 0 && (
                                                                             <div className="text-[9px] font-bold text-slate-400">
-                                                                                <span>{completedSub}/{totalSub}</span>
+                                                                                {completedSub}/{totalSub}
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                )}
+
+                                                                    <div className="flex items-center gap-1.5 min-h-[32px] bg-slate-50 px-2 py-1 rounded-lg shrink-0">
+                                                                        <div className="w-5 h-5 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-[9px] font-bold text-indigo-700" title={assignee?.full_name || 'Chưa gán'}>
+                                                                            {assignee?.full_name?.charAt(0) || '?'}
+                                                                        </div>
+                                                                        <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[80px]">
+                                                                            {assignee?.full_name?.split(' ').pop() || 'Chưa gán'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </Draggable>

@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, Download, Printer, Plus, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Download, Printer, Plus, Trash2, Save } from 'lucide-react';
 import { numberToVietnameseWords } from '../../utils/numberToWords';
 
 interface CostItem {
@@ -213,7 +213,7 @@ export default function QuoteGenerator() {
               </button>
             </div>
             <div className="space-y-4">
-              {costItems.map((item, index) => (
+              {costItems.map((item) => (
                 <div key={item.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative group">
                   <button 
                     onClick={() => removeCostItem(item.id)}
