@@ -866,14 +866,14 @@ export const Tasks = () => {
                 {mobileGroups.map(group => {
                     const isExpanded = expandedMobileGroups.has(group.id);
                     return (
-                        <div key={group.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div key={group.id} className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden">
                             {/* Accordion Header */}
                             <div 
                                 onClick={() => toggleMobileGroup(group.id)}
-                                className="px-4 py-3 flex items-center justify-between border-b border-slate-50 cursor-pointer active:bg-slate-50 transition-colors"
+                                className="px-5 py-4 flex items-center justify-between border-b border-slate-100 cursor-pointer active:bg-slate-50 transition-colors"
                             >
-                                <div className="flex items-center gap-2">
-                                    <span className="text-slate-400">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-slate-400 shrink-0">
                                         {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                     </span>
                                     <h3 className="font-bold text-slate-800 text-[15px]">{group.label}</h3>
@@ -886,60 +886,34 @@ export const Tasks = () => {
                             
                             {/* Accordion Content */}
                             {isExpanded && (
-                                <div className="divide-y divide-slate-100/60">
+                                <div className="divide-y divide-slate-100 p-2">
                                     {group.items.length === 0 ? (
                                         <div className="p-6 text-center text-slate-400 text-sm italic font-medium">Chưa có bản ghi nào</div>
                                     ) : (
                                         group.items.map(task => {
                                             const isCompleted = task.status?.includes('Hoàn thành');
-                                            const isLate = task.due_date && new Date(task.due_date) < new Date() && !isCompleted;
                                             
                                             return (
                                                 <div 
                                                     key={task.id} 
                                                     onClick={() => openEditModal(task)}
-                                                    className="p-4 flex gap-3 active:bg-slate-50 transition-colors cursor-pointer"
+                                                    className="p-4 rounded-2xl cursor-pointer transition-all flex gap-3 hover:bg-slate-50 active:scale-[0.98] group"
                                                 >
-                                                    {/* Quick Complete Checkbox */}
+                                                    {/* Quick Complete - iOS style radio */}
                                                     <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                                                         <div 
                                                             onClick={() => toggleComplete(task)}
-                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-white'}`}
+                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-white'}`}
                                                         >
-                                                            {isCompleted && <CheckCircle2 size={12} className="text-white" strokeWidth={4} />}
+                                                            {isCompleted && <div className="w-5 h-5 rounded-full text-white flex items-center justify-center"><CheckCircle2 size={16} strokeWidth={3} /></div>}
                                                         </div>
                                                     </div>
                                                     
                                                     {/* Task Info */}
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className={`text-[15px] font-bold leading-snug mb-1 truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                                                        <h4 className={`text-[15px] font-bold leading-snug truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-[#5B5FC7] transition-colors'}`}>
                                                             {task.name}
                                                         </h4>
-                                                        
-                                                        {/* Task Meta (Lark style) */}
-                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
-                                                            {/* Due Date - Warning if late */}
-                                                            {task.due_date && (
-                                                                <div className={`flex items-center gap-1 text-[11px] font-bold ${isLate ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded' : isCompleted ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                                    <Clock size={12} />
-                                                                    {isLate ? `Đến hạn vào: ${format(parseISO(task.due_date), 'dd/MM/yyyy')}` : format(parseISO(task.due_date), 'dd/MM/yyyy')}
-                                                                </div>
-                                                            )}
-                                                            
-                                                            {/* Assignee Avatar */}
-                                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                                                                <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600">
-                                                                    {getAssigneeName(task.assignee_id).charAt(0)}
-                                                                </div>
-                                                                <span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span>
-                                                            </div>
-                                                            
-                                                            {/* Project indicator */}
-                                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded mt-0.5 border border-slate-200/60">
-                                                                <Folder size={10} />
-                                                                <span className="truncate max-w-[80px]">{getProjectCode(task.project_id)}</span>
-                                                            </div>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             );
@@ -949,9 +923,9 @@ export const Tasks = () => {
                                     {/* Add Task Button per group */}
                                     <div 
                                         onClick={() => openAddModal()}
-                                        className="p-3 text-center text-sm font-medium text-slate-400 hover:text-[#5B5FC7] hover:bg-slate-50 cursor-pointer transition-colors"
+                                        className="p-3 mt-2 rounded-xl text-center text-[15px] font-medium text-slate-400 hover:text-[#5B5FC7] hover:bg-slate-50 cursor-pointer transition-colors"
                                     >
-                                        Thêm nhiệm vụ
+                                        + Thêm nhiệm vụ
                                     </div>
                                 </div>
                             )}

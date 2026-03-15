@@ -16,7 +16,7 @@ import {
     eachDayOfInterval
 } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, Folder } from 'lucide-react'
 
 const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
@@ -29,6 +29,7 @@ export const Schedule = () => {
 
     // Calendar state
     const [currentDate, setCurrentDate] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState(new Date())
 
     // Modal state
     const [showModal, setShowModal] = useState(false)
@@ -245,63 +246,105 @@ export const Schedule = () => {
                 </div>
             </div>
 
-            {/* Mobile Agenda View */}
-            <div className="md:hidden flex flex-col space-y-4">
-                {calendarDays.filter(day => {
-                    const dateStr = format(day, 'yyyy-MM-dd')
-                    const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
-                    return dayTasks.length > 0;
-                }).map(day => {
-                    const dateStr = format(day, 'yyyy-MM-dd')
-                    const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr)).sort((a,b) => (a.status || '').localeCompare(b.status || ''));
-                    const isToday = isSameDay(day, new Date())
-                    
-                    return (
-                        <div key={day.toString()} className="bg-white rounded-[24px] shadow-sm border border-slate-200 overflow-hidden">
-                            <div className={`px-5 py-4 border-b flex items-center gap-4 ${isToday ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}>
-                                <div className={`w-12 h-12 rounded-[14px] flex flex-col items-center justify-center shrink-0 ${isToday ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' : 'bg-white text-slate-700 shadow-sm border border-slate-200'}`}>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">{format(day, 'EEE', { locale: vi })}</span>
-                                    <span className="text-xl font-black leading-none mt-0.5">{format(day, 'd')}</span>
-                                </div>
-                                <div>
-                                    <h3 className={`font-bold text-base ${isToday ? 'text-indigo-900' : 'text-slate-800'}`}>{format(day, 'dd/MM/yyyy')}</h3>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">{dayTasks.length} nhiệm vụ</p>
-                                </div>
-                            </div>
-                            
-                            <div className="divide-y divide-slate-100 p-2">
-                                {dayTasks.map(task => (
-                                    <div
-                                        key={task.id}
-                                        onClick={() => openEditModal(task)}
-                                        className={`p-3 rounded-2xl cursor-pointer transition-all flex items-start gap-4 hover:bg-slate-50 active:scale-[0.98] group`}
-                                    >
-                                        <div className={`w-2 h-2 rounded-full mt-2.5 shrink-0 shadow-sm ${task.status?.includes('Hoàn thành') ? 'bg-emerald-500 shadow-emerald-200' : task.status?.includes('Đang') ? 'bg-blue-500 shadow-blue-200' : task.status?.includes('Tạm dừng') ? 'bg-amber-500 shadow-amber-200' : 'bg-slate-300'}`}></div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1.5">
-                                                <span className="text-[10px] font-black text-slate-400 tracking-wider uppercase">{task.task_code}</span>
-                                                <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border shadow-sm ${getStatusColor(task.status || '')}`}>
-                                                    {task.status}
-                                                </span>
-                                            </div>
-                                            <h4 className="text-sm font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors uppercase">{task.name}</h4>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )
-                })}
-                
-                {calendarDays.filter(day => {
-                    const dateStr = format(day, 'yyyy-MM-dd')
-                    return filteredTasks.some(t => t.due_date && t.due_date.startsWith(dateStr))
-                }).length === 0 && (
-                    <div className="py-24 text-center bg-slate-50/50 rounded-[32px] border border-slate-200">
-                        <div className="text-4xl text-slate-300 mb-4 opacity-50">🗓️</div>
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tháng này trống</p>
+            {/* Mobile View */}
+            <div className="md:hidden flex flex-col space-y-4 flex-1">
+                {/* Horizontal Date Slider */}
+                <div className="bg-white pb-2 pt-2 rounded-2xl border border-slate-200 shadow-sm shrink-0">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-1 px-3 custom-scrollbar">
+                        {calendarDays.map((day) => {
+                            const isSelected = isSameDay(day, selectedDate)
+                            const isToday = isSameDay(day, new Date())
+                            const dateStr = format(day, 'yyyy-MM-dd')
+                            const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
+                            const hasTasks = dayTasks.length > 0;
+
+                            // Auto scroll to selected or today visually
+                            useEffect(() => {
+                                if (isSelected) {
+                                    const el = document.getElementById(`day-btn-${dateStr}`);
+                                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                                }
+                            }, [selectedDate])
+
+                            return (
+                                <button
+                                    id={`day-btn-${dateStr}`}
+                                    key={day.toString()}
+                                    onClick={() => setSelectedDate(day)}
+                                    className={`snap-center flex flex-col items-center justify-center min-w-[56px] h-[72px] rounded-xl transition-all relative shrink-0 border-2
+                                        ${isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 
+                                          isToday ? 'bg-indigo-50 border-indigo-100 text-indigo-900' : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50'}
+                                    `}
+                                >
+                                    <span className={`text-[10px] uppercase font-bold tracking-widest mb-1 
+                                        ${isSelected ? 'text-indigo-200' : isToday ? 'text-indigo-500' : 'text-slate-400'}`}>
+                                        {format(day, 'EEE', { locale: vi })}
+                                    </span>
+                                    <span className={`text-lg font-black leading-none ${isToday && !isSelected ? 'text-indigo-600' : ''}`}>
+                                        {format(day, 'd')}
+                                    </span>
+                                    {hasTasks && (
+                                        <div className={`absolute bottom-1.5 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-500'}`} />
+                                    )}
+                                </button>
+                            )
+                        })}
                     </div>
-                )}
+                </div>
+
+                {/* Selected Day Tasks */}
+                <div className="flex-1 space-y-3 overflow-y-auto pb-20 custom-scrollbar px-1">
+                    {(() => {
+                        const dateStr = format(selectedDate, 'yyyy-MM-dd')
+                        const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr)).sort((a,b) => (a.status || '').localeCompare(b.status || ''));
+                        
+                        if (dayTasks.length === 0) {
+                            return (
+                                <div className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 shadow-sm mt-2">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100 shadow-sm">
+                                        <div className="text-3xl opacity-50">🏝️</div>
+                                    </div>
+                                    <p className="text-base font-bold text-slate-600 mb-1 tracking-tight">Không có nhiệm vụ</p>
+                                    <p className="text-[13px] font-medium text-slate-400">Bạn được nghỉ ngơi vào ngày này!</p>
+                                </div>
+                            )
+                        }
+
+                        return dayTasks.map(task => (
+                            <div
+                                key={task.id}
+                                onClick={() => openEditModal(task)}
+                                className={`p-4 rounded-2xl cursor-pointer transition-all flex flex-col gap-3 hover:bg-slate-50 active:scale-[0.98] group bg-white border border-slate-200 shadow-sm relative overflow-hidden`}
+                            >
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${task.status?.includes('Hoàn thành') ? 'bg-emerald-500' : task.status?.includes('Đang') ? 'bg-blue-500' : task.status?.includes('Tạm dừng') ? 'bg-amber-500' : 'bg-slate-300'}`}></div>
+                                <div className="flex items-center justify-between pl-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
+                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
+                                            {task.status}
+                                        </span>
+                                    </div>
+                                    {task.assignee_id && (
+                                        <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0 shadow-sm">
+                                            {profiles.find(p => p.id === task.assignee_id)?.full_name?.charAt(0) || 'U'}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="pl-3">
+                                    <h4 className={`text-[15px] font-bold line-clamp-2 leading-snug transition-colors pr-2 ${task.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-indigo-600'}`}>
+                                        {task.name}
+                                    </h4>
+                                    {task.project_id && (
+                                        <p className="text-[11px] font-semibold text-slate-500 mt-2 flex items-center gap-1.5 uppercase tracking-wide">
+                                            <Folder size={12} className="text-slate-400" />
+                                            <span className="truncate">{projects.find(p => p.id === task.project_id)?.name}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    })()}
+                </div>
             </div>
 
             {/* Modal */}
