@@ -318,10 +318,10 @@ export const Tasks = () => {
     }
 
     const mobileGroups = [
-        { id: 'Chưa bắt đầu', label: 'Task cần làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')) },
-        { id: 'Đang thực hiện', label: 'Đang Làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Đang thực hiện') },
-        { id: 'Chờ duyệt', label: 'Chờ Duyệt', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Chờ duyệt') },
-        { id: 'Hoàn thành', label: 'Hoàn Thành', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')) }
+        { id: 'todo', label: 'Cần làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Cần làm' || t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo')) },
+        { id: 'in_progress', label: 'Đang thực hiện', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Đang thực hiện' || t.status === 'Tạm dừng')) },
+        { id: 'review', label: 'Chờ duyệt', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Chờ duyệt') },
+        { id: 'done', label: 'Hoàn thành', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')) }
     ];
 
     if (loading) {
@@ -862,15 +862,16 @@ export const Tasks = () => {
             {/* End Desktop UI */}
 
             {/* Mobile Accordion Task List (Lark style) */}
-            <div className="md:hidden space-y-3 pb-24">
-                {mobileGroups.map(group => {
+            <div className="md:hidden pb-24 border-y border-slate-200 mt-2 bg-white">
+                {mobileGroups.map((group, index) => {
                     const isExpanded = expandedMobileGroups.has(group.id);
+                    const isLast = index === mobileGroups.length - 1;
                     return (
-                        <div key={group.id} className="bg-[#f8fafc] rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
+                        <div key={group.id} className={`bg-white overflow-hidden flex flex-col ${!isLast ? 'border-b border-slate-100' : ''}`}>
                             {/* Accordion Header */}
                             <div 
                                 onClick={() => toggleMobileGroup(group.id)}
-                                className="p-4 flex items-center justify-between border-b border-slate-200 bg-white shadow-sm cursor-pointer active:bg-slate-50 transition-colors"
+                                className={`p-4 flex items-center justify-between bg-white cursor-pointer active:bg-slate-50 transition-colors ${isExpanded ? 'border-b border-slate-100' : ''}`}
                             >
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-bold text-slate-700">{group.label}</h3>
@@ -885,9 +886,9 @@ export const Tasks = () => {
                             
                             {/* Accordion Content */}
                             {isExpanded && (
-                                <div className="p-3 space-y-3">
+                                <div className="p-3 space-y-3 bg-[#f8fafc]">
                                     {group.items.length === 0 ? (
-                                        <div className="p-4 text-center text-slate-400 text-sm italic font-medium bg-white rounded-xl border border-slate-200 border-dashed">Chưa có bản ghi nào</div>
+                                        <div className="p-4 text-center text-slate-400 text-sm italic font-medium bg-transparent">Chưa có bản ghi nào</div>
                                     ) : (
                                         group.items.map(task => {
                                             const isCompleted = task.status?.includes('Hoàn thành');
@@ -950,9 +951,9 @@ export const Tasks = () => {
             {/* Mobile FAB */}
             <button
                 onClick={() => openAddModal()}
-                className="md:hidden fixed bottom-24 right-5 w-14 h-14 bg-[#4A62D7] hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(74,98,215,0.4)] transition-transform active:scale-90 z-50 focus:outline-none"
+                className="md:hidden fixed bottom-[90px] right-4 w-[52px] h-[52px] bg-[#4A62D7] hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(74,98,215,0.4)] transition-transform active:scale-95 z-50 focus:outline-none"
             >
-                <Plus size={28} strokeWidth={2.5} />
+                <Plus size={24} strokeWidth={2.5} />
             </button>
 
 
