@@ -19,7 +19,10 @@ import {
   Archive,
   ChevronDown,
   ChevronRight,
-  List
+  List,
+  ShieldAlert,
+  Award,
+  Mail
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -1299,10 +1302,71 @@ export default function MarketingApp() {
           </div>
         </div>
       ) : view === 'WORKFLOW' ? (
-        <div className="flex-1 overflow-y-auto p-6 bg-white">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-black text-gray-900 uppercase tracking-widest mb-2">QUY CHUẨN LÀM VIỆC</h2>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+          <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+            
+            {/* PROFILE HEADER & PERMISSIONS SECTION */}
+            {profile && (
+              <>
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden">
+                    <div className="h-24 sm:h-32 bg-gradient-to-r from-pink-500 to-indigo-500 relative"></div>
+                    <div className="px-6 pb-6 relative">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 gap-4 sm:gap-6">
+                            <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-pink-500 border-4 border-white shadow-xl flex flex-col justify-center items-center`}>
+                                <span className="text-4xl sm:text-5xl text-white font-black tracking-tighter">
+                                    {profile.full_name?.substring(0, 2).toUpperCase() || 'MK'}
+                                </span>
+                                <div className="absolute -bottom-3 bg-white px-3 py-1 rounded-full shadow-lg border border-slate-100 flex items-center gap-1.5">
+                                    <Award size={12} className="text-pink-600" />
+                                    <span className="text-[10px] font-bold text-pink-600">{profile.role}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="text-center sm:text-left pt-2 flex-1">
+                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">{profile.full_name || 'Marketing Admin'}</h1>
+                                <p className="text-slate-500 text-sm font-medium flex items-center justify-center sm:justify-start gap-1.5">
+                                    <Mail size={14} /> 
+                                    {profile.email || 'marketing@dqh.vn'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 sm:p-6">
+                    <h3 className="text-base font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <ShieldAlert size={20} className="text-pink-500" />
+                        Quyền hạn & Chức năng
+                    </h3>
+                    <div className="prose prose-slate prose-sm max-w-none">
+                        <p className="text-slate-600 leading-relaxed mb-6">
+                            Tài khoản của bạn được định danh với vai trò <span className="bg-pink-50 text-pink-600 font-bold px-2 py-0.5 rounded-md">{profile.role}</span>. Dưới đây là các module bạn được phép truy cập trên hệ thống.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 rounded-xl border bg-indigo-50/50 border-indigo-100">
+                                <h4 className="text-sm font-bold mb-1 text-indigo-900">Quản lý Công việc</h4>
+                                <p className="text-xs text-slate-500">Sử dụng Kanban Marketing, đăng bài, lên lịch.</p>
+                            </div>
+                            <div className="p-4 rounded-xl border bg-amber-50/50 border-amber-100">
+                                <h4 className="text-sm font-bold mb-1 text-amber-900">Thi Công & Thiết Kế</h4>
+                                <p className="text-xs text-slate-500">Chỉ xem tiến độ để viết bài PR truyền thông.</p>
+                            </div>
+                            <div className="p-4 rounded-xl border bg-slate-50 border-slate-100 opacity-80">
+                                <h4 className="text-sm font-bold mb-1 text-slate-500">Dự án chung</h4>
+                                <p className="text-xs text-slate-500">Bị giới hạn, không truy cập bảng tổng công ty.</p>
+                            </div>
+                            <div className="p-4 rounded-xl border bg-slate-50 border-slate-100 opacity-80">
+                                <h4 className="text-sm font-bold mb-1 text-slate-500">Khách hàng (CRM)</h4>
+                                <p className="text-xs text-slate-500">Chỉ Sale và Admin được phép truy cập.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              </>
+            )}
+
+            <div className="text-center pt-4 mb-8">
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-widest mb-2">QUY CHUẨN LÀM VIỆC</h2>
               <p className="text-gray-500">Quy trình phối hợp DQH & Team Coach Hiếu</p>
             </div>
 
