@@ -6,6 +6,7 @@ import { Dashboard } from './pages/dashboard/Dashboard'
 import { Projects } from './pages/projects/Projects'
 import { Tasks } from './pages/tasks/Tasks'
 import { Users } from './pages/users/Users'
+import { Profile } from './pages/users/Profile'
 import { Gantt } from './pages/gantt/Gantt'
 import { History } from './pages/history/History'
 import { Kanban } from './pages/kanban/Kanban'
@@ -35,6 +36,7 @@ function App() {
           <Route path="tasks" element={<Tasks />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="users" element={<Users />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="history" element={<History />} />
           <Route path="construction" element={<Construction />} />
           <Route path="moodboard" element={<Moodboard />} />
