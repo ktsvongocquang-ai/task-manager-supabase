@@ -268,49 +268,49 @@ export default function MarketingApp() {
   const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-gray-50">
+    <div className="h-full flex flex-col max-w-[1600px] mx-auto min-h-0 bg-gray-50 w-full overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 flex flex-col pt-4">
+      <div className="bg-white border-b border-gray-200 flex flex-col pt-4 shrink-0">
         {/* Top Header Row */}
-        <div className="px-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[64px]">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">Marketing Workflow</h1>
-            <p className="text-sm text-gray-500 mt-1">Quy trình phối hợp DQH & Team Coach Hiếu</p>
+        <div className="px-6 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[64px] min-w-0">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 truncate">Marketing Workflow</h1>
+            <p className="text-sm text-gray-500 mt-1 truncate">Quy trình phối hợp DQH & Team Coach Hiếu</p>
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-end">
-            <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar pb-1 md:pb-0 shrink-0">
+            <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('WORKFLOW')}
               >
                 Quy chuẩn làm việc
               </button>
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'KANBAN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'KANBAN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('KANBAN')}
               >
                 Bảng công việc
               </button>
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'LIST' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'LIST' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('LIST')}
               >
                 Tổng hợp bài đăng
               </button>
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'CALENDAR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'CALENDAR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('CALENDAR')}
               >
                 Lịch đăng bài
               </button>
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'TIMELINE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'TIMELINE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('TIMELINE')}
               >
                 Tiến độ dự án
               </button>
               <button 
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'ARCHIVE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'ARCHIVE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setView('ARCHIVE')}
               >
                 Lưu trữ
@@ -318,9 +318,9 @@ export default function MarketingApp() {
             </div>
             <button 
               onClick={() => setIsRequestModalOpen(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 flex-shrink-0"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 shrink-0" />
               Tạo Video Mới
             </button>
           </div>
@@ -328,31 +328,31 @@ export default function MarketingApp() {
         
         {/* Optional Secondary Header for Kanban Filters */}
         {view === 'KANBAN' && (
-          <div className="px-6 py-2 bg-gray-50 border-t border-gray-200 flex flex-col gap-2">
-            <div className="flex justify-end w-full">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button onClick={() => setShowKanbanFilters(!showKanbanFilters)} className={`flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-xs font-medium transition-colors ${showKanbanFilters ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
+          <div className="px-6 py-2 bg-gray-50 border-t border-gray-200 flex flex-col gap-2 min-w-0">
+            <div className="flex justify-end w-full min-w-0">
+              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
+                <button onClick={() => setShowKanbanFilters(!showKanbanFilters)} className={`flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-xs font-medium transition-colors shrink-0 whitespace-nowrap ${showKanbanFilters ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
                   <Filter className="w-3.5 h-3.5" /> Lọc
                 </button>
-                <button onClick={() => setView('CALENDAR')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                <button onClick={() => setView('CALENDAR')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors shrink-0 whitespace-nowrap">
                   <CalendarIcon className="w-3.5 h-3.5" /> Lịch
                 </button>
               </div>
             </div>
             {showKanbanFilters && (
-              <div className="flex flex-wrap items-center gap-3 pt-2 text-sm">
-                <div className="inline-flex bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
+              <div className="flex flex-wrap items-center gap-3 pt-2 text-sm min-w-0">
+                <div className="inline-flex overflow-x-auto hide-scrollbar bg-white border border-gray-200 p-1 rounded-lg shadow-sm max-w-full">
                   {['Tất cả', 'Theo Tuần', 'Theo Tháng', 'Theo Quý', 'Theo Năm'].map(filter => (
                     <button
                       key={filter}
                       onClick={() => setListTimeFilter(filter)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${listTimeFilter === filter ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors shrink-0 whitespace-nowrap ${listTimeFilter === filter ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                       {filter}
                     </button>
                   ))}
                 </div>
-                <select value={formatFilter} onChange={(e) => setFormatFilter(e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <select value={formatFilter} onChange={(e) => setFormatFilter(e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 shrink-0">
                    <option value="Tất cả">Định dạng: Tất cả</option>
                    <option value="Video ngắn">Video ngắn</option>
                    <option value="Video dài">Video dài</option>
@@ -360,7 +360,7 @@ export default function MarketingApp() {
                    <option value="Ảnh">Ảnh</option>
                 </select>
                 {(listTimeFilter !== 'Tất cả' || formatFilter !== 'Tất cả') && (
-                  <button onClick={() => { setListTimeFilter('Tất cả'); setFormatFilter('Tất cả'); }} className="text-xs text-gray-400 hover:text-gray-700 underline">
+                  <button onClick={() => { setListTimeFilter('Tất cả'); setFormatFilter('Tất cả'); }} className="text-xs text-gray-400 hover:text-gray-700 underline shrink-0 whitespace-nowrap">
                     Xóa lộc
                   </button>
                 )}
@@ -372,7 +372,7 @@ export default function MarketingApp() {
 
       {view === 'KANBAN' ? (
         <>
-          {/* Kanban Board */}
+           {/* Kanban Board */}
            <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
             <div className="flex gap-6 h-full min-w-max">
               {COLUMNS.map(column => {
@@ -397,9 +397,14 @@ export default function MarketingApp() {
                 const archivedVideos = columnVideos.filter((v: any) => v.isArchived);
 
                 return (
-                  <div key={column.id} className="w-80 flex flex-col h-full relative">
-                    <div className={`px-4 py-3 rounded-t-xl border-t border-l border-r font-bold text-sm flex justify-between items-center ${column.color}`}>
-                      <span>{column.name}</span>
+                  <div key={column.id} className="w-80 flex flex-col h-full bg-slate-50/50 rounded-2xl border border-slate-200 shrink-0 relative">
+                    <div className={`p-4 border-b flex items-center justify-between rounded-t-2xl shadow-sm shrink-0 ${column.color}`}>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-slate-700">{column.name}</h3>
+                        <span className="bg-white/70 text-slate-700 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm">
+                          {activeVideos.length}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2">
                         {archivedVideos.length > 0 && (
                           <button
@@ -411,13 +416,12 @@ export default function MarketingApp() {
                             <span className="text-xs font-bold">{archivedVideos.length}</span>
                           </button>
                         )}
-                        <span className="bg-white/60 px-2.5 py-0.5 rounded-full text-xs">{activeVideos.length}</span>
                       </div>
                     </div>
                     
                     {/* Archive Popup */}
                     {showArchivePopup === column.id && (
-                      <div className="absolute top-14 left-0 right-0 z-50 bg-yellow-50/95 backdrop-blur-sm border border-yellow-200 shadow-xl rounded-xl p-3 max-h-[400px] overflow-y-auto">
+                      <div className="absolute top-16 left-2 right-2 z-50 bg-yellow-50/95 backdrop-blur-sm border border-yellow-200 shadow-xl rounded-xl p-3 max-h-[400px] overflow-y-auto">
                         <div className="flex justify-between items-center mb-3">
                           <h3 className="text-sm font-bold text-yellow-800 flex items-center gap-1"><span className="bg-yellow-100 px-2 py-0.5 rounded text-xs border border-yellow-200">{archivedVideos.length}</span> Đã lưu trữ</h3>
                           <button onClick={() => setShowArchivePopup(null)} className="text-yellow-600 hover:text-yellow-800 bg-yellow-100 hover:bg-yellow-200 p-1.5 rounded-full transition-colors"><X className="w-3 h-3"/></button>
@@ -441,7 +445,7 @@ export default function MarketingApp() {
                       </div>
                     )}
 
-                    <div className="flex-1 bg-gray-100/50 border border-gray-200 rounded-b-xl p-3 overflow-y-auto space-y-3">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-3 transition-colors">
                       {activeVideos.map(video => {
                         const statusDef = STATUS_MAP[video.status];
                         const isExpanded = expandedCards[video.id];
@@ -451,7 +455,7 @@ export default function MarketingApp() {
                           <div 
                             key={video.id} 
                             onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
-                            className={`bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer group ${isIdeaCol && !isExpanded ? 'p-2' : 'p-3'}`}
+                            className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
                           >
                             <div className="flex justify-between items-start mb-1.5">
                               <div className="flex items-center gap-1.5 flex-wrap">
@@ -469,7 +473,7 @@ export default function MarketingApp() {
                               )}
                             </div>
                             
-                            <h3 className={`font-bold text-gray-900 ${isIdeaCol && !isExpanded ? 'text-xs line-clamp-1' : 'text-sm mb-1 line-clamp-2'}`}>
+                            <h3 className={`font-bold text-slate-800 ${isIdeaCol && !isExpanded ? 'text-xs line-clamp-1' : 'text-[15px] group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug'}`}>
                               {video.title}
                             </h3>
                             
@@ -513,53 +517,53 @@ export default function MarketingApp() {
                                 
                                 {!isIdeaCol && (
                                   <>
-                                    <p className="text-xs text-gray-500 mb-2.5 flex items-center gap-1">
-                                      <LayoutTemplate className="w-3.5 h-3.5" /> {video.project}
+                                    <p className="text-xs text-slate-500 mb-2.5 flex items-center gap-1.5 truncate">
+                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{video.project}</span>
                                     </p>
                                     
                                     <div className="flex flex-wrap gap-1.5 mb-2.5">
-                                      <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <Video className="w-3 h-3" /> {video.format}
+                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                        <Video className="w-3.5 h-3.5" /> {video.format}
                                       </span>
-                                      <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <Users className="w-3 h-3" /> {video.platform}
+                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                        <Users className="w-3.5 h-3.5" /> {video.platform}
                                       </span>
                                     </div>
                                   </>
                                 )}
 
-                                <div className="flex items-center justify-between pt-2 border-t border-gray-50 mt-1">
-                                  <div className="flex items-center gap-1 text-[10px] font-medium text-gray-500">
-                                    <Clock className="w-3 h-3 text-gray-400" />
-                                    {new Date(video.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 mt-1">
+                                  <div className="flex items-center gap-1.5 text-slate-500">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
                                   </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[9px] text-gray-400 font-medium truncate max-w-[60px]">{video.assignee}</span>
-                                    <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[9px] font-bold ring-1 ring-white" title={video.assignee}>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">Người thực hiện</span>
+                                    <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
                                       {video.assignee.substring(0, 2).toUpperCase()}
                                     </div>
                                   </div>
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="mt-2.5 pt-2.5 border-t border-gray-50 flex flex-col gap-1.5">
+                                <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex flex-col gap-1.5">
                                   {video.status === 'IDEA' && (
-                                    <div className="flex gap-1.5">
+                                    <div className="flex gap-1.5 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded text-[11px] font-medium transition-colors"
+                                        className="flex-1 py-1.5 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'REJECTED' }); }}
-                                        className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-medium transition-colors"
+                                        className="px-2 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
+                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -569,29 +573,29 @@ export default function MarketingApp() {
                                   {video.status === 'CONTENT_EDITING' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_DONE' }); }}
-                                      className="w-full py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[11px] font-medium transition-colors"
+                                      className="w-full py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Done
                                     </button>
                                   )}
                                   
                                   {video.status === 'CONTENT_DONE' && (
-                                    <div className="flex gap-1.5">
+                                    <div className="flex gap-1.5 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-1"
+                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-medium transition-colors"
+                                        className="flex-1 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối (Edit)
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
+                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -601,7 +605,7 @@ export default function MarketingApp() {
                                   {video.status === 'PROD_DOING' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DONE' }); }}
-                                      className="w-full py-1 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded text-[11px] font-medium transition-colors"
+                                      className="w-full py-1.5 bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Đã xong
                                     </button>
@@ -610,29 +614,29 @@ export default function MarketingApp() {
                                   {video.status === 'PROD_DONE' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'VIDEO_REVIEW' }); }}
-                                      className="w-full py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-[11px] font-medium transition-colors"
+                                      className="w-full py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Gửi qua Cần Phê Duyệt
                                     </button>
                                   )}
 
                                   {video.status === 'VIDEO_REVIEW' && (
-                                    <div className="flex gap-1.5">
+                                    <div className="flex gap-1.5 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'SCHEDULED' }); }}
-                                        className="flex-1 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[11px] font-medium transition-colors"
+                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded text-[11px] font-medium transition-colors"
+                                        className="flex-1 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="px-2 py-1 bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 rounded text-[11px] font-medium transition-colors"
+                                        className="px-2 py-1.5 bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Để sau
                                       </button>
@@ -642,7 +646,7 @@ export default function MarketingApp() {
                                   {video.status === 'SCHEDULED' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PUBLISHED' }); }}
-                                      className="w-full py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[11px] font-medium transition-colors"
+                                      className="w-full py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Đánh dấu đã đăng
                                     </button>
@@ -651,7 +655,7 @@ export default function MarketingApp() {
                                   {video.status === 'REJECTED' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'IDEA' }); }}
-                                      className="w-full py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded text-[11px] font-medium transition-colors"
+                                      className="w-full py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Khôi phục
                                     </button>
@@ -662,10 +666,6 @@ export default function MarketingApp() {
                           </div>
                         );
                       })}
-                      
-                      <button className="w-full py-2.5 flex items-center justify-center gap-1 text-sm font-medium text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors border-2 border-dashed border-gray-200 hover:border-indigo-200 mt-2">
-                        <Plus className="w-4 h-4" /> Thêm Bài Viết
-                      </button>
                     </div>
                   </div>
                 );

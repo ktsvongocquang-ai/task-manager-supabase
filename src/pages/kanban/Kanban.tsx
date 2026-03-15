@@ -179,56 +179,57 @@ export const Kanban = () => {
     return (
         <div className="h-full flex flex-col space-y-6 max-w-[1600px] mx-auto min-h-0">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                <h1 className="text-xl font-bold text-slate-800">Kanban Board</h1>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="flex bg-slate-100 p-1 rounded-xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0">
+                <h1 className="text-xl font-bold text-slate-800 hidden md:block">Kanban Board</h1>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
                         <button
                             onClick={() => setDateFilter('today')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Hôm nay
                         </button>
                         <button
                             onClick={() => setDateFilter('all')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Tất cả
                         </button>
                     </div>
 
-                    <div className="relative w-full sm:w-48">
-                        <select
-                            value={selectedProject}
-                            onChange={(e) => setSelectedProject(e.target.value)}
-                            className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
-                        >
-                            <option value="all">Tất cả dự án</option>
-                            {projects.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-48">
+                            <select
+                                value={selectedProject}
+                                onChange={(e) => setSelectedProject(e.target.value)}
+                                className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
+                            >
+                                <option value="all">Tất cả dự án</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="relative flex-1 sm:w-64">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Tìm kiếm nhiệm vụ..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
+                        <div className="relative flex-1 sm:w-64">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Tìm kiếm nhiệm vụ..."
+                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-[38px]"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-[500px] snap-x snap-mandatory
-                    scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+                <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-x-hidden md:overflow-x-auto pb-4 md:min-h-[500px]">
                     {KANBAN_COLUMNS.map(column => {
                         const colTasks = filteredTasks
                             .filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
@@ -237,7 +238,7 @@ export const Kanban = () => {
                         return (
                             <div
                                 key={column.id}
-                                className="flex-1 min-w-[85vw] sm:min-w-[300px] max-w-[85vw] sm:max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col snap-center shrink-0"
+                                className="flex-1 w-full md:min-w-[300px] md:max-w-[400px] bg-slate-50/50 rounded-2xl border border-slate-200 flex flex-col shrink-0 mb-4 md:mb-0"
                             >
                                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
@@ -282,14 +283,14 @@ export const Kanban = () => {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
-                                                                className={`bg-white p-3 rounded-lg shadow-sm border transition-all cursor-pointer group
+                                                                className={`bg-white p-3 md:p-4 rounded-xl shadow-sm border transition-all cursor-pointer group
                                                                     ${snapshot.isDragging ? 'shadow-xl border-indigo-400 rotate-1 scale-[1.02] z-50' : 'border-slate-200 hover:border-indigo-300 hover:shadow-md'}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
                                                                 <div className="flex justify-between items-start gap-4">
                                                                     <div className="flex-1 min-w-0">
-                                                                        <h4 className="font-bold text-slate-800 text-[13px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                                        <h4 className="font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
                                                                             {task.name}
                                                                         </h4>
                                                                         <div className="mt-1">
@@ -312,7 +313,7 @@ export const Kanban = () => {
                                                                             <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500" title={assignee?.full_name || 'Chưa gán'}>
                                                                                 {assignee?.full_name?.charAt(0) || '?'}
                                                                             </div>
-                                                                            <span className="text-[10px] font-semibold text-slate-500 truncate max-w-[70px]">
+                                                                            <span className="text-[11px] font-semibold text-slate-500 truncate max-w-[80px]">
                                                                                 {assignee?.full_name?.split(' ').pop() || 'Chưa gán'}
                                                                             </span>
                                                                         </div>

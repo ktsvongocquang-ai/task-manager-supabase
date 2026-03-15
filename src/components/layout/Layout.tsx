@@ -9,6 +9,7 @@ import {
     MessageSquare,
     RefreshCw,
     KeyRound,
+    Menu,
     Bell, // Added Bell icon
     History as HistoryIcon,
     Kanban as KanbanIcon,
@@ -46,6 +47,7 @@ export const Layout = () => {
     const location = useLocation()
     const [searchParams] = useSearchParams()
     const activeCrmTab = searchParams.get('tab') || 'DASHBOARD'
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
@@ -180,8 +182,16 @@ export const Layout = () => {
 
     return (
         <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter overflow-hidden">
-            {/* Sidebar - Pro Glassmorphism Style (Hidden on Mobile) */}
-            <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50">
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                ></div>
+            )}
+
+            {/* Sidebar - Pro Glassmorphism Style */}
+            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-6 border-b border-border-main">
                     <div className="flex items-center space-x-3 mb-6">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -232,6 +242,7 @@ export const Layout = () => {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className={() =>
                                     `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
@@ -263,118 +274,125 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0">
+            <main className="flex-1 lg:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0">
                 {/* Header */}
-                <header className="sticky top-0 bg-white border-b border-border-main z-40 px-6 py-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center space-x-4">
-                            <h2 className="text-xl font-bold text-gray-900 min-w-[150px]">{currentTitle()}</h2>
-
-                            {/* Horizontal Tabs for Task Views */}
-                            {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
-                                <div className="flex items-center ml-0 mt-3 md:mt-0 md:ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto max-w-[calc(100vw-48px)] md:max-w-none scrollbar-hide shrink-0">
-                                    <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Kanban
-                                    </NavLink>
-                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Danh sách
-                                    </NavLink>
-                                    <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Lịch trình
-                                    </NavLink>
-                                    <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Sơ đồ Gantt
-                                    </NavLink>
-                                    <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Dự án
-                                    </NavLink>
-                                    <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Dashboard
-                                    </NavLink>
-                                </div>
-                            )}
-
-                            {/* Horizontal Tabs for CRM Views */}
-                            {location.pathname === '/customers' && (
-                                <div className="flex items-center ml-0 mt-3 md:mt-0 md:ml-8 space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto max-w-[calc(100vw-48px)] md:max-w-none scrollbar-hide shrink-0">
-                                    {[
-                                        { id: 'DASHBOARD', name: 'Tổng quan' },
-                                        { id: 'CUSTOMERS', name: 'Khách hàng' },
-                                        { id: 'LEADS', name: 'KH Tiềm năng' },
-                                        { id: 'TASKS', name: 'Theo dõi Task' },
-                                        { id: 'PROJECTS', name: 'Dự án' },
-                                        { id: 'GANTT', name: 'Gantt Chart' },
-                                        { id: 'INVOICES', name: 'Hóa đơn' },
-                                        { id: 'ACTIVITY_LOG', name: 'Nhật ký' },
-                                    ].map(item => {
-                                        const isActive = activeCrmTab === item.id;
-                                        return (
-                                            <button
-                                                key={item.id}
-                                                onClick={() => navigate(`/customers?tab=${item.id}`)}
-                                                className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
-                                            >
-                                                {item.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center space-x-3 self-end md:self-auto">
-                            {/* Refresh Button */}
-                            <button
-                                onClick={handleRefresh}
-                                className={`p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
-                                title="Làm mới dữ liệu"
-                            >
-                                <RefreshCw size={18} strokeWidth={2.5} />
-                            </button>
-
-
-
-                            {/* Notification Bell */}
-                            <div className="relative">
+                <header className="sticky top-0 bg-white border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
+                    <div className="flex flex-col gap-3">
+                        {/* Top Row: Title & Actions */}
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center space-x-2 sm:space-x-4">
                                 <button
-                                    onClick={() => {
-                                        setIsNotifOpen(!isNotifOpen);
-                                        if (isChatOpen) setIsChatOpen(false);
-                                    }}
-                                    className="relative p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                                    onClick={() => setIsMobileMenuOpen(true)}
+                                    className="lg:hidden p-2 rounded-xl bg-gray-100 text-gray-600 shrink-0"
                                 >
-                                    <Bell size={18} strokeWidth={2.5} className="text-yellow-500 fill-yellow-500/20" />
-                                    {unreadNotifCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">
-                                            {unreadNotifCount}
-                                        </span>
-                                    )}
+                                    <Menu size={20} />
                                 </button>
-
-                                {isNotifOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-[60]" onClick={() => setIsNotifOpen(false)}></div>
-                                        <NotificationsDropdown
-                                            userId={profile?.id}
-                                            onClose={() => setIsNotifOpen(false)}
-                                            onCountChange={setUnreadNotifCount}
-                                        />
-                                    </>
-                                )}
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">{currentTitle()}</h2>
                             </div>
 
-                            {/* Global Chat Button */}
-                            <button
-                                onClick={() => {
-                                    setIsChatOpen(!isChatOpen);
-                                    if (isNotifOpen) setIsNotifOpen(false);
-                                }}
-                                className="relative p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
-                            >
-                                <MessageSquare size={18} strokeWidth={2.5} />
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
-                            </button>
+                            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                                {/* Refresh Button */}
+                                <button
+                                    onClick={handleRefresh}
+                                    className={`p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
+                                    title="Làm mới dữ liệu"
+                                >
+                                    <RefreshCw size={18} strokeWidth={2.5} />
+                                </button>
+
+                                {/* Notification Bell */}
+                                <div className="relative">
+                                    <button
+                                        onClick={() => {
+                                            setIsNotifOpen(!isNotifOpen);
+                                            if (isChatOpen) setIsChatOpen(false);
+                                        }}
+                                        className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                                    >
+                                        <Bell size={18} strokeWidth={2.5} className="text-yellow-500 fill-yellow-500/20" />
+                                        {unreadNotifCount > 0 && (
+                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">
+                                                {unreadNotifCount}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    {isNotifOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-[60]" onClick={() => setIsNotifOpen(false)}></div>
+                                            <NotificationsDropdown
+                                                userId={profile?.id}
+                                                onClose={() => setIsNotifOpen(false)}
+                                                onCountChange={setUnreadNotifCount}
+                                            />
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Global Chat Button */}
+                                <button
+                                    onClick={() => {
+                                        setIsChatOpen(!isChatOpen);
+                                        if (isNotifOpen) setIsNotifOpen(false);
+                                    }}
+                                    className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
+                                >
+                                    <MessageSquare size={18} strokeWidth={2.5} />
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
+                                </button>
+                            </div>
                         </div>
+
+                        {/* Bottom Row: Horizontal Tabs for Task Views */}
+                        {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
+                            <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Kanban
+                                </NavLink>
+                                <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Danh sách
+                                </NavLink>
+                                <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Lịch trình
+                                </NavLink>
+                                <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Sơ đồ Gantt
+                                </NavLink>
+                                <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Dự án
+                                </NavLink>
+                                <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                    Dashboard
+                                </NavLink>
+                            </div>
+                        )}
+
+                        {/* Horizontal Tabs for CRM Views */}
+                        {location.pathname === '/customers' && (
+                            <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                {[
+                                    { id: 'DASHBOARD', name: 'Tổng quan' },
+                                    { id: 'CUSTOMERS', name: 'Khách hàng' },
+                                    { id: 'LEADS', name: 'KH Tiềm năng' },
+                                    { id: 'TASKS', name: 'Theo dõi Task' },
+                                    { id: 'PROJECTS', name: 'Dự án' },
+                                    { id: 'GANTT', name: 'Gantt Chart' },
+                                    { id: 'INVOICES', name: 'Hóa đơn' },
+                                    { id: 'ACTIVITY_LOG', name: 'Nhật ký' },
+                                ].map(item => {
+                                    const isActive = activeCrmTab === item.id;
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => navigate(`/customers?tab=${item.id}`)}
+                                            className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            {item.name}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                 </header>
 

@@ -413,7 +413,7 @@ export const Projects = () => {
                         {/* Status badge in top left */}
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
-                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${getStatusBadge(project.status)}`}>
+                                <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
                                     {project.status}
                                 </span>
                                 {renderTrafficLight(project)}
