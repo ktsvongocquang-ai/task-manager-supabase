@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical, List, SlidersHorizontal, CheckCircle2, Clock, Folder } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
@@ -21,6 +21,7 @@ export const Tasks = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [initialTaskData, setInitialTaskData] = useState({ task_code: '', project_id: '' })
+    const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['Chưa bắt đầu', 'Đang thực hiện']))
 
     useEffect(() => {
         fetchAll()
@@ -121,6 +122,13 @@ export const Tasks = () => {
         if (next.has(id)) next.delete(id)
         else next.add(id)
         setExpandedProjects(next)
+    }
+
+    const toggleMobileGroup = (id: string) => {
+        const next = new Set(expandedMobileGroups)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        setExpandedMobileGroups(next)
     }
 
     const getStatusBadge = (status: string) => {
@@ -309,14 +317,45 @@ export const Tasks = () => {
         }
     }
 
+    const mobileGroups = [
+        { id: 'Chưa bắt đầu', label: 'Task cần làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')) },
+        { id: 'Đang thực hiện', label: 'Đang Làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Đang thực hiện') },
+        { id: 'Chờ duyệt', label: 'Chờ Duyệt', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Chờ duyệt') },
+        { id: 'Hoàn thành', label: 'Hoàn Thành', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')) }
+    ];
+
     if (loading) {
         return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
     }
 
     return (
         <div className="space-y-6 max-w-[1400px] mx-auto">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Mobile Header (Lark style) */}
+            <div className="md:hidden flex items-center justify-between mt-[-10px] mb-2 px-1 gap-2">
+                <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-colors shrink-0">
+                    <List size={22} />
+                </button>
+                <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
+                    <button 
+                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => setAssigneeFilter('')}
+                    >
+                        Tất cả
+                    </button>
+                    <button 
+                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => setAssigneeFilter(profile?.id || '')}
+                    >
+                        Của tôi
+                    </button>
+                </div>
+                <button className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-[#5B5FC7] rounded-full hover:bg-indigo-100 transition-colors shrink-0">
+                    <SlidersHorizontal size={20} />
+                </button>
+            </div>
+
+            {/* Desktop Header */}
+            <div className="hidden md:flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-xl font-bold text-slate-800 shrink-0">Quản lý nhiệm vụ</h1>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                     {profile?.role !== 'Nhân viên' && (
@@ -350,8 +389,8 @@ export const Tasks = () => {
                 </div>
             </div>
 
-            {/* Status Tabs - Circular style like screenshot */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {/* Status Tabs - Desktop Only */}
+            <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => (
                     <button
                         key={status}
@@ -371,8 +410,8 @@ export const Tasks = () => {
                 ))}
             </div>
 
-            {/* Grouped Tasks Table */}
-            <div className="space-y-4">
+            {/* Grouped Tasks Table - Desktop Only */}
+            <div className="hidden md:block space-y-4">
                 {Object.entries(groupedTasks).map(([projectId, projectTasks]) => {
                     const project = projects.find(p => p.id === projectId)
                     const isExpanded = expandedProjects.has(projectId)
@@ -810,6 +849,7 @@ export const Tasks = () => {
                                                     )
                                                 });
                                             })()}
+                                            {/* End Task Table Rows */}
                                         </DragDropContext>
                                     </table>
                                 </div>
@@ -818,6 +858,116 @@ export const Tasks = () => {
                     )
                 })}
             </div>
+
+            {/* End Desktop UI */}
+
+            {/* Mobile Accordion Task List (Lark style) */}
+            <div className="md:hidden space-y-3 pb-24">
+                {mobileGroups.map(group => {
+                    const isExpanded = expandedMobileGroups.has(group.id);
+                    return (
+                        <div key={group.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                            {/* Accordion Header */}
+                            <div 
+                                onClick={() => toggleMobileGroup(group.id)}
+                                className="px-4 py-3 flex items-center justify-between border-b border-slate-50 cursor-pointer active:bg-slate-50 transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-400">
+                                        {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                    </span>
+                                    <h3 className="font-bold text-slate-800 text-[15px]">{group.label}</h3>
+                                    {group.items.length > 0 && (
+                                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{group.items.length}</span>
+                                    )}
+                                </div>
+                                <button className="text-slate-400 p-1 hover:text-slate-600"><span className="tracking-widest leading-none font-bold">...</span></button>
+                            </div>
+                            
+                            {/* Accordion Content */}
+                            {isExpanded && (
+                                <div className="divide-y divide-slate-100/60">
+                                    {group.items.length === 0 ? (
+                                        <div className="p-6 text-center text-slate-400 text-sm italic font-medium">Chưa có bản ghi nào</div>
+                                    ) : (
+                                        group.items.map(task => {
+                                            const isCompleted = task.status?.includes('Hoàn thành');
+                                            const isLate = task.due_date && new Date(task.due_date) < new Date() && !isCompleted;
+                                            
+                                            return (
+                                                <div 
+                                                    key={task.id} 
+                                                    onClick={() => openEditModal(task)}
+                                                    className="p-4 flex gap-3 active:bg-slate-50 transition-colors cursor-pointer"
+                                                >
+                                                    {/* Quick Complete Checkbox */}
+                                                    <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                                        <div 
+                                                            onClick={() => toggleComplete(task)}
+                                                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors cursor-pointer shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-white'}`}
+                                                        >
+                                                            {isCompleted && <CheckCircle2 size={12} className="text-white" strokeWidth={4} />}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Task Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className={`text-[15px] font-bold leading-snug mb-1 truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                                                            {task.name}
+                                                        </h4>
+                                                        
+                                                        {/* Task Meta (Lark style) */}
+                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-2">
+                                                            {/* Due Date - Warning if late */}
+                                                            {task.due_date && (
+                                                                <div className={`flex items-center gap-1 text-[11px] font-bold ${isLate ? 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded' : isCompleted ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                                    <Clock size={12} />
+                                                                    {isLate ? `Đến hạn vào: ${format(parseISO(task.due_date), 'dd/MM/yyyy')}` : format(parseISO(task.due_date), 'dd/MM/yyyy')}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Assignee Avatar */}
+                                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                                                                <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600">
+                                                                    {getAssigneeName(task.assignee_id).charAt(0)}
+                                                                </div>
+                                                                <span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span>
+                                                            </div>
+                                                            
+                                                            {/* Project indicator */}
+                                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded mt-0.5 border border-slate-200/60">
+                                                                <Folder size={10} />
+                                                                <span className="truncate max-w-[80px]">{getProjectCode(task.project_id)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    
+                                    {/* Add Task Button per group */}
+                                    <div 
+                                        onClick={() => openAddModal()}
+                                        className="p-3 text-center text-sm font-medium text-slate-400 hover:text-[#5B5FC7] hover:bg-slate-50 cursor-pointer transition-colors"
+                                    >
+                                        Thêm nhiệm vụ
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Mobile FAB */}
+            <button
+                onClick={() => openAddModal()}
+                className="md:hidden fixed bottom-24 right-5 w-14 h-14 bg-[#4A62D7] hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-[0_8px_16px_rgba(74,98,215,0.4)] transition-transform active:scale-90 z-50 focus:outline-none"
+            >
+                <Plus size={28} strokeWidth={2.5} />
+            </button>
+
 
             {/* Modal */}
             <AddEditTaskModal

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { Plus, Trash2 } from 'lucide-react'
@@ -524,8 +524,8 @@ export const Gantt = () => {
                 </button>
             </div>
 
-            {/* Gantt Grid Container */}
-            <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            {/* Desktop Gantt Grid Container */}
+            <div className="hidden md:block bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
                 <div className="max-h-[600px] overflow-auto relative">
                     <div className="min-w-max">
                         {/* Day Headers - Themed background like screenshot */}
@@ -848,6 +848,74 @@ export const Gantt = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile List Timeline View */}
+            <div className="md:hidden space-y-4 px-1">
+                {ganttItems.filter(item => item.type === 'project').length === 0 ? (
+                    <div className="py-24 text-center bg-slate-50/30 rounded-3xl border border-slate-200">
+                        <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <Calendar size={32} className="text-slate-300" />
+                        </div>
+                        <p className="text-sm font-bold text-slate-400">Không có dữ liệu hiển thị</p>
+                    </div>
+                ) : (
+                    ganttItems.filter(item => item.type === 'project').map(item => {
+                        const projectPhases = ganttItems.filter(p => p.type === 'phase' && p.projectCode === item.projectCode);
+                        const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM/yyyy') : '';
+                        const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM/yyyy') : '';
+                        const totalDays = (item.startDate && item.endDate) ? Math.max(1, Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
+                        
+                        return (
+                            <div key={item.id} className="bg-white rounded-[24px] shadow-sm border border-[#e0e4db] p-5">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex-1 min-w-0 pr-3">
+                                        <h3 className="font-bold text-slate-800 text-sm md:text-base leading-tight uppercase truncate">{item.name}</h3>
+                                        <div className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">Mã DA: {item.projectCode}</div>
+                                    </div>
+                                    <div className="bg-[#4a80bc]/10 text-[#4a80bc] px-2 py-1 rounded-lg text-[10px] font-black shrink-0 shadow-sm">
+                                        {totalDays} ngày
+                                    </div>
+                                </div>
+                                
+                                <div className="flex justify-between items-center text-[10px] font-black tracking-widest text-slate-500 mb-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-slate-400 text-[8px] mb-0.5">BẮT ĐẦU</span>
+                                        <span className="text-slate-700">{formattedStart || '—'}</span>
+                                    </div>
+                                    <ArrowRight size={14} className="text-slate-300" />    
+                                    <div className="flex flex-col items-end">
+                                        <span className="text-slate-400 text-[8px] mb-0.5">KẾT THÚC</span>
+                                        <span className="text-slate-700">{formattedEnd || '—'}</span>
+                                    </div>
+                                </div>
+                                
+                                {/* Phased/Tasks summary */}
+                                {projectPhases.length > 0 && (
+                                    <div className="space-y-2 mt-2 pt-4 border-t border-slate-100">
+                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Các giai đoạn</h4>
+                                        {projectPhases.map(phase => {
+                                            const phaseStart = phase.startDate ? format(new Date(phase.startDate), 'dd/MM') : '';
+                                            const phaseEnd = phase.endDate ? format(new Date(phase.endDate), 'dd/MM') : '';
+                                            const isDone = phase.task?.status?.includes('Hoàn thành');
+                                            return (
+                                                <div key={phase.id} className={`rounded-xl p-3 border transition-colors ${isDone ? 'bg-slate-50 border-slate-100' : 'bg-white border-blue-100 shadow-sm ring-1 ring-blue-50'}`}>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <h4 className={`text-xs font-bold line-clamp-2 pr-2 ${isDone ? 'text-slate-500' : 'text-slate-700'}`}>{phase.name}</h4>
+                                                        <span className={`shrink-0 text-[9px] font-bold whitespace-nowrap px-1.5 py-0.5 rounded flex items-center gap-1 ${isDone ? 'text-slate-400 bg-white border border-slate-200' : 'text-slate-600 bg-slate-50 border border-slate-200'}`}>
+                                                            {isDone && <CheckCircle2 size={10} className="text-emerald-500" />}
+                                                            {phaseStart} - {phaseEnd}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    })
+                )}
             </div>
 
             {/* Completion Confirmation Modal */}

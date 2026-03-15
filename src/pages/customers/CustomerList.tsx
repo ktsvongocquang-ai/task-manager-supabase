@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Search, Filter, Plus, Phone, Facebook, Sparkles, Edit2, Trash2, CheckSquare, FileText } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import CustomerModal from './components/CustomerModal';
+import { SmartCard } from '../../components/layout/SmartCard';
 
 const initialMockCustomers = [
   { 
@@ -172,8 +173,25 @@ export default function CustomerList() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto min-h-[400px]">
+          {/* Mobile Card View */}
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+            {customers.map((customer) => (
+              <SmartCard
+                key={customer.id}
+                id={customer.id.toString()}
+                title={customer.namePhone.split('-')[0]?.trim()}
+                subtitle={customer.namePhone.split('-')[1]?.trim() || '-'}
+                status={customer.status}
+                avatarInitials={customer.namePhone.split('-')[0]?.trim().charAt(0)}
+                progress={customer.checklist ? (customer.checklist.length / 5) * 100 : 0}
+                onSwipeLeft={() => handleOpenModal(customer)}
+              />
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <table className="hidden md:table w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[250px]">Khách hàng</th>

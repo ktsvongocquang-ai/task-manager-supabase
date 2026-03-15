@@ -1,6 +1,7 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { CheckCircle2, Clock, AlertCircle, Plus, Search, Filter } from 'lucide-react';
+import { SmartCard } from '../../components/layout/SmartCard';
 
 const taskStatusData = [
   { name: 'Hoàn thành', value: 45, color: '#22c55e' },
@@ -105,8 +106,29 @@ export default function TaskTracking() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="flex-1 overflow-x-auto min-h-[400px]">
+            {/* Mobile Card View */}
+            <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+              {mockTasks.map((task) => (
+                <SmartCard
+                  key={task.id}
+                  id={task.id}
+                  title={task.title}
+                  subtitle={task.lead}
+                  status={task.status}
+                  statusColor={
+                    task.status === 'Hoàn thành' ? 'bg-green-100 text-green-800 border-green-200' :
+                    task.status === 'Đang xử lý' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                    task.status === 'Quá hạn' ? 'bg-red-100 text-red-800 border-red-200' :
+                    'bg-gray-100 text-gray-800 border-gray-200'
+                  }
+                  avatarInitials={task.assignee.charAt(0)}
+                  deadline={`Hạn: ${task.dueDate}`}
+                />
+              ))}
+            </div>
+
+            <table className="hidden md:table w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Task</th>

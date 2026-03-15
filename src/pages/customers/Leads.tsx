@@ -1,5 +1,6 @@
 
 import { Search, Filter, Plus, MoreVertical, Mail, Phone, ExternalLink } from 'lucide-react';
+import { SmartCard } from '../../components/layout/SmartCard';
 
 const mockLeads = [
   { id: 'LD-001', name: 'Nguyễn Văn F', email: 'nguyenvanf@example.com', phone: '0956789012', source: 'Facebook Ads', score: 85, status: 'Mới', date: '2023-10-26' },
@@ -36,8 +37,29 @@ export default function Leads() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto min-h-[400px]">
+          {/* Mobile Card View */}
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+            {mockLeads.map((lead) => (
+              <SmartCard
+                key={lead.id}
+                id={lead.id}
+                title={lead.name}
+                subtitle={lead.phone}
+                status={lead.status}
+                statusColor={
+                  lead.status === 'Mới' ? 'bg-cyan-100 text-cyan-800 border-cyan-200' :
+                  lead.status === 'Đã liên hệ' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                  lead.status === 'Tiềm năng cao' ? 'bg-green-100 text-green-800 border-green-200' :
+                  'bg-gray-100 text-gray-800 border-gray-200'
+                }
+                avatarInitials={lead.name.charAt(0)}
+                progress={lead.score}
+              />
+            ))}
+          </div>
+
+          <table className="hidden md:table w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead</th>

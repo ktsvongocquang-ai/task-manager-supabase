@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Search, Filter, Plus, MoreVertical, Users, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import ProjectModal from './components/ProjectModal';
+import { SmartCard } from '../../components/layout/SmartCard';
 
 const initialMockProjects = [
   {
@@ -140,8 +141,31 @@ export default function Projects() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto min-h-[400px]">
+          {/* Mobile Card View */}
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+            {projects.map((project) => (
+              <SmartCard
+                key={project.id}
+                id={project.id.toString()}
+                title={project.name}
+                subtitle={`${project.client} - ${project.contractStatus || project.status}`}
+                status={project.status}
+                statusColor={
+                  project.status === 'Hoàn thành' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                  project.status === 'Đang thi công' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                  project.status === 'Đang thiết kế' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                  'bg-yellow-100 text-yellow-700 border-yellow-200'
+                }
+                avatarInitials={project.client.charAt(0)}
+                progress={((project.payments?.length || 0) / 4) * 100}
+                deadline={`Hạn: ${project.deadline}`}
+                onClick={() => handleOpenModal(project)}
+              />
+            ))}
+          </div>
+
+          <table className="hidden md:table w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dự án</th>
