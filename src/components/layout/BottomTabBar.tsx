@@ -15,7 +15,7 @@ export const BottomTabBar = () => {
             return { name: 'Thi Công', path: '/construction', icon: HardHat };
         }
         if (role === 'Marketing') {
-            return { name: 'Ds công việc', path: '/marketing', icon: Kanban };
+            return { name: 'Nội dung làm', path: '/marketing?tab=kanban', icon: Kanban };
         }
         if (role === 'Thiết Kế') {
             return { name: 'Ý tưởng', path: '/moodboard', icon: LayoutTemplate };
@@ -28,7 +28,7 @@ export const BottomTabBar = () => {
     const getDynamicProjectTab = () => {
         const role = profile?.role?.trim();
         if (role === 'Marketing') {
-            return { name: 'Tiến độ dự án', path: '/marketing?tab=posts', icon: Folder };
+            return { name: 'Tổng hợp', path: '/marketing?tab=progress', icon: Folder };
         }
         
         return { name: 'Dự án', path: '/projects', icon: Folder };
@@ -42,16 +42,16 @@ export const BottomTabBar = () => {
             <div className="flex justify-around items-center h-16 px-2">
                 {/* 1. Dashboard / Home Tab */}
                 <NavLink 
-                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=guidelines' : '/dashboard'} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=posts' : '/dashboard'} 
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
-                        const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines');
+                        const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
                         return (
                             <>
                                 <Home size={22} strokeWidth={isActive || isMarketingHomeMatch ? 2.5 : 2} />
                                 <span className="text-[10px] font-bold truncate">
-                                    {profile?.role?.trim() === 'Marketing' ? 'TH bài đăng' : 'Tổng quan'}
+                                    Tổng quan
                                 </span>
                             </>
                         )
@@ -77,10 +77,10 @@ export const BottomTabBar = () => {
                 {/* 3. Dynamic Project Tab (Dự án / Tổng hợp bài đăng...) */}
                 <NavLink 
                     to={projectTab.path} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
-                        const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
+                        const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress');
                         return (
                             <>
                                 <projectTab.icon size={22} strokeWidth={isActive || isMarketingProjectMatch ? 2.5 : 2} />
@@ -92,17 +92,17 @@ export const BottomTabBar = () => {
 
                 {/* 4. Profile / Calendar Tab */}
                 <NavLink 
-                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=calendar' : (profile?.role === 'Admin' ? '/users' : '/profile')} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=calendar')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=guidelines' : (profile?.role === 'Admin' ? '/users' : '/profile')} 
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
-                        const isMarketingProfileMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=calendar');
+                        const isMarketingProfileMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines');
                         const Icon = profile?.role?.trim() === 'Marketing' ? Calendar : User;
                         return (
                             <>
                                 <Icon size={22} strokeWidth={isActive || isMarketingProfileMatch ? 2.5 : 2} />
                                 <span className="text-[10px] font-bold truncate">
-                                    {profile?.role?.trim() === 'Marketing' ? 'Quy chuẩn' : 'Tài khoản'}
+                                    Tài khoản
                                 </span>
                             </>
                         )
