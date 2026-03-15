@@ -75,7 +75,10 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave }: 
                         >
                             <option value="Admin">Admin</option>
                             <option value="Quản lý">Quản lý</option>
-                            <option value="Nhân viên">Nhân viên</option>
+                            <option value="Thiết Kế">Thiết Kế</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Sale">Sale</option>
+                            <option value="Giám Sát">Giám Sát</option>
                         </select>
                     </div>
                     <div>

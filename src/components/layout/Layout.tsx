@@ -423,11 +423,11 @@ export const Layout = () => {
                     <div className="flex flex-col gap-3">
                         {/* Top Row: Title & Actions */}
                         <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center space-x-2 sm:space-x-4">
+                            <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
                                 <button onClick={() => setIsLauncherOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
                                     <Rocket className="text-white" size={16} />
                                 </button>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate max-w-[150px] sm:max-w-[200px] md:max-w-none">{currentTitle()}</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{currentTitle()}</h2>
                             </div>
 
                             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">

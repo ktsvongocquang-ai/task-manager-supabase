@@ -60,6 +60,7 @@ export const Dashboard = () => {
     const [allProfiles, setAllProfiles] = useState<any[]>([])
     const [taskForm, setTaskForm] = useState(emptyTaskForm)
     const [assigneeFilter, setAssigneeFilter] = useState('')
+    const [monthFilter, setMonthFilter] = useState('') // YYYY-MM
 
     useEffect(() => { 
         fetchDashboardData();
@@ -80,7 +81,7 @@ export const Dashboard = () => {
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [profile, assigneeFilter])
+    }, [profile, assigneeFilter, monthFilter])
 
     const fetchDashboardData = async () => {
         try {
@@ -116,6 +117,13 @@ export const Dashboard = () => {
                 fetchedTasks = fetchedTasks.filter(t =>
                     directlyMatchedTaskIds.has(t.id) || parentIdsToKeep.has(t.id) || (t.parent_id && directlyMatchedTaskIds.has(t.parent_id))
                 );
+            }
+
+            if (monthFilter) {
+                fetchedTasks = fetchedTasks.filter(t => {
+                    const dateToUse = t.due_date || t.start_date || t.created_at || '';
+                    return dateToUse.startsWith(monthFilter);
+                });
             }
 
             setAllTasks(fetchedTasks)
@@ -288,18 +296,39 @@ export const Dashboard = () => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Dashboard Filter */}
-            <div className="flex items-center gap-3">
-                <span className="text-sm font-bold text-slate-700">Lọc chủ trì:</span>
-                <select
-                    value={assigneeFilter}
-                    onChange={(e) => setAssigneeFilter(e.target.value)}
-                    className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 max-w-[250px]"
-                >
-                    <option value="">Tất cả / Từng nhân sự</option>
-                    {allProfiles.map(p => (
-                        <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
-                    ))}
-                </select>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-slate-700">Lọc chủ trì:</span>
+                    <select
+                        value={assigneeFilter}
+                        onChange={(e) => setAssigneeFilter(e.target.value)}
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 max-w-[200px]"
+                    >
+                        <option value="">Tất cả / Từng nhân sự</option>
+                        {allProfiles.map(p => (
+                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                        ))}
+                    </select>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-slate-700">Tháng:</span>
+                    <input
+                        type="month"
+                        value={monthFilter}
+                        onChange={(e) => setMonthFilter(e.target.value)}
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-600 uppercase"
+                    />
+                </div>
+
+                {(assigneeFilter || monthFilter) && (
+                    <button 
+                        onClick={() => { setAssigneeFilter(''); setMonthFilter(''); }}
+                        className="text-xs text-rose-500 font-bold hover:underline px-2 py-1 bg-rose-50 rounded-lg border border-rose-100"
+                    >
+                        ✕ Xóa bộ lọc
+                    </button>
+                )}
             </div>
 
             {/* Pro Stats Cards */}

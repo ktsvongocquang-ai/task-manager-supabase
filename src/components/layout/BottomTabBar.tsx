@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Kanban, User, Video, HardHat, HeartHandshake, LayoutTemplate, Folder } from 'lucide-react';
+import { Home, Kanban, User, HardHat, HeartHandshake, LayoutTemplate, Folder } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 export const BottomTabBar = () => {
@@ -16,7 +16,7 @@ export const BottomTabBar = () => {
             return { name: 'Thi Công', path: '/construction', icon: HardHat };
         }
         if (role === 'Quản lý Marketing' || dept === 'Marketing') {
-            return { name: 'Marketing', path: '/marketing', icon: Video };
+            return { name: 'Công việc', path: '/marketing', icon: Kanban };
         }
         if (role === 'Nhân viên Thiết kế' || dept === 'Thiết kế') {
             return { name: 'Ý tưởng', path: '/moodboard', icon: LayoutTemplate };
@@ -26,7 +26,19 @@ export const BottomTabBar = () => {
         return { name: 'Công việc', path: '/tasks', icon: Kanban };
     };
 
+    const getDynamicProjectTab = () => {
+        const role = profile?.role;
+        const dept = profile?.position;
+
+        if (role === 'Quản lý Marketing' || dept === 'Marketing') {
+            return { name: 'Bài đăng', path: '/marketing?tab=posts', icon: Folder };
+        }
+        
+        return { name: 'Dự án', path: '/projects', icon: Folder };
+    };
+
     const actionTab = getDynamicActionTab();
+    const projectTab = getDynamicProjectTab();
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[60] lg:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
@@ -57,13 +69,13 @@ export const BottomTabBar = () => {
                 </NavLink>
 
                 <NavLink 
-                    to="/projects" 
+                    to={projectTab.path} 
                     className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => (
                         <>
-                            <Folder size={22} strokeWidth={isActive ? 2.5 : 2} />
-                            <span className="text-[10px] font-bold truncate">Dự án</span>
+                            <projectTab.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                            <span className="text-[10px] font-bold truncate">{projectTab.name}</span>
                         </>
                     )}
                 </NavLink>

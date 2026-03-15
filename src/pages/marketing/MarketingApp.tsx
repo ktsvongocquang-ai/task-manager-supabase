@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useSearchParams } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
 import { SmartCard } from '../../components/layout/SmartCard';
 import { BottomSheet } from '../../components/layout/BottomSheet';
@@ -245,8 +246,11 @@ const PLATFORM_DATA = [
 ];
 
 export default function MarketingApp() {
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'posts' ? 'LIST' : 'KANBAN';
+
   const [videos, setVideos] = useState(initialVideos);
-  const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>('WORKFLOW');
+  const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(initialTab);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 10, 1)); // November 2024 to match mock data
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -257,6 +261,16 @@ export default function MarketingApp() {
   const [selectedVideo, setSelectedVideo] = useState<typeof videos[0] | null>(null);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
+
+  // Sync view when URL changes (e.g., clicking bottom tabs while already in /marketing)
+  React.useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'posts') {
+      setView('LIST');
+    } else if (!tab) {
+      setView('KANBAN');
+    }
+  }, [searchParams]);
 
   const toggleCard = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();

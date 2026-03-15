@@ -83,9 +83,16 @@ export const Users = () => {
                                 }
                             })
                         });
+                        const resText = await res.text();
                         if (!res.ok) {
-                            const errData = await res.json();
-                            throw new Error(errData.error || res.statusText);
+                            let errMsg = res.statusText;
+                            try {
+                                const errData = JSON.parse(resText);
+                                errMsg = errData.error || res.statusText;
+                            } catch (e) {
+                                // Ignore JSON parse error, use fallback
+                            }
+                            throw new Error(errMsg);
                         }
                     } catch (passwordError: any) {
                         console.error('Update password error:', passwordError)
@@ -113,12 +120,20 @@ export const Users = () => {
                             }
                         })
                     });
-                    if (!res.ok) {
-                        const errData = await res.json();
-                        throw new Error(errData.error || res.statusText);
+                    
+                    const resText = await res.text();
+                    let data: any = {};
+                    try {
+                         data = JSON.parse(resText);
+                    } catch (e) {
+                         // Ignore JSON parse error
                     }
-                    const data = await res.json();
-                    newUserId = data.user.id;
+
+                    if (!res.ok) {
+                        throw new Error(data.error || res.statusText || 'Vercel API error (bạn đang chạy dev mode?)');
+                    }
+                    
+                    newUserId = data.user?.id;
                 } catch (authError: any) {
                     console.error('Sign up error:', authError)
                     alert(`Lỗi tạo tài khoản: ${authError.message}`)

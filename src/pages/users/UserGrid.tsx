@@ -10,9 +10,13 @@ interface UserGridProps {
 
 export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGridProps) => {
     const getRoleBrand = (role: string) => {
-        if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
-        if (role === 'Quản lý') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager' }
-        return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee' }
+        if (role === 'Admin') return { color: 'bg-orange-500', text: 'text-orange-500', badge: 'bg-orange-50 text-orange-600 border border-orange-200' }
+        if (role === 'Quản lý') return { color: 'bg-blue-500', text: 'text-blue-500', badge: 'bg-blue-50 text-blue-600 border border-blue-200' }
+        if (role === 'Thiết Kế') return { color: 'bg-indigo-500', text: 'text-indigo-500', badge: 'bg-indigo-50 text-indigo-600 border border-indigo-200' }
+        if (role === 'Marketing') return { color: 'bg-pink-500', text: 'text-pink-500', badge: 'bg-pink-50 text-pink-600 border border-pink-200' }
+        if (role === 'Sale') return { color: 'bg-emerald-500', text: 'text-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border border-emerald-200' }
+        if (role === 'Giám Sát') return { color: 'bg-amber-500', text: 'text-amber-500', badge: 'bg-amber-50 text-amber-600 border border-amber-200' }
+        return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' } // Default
     }
 
     const getInitials = (name: string) => {
