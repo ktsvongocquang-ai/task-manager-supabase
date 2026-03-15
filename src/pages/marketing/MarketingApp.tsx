@@ -16,7 +16,10 @@ import {
   MessageCircle,
   GanttChartSquare,
   X,
-  Archive
+  Archive,
+  ChevronDown,
+  ChevronRight,
+  List
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -24,6 +27,7 @@ import { useSearchParams } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
 import { SmartCard } from '../../components/layout/SmartCard';
 import { BottomSheet } from '../../components/layout/BottomSheet';
+import { useAuthStore } from '../../store/authStore';
 
 // Mock Data based on the Google Doc workflow
 const initialVideos = [
@@ -174,19 +178,19 @@ const initialVideos = [
 ];
 
 const COLUMNS = [
-  { id: 'COL_IDEA', name: 'Idea đề xuất', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-  { id: 'COL_CONTENT', name: 'Soạn thảo content', color: 'bg-blue-50 border-blue-200 text-blue-800' },
-  { id: 'COL_PROD', name: 'Sản xuất Video', color: 'bg-purple-50 border-purple-200 text-purple-800' },
-  { id: 'COL_DONE', name: 'Hoàn thành', color: 'bg-green-50 border-green-200 text-green-800' }
+  { id: 'COL_IDEA', name: 'idea', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
+  { id: 'COL_CONTENT', name: 'Viết contetn', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+  { id: 'COL_PROD', name: 'sản xuất', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+  { id: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-green-50 border-green-200 text-green-800' }
 ];
 
 const STATUS_MAP: Record<string, { col: string, name: string, color: string }> = {
-  IDEA: { col: 'COL_IDEA', name: 'Idea đề xuất', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+  IDEA: { col: 'COL_IDEA', name: 'idea', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   CONTENT_EDITING: { col: 'COL_CONTENT', name: 'Đang soạn thảo', color: 'bg-blue-100 text-blue-800 border-blue-200' },
   CONTENT_DONE: { col: 'COL_CONTENT', name: 'Chờ duyệt', color: 'bg-orange-100 text-orange-800 border-orange-200' },
-  PROD_DOING: { col: 'COL_PROD', name: 'Đang sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+  PROD_DOING: { col: 'COL_PROD', name: 'sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200' },
   PROD_DONE: { col: 'COL_PROD', name: 'Đã xong', color: 'bg-green-100 text-green-800 border-green-200' },
-  VIDEO_REVIEW: { col: 'COL_DONE', name: 'Cần phê duyệt', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+  VIDEO_REVIEW: { col: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-orange-100 text-orange-800 border-orange-200' },
   SCHEDULED: { col: 'COL_SCHEDULE', name: 'Chưa đăng', color: 'bg-gray-100 text-gray-800 border-gray-200' },
   PUBLISHED: { col: 'COL_SCHEDULE', name: 'Đã đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200' }
@@ -246,11 +250,27 @@ const PLATFORM_DATA = [
 ];
 
 export default function MarketingApp() {
-  const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'posts' ? 'LIST' : 'KANBAN';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab');
+  
+  const getInitialView = () => {
+    switch(initialTab) {
+      case 'guidelines': return 'WORKFLOW';
+      case 'kanban': return 'KANBAN';
+      case 'posts': return 'LIST';
+      case 'calendar': return 'CALENDAR';
+      case 'progress': return 'TIMELINE';
+      case 'archive': return 'ARCHIVE';
+      default: return 'KANBAN';
+    }
+  };
 
   const [videos, setVideos] = useState(initialVideos);
-  const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(initialTab);
+  const { profile } = useAuthStore();
+  const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
+  
+  const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 10, 1)); // November 2024 to match mock data
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -262,15 +282,36 @@ export default function MarketingApp() {
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
 
-  // Sync view when URL changes (e.g., clicking bottom tabs while already in /marketing)
+  // Sync view when URL changes
   React.useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'posts') {
-      setView('LIST');
-    } else if (!tab) {
-      setView('KANBAN');
+    if (tab) {
+      setView(getInitialView());
     }
   }, [searchParams]);
+
+  const handleViewChange = (newView: typeof view) => {
+    setView(newView);
+    // Update URL sync mapping
+    const tabMap: Record<string, string> = {
+      'WORKFLOW': 'guidelines',
+      'KANBAN': 'kanban',
+      'LIST': 'posts',
+      'CALENDAR': 'calendar',
+      'TIMELINE': 'progress',
+      'ARCHIVE': 'archive'
+    };
+    if (tabMap[newView]) {
+      setSearchParams({ tab: tabMap[newView] }, { replace: true });
+    }
+  };
+
+  const toggleMobileGroup = (id: string) => {
+    const next = new Set(expandedMobileGroups);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpandedMobileGroups(next);
+  };
 
   const toggleCard = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -294,40 +335,60 @@ export default function MarketingApp() {
             <p className="text-sm text-gray-500 mt-1 truncate">Quy trình phối hợp DQH & Team Coach Hiếu</p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar shrink-0">
-            <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
+            {/* Mobile Dropdown View Selector */}
+            <div className="md:hidden w-full relative">
+              <select 
+                value={view}
+                onChange={(e) => handleViewChange(e.target.value as any)}
+                className="w-full appearance-none bg-white border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all pr-10"
+              >
+                <option value="WORKFLOW">Quy chuẩn làm việc</option>
+                <option value="KANBAN">Bảng công việc</option>
+                <option value="LIST">Tổng hợp bài đăng</option>
+                <option value="CALENDAR">Lịch đăng bài</option>
+                <option value="TIMELINE">Tiến độ dự án</option>
+                <option value="ARCHIVE">Lưu trữ</option>
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
+
+            {/* Desktop Horizontal Tabs */}
+            <div className="hidden md:flex bg-gray-100 p-1 rounded-lg shrink-0">
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('WORKFLOW')}
+                onClick={() => handleViewChange('WORKFLOW')}
               >
                 Quy chuẩn làm việc
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'KANBAN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('KANBAN')}
+                onClick={() => handleViewChange('KANBAN')}
               >
                 Bảng công việc
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'LIST' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('LIST')}
+                onClick={() => handleViewChange('LIST')}
               >
                 Tổng hợp bài đăng
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'CALENDAR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('CALENDAR')}
+                onClick={() => handleViewChange('CALENDAR')}
               >
                 Lịch đăng bài
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'TIMELINE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('TIMELINE')}
+                onClick={() => handleViewChange('TIMELINE')}
               >
                 Tiến độ dự án
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'ARCHIVE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                onClick={() => setView('ARCHIVE')}
+                onClick={() => handleViewChange('ARCHIVE')}
               >
                 Lưu trữ
               </button>
@@ -345,18 +406,48 @@ export default function MarketingApp() {
         {/* Optional Secondary Header for Kanban Filters */}
         {view === 'KANBAN' && (
           <div className="flex flex-col gap-2 min-w-0 w-full mb-2">
-            <div className="flex justify-end w-full min-w-0">
+            
+            {/* Mobile Kanban Header (Lark style) */}
+            <div className="md:hidden flex items-center justify-between mt-[-5px] mb-2 px-1 gap-2">
+              <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-colors shrink-0">
+                  <List size={22} />
+              </button>
+              <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
+                  <button 
+                      className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      onClick={() => setAssigneeFilter('')}
+                  >
+                      Tất cả
+                  </button>
+                  <button 
+                      className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                      onClick={() => setAssigneeFilter(profile?.id || '')}
+                  >
+                      Của tôi
+                  </button>
+              </div>
+              <button 
+                  onClick={() => setView('CALENDAR')} 
+                  className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-[#5B5FC7] rounded-full hover:bg-indigo-100 transition-colors shadow-sm shrink-0 flex-col gap-0.5"
+                  title="Xem lịch đăng"
+              >
+                  <CalendarIcon size={16} />
+                  <span className="text-[7px] font-bold leading-none uppercase">lịch đăng</span>
+              </button>
+            </div>
+
+            <div className="hidden md:flex justify-end w-full min-w-0">
               <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto hide-scrollbar pb-1 sm:pb-0">
                 <button onClick={() => setShowKanbanFilters(!showKanbanFilters)} className={`flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md text-xs font-medium transition-colors shrink-0 whitespace-nowrap ${showKanbanFilters ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
                   <Filter className="w-3.5 h-3.5" /> Lọc
                 </button>
                 <button onClick={() => setView('CALENDAR')} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors shrink-0 whitespace-nowrap">
-                  <CalendarIcon className="w-3.5 h-3.5" /> Lịch
+                  <CalendarIcon className="w-3.5 h-3.5" /> lịch đăng
                 </button>
               </div>
             </div>
             {showKanbanFilters && (
-              <div className="flex flex-wrap items-center gap-3 pt-2 text-sm min-w-0">
+              <div className="hidden md:flex flex-wrap items-center gap-3 pt-2 text-sm min-w-0">
                 <div className="inline-flex overflow-x-auto hide-scrollbar bg-white border border-gray-200 p-1 rounded-lg shadow-sm max-w-full">
                   {['Tất cả', 'Theo Tuần', 'Theo Tháng', 'Theo Quý', 'Theo Năm'].map(filter => (
                     <button
@@ -388,13 +479,18 @@ export default function MarketingApp() {
 
       {view === 'KANBAN' ? (
         <>
-           {/* Kanban Board */}
-           <div className="flex-1 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 md:min-h-[500px]">
+           {/* Desktop Kanban Board */}
+           <div className="hidden md:flex flex-1 gap-4 overflow-x-auto snap-x snap-mandatory pb-4 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 md:min-h-[500px]">
               {COLUMNS.map(column => {
                 const columnVideos = videos.filter(v => {
                   if (STATUS_MAP[v.status]?.col !== column.id) return false;
                   
                   // Apply filters if they are active
+                  if (assigneeFilter && profile && assigneeFilter === profile.id) {
+                     // In mock data, assignee is a name. Profile has full_name.
+                     if (v.assignee !== profile.full_name) return false;
+                  }
+                  
                   if (listTimeFilter !== 'Tất cả') {
                     if (!v.dueDate) return false;
                     const date = new Date(v.dueDate);
@@ -687,6 +783,136 @@ export default function MarketingApp() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Mobile Accordion Task List (Lark style) */}
+            <div className="md:hidden pb-24 border-y border-slate-200 mt-2 bg-white">
+                {COLUMNS.map((column, index) => {
+                    const isExpanded = expandedMobileGroups.has(column.id);
+                    const isLast = index === COLUMNS.length - 1;
+                    
+                    const columnVideos = videos.filter(v => {
+                        if (STATUS_MAP[v.status]?.col !== column.id) return false;
+                        if (assigneeFilter && profile && assigneeFilter === profile.id && v.assignee !== profile.full_name) return false;
+                        if (listTimeFilter !== 'Tất cả') {
+                            if (!v.dueDate) return false;
+                            const date = new Date(v.dueDate);
+                            const today = new Date();
+                            if (listTimeFilter === 'Theo Tuần' && !isSameWeek(date, today, { weekStartsOn: 1 })) return false;
+                            if (listTimeFilter === 'Theo Tháng' && !isSameMonth(date, today)) return false;
+                            if (listTimeFilter === 'Theo Quý' && !isSameQuarter(date, today)) return false;
+                            if (listTimeFilter === 'Theo Năm' && !isSameYear(date, today)) return false;
+                        }
+                        if (formatFilter !== 'Tất cả' && v.format !== formatFilter) return false;
+                        return true;
+                    });
+
+                    const activeVideos = columnVideos.filter((v: any) => !v.isArchived);
+
+                    return (
+                        <div key={column.id} className={`bg-white overflow-hidden flex flex-col ${!isLast ? 'border-b border-slate-100' : ''}`}>
+                            {/* Accordion Header */}
+                            <div 
+                                onClick={() => toggleMobileGroup(column.id)}
+                                className={`p-4 flex items-center justify-between bg-white cursor-pointer active:bg-slate-50 transition-colors ${isExpanded ? 'border-b border-slate-100' : ''}`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-slate-700">{column.name}</h3>
+                                    {activeVideos.length > 0 && (
+                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">{activeVideos.length}</span>
+                                    )}
+                                </div>
+                                <span className="text-slate-400 shrink-0">
+                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                </span>
+                            </div>
+                            
+                            {/* Accordion Content */}
+                            {isExpanded && (
+                                <div className="p-3 space-y-3 bg-[#f8fafc]">
+                                    {activeVideos.length === 0 ? (
+                                        <div className="p-4 text-center text-slate-400 text-sm italic font-medium bg-transparent">Chưa có bản ghi nào</div>
+                                    ) : (
+                                        activeVideos.map(video => {
+                                            const statusDef = STATUS_MAP[video.status];
+                                            const isIdeaCol = column.id === 'COL_IDEA';
+                                            const isCardExpanded = expandedCards[video.id];
+                                            
+                                            // The same card design used in desktop but optimized width
+                                            return (
+                                              <div 
+                                                key={video.id} 
+                                                onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
+                                                className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 active:border-indigo-300 transition-all cursor-pointer flex flex-col gap-3"
+                                              >
+                                                <div className="flex justify-between items-start mb-2">
+                                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color}`}>
+                                                      {statusDef?.name}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center bg-gray-100 text-gray-600`}>
+                                                      {video.priority}
+                                                    </span>
+                                                    {!isIdeaCol && (
+                                                      <button className="text-gray-400 p-2 -mr-2">
+                                                        <MoreVertical className="w-5 h-5" />
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                
+                                                <h3 className={`font-bold text-slate-800 text-[14px] leading-tight ${!isCardExpanded ? 'line-clamp-2' : ''}`}>
+                                                  {video.title}
+                                                </h3>
+                                                
+                                                {(!isIdeaCol || isCardExpanded) && (
+                                                  <>
+                                                    {isIdeaCol && isCardExpanded && (
+                                                      <div className="mt-2 mb-2 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs text-left">
+                                                        <div className="font-semibold text-gray-700 mb-1">Công trình: <span className="font-normal text-gray-600">{video.project}</span></div>
+                                                        <div className="font-semibold text-gray-700 mb-1">Format: <span className="font-normal text-gray-600">{video.format}</span></div>
+                                                        {video.notes && <div className="font-semibold text-gray-700 mb-1">Hook: <span className="font-normal text-gray-600">{video.notes}</span></div>}
+                                                      </div>
+                                                    )}
+                                                    
+                                                    {!isIdeaCol && (
+                                                      <>
+                                                        <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate">
+                                                          <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{video.project}</span>
+                                                        </p>
+                                                        
+                                                        <div className="flex gap-1.5 mb-2">
+                                                          <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                                            <Video className="w-3.5 h-3.5" /> {video.format}
+                                                          </span>
+                                                        </div>
+                                                      </>
+                                                    )}
+
+                                                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                                      <div className="flex items-center gap-1.5 text-slate-500">
+                                                        <Clock className="w-4 h-4" />
+                                                        <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN')}</span>
+                                                      </div>
+                                                      <div className="flex items-center gap-2">
+                                                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
+                                                          {video.assignee.substring(0, 2).toUpperCase()}
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </>
+                                                )}
+                                              </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </>
       ) : view === 'LIST' ? (

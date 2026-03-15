@@ -278,15 +278,19 @@ export const Layout = () => {
 
                     {/* User Profile Card */}
                     <div className="bg-gray-50 rounded-xl p-4 border border-border-main mb-4">
-                        <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm`}>
+                        <button 
+                            onClick={() => navigate('/profile')}
+                            className="flex items-center space-x-3 w-full text-left hover:bg-gray-100 p-2 -mx-2 rounded-lg transition-colors group"
+                            title="Xem hồ sơ của bạn"
+                        >
+                            <div className={`w-10 h-10 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover:scale-105 transition-transform`}>
                                 {getInitials(profile?.full_name)}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-text-main truncate">{profile?.full_name || 'Người dùng'}</p>
+                                <p className="text-sm font-semibold text-text-main truncate group-hover:text-indigo-600 transition-colors">{profile?.full_name || 'Người dùng'}</p>
                                 <p className={`text-xs ${getRoleBrand(profile?.role).text}`}>{profile?.role || 'Nhân viên'}</p>
                             </div>
-                        </div>
+                        </button>
                         <div className="grid grid-cols-2 gap-2 mt-4">
                             <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
