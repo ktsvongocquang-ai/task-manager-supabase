@@ -526,24 +526,24 @@ export const Gantt = () => {
 
             {/* Gantt Grid Container */}
             <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+                <div className="max-h-[600px] overflow-auto relative">
                     <div className="min-w-max">
                         {/* Day Headers - Themed background like screenshot */}
-                        <div className="flex border-b border-slate-200">
-                            <div className="flex sticky left-0 z-20 bg-slate-50 border-r border-slate-200">
-                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center">
+                        <div className="flex border-b border-slate-200 sticky top-0 z-30 bg-white shadow-sm">
+                            <div className="flex sticky left-0 z-40 bg-slate-50 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                                     MÔ TẢ
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
                                     NGÀY
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
                                     TIẾN %
                                 </div>
                             </div>
@@ -566,7 +566,7 @@ export const Gantt = () => {
                         </div>
 
                         {/* Chart Rows */}
-                        <div className="max-h-[600px] overflow-y-auto">
+                        <div className="">
                             {ganttItems.length === 0 ? (
                                 <div className="py-24 text-center bg-slate-50/30">
                                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -583,9 +583,9 @@ export const Gantt = () => {
                                     const progressAmount = item.task?.completion_pct || 0;
 
                                     return (
-                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50/80 transition-colors group/row ${item.type === 'project' ? 'bg-[#98a586]/30' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
+                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors group/row ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
                                             {/* Left Column Data */}
-                                            <div className={`flex sticky left-0 z-20 transition-colors shrink-0 ${item.type === 'project' ? 'bg-[#98a586]/30 group-hover/row:bg-[#98a586]/40' : item.type === 'phase' ? 'bg-slate-100 group-hover/row:bg-slate-200/50' : 'bg-white group-hover/row:bg-slate-50'}`}>
+                                            <div className={`flex sticky left-0 z-20 transition-colors shrink-0 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db] group-hover/row:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 group-hover/row:bg-slate-200' : 'bg-white group-hover/row:bg-slate-50'}`}>
                                                 
                                                 {/* Tên Mô Tả */}
                                                 <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">

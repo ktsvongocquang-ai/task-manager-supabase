@@ -5,6 +5,9 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import * as xlsx from 'xlsx';
 import { parseConstructionExcel } from '../../lib/gemini';
+import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../store/authStore';
+import { type Project, type Task } from '../../types';
 
 // -------------------------------------------------------------
 // TYPES & MOCK DATA INITIALIZATION
@@ -12,49 +15,11 @@ import { parseConstructionExcel } from '../../lib/gemini';
 type ViewState = 'HOME' | 'CREATE_PROJECT' | 'PROJECT_DETAIL' | 'DATA_CHECK' | 'DATA_UPLOAD' | 'PLANNING' | 'GANTT' | 'REMINDERS';
 type TabState = 'DỰ ÁN' | 'THU CHI' | 'NHÂN SỰ' | 'CÀI ĐẶT';
 
-interface Task {
-  id: string;
-  name: string;
-  category: string;
-  subcontractor: string;
-  days: number;
-  personnel: number;
-  budget: number;
-  approved: boolean;
-  progress?: number;
-  startDate?: string; // ISO date
-  endDate?: string;   // ISO date
-  status?: 'Chưa bắt đầu' | 'Đang chờ' | 'Đang thực hiện' | 'Hoàn thành' | 'Trễ hạn';
-}
-
-interface Project {
-  id: string;
-  name: string;
-  date: string;
-  status: string;
-  budget: number;
-  actualCost: number;
-  startDate?: string;
-  hasInputData?: boolean;
-}
-
-const initialProjects: Project[] = [
-  { id: '1', name: 'Nhà cô Lan', date: '06/05/2024', status: 'ĐANG CHẠY', budget: 150000000, actualCost: 45000000, startDate: '2024-05-06', hasInputData: true },
-  { id: '2', name: 'Biệt thự Anh Hùng', date: '15/05/2024', status: 'MỚI', budget: 0, actualCost: 0, startDate: '2024-05-15', hasInputData: false }
-];
-
 const mockParsedData = [
   { id: 'b1', name: 'Ốp lam gỗ nhựa mặt tiền', quantity: 12, unit: 'm²', price: 1000000 },
   { id: 'b2', name: 'Sơn lại lô đề + khung cửa kính mặt tiền', quantity: 1, unit: 'gói', price: 2000000 },
   { id: 'b3', name: 'Ốp lam nhôm đứng mặt tiền', quantity: 1, unit: 'gói', price: 3000000 },
   { id: 'b4', name: 'Ốp alu tạo hình mặt tiền', quantity: 1, unit: 'gói', price: 12000000 },
-];
-
-const initialTasks: Task[] = [
-  { id: 't1', name: 'Công tác thiết kế và chuẩn bị hồ sơ', category: 'KHÁC', subcontractor: '', days: 5, personnel: 2, budget: 15000000, approved: true, startDate: '2024-05-06', endDate: '2024-05-10', status: 'Hoàn thành', progress: 0 },
-  { id: 't2', name: 'Tháo dỡ - Vận chuyển khỏi căn hộ', category: 'THI CÔNG', subcontractor: 'Hùng (Đào móng)', days: 2, personnel: 4, budget: 5000000, approved: true, startDate: '2024-05-11', endDate: '2024-05-12', status: 'Hoàn thành', progress: 0 },
-  { id: 't3', name: 'Thi công hệ thống điện và chiếu sáng', category: 'MEP', subcontractor: 'Công ty Điện Beta (MEP)', days: 10, personnel: 4, budget: 45000000, approved: false, startDate: '2024-05-13', endDate: '2024-05-22', status: 'Đang thực hiện', progress: 0 },
-  { id: 't4', name: 'Thi công trang trí mặt tiền', category: 'HOÀN THIỆN', subcontractor: 'Đội Sơn Delta (Hoàn thiện)', days: 12, personnel: 6, budget: 85000000, approved: true, startDate: '2024-05-23', endDate: '2024-06-03', status: 'Chưa bắt đầu', progress: 0 }
 ];
 
 const initialPersonnel = [
@@ -75,14 +40,18 @@ export const Construction = () => {
   // -------------------------------------------------------------
   // STATE MANAGEMENT
   // -------------------------------------------------------------
+  const { profile } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
   const [currentView, setCurrentView] = useState<ViewState>('HOME');
   const [activeTab, setActiveTab] = useState<TabState>('DỰ ÁN');
   
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>('1');
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const selectedProject = projects.find(p => p.id === selectedProjectId);
   
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [personnel] = useState(initialPersonnel);
   
   const [newProjectName, setNewProjectName] = useState('');
@@ -164,6 +133,51 @@ export const Construction = () => {
   // EFFECTS & UTILS
   // -------------------------------------------------------------
   
+  useEffect(() => {
+    fetchProjects();
+    fetchTasks();
+
+    const channel = supabase.channel('construction_changes')
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'projects' },
+            () => fetchProjects()
+        )
+        .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'tasks' },
+            () => fetchTasks()
+        )
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    }
+  }, []);
+
+  const fetchProjects = async () => {
+      try {
+          setLoading(true);
+          const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+          if (data) setProjects(data as Project[]);
+      } catch (err) {
+          console.error(err);
+      } finally {
+          setLoading(false);
+      }
+  };
+
+  const fetchTasks = async () => {
+      try {
+          const { data } = await supabase.from('tasks').select('*');
+          if (data) setTasks(data as Task[]);
+      } catch (err) {
+          console.error(err);
+      }
+  };
+
+  const displayTasks = tasks.filter(t => t.project_id === selectedProjectId);
+
   // ESC to exit logic
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -184,84 +198,76 @@ export const Construction = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [currentView, isQuoteOpen, isDiaryOpen, isGalleryOpen, isTransactionOpen]);
 
-  const addNewTask = (category: string = 'THI CÔNG', insertAfterId?: string) => {
-    let startDateStr = new Date().toISOString();
-    let insertIndex = tasks.length;
-    
-    if (insertAfterId) {
-        const targetIdx = tasks.findIndex(t => t.id === insertAfterId);
-        if (targetIdx !== -1) {
-            insertIndex = targetIdx + 1;
-            startDateStr = tasks[targetIdx].endDate || tasks[targetIdx].startDate || new Date().toISOString();
-        }
-    } else {
-        const lastTask = tasks[tasks.length - 1];
-        startDateStr = lastTask ? (lastTask.endDate || lastTask.startDate || new Date().toISOString()) : new Date().toISOString();
+  const addNewTask = async (category: string = 'THI CÔNG', insertAfterId?: string) => {
+    if (!selectedProjectId) return;
+    try {
+        let maxId = 0;
+        const projTasks = tasks.filter(t => t.project_id === selectedProjectId);
+        projTasks.forEach(t => {
+            const match = t.task_code.match(/-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+        
+        const proj = projects.find(p => p.id === selectedProjectId);
+        const nextCode = proj?.project_code ? `${proj.project_code}-${String(maxId + 1).padStart(2, '0')}` : `TASK-${Date.now()}`;
+        
+        const payload = {
+            project_id: selectedProjectId,
+            task_code: nextCode,
+            name: 'Hạng mục thi công mới',
+            status: 'Chưa bắt đầu',
+            completion_pct: 0,
+            start_date: new Date().toISOString().split('T')[0],
+            end_date: addDays(new Date(), 2).toISOString().split('T')[0],
+            assignee_id: profile?.id
+        };
+        
+        const { error } = await supabase.from('tasks').insert(payload);
+        if (!error) fetchTasks();
+    } catch (err) {
+        console.error(err);
     }
-    const startDate = addDays(parseISO(startDateStr), 1);
-    
-    const newTask: Task = {
-      id: `t_new_${Date.now()}`,
-      name: 'Hạng mục thi công mới',
-      category: category,
-      subcontractor: '',
-      days: 2,
-      personnel: 2,
-      budget: 0,
-      approved: false,
-      progress: 0,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: addDays(startDate, 1).toISOString().split('T')[0],
-      status: 'Chưa bắt đầu'
-    };
-    
-    const newTasks = [...tasks];
-    newTasks.splice(insertIndex, 0, newTask);
-    setTasks(newTasks);
   };
 
-  const handleEditStart = (taskId: string, field: string, initialValue: string | number) => {
+  const handleEditStart = (taskId: string, field: string, initialValue: string | number | null) => {
     setEditingTaskId(taskId);
     setEditingField(field);
-    setEditValue(initialValue.toString());
+    setEditValue(initialValue ? initialValue.toString() : '');
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (editingTaskId && editingField) {
-      setTasks(tasks.map(t => {
-        if (t.id === editingTaskId) {
-           let updatedTask = { ...t };
-           const newValue = editingField === 'days' || editingField === 'progress' ? Number(editValue) : editValue;
-           updatedTask[editingField as keyof Task] = newValue as never;
+        try {
+            const taskToEdit = tasks.find(t => t.id === editingTaskId);
+            if (!taskToEdit) return;
 
-           // Auto adjust dates
-           if (editingField === 'days') {
-               if (updatedTask.startDate) {
-                   updatedTask.endDate = addDays(parseISO(updatedTask.startDate), Math.max(0, updatedTask.days - 1)).toISOString().split('T')[0];
-               }
-           } else if (editingField === 'startDate') {
-               if (updatedTask.days && updatedTask.startDate) {
-                   updatedTask.endDate = addDays(parseISO(updatedTask.startDate), Math.max(0, updatedTask.days - 1)).toISOString().split('T')[0];
-               }
-           } else if (editingField === 'endDate') {
-               if (updatedTask.startDate && updatedTask.endDate) {
-                   const start = parseISO(updatedTask.startDate);
-                   const end = parseISO(updatedTask.endDate);
-                   const diff = differenceInDays(end, start) + 1;
-                   if (diff > 0) {
-                       updatedTask.days = diff;
-                   } else {
-                       // invalid end date, fallback
-                       updatedTask.endDate = updatedTask.startDate;
-                       updatedTask.days = 1;
-                   }
-               }
-           }
+            let updatePayload: any = {};
+            
+            // Map our fake fields back to real fields
+            let realField = editingField;
+            if (editingField === 'startDate') realField = 'start_date';
+            if (editingField === 'endDate') realField = 'end_date';
+            if (editingField === 'progress') realField = 'completion_pct';
+            if (editingField === 'budget') realField = 'cost_estimate'; // Mock mapping if available
 
-           return updatedTask;
+            if (editingField === 'days') {
+                // If they edit days, adjust end_date
+                if (taskToEdit.start_date) {
+                    const newDays = Math.max(1, Number(editValue));
+                    updatePayload.end_date = addDays(parseISO(taskToEdit.start_date), newDays - 1).toISOString().split('T')[0];
+                }
+            } else {
+                updatePayload[realField] = editingField === 'progress' ? Number(editValue) : editValue;
+            }
+
+            const { error } = await supabase.from('tasks').update(updatePayload).eq('id', editingTaskId);
+            if (!error) fetchTasks();
+        } catch (err) {
+            console.error(err);
         }
-        return t;
-      }));
     }
     setEditingTaskId(null);
     setEditingField(null);
@@ -279,14 +285,13 @@ export const Construction = () => {
     const exportData = tasks.map((t, index) => ({
       'STT': index + 1,
       'MÔ TẢ': t.name,
-      'GHI CHÚ': t.subcontractor || '',
-      'THỜI LƯỢNG (NGÀY)': t.days,
-      'BẮT ĐẦU': t.startDate ? format(parseISO(t.startDate), 'dd/MM/yyyy') : '',
-      'KẾT THÚC': t.endDate ? format(parseISO(t.endDate), 'dd/MM/yyyy') : '',
-      'TIẾN ĐỘ (%)': t.progress || 0,
-      'NGÂN SÁCH (VNĐ)': t.budget || 0,
+      'GHI CHÚ': t.description || '',
+      'BẮT ĐẦU': t.start_date ? format(parseISO(t.start_date), 'dd/MM/yyyy') : '',
+      'KẾT THÚC': t.end_date ? format(parseISO(t.end_date), 'dd/MM/yyyy') : '',
+      'TIẾN ĐỘ (%)': t.completion_pct || 0,
+      'NGÂN SÁCH (VNĐ)': t.cost_estimate || 0,
       'TRẠNG THÁI': t.status || 'Chưa bắt đầu',
-      'ĐÃ DUYỆT': t.approved ? 'Có' : 'Không'
+      'ĐÃ DUYỆT': t.is_approved ? 'Có' : 'Không'
     }));
     const worksheet = xlsx.utils.json_to_sheet(exportData);
     const workbook = xlsx.utils.book_new();
@@ -294,72 +299,10 @@ export const Construction = () => {
     xlsx.writeFile(workbook, `Tien-Do-Du-An-${selectedProject?.name || 'Moi'}.xlsx`);
   };
 
-  const handleCreateProject = () => {
-    if (newProjectName.trim()) {
-      const newProject: Project = {
-        id: Date.now().toString(),
-        name: newProjectName,
-        date: format(parseISO(newProjectDate), 'dd/MM/yyyy'),
-        status: 'MỚI',
-        budget: parseInt(newProjectBudget.replace(/[^0-9]/g, '')) || 0,
-        actualCost: 0,
-        startDate: newProjectDate,
-        hasInputData: false
-      };
-      setProjects([newProject, ...projects]);
-      setNewProjectName('');
-      setNewProjectDate(new Date().toISOString().split('T')[0]);
-      setNewProjectBudget('');
-      setCurrentView('HOME');
-    }
-  };
-
-  const handleUploadFile = (type: 'EXCEL' | 'PDF', file?: File) => {
-    setUploadType(type);
-    setIsUploading(true);
-
-    if (type === 'EXCEL' && file) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = xlsx.read(data, { type: 'binary' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const json = xlsx.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-          
-          // Use AI Parse (Gemini)
-          const extractedData = await parseConstructionExcel(json);
-
-          if (extractedData.length > 0) {
-            setParsedData(extractedData);
-            setSelectedParsedItems(extractedData.map(i => i.id));
-            generateTasksFromData(extractedData);
-          } else {
-             generateTasksFromData(mockParsedData);
-          }
-        } catch (err) {
-          console.error("Error parsing EXCEL", err);
-          generateTasksFromData(mockParsedData);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    } else {
-       // Mock for PDF or missing file
-       setTimeout(() => {
-         setParsedData(mockParsedData);
-         setSelectedParsedItems(mockParsedData.map(i => i.id));
-         generateTasksFromData(mockParsedData);
-       }, 2000);
-    }
-  };
-
-  const generateTasksFromData = (dataList: any[]) => {
+  const generateTasksFromData = async (dataList: any[]) => {
     setIsUploading(false);
-    setHasData(true);
     
     // Auto generate tasks with Logical Timeline thinking
-    // Sort tasks by category priority if available (Chuẩn bị -> Cải tạo -> Nội thất)
     const priority = { 
       '1. CÔNG TÁC CHUẨN BỊ TRƯỚC THI CÔNG': 1, 
       '2. HẠNG MỤC CẢI TẠO KIẾN TRÚC': 2, 
@@ -373,41 +316,45 @@ export const Construction = () => {
       return pA - pB;
     });
 
-    let currentStartDate = parseISO(selectedProject?.startDate || new Date().toISOString());
-    const newTasks: Task[] = sortedData.map((item, index) => {
+    let currentStartDate = parseISO(selectedProject?.start_date || new Date().toISOString());
+    const newTasks = sortedData.map((item, index) => {
       const days = item.days || Math.floor(Math.random() * 5) + 2; 
-      const endDate = addDays(currentStartDate, days - 1); // Task ends at the end of the day count
+      const endDate = addDays(currentStartDate, days - 1);
       
-      const task: Task = {
-        id: `t_${Date.now()}_${index}`,
+      const payload = {
+        project_id: selectedProjectId,
+        task_code: `GEN-${Date.now()}-${index}`,
         name: item.name,
-        category: (item.category || '1. CÔNG TÁC CHUẨN BỊ TRƯỚC THI CÔNG').trim(),
-        subcontractor: '',
-        days: days,
-        personnel: item.days > 3 ? 4 : 2, // Auto allocate personnel
-        budget: item.price * item.quantity,
-        approved: false,
-        startDate: currentStartDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        // Using 'description' to temporarily hold category string since tasks table might lack category
+        description: (item.category || '1. CÔNG TÁC CHUẨN BỊ TRƯỚC THI CÔNG').trim(), 
+        cost_estimate: item.price * item.quantity,
+        is_approved: false,
+        start_date: currentStartDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
         status: 'Chưa bắt đầu'
       };
       
-      // Next task starts the day after this one ends (Sequential)
       currentStartDate = addDays(endDate, 1);
-      return task;
+      return payload;
     });
     
-    setTasks(newTasks);
-    
-    // Update project status and Total Budget
+    // Bulk insert into Supabase
     if (selectedProjectId) {
-        setProjects(projects.map(p => {
-            if (p.id === selectedProjectId) {
-                const totalBudget = newTasks.reduce((sum, t) => sum + t.budget, 0);
-                return {...p, status: 'ĐANG CHẠY', hasInputData: true, budget: totalBudget};
-            }
-            return p;
-        }));
+        try {
+            await supabase.from('tasks').insert(newTasks);
+            
+            // Update project total budget
+            const totalBudget = newTasks.reduce((sum, t) => sum + (t.cost_estimate || 0), 0);
+            await supabase.from('projects').update({
+                status: 'Đang thực hiện',
+                budget: totalBudget
+            }).eq('id', selectedProjectId);
+
+            fetchTasks();
+            fetchProjects();
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     setCurrentView('DATA_CHECK');
@@ -492,8 +439,9 @@ export const Construction = () => {
         <div className="space-y-3">
           {projects.map(project => {
             let health = { color: 'bg-emerald-500', text: 'TỐT (Đúng ngân sách/tiến độ)', bg: 'bg-emerald-50 text-emerald-600 border-emerald-200' };
-            if (project.budget > 0) {
-                const ratio = project.actualCost / project.budget;
+            const actualCost = 0; // Mock actual cost
+            if (project.budget && project.budget > 0) {
+                const ratio = actualCost / project.budget;
                 if (ratio > 1.15) health = { color: 'bg-rose-500', text: 'NGUY HIỂM (Vượt chi/trễ >15%)', bg: 'bg-rose-50 text-rose-600 border-rose-200' };
                 else if (ratio > 1) health = { color: 'bg-amber-500', text: 'CẢNH BÁO (Vượt chi/trễ >5%)', bg: 'bg-amber-50 text-amber-600 border-amber-200' };
             }
@@ -503,7 +451,7 @@ export const Construction = () => {
                 key={project.id}
                   onClick={() => {
                   setSelectedProjectId(project.id);
-                  setHasData(!!project.hasInputData);
+                  setHasData(true); // Assuming data is present for now
                   setCurrentView('PROJECT_DETAIL');
                 }}
                 className="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between cursor-pointer hover:border-indigo-500 hover:shadow-sm transition-all gap-4"
@@ -522,7 +470,7 @@ export const Construction = () => {
                             </span>
                         </div>
                     </div>
-                    <p className="text-sm text-slate-500">{project.date}</p>
+                    <p className="text-sm text-slate-500">{project.created_at ? format(parseISO(project.created_at), 'dd/MM/yyyy') : '--/--/----'}</p>
                   </div>
                 </div>
                 <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
@@ -637,7 +585,7 @@ export const Construction = () => {
                 <span>ID: #{selectedProject?.id}</span>
             </div>
             <div className="flex items-center gap-4 text-slate-400 font-bold text-sm">
-                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Bắt đầu: {selectedProject?.date}</span>
+                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Bắt đầu: {selectedProject?.created_at ? format(parseISO(selectedProject.created_at), 'dd/MM/yyyy') : '--/--/----'}</span>
                 <span className="w-1.5 h-1.5 bg-slate-700 rounded-full"></span>
                 <span>ID: #{selectedProject?.id}</span>
             </div>
@@ -979,7 +927,7 @@ export const Construction = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-200">{task.category}</span>
+                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-indigo-200">{task.description || 'Chưa phân loại'}</span>
                          {task.status === 'Trễ hạn' && <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-200 animate-pulse">TRỄ HẠN</span>}
                       </div>
                       <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-indigo-600 transition-colors uppercase">{task.name}</h3>
@@ -994,10 +942,10 @@ export const Construction = () => {
                   <div className="flex items-center gap-4">
                      <select 
                         className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 font-bold focus:ring-2 focus:ring-indigo-500/50 outline-none hover:border-indigo-300 transition-all"
-                        value={task.subcontractor}
+                        value={task.subcontractor || ''}
                         onChange={(e) => {
                            const newTasks = [...tasks];
-                           newTasks[index].subcontractor = e.target.value;
+                           newTasks[index] = { ...newTasks[index], subcontractor: e.target.value };
                            setTasks(newTasks);
                         }}
                      >
@@ -1020,12 +968,8 @@ export const Construction = () => {
                            <input 
                              type="number" 
                              className="w-12 bg-transparent text-slate-800 font-bold text-center outline-none"
-                             value={task.days}
-                             onChange={(e) => {
-                               const newTasks = [...tasks];
-                               newTasks[index].days = parseInt(e.target.value) || 0;
-                               setTasks(newTasks);
-                             }}
+                             value={task.start_date && task.end_date ? Math.max(1, differenceInDays(parseISO(task.end_date), parseISO(task.start_date)) + 1) : 1}
+                             readOnly
                            />
                         </div>
                         <span className="font-medium">ngày</span>
@@ -1037,10 +981,10 @@ export const Construction = () => {
                            <input 
                              type="number" 
                              className="w-10 bg-transparent text-slate-800 font-bold text-center outline-none"
-                             value={task.personnel}
+                             value={task.personnel || 0}
                              onChange={(e) => {
                                const newTasks = [...tasks];
-                               newTasks[index].personnel = parseInt(e.target.value) || 0;
+                               newTasks[index] = { ...newTasks[index], personnel: parseInt(e.target.value) || 0 };
                                setTasks(newTasks);
                              }}
                            />
@@ -1051,10 +995,14 @@ export const Construction = () => {
               </div>
 
               <button 
-                  onClick={() => toggleTaskApproval(index)}
-                  className={`w-full lg:w-32 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all active:scale-95 ${task.approved ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 shadow-sm'}`}
+                  onClick={async () => {
+                     const newApproval = !task.is_approved;
+                     await supabase.from('tasks').update({ is_approved: newApproval }).eq('id', task.id);
+                     fetchTasks();
+                  }}
+                  className={`w-full lg:w-32 py-4 rounded-2xl font-black text-xs uppercase tracking-widest border transition-all active:scale-95 ${task.is_approved ? 'bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm' : 'bg-white border-slate-200 text-slate-400 hover:border-indigo-300 hover:text-indigo-500 shadow-sm'}`}
               >
-                  {task.approved ? 'Đã Duyệt' : 'Duyệt'}
+                  {task.is_approved ? 'Đã Duyệt' : 'Duyệt'}
               </button>
             </div>
           </div>
@@ -1243,11 +1191,12 @@ export const Construction = () => {
                             <span>{cat}</span>
                         </div>
                      </div>
-                     {tasks.filter(t => t.category === cat).map((task, taskIdx) => {
+                     {tasks.filter(t => t.description === cat).map((task, taskIdx) => {
+                         const maxId = 0;
                          const viewStartDate = addDays(parseISO(projectStartDate), (currentWeek - 1) * 7);
-                         const startDay = task.startDate ? differenceInDays(parseISO(task.startDate), viewStartDate) + 1 : 1; 
-                         const startDateFmt = task.startDate ? format(parseISO(task.startDate), 'dd/MM/yyyy') : '--/--/----';
-                         const endDateFmt = task.endDate ? format(parseISO(task.endDate), 'dd/MM/yyyy') : '--/--/----';
+                         const startDay = task.start_date ? differenceInDays(parseISO(task.start_date), viewStartDate) + 1 : 1; 
+                         const startDateFmt = task.start_date ? format(parseISO(task.start_date), 'dd/MM/yyyy') : '--/--/----';
+                         const endDateFmt = task.end_date ? format(parseISO(task.end_date), 'dd/MM/yyyy') : '--/--/----';
 
                          const isEditingName = editingTaskId === task.id && editingField === 'name';
                          const isEditingSub = editingTaskId === task.id && editingField === 'subcontractor';
@@ -1256,8 +1205,14 @@ export const Construction = () => {
                          const isEditingDays = editingTaskId === task.id && editingField === 'days';
                          const isEditingProgress = editingTaskId === task.id && editingField === 'progress';
 
+                         // Calculate days
+                         let calculatedDays = 1;
+                         if (task.start_date && task.end_date) {
+                             calculatedDays = Math.max(1, differenceInDays(parseISO(task.end_date), parseISO(task.start_date)) + 1);
+                         }
+
                          return (
-                            <div key={task.id} className={`grid ${!isClientView ? 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_90px_1fr]' : 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr]'} items-stretch border-b border-slate-200 group hover:bg-yellow-50/50 transition-colors bg-white ${task.progress === 100 ? 'opacity-50 grayscale' : ''}`}>
+                            <div key={task.id} className={`grid ${!isClientView ? 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_90px_1fr]' : 'grid-cols-[40px_260px_120px_90px_90px_40px_40px_1fr]'} items-stretch border-b border-slate-200 group hover:bg-yellow-50/50 transition-colors bg-white ${task.completion_pct === 100 ? 'opacity-50 grayscale' : ''}`}>
                                <div className="text-[11px] font-bold text-slate-500 flex items-center justify-center border-r border-slate-200 bg-[#f9fafb]">
                                   <span>{taskIdx + 1}</span>
                                </div>
@@ -1276,7 +1231,13 @@ export const Construction = () => {
                                       <button onClick={(e) => { e.stopPropagation(); setQuoteSubcontractor(task.subcontractor || ''); setQuoteTaskName(task.name); setIsQuoteOpen(true); }} className="bg-orange-50 border border-orange-400 text-orange-600 rounded p-[3px] hover:bg-orange-100 hover:scale-125 transition-transform shadow-md" title="Tự động yêu cầu báo giá">
                                           <DollarSign className="w-3 h-3" strokeWidth={3} />
                                       </button>
-                                      <button onClick={(e) => { e.stopPropagation(); setTasks(tasks.filter(t => t.id !== task.id)); }} className="bg-rose-50 border border-rose-400 text-rose-500 rounded p-[3px] hover:bg-rose-100 hover:scale-125 transition-transform shadow-md" title="Xóa công tác">
+                                      <button onClick={async (e) => { 
+                                          e.stopPropagation(); 
+                                          if(confirm('Xóa công tác này?')){
+                                              await supabase.from('tasks').delete().eq('id', task.id);
+                                              fetchTasks();
+                                          }
+                                      }} className="bg-rose-50 border border-rose-400 text-rose-500 rounded p-[3px] hover:bg-rose-100 hover:scale-125 transition-transform shadow-md" title="Xóa công tác">
                                           <Trash2 className="w-3 h-3" strokeWidth={3} />
                                       </button>
                                   </div>
@@ -1286,7 +1247,7 @@ export const Construction = () => {
                                   ) : (
                                      <div className="text-[11px] text-slate-700 truncate min-w-0 flex items-center gap-1">
                                         {task.name}
-                                        {task.progress && task.progress > 0 && (
+                                        {task.completion_pct && task.completion_pct > 0 && (
                                            <button onClick={(e) => { e.stopPropagation(); setGalleryTaskId(task.id); setIsGalleryOpen(true); }} className="text-blue-500 flex items-center shrink-0">
                                               <Camera className="w-3 h-3" />
                                            </button>
@@ -1306,7 +1267,7 @@ export const Construction = () => {
                                   </button>
                                </div>
                                
-                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingStart && handleEditStart(task.id, 'startDate', task.startDate || '')}>
+                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingStart && handleEditStart(task.id, 'startDate', task.start_date || '')}>
                                   {isEditingStart ? (
                                      <input type="date" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="bg-blue-50 border border-blue-400 rounded px-1 text-[9px] text-slate-800 outline-none w-[95%]" />
                                   ) : (
@@ -1314,7 +1275,7 @@ export const Construction = () => {
                                   )}
                                </div>
 
-                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingEnd && handleEditStart(task.id, 'endDate', task.endDate || '')}>
+                               <div className="border-r border-slate-200 flex flex-col items-center justify-center cursor-text" onClick={() => !isEditingEnd && handleEditStart(task.id, 'endDate', task.end_date || '')}>
                                   {isEditingEnd ? (
                                      <input type="date" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="bg-blue-50 border border-blue-400 rounded px-1 text-[9px] text-slate-800 outline-none w-[95%]" />
                                   ) : (
@@ -1322,21 +1283,27 @@ export const Construction = () => {
                                   )}
                                </div>
                                
-                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text bg-[#f9fafb]" onClick={() => !isEditingDays && handleEditStart(task.id, 'days', task.days)}>
+                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text bg-[#f9fafb]" onClick={() => !isEditingDays && handleEditStart(task.id, 'days', calculatedDays)}>
                                   {isEditingDays ? (
                                      <input type="number" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-10 text-center bg-blue-50 border-2 border-blue-400 rounded px-1 text-[11px] font-bold text-slate-800 outline-none" />
                                   ) : (
-                                     <span className="text-[12px] font-black text-slate-900">{task.days}</span>
+                                     <span className="text-[12px] font-black text-slate-900">{calculatedDays}</span>
                                   )}
                                </div>
                                
-                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text" onClick={() => !isEditingProgress && handleEditStart(task.id, 'progress', task.progress || 0)}>
+                               <div className="border-r border-slate-200 flex items-center justify-center cursor-text" onClick={() => !isEditingProgress && handleEditStart(task.id, 'progress', task.completion_pct || 0)}>
                                   {isEditingProgress ? (
                                      <input type="number" autoFocus value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={handleEditSave} onKeyDown={handleEditKeyDown} className="w-8 text-center bg-blue-50 border border-blue-400 rounded px-1 text-[11px] text-slate-800 outline-none" />
                                   ) : (
-                                     <span className="text-[10px] text-slate-700">{task.progress || 0}%</span>
+                                     <span className="text-[10px] text-slate-700">{task.completion_pct || 0}%</span>
                                   )}
                                </div>
+
+                               {!isClientView && (
+                                 <div className="border-r border-slate-200 flex items-center justify-right px-2">
+                                     <span className="text-[10px] text-slate-700 font-medium">{(task.cost_estimate || 0).toLocaleString()}đ</span>
+                                 </div>
+                               )}
 
                                <div className="grid grid-cols-21 relative bg-white group-hover:bg-yellow-50/20">
                                   {Array.from({length: 21}).map((_, i) => {
@@ -1353,9 +1320,9 @@ export const Construction = () => {
                                      className="absolute inset-0 flex items-center justify-center bg-[#4a86e8]/50 border-r border-white/30"
                                      style={{ 
                                        gridColumnStart: Math.max(1, startDay), 
-                                       gridColumnEnd: Math.max(1, Math.min(22, startDay + task.days)),
+                                       gridColumnEnd: Math.max(1, Math.min(22, startDay + calculatedDays)),
                                        zIndex: 10,
-                                       display: (startDay + task.days <= 1) || (startDay >= 22) ? 'none' : 'flex'
+                                       display: (startDay + calculatedDays <= 1) || (startDay >= 22) ? 'none' : 'flex'
                                      }}
                                   >
                                       {/* Fill full cell style */}

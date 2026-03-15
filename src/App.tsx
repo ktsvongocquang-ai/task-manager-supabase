@@ -14,10 +14,13 @@ import { Construction } from './pages/construction/Construction'
 import { Customers } from './pages/customers/Customers'
 import { Moodboard } from './pages/moodboard/Moodboard'
 import MarketingApp from './pages/marketing/MarketingApp'
+import QuoteGenerator from './pages/customers/QuoteGenerator'
+import { ConstructionProvider } from './contexts/ConstructionContext'
 
 function App() {
   return (
-    <Router>
+    <ConstructionProvider>
+      <Router>
       <Routes>
         {/* Public Route */}
         <Route path="/login" element={<Login />} />
@@ -36,6 +39,7 @@ function App() {
           <Route path="construction" element={<Construction />} />
           <Route path="moodboard" element={<Moodboard />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="customers/quotes/new" element={<QuoteGenerator />} />
           <Route path="marketing" element={<MarketingApp />} />
         </Route>
 
@@ -43,6 +47,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
+    </ConstructionProvider>
   )
 }
 
