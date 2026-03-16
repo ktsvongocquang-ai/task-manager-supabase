@@ -6,13 +6,10 @@ import {
   Calendar as CalendarIcon, 
   Video, 
   FileText, 
-  CheckCircle2, 
   Clock, 
   AlertCircle,
   LayoutTemplate,
   Target,
-  TrendingUp,
-  MessageCircle,
   GanttChartSquare,
   X,
   Archive,
@@ -26,10 +23,10 @@ import {
   ListTodo
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+// Removed recharts import since it is not used in this file
 import { useSearchParams } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
-import { SmartCard } from '../../components/layout/SmartCard';
+// Removed SmartCard import as it is unused
 import { BottomSheet } from '../../components/layout/BottomSheet';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../services/supabase';
