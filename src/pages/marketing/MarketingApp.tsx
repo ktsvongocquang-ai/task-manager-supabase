@@ -33,6 +33,7 @@ import { supabase } from '../../services/supabase';
 import type { Project, Task } from '../../types';
 import { MarketingProjectModal } from './MarketingProjectModal';
 import { MarketingTaskModal } from './MarketingTaskModal';
+import MarketingGantt from './MarketingGantt';
 
 // Mock Data based on the Google Doc workflow
 // @ts-ignore
@@ -1354,17 +1355,6 @@ export default function MarketingApp() {
                          const day = dateObj.getDate();
                          const left = ((day - 1) / 31) * 100;
                          return (
-                           <div 
-                             key={`dyn-vid-${video.id}-${idx}`}
-                             className="absolute top-0 bottom-0 w-0.5 bg-red-400/80 z-10 group/marker transition-all"
-                             style={{ left: `${left}%` }}
-                           >
-                             <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white border border-red-200 text-red-600 text-[10px] font-bold px-2 py-1 rounded-md shadow-sm whitespace-nowrap z-20 flex items-center gap-1 opacity-90 group-hover/marker:opacity-100 group-hover/marker:z-50 group-hover/marker:scale-110 transition-all cursor-pointer" title={video.title} onClick={(e) => { e.stopPropagation(); setShowVideoModal(video); }}>
-                               <Video className="w-3 h-3" />
-                               <span className="truncate max-w-[100px]">{video.title}</span>
-                             </div>
-                             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-red-500 shadow-sm" />
-                           </div>
                          );
                       })}
                   </div>
