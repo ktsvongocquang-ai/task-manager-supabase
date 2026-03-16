@@ -76,10 +76,13 @@ export const Projects = () => {
     const filteredAllTasks = allTasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
+        const isSupporter = t.supporter_id === profile?.id;
+
+        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
 
         let isVisible = true;
-        if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || t.supporter_id === profile?.id);
+        if (!isManagerOrAdmin) {
+            isVisible = Boolean(isAssigned || isSupporter);
         }
         return isVisible;
     });
@@ -101,8 +104,10 @@ export const Projects = () => {
 
     const baseFilteredProjects = projects.filter(p => {
         const userRole = profile?.role;
+        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
+        
         let isVisible = true;
-        if (userRole === 'Nhân viên') {
+        if (!isManagerOrAdmin) {
             // Visible if user is the manager OR has tasks in the project
             isVisible = p.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === p.id);
         }

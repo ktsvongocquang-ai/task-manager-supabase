@@ -134,16 +134,16 @@ export const Schedule = () => {
         return 'bg-slate-100 text-slate-700 border-slate-200'
     }
 
-        if (loading) {
-        return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
-    }
-
     // Auto scroll mobile calendar to selected date
     useEffect(() => {
         const dateStr = format(selectedDate, 'yyyy-MM-dd')
         const el = document.getElementById(`day-btn-${dateStr}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }, [selectedDate])
+
+    if (loading) {
+        return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+    }
 
     return (
         <div className="space-y-6 max-w-[1600px] mx-auto min-h-0 flex flex-col h-full">

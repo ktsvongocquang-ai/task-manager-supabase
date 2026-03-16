@@ -1,0 +1,504 @@
+diff --git a/src/pages/marketing/MarketingApp.tsx b/src/pages/marketing/MarketingApp.tsx
+index 231e5b1..c0367f7 100644
+--- a/src/pages/marketing/MarketingApp.tsx
++++ b/src/pages/marketing/MarketingApp.tsx
+@@ -10,9 +10,9 @@ import {
+   Clock, 
+   AlertCircle,
+   LayoutTemplate,
+-  Users,
+-  TrendingUp,
+   Target,
++  TrendingUp,
++  Calendar,
+   MessageCircle,
+   GanttChartSquare,
+   X,
+@@ -31,8 +31,13 @@ import MarketingRequestModal from './MarketingRequestModal';
+ import { SmartCard } from '../../components/layout/SmartCard';
+ import { BottomSheet } from '../../components/layout/BottomSheet';
+ import { useAuthStore } from '../../store/authStore';
++import { supabase } from '../../services/supabase';
++import type { Project, Task } from '../../types';
++import { MarketingProjectModal } from './MarketingProjectModal';
++import { AddEditTaskModal } from '../tasks/AddEditTaskModal';
+ 
+ // Mock Data based on the Google Doc workflow
++// @ts-ignore
+ const initialVideos = [
+   {
+     id: 'VID-001',
+@@ -180,30 +185,26 @@ const initialVideos = [
+   }
+ ];
+ 
+-const COLUMNS = [
+-  { id: 'COL_IDEA', name: 'idea', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
+-  { id: 'COL_CONTENT', name: 'Viết contetn', color: 'bg-blue-50 border-blue-200 text-blue-800' },
+-  { id: 'COL_PROD', name: 'sản xuất', color: 'bg-purple-50 border-purple-200 text-purple-800' },
+-  { id: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-green-50 border-green-200 text-green-800' }
++export const KANBAN_COLUMNS = [
++    { id: 'col-todo', title: 'Chưa bắt đầu', matchStatuses: ['Chưa bắt đầu'] },
++    { id: 'col-doing', title: 'Đang thực hiện', matchStatuses: ['Đang thực hiện'] },
++    { id: 'col-review', title: 'Đang chờ', matchStatuses: ['Đang chờ', 'Tạm dừng'] },
++    { id: 'col-done', title: 'Hoàn thành', matchStatuses: ['Hoàn thành'] },
++    { id: 'col-cancel', title: 'Đã hủy', matchStatuses: ['Hủy bỏ'] },
+ ];
+ 
++const COLUMNS = KANBAN_COLUMNS.map(c => ({ id: c.id, name: c.title, color: 'bg-slate-50 border-slate-200 text-slate-800' }));
++
+ const STATUS_MAP: Record<string, { col: string, name: string, color: string }> = {
+-  IDEA: { col: 'COL_IDEA', name: 'idea', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+-  CONTENT_EDITING: { col: 'COL_CONTENT', name: 'Đang soạn thảo', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+-  CONTENT_DONE: { col: 'COL_CONTENT', name: 'Chờ duyệt', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+-  PROD_DOING: { col: 'COL_PROD', name: 'sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+-  PROD_DONE: { col: 'COL_PROD', name: 'Đã xong', color: 'bg-green-100 text-green-800 border-green-200' },
+-  VIDEO_REVIEW: { col: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-orange-100 text-orange-800 border-orange-200' },
+-  SCHEDULED: { col: 'COL_SCHEDULE', name: 'Chưa đăng', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+-  PUBLISHED: { col: 'COL_SCHEDULE', name: 'Đã đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+-  REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200' }
++  'Chưa bắt đầu': { col: 'col-todo', name: 'Chưa bắt đầu', color: 'bg-slate-100 text-slate-800 border-slate-200' },
++  'Đang thực hiện': { col: 'col-doing', name: 'Đang thực hiện', color: 'bg-blue-100 text-blue-800 border-blue-200' },
++  'Đang chờ': { col: 'col-review', name: 'Đang chờ', color: 'bg-orange-100 text-orange-800 border-orange-200' },
++  'Tạm dừng': { col: 'col-review', name: 'Tạm dừng', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
++  'Hoàn thành': { col: 'col-done', name: 'Hoàn thành', color: 'bg-green-100 text-green-800 border-green-200' },
++  'Hủy bỏ': { col: 'col-cancel', name: 'Hủy bỏ', color: 'bg-red-100 text-red-800 border-red-200' }
+ };
+ 
+-const PRIORITY_COLORS: Record<string, string> = {
+-  'Khẩn cấp': 'bg-red-100 text-red-700 border-red-200',
+-  'Ưu tiên': 'bg-orange-100 text-orange-700 border-orange-200',
+-  'Từ từ': 'bg-gray-100 text-gray-600 border-gray-200'
+-};
++// const PRIORITY_COLORS: Record<string, string> = { ... }
+ 
+ const PROJECTS_TIMELINE = [
+   {
+@@ -268,10 +269,88 @@ export default function MarketingApp() {
+     }
+   };
+ 
+-  const [videos, setVideos] = useState(initialVideos);
++  const [videos, setVideos] = useState<any[]>([]);
+   const { profile } = useAuthStore();
++  const [projects, setProjects] = useState<Project[]>([]);
++  const [tasks, setTasks] = useState<Task[]>([]);
++  const [profiles, setProfiles] = useState<any[]>([]);
++  const [isLoading, setIsLoading] = useState(true);
++
++  // New Modals for Project and Task
++  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
++  const [editingProject, setEditingProject] = useState<Project | null>(null);
++  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
++  const [editingTask, setEditingTask] = useState<Task | null>(null);
++
++  const fetchData = async () => {
++    setIsLoading(true);
++    try {
++      const [{ data: projectsData, error: projErr }, { data: profilesData }] = await Promise.all([
++        supabase.from('projects').select('*').eq('department', 'Marketing'),
++        supabase.from('profiles').select('id, full_name, role, email')
++      ]);
++      
++      if (projErr) console.error("Error fetching projects", projErr);
++      if (profilesData) setProfiles(profilesData);
++      
++      let allTasks: Task[] = [];
++      if (projectsData && projectsData.length > 0) {
++        setProjects(projectsData);
++        const { data: tasksData, error: taskErr } = await supabase.from('tasks').select('*').in('project_id', projectsData.map((p: any) => p.id));
++        if (taskErr) console.error("Error fetching tasks", taskErr);
++        if (tasksData) allTasks = tasksData as Task[];
++      } else {
++        setProjects([]);
++      }
++      
++      setTasks(allTasks);
++
++      // Map Tasks to the format expected by the MarketingApp UI
++      const mappedVideos = allTasks.map(t => {
++          const assigneeProfile = profilesData?.find(p => p.id === t.assignee_id);
++          const projectObj = projectsData?.find(p => p.id === t.project_id);
++          return {
++            ...t, // Keep original task properties for edit modal
++            id: t.id,
++            title: t.name,
++            project: projectObj?.name || t.project_id,
++            status: t.status,
++            assignee: assigneeProfile?.full_name || '',
++            assignee_id: t.assignee_id,
++            dueDate: t.due_date || '',
++            format: t.category || 'Khác',
++            platform: t.output || 'Khác',
++            priority: t.priority || 'Trung bình',
++            contentType: 'Khác',
++            goal: t.target || '',
++            demoDate: '',
++            demoTime: '',
++            publishTime: t.report_date || '',
++            contentDetails: t.description || '',
++            hashtags: t.notes || '',
++            assetLink: '',
++            notes: t.notes || '',
++            views: 0,
++            interactions: 0,
++            shares: 0,
++            saves: 0
++          };
++      });
++      setVideos(mappedVideos);
++
++    } catch (err) {
++      console.error('Error fetching marketing data', err);
++    } finally {
++      setIsLoading(false);
++    }
++  };
++
++  React.useEffect(() => {
++    fetchData();
++  }, [profile]);
++
+   const [assigneeFilter, setAssigneeFilter] = useState('');
+-  const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
++  const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['col-todo', 'col-doing']));
+   
+   const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
+   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+@@ -396,12 +475,33 @@ export default function MarketingApp() {
+                 Lưu trữ
+               </button>
+             </div>
++            
++            {isLoading && (
++              <div className="flex items-center justify-center text-sm font-semibold text-indigo-600 ml-4 animate-pulse">
++                Đang tải...
++              </div>
++            )}
++
++            <button 
++              onClick={() => setIsProjectModalOpen(true)}
++              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
++            >
++              <Plus className="w-4 h-4 shrink-0" />
++              Tạo dự án mới
++            </button>
++            <button 
++              onClick={() => setIsTaskModalOpen(true)}
++              className="bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
++            >
++              <Plus className="w-4 h-4 shrink-0" />
++              Tạo Task
++            </button>
+             <button 
+               onClick={() => setIsRequestModalOpen(true)}
+-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
++              className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
+             >
+               <Plus className="w-4 h-4 shrink-0" />
+-              Tạo Video Mới
++              Yêu cầu cũ
+             </button>
+           </div>
+         </div>
+@@ -561,224 +661,58 @@ export default function MarketingApp() {
+ 
+                     <div className="flex-1 overflow-y-auto p-3 space-y-3 transition-colors">
+                       {activeVideos.map(video => {
+-                        const statusDef = STATUS_MAP[video.status];
+-                        const isExpanded = expandedCards[video.id];
+-                        const isIdeaCol = column.id === 'COL_IDEA';
++                        const task = video;
++                        const assignee = profiles.find(p => p.id === task.assignee_id);
+                         
+                         return (
+                           <div 
+-                            key={video.id} 
+-                            onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
+-                            className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
++                            key={task.id} 
++                            onClick={() => {
++                                setEditingTask(task);
++                                setIsTaskModalOpen(true);
++                            }}
++                            className="bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group flex flex-col border-slate-200 hover:border-[#5B5FC7]/30 hover:shadow-md"
+                           >
+-                            <div className="flex justify-between items-start mb-2">
+-                              <div className="flex items-center gap-1.5 flex-wrap">
+-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color}`}>
+-                                  {statusDef?.name}
+-                                </span>
+-                              </div>
+-                              <div className="flex items-center gap-1.5 flex-wrap">
+-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[video.priority] || 'bg-gray-100 text-gray-600'}`}>
+-                                  {video.priority}
+-                                </span>
+-                                {!isIdeaCol && (
+-                                  <button className="text-gray-400 hover:text-gray-600 opacity-100 transition-opacity p-2 -mr-2">
+-                                    <MoreVertical className="w-5 h-5" />
+-                                  </button>
+-                                )}
+-                              </div>
+-                            </div>
+-                            
+-                            <h3 className={`font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors ${!isExpanded ? 'line-clamp-2' : ''}`}>
+-                              {video.title}
+-                            </h3>
+-                            
+-                            {(!isIdeaCol || isExpanded) && (
+-                              <>
+-                                {isIdeaCol && isExpanded && (
+-                                  <div className="mt-3 mb-3 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs">
+-                                    <table className="w-full text-left border-collapse">
+-                                      <tbody>
+-                                        <tr className="border-b border-gray-200">
+-                                          <td className="py-1.5 font-semibold text-gray-700 w-1/3">Tên video</td>
+-                                          <td className="py-1.5 text-gray-600">{video.title}</td>
+-                                        </tr>
+-                                        <tr className="border-b border-gray-200">
+-                                          <td className="py-1.5 font-semibold text-gray-700">Công trình</td>
+-                                          <td className="py-1.5 text-gray-600">{video.project}</td>
+-                                        </tr>
+-                                        <tr className="border-b border-gray-200">
+-                                          <td className="py-1.5 font-semibold text-gray-700">Nhân vật chính</td>
+-                                          <td className="py-1.5 text-gray-600">{video.assignee}</td>
+-                                        </tr>
+-                                        <tr className="border-b border-gray-200">
+-                                          <td className="py-1.5 font-semibold text-gray-700">Format</td>
+-                                          <td className="py-1.5 text-gray-600">{video.format}</td>
+-                                        </tr>
+-                                        <tr>
+-                                          <td className="py-1.5 font-semibold text-gray-700">Hook đã chọn</td>
+-                                          <td className="py-1.5 text-gray-600">{video.notes || 'Chưa có'}</td>
+-                                        </tr>
+-                                      </tbody>
+-                                    </table>
+-                                    
+-                                    {video.contentDetails && (
+-                                      <div className="mt-2 pt-2 border-t border-gray-200">
+-                                        <div className="font-semibold text-gray-700 mb-1">Giải pháp DQH:</div>
+-                                        <div className="text-gray-600 whitespace-pre-line">{video.contentDetails}</div>
+-                                      </div>
+-                                    )}
+-                                  </div>
+-                                )}
+-                                
+-                                {!isIdeaCol && (
+-                                  <>
+-                                    <p className="text-xs text-slate-500 mb-2.5 flex items-center gap-1.5 truncate">
+-                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{video.project}</span>
+-                                    </p>
+-                                    
+-                                    <div className="flex flex-wrap gap-1.5 mb-2.5">
+-                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+-                                        <Video className="w-3.5 h-3.5" /> {video.format}
+-                                      </span>
+-                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+-                                        <Users className="w-3.5 h-3.5" /> {video.platform}
+-                                      </span>
+-                                    </div>
+-                                  </>
+-                                )}
+-
+-                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+-                                  <div className="flex items-center gap-1.5 text-slate-500 min-h-[32px]">
+-                                    <Clock className="w-4 h-4" />
+-                                    <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
+-                                  </div>
+-                                  <div className="flex items-center gap-2 min-h-[32px]">
+-                                    <span className="text-[11px] text-slate-400 font-bold truncate max-w-[80px]">Thực hiện</span>
+-                                    <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
+-                                      {video.assignee.substring(0, 2).toUpperCase()}
+-                                    </div>
+-                                  </div>
++                                <div className="flex justify-between items-start mb-1.5 gap-2">
++                                    <h4 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
++                                        {task.title}
++                                    </h4>
++                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'Khẩn cấp' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
++                                        task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
++                                            task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
++                                                'bg-slate-50 text-slate-500 border-slate-100'
++                                        }`}>
++                                        {task.priority || 'Trung bình'}
++                                    </span>
+                                 </div>
+ 
+-                                {/* Action Buttons - Touch Target > 44px */}
+-                                <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-2">
+-                                  {video.status === 'IDEA' && (
+-                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
+-                                        className="flex-1 min-h-[44px] bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Phê duyệt
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'REJECTED' }); }}
+-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Từ chối
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Để sau
+-                                      </button>
+-                                    </div>
+-                                  )}
+-                                  
+-                                  {video.status === 'CONTENT_EDITING' && (
+-                                    <button 
+-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_DONE' }); }}
+-                                      className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                    >
+-                                      Done
+-                                    </button>
+-                                  )}
+-                                  
+-                                  {video.status === 'CONTENT_DONE' && (
+-                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
+-                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
+-                                      >
+-                                        Phê duyệt
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
+-                                        className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Từ chối (Edit)
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Để sau
+-                                      </button>
+-                                    </div>
+-                                  )}
+-
+-                                  {video.status === 'PROD_DOING' && (
+-                                    <button 
+-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DONE' }); }}
+-                                      className="w-full min-h-[44px] bg-[var(--color-primary-50)] text-[var(--color-primary)] hover:bg-[var(--color-primary-100)] rounded-xl text-[12px] font-bold transition-colors"
+-                                    >
+-                                      Đã xong
+-                                    </button>
+-                                  )}
++                                <div className="text-[10px] font-medium text-slate-400 tracking-tight mb-3">
++                                    {task.task_code || task.id}
++                                </div>
+ 
+-                                  {video.status === 'PROD_DONE' && (
+-                                    <button 
+-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'VIDEO_REVIEW' }); }}
+-                                      className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                    >
+-                                      Gửi qua Cần Phê Duyệt
+-                                    </button>
+-                                  )}
++                                <div className="w-full bg-slate-100 rounded-full h-2 mb-3.5 overflow-hidden">
++                                    <div className="bg-[#5B5FC7] h-2 rounded-full transition-all" style={{ width: `${task.completion_pct || 0}%` }}></div>
++                                </div>
+ 
+-                                  {video.status === 'VIDEO_REVIEW' && (
+-                                    <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'SCHEDULED' }); }}
+-                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Phê duyệt
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
+-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Từ chối
+-                                      </button>
+-                                      <button 
+-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
+-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
+-                                      >
+-                                        Để sau
+-                                      </button>
++                                <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
++                                    <div className="flex items-center gap-2">
++                                        {task.dueDate && (
++                                            <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded">
++                                                <Calendar size={10} className="text-slate-400" />
++                                                {format(new Date(task.dueDate), 'dd/MM')}
++                                            </div>
++                                        )}
+                                     </div>
+-                                  )}
+ 
+-                                  {video.status === 'SCHEDULED' && (
+-                                    <button 
+-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PUBLISHED' }); }}
+-                                      className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+-                                    >
+-                                      Đánh dấu đã đăng
+-                                    </button>
+-                                  )}
+-                                  
+-                                  {video.status === 'REJECTED' && (
+-                                    <button 
+-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'IDEA' }); }}
+-                                      className="w-full min-h-[44px] bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-[12px] font-bold transition-colors"
+-                                    >
+-                                      Khôi phục
+-                                    </button>
+-                                  )}
++                                    <div className="flex items-center gap-1.5 min-h-[32px] bg-slate-50 px-2 py-1 rounded-lg shrink-0">
++                                        <div className="w-5 h-5 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-[9px] font-bold text-indigo-700" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
++                                            {(assignee?.full_name || task.assignee || '?').charAt(0).toUpperCase()}
++                                        </div>
++                                        <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[80px]">
++                                            {(assignee?.full_name || task.assignee || 'Chưa gán').split(' ').pop()}
++                                        </span>
++                                    </div>
+                                 </div>
+-                              </>
+-                            )}
+                           </div>
+                         );
+                       })}
+@@ -1726,6 +1660,34 @@ export default function MarketingApp() {
+             </div>
+         )}
+       </BottomSheet>
++      <MarketingProjectModal
++        isOpen={isProjectModalOpen}
++        onClose={() => { setIsProjectModalOpen(false); setEditingProject(null); }}
++        editingProject={editingProject}
++        onSave={async () => { setIsProjectModalOpen(false); setEditingProject(null); await fetchData(); }}
++        profiles={profiles}
++        currentUserProfile={profile}
++      />
++      <AddEditTaskModal
++          isOpen={isTaskModalOpen}
++          onClose={() => { setIsTaskModalOpen(false); setEditingTask(null); }}
++          onSaved={() => { setIsTaskModalOpen(false); setEditingTask(null); fetchData(); }}
++          editingTask={editingTask}
++          initialData={{ task_code: '', project_id: '' }}
++          projects={projects}
++          profiles={profiles}
++          currentUserProfile={profile}
++          generateNextTaskCode={(pId: string) => {
++              const projTasks = tasks.filter(t => t.project_id === pId);
++              let maxId = 0;
++              projTasks.forEach(t => {
++                  const num = parseInt(t.task_code?.split('-').pop() || '0', 10);
++                  if (num > maxId) maxId = num;
++              });
++              const p = projects.find(x => x.id === pId);
++              return p?.project_code ? `${p.project_code}-${String(maxId + 1).padStart(2, '0')}` : '';
++          }}
++      />
+       <MarketingRequestModal 
+         isOpen={isRequestModalOpen} 
+         onClose={() => setIsRequestModalOpen(false)} 

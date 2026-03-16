@@ -96,13 +96,15 @@ export const Dashboard = () => {
             let fetchedProjects = (projects || []) as Project[]
             const fetchedProfiles = (profiles || []) as any[]
 
-            if (profile?.role === 'Nhân viên') {
+            const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '');
+
+            if (!isManagerOrAdmin) {
                 fetchedTasks = fetchedTasks.filter(t =>
-                    t.assignee_id === profile.id ||
-                    t.supporter_id === profile.id
+                    t.assignee_id === profile?.id ||
+                    t.supporter_id === profile?.id
                 );
                 fetchedProjects = fetchedProjects.filter(p =>
-                    p.manager_id === profile.id || fetchedTasks.some(t => t.project_id === p.id)
+                    p.manager_id === profile?.id || fetchedTasks.some(t => t.project_id === p.id)
                 );
             }
 

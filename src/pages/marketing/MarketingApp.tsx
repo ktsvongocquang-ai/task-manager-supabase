@@ -10,9 +10,8 @@ import {
   Clock, 
   AlertCircle,
   LayoutTemplate,
-  Users,
-  TrendingUp,
   Target,
+  TrendingUp,
   MessageCircle,
   GanttChartSquare,
   X,
@@ -22,7 +21,9 @@ import {
   List,
   ShieldAlert,
   Award,
-  Mail
+  Mail,
+  Users as UsersIcon,
+  ListTodo
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -31,8 +32,13 @@ import MarketingRequestModal from './MarketingRequestModal';
 import { SmartCard } from '../../components/layout/SmartCard';
 import { BottomSheet } from '../../components/layout/BottomSheet';
 import { useAuthStore } from '../../store/authStore';
+import { supabase } from '../../services/supabase';
+import type { Project, Task } from '../../types';
+import { MarketingProjectModal } from './MarketingProjectModal';
+import { MarketingTaskModal } from './MarketingTaskModal';
 
 // Mock Data based on the Google Doc workflow
+// @ts-ignore
 const initialVideos = [
   {
     id: 'VID-001',
@@ -200,11 +206,13 @@ const STATUS_MAP: Record<string, { col: string, name: string, color: string }> =
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  'Khẩn cấp': 'bg-red-100 text-red-700 border-red-200',
-  'Ưu tiên': 'bg-orange-100 text-orange-700 border-orange-200',
-  'Từ từ': 'bg-gray-100 text-gray-600 border-gray-200'
+  'Khẩn cấp': 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20',
+  'Ưu tiên': 'bg-orange-50 text-orange-600 border-orange-100',
+  'Cao': 'bg-orange-50 text-orange-600 border-orange-100',
+  'Trung bình': 'bg-yellow-50 text-yellow-600 border-yellow-100',
+  'Thấp': 'bg-slate-50 text-slate-500 border-slate-100',
+  'Từ từ': 'bg-slate-50 text-slate-500 border-slate-100'
 };
-
 const PROJECTS_TIMELINE = [
   {
     id: 'PRJ-001',
@@ -239,19 +247,6 @@ const PROJECTS_TIMELINE = [
   }
 ];
 
-const PLATFORM_DATA = [
-  { name: 'Facebook', value: 8, fill: '#4ade80' },
-  { name: 'TikTok', value: 23, fill: '#facc15' },
-  { name: 'Instagram', value: 3, fill: '#f87171' },
-  { name: 'Website', value: 12, fill: '#f472b6' },
-  { name: 'YouTube', value: 6, fill: '#c084fc' },
-  { name: 'Email', value: 5, fill: '#fb923c' },
-  { name: 'Shopee', value: 2, fill: '#f43f5e' },
-  { name: 'Lazada', value: 0, fill: '#3b82f6' },
-  { name: 'Tiki', value: 0, fill: '#2dd4bf' },
-  { name: 'Zalo', value: 0, fill: '#a78bfa' },
-];
-
 export default function MarketingApp() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
@@ -268,20 +263,129 @@ export default function MarketingApp() {
     }
   };
 
-  const [videos, setVideos] = useState(initialVideos);
+  const [videos, setVideos] = useState<any[]>([]);
   const { profile } = useAuthStore();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // New Modals for Project and Task
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [{ data: projectsData, error: projErr }, { data: profilesData }] = await Promise.all([
+        supabase.from('marketing_projects').select('*'),
+        supabase.from('profiles').select('id, full_name, role, email')
+      ]);
+      
+      if (projErr) console.error("Error fetching projects", projErr);
+      if (profilesData) setProfiles(profilesData);
+      
+      let allTasks: Task[] = [];
+      if (projectsData && projectsData.length > 0) {
+        setProjects(projectsData);
+        const { data: tasksData, error: taskErr } = await supabase.from('marketing_tasks').select('*').in('project_id', projectsData.map((p: any) => p.id));
+        if (taskErr) console.error("Error fetching tasks", taskErr);
+        if (tasksData) allTasks = tasksData as Task[];
+      } else {
+        setProjects([]);
+      }
+      
+      setTasks(allTasks);
+
+      // Map Tasks to the format expected by the MarketingApp UI
+      const mappedVideos = allTasks.map(t => {
+          const assigneeProfile = profilesData?.find(p => p.id === t.assignee_id);
+          const projectObj = projectsData?.find(p => p.id === t.project_id);
+          return {
+            ...t, // Keep original task properties for edit modal
+            id: t.id,
+            title: t.name,
+            project: projectObj?.name || t.project_id,
+            status: t.status,
+            assignee: assigneeProfile?.full_name || '',
+            assignee_id: t.assignee_id,
+            dueDate: t.due_date || '',
+            format: t.category || 'Khác',
+            platform: t.output || 'Khác',
+            priority: t.priority || 'Trung bình',
+            contentType: 'Khác',
+            goal: t.target || '',
+            demoDate: '',
+            demoTime: '',
+            publishTime: t.report_date || '',
+            contentDetails: t.description || '',
+            hashtags: t.notes || '',
+            assetLink: '',
+            notes: t.notes || '',
+            views: 0,
+            interactions: 0,
+            shares: 0,
+            saves: 0
+          };
+      });
+      setVideos(mappedVideos);
+
+    } catch (err) {
+      console.error('Error fetching marketing data', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveProject = async (formData: any) => {
+      try {
+          if (editingProject) {
+              const { error } = await supabase.from('marketing_projects').update(formData).eq('id', editingProject.id);
+              if (error) throw error;
+          } else {
+              const { error } = await supabase.from('marketing_projects').insert([formData]);
+              if (error) throw error;
+          }
+          setIsProjectModalOpen(false);
+          setEditingProject(null);
+          await fetchData();
+      } catch (err: any) {
+          console.error("Error saving project:", err);
+          const msg = err.message || '';
+          if (msg.includes('column') && msg.includes('does not exist')) {
+              alert(`Lỗi Cơ Sở Dữ Liệu: ${msg}. \n\nBạn chưa chạy file marketing_fields.sql trong Supabase để tạo các cột mới cho Marketing. Vui lòng chạy file đó trước!`);
+          } else {
+              alert(`Lỗi khi lưu dự án: ${msg}`);
+          }
+      }
+  };
+
+  const updateTask = async (taskId: string, updates: any) => {
+      try {
+          const { error } = await supabase.from('marketing_tasks').update(updates).eq('id', taskId);
+          if (error) throw error;
+          await fetchData();
+      } catch (err) {
+          console.error("Error updating task:", err);
+          alert("Lỗi khi cập nhật trạng thái");
+      }
+  };
+
+  React.useEffect(() => {
+    fetchData();
+  }, [profile]);
+
   const [assigneeFilter, setAssigneeFilter] = useState('');
   const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
-  
   const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 10, 1)); // November 2024 to match mock data
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [listTimeFilter, setListTimeFilter] = useState('Tất cả');
-  const [statusFilter, setStatusFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
   const [showKanbanFilters, setShowKanbanFilters] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<typeof videos[0] | null>(null);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
 
@@ -396,12 +500,27 @@ export default function MarketingApp() {
                 Lưu trữ
               </button>
             </div>
+            
+            {isLoading && (
+              <div className="flex items-center justify-center text-sm font-semibold text-indigo-600 ml-4 animate-pulse">
+                Đang tải...
+              </div>
+            )}
+
+
             <button 
-              onClick={() => setIsRequestModalOpen(true)}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
+              onClick={() => setIsTaskModalOpen(true)}
+              className="bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
             >
               <Plus className="w-4 h-4 shrink-0" />
-              Tạo Video Mới
+              Tạo Task
+            </button>
+            <button 
+              onClick={() => setIsRequestModalOpen(true)}
+              className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              Yêu cầu cũ
             </button>
           </div>
         </div>
@@ -520,6 +639,17 @@ export default function MarketingApp() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => {
+                                const defaultStatus = Object.keys(STATUS_MAP).find(k => STATUS_MAP[k].col === column.id) || 'IDEA';
+                                setEditingTask({ status: defaultStatus } as any);
+                                setIsTaskModalOpen(true);
+                            }}
+                            className="bg-white/80 hover:bg-white text-indigo-600 p-1 rounded transition-colors shadow-sm"
+                            title="Thêm Task mới"
+                        >
+                            <Plus size={16} />
+                        </button>
                         {archivedVideos.length > 0 && (
                           <button
                             onClick={() => setShowArchivePopup(showArchivePopup === column.id ? null : column.id)}
@@ -561,225 +691,165 @@ export default function MarketingApp() {
 
                     <div className="flex-1 overflow-y-auto p-3 space-y-3 transition-colors">
                       {activeVideos.map(video => {
-                        const statusDef = STATUS_MAP[video.status];
-                        const isExpanded = expandedCards[video.id];
+                        const task = video;
+                        const assignee = profiles.find(p => p.id === task.assignee_id);
+                        const statusDef = STATUS_MAP[task.status];
                         const isIdeaCol = column.id === 'COL_IDEA';
                         
                         return (
-                          <div 
-                            key={video.id} 
-                            onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
-                            className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
-                          >
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color}`}>
-                                  {statusDef?.name}
-                                </span>
+                            <div 
+                              key={task.id} 
+                              onClick={() => {
+                                  setEditingTask(task);
+                                  setIsTaskModalOpen(true);
+                              }}
+                              className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
+                                    {statusDef?.name || task.status}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
+                                    {task.priority || 'Trung bình'}
+                                  </span>
+                                  {!isIdeaCol && (
+                                    <button className="text-gray-400 hover:text-gray-600 opacity-100 transition-opacity p-2 -mr-2" onClick={(e) => e.stopPropagation()}>
+                                      <MoreVertical className="w-5 h-5" />
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[video.priority] || 'bg-gray-100 text-gray-600'}`}>
-                                  {video.priority}
-                                </span>
-                                {!isIdeaCol && (
-                                  <button className="text-gray-400 hover:text-gray-600 opacity-100 transition-opacity p-2 -mr-2">
-                                    <MoreVertical className="w-5 h-5" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <h3 className={`font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors ${!isExpanded ? 'line-clamp-2' : ''}`}>
-                              {video.title}
-                            </h3>
-                            
-                            {(!isIdeaCol || isExpanded) && (
-                              <>
-                                {isIdeaCol && isExpanded && (
-                                  <div className="mt-3 mb-3 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs">
-                                    <table className="w-full text-left border-collapse">
-                                      <tbody>
-                                        <tr className="border-b border-gray-200">
-                                          <td className="py-1.5 font-semibold text-gray-700 w-1/3">Tên video</td>
-                                          <td className="py-1.5 text-gray-600">{video.title}</td>
-                                        </tr>
-                                        <tr className="border-b border-gray-200">
-                                          <td className="py-1.5 font-semibold text-gray-700">Công trình</td>
-                                          <td className="py-1.5 text-gray-600">{video.project}</td>
-                                        </tr>
-                                        <tr className="border-b border-gray-200">
-                                          <td className="py-1.5 font-semibold text-gray-700">Nhân vật chính</td>
-                                          <td className="py-1.5 text-gray-600">{video.assignee}</td>
-                                        </tr>
-                                        <tr className="border-b border-gray-200">
-                                          <td className="py-1.5 font-semibold text-gray-700">Format</td>
-                                          <td className="py-1.5 text-gray-600">{video.format}</td>
-                                        </tr>
-                                        <tr>
-                                          <td className="py-1.5 font-semibold text-gray-700">Hook đã chọn</td>
-                                          <td className="py-1.5 text-gray-600">{video.notes || 'Chưa có'}</td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-                                    
-                                    {video.contentDetails && (
-                                      <div className="mt-2 pt-2 border-t border-gray-200">
-                                        <div className="font-semibold text-gray-700 mb-1">Giải pháp DQH:</div>
-                                        <div className="text-gray-600 whitespace-pre-line">{video.contentDetails}</div>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                                
-                                {!isIdeaCol && (
+                              
+                              <h3 className={`font-bold text-slate-800 text-[14px] md:text-[15px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2`}>
+                                {task.title}
+                              </h3>
+                              
+                              {/* Marketing Details tags */}
+                              {(!isIdeaCol) && (
                                   <>
-                                    <p className="text-xs text-slate-500 mb-2.5 flex items-center gap-1.5 truncate">
-                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{video.project}</span>
+                                    <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate">
+                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
                                     </p>
                                     
-                                    <div className="flex flex-wrap gap-1.5 mb-2.5">
+                                    <div className="flex gap-1.5 mb-2">
                                       <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <Video className="w-3.5 h-3.5" /> {video.format}
+                                        <Video className="w-3.5 h-3.5" /> {task.format}
                                       </span>
                                       <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <Users className="w-3.5 h-3.5" /> {video.platform}
+                                        <UsersIcon className="w-3.5 h-3.5" /> {task.platform}
                                       </span>
                                     </div>
                                   </>
-                                )}
+                              )}
 
-                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
-                                  <div className="flex items-center gap-1.5 text-slate-500 min-h-[32px]">
-                                    <Clock className="w-4 h-4" />
-                                    <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2 min-h-[32px]">
-                                    <span className="text-[11px] text-slate-400 font-bold truncate max-w-[80px]">Thực hiện</span>
-                                    <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
-                                      {video.assignee.substring(0, 2).toUpperCase()}
-                                    </div>
+                              <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                <div className="flex items-center gap-1.5 text-slate-500">
+                                  <Clock className="w-4 h-4" />
+                                  <span className="text-[11px] font-medium">{task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : 'Chưa định'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] font-medium text-slate-500 uppercase">Thực hiện</span>
+                                  <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
+                                    {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
                                   </div>
                                 </div>
-
-                                {/* Action Buttons - Touch Target > 44px */}
-                                <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-2">
-                                  {video.status === 'IDEA' && (
+                              </div>
+                              
+                              {/* Action Buttons */}
+                              {(!isIdeaCol) && (
+                                <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                                  {task.status === 'IDEA' && (
                                     <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 min-h-[44px] bg-yellow-50 text-yellow-700 hover:bg-yellow-100 rounded-xl text-[12px] font-bold transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                        className="flex-1 min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'REJECTED' }); }}
-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'REJECTED' }); }}
+                                        className="flex-1 sm:flex-none min-w-[70px] min-h-[36px] bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối
-                                      </button>
-                                      <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
-                                      >
-                                        Để sau
                                       </button>
                                     </div>
                                   )}
                                   
-                                  {video.status === 'CONTENT_EDITING' && (
+                                  {task.status === 'CONTENT_EDITING' && (
                                     <button 
-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_DONE' }); }}
-                                      className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_DONE' }); }}
+                                      className="w-full min-h-[36px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Done
                                     </button>
                                   )}
                                   
-                                  {video.status === 'CONTENT_DONE' && (
+                                  {task.status === 'CONTENT_DONE' && (
                                     <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                        className="flex-1 min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                        className="flex-1 sm:flex-none min-w-[90px] min-h-[36px] bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối (Edit)
-                                      </button>
-                                      <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
-                                      >
-                                        Để sau
                                       </button>
                                     </div>
                                   )}
 
-                                  {video.status === 'PROD_DOING' && (
+                                  {task.status === 'PROD_DOING' && (
                                     <button 
-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DONE' }); }}
-                                      className="w-full min-h-[44px] bg-[var(--color-primary-50)] text-[var(--color-primary)] hover:bg-[var(--color-primary-100)] rounded-xl text-[12px] font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
+                                      className="w-full min-h-[36px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Đã xong
                                     </button>
                                   )}
 
-                                  {video.status === 'PROD_DONE' && (
+                                  {task.status === 'PROD_DONE' && (
                                     <button 
-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'VIDEO_REVIEW' }); }}
-                                      className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'VIDEO_REVIEW' }); }}
+                                      className="w-full min-h-[36px] bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Gửi qua Cần Phê Duyệt
                                     </button>
                                   )}
 
-                                  {video.status === 'VIDEO_REVIEW' && (
+                                  {task.status === 'VIDEO_REVIEW' && (
                                     <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'SCHEDULED' }); }}
-                                        className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'SCHEDULED' }); }}
+                                        className="flex-1 min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PROD_DOING' }); }}
-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                        className="flex-1 sm:flex-none min-w-[70px] min-h-[36px] bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
                                       >
                                         Từ chối
-                                      </button>
-                                      <button 
-                                        onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: true } as any); }}
-                                        className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-xl text-[12px] font-bold transition-colors"
-                                      >
-                                        Để sau
                                       </button>
                                     </div>
                                   )}
 
-                                  {video.status === 'SCHEDULED' && (
+                                  {task.status === 'SCHEDULED' && (
                                     <button 
-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'PUBLISHED' }); }}
-                                      className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PUBLISHED' }); }}
+                                      className="w-full min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors"
                                     >
                                       Đánh dấu đã đăng
                                     </button>
                                   )}
-                                  
-                                  {video.status === 'REJECTED' && (
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { status: 'IDEA' }); }}
-                                      className="w-full min-h-[44px] bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-[12px] font-bold transition-colors"
-                                    >
-                                      Khôi phục
-                                    </button>
-                                  )}
                                 </div>
-                              </>
-                            )}
-                          </div>
+                              )}
+                            </div>
                         );
                       })}
                     </div>
@@ -837,58 +907,85 @@ export default function MarketingApp() {
                                         <div className="p-4 text-center text-slate-400 text-sm italic font-medium bg-transparent">Chưa có bản ghi nào</div>
                                     ) : (
                                         activeVideos.map(video => {
-                                            const statusDef = STATUS_MAP[video.status];
+                                            const task = video;
+                                            const assignee = profiles.find(p => p.id === task.assignee_id);
+                                            const statusDef = STATUS_MAP[task.status];
                                             const isIdeaCol = column.id === 'COL_IDEA';
-                                            const isCardExpanded = expandedCards[video.id];
+                                            const isCardExpanded = expandedCards[task.id];
                                             
                                             // The same card design used in desktop but optimized width
                                             return (
                                               <div 
-                                                key={video.id} 
-                                                onClick={(e) => isIdeaCol && toggleCard(video.id, e)}
+                                                key={task.id} 
+                                                onClick={(e) => isIdeaCol ? toggleCard(task.id, e) : null}
                                                 className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 active:border-indigo-300 transition-all cursor-pointer flex flex-col gap-3"
                                               >
                                                 <div className="flex justify-between items-start mb-2">
                                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color}`}>
-                                                      {statusDef?.name}
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
+                                                      {statusDef?.name || task.status}
                                                     </span>
                                                   </div>
                                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center bg-gray-100 text-gray-600`}>
-                                                      {video.priority}
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
+                                                      {task.priority || 'Trung bình'}
                                                     </span>
                                                     {!isIdeaCol && (
-                                                      <button className="text-gray-400 p-2 -mr-2">
+                                                      <button 
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          // open modal explicitly on mobile dots
+                                                          setEditingTask(task);
+                                                          setIsTaskModalOpen(true);
+                                                        }}
+                                                        className="text-gray-400 p-2 -mr-2"
+                                                      >
                                                         <MoreVertical className="w-5 h-5" />
                                                       </button>
                                                     )}
                                                   </div>
                                                 </div>
                                                 
-                                                <h3 className={`font-bold text-slate-800 text-[14px] leading-tight ${!isCardExpanded ? 'line-clamp-2' : ''}`}>
-                                                  {video.title}
+                                                <h3 
+                                                  onClick={() => {
+                                                    if (!isIdeaCol) {
+                                                      setEditingTask(task);
+                                                      setIsTaskModalOpen(true);
+                                                    }
+                                                  }}
+                                                  className={`font-bold text-slate-800 text-[14px] leading-tight ${!isCardExpanded ? 'line-clamp-2' : ''}`}
+                                                >
+                                                  {task.title}
                                                 </h3>
                                                 
                                                 {(!isIdeaCol || isCardExpanded) && (
                                                   <>
                                                     {isIdeaCol && isCardExpanded && (
-                                                      <div className="mt-2 mb-2 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs text-left">
-                                                        <div className="font-semibold text-gray-700 mb-1">Công trình: <span className="font-normal text-gray-600">{video.project}</span></div>
-                                                        <div className="font-semibold text-gray-700 mb-1">Format: <span className="font-normal text-gray-600">{video.format}</span></div>
-                                                        {video.notes && <div className="font-semibold text-gray-700 mb-1">Hook: <span className="font-normal text-gray-600">{video.notes}</span></div>}
+                                                      <div 
+                                                        onClick={() => {
+                                                          setEditingTask(task);
+                                                          setIsTaskModalOpen(true);
+                                                        }}
+                                                        className="mt-2 mb-2 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs text-left cursor-pointer hover:bg-gray-100"
+                                                      >
+                                                        <div className="font-semibold text-gray-700 mb-1">Công trình: <span className="font-normal text-gray-600">{task.project}</span></div>
+                                                        <div className="font-semibold text-gray-700 mb-1">Format: <span className="font-normal text-gray-600">{task.format}</span></div>
+                                                        {task.notes && <div className="font-semibold text-gray-700 mb-1">Hook: <span className="font-normal text-gray-600">{task.notes}</span></div>}
                                                       </div>
                                                     )}
                                                     
                                                     {!isIdeaCol && (
                                                       <>
                                                         <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate">
-                                                          <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{video.project}</span>
+                                                          <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
                                                         </p>
                                                         
                                                         <div className="flex gap-1.5 mb-2">
                                                           <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                                            <Video className="w-3.5 h-3.5" /> {video.format}
+                                                            <Video className="w-3.5 h-3.5" /> {task.format}
+                                                          </span>
+                                                          <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                                            <UsersIcon className="w-3.5 h-3.5" /> {task.platform}
                                                           </span>
                                                         </div>
                                                       </>
@@ -897,14 +994,107 @@ export default function MarketingApp() {
                                                     <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
                                                       <div className="flex items-center gap-1.5 text-slate-500">
                                                         <Clock className="w-4 h-4" />
-                                                        <span className="text-xs font-medium">{new Date(video.dueDate).toLocaleDateString('vi-VN')}</span>
+                                                        <span className="text-xs font-medium">{task.dueDate ? format(new Date(task.dueDate), 'dd/MM/yyyy') : 'Chưa định'}</span>
                                                       </div>
                                                       <div className="flex items-center gap-2">
-                                                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={video.assignee}>
-                                                          {video.assignee.substring(0, 2).toUpperCase()}
+                                                        <span className="text-[11px] font-medium text-slate-500 uppercase">Thực hiện</span>
+                                                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
+                                                          {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
                                                         </div>
                                                       </div>
                                                     </div>
+
+                                                    {/* Action Buttons */}
+                                                    {(!isIdeaCol) && (
+                                                      <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                                                        {task.status === 'IDEA' && (
+                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
+                                                            >
+                                                              Phê duyệt
+                                                            </button>
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'REJECTED' }); }}
+                                                              className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            >
+                                                              Từ chối
+                                                            </button>
+                                                          </div>
+                                                        )}
+                                                        
+                                                        {task.status === 'CONTENT_EDITING' && (
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_DONE' }); }}
+                                                            className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Done
+                                                          </button>
+                                                        )}
+                                                        
+                                                        {task.status === 'CONTENT_DONE' && (
+                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
+                                                            >
+                                                              Phê duyệt
+                                                            </button>
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                                              className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            >
+                                                              Từ chối (Edit)
+                                                            </button>
+                                                          </div>
+                                                        )}
+
+                                                        {task.status === 'PROD_DOING' && (
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
+                                                            className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Đã xong
+                                                          </button>
+                                                        )}
+
+                                                        {task.status === 'PROD_DONE' && (
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'VIDEO_REVIEW' }); }}
+                                                            className="w-full min-h-[44px] bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Gửi qua Cần Phê Duyệt
+                                                          </button>
+                                                        )}
+
+                                                        {task.status === 'VIDEO_REVIEW' && (
+                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'SCHEDULED' }); }}
+                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            >
+                                                              Phê duyệt
+                                                            </button>
+                                                            <button 
+                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                              className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            >
+                                                              Từ chối
+                                                            </button>
+                                                          </div>
+                                                        )}
+
+                                                        {task.status === 'SCHEDULED' && (
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PUBLISHED' }); }}
+                                                            className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Đánh dấu đã đăng
+                                                          </button>
+                                                        )}
+                                                      </div>
+                                                    )}
                                                   </>
                                                 )}
                                               </div>
@@ -919,209 +1109,74 @@ export default function MarketingApp() {
             </div>
         </>
       ) : view === 'LIST' ? (
-        <div className="flex-1 overflow-auto bg-white rounded-xl shadow-sm border border-slate-200 p-6 mx-1 md:mx-0">
-          <div className="min-w-max">
-            {/* Compute filtered */}
-            {(() => {
-              const filteredVideos = videos.filter(video => {
-                if (listTimeFilter !== 'Tất cả') {
-                  if (!video.dueDate) return false;
-                  const date = new Date(video.dueDate);
-                  const today = new Date();
-                  if (listTimeFilter === 'Theo Tuần' && !isSameWeek(date, today, { weekStartsOn: 1 })) return false;
-                  if (listTimeFilter === 'Theo Tháng' && !isSameMonth(date, today)) return false;
-                  if (listTimeFilter === 'Theo Quý' && !isSameQuarter(date, today)) return false;
-                  if (listTimeFilter === 'Theo Năm' && !isSameYear(date, today)) return false;
-                }
-                if (statusFilter !== 'Tất cả' && STATUS_MAP[video.status]?.name !== statusFilter) return false;
-                if (formatFilter !== 'Tất cả' && video.format !== formatFilter) return false;
-                return true;
-              });
-              return (
-                <div className="space-y-6">
-            <div className="mb-6 text-center">
-              <h2 className="text-2xl font-black text-gray-900 uppercase tracking-widest mb-2">LÊN KẾ HOẠCH BÀI ĐĂNG</h2>
-            </div>
-            
-            {/* Filter */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
-              <div className="inline-flex bg-gray-100 p-1 rounded-lg">
-                {['Tất cả', 'Theo Tuần', 'Theo Tháng', 'Theo Quý', 'Theo Năm'].map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setListTimeFilter(filter)}
-                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${listTimeFilter === filter ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
-                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-gray-700 shadow-sm">
-                    <option value="Tất cả">Trạng thái: Tất cả</option>
-                    {Object.values(STATUS_MAP).map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                 </select>
-                 <select value={formatFilter} onChange={(e) => setFormatFilter(e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-gray-700 shadow-sm">
-                    <option value="Tất cả">Định dạng: Tất cả</option>
-                    <option value="Video ngắn">Video ngắn</option>
-                    <option value="Video dài">Video dài</option>
-                    <option value="Bài viết">Bài viết</option>
-                    <option value="Ảnh">Ảnh</option>
-                 </select>
-              </div>
-            </div>
-
-            {/* TỔNG QUAN (Integrated KPIs) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Platform Chart */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center">
-                <h3 className="text-[11px] font-bold text-gray-500 text-center mb-4 uppercase tracking-wider">SỐ LƯỢNG CONTENT MỖI NỀN TẢNG</h3>
-                <div className="h-48 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={PLATFORM_DATA} margin={{ top: 10, right: 0, left: -20, bottom: 20 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-45} textAnchor="end" />
-                      <YAxis tick={{fontSize: 10}} />
-                      <Tooltip cursor={{fill: 'transparent'}} />
-                      <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                        {PLATFORM_DATA.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* KPI Results */}
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center flex-wrap gap-2">
-    HIỆU QUẢ CONTENT 
-    {selectedVideo && (
-      <span className="text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md normal-case flex items-center gap-1 font-semibold">
-        Đang xem: <span className="max-w-[150px] truncate">{selectedVideo.title}</span>
-        <button onClick={(e) => {e.stopPropagation(); setSelectedVideo(null)}} className="ml-1 text-indigo-400 hover:text-indigo-800 flex items-center"><X className="w-3 h-3"/></button>
-      </span>
-    )}
-  </h3>
-                  <div className="text-right">
-                    <div className="text-[10px] text-gray-400 uppercase font-bold">Tổng bài viết</div>
-                    <div className="text-xl font-bold text-gray-900">
-                      {filteredVideos.length}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3 flex-1">
-
-                  {(() => {
-                    const kpisToRender = [
-                      { id: 'views', name: 'SỐ LƯỢT XEM', current: selectedVideo ? selectedVideo.views || 0 : filteredVideos.reduce((sum, v) => sum + (v.views || 0), 0), icon: TrendingUp },
-                      { id: 'interactions', name: 'SỐ LƯỢT TƯƠNG TÁC', current: selectedVideo ? selectedVideo.interactions || 0 : filteredVideos.reduce((sum, v) => sum + (v.interactions || 0), 0), icon: Target },
-                      { id: 'shares', name: 'SỐ LƯỢT CHIA SẺ', current: selectedVideo ? selectedVideo.shares || 0 : filteredVideos.reduce((sum, v) => sum + (v.shares || 0), 0), icon: MessageCircle },
-                      { id: 'saves', name: 'SỐ LƯỢT LƯU LẠI', current: selectedVideo ? selectedVideo.saves || 0 : filteredVideos.reduce((sum, v) => sum + (v.saves || 0), 0), icon: CheckCircle2 },
-                    ];
-                    return kpisToRender.map(kpi => {
-                      const Icon = kpi.icon;
-                      return (
-                        <div key={kpi.id} className="border border-indigo-100 rounded-xl p-4 flex items-center gap-4 bg-white/50 hover:bg-white shadow-sm hover:shadow-md transition-all">
-                          <div className="p-2.5 bg-indigo-50 rounded-lg text-indigo-600">
-                            <Icon className="w-6 h-6 stroke-[2]" />
-                          </div>
-                          <div>
-                            <div className="text-[10px] text-gray-500 uppercase font-extrabold mb-1 tracking-wider">{kpi.name}</div>
-                            <div className="text-2xl font-black text-gray-900 leading-none">{kpi.current.toLocaleString('vi-VN')}</div>
-                          </div>
-                        </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            {/* Warning Signs */}
-            <div className="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden mb-8">
-              <div className="px-5 py-3 border-b border-red-100 bg-red-50/50 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-                <h2 className="text-sm font-bold text-red-900 uppercase tracking-wide">Warning Signs (Cảnh báo Kênh)</h2>
-              </div>
-              <div className="divide-y divide-red-50 bg-white grid grid-cols-1 md:grid-cols-2">
-                <div className="p-4 flex items-start gap-3 hover:bg-red-50/30 transition-colors">
-                  <div className="w-1.5 h-1.5 mt-1.5 rounded-full bg-red-500 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Quy trình tắc</h4>
-                    <p className="text-xs text-gray-600 mt-1">2 tuần liên tiếp không đủ 3 video. <br/><span className="font-medium text-red-700">Hành động:</span> Họp khẩn, tìm bottleneck</p>
-                  </div>
-                </div>
-                <div className="p-4 flex items-start gap-3 hover:bg-red-50/30 transition-colors border-l border-red-50 lg:border-l-0 border-t md:border-t-0">
-                  <div className="w-1.5 h-1.5 mt-1.5 rounded-full bg-orange-500 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">Content không work</h4>
-                    <p className="text-xs text-gray-600 mt-1">4 tuần không có video &gt;2K view. <br/><span className="font-medium text-red-700">Hành động:</span> Đổi content pillar/hook</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile-Friendly List using SmartCards */}
-            <div className="space-y-0">
-              {filteredVideos.length === 0 ? (
-                 <div className="text-center py-12 text-slate-400 text-sm bg-white rounded-xl border border-slate-200">Không tìm thấy bài đăng nào.</div>
-              ) : filteredVideos.map((video) => {
-                const statusDef = STATUS_MAP[video.status];
-                
-                // Determine if overdue or due today
-                let progress = 50; // Default progress
-                if (video.status === 'PUBLISHED') progress = 100;
-                else if (video.status === 'IDEA') progress = 10;
-                else if (video.status === 'CONTENT_EDITING') progress = 30;
-                else if (video.status === 'CONTENT_DONE') progress = 40;
-                else if (video.status === 'PROD_DOING') progress = 60;
-                else if (video.status === 'PROD_DONE') progress = 80;
-                else if (video.status === 'VIDEO_REVIEW') progress = 90;
-                else if (video.status === 'SCHEDULED') progress = 95;
-
-                const today = format(new Date(), 'yyyy-MM-dd');
-                let overdueWarning = '';
-                if (video.dueDate && video.dueDate < today && video.status !== 'PUBLISHED') {
-                  overdueWarning = ' (Quá hạn)';
-                } else if (video.dueDate === today && video.status !== 'PUBLISHED') {
-                  overdueWarning = ' (Hôm nay)';
-                }
-
-                return (
-                  <SmartCard 
-                    key={video.id}
-                    id={video.id}
-                    title={video.title}
-                    subtitle={`${video.format} • ${video.platform}${overdueWarning}`}
-                    status={statusDef?.name}
-                    statusColor={statusDef?.color}
-                    progress={progress}
-                    deadline={video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : 'N/A'}
-                    avatarInitials={video.assignee.substring(0, 2).toUpperCase()}
-                    state="medium" // Always show progress and deadline in List view
-                    onClick={() => { setSelectedVideo(video); setShowVideoModal(video); }}
-                    onSwipeLeft={() => updateVideo(video.id, { status: 'PUBLISHED' })}
-                    onSwipeRight={() => setIsRequestModalOpen(true)}
-                  />
-                );
-              })}
-            </div>
-            
-            {/* Legend */}
-            <div className="mt-6 flex gap-6 text-xs text-gray-600 bg-white p-4 rounded-xl border border-gray-200 shadow-sm inline-flex">
-              <div className="font-bold uppercase tracking-wider text-gray-800">Các ô sẽ được tô màu:</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 border border-red-200 rounded-sm bg-red-50"></div> Màu đỏ cho bài đăng quá hạn</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 border border-yellow-200 rounded-sm bg-yellow-50"></div> Màu vàng cho bài đăng cần đăng hôm nay</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 border border-blue-200 rounded-sm bg-blue-50"></div> Màu xanh cho bài đăng cần có demo hôm nay</div>
-            </div>
-                          </div>
-              );
-            })()}
-          </div>
+        <div className="flex-1 overflow-auto bg-white rounded-xl shadow-sm border border-slate-200 mx-1 md:mx-0 flex flex-col">
+           <div className="px-4 py-4 md:px-6 md:py-5 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-20 rounded-t-xl">
+             <div className="flex items-center gap-2">
+               <ListTodo className="w-5 h-5 text-indigo-600" />
+               <h2 className="text-lg font-bold text-gray-900 uppercase tracking-widest">TỔNG HỢP DỰ ÁN</h2>
+             </div>
+             <button 
+                onClick={() => setIsProjectModalOpen(true)}
+                className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Dự Án Mới
+              </button>
+           </div>
+           <div className="flex-1 overflow-auto p-0">
+             <table className="w-full text-sm text-left border-collapse min-w-[800px]">
+               <thead className="bg-gray-50/80 text-gray-600 sticky top-0 z-10 shadow-sm">
+                 <tr>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold w-[50px] text-center">#</th>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[200px]">Tên công trình</th>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[150px]">Loại công trình</th>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[180px]">Trạng thái cập nhật</th>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[200px]">Kiểu hiệu ứng</th>
+                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[250px]">Mô tả kiểu hiệu ứng</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-gray-100">
+                 {projects.length === 0 ? (
+                   <tr>
+                     <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                        Chưa có dự án Marketing nào.
+                     </td>
+                   </tr>
+                 ) : (
+                   projects.map((proj, idx) => (
+                     <tr key={proj.id} className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
+                       <td className="px-4 py-3 border-b border-gray-100 text-center text-gray-400 group-hover:text-gray-600">{idx + 1}</td>
+                       <td className="px-4 py-3 border-b border-gray-100 font-medium text-gray-900">{proj.name}</td>
+                       <td className="px-4 py-3 border-b border-gray-100">
+                           {proj.project_type ? (
+                               <span className="inline-flex bg-slate-100 text-slate-700 font-medium px-2 py-1 rounded text-xs border border-slate-200 truncate max-w-[160px]">{proj.project_type}</span>
+                           ) : <span className="text-gray-300">-</span>}
+                       </td>
+                       <td className="px-4 py-3 border-b border-gray-100">
+                           {proj.update_status ? (
+                               <span className={`inline-flex font-medium px-2.5 py-1 rounded-full text-xs border ${proj.update_status === 'Đầy đủ hình ảnh' ? 'bg-blue-50 text-blue-700 border-blue-200' : proj.update_status.includes('Highres') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-50 text-gray-600 border-gray-200'} truncate max-w-[160px]`}>
+                                   {proj.update_status}
+                               </span>
+                           ) : <span className="text-gray-300">-</span>}
+                       </td>
+                       <td className="px-4 py-3 border-b border-gray-100">
+                           {proj.effect_type ? (
+                               <div className="flex flex-wrap gap-1">
+                                   {proj.effect_type.split(',').map((ef: string) => (
+                                       <span key={ef} className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${ef.trim() === 'Bê tông' ? 'bg-pink-100 text-pink-700' : ef.trim() === 'Stucco' ? 'bg-yellow-100 text-yellow-700' : ef.trim() === 'Đá khối' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{ef.trim()}</span>
+                                   ))}
+                               </div>
+                           ) : <span className="text-gray-300">-</span>}
+                       </td>
+                       <td className="px-4 py-3 border-b border-gray-100 text-gray-600 text-xs">
+                           {proj.effect_description || <span className="text-gray-300 italic">Chưa có mô tả</span>}
+                       </td>
+                     </tr>
+                   ))
+                 )}
+               </tbody>
+             </table>
+           </div>
         </div>
       ) : view === 'CALENDAR' ? (
         <div className="flex-1 overflow-y-auto p-6 bg-white">
@@ -1223,7 +1278,7 @@ export default function MarketingApp() {
                 <p className="text-sm text-gray-500 mt-1 lg:mt-0">Theo dõi tiến độ thực tế của các công trình để lên lịch quay video phù hợp.</p>
               </div>
               <button 
-                onClick={() => alert('Tính năng tạo dự án đang được phát triển')}
+                onClick={() => setIsProjectModalOpen(true)}
                 className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 shrink-0" />
@@ -1726,6 +1781,34 @@ export default function MarketingApp() {
             </div>
         )}
       </BottomSheet>
+      <MarketingProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => { setIsProjectModalOpen(false); setEditingProject(null); }}
+        editingProject={editingProject}
+        onSave={handleSaveProject}
+        profiles={profiles}
+        currentUserProfile={profile}
+      />
+      <MarketingTaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => { setIsTaskModalOpen(false); setEditingTask(null); }}
+          onSaved={() => { setIsTaskModalOpen(false); setEditingTask(null); fetchData(); }}
+          editingTask={editingTask}
+          initialData={{ task_code: '', project_id: '' }}
+          projects={projects}
+          profiles={profiles}
+          currentUserProfile={profile}
+          generateNextTaskCode={(pId: string) => {
+              const projTasks = tasks.filter(t => t.project_id === pId);
+              let maxId = 0;
+              projTasks.forEach(t => {
+                  const num = parseInt(t.task_code?.split('-').pop() || '0', 10);
+                  if (num > maxId) maxId = num;
+              });
+              const p = projects.find(x => x.id === pId);
+              return p?.project_code ? `${p.project_code}-${String(maxId + 1).padStart(2, '0')}` : '';
+          }}
+      />
       <MarketingRequestModal 
         isOpen={isRequestModalOpen} 
         onClose={() => setIsRequestModalOpen(false)} 

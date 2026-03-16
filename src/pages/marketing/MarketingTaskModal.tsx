@@ -23,7 +23,7 @@ interface AddEditTaskModalProps {
     generateNextTaskCode?: (projectId: string) => string;
 }
 
-export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
+export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     isOpen,
     onClose,
     onSaved,
@@ -37,7 +37,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
-        result_links: '', notes: '', parent_id: ''
+        result_links: '', notes: '', parent_id: '', format: '', platform: '', category: ''
     });
 
     const [phases, setPhases] = useState<Task[]>([]);
@@ -166,7 +166,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     };
 
     const handleOpenDeepLink = async (subtaskId: string) => {
-        const { data } = await supabase.from('tasks').select('*').eq('id', subtaskId).single();
+        const { data } = await supabase.from('marketing_tasks').select('*').eq('id', subtaskId).single();
         if (data) {
             setDrilledSubtask(data as Task);
         }
@@ -189,7 +189,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: editingTask.due_date || today, 
                     result_links: editingTask.result_links || '', 
                     notes: editingTask.notes || '',
-                    parent_id: editingTask.parent_id || ''
+                    parent_id: editingTask.parent_id || '',
+                    format: editingTask.format || '',
+                    platform: editingTask.platform || '',
+                    category: editingTask.category || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -198,7 +201,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     setIsLoadingSubtasks(true);
                     try {
                         const { data, error } = await supabase
-                            .from('tasks')
+                            .from('marketing_tasks')
                             .select('*')
                             .eq('parent_id', editingTask.id)
                             .order('task_code', { ascending: true });
@@ -229,7 +232,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: today,
                     result_links: '',
                     notes: '',
-                    parent_id: ''
+                    parent_id: '',
+                    format: '',
+                    platform: '',
+                    category: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -259,7 +265,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         const fetchPhases = async () => {
             try {
                 const { data, error } = await supabase
-                    .from('tasks')
+                    .from('marketing_tasks')
                     .select('id, name')
                     .eq('project_id', form.project_id)
                     .is('parent_id', null)
@@ -308,14 +314,17 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 due_date: form.due_date || null,
                 result_links: form.result_links || null,
                 notes: form.notes || null,
-                parent_id: form.parent_id || null
+                parent_id: form.parent_id || null,
+                category: form.category || null,
+                format: form.format || null,
+                platform: form.platform || null
             }
 
             let result;
             let finalTaskCode = form.task_code;
 
             if (editingTask && editingTask.id) {
-                result = await supabase.from('tasks').update(payload).eq('id', editingTask.id)
+                result = await supabase.from('marketing_tasks').update(payload).eq('id', editingTask.id)
                 if (result.error) {
                     console.error('Supabase Task Error:', result.error)
                     alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
@@ -331,7 +340,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 let success = false;
 
                 while (!success && retryCount < 10) {
-                    result = await supabase.from('tasks').insert({
+                    result = await supabase.from('marketing_tasks').insert({
                         ...payload,
                         task_code: finalTaskCode,
                         project_id: form.project_id
@@ -498,7 +507,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 let finalData = null;
 
                 while (!success && retryCount < 10) {
-                    const { data, error } = await supabase.from('tasks').insert({
+                    const { data, error } = await supabase.from('marketing_tasks').insert({
                         name: subTaskName,
                         project_id: editingTask.project_id,
                         parent_id: editingTask.id,
@@ -529,7 +538,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 if (finalData) {
                     // Update the list from server to ensure consistent ordering
                     const { data: updatedSubTasks } = await supabase
-                        .from('tasks')
+                        .from('marketing_tasks')
                         .select('*')
                         .eq('parent_id', editingTask.id)
                         .order('task_code', { ascending: true });
@@ -551,7 +560,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         setSubTasks(prev => prev.map(st => st.id === id ? { ...st, status: newStatus, completion_pct: newPct } : st));
 
         try {
-            const { error } = await supabase.from('tasks').update({
+            const { error } = await supabase.from('marketing_tasks').update({
                 status: newStatus,
                 completion_pct: newPct,
                 completion_date: isCompleted ? new Date().toISOString().split('T')[0] : null
@@ -566,7 +575,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const updateSubTaskCode = async (id: string, newCode: string) => {
         try {
-            const { error } = await supabase.from('tasks').update({ task_code: newCode }).eq('id', id);
+            const { error } = await supabase.from('marketing_tasks').update({ task_code: newCode }).eq('id', id);
             if (error) throw error;
         } catch (err) {
             console.error('Error updating task_code:', err);
@@ -580,7 +589,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         setSubTasks(prev => prev.filter(st => st.id !== id));
 
         try {
-            const { error } = await supabase.from('tasks').delete().eq('id', id);
+            const { error } = await supabase.from('marketing_tasks').delete().eq('id', id);
             if (error) throw error;
         } catch (err) {
             console.error('Error deleting subtask:', err);
@@ -591,7 +600,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         const newVal = assigneeId || null;
         setSubTasks(prev => prev.map(st => st.id === id ? { ...st, assignee_id: newVal } : st));
         try {
-            const { error } = await supabase.from('tasks').update({ assignee_id: newVal }).eq('id', id);
+            const { error } = await supabase.from('marketing_tasks').update({ assignee_id: newVal }).eq('id', id);
             if (error) throw error;
         } catch (err) {
             console.error('Error updating subtask assignee:', err);
@@ -621,7 +630,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             for (let i = 0; i < newSubTasks.length; i++) {
                 const subTask = newSubTasks[i];
                 const newCode = `${editingTask.task_code}-${String(i + 1).padStart(2, '0')}`;
-                await supabase.from('tasks').update({ task_code: newCode }).eq('id', subTask.id);
+                await supabase.from('marketing_tasks').update({ task_code: newCode }).eq('id', subTask.id);
             }
         } catch (err) {
             console.error('Error reordering subtasks:', err);
@@ -702,7 +711,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <button onClick={async () => {
                                     if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.')) {
                                         try {
-                                            const { error } = await supabase.from('tasks').delete().eq('id', editingTask.id);
+                                            const { error } = await supabase.from('marketing_tasks').delete().eq('id', editingTask.id);
                                             if (error) throw error;
                                             onSaved();
                                             onClose();
@@ -875,6 +884,69 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
+                            {/* Marketing: Category */}
+                            <div className="flex items-center min-h-[40px]">
+                                <div className="w-36 flex items-center gap-2 text-sm font-bold text-indigo-600 shrink-0">
+                                    <Folder size={16} /> Loại nội dung
+                                </div>
+                                <div className="flex-1">
+                                    <select
+                                        value={form.category || ''}
+                                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                        className={`px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-sm text-indigo-800 font-medium cursor-pointer hover:bg-indigo-100 transition-colors w-full max-w-[250px] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="">Chọn loại nội dung...</option>
+                                        <option value="Dự án thực tế">Dự án thực tế</option>
+                                        <option value="Cẩm nang kiến trúc">Cẩm nang kiến trúc</option>
+                                        <option value="Bán hàng">Bán hàng</option>
+                                        <option value="Văn hóa nội bộ">Văn hóa nội bộ</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Marketing: Format */}
+                            <div className="flex items-center min-h-[40px]">
+                                <div className="w-36 flex items-center gap-2 text-sm font-bold text-fuchsia-600 shrink-0">
+                                    <AlignLeft size={16} /> Định dạng
+                                </div>
+                                <div className="flex-1">
+                                    <select
+                                        value={form.format || ''}
+                                        onChange={(e) => setForm({ ...form, format: e.target.value })}
+                                        className={`px-3 py-1.5 bg-fuchsia-50 border border-fuchsia-200 rounded-lg text-sm text-fuchsia-800 font-medium cursor-pointer hover:bg-fuchsia-100 transition-colors w-full max-w-[250px] focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20 ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="">Chọn định dạng...</option>
+                                        <option value="Video ngắn">Video ngắn</option>
+                                        <option value="Video dài">Video dài</option>
+                                        <option value="Bài viết mạng xã hội">Bài viết mạng xã hội</option>
+                                        <option value="Hình ảnh/Album">Hình ảnh/Album</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Marketing: Platform */}
+                            <div className="flex items-center min-h-[40px]">
+                                <div className="w-36 flex items-center gap-2 text-sm font-bold text-sky-600 shrink-0">
+                                    <ExternalLink size={16} /> Nền tảng
+                                </div>
+                                <div className="flex-1">
+                                    <select
+                                        value={form.platform || ''}
+                                        onChange={(e) => setForm({ ...form, platform: e.target.value })}
+                                        className={`px-3 py-1.5 bg-sky-50 border border-sky-200 rounded-lg text-sm text-sky-800 font-medium cursor-pointer hover:bg-sky-100 transition-colors w-full max-w-[250px] focus:outline-none focus:ring-2 focus:ring-sky-500/20 ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="">Chọn nền tảng...</option>
+                                        <option value="Facebook">Facebook</option>
+                                        <option value="TikTok">TikTok</option>
+                                        <option value="YouTube">YouTube</option>
+                                        <option value="Website">Website</option>
+                                        <option value="Zalo">Zalo</option>
+                                    </select>
+                                </div>
+                            </div>
 
                             {/* Priority */}
                             <div className="flex items-center min-h-[40px]">
@@ -1167,16 +1239,15 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 </div>
             </div>
 
-            {/* Recursively render another AddEditTaskModal for deep-linking into subtasks */}
             {drilledSubtask && (
-                <AddEditTaskModal
+                <MarketingTaskModal
                     isOpen={!!drilledSubtask}
                     onClose={() => setDrilledSubtask(null)}
                     onSaved={() => {
                         setDrilledSubtask(null);
                         // Force subtasks refresh to get latest names/codes/statuses
                         if (editingTask?.id) {
-                            supabase.from('tasks').select('*').eq('parent_id', editingTask.id).order('task_code', { ascending: true })
+                            supabase.from('marketing_tasks').select('*').eq('parent_id', editingTask.id).order('task_code', { ascending: true })
                                 .then(({ data }) => setSubTasks((data || []) as Task[]));
                         }
                     }}
