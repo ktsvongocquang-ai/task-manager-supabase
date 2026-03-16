@@ -761,17 +761,6 @@ export default function MarketingApp() {
                                     </>
                                   )}
                                 </>
-                                    
-                                    <div className="flex gap-1.5 mb-2">
-                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <Video className="w-3.5 h-3.5" /> {task.format}
-                                      </span>
-                                      <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                        <UsersIcon className="w-3.5 h-3.5" /> {task.platform}
-                                      </span>
-                                    </div>
-                                  </>
-                              )}
 
                               <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
                                 <div className="flex items-center gap-1.5 text-slate-500">
