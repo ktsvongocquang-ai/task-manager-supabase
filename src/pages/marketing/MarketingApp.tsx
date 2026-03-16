@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { 
-  Plus,  
+  Award,
+  Mail,
+  Users as UsersIcon,
+  ListTodo,
+  Plus, 
   Filter, 
-  MoreVertical, 
   Calendar as CalendarIcon, 
   Video, 
   FileText, 
-  Clock, 
   AlertCircle,
   LayoutTemplate,
   Target,
@@ -17,10 +19,8 @@ import {
   ChevronRight,
   List,
   ShieldAlert,
-  Award,
-  Mail,
-  Users as UsersIcon,
-  ListTodo
+  ChevronUp,
+  MoreVertical
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 // Removed recharts import since it is not used in this file
@@ -33,7 +33,7 @@ import { supabase } from '../../services/supabase';
 import type { Project, Task } from '../../types';
 import { MarketingProjectModal } from './MarketingProjectModal';
 import { MarketingTaskModal } from './MarketingTaskModal';
-import MarketingGantt from './MarketingGantt';
+// import MarketingGantt from './MarketingGantt';
 
 // Mock Data based on the Google Doc workflow
 // @ts-ignore
@@ -329,6 +329,14 @@ export default function MarketingApp() {
             saves: 0
           };
       });
+
+      // Sort mappedVideos: tasks that need approval at the top
+      mappedVideos.sort((a, b) => {
+          const aPriority = (a.status === 'CONTENT_DONE' || a.status === 'VIDEO_REVIEW') ? -1 : 1;
+          const bPriority = (b.status === 'CONTENT_DONE' || b.status === 'VIDEO_REVIEW') ? -1 : 1;
+          return aPriority - bPriority;
+      });
+
       setVideos(mappedVideos);
 
     } catch (err) {
@@ -688,58 +696,86 @@ export default function MarketingApp() {
                       </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto p-3 space-y-3 transition-colors">
+                    <div 
+                      className="flex-1 overflow-y-auto p-3 space-y-3 transition-colors min-h-[150px]"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('bg-indigo-50/50');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('bg-indigo-50/50');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('bg-indigo-50/50');
+                        const taskId = e.dataTransfer.getData('taskId');
+                        if (taskId) {
+                          // Find default status for this column
+                          let newStatus = Object.keys(STATUS_MAP).find(k => STATUS_MAP[k].col === column.id);
+                          if (newStatus && taskId) {
+                             updateTask(taskId, { status: newStatus });
+                          }
+                        }
+                      }}
+                    >
                       {activeVideos.map(video => {
                         const task = video;
                         const assignee = profiles.find(p => p.id === task.assignee_id);
                         const statusDef = STATUS_MAP[task.status];
-                        const isIdeaCol = column.id === 'COL_IDEA';
                         
                         return (
                             <div 
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('taskId', task.id);
+                              }}
                               key={task.id} 
                               onClick={() => {
                                   setEditingTask(task);
                                   setIsTaskModalOpen(true);
                               }}
-                              className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex flex-col gap-3"
+                              className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-grab active:cursor-grabbing group flex flex-col gap-3"
                             >
-                              {isIdeaCol ? (
-                                <>
-                                  <div className="text-[12px] text-left w-full mt-1 mb-2">
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Tên video</span><span className="text-gray-600 line-clamp-2">{task.title}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật chính</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook đã chọn</span><span className="text-gray-600 line-clamp-2">{task.notes || 'Chưa có'}</span></div>
-                                    <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp DQH:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
-                                        {statusDef?.name || task.status}
-                                      </span>
-                                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
-                                        {task.priority || 'Trung bình'}
-                                      </span>
-                                    </div>
-                                    <button className="text-gray-400 hover:text-gray-600 opacity-100 transition-opacity p-2 -mr-2" onClick={(e) => e.stopPropagation()}>
-                                      <MoreVertical className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                  
-                                  <h3 className={`font-bold text-slate-800 text-[15px] leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2 mb-2`}>
-                                    {task.title}
-                                  </h3>
-                                  
-                                  <p className="text-[11px] text-slate-500 mb-2 flex items-center gap-1.5 truncate">
+                              {/* Header Badges and Actions */}
+                              <div className="flex justify-between items-start mb-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
+                                    {statusDef?.name || task.status}
+                                  </span>
+                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
+                                    {task.priority || 'Trung bình'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); toggleCard(task.id, e); }}
+                                    className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                  >
+                                    {expandedCards[task.id] ? <ChevronUp className="w-5 h-5 stroke-[2.5]" /> : <ChevronDown className="w-5 h-5 stroke-[2.5]" />}
+                                  </button>
+                                  <button className="text-gray-400 hover:text-gray-600 transition-opacity p-1" onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsTaskModalOpen(true); }}>
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              {/* Title and Date Row */}
+                              <div className="flex justify-between items-start gap-2">
+                                <h3 className={`font-bold text-indigo-700 text-[15px] leading-tight group-hover:text-indigo-600 transition-colors ${!expandedCards[task.id] ? 'line-clamp-2' : ''} flex-1`}>
+                                  {task.title}
+                                </h3>
+                                <div className="bg-yellow-50 text-indigo-700 font-bold px-2 py-1 rounded border border-yellow-100 text-lg shrink-0">
+                                  {task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : '??-??'}
+                                </div>
+                              </div>
+
+                              {expandedCards[task.id] && (
+                                <div className="mt-2 space-y-2">
+                                  <p className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
                                     <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
                                   </p>
                                   
-                                  <div className="flex gap-1.5 mb-2">
+                                  <div className="flex gap-1.5">
                                     <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
                                       <Video className="w-3 h-3" /> {task.format || 'Khác'}
                                     </span>
@@ -747,21 +783,26 @@ export default function MarketingApp() {
                                       <UsersIcon className="w-3 h-3" /> {task.platform || '-'}
                                     </span>
                                   </div>
-                                </>
-                              )}
 
-                              <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
-                                <div className="flex items-center gap-1.5 text-slate-500">
-                                  <Clock className="w-3.5 h-3.5" />
-                                  <span className="text-[11px] font-medium">{task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : 'Chưa định'}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[11px] font-medium text-slate-500">Thực hiện</span>
-                                  <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
-                                    {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
+                                  <div className="text-[12px] text-left w-full mt-2">
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Platform</span><span className="text-gray-600 line-clamp-1">{task.platform || '-'}</span></div>
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook chọn</span><span className="text-gray-600">{task.notes || 'Chưa có'}</span></div>
+                                    <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-medium text-slate-500">Thực hiện</span>
+                                      <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
+                                        {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
+                              )}
                               
                               {/* Action Buttons */}
                               <div className="mt-3" onClick={(e) => e.stopPropagation()}>
@@ -919,194 +960,178 @@ export default function MarketingApp() {
                                             const task = video;
                                             const assignee = profiles.find(p => p.id === task.assignee_id);
                                             const statusDef = STATUS_MAP[task.status];
-                                            const isIdeaCol = column.id === 'COL_IDEA';
                                             const isCardExpanded = expandedCards[task.id];
                                             
                                             // The same card design used in desktop but optimized width
                                             return (
                                               <div 
                                                 key={task.id} 
-                                                onClick={(e) => isIdeaCol ? toggleCard(task.id, e) : null}
+                                                onClick={(e) => toggleCard(task.id, e)}
                                                 className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 active:border-indigo-300 transition-all cursor-pointer flex flex-col gap-3"
                                               >
-                                                <div className="flex justify-between items-start mb-2">
+                                                <div className="flex justify-between items-start mb-1">
                                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
+                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
                                                       {statusDef?.name || task.status}
                                                     </span>
-                                                  </div>
-                                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md border min-h-[24px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
+                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
                                                       {task.priority || 'Trung bình'}
                                                     </span>
-                                                    {!isIdeaCol && (
-                                                      <button 
-                                                        onClick={(e) => {
-                                                          e.stopPropagation();
-                                                          // open modal explicitly on mobile dots
-                                                          setEditingTask(task);
-                                                          setIsTaskModalOpen(true);
-                                                        }}
-                                                        className="text-gray-400 p-2 -mr-2"
-                                                      >
-                                                        <MoreVertical className="w-5 h-5" />
-                                                      </button>
-                                                    )}
+                                                  </div>
+                                                  <div className="flex items-center gap-1">
+                                                    <button 
+                                                      onClick={(e) => { e.stopPropagation(); toggleCard(task.id, e); }}
+                                                      className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                                    >
+                                                      {isCardExpanded ? <ChevronUp className="w-5 h-5 stroke-[2.5]" /> : <ChevronDown className="w-5 h-5 stroke-[2.5]" />}
+                                                    </button>
+                                                    <button className="text-gray-400 hover:text-gray-600 transition-opacity p-1" onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsTaskModalOpen(true); }}>
+                                                      <MoreVertical className="w-4 h-4" />
+                                                    </button>
                                                   </div>
                                                 </div>
                                                 
-                                                <h3 
-                                                  onClick={() => {
-                                                    if (!isIdeaCol) {
+                                                {/* Title and Date Row */}
+                                                <div className="flex justify-between items-start gap-2">
+                                                  <h3 
+                                                    onClick={() => {
                                                       setEditingTask(task);
                                                       setIsTaskModalOpen(true);
-                                                    }
-                                                  }}
-                                                  className={`font-bold text-slate-800 text-[14px] leading-tight ${!isCardExpanded ? 'line-clamp-2' : ''}`}
-                                                >
-                                                  {task.title}
-                                                </h3>
+                                                    }}
+                                                    className={`font-bold text-indigo-700 text-[15px] leading-tight flex-1 ${!isCardExpanded ? 'line-clamp-2' : ''}`}
+                                                  >
+                                                    {task.title}
+                                                  </h3>
+                                                  <div className="bg-yellow-50 text-indigo-700 font-bold px-2 py-1 rounded border border-yellow-100 text-lg shrink-0">
+                                                    {task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : '??-??'}
+                                                  </div>
+                                                </div>
                                                 
-                                                {(!isIdeaCol || isCardExpanded) && (
-                                                  <>
-                                                    {isIdeaCol && isCardExpanded && (
-                                                      <div 
-                                                        onClick={() => {
-                                                          setEditingTask(task);
-                                                          setIsTaskModalOpen(true);
-                                                        }}
-                                                        className="mt-2 mb-2 bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs text-left cursor-pointer hover:bg-gray-100"
-                                                      >
-                                                        <div className="font-semibold text-gray-700 mb-1">Công trình: <span className="font-normal text-gray-600">{task.project}</span></div>
-                                                        <div className="font-semibold text-gray-700 mb-1">Format: <span className="font-normal text-gray-600">{task.format}</span></div>
-                                                        {task.notes && <div className="font-semibold text-gray-700 mb-1">Hook: <span className="font-normal text-gray-600">{task.notes}</span></div>}
-                                                      </div>
-                                                    )}
+                                                {isCardExpanded && (
+                                                  <div className="mt-2 space-y-2">
+                                                    <p className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
+                                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
+                                                    </p>
                                                     
-                                                    {!isIdeaCol && (
-                                                      <>
-                                                        <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate">
-                                                          <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
-                                                        </p>
-                                                        
-                                                        <div className="flex gap-1.5 mb-2">
-                                                          <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                                            <Video className="w-3.5 h-3.5" /> {task.format}
-                                                          </span>
-                                                          <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
-                                                            <UsersIcon className="w-3.5 h-3.5" /> {task.platform}
-                                                          </span>
-                                                        </div>
-                                                      </>
-                                                    )}
+                                                    <div className="flex gap-1.5">
+                                                      <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
+                                                        <Video className="w-3 h-3" /> {task.format || 'Khác'}
+                                                      </span>
+                                                      <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
+                                                        <UsersIcon className="w-3 h-3" /> {task.platform || '-'}
+                                                      </span>
+                                                    </div>
+
+                                                    <div className="text-[12px] text-left w-full mt-2">
+                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
+                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
+                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
+                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Platform</span><span className="text-gray-600 line-clamp-1">{task.platform || '-'}</span></div>
+                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook chọn</span><span className="text-gray-600">{task.notes || 'Chưa có'}</span></div>
+                                                      <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
+                                                    </div>
 
                                                     <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
-                                                      <div className="flex items-center gap-1.5 text-slate-500">
-                                                        <Clock className="w-4 h-4" />
-                                                        <span className="text-xs font-medium">{task.dueDate ? format(new Date(task.dueDate), 'dd/MM/yyyy') : 'Chưa định'}</span>
-                                                      </div>
                                                       <div className="flex items-center gap-2">
-                                                        <span className="text-[11px] font-medium text-slate-500 uppercase">Thực hiện</span>
-                                                        <div className="w-7 h-7 rounded-full bg-indigo-50 text-[#5B5FC7] border border-indigo-100 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
+                                                        <span className="text-[11px] font-medium text-slate-500">Thực hiện</span>
+                                                        <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
                                                           {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
                                                         </div>
                                                       </div>
                                                     </div>
+                                                  </div>
+                                                )}
 
                                                     {/* Action Buttons */}
-                                                    {(!isIdeaCol) && (
-                                                      <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                                                        {task.status === 'IDEA' && (
-                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
-                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
-                                                            >
-                                                              Phê duyệt
-                                                            </button>
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'REJECTED' }); }}
-                                                              className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
-                                                            >
-                                                              Từ chối
-                                                            </button>
-                                                          </div>
-                                                        )}
-                                                        
-                                                        {task.status === 'CONTENT_EDITING' && (
+                                                    <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                                                      {task.status === 'IDEA' && (
+                                                        <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_DONE' }); }}
-                                                            className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                                            className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
                                                           >
-                                                            Done
+                                                            Phê duyệt
                                                           </button>
-                                                        )}
-                                                        
-                                                        {task.status === 'CONTENT_DONE' && (
-                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
-                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
-                                                            >
-                                                              Phê duyệt
-                                                            </button>
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
-                                                              className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
-                                                            >
-                                                              Từ chối (Edit)
-                                                            </button>
-                                                          </div>
-                                                        )}
-
-                                                        {task.status === 'PROD_DOING' && (
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
-                                                            className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'REJECTED' }); }}
+                                                            className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                                           >
-                                                            Đã xong
+                                                            Từ chối
                                                           </button>
-                                                        )}
-
-                                                        {task.status === 'PROD_DONE' && (
+                                                        </div>
+                                                      )}
+                                                      
+                                                      {task.status === 'CONTENT_EDITING' && (
+                                                        <button 
+                                                          onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_DONE' }); }}
+                                                          className="w-full min-h-[44px] bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                        >
+                                                          Done
+                                                        </button>
+                                                      )}
+                                                      
+                                                      {task.status === 'CONTENT_DONE' && (
+                                                        <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'VIDEO_REVIEW' }); }}
-                                                            className="w-full min-h-[44px] bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                            className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
                                                           >
-                                                            Gửi qua Cần Phê Duyệt
+                                                            Phê duyệt
                                                           </button>
-                                                        )}
-
-                                                        {task.status === 'VIDEO_REVIEW' && (
-                                                          <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'SCHEDULED' }); }}
-                                                              className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
-                                                            >
-                                                              Phê duyệt
-                                                            </button>
-                                                            <button 
-                                                              onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
-                                                              className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
-                                                            >
-                                                              Từ chối
-                                                            </button>
-                                                          </div>
-                                                        )}
-
-                                                        {task.status === 'SCHEDULED' && (
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PUBLISHED' }); }}
-                                                            className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
+                                                            className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                                           >
-                                                            Đánh dấu đã đăng
+                                                            Từ chối (Edit)
                                                           </button>
-                                                        )}
-                                                      </div>
-                                                    )}
-                                                  </>
-                                                )}
-                                              </div>
+                                                        </div>
+                                                      )}
+
+                                                      {task.status === 'PROD_DOING' && (
+                                                        <button 
+                                                          onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
+                                                          className="w-full min-h-[44px] bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                        >
+                                                          Đã xong
+                                                        </button>
+                                                      )}
+
+                                                      {task.status === 'PROD_DONE' && (
+                                                        <button 
+                                                          onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'VIDEO_REVIEW' }); }}
+                                                          className="w-full min-h-[44px] bg-purple-50 text-purple-600 hover:bg-purple-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                        >
+                                                          Gửi qua Cần Phê Duyệt
+                                                        </button>
+                                                      )}
+
+                                                      {task.status === 'VIDEO_REVIEW' && (
+                                                        <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'SCHEDULED' }); }}
+                                                            className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Phê duyệt
+                                                          </button>
+                                                          <button 
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                            className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                          >
+                                                            Từ chối
+                                                          </button>
+                                                        </div>
+                                                      )}
+
+                                                      {task.status === 'SCHEDULED' && (
+                                                        <button 
+                                                          onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PUBLISHED' }); }}
+                                                          className="w-full min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
+                                                        >
+                                                          Đánh dấu đã đăng
+                                                        </button>
+                                                      )}
+                                                    </div>
+                                                </div>
                                             );
                                         })
                                     )}
@@ -1355,6 +1380,12 @@ export default function MarketingApp() {
                          const day = dateObj.getDate();
                          const left = ((day - 1) / 31) * 100;
                          return (
+                           <div
+                             key={video.id || idx}
+                             className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-indigo-500 border-2 border-white shadow-sm z-10 cursor-pointer hover:scale-125 transition-transform"
+                             style={{ left: `${left}%` }}
+                             title={`Video: ${video.title} - ${video.status}`}
+                           />
                          );
                       })}
                   </div>
