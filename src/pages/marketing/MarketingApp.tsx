@@ -728,11 +728,39 @@ export default function MarketingApp() {
                               </h3>
                               
                               {/* Marketing Details tags */}
-                              {(!isIdeaCol) && (
-                                  <>
-                                    <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate">
-                                      <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
-                                    </p>
+                                <>
+                                  {isIdeaCol ? (
+                                    <div 
+                                      onClick={() => {
+                                        setEditingTask(task);
+                                        setIsTaskModalOpen(true);
+                                      }}
+                                      className="mb-2 bg-gray-50 p-3 rounded-lg border border-gray-100 text-[11px] text-left cursor-pointer hover:bg-gray-100 mt-2"
+                                    >
+                                      <div className="flex gap-2 mb-1.5"><span className="font-bold text-gray-700 w-16 shrink-0">Tên video</span><span className="font-medium text-gray-600 line-clamp-2">{task.title}</span></div>
+                                      <div className="flex gap-2 mb-1.5"><span className="font-bold text-gray-700 w-16 shrink-0">Công trình</span><span className="font-medium text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
+                                      <div className="flex gap-2 mb-1.5"><span className="font-bold text-gray-700 w-16 shrink-0">Nhân vật</span><span className="font-medium text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
+                                      <div className="flex gap-2 mb-1.5"><span className="font-bold text-gray-700 w-16 shrink-0">Format</span><span className="font-medium text-gray-600 line-clamp-1">{task.format || '-'}</span></div>
+                                      <div className="flex gap-2 mb-1.5"><span className="font-bold text-gray-700 w-16 shrink-0">Hook</span><span className="font-medium text-gray-600 line-clamp-2">{task.notes || 'Chưa định'}</span></div>
+                                      <div className="flex gap-2 mt-2 pt-2 border-t border-gray-200"><span className="font-bold text-gray-700 w-16 shrink-0">Giải pháp:</span><span className="font-medium text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <p className="text-xs text-slate-500 mb-2 flex items-center gap-1.5 truncate mt-2">
+                                        <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
+                                      </p>
+                                      
+                                      <div className="flex gap-1.5 mb-2">
+                                        <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                          <Video className="w-3.5 h-3.5" /> {task.format || '-'}
+                                        </span>
+                                        <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
+                                          <UsersIcon className="w-3.5 h-3.5" /> {task.platform || '-'}
+                                        </span>
+                                      </div>
+                                    </>
+                                  )}
+                                </>
                                     
                                     <div className="flex gap-1.5 mb-2">
                                       <span className="text-[10px] font-medium bg-gray-50 text-slate-500 px-1.5 py-0.5 rounded flex items-center gap-1 border border-gray-100">
@@ -759,21 +787,26 @@ export default function MarketingApp() {
                               </div>
                               
                               {/* Action Buttons */}
-                              {(!isIdeaCol) && (
-                                <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                              <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                                   {task.status === 'IDEA' && (
                                     <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
+                                        className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-[11px] font-bold transition-colors flex items-center justify-center gap-1"
                                       >
                                         Phê duyệt
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'REJECTED' }); }}
-                                        className="flex-1 sm:flex-none min-w-[70px] min-h-[36px] bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors"
+                                        className="flex-1 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-bold transition-colors text-center"
                                       >
                                         Từ chối
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { isArchived: true }); }}
+                                        className="flex-1 px-3 py-2 bg-gray-50 text-gray-600 hover:bg-gray-100 rounded-lg text-[11px] font-bold transition-colors"
+                                      >
+                                        Để sau
                                       </button>
                                     </div>
                                   )}
@@ -848,7 +881,6 @@ export default function MarketingApp() {
                                     </button>
                                   )}
                                 </div>
-                              )}
                             </div>
                         );
                       })}
