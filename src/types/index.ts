@@ -21,6 +21,19 @@ export interface Project {
     budget: number | null
     actualCost?: number | null
     created_at: string
+    department?: string | null
+    project_type?: string | null
+    update_status?: string | null
+    scale?: string | null
+    effect_type?: string | null
+    effect_description?: string | null
+    address?: string | null
+    image_folder_link?: string | null
+    video_folder_link?: string | null
+    can_shoot_video?: string | null
+    customer_problem?: string | null
+    dqh_solution?: string | null
+    other_info?: string | null
 }
 
 export interface Task {
@@ -51,6 +64,8 @@ export interface Task {
     is_approved?: boolean | null
     category?: string | null
     cost_estimate?: number | null
+    format?: string | null
+    platform?: string | null
 }
 
 export interface ChatMessage {

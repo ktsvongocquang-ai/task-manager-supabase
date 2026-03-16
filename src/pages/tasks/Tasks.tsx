@@ -365,7 +365,7 @@ export const Tasks = () => {
             <div className="hidden md:flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-xl font-bold text-slate-800 shrink-0">Quản lý nhiệm vụ</h1>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    {profile?.role !== 'Nhân viên' && (
+                    {['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '') && (
                         <select
                             value={assigneeFilter}
                             onChange={(e) => setAssigneeFilter(e.target.value)}

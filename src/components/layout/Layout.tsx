@@ -222,8 +222,9 @@ export const Layout = () => {
             ];
         }
 
-        // 5. Default Staff (Nếu không thuộc các nhóm trên)
-        if (userRole === 'Nhân viên') {
+        // 5. Default Staff (Nếu không thuộc các nhóm trên và không phải Quản lý/Admin)
+        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
+        if (!isManagerOrAdmin) {
             return [
                 ...baseItems,
                 { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },

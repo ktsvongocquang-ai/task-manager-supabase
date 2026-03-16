@@ -153,8 +153,8 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                                     <option key={p.id} value={p.id}>{p.full_name}</option>
                                 ))}
                         </select>
-                        {currentUserProfile?.role === 'Nhân viên' && (
-                            <p className="text-[10px] text-slate-400 mt-1.5 italic">* Nhân viên tạo dự án sẽ mặc định được gán làm quản lý dự án đó.</p>
+                        {!['Admin', 'Quản lý', 'Giám đốc'].includes(currentUserProfile?.role?.trim() || '') && (
+                            <p className="text-[10px] text-slate-400 mt-1.5 italic">* Nhân sự này tạo dự án sẽ mặc định được gán làm quản lý dự án đó.</p>
                         )}
                     </div>
                     <div>
