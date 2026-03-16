@@ -163,7 +163,7 @@ export default function MarketingRequestModal({ isOpen, onClose }: MarketingRequ
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             Hủy
           </button>
-          <button className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+          <button onClick={() => { alert('Đã gửi thông tin thành công!'); onClose(); }} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
             Gửi thông tin
           </button>
         </div>
