@@ -1214,12 +1214,21 @@ export default function MarketingApp() {
       ) : view === 'TIMELINE' ? (
         <div className="flex-1 overflow-x-auto overflow-y-auto p-6 bg-white">
           <div className="min-w-[1000px] max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <GanttChartSquare className="w-5 h-5 text-indigo-600" />
-                Tiến độ thi công & Lịch quay
-              </h2>
-              <p className="text-sm text-gray-500">Theo dõi tiến độ thực tế của các công trình để lên lịch quay video phù hợp.</p>
+            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <GanttChartSquare className="w-5 h-5 text-indigo-600" />
+                  Tiến độ thi công & Lịch quay
+                </h2>
+                <p className="text-sm text-gray-500 mt-1 lg:mt-0">Theo dõi tiến độ thực tế của các công trình để lên lịch quay video phù hợp.</p>
+              </div>
+              <button 
+                onClick={() => alert('Tính năng tạo dự án đang được phát triển')}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 shrink-0" />
+                Tạo Dự Án
+              </button>
             </div>
 
             {/* Header Days */}
