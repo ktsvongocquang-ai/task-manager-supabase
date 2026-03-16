@@ -309,8 +309,9 @@ export default function MarketingApp() {
             assignee: assigneeProfile?.full_name || '',
             assignee_id: t.assignee_id,
             dueDate: t.due_date || '',
-            format: t.category || 'Khác',
-            platform: t.output || 'Khác',
+            format: t.format || 'Khác',
+            platform: t.platform || 'Khác',
+            category: t.category || 'Khác',
             priority: t.priority || 'Trung bình',
             contentType: 'Khác',
             goal: t.target || '',
@@ -708,7 +709,7 @@ export default function MarketingApp() {
                                     <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Tên video</span><span className="text-gray-600 line-clamp-2">{task.title}</span></div>
                                     <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
                                     <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật chính</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || '-'}</span></div>
+                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
                                     <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook đã chọn</span><span className="text-gray-600 line-clamp-2">{task.notes || 'Chưa có'}</span></div>
                                     <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp DQH:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
                                   </div>
@@ -739,7 +740,7 @@ export default function MarketingApp() {
                                   
                                   <div className="flex gap-1.5 mb-2">
                                     <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
-                                      <Video className="w-3 h-3" /> {task.format || '-'}
+                                      <Video className="w-3 h-3" /> {task.format || 'Khác'}
                                     </span>
                                     <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
                                       <UsersIcon className="w-3 h-3" /> {task.platform || '-'}
