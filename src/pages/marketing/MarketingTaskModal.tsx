@@ -13,7 +13,7 @@ interface AddEditTaskModalProps {
     onClose: () => void;
     onSaved: () => void;
     editingTask: Task | null;
-    initialData: {
+    initialData?: {
         task_code: string;
         project_id: string;
     };
@@ -37,7 +37,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'IDEA', priority: 'Trung bình', start_date: '', due_date: '',
-        result_links: '', notes: '', parent_id: '', format: '', platform: '', category: ''
+        result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: ''
     });
 
     const [phases, setPhases] = useState<Task[]>([]);
@@ -177,8 +177,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             if (editingTask) {
                 const today = new Date().toISOString().split('T')[0];
                 setForm({
-                    task_code: editingTask.task_code || initialData.task_code, 
-                    project_id: editingTask.project_id || initialData.project_id, 
+                    task_code: editingTask.task_code || initialData?.task_code || '', 
+                    project_id: editingTask.project_id || initialData?.project_id || '', 
                     name: editingTask.name || '', 
                     description: editingTask.description || '',
                     assignee_id: editingTask.assignee_id || currentUserProfile?.id || '', 
@@ -192,7 +192,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     parent_id: editingTask.parent_id || '',
                     format: editingTask.format || '',
                     platform: editingTask.platform || '',
-                    category: editingTask.category || ''
+                    category: editingTask.category || '',
+                    target: editingTask.target || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -220,8 +221,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 const today = new Date().toISOString().split('T')[0];
 
                 setForm({
-                    task_code: initialData.task_code,
-                    project_id: initialData.project_id,
+                    task_code: initialData?.task_code || '',
+                    project_id: initialData?.project_id || '',
                     name: '',
                     description: '',
                     assignee_id: currentUserProfile?.id || '',
@@ -235,7 +236,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     parent_id: '',
                     format: '',
                     platform: '',
-                    category: ''
+                    category: '',
+                    target: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -317,7 +319,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 parent_id: form.parent_id || null,
                 category: form.category || null,
                 format: form.format || null,
-                platform: form.platform || null
+                platform: form.platform || null,
+                target: form.target || null
             }
 
             let result;
@@ -749,11 +752,25 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                         {/* Form Grid Layout - Clean 3 Columns */}
                         <div className="space-y-6">
+                            {/* Full width Project Select */}
+                            <div className="px-14">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Folder size={12} /> Dự án</div>
+                                <select
+                                    value={form.project_id}
+                                    onChange={(e) => handleProjectChange(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 py-3 px-4 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 cursor-pointer transition-all"
+                                    disabled={shouldDisableTopFields()}
+                                >
+                                    <option value="">Chọn dự án...</option>
+                                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-slate-100 pl-14 pr-4">
                                 {/* Column 1 */}
                                 <div className="space-y-5">
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><CheckCircle2 size={12} /> Giai đoạn (Trạng thái)</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><CheckCircle2 size={12} /> Trạng thái</div>
                                         <select
                                             value={form.status}
                                             onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -787,15 +804,20 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </select>
                                     </div>
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Folder size={12} /> Dự án</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Ưu tiên</div>
                                         <select
-                                            value={form.project_id}
-                                            onChange={(e) => handleProjectChange(e.target.value)}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
+                                            value={form.priority}
+                                            onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                                            className={`w-full bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer p-0 ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
+                                                form.priority === 'Cao' ? 'text-orange-600' :
+                                                    form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
+                                                }`}
                                             disabled={shouldDisableTopFields()}
                                         >
-                                            <option value="">Chọn dự án...</option>
-                                            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            <option value="Thấp">Thấp</option>
+                                            <option value="Trung bình">Trung bình</option>
+                                            <option value="Cao">Cao</option>
+                                            <option value="Khẩn cấp">Khẩn cấp</option>
                                         </select>
                                     </div>
                                 </div>
@@ -803,7 +825,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 {/* Column 2 */}
                                 <div className="space-y-5">
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><User size={12} /> Chủ trì (Nhân vật)</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><User size={12} /> Người thực hiện</div>
                                         <select
                                             value={form.assignee_id}
                                             onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
@@ -815,7 +837,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </select>
                                     </div>
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Calendar size={12} /> Lịch đăng (Due date)</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Calendar size={12} /> Lịch đăng</div>
                                         <input
                                             type="date"
                                             value={form.due_date}
@@ -824,7 +846,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             disabled={shouldDisableTopFields()}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="hidden">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><ListTodo size={12} /> Thuộc Task lớn</div>
                                         <select
                                             value={form.parent_id || ''}
@@ -857,38 +879,15 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </select>
                                     </div>
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Folder size={12} /> Loại nội dung</div>
-                                        <select
-                                            value={form.category || ''}
-                                            onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Mục tiêu</div>
+                                        <input
+                                            type="text"
+                                            value={form.target || ''}
+                                            onChange={(e) => setForm({ ...form, target: e.target.value })}
+                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0"
+                                            placeholder="Nhập mục tiêu..."
                                             disabled={shouldDisableTopFields()}
-                                        >
-                                            <option value="">Chọn loại nội dung...</option>
-                                            <option value="Dự án thực tế">Dự án thực tế</option>
-                                            <option value="Cẩm nang kiến trúc">Cẩm nang kiến trúc</option>
-                                            <option value="Bán hàng">Bán hàng</option>
-                                            <option value="Văn hóa nội bộ">Văn hóa nội bộ</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Ưu tiên</div>
-                                            <select
-                                                value={form.priority}
-                                                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                                className={`w-full bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer p-0 ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
-                                                    form.priority === 'Cao' ? 'text-orange-600' :
-                                                        form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
-                                                    }`}
-                                                disabled={shouldDisableTopFields()}
-                                            >
-                                                <option value="Thấp">Thấp</option>
-                                                <option value="Trung bình">Trung bình</option>
-                                                <option value="Cao">Cao</option>
-                                                <option value="Khẩn cấp">Khẩn cấp</option>
-                                            </select>
-                                        </div>
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -924,21 +923,21 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="relative group/notes">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hook / Lời dặn (Dành cho Idea)</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hashtag</div>
                                         <textarea
                                             value={form.notes}
                                             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[80px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Tiêu đề gợi cảm sự chú ý..."
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-indigo-600 min-h-[40px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="#Hashtag..."
                                         />
                                     </div>
                                     <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 text-indigo-500">Links / Hashtag thực tế</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ghi chú</div>
                                         <textarea
                                             value={form.result_links}
                                             onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                            className="w-full bg-indigo-50/30 border border-indigo-100 rounded-2xl p-4 text-sm text-indigo-800 min-h-[80px] resize-none focus:bg-white focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-indigo-300"
-                                            placeholder="Đính kèm link kết quả..."
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[40px] resize-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="Ghi chú..."
                                         />
                                     </div>
                                 </div>
