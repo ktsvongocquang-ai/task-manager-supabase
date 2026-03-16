@@ -126,12 +126,13 @@ export const Kanban = () => {
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
+        const isSupporter = t.supporter_id === profile?.id;
+
+        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
 
         let isVisible = true;
-        if (userRole === 'Nhân viên') {
-            isVisible = Boolean(isAssigned || t.supporter_id === profile?.id);
-        } else if (userRole === 'Quản lý') {
-            isVisible = true;
+        if (!isManagerOrAdmin) {
+            isVisible = Boolean(isAssigned || isSupporter);
         }
         if (!isVisible) return false;
 
