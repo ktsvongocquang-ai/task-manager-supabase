@@ -15,7 +15,6 @@ import {
     X,
     Send,
     HardHat,
-    LayoutTemplate,
     HeartHandshake,
     Video,
     ChevronDown,
@@ -42,7 +41,6 @@ const viewTitles: Record<string, string> = {
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
     '/construction': 'Quản lý Thi công',
-    '/moodboard': 'Tạo Moodboard',
     '/customers': 'CRM',
     '/marketing': 'Marketing',
 }
@@ -217,8 +215,7 @@ export const Layout = () => {
         // 4. Nhân viên Thiết kế
         if (userRole === 'Nhân viên Thiết kế' || department === 'Thiết kế') {
             return [
-                ...baseItems,
-                { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate, matchPrefix: ['/moodboard'] }
+                ...baseItems
             ];
         }
 
@@ -236,7 +233,6 @@ export const Layout = () => {
         const fullItems = [
             ...baseItems,
             { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] },
-            { name: 'Moodboard', path: '/moodboard', icon: LayoutTemplate, matchPrefix: ['/moodboard'] },
             { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
             { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] },
             { name: 'Lịch sử', path: '/history', icon: HistoryIcon }

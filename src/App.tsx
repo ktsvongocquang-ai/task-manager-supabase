@@ -13,7 +13,7 @@ import { Kanban } from './pages/kanban/Kanban'
 import { Schedule } from './pages/schedule/Schedule'
 import { Construction } from './pages/construction/Construction'
 import { Customers } from './pages/customers/Customers'
-import { Moodboard } from './pages/moodboard/Moodboard'
+
 import MarketingApp from './pages/marketing/MarketingApp'
 import QuoteGenerator from './pages/customers/QuoteGenerator'
 import { ConstructionProvider } from './contexts/ConstructionContext'
@@ -39,7 +39,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="history" element={<History />} />
           <Route path="construction" element={<Construction />} />
-          <Route path="moodboard" element={<Moodboard />} />
+          {/* Moodboard removed */}
           <Route path="customers" element={<Customers />} />
           <Route path="customers/quotes/new" element={<QuoteGenerator />} />
           <Route path="marketing" element={<MarketingApp />} />

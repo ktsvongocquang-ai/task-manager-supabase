@@ -113,7 +113,7 @@ export const Profile = () => {
 
                                     {profile?.role === 'Thiết Kế' && (
                                         <>
-                                            <PermissionItem title="Công việc Thiết kế" desc="Sử dụng Moodboard và Kanban 2D/3D." type="full" />
+                                            <PermissionItem title="Công việc Thiết kế" desc="Sử dụng Kanban 2D/3D." type="full" />
                                             <PermissionItem title="Thi Công" desc="Truy cập xem hồ sơ kỹ thuật hiện trường." type="read" />
                                             <PermissionItem title="Quản trị" desc="Không có quyền quản lý nhân sự hay tài chính." type="denied" />
                                         </>
