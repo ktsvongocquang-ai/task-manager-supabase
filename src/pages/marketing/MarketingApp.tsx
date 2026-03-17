@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   List,
+  ExternalLink,
   ShieldAlert,
   ChevronUp,
   MoreVertical,
@@ -291,7 +292,7 @@ export default function MarketingApp() {
       let allTasks: Task[] = [];
       if (projectsData && projectsData.length > 0) {
         setProjects(projectsData);
-        const { data: tasksData, error: taskErr } = await supabase.from('marketing_tasks').select('*').in('project_id', projectsData.map((p: any) => p.id));
+        const { data: tasksData, error: taskErr } = await supabase.from('marketing_tasks').select('*').in('project_id', projectsData.map((p: any) => p.id)).is('parent_id', null);
         if (taskErr) console.error("Error fetching tasks", taskErr);
         if (tasksData) allTasks = tasksData as Task[];
       } else {
@@ -333,11 +334,18 @@ export default function MarketingApp() {
           };
       });
 
-      // Sort mappedVideos: tasks that need approval at the top
+      // Sort mappedVideos: tasks that need approval at the top, then by created_at descending
       mappedVideos.sort((a, b) => {
           const aPriority = (a.status === 'CONTENT_DONE' || a.status === 'VIDEO_REVIEW') ? -1 : 1;
           const bPriority = (b.status === 'CONTENT_DONE' || b.status === 'VIDEO_REVIEW') ? -1 : 1;
-          return aPriority - bPriority;
+          
+          if (aPriority !== bPriority) {
+              return aPriority - bPriority;
+          }
+          
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          return dateB - dateA;
       });
 
       setVideos(mappedVideos);
@@ -388,6 +396,7 @@ export default function MarketingApp() {
   }, [profile]);
 
   const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [projectFilter, setProjectFilter] = useState('Tất cả');
   const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
   const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -398,6 +407,7 @@ export default function MarketingApp() {
   const [showKanbanFilters, setShowKanbanFilters] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
 
   // Sync view when URL changes
   React.useEffect(() => {
@@ -433,6 +443,14 @@ export default function MarketingApp() {
   const toggleCard = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedCards(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleProjectRow = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = new Set(expandedProjects);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpandedProjects(next);
   };
 
   const updateVideo = (id: string, updates: Partial<typeof videos[0]>) => {
@@ -598,8 +616,14 @@ export default function MarketingApp() {
                    <option value="Bài viết">Bài viết</option>
                    <option value="Ảnh">Ảnh</option>
                 </select>
-                {(listTimeFilter !== 'Tất cả' || formatFilter !== 'Tất cả') && (
-                  <button onClick={() => { setListTimeFilter('Tất cả'); setFormatFilter('Tất cả'); }} className="text-xs text-gray-400 hover:text-gray-700 underline shrink-0 whitespace-nowrap">
+                <select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 shrink-0 max-w-[150px] truncate">
+                   <option value="Tất cả">Lọc theo dự án</option>
+                   {projects.map(p => (
+                     <option key={p.id} value={p.name}>{p.name}</option>
+                   ))}
+                </select>
+                {(listTimeFilter !== 'Tất cả' || formatFilter !== 'Tất cả' || projectFilter !== 'Tất cả') && (
+                  <button onClick={() => { setListTimeFilter('Tất cả'); setFormatFilter('Tất cả'); setProjectFilter('Tất cả'); }} className="text-xs text-gray-400 hover:text-gray-700 underline shrink-0 whitespace-nowrap">
                     Xóa lộc
                   </button>
                 )}
@@ -633,6 +657,7 @@ export default function MarketingApp() {
                     if (listTimeFilter === 'Theo Năm' && !isSameYear(date, today)) return false;
                   }
                   if (formatFilter !== 'Tất cả' && v.format !== formatFilter) return false;
+                  if (projectFilter !== 'Tất cả' && v.project !== projectFilter) return false;
                   return true;
                 });
 
@@ -716,7 +741,7 @@ export default function MarketingApp() {
                           // Find default status for this column
                           let newStatus = Object.keys(STATUS_MAP).find(k => STATUS_MAP[k].col === column.id);
                           if (newStatus && taskId) {
-                             updateTask(taskId, { status: newStatus });
+                             updateTask(taskId, { status: newStatus, created_at: new Date().toISOString() });
                           }
                         }
                       }}
@@ -774,24 +799,30 @@ export default function MarketingApp() {
                               </div>
 
                               {/* Expanded Content */}
-                              {expandedCards[task.id] && (
-                                <div className="mt-1 flex flex-col gap-1.5 pt-2 border-t border-slate-100 animate-in slide-in-from-top-2 duration-200 text-[13px]">
-                                  {task.marketing_fields?.['Hook chọn'] && (
-                                    <div className="flex gap-2">
-                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Hook chọn:</span>
-                                      <span className="text-gray-900">{task.marketing_fields['Hook chọn']}</span>
+                              {expandedCards[task.id] && (task.project || task.notes || task.result_links || task.description) && (
+                                <div className="mt-1 flex flex-col gap-2 pt-3 border-t border-slate-100 animate-in slide-in-from-top-2 duration-200 text-[13px]">
+                                  {task.project && (
+                                    <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+                                      <span className="text-slate-500 font-medium">Dự án:</span>
+                                      <span className="text-gray-900">{task.project}</span>
                                     </div>
                                   )}
-                                  {task.marketing_fields?.['Vấn đề'] && (
-                                    <div className="flex gap-2">
-                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Vấn đề:</span>
-                                      <span className="text-gray-900">{task.marketing_fields['Vấn đề']}</span>
+                                  {task.notes && (
+                                    <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+                                      <span className="text-slate-500 font-medium">Hook chọn:</span>
+                                      <span className="text-gray-900">{task.notes}</span>
                                     </div>
                                   )}
-                                  {task.marketing_fields?.['Giải pháp'] && (
-                                    <div className="flex gap-2">
-                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Giải pháp:</span>
-                                      <span className="text-gray-900 line-clamp-3">{task.marketing_fields['Giải pháp']}</span>
+                                  {task.result_links && (
+                                    <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+                                      <span className="text-slate-500 font-medium">Vấn đề:</span>
+                                      <span className="text-gray-900">{task.result_links}</span>
+                                    </div>
+                                  )}
+                                  {task.description && (
+                                    <div className="grid grid-cols-[100px_1fr] gap-2 items-start">
+                                      <span className="text-slate-500 font-medium">Giải pháp:</span>
+                                      <span className="text-gray-900 line-clamp-3">{task.description}</span>
                                     </div>
                                   )}
                                 </div>
@@ -803,7 +834,7 @@ export default function MarketingApp() {
                                     <div className="flex gap-2 w-full mt-2">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 rounded-lg text-[12px] font-bold transition-colors"
+                                        className="flex-1 py-1.5 bg-[#ECFDF5] text-[#059669] border border-[#10B981]/20 hover:bg-[#D1FAE5] rounded-lg text-[12px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
@@ -1151,54 +1182,138 @@ export default function MarketingApp() {
               </button>
            </div>
            <div className="flex-1 overflow-auto p-0">
-             <table className="w-full text-sm text-left border-collapse min-w-[800px]">
-               <thead className="bg-gray-50/80 text-gray-600 sticky top-0 z-10 shadow-sm">
+             <table className="w-full text-[13px] text-left border-collapse min-w-[1000px] border border-slate-200">
+               <thead className="bg-[#f9fafb] text-slate-500 sticky top-0 z-10">
                  <tr>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold w-[50px] text-center">#</th>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[200px]">Tên công trình</th>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[150px]">Loại công trình</th>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[180px]">Trạng thái cập nhật</th>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[200px]">Kiểu hiệu ứng</th>
-                   <th className="px-4 py-3 border-y border-gray-200 font-semibold min-w-[250px]">Mô tả kiểu hiệu ứng</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
+                       <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" disabled />
+                   </th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[200px]">
+                       <div className="flex items-center gap-1.5"><span className="font-bold font-sans text-slate-400">Aa</span> Tên công trình</div>
+                   </th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[160px]">
+                       <div className="flex items-center gap-1.5">Loại công trình</div>
+                   </th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[160px]">
+                       <div className="flex items-center gap-1.5"><ListTodo className="w-3.5 h-3.5" /> Trạng thái cập nhật</div>
+                   </th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Ghi chú</th>
                  </tr>
                </thead>
-               <tbody className="divide-y divide-gray-100">
+               <tbody className="divide-y divide-slate-200">
                  {projects.length === 0 ? (
                    <tr>
-                     <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                     <td colSpan={8} className="px-4 py-12 text-center text-slate-400 bg-white">
                         Chưa có dự án Marketing nào.
                      </td>
                    </tr>
                  ) : (
-                   projects.map((proj, idx) => (
-                     <tr key={proj.id} className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
-                       <td className="px-4 py-3 border-b border-gray-100 text-center text-gray-400 group-hover:text-gray-600">{idx + 1}</td>
-                       <td className="px-4 py-3 border-b border-gray-100 font-medium text-gray-900">{proj.name}</td>
-                       <td className="px-4 py-3 border-b border-gray-100">
-                           {proj.project_type ? (
-                               <span className="inline-flex bg-slate-100 text-slate-700 font-medium px-2 py-1 rounded text-xs border border-slate-200 truncate max-w-[160px]">{proj.project_type}</span>
-                           ) : <span className="text-gray-300">-</span>}
-                       </td>
-                       <td className="px-4 py-3 border-b border-gray-100">
-                           {proj.update_status ? (
-                               <span className={`inline-flex font-medium px-2.5 py-1 rounded-full text-xs border ${proj.update_status === 'Đầy đủ hình ảnh' ? 'bg-blue-50 text-blue-700 border-blue-200' : proj.update_status.includes('Highres') ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-50 text-gray-600 border-gray-200'} truncate max-w-[160px]`}>
-                                   {proj.update_status}
-                               </span>
-                           ) : <span className="text-gray-300">-</span>}
-                       </td>
-                       <td className="px-4 py-3 border-b border-gray-100">
-                           {proj.effect_type ? (
-                               <div className="flex flex-wrap gap-1">
-                                   {proj.effect_type.split(',').map((ef: string) => (
-                                       <span key={ef} className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold ${ef.trim() === 'Bê tông' ? 'bg-pink-100 text-pink-700' : ef.trim() === 'Stucco' ? 'bg-yellow-100 text-yellow-700' : ef.trim() === 'Đá khối' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{ef.trim()}</span>
-                                   ))}
+                   projects.map((proj) => (
+                     <React.Fragment key={proj.id}>
+                       <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
+                         <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
+                             {expandedProjects.has(proj.id) ? (
+                                <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                             ) : (
+                                <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                             )}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
+                         <td className="px-3 py-2 border border-slate-200">
+                             {proj.project_type ? (
+                                 <span className="inline-flex bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">{proj.project_type}</span>
+                             ) : <span className="text-slate-300">-</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200">
+                             {proj.update_status ? (
+                                 <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${proj.update_status === 'Đầy đủ hình ảnh' ? 'bg-sky-50 text-sky-700 border-sky-100' : proj.update_status.includes('Highres') ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-slate-100 text-slate-700 border-slate-200'} truncate max-w-[160px]`}>
+                                     {proj.update_status}
+                                 </span>
+                             ) : <span className="text-slate-300">-</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200">
+                             {proj.effect_type ? (
+                                 <div className="flex flex-wrap gap-1">
+                                     {proj.effect_type.split(',').map((ef: string) => (
+                                         <span key={ef} className={`inline-flex px-2.5 py-0.5 rounded text-[11px] font-bold ${ef.trim() === 'Minimal' ? 'bg-slate-100 text-slate-700' : ef.trim() === 'Rustic' ? 'bg-orange-100 text-orange-700' : ef.trim() === 'Industrial' ? 'bg-zinc-100 text-zinc-700' : ef.trim() === 'Tropical' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{ef.trim()}</span>
+                                     ))}
+                                 </div>
+                             ) : <span className="text-slate-300">-</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200 text-slate-700">
+                             {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200 text-slate-700">
+                             {proj.customer_problem || <span className="text-slate-300 italic">Chưa có</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200 text-slate-700 hover:text-indigo-600">
+                             {proj.content_link ? (
+                                 <a href={proj.content_link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                     <ExternalLink size={14} className="text-indigo-500" />
+                                     <span className="underline decoration-indigo-200 underline-offset-2">Doc Nội Dung</span>
+                                 </a>
+                             ) : <span className="text-slate-300 italic">...</span>}
+                         </td>
+                         <td className="px-3 py-2 border border-slate-200 text-slate-500 text-xs">
+                             {proj.other_info || <span className="text-slate-300 italic">...</span>}
+                         </td>
+                       </tr>
+                       
+                       {/* Expanded Tasks Row */}
+                       {expandedProjects.has(proj.id) && (
+                         <tr>
+                           <td colSpan={9} className="p-0 border border-slate-200 bg-slate-50 shadow-inner">
+                             <div className="p-4 pl-12">
+                               <div className="bg-white border text-center border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                                 {videos.filter(v => v.project_id === proj.id).length === 0 ? (
+                                   <div className="p-6 text-sm text-slate-400">Không có bài viết/nhiệm vụ nào trong dự án này.</div>
+                                 ) : (
+                                   <table className="w-full text-[13px] text-left">
+                                     <thead className="bg-[#fcfdfd] text-slate-500 border-b border-slate-100">
+                                       <tr>
+                                         <th className="px-4 py-2.5 font-medium w-[60px]">STT</th>
+                                         <th className="px-4 py-2.5 font-medium">Tiêu đề bài viết</th>
+                                         <th className="px-4 py-2.5 font-medium w-[150px]">Người đảm nhận</th>
+                                         <th className="px-4 py-2.5 font-medium w-[150px]">Trạng thái</th>
+                                       </tr>
+                                     </thead>
+                                     <tbody className="divide-y divide-slate-100">
+                                       {videos.filter(v => v.project_id === proj.id).map((task, tidx) => {
+                                          const statusDef = STATUS_MAP[task.status] || { name: 'Chưa rõ', color: 'bg-slate-100 text-slate-600 border-slate-200' };
+                                          return (
+                                           <tr key={task.id} className="hover:bg-slate-50/80 cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setShowVideoModal(task); }}>
+                                             <td className="px-4 py-2.5 text-slate-400 font-medium">{tidx + 1}</td>
+                                             <td className="px-4 py-2.5 text-slate-700 font-medium">{task.title}</td>
+                                             <td className="px-4 py-2.5">
+                                               <div className="flex -space-x-1.5 overflow-hidden">
+                                                 {task.assignee ? task.assignee.split(',').map((name: string, i: number) => (
+                                                   <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-700 shadow-sm" title={name.trim()}>
+                                                       {name.trim().charAt(0).toUpperCase()}
+                                                   </div>
+                                                 )) : <span className="text-slate-400 text-xs">Chưa giao</span>}
+                                               </div>
+                                             </td>
+                                             <td className="px-4 py-2.5">
+                                               <span className={`px-2 py-0.5 rounded text-[11px] font-semibold border ${statusDef.color}`}>
+                                                 {statusDef.name}
+                                               </span>
+                                             </td>
+                                           </tr>
+                                          )
+                                       })}
+                                     </tbody>
+                                   </table>
+                                 )}
                                </div>
-                           ) : <span className="text-gray-300">-</span>}
-                       </td>
-                       <td className="px-4 py-3 border-b border-gray-100 text-gray-600 text-xs">
-                           {proj.effect_description || <span className="text-gray-300 italic">Chưa có mô tả</span>}
-                       </td>
-                     </tr>
+                             </div>
+                           </td>
+                         </tr>
+                       )}
+                     </React.Fragment>
                    ))
                  )}
                </tbody>
@@ -1760,8 +1875,14 @@ export default function MarketingApp() {
                       <h3 className="font-bold text-gray-900 text-sm mb-1">{video.title}</h3>
                       <p className="text-xs text-gray-500">{video.project} • {video.assignee}</p>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-3">
                       <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold">Từ chối / Để làm sau</span>
+                      <button 
+                        onClick={() => updateTask(video.id, { status: 'IDEA' })}
+                        className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
+                      >
+                        Khôi phục
+                      </button>
                     </div>
                   </div>
                 ))}

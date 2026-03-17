@@ -644,8 +644,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6">
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
 
                     {/* Header */}
                     <div className="px-8 py-6 flex justify-between items-start bg-white shrink-0">
@@ -687,14 +687,6 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         Tạo Công Việc Mới
                                     </h2>
                                 )}
-                                {editingTask && (
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 shrink-0 ${form.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' :
-                                        form.priority === 'Cao' ? 'bg-orange-50 text-orange-600' :
-                                            form.priority === 'Trung bình' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
-                                        }`}>
-                                        {form.priority}
-                                    </span>
-                                )}
                             </div>
                             {editingTask && form.task_code && (
                                 <div className="mt-1 ml-14 flex items-center">
@@ -711,21 +703,45 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                         <div className="flex items-center gap-2">
                             {editingTask && (!shouldDisableTopFields() || editingTask.assignee_id === currentUserProfile?.id) && (
-                                <button onClick={async () => {
-                                    if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.')) {
-                                        try {
-                                            const { error } = await supabase.from('marketing_tasks').delete().eq('id', editingTask.id);
-                                            if (error) throw error;
-                                            onSaved();
-                                            onClose();
-                                        } catch (err) {
-                                            console.error('Lỗi khi xóa nhiệm vụ:', err);
-                                            alert('Lỗi khi xóa nhiệm vụ. Vui lòng thử lại.');
+                                <div className="flex bg-slate-100 rounded-xl overflow-hidden mr-2 items-center">
+                                    <button 
+                                      type="button"
+                                      onClick={async () => {
+                                        if (confirm('Bạn có chắc chắn muốn Lưu Trữ (Archive) nhiệm vụ này? Hành động này sẽ chuyển nó vào mục Lưu trữ.')) {
+                                            try {
+                                                const { error } = await supabase.from('marketing_tasks').update({ status: 'REJECTED' }).eq('id', editingTask.id);
+                                                if (error) throw error;
+                                                onSaved();
+                                                onClose();
+                                            } catch (err) {
+                                                console.error('Lỗi khi lưu trữ nhiệm vụ:', err);
+                                                alert('Lỗi. Vui lòng thử lại.');
+                                            }
                                         }
-                                    }
-                                }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-                                    <Trash2 size={18} />
-                                </button>
+                                      }}
+                                      className="px-3 py-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition-colors text-xs font-bold whitespace-nowrap"
+                                      title="Lưu trữ công việc (Đưa vào mục Archive)"
+                                    >
+                                        Lưu Trữ
+                                    </button>
+                                    <div className="w-[1px] h-4 bg-slate-300"></div>
+                                    <button 
+                                      onClick={async () => {
+                                        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn nhiệm vụ này? Hành động này không thể hoàn tác.')) {
+                                            try {
+                                                const { error } = await supabase.from('marketing_tasks').delete().eq('id', editingTask.id);
+                                                if (error) throw error;
+                                                onSaved();
+                                                onClose();
+                                            } catch (err) {
+                                                console.error('Lỗi khi xóa nhiệm vụ:', err);
+                                                alert('Lỗi khi xóa nhiệm vụ. Vui lòng thử lại.');
+                                            }
+                                        }
+                                    }} className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Xóa vĩnh viễn">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             )}
                             <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
                                 <X size={20} />
