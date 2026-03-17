@@ -225,6 +225,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     setIsTimelineModalOpen(true);
                 }}
             >
+                <div className="absolute -top-5 left-0 text-[11px] font-bold text-gray-700 whitespace-nowrap bg-white/80 px-1 rounded shadow-sm">{project.name}</div>
                 {segments}
             </div>
         );
@@ -238,13 +239,14 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
         return (
             <div 
-                className="absolute top-1/2 -translate-y-1/2 cursor-pointer flex items-center"
+                className="absolute top-1/2 -translate-y-1/2 cursor-pointer flex flex-col items-start gap-1"
                 style={{ left: `${offsetDays * DAY_WIDTH}px` }}
                 onClick={() => {
                     setSelectedProject(project);
                     setIsTimelineModalOpen(true);
                 }}
             >
+                <div className="text-[11px] font-bold text-gray-500 whitespace-nowrap bg-white/80 px-1 rounded shadow-sm">{project.name} (Chưa setup)</div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-dashed border-indigo-300 rounded-full text-[10px] font-bold text-indigo-500 hover:bg-indigo-50 hover:border-indigo-500 transition-all shadow-sm">
                     <Plus size={12} />
                     Thiết lập tiến độ
@@ -265,15 +267,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
             return (
                 <div
                     key={ms.id}
-                    className="absolute top-0 bottom-0 flex flex-col items-center justify-center group z-10 cursor-help"
+                    className="absolute top-0 bottom-0 flex flex-col items-center group z-20 cursor-help"
                     style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
                 >
-                    <div className="w-[1px] h-full bg-rose-200 group-hover:bg-rose-500 transition-colors absolute left-1/2 -translate-x-1/2 -z-10"></div>
-                    <div className="w-6 h-6 rounded-full bg-white border-2 border-rose-500 text-rose-500 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="w-[2px] h-full bg-rose-300/50 group-hover:bg-rose-500 transition-colors absolute left-1/2 -translate-x-1/2 -z-10"></div>
+                    <div className="mt-1 w-6 h-6 rounded-full bg-white border-2 border-rose-500 text-rose-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
                         <Video size={12} />
                     </div>
                     {/* Tooltip */}
-                    <div className="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-gray-900 text-white text-xs p-2 rounded-lg shadow-xl z-50">
+                    <div className="hidden group-hover:block absolute top-8 mb-2 w-48 bg-gray-900 text-white text-xs p-2 rounded-lg shadow-xl z-50">
                         <div className="font-bold mb-1 text-rose-300">Mốc quay: {format(msDate, 'dd/MM/yyyy')}</div>
                         <div className="px-1">{ms.content}</div>
                         <div className="mt-1 text-right text-[10px] text-gray-400">Trạng thái: {ms.status}</div>
@@ -522,10 +524,17 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             return (
                                                 <div 
                                                     key={log.id}
-                                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-blue-400/60 z-10"
-                                                    style={{ left: `${offsetDays * DAY_WIDTH + (DAY_WIDTH/2) - 3}px` }}
-                                                    title={`Nhật ký: ${log.content}`}
-                                                />
+                                                    className="absolute bottom-2 flex flex-col items-center z-20 group cursor-help"
+                                                    style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
+                                                >
+                                                    <div className="w-5 h-5 rounded border-2 border-indigo-400 bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                                                    </div>
+                                                    <div className="hidden group-hover:block absolute bottom-6 w-48 bg-gray-900 text-white text-xs p-2 rounded-lg shadow-xl z-50 pointer-events-none">
+                                                        <div className="font-bold text-indigo-300 mb-1">Nhật ký: {format(logDate, 'dd/MM')}</div>
+                                                        <div className="line-clamp-3">{log.content}</div>
+                                                    </div>
+                                                </div>
                                             );
                                         })}
                                         
