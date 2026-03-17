@@ -22,7 +22,7 @@ import {
   Play,
   Save,
   CheckCircle2,
-  Trash2
+  Trash2,
   ShieldAlert,
   ChevronUp,
   MoreVertical,
@@ -30,7 +30,7 @@ import {
   EyeOff,
   Clock
 } from 'lucide-react';
-import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
+import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear, parseISO, differenceInDays, isFuture, isToday } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useSearchParams } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
