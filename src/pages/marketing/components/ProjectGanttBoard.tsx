@@ -324,7 +324,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
             {/* Gantt Body */}
             <div className="flex flex-1 overflow-hidden relative">
                 {/* Left Column: Project List (30%) */}
-                <div className="w-[30%] min-w-[300px] border-r border-gray-100 bg-white z-20 flex flex-col shadow-[4px_0_10px_rgba(0,0,0,0.02)]">
+                <div className="w-[25%] min-w-[240px] max-w-[320px] border-r border-gray-100 bg-white z-20 flex flex-col shadow-[4px_0_10px_rgba(0,0,0,0.02)]">
                     <div className="h-16 border-b border-gray-100 flex items-end pb-3 px-6 shrink-0 bg-gray-50/30">
                         <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
                     </div>
