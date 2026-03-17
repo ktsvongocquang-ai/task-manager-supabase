@@ -3,7 +3,7 @@ import { supabase } from '../../../services/supabase';
 import type { Project, DailyLog } from '../../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2, Settings } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { TimelineUpdateModal } from './TimelineUpdateModal';
 
 interface ProjectGanttBoardProps {}
