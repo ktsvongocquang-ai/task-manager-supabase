@@ -35,6 +35,36 @@ export interface Project {
     dqh_solution?: string | null
     other_info?: string | null
     content_link?: string | null
+    // --- Construction Timeline Fields ---
+    actual_start_date?: string | null
+    design_days?: number | null
+    rough_construction_days?: number | null
+    finishing_days?: number | null
+    interior_days?: number | null
+    handover_date?: string | null
+    
+    // Virtual relations (if fetched together)
+    shooting_milestones?: ShootingMilestone[]
+    daily_logs?: DailyLog[]
+}
+
+export interface ShootingMilestone {
+    id: string
+    project_id: string
+    milestone_date: string
+    content: string
+    status?: string | 'Chờ quay' | 'Đã quay' | 'Đã huỷ'
+    created_at?: string
+}
+
+export interface DailyLog {
+    id: string
+    project_id: string
+    log_date: string
+    content: string
+    media_link?: string | null
+    user_id?: string | null
+    created_at?: string
 }
 
 export interface Task {
@@ -67,6 +97,10 @@ export interface Task {
     cost_estimate?: number | null
     format?: string | null
     platform?: string | null
+    views?: string | null
+    interactions?: string | null
+    shares?: string | null
+    saves?: string | null
 }
 
 export interface ChatMessage {
