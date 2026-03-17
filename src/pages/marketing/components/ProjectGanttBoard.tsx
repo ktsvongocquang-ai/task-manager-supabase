@@ -42,8 +42,8 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
                 const combinedProjects = projectsData.map((p: any) => ({
                     ...p,
-                    shooting_milestones: milestonesData?.filter((m: any) => m.project_id === p.id) || [],
-                    daily_logs: logsData?.filter((l: any) => l.project_id === p.id) || []
+                    marketing_shooting_milestones: milestonesData?.filter((m: any) => m.project_id === p.id) || [],
+                    marketing_daily_logs: logsData?.filter((l: any) => l.project_id === p.id) || []
                 })) as Project[];
 
                 setProjects(combinedProjects);
@@ -254,9 +254,10 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     };
 
     const renderMilestones = (project: Project) => {
-        if (!project.shooting_milestones || project.shooting_milestones.length === 0) return null;
+        const projectMilestones = project.marketing_shooting_milestones || [];
+        if (projectMilestones.length === 0) return null;
 
-        return project.shooting_milestones.map((ms: any) => {
+        return projectMilestones.map((ms: any) => {
             const msDate = parseISO(ms.milestone_date);
             const offsetDays = differenceInDays(msDate, startDate);
             if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
@@ -335,6 +336,8 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     setIsTimelineModalOpen(true);
                                 }}
                             >
+                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
+                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70">
                                         {project.status}
@@ -348,6 +351,26 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     {project.address && (
                                         <span className="text-[10px] text-gray-500 italic truncate max-w-[150px]">{project.address}</span>
                                     )}
+                                    {(() => {
+                                        if (!project.actual_start_date) return null;
+                                        const start = parseISO(project.actual_start_date);
+                                        const today = new Date();
+                                        const daysPassed = differenceInDays(today, start);
+                                        
+                                        if (daysPassed < 0) return <span className="text-[10px] text-orange-500 font-bold">Sắp bắt đầu</span>;
+                                        
+                                        let current = 0;
+                                        if (daysPassed < (current += (project.design_days || 0))) 
+                                            return <span className="text-[10px] text-indigo-500 font-bold">GĐ: Thiết kế</span>;
+                                        if (daysPassed < (current += (project.rough_construction_days || 0))) 
+                                            return <span className="text-[10px] text-orange-500 font-bold">GĐ: Thi công thô</span>;
+                                        if (daysPassed < (current += (project.finishing_days || 0))) 
+                                            return <span className="text-[10px] text-green-500 font-bold">GĐ: Hoàn thiện</span>;
+                                        if (daysPassed < (current += (project.interior_days || 0))) 
+                                            return <span className="text-[10px] text-teal-500 font-bold">GĐ: Nội thất</span>;
+                                        
+                                        return <span className="text-[10px] text-gray-500 font-bold">Đã quá hạn/Bàn giao</span>;
+                                    })()}
                                 </div>
                                 
                                 {/* Hover Actions */}
@@ -375,12 +398,12 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     </button>
                                 </div>
 
-                                {project.daily_logs && project.daily_logs.length > 0 && (
+                                {project.marketing_daily_logs && project.marketing_daily_logs.length > 0 && (
                                     <div className="flex gap-1 mt-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
-                                        {project.daily_logs.slice(0, 5).map((log: DailyLog) => (
+                                        {project.marketing_daily_logs.slice(0, 5).map((log: DailyLog) => (
                                             <div key={log.id} className="w-1.5 h-1.5 rounded-full bg-slate-400" title={`Nhật ký: ${format(parseISO(log.log_date), 'dd/MM/yyyy')}`}></div>
                                         ))}
-                                        {project.daily_logs.length > 5 && <span className="text-[8px] text-gray-400">+{project.daily_logs.length - 5}</span>}
+                                        {project.marketing_daily_logs.length > 5 && <span className="text-[8px] text-gray-400">+{project.marketing_daily_logs.length - 5}</span>}
                                     </div>
                                 )}
                             </div>
@@ -473,10 +496,10 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
                             {/* Today vertical line */}
                             <div 
-                                className="absolute top-0 bottom-0 border-l-2 border-dashed border-indigo-400 z-10 pointer-events-none"
+                                className="absolute top-0 bottom-0 border-l-2 border-dashed border-indigo-400 z-50 pointer-events-none"
                                 style={{ left: `${Math.max(0, differenceInDays(new Date(), startDate)) * DAY_WIDTH + (DAY_WIDTH/2)}px` }}
                             >
-                                <div className="absolute top-0 -translate-x-1/2 -mt-2 bg-indigo-500 text-white text-[8px] font-bold px-1 py-0.5 rounded uppercase tracking-wider shadow-sm">
+                                <div className="absolute top-2 -translate-x-1/2 bg-indigo-500 text-white text-[8px] font-bold px-1.5 py-1 rounded uppercase tracking-wider shadow-md border border-white">
                                     Hôm nay
                                 </div>
                             </div>
@@ -490,6 +513,21 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         
                                         {project.actual_start_date ? renderGanttBar(project) : renderEmptyTimeline(project)}
                                         {renderMilestones(project)}
+                                        
+                                        {/* Daily logs indicators on timeline */}
+                                        {project.marketing_daily_logs?.map(log => {
+                                            const logDate = parseISO(log.log_date);
+                                            const offsetDays = differenceInDays(logDate, startDate);
+                                            if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
+                                            return (
+                                                <div 
+                                                    key={log.id}
+                                                    className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-blue-400/60 z-10"
+                                                    style={{ left: `${offsetDays * DAY_WIDTH + (DAY_WIDTH/2) - 3}px` }}
+                                                    title={`Nhật ký: ${log.content}`}
+                                                />
+                                            );
+                                        })}
                                         
                                     </div>
                                 ))}

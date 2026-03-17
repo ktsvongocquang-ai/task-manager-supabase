@@ -45,8 +45,8 @@ export interface Project {
     supervisor_phone?: string | null
     
     // Virtual relations (if fetched together)
-    shooting_milestones?: ShootingMilestone[]
-    daily_logs?: DailyLog[]
+    marketing_shooting_milestones?: ShootingMilestone[]
+    marketing_daily_logs?: DailyLog[]
 }
 
 export interface ShootingMilestone {
