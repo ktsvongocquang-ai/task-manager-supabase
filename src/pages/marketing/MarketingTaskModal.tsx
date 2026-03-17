@@ -51,10 +51,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
 
     // AI & Speech states
-    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | null>(null);
-    const [isRefining, setIsRefining] = useState<'name' | 'description' | null>(null);
+    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | 'notes' | 'result_links' | null>(null);
+    const [isRefining, setIsRefining] = useState<'name' | 'description' | 'notes' | 'result_links' | null>(null);
 
-    const handleSpeechToText = (field: 'name' | 'description' | 'subtask') => {
+    const handleSpeechToText = (field: 'name' | 'description' | 'subtask' | 'notes' | 'result_links') => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
             alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử dùng Chrome hoặc Safari mới nhất.");
@@ -107,18 +107,14 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
         recognition.onerror = (event: any) => {
             clearTimeout(silenceTimer);
-            console.error('Speech recognition error:', event.error);
-
-            let messageStr = "Lỗi nhận diện giọng nói.";
             if (event.error === 'not-allowed') {
-                messageStr = "Không có quyền truy cập Micro. Hãy kiểm tra cài đặt trình duyệt/điện thoại.";
+                alert("Không có quyền truy cập Micro. Hãy kiểm tra cài đặt trình duyệt/điện thoại.");
             } else if (event.error === 'service-not-allowed') {
-                messageStr = "Công cụ giọng nói bị chặn (có thể do Siri đang bật hoặc hết hạn mức).";
-            } else if (event.error === 'no-speech') {
-                messageStr = "Không nghe thấy tiếng. Vui lòng thử lại.";
+                alert("Công cụ giọng nói bị chặn (có thể do Siri đang bật hoặc hết hạn mức).");
+            } else {
+                console.warn('Speech recognition error:', event.error);
+                // We ignore 'no-speech' and others to avoid annoying popups
             }
-
-            alert(messageStr);
             setIsListening(null);
         };
 
@@ -135,7 +131,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
-    const handleAIRefine = async (field: 'name' | 'description') => {
+    const handleAIRefine = async (field: 'name' | 'description' | 'notes' | 'result_links') => {
         const textToRefine = form[field as keyof typeof form];
         if (!textToRefine) {
             alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
@@ -919,48 +915,88 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <div className="pl-14 pr-4">
                                 <div className="mb-6 relative group/desc">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Hook chọn</div>
-                                    <textarea
-                                        value={form.notes}
-                                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[80px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                        placeholder="Nhập Hook..."
-                                    />
+                                    <div className="relative">
+                                        <textarea
+                                            value={form.notes}
+                                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[80px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="Nhập Hook..."
+                                        />
+                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleSpeechToText('notes')}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'notes' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                                title="Ghi âm Hook"
+                                            >
+                                                {isListening === 'notes' ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAIRefine('notes')}
+                                                disabled={isRefining === 'notes'}
+                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                                title="AI tinh chỉnh"
+                                            >
+                                                {isRefining === 'notes' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div className="mb-6 relative group/desc">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Vấn đề</div>
-                                    <textarea
-                                        value={form.result_links}
-                                        onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[100px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                        placeholder="Nhập Vấn đề..."
-                                    />
+                                    <div className="relative">
+                                        <textarea
+                                            value={form.result_links}
+                                            onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[100px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="Nhập Vấn đề..."
+                                        />
+                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleSpeechToText('result_links' as any)}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'result_links' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                                title="Ghi âm Vấn đề"
+                                            >
+                                                {isListening === 'result_links' ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAIRefine('result_links' as any)}
+                                                disabled={isRefining === 'result_links'}
+                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                                title="AI tinh chỉnh"
+                                            >
+                                                {isRefining === 'result_links' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="mb-6 relative group/desc">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Giải pháp</div>
-                                    <textarea
-                                        value={form.description}
-                                        onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[120px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                        placeholder="Kịch bản, nội dung chi tiết..."
-                                    />
-                                    <div className="absolute right-3 bottom-4 flex gap-2">
-                                        <button
-                                            onClick={() => handleSpeechToText('description')}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
-                                            title="Ghi âm mô tả"
-                                        >
-                                            {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
-                                        </button>
-                                        <button
-                                            onClick={() => handleAIRefine('description')}
-                                            disabled={isRefining === 'description'}
-                                            className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
-                                            title="AI tinh chỉnh"
-                                        >
-                                            {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                        </button>
+                                    <div className="relative">
+                                        <textarea
+                                            value={form.description}
+                                            onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[120px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="Kịch bản, nội dung chi tiết..."
+                                        />
+                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleSpeechToText('description')}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                                title="Ghi âm Giải pháp"
+                                            >
+                                                {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAIRefine('description')}
+                                                disabled={isRefining === 'description'}
+                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                                title="AI tinh chỉnh"
+                                            >
+                                                {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

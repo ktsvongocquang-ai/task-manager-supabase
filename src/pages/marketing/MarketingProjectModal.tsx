@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { type Project } from '../../types';
-import { X } from 'lucide-react';
+import { X, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react';
 
 interface MarketingProjectModalProps {
     isOpen: boolean;
@@ -55,6 +55,99 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
         other_info: '',
         content_link: ''
     });
+
+    const [isListening, setIsListening] = useState<'description' | 'customer_problem' | 'dqh_solution' | null>(null);
+    const [isRefining, setIsRefining] = useState<'description' | 'customer_problem' | 'dqh_solution' | null>(null);
+
+    const handleSpeechToText = (field: 'description' | 'customer_problem' | 'dqh_solution') => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử dùng Chrome hoặc Safari mới nhất.");
+            return;
+        }
+
+        if (isListening) return;
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'vi-VN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = false;
+
+        let silenceTimer: any;
+
+        const stopRecognition = () => {
+            clearTimeout(silenceTimer);
+            try { recognition.stop(); } catch (e) { }
+            setIsListening(null);
+        };
+
+        recognition.onstart = () => {
+            setIsListening(field);
+            silenceTimer = setTimeout(() => {
+                stopRecognition();
+            }, 10000);
+        };
+
+        recognition.onresult = (event: any) => {
+            clearTimeout(silenceTimer);
+            const transcript = event.results[0][0].transcript;
+            
+            setForm(prev => ({
+                ...prev,
+                [field]: prev[field as keyof typeof prev] ? `${prev[field as keyof typeof prev]} ${transcript}` : transcript
+            }));
+            
+            stopRecognition();
+        };
+
+        recognition.onerror = (event: any) => {
+            clearTimeout(silenceTimer);
+            if (event.error === 'not-allowed') {
+                alert("Không có quyền truy cập Micro. Vui lòng cấp quyền trong cài đặt trình duyệt của bạn.");
+            } else {
+                console.warn('Speech recognition error:', event.error);
+                // We ignore 'no-speech' and others to avoid annoying popups
+            }
+            setIsListening(null);
+        };
+
+        recognition.onend = () => {
+            setIsListening(null);
+            clearTimeout(silenceTimer);
+        };
+
+        try { recognition.start(); } catch (err) { setIsListening(null); }
+    };
+
+    const handleAIRefine = async (field: 'description' | 'customer_problem' | 'dqh_solution') => {
+        const textToRefine = form[field as keyof typeof form];
+        if (!textToRefine) {
+            alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
+            return;
+        }
+
+        setIsRefining(field);
+        try {
+            const res = await fetch('/api/refine-task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: textToRefine, field })
+            });
+
+            if (!res.ok) throw new Error('Failed to refine text');
+
+            const data = await res.json();
+            if (data.refinedText) {
+                setForm(prev => ({ ...prev, [field]: data.refinedText }));
+            }
+        } catch (error) {
+            console.error('AI Refine error:', error);
+            alert("Lỗi khi kết nối AI. Vui lòng thử lại sau.");
+        } finally {
+            setIsRefining(null);
+        }
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -121,21 +214,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
         await onSave(saveForm);
     };
 
-    const toggleEffectType = (effect: string) => {
-        const currentEffects = form.effect_type ? form.effect_type.split(',').map(s => s.trim()).filter(Boolean) : [];
-        if (currentEffects.includes(effect)) {
-            const next = currentEffects.filter(e => e !== effect).join(', ');
-            setForm({ ...form, effect_type: next });
-        } else {
-            currentEffects.push(effect);
-            setForm({ ...form, effect_type: currentEffects.join(', ') });
-        }
-    };
 
-    const isEffectSelected = (effect: string) => {
-        const currentEffects = form.effect_type ? form.effect_type.split(',').map(s => s.trim()) : [];
-        return currentEffects.includes(effect);
-    };
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -244,45 +323,31 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                             />
                         </div>
 
-                        <div className="pt-2">
-                            <label className="block text-sm font-semibold text-slate-700 mb-3 border-t border-slate-100 pt-4">Có thể đến quay video không?</label>
-                            <div className="flex flex-wrap gap-8 items-center">
-                                {['Có thể', 'Không thể', 'Cần xin phép thêm'].map(option => (
-                                    <label key={option} className="flex items-center gap-2.5 cursor-pointer group">
-                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${form.can_shoot_video === option ? 'border-indigo-600' : 'border-slate-300 group-hover:border-indigo-400'}`}>
-                                            {form.can_shoot_video === option && <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full" />}
-                                        </div>
-                                        <input
-                                            type="radio"
-                                            name="can_shoot_video"
-                                            value={option}
-                                            checked={form.can_shoot_video === option}
-                                            onChange={(e) => setForm({ ...form, can_shoot_video: e.target.value })}
-                                            className="hidden"
-                                        />
-                                        <span className={`text-sm ${form.can_shoot_video === option ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>{option}</span>
-                                    </label>
-                                ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Có thể đến quay video không?</label>
+                                <select
+                                    value={form.can_shoot_video || 'Có thể'}
+                                    onChange={(e) => setForm({ ...form, can_shoot_video: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                >
+                                    <option value="Có thể">Có thể</option>
+                                    <option value="Không thể">Không thể</option>
+                                    <option value="Cần xin phép thêm">Cần xin phép thêm</option>
+                                </select>
                             </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-3">Phong cách (Có thể chọn nhiều)</label>
-                            <div className="flex flex-wrap gap-3">
-                                {EFFECT_TYPES.map(effect => (
-                                    <label key={effect} className={`flex items-center gap-2.5 cursor-pointer border px-4 py-2 rounded-xl transition-all ${isEffectSelected(effect) ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50'}`}>
-                                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${isEffectSelected(effect) ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}`}>
-                                            {isEffectSelected(effect) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                        </div>
-                                        <input
-                                            type="checkbox"
-                                            checked={isEffectSelected(effect)}
-                                            onChange={() => toggleEffectType(effect)}
-                                            className="hidden"
-                                        />
-                                        <span className={`text-sm ${isEffectSelected(effect) ? 'text-indigo-900 font-medium' : 'text-slate-700'}`}>{effect}</span>
-                                    </label>
-                                ))}
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phong cách</label>
+                                <select
+                                    value={form.effect_type}
+                                    onChange={(e) => setForm({ ...form, effect_type: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                >
+                                    <option value="">Chọn phong cách</option>
+                                    {EFFECT_TYPES.map(effect => (
+                                        <option key={effect} value={effect}>{effect}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
@@ -298,39 +363,108 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
                         
                         <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả về công trình</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                                <span>Mô tả về công trình</span>
+                            </label>
                             <p className="text-xs text-slate-500 mb-2">Công trình này có đặc điểm gì đặc biệt, tệp khách hàng là ai, phân khúc như thế nào...</p>
-                            <textarea
-                                value={form.description || ''}
-                                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                rows={3}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
-                                placeholder="Nhập mô tả chi tiết..."
-                            />
+                            <div className="relative group">
+                                <textarea
+                                    value={form.description || ''}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                    rows={6}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[120px] pb-12"
+                                    placeholder="Nhập mô tả chi tiết..."
+                                />
+                                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSpeechToText('description')}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'description' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        title={isListening === 'description' ? "Đang nghe..." : "Nhập bằng giọng nói"}
+                                    >
+                                        {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAIRefine('description')}
+                                        disabled={isRefining === 'description'}
+                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        title="Làm mượt bằng AI"
+                                    >
+                                        {isRefining === 'description' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nội dung khai thác</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                                <span>Nội dung khai thác</span>
+                            </label>
                             <p className="text-xs text-slate-500 mb-2">Chủ đề muốn tập trung khai thác trong bài viết/video</p>
-                            <textarea
-                                value={form.customer_problem || ''}
-                                onChange={(e) => setForm({ ...form, customer_problem: e.target.value })}
-                                rows={3}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
-                                placeholder="Nhập nội dung khai thác..."
-                            />
+                            <div className="relative group">
+                                <textarea
+                                    value={form.customer_problem || ''}
+                                    onChange={(e) => setForm({ ...form, customer_problem: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
+                                    placeholder="Nhập nội dung khai thác..."
+                                />
+                                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSpeechToText('customer_problem')}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'customer_problem' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        title={isListening === 'customer_problem' ? "Đang nghe..." : "Nhập bằng giọng nói"}
+                                    >
+                                        {isListening === 'customer_problem' ? <MicOff size={16} /> : <Mic size={16} />}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAIRefine('customer_problem')}
+                                        disabled={isRefining === 'customer_problem'}
+                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        title="Làm mượt bằng AI"
+                                    >
+                                        {isRefining === 'customer_problem' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Giải pháp mà DQH mang lại</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                                <span>Giải pháp mà DQH mang lại</span>
+                            </label>
                             <p className="text-xs text-slate-500 mb-2">Càng chi tiết càng tốt</p>
-                            <textarea
-                                value={form.dqh_solution || ''}
-                                onChange={(e) => setForm({ ...form, dqh_solution: e.target.value })}
-                                rows={3}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
-                                placeholder="Nhập giải pháp..."
-                            />
+                            <div className="relative group">
+                                <textarea
+                                    value={form.dqh_solution || ''}
+                                    onChange={(e) => setForm({ ...form, dqh_solution: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
+                                    placeholder="Nhập giải pháp..."
+                                />
+                                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleSpeechToText('dqh_solution')}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'dqh_solution' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        title={isListening === 'dqh_solution' ? "Đang nghe..." : "Nhập bằng giọng nói"}
+                                    >
+                                        {isListening === 'dqh_solution' ? <MicOff size={16} /> : <Mic size={16} />}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleAIRefine('dqh_solution')}
+                                        disabled={isRefining === 'dqh_solution'}
+                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        title="Làm mượt bằng AI"
+                                    >
+                                        {isRefining === 'dqh_solution' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
                         <div>

@@ -41,152 +41,83 @@ import { MarketingTaskModal } from './MarketingTaskModal';
 
 // Mock Data based on the Google Doc workflow
 // @ts-ignore
-const initialVideos = [
-  {
-    id: 'VID-001',
-    title: 'Sử dụng Data Validation trong Google Sheets',
-    project: 'Google Sheets Tips',
-    status: 'IDEA',
-    assignee: 'Optimate, Tuyến',
-    dueDate: '2024-11-23',
-    format: 'Video ngắn',
-    platform: 'TikTok',
-    priority: 'Ưu tiên',
-    contentType: 'Hướng dẫn sử dụng sản phẩm',
-    goal: 'Lượt xem',
-    demoDate: '2024-11-20',
-    demoTime: '14:00',
-    publishTime: '18:00',
-    contentDetails: 'Hướng dẫn chi tiết cách sử dụng hàm...',
-    hashtags: '#DataValidation #GoogleSheets',
-    assetLink: '[Optimate] Tuyến',
-    notes: '',
-    views: 2000,
-    interactions: 400,
-    shares: 30,
-    saves: 20
-  },
-  {
-    id: 'VID-002',
-    title: 'Cách tạo biểu đồ trong Google Sheets',
-    project: 'Google Sheets Tips',
-    status: 'CONTENT_EDITING',
-    assignee: 'Tuyến',
-    dueDate: '2024-11-23',
-    format: 'Video dài',
-    platform: 'YouTube',
-    priority: 'Khẩn cấp',
-    contentType: 'Khuyến mãi',
-    goal: 'Lượt yêu thích',
-    demoDate: '2024-11-21',
-    demoTime: '14:00',
-    publishTime: '20:00',
-    contentDetails: 'Các mẹo và thủ thuật giúp bạn làm...',
-    hashtags: '#Charts #GoogleSheets',
-    assetLink: '',
-    notes: '',
-    views: 1000,
-    interactions: 32,
-    shares: 40,
-    saves: 50
-  },
-  {
-    id: 'VID-003',
-    title: 'Cách tạo Dashboard trong Google Sheets',
-    project: 'Google Sheets Tips',
-    status: 'CONTENT_DONE',
-    assignee: 'Optimate',
-    dueDate: '2024-11-27',
-    format: 'Bài viết',
-    platform: 'Facebook',
-    priority: 'Từ từ',
-    contentType: 'Tips',
-    goal: 'Lượt lưu lại',
-    demoDate: '2024-11-24',
-    demoTime: '14:00',
-    publishTime: '19:00',
-    contentDetails: 'Hướng dẫn cách tạo dashboard...',
-    hashtags: '#Dashboard #GoogleSheets',
-    assetLink: '',
-    notes: '',
-    views: 5000,
-    interactions: 120,
-    shares: 80,
-    saves: 150
-  },
-  {
-    id: 'VID-004',
-    title: 'Cách sử dụng hàm VLOOKUP trong Google Sheets',
-    project: 'Google Sheets Tips',
-    status: 'PROD_DOING',
-    assignee: 'Optimate, Tuyến',
-    dueDate: '2024-11-27',
-    format: 'Video ngắn',
-    platform: 'TikTok',
-    priority: 'Ưu tiên',
-    contentType: 'Hướng dẫn sử dụng sản phẩm',
-    goal: 'Lượt xem',
-    demoDate: '2024-11-25',
-    demoTime: '14:00',
-    publishTime: '18:00',
-    contentDetails: 'Cách sử dụng VLOOKUP...',
-    hashtags: '#VLOOKUP #GoogleSheets',
-    assetLink: '',
-    notes: '',
-    views: 0,
-    interactions: 0,
-    shares: 0,
-    saves: 0
-  },
-  {
-    id: 'VID-005',
-    title: 'Cách sử dụng hàm ARRAYFORMULA để tính toán hàng loạt',
-    project: 'Google Sheets Tips',
-    status: 'VIDEO_REVIEW',
-    assignee: 'Optimate, Tuyến',
-    dueDate: '2024-11-23',
-    format: 'Video dài',
-    platform: 'YouTube',
-    priority: 'Khẩn cấp',
-    contentType: 'Tips',
-    goal: 'Lượt xem',
-    demoDate: '2024-11-22',
-    demoTime: '14:00',
-    publishTime: '18:00',
-    contentDetails: 'Hướng dẫn sử dụng hàm ARRAYFORMULA...',
-    hashtags: '#ARRAYFORMULA #GoogleSheets',
-    assetLink: '',
-    notes: '',
-    views: 0,
-    interactions: 0,
-    shares: 0,
-    saves: 0
-  },
-  {
-    id: 'VID-006',
-    title: 'Tạo báo cáo động với Pivot Table trong Google Sheets',
-    project: 'Google Sheets Tips',
-    status: 'SCHEDULED',
-    assignee: 'Tuyến',
-    dueDate: '2024-11-04',
-    format: 'Bài viết',
-    platform: 'Website',
-    priority: 'Từ từ',
-    contentType: 'Khuyến mãi',
-    goal: 'Lượt lưu lại',
-    demoDate: '2024-11-02',
-    demoTime: '14:00',
-    publishTime: '09:00',
-    contentDetails: 'Hướng dẫn tạo báo cáo động...',
-    hashtags: '#PivotTable #GoogleSheets',
-    assetLink: '',
-    notes: '',
-    views: 15000,
-    interactions: 1296,
-    shares: 210,
-    saves: 210
-  }
-];
+
+const InlineDropdown = ({ 
+  value, 
+  options, 
+  onChange, 
+  placeholder, 
+  renderValue,
+  renderOption
+}: {
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  placeholder: string;
+  renderValue?: (val: string) => React.ReactNode;
+  renderOption?: (val: string) => React.ReactNode;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative w-full text-left group" ref={dropdownRef} onClick={e => e.stopPropagation()}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="w-full cursor-pointer min-h-[32px] flex items-center justify-between rounded hover:bg-slate-50 transition-colors px-1"
+      >
+        <div className="flex-1 truncate">
+          {value ? (renderValue ? renderValue(value) : <span className="text-[13px] text-slate-700">{value}</span>) : <span className="text-slate-400 text-xs">- {placeholder} -</span>}
+        </div>
+        {isOpen && <div className="text-slate-300 w-4 h-4 rounded hover:bg-slate-200 flex items-center justify-center transition-colors" onClick={(e) => { e.stopPropagation(); onChange(''); setIsOpen(false); }}><X size={12} /></div>}
+      </div>
+      {isOpen && (
+        <div className="absolute z-50 mt-1 min-w-[160px] max-h-[250px] overflow-y-auto bg-white rounded-lg shadow-xl border border-slate-100 py-1" style={{ top: '100%', left: 0 }}>
+          {options.map((opt) => (
+            <div 
+              key={opt}
+              onClick={() => { onChange(opt); setIsOpen(false); }}
+              className="px-2 py-1.5 hover:bg-slate-50 cursor-pointer flex items-center"
+            >
+              {renderOption ? renderOption(opt) : <span className="text-[13px] text-slate-700 px-1 py-0.5">{opt}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const getProjectStatusColor = (status: string) => {
+  if (!status) return 'bg-slate-100 text-slate-700 border-slate-200';
+  if (status === 'Đầy đủ hình ảnh') return 'bg-sky-50 text-sky-700 border-sky-100';
+  if (status.includes('Highres')) return 'bg-indigo-50 text-indigo-700 border-indigo-100';
+  return 'bg-slate-100 text-slate-700 border-slate-200';
+};
+
+const getProjectEffectColor = (ef: string) => {
+  if (!ef) return 'bg-slate-100 text-slate-700';
+  const trimEf = ef.trim();
+  if (trimEf === 'Minimal') return 'bg-slate-100 text-slate-700';
+  if (trimEf === 'Rustic') return 'bg-orange-100 text-orange-700';
+  if (trimEf === 'Industrial') return 'bg-zinc-100 text-zinc-700';
+  if (trimEf === 'Tropical') return 'bg-emerald-100 text-emerald-700';
+  return 'bg-red-50 text-red-700';
+};
+
+
 
 const COLUMNS = [
   { id: 'COL_IDEA', name: 'idea', color: 'bg-[#FFFBEB] border-[#FEF08A] text-[#854D0E]', border: 'border-[#FEF08A]' },
@@ -385,6 +316,17 @@ export default function MarketingApp() {
       }
   };
 
+  const updateProjectField = async (projectId: string, field: string, value: string) => {
+      try {
+          const { error } = await supabase.from('marketing_projects').update({ [field]: value }).eq('id', projectId);
+          if (error) throw error;
+          await fetchData();
+      } catch (err: any) {
+          console.error("Error updating project field:", err);
+          alert(`Lỗi khi cập nhật dự án: ${err.message || ''}`);
+      }
+  };
+
   const updateTask = async (taskId: string, updates: any) => {
       try {
           const { error } = await supabase.from('marketing_tasks').update(updates).eq('id', taskId);
@@ -548,13 +490,7 @@ export default function MarketingApp() {
               <Plus className="w-4 h-4 shrink-0" />
               Tạo Task
             </button>
-            <button 
-              onClick={() => setIsRequestModalOpen(true)}
-              className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4 shrink-0" />
-              Yêu cầu cũ
-            </button>
+
           </div>
         </div>
         
@@ -1186,7 +1122,7 @@ export default function MarketingApp() {
                 Dự Án Mới
               </button>
            </div>
-           <div className="flex-1 overflow-auto p-0">
+           <div className="flex-1 overflow-x-auto overflow-y-auto p-0 max-w-[calc(100vw-16rem)] w-full block">
              <table className="w-full text-[13px] text-left border-collapse min-w-[1000px] border border-slate-200">
                <thead className="bg-[#f9fafb] text-slate-500 sticky top-0 z-10">
                  <tr>
@@ -1229,25 +1165,34 @@ export default function MarketingApp() {
                          </td>
                          <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
                          <td className="px-3 py-2 border border-slate-200">
-                             {proj.project_type ? (
-                                 <span className="inline-flex bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">{proj.project_type}</span>
-                             ) : <span className="text-slate-300">-</span>}
+                             <InlineDropdown
+                                 value={proj.project_type || ''}
+                                 options={['Chung cư', 'Nhà phố', 'Biệt thự', 'Văn phòng', 'F&B', 'Khác']}
+                                 placeholder="Chọn loại"
+                                 onChange={(val) => updateProjectField(proj.id, 'project_type', val)}
+                                 renderValue={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-xs font-semibold">{val}</span>}
+                                 renderOption={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-[13px] font-semibold">{val}</span>}
+                             />
                          </td>
-                         <td className="px-3 py-2 border border-slate-200">
-                             {proj.update_status ? (
-                                 <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${proj.update_status === 'Đầy đủ hình ảnh' ? 'bg-sky-50 text-sky-700 border-sky-100' : proj.update_status.includes('Highres') ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-slate-100 text-slate-700 border-slate-200'} truncate max-w-[160px]`}>
-                                     {proj.update_status}
-                                 </span>
-                             ) : <span className="text-slate-300">-</span>}
+                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                             <InlineDropdown
+                                 value={proj.update_status || ''}
+                                 options={['Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
+                                 placeholder="Trạng thái"
+                                 onChange={(val) => updateProjectField(proj.id, 'update_status', val)}
+                                 renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-xs font-semibold border ${getProjectStatusColor(val)} truncate max-w-[140px]`}>{val}</span>}
+                                 renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[13px] font-semibold border ${getProjectStatusColor(val)}`}>{val}</span>}
+                             />
                          </td>
-                         <td className="px-3 py-2 border border-slate-200">
-                             {proj.effect_type ? (
-                                 <div className="flex flex-wrap gap-1">
-                                     {proj.effect_type.split(',').map((ef: string) => (
-                                         <span key={ef} className={`inline-flex px-2.5 py-0.5 rounded text-[11px] font-bold ${ef.trim() === 'Minimal' ? 'bg-slate-100 text-slate-700' : ef.trim() === 'Rustic' ? 'bg-orange-100 text-orange-700' : ef.trim() === 'Industrial' ? 'bg-zinc-100 text-zinc-700' : ef.trim() === 'Tropical' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-50 text-red-700'}`}>{ef.trim()}</span>
-                                     ))}
-                                 </div>
-                             ) : <span className="text-slate-300">-</span>}
+                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                             <InlineDropdown
+                                 value={proj.effect_type ? proj.effect_type.split(',')[0].trim() : ''}
+                                 options={['Hiện đại', 'Tối giản', 'Tân cổ điển', 'Wabi Sabi', 'Japandi', 'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Bê tông']}
+                                 placeholder="Phong cách"
+                                 onChange={(val) => updateProjectField(proj.id, 'effect_type', val)}
+                                 renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[11px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                                 renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                             />
                          </td>
                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
                              {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
@@ -1281,31 +1226,112 @@ export default function MarketingApp() {
                                      <thead className="bg-[#fcfdfd] text-slate-500 border-b border-slate-100">
                                        <tr>
                                          <th className="px-4 py-2.5 font-medium w-[60px]">STT</th>
-                                         <th className="px-4 py-2.5 font-medium">Tiêu đề bài viết</th>
-                                         <th className="px-4 py-2.5 font-medium w-[150px]">Người đảm nhận</th>
-                                         <th className="px-4 py-2.5 font-medium w-[150px]">Trạng thái</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[200px]">Tiêu đề bài viết</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[150px]">Hook</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Thể loại</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Date</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Giai đoạn</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[180px]">Trạng thái</th>
                                        </tr>
                                      </thead>
                                      <tbody className="divide-y divide-slate-100">
                                        {videos.filter(v => v.project_id === proj.id).map((task, tidx) => {
-                                          const statusDef = STATUS_MAP[task.status] || { name: 'Chưa rõ', color: 'bg-slate-100 text-slate-600 border-slate-200' };
                                           return (
-                                           <tr key={task.id} className="hover:bg-slate-50/80 cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setShowVideoModal(task); }}>
-                                             <td className="px-4 py-2.5 text-slate-400 font-medium">{tidx + 1}</td>
-                                             <td className="px-4 py-2.5 text-slate-700 font-medium">{task.title}</td>
-                                             <td className="px-4 py-2.5">
-                                               <div className="flex -space-x-1.5 overflow-hidden">
-                                                 {task.assignee ? task.assignee.split(',').map((name: string, i: number) => (
-                                                   <div key={i} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-700 shadow-sm" title={name.trim()}>
-                                                       {name.trim().charAt(0).toUpperCase()}
-                                                   </div>
-                                                 )) : <span className="text-slate-400 text-xs">Chưa giao</span>}
-                                               </div>
+                                           <tr key={task.id} className="hover:bg-slate-50/80 group">
+                                             <td className="px-4 py-2.5 text-slate-400 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{tidx + 1}</td>
+                                             <td className="px-4 py-2.5 text-slate-700 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{task.title}</td>
+                                             <td className="px-4 py-2.5 text-slate-600">
+                                                 <span className="truncate block max-w-[300px]" title={task.notes || ''}>{task.notes || <span className="text-slate-300 italic">...</span>}</span>
                                              </td>
                                              <td className="px-4 py-2.5">
-                                               <span className={`px-2 py-0.5 rounded text-[11px] font-semibold border ${statusDef.color}`}>
-                                                 {statusDef.name}
-                                               </span>
+                                                 <InlineDropdown 
+                                                     value={task.format || ''}
+                                                     options={['Video ngắn', 'Video dài', 'Bài viết mạng xã hội', 'Hình ảnh/Album']}
+                                                     placeholder="Thêm..."
+                                                     onChange={async (val) => {
+                                                         try {
+                                                             const { error } = await supabase.from('marketing_tasks').update({ format: val }).eq('id', task.id);
+                                                             if (error) throw error;
+                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, format: val } : t));
+                                                         } catch (err) { console.error('Lỗi khi cập nhật thể loại:', err); }
+                                                     }}
+                                                 />
+                                             </td>
+                                             <td className="px-4 py-2.5 text-slate-600">
+                                                 <input 
+                                                     type="date"
+                                                     value={task.dueDate || ''}
+                                                     onChange={async (e) => {
+                                                         const val = e.target.value;
+                                                         try {
+                                                             const { error } = await supabase.from('marketing_tasks').update({ due_date: val }).eq('id', task.id);
+                                                             if (error) throw error;
+                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, dueDate: val } : t));
+                                                         } catch (err) { console.error('Lỗi khi cập nhật ngày:', err); }
+                                                     }}
+                                                     className="bg-transparent border-0 p-0 text-[13px] text-slate-700 focus:ring-0 cursor-pointer w-full max-w-[110px]"
+                                                 />
+                                             </td>
+                                             <td className="px-4 py-2.5">
+                                                 <InlineDropdown 
+                                                     value={task.target || ''}
+                                                     options={['Hạng Mục đề xuất', 'Thiết kế', 'Thi công', 'Kiến thức', 'Vật liệu', 'Ánh sáng', 'Furniture']}
+                                                     placeholder="Thêm..."
+                                                     onChange={async (val) => {
+                                                         try {
+                                                             const { error } = await supabase.from('marketing_tasks').update({ target: val }).eq('id', task.id);
+                                                             if (error) throw error;
+                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, target: val } : t));
+                                                         } catch (err) { console.error('Lỗi khi cập nhật giai đoạn:', err); }
+                                                     }}
+                                                 />
+                                             </td>
+                                             <td className="px-4 py-2.5">
+                                                 <InlineDropdown
+                                                     value={task.status}
+                                                     options={['IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
+                                                     placeholder="Trạng thái"
+                                                     onChange={async (newStatus) => {
+                                                         try {
+                                                             const { error } = await supabase.from('marketing_tasks').update({ status: newStatus }).eq('id', task.id);
+                                                             if (error) throw error;
+                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+                                                         } catch (err) { console.error('Lỗi khi cập nhật trạng thái:', err); }
+                                                     }}
+                                                     renderValue={(val) => {
+                                                         let label = val;
+                                                         if (val === 'IDEA') label = 'Idea';
+                                                         else if (val === 'CONTENT_EDITING') label = 'Viết Content (Đang soạn)';
+                                                         else if (val === 'CONTENT_DONE') label = 'Viết Content (Chờ duyệt)';
+                                                         else if (val === 'PROD_DOING') label = 'Sản xuất (Đang làm)';
+                                                         else if (val === 'PROD_DONE') label = 'Sản xuất (Đã xong)';
+                                                         else if (val === 'VIDEO_REVIEW') label = 'Gửi qua Phê duyệt';
+                                                         else if (val === 'SCHEDULED') label = 'Chưa đăng (Đã xếp lịch)';
+                                                         else if (val === 'PUBLISHED') label = 'Hoàn thành đăng';
+                                                         else if (val === 'REJECTED') label = 'Từ chối / Để sau';
+                                                         
+                                                         return (
+                                                             <div className="flex items-center justify-between w-full text-indigo-700 font-bold text-[13px] hover:bg-slate-50 rounded px-1 -mx-1 py-0.5 transition-colors">
+                                                                 <span className="truncate">{label}</span>
+                                                                 <ChevronDown size={14} className="opacity-70 ml-1 shrink-0" />
+                                                             </div>
+                                                         );
+                                                     }}
+                                                     renderOption={(val) => {
+                                                         let label = val;
+                                                         if (val === 'IDEA') label = 'Idea';
+                                                         else if (val === 'CONTENT_EDITING') label = 'Viết Content (Đang soạn)';
+                                                         else if (val === 'CONTENT_DONE') label = 'Viết Content (Chờ duyệt)';
+                                                         else if (val === 'PROD_DOING') label = 'Sản xuất (Đang làm)';
+                                                         else if (val === 'PROD_DONE') label = 'Sản xuất (Đã xong)';
+                                                         else if (val === 'VIDEO_REVIEW') label = 'Gửi qua Phê duyệt';
+                                                         else if (val === 'SCHEDULED') label = 'Chưa đăng (Đã xếp lịch)';
+                                                         else if (val === 'PUBLISHED') label = 'Hoàn thành đăng';
+                                                         else if (val === 'REJECTED') label = 'Từ chối / Để sau';
+                                                         
+                                                         return <span className="text-indigo-700 font-bold text-[13px] px-1 py-1 w-full block hover:bg-slate-50 cursor-pointer">{label}</span>;
+                                                     }}
+                                                 />
                                              </td>
                                            </tr>
                                           )
