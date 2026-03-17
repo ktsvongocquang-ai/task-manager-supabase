@@ -3,7 +3,7 @@ import { supabase } from '../../../services/supabase';
 import type { Project, DailyLog } from '../../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2, Settings } from 'lucide-react';
 import { TimelineUpdateModal } from './TimelineUpdateModal';
 
 interface ProjectGanttBoardProps {}
@@ -208,8 +208,35 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
             <div
                 className="absolute top-1/2 -translate-y-1/2 flex shadow-sm group cursor-pointer"
                 style={{ left: `${offsetDays * DAY_WIDTH}px` }}
+                onClick={() => {
+                    setSelectedProject(project);
+                    setIsTimelineModalOpen(true);
+                }}
             >
                 {segments}
+            </div>
+        );
+    };
+
+    const renderEmptyTimeline = (project: Project) => {
+        // Find a reasonable position for the setup button - maybe today
+        const today = new Date();
+        const offsetDays = differenceInDays(today, startDate);
+        if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
+
+        return (
+            <div 
+                className="absolute top-1/2 -translate-y-1/2 cursor-pointer flex items-center"
+                style={{ left: `${offsetDays * DAY_WIDTH}px` }}
+                onClick={() => {
+                    setSelectedProject(project);
+                    setIsTimelineModalOpen(true);
+                }}
+            >
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-dashed border-indigo-300 rounded-full text-[10px] font-bold text-indigo-500 hover:bg-indigo-50 hover:border-indigo-500 transition-all shadow-sm">
+                    <Plus size={12} />
+                    Thiết lập tiến độ
+                </div>
             </div>
         );
     };
@@ -288,8 +315,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {activeProjects.map(project => (
-                            <div key={project.id} className="h-20 border-b border-gray-50 px-6 flex flex-col justify-center hover:bg-indigo-50/30 transition-colors cursor-pointer group">
-                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
+                            <div 
+                                key={project.id} 
+                                className="h-20 border-b border-gray-50 px-6 flex flex-col justify-center hover:bg-indigo-50/30 transition-colors cursor-pointer group relative"
+                                onClick={() => {
+                                    setSelectedProject(project);
+                                    setIsTimelineModalOpen(true);
+                                }}
+                            >
+                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70">
                                         {project.status}
@@ -298,7 +332,32 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         <span className="text-[10px] text-gray-400 font-mono">{project.project_code}</span>
                                     )}
                                 </div>
-                                {/* Daily logs dots under name */}
+                                
+                                {/* Hover Actions */}
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedProject(project);
+                                            setIsTimelineModalOpen(true);
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                        title="Chỉnh sửa"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteProject(project.id, project.name);
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Xóa"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+
                                 {project.daily_logs && project.daily_logs.length > 0 && (
                                     <div className="flex gap-1 mt-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
                                         {project.daily_logs.slice(0, 5).map((log: DailyLog) => (
@@ -412,7 +471,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         {/* Row background highlight */}
                                         <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         
-                                        {renderGanttBar(project)}
+                                        {project.actual_start_date ? renderGanttBar(project) : renderEmptyTimeline(project)}
                                         {renderMilestones(project)}
                                         
                                     </div>
