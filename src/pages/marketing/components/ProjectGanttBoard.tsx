@@ -3,7 +3,8 @@ import { supabase } from '../../../services/supabase';
 import type { Project, DailyLog } from '../../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Calendar, ChevronLeft, ChevronRight, Video } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X } from 'lucide-react';
+import { TimelineUpdateModal } from './TimelineUpdateModal';
 
 interface ProjectGanttBoardProps {}
 
@@ -11,45 +12,97 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [newProjectName, setNewProjectName] = useState('');
+    const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+
+    const fetchConstructionData = async () => {
+        try {
+            // Fetch projects with their milestones and daily logs
+            const { data: projectsData, error: projErr } = await supabase
+                .from('marketing_projects')
+                .select(`
+                    id, project_code, name, status, 
+                    actual_start_date, design_days, rough_construction_days, finishing_days, interior_days, handover_date
+                `)
+                .not('status', 'in', '("Hoàn thành", "Hủy bỏ")')
+                .order('created_at', { ascending: false });
+
+            if (projErr) throw projErr;
+
+            if (projectsData && projectsData.length > 0) {
+                const projectIds = projectsData.map((p: any) => p.id);
+                
+                const [{ data: milestonesData }, { data: logsData }] = await Promise.all([
+                    supabase.from('shooting_milestones').select('*').in('project_id', projectIds),
+                    supabase.from('daily_logs').select('*').in('project_id', projectIds).order('log_date', { ascending: false })
+                ]);
+
+                const combinedProjects = projectsData.map((p: any) => ({
+                    ...p,
+                    shooting_milestones: milestonesData?.filter((m: any) => m.project_id === p.id) || [],
+                    daily_logs: logsData?.filter((l: any) => l.project_id === p.id) || []
+                })) as Project[];
+
+                setProjects(combinedProjects);
+            } else {
+                setProjects([]);
+            }
+        } catch (err) {
+            console.error("Error fetching construction data:", err);
+        }
+    };
 
     useEffect(() => {
-        const fetchConstructionData = async () => {
-            try {
-                // Fetch projects with their milestones and daily logs
-                const { data: projectsData, error: projErr } = await supabase
-                    .from('projects')
-                    .select(`
-                        id, project_code, name, status, 
-                        actual_start_date, design_days, rough_construction_days, finishing_days, interior_days, handover_date
-                    `)
-                    .not('status', 'in', '("Hoàn thành", "Hủy bỏ")')
-                    .order('created_at', { ascending: false });
-
-                if (projErr) throw projErr;
-
-                if (projectsData && projectsData.length > 0) {
-                    const projectIds = projectsData.map((p: any) => p.id);
-                    
-                    const [{ data: milestonesData }, { data: logsData }] = await Promise.all([
-                        supabase.from('shooting_milestones').select('*').in('project_id', projectIds),
-                        supabase.from('daily_logs').select('*').in('project_id', projectIds).order('log_date', { ascending: false })
-                    ]);
-
-                    const combinedProjects = projectsData.map((p: any) => ({
-                        ...p,
-                        shooting_milestones: milestonesData?.filter((m: any) => m.project_id === p.id) || [],
-                        daily_logs: logsData?.filter((l: any) => l.project_id === p.id) || []
-                    })) as Project[];
-
-                    setProjects(combinedProjects);
-                }
-            } catch (err) {
-                console.error("Error fetching construction data:", err);
-            }
-        };
-
         fetchConstructionData();
     }, []);
+
+    const generateNextProjectCode = () => {
+        let maxId = 0;
+        projects.forEach(p => {
+            if (p.project_code) {
+                const match = p.project_code.match(/^DA(\d+)$/i);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxId) maxId = num;
+                }
+            }
+        });
+        return `DA${String(maxId + 1).padStart(3, '0')}`;
+    };
+
+    const handleCreateSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newProjectName.trim()) return;
+        setIsCreating(true);
+        try {
+            const { data, error } = await supabase
+                .from('marketing_projects')
+                .insert({
+                    name: newProjectName,
+                    project_code: generateNextProjectCode(),
+                    status: 'Chưa bắt đầu',
+                    start_date: new Date().toISOString().split('T')[0],
+                    end_date: new Date().toISOString().split('T')[0]
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            if (data) {
+                setSelectedProject(data as Project);
+                setIsCreateModalOpen(false);
+                setNewProjectName('');
+                setIsTimelineModalOpen(true);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi tạo dự án");
+        } finally {
+            setIsCreating(false);
+        }
+    };
 
     // Get a 3-month window around the current date to render
     const startDate = startOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -188,6 +241,13 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     <p className="text-sm text-gray-500 mt-1">Theo dõi tiến độ thực tế các công trình để lên lịch quay phù hợp.</p>
                 </div>
                 <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Dự Án Mới
+                    </button>
                     <div className="flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 text-gray-600 transition-colors">
                             <ChevronLeft size={20} />
@@ -347,6 +407,56 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Quick Create Project Modal */}
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <form onSubmit={handleCreateSubmit} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <h2 className="text-lg font-bold text-gray-800">Thêm Dự Án Mới</h2>
+                            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200 transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-2">Tên dự án/công trình</label>
+                            <input 
+                                autoFocus
+                                type="text" 
+                                value={newProjectName}
+                                onChange={e => setNewProjectName(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+                                placeholder="VD: Landmark 3PN..."
+                                required
+                            />
+                        </div>
+                        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+                            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors">
+                                Hủy
+                            </button>
+                            <button type="submit" disabled={isCreating || !newProjectName.trim()} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                                {isCreating ? 'Đang tạo...' : 'Tiếp tục nạp tiến độ'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
+
+            {selectedProject && isTimelineModalOpen && (
+                <TimelineUpdateModal
+                    isOpen={isTimelineModalOpen}
+                    onClose={() => {
+                        setIsTimelineModalOpen(false);
+                        setSelectedProject(null);
+                    }}
+                    project={selectedProject}
+                    onSaved={() => {
+                        setIsTimelineModalOpen(false);
+                        setSelectedProject(null);
+                        fetchConstructionData();
+                    }}
+                />
+            )}
         </div>
     );
 };
