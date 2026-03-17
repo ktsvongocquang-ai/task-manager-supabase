@@ -1227,11 +1227,12 @@ export default function MarketingApp() {
                                        <tr>
                                          <th className="px-4 py-2.5 font-medium w-[60px]">STT</th>
                                          <th className="px-4 py-2.5 font-medium min-w-[200px]">Tiêu đề bài viết</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[150px]">Hook</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[250px] w-1/3">Hook</th>
                                          <th className="px-4 py-2.5 font-medium min-w-[120px]">Thể loại</th>
                                          <th className="px-4 py-2.5 font-medium min-w-[120px]">Date</th>
                                          <th className="px-4 py-2.5 font-medium min-w-[120px]">Giai đoạn</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[180px]">Trạng thái</th>
+                                         <th className="px-4 py-2.5 font-medium w-[100px]">Link</th>
+                                         <th className="px-4 py-2.5 font-medium min-w-[150px]">Trạng thái</th>
                                        </tr>
                                      </thead>
                                      <tbody className="divide-y divide-slate-100">
@@ -1241,7 +1242,7 @@ export default function MarketingApp() {
                                              <td className="px-4 py-2.5 text-slate-400 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{tidx + 1}</td>
                                              <td className="px-4 py-2.5 text-slate-700 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{task.title}</td>
                                              <td className="px-4 py-2.5 text-slate-600">
-                                                 <span className="truncate block max-w-[300px]" title={task.notes || ''}>{task.notes || <span className="text-slate-300 italic">...</span>}</span>
+                                                 <span className="whitespace-normal break-words">{task.notes || <span className="text-slate-300 italic">...</span>}</span>
                                              </td>
                                              <td className="px-4 py-2.5">
                                                  <InlineDropdown 
@@ -1287,6 +1288,24 @@ export default function MarketingApp() {
                                                  />
                                              </td>
                                              <td className="px-4 py-2.5">
+                                                 <input
+                                                     type="url"
+                                                     placeholder="Thêm link..."
+                                                     value={task.result_links || ''}
+                                                     onChange={async (e) => {
+                                                         const val = e.target.value;
+                                                         setVideos(prev => prev.map(t => t.id === task.id ? { ...t, result_links: val } : t));
+                                                     }}
+                                                     onBlur={async (e) => {
+                                                         const val = e.target.value;
+                                                         try {
+                                                             await supabase.from('marketing_tasks').update({ result_links: val }).eq('id', task.id);
+                                                         } catch (err) { console.error('Lỗi khi cập nhật link:', err); }
+                                                     }}
+                                                     className="bg-transparent border border-transparent hover:border-slate-200 focus:border-indigo-300 rounded px-1 py-1 text-[12px] text-indigo-600 focus:ring-0 w-full min-w-[80px] transition-colors"
+                                                 />
+                                             </td>
+                                             <td className="px-4 py-2.5">
                                                  <InlineDropdown
                                                      value={task.status}
                                                      options={['IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
@@ -1300,18 +1319,20 @@ export default function MarketingApp() {
                                                      }}
                                                      renderValue={(val) => {
                                                          let label = val;
-                                                         if (val === 'IDEA') label = 'Idea';
-                                                         else if (val === 'CONTENT_EDITING') label = 'Viết Content (Đang soạn)';
-                                                         else if (val === 'CONTENT_DONE') label = 'Viết Content (Chờ duyệt)';
-                                                         else if (val === 'PROD_DOING') label = 'Sản xuất (Đang làm)';
-                                                         else if (val === 'PROD_DONE') label = 'Sản xuất (Đã xong)';
-                                                         else if (val === 'VIDEO_REVIEW') label = 'Gửi qua Phê duyệt';
-                                                         else if (val === 'SCHEDULED') label = 'Chưa đăng (Đã xếp lịch)';
-                                                         else if (val === 'PUBLISHED') label = 'Hoàn thành đăng';
-                                                         else if (val === 'REJECTED') label = 'Từ chối / Để sau';
+                                                         let colorClass = 'text-gray-600';
+                                                         
+                                                         if (val === 'IDEA') { label = 'Idea'; colorClass = 'text-yellow-600'; }
+                                                         else if (val === 'CONTENT_EDITING') { label = 'Viết Content (Đang soạn)'; colorClass = 'text-blue-600'; }
+                                                         else if (val === 'CONTENT_DONE') { label = 'Viết Content (Chờ duyệt)'; colorClass = 'text-blue-600'; }
+                                                         else if (val === 'PROD_DOING') { label = 'Sản xuất (Đang làm)'; colorClass = 'text-purple-600'; }
+                                                         else if (val === 'PROD_DONE') { label = 'Sản xuất (Đã xong)'; colorClass = 'text-purple-600'; }
+                                                         else if (val === 'VIDEO_REVIEW') { label = 'Gửi qua Phê duyệt'; colorClass = 'text-emerald-600'; }
+                                                         else if (val === 'SCHEDULED') { label = 'Chưa đăng (Đã xếp lịch)'; colorClass = 'text-gray-600'; }
+                                                         else if (val === 'PUBLISHED') { label = 'Hoàn thành đăng'; colorClass = 'text-emerald-600'; }
+                                                         else if (val === 'REJECTED') { label = 'Từ chối / Để sau'; colorClass = 'text-red-600'; }
                                                          
                                                          return (
-                                                             <div className="flex items-center justify-between w-full text-indigo-700 font-bold text-[13px] hover:bg-slate-50 rounded px-1 -mx-1 py-0.5 transition-colors">
+                                                             <div className={`flex items-center justify-between w-full font-bold text-[13px] hover:bg-slate-50 rounded px-1 -mx-1 py-0.5 transition-colors ${colorClass}`}>
                                                                  <span className="truncate">{label}</span>
                                                                  <ChevronDown size={14} className="opacity-70 ml-1 shrink-0" />
                                                              </div>
@@ -1319,17 +1340,19 @@ export default function MarketingApp() {
                                                      }}
                                                      renderOption={(val) => {
                                                          let label = val;
-                                                         if (val === 'IDEA') label = 'Idea';
-                                                         else if (val === 'CONTENT_EDITING') label = 'Viết Content (Đang soạn)';
-                                                         else if (val === 'CONTENT_DONE') label = 'Viết Content (Chờ duyệt)';
-                                                         else if (val === 'PROD_DOING') label = 'Sản xuất (Đang làm)';
-                                                         else if (val === 'PROD_DONE') label = 'Sản xuất (Đã xong)';
-                                                         else if (val === 'VIDEO_REVIEW') label = 'Gửi qua Phê duyệt';
-                                                         else if (val === 'SCHEDULED') label = 'Chưa đăng (Đã xếp lịch)';
-                                                         else if (val === 'PUBLISHED') label = 'Hoàn thành đăng';
-                                                         else if (val === 'REJECTED') label = 'Từ chối / Để sau';
+                                                         let colorClass = 'text-gray-600';
                                                          
-                                                         return <span className="text-indigo-700 font-bold text-[13px] px-1 py-1 w-full block hover:bg-slate-50 cursor-pointer">{label}</span>;
+                                                         if (val === 'IDEA') { label = 'Idea'; colorClass = 'text-yellow-600'; }
+                                                         else if (val === 'CONTENT_EDITING') { label = 'Viết Content (Đang soạn)'; colorClass = 'text-blue-600'; }
+                                                         else if (val === 'CONTENT_DONE') { label = 'Viết Content (Chờ duyệt)'; colorClass = 'text-blue-600'; }
+                                                         else if (val === 'PROD_DOING') { label = 'Sản xuất (Đang làm)'; colorClass = 'text-purple-600'; }
+                                                         else if (val === 'PROD_DONE') { label = 'Sản xuất (Đã xong)'; colorClass = 'text-purple-600'; }
+                                                         else if (val === 'VIDEO_REVIEW') { label = 'Gửi qua Phê duyệt'; colorClass = 'text-emerald-600'; }
+                                                         else if (val === 'SCHEDULED') { label = 'Chưa đăng (Đã xếp lịch)'; colorClass = 'text-gray-600'; }
+                                                         else if (val === 'PUBLISHED') { label = 'Hoàn thành đăng'; colorClass = 'text-emerald-600'; }
+                                                         else if (val === 'REJECTED') { label = 'Từ chối / Để sau'; colorClass = 'text-red-600'; }
+                                                         
+                                                         return <span className={`font-bold text-[13px] px-1 py-1 w-full block hover:bg-slate-50 cursor-pointer ${colorClass}`}>{label}</span>;
                                                      }}
                                                  />
                                              </td>
