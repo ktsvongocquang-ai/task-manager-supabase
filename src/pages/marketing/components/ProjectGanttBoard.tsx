@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { supabase } from '../../../../services/supabase';
-import { Project, ShootingMilestone, DailyLog } from '../../../../types';
+import { supabase } from '../../../services/supabase';
+import type { Project, DailyLog } from '../../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight, Video } from 'lucide-react';
@@ -9,13 +9,11 @@ interface ProjectGanttBoardProps {}
 
 export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const [projects, setProjects] = useState<Project[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchConstructionData = async () => {
-            setIsLoading(true);
             try {
                 // Fetch projects with their milestones and daily logs
                 const { data: projectsData, error: projErr } = await supabase
@@ -31,7 +29,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                 if (projErr) throw projErr;
 
                 if (projectsData && projectsData.length > 0) {
-                    const projectIds = projectsData.map(p => p.id);
+                    const projectIds = projectsData.map((p: any) => p.id);
                     
                     const [{ data: milestonesData }, { data: logsData }] = await Promise.all([
                         supabase.from('shooting_milestones').select('*').in('project_id', projectIds),
@@ -48,8 +46,6 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                 }
             } catch (err) {
                 console.error("Error fetching construction data:", err);
-            } finally {
-                setIsLoading(false);
             }
         };
 
@@ -152,7 +148,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const renderMilestones = (project: Project) => {
         if (!project.shooting_milestones || project.shooting_milestones.length === 0) return null;
 
-        return project.shooting_milestones.map(ms => {
+        return project.shooting_milestones.map((ms: any) => {
             const msDate = parseISO(ms.milestone_date);
             const offsetDays = differenceInDays(msDate, startDate);
             if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
@@ -251,7 +247,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                             {/* Months Row */}
                             <div className="flex h-8">
                                 {useMemo(() => {
-                                    const months = [];
+                                    const months: React.ReactNode[] = [];
                                     let currentMonthStr = '';
                                     let monthSpan = 0;
 

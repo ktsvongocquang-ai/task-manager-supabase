@@ -145,39 +145,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   'Thấp': 'bg-slate-50 text-slate-500 border-slate-100',
   'Từ từ': 'bg-slate-50 text-slate-500 border-slate-100'
 };
-const PROJECTS_TIMELINE = [
-  {
-    id: 'PRJ-001',
-    name: 'Infiniti 2PN',
-    status: 'Đang thi công',
-    progress: 45,
-    phases: [
-      { name: 'Thiết kế', start: '2026-03-01', end: '2026-03-10', color: 'bg-blue-500' },
-      { name: 'Thi công thô', start: '2026-03-11', end: '2026-03-20', color: 'bg-orange-500' },
-      { name: 'Lắp nội thất', start: '2026-03-21', end: '2026-03-28', color: 'bg-purple-500' },
-      { name: 'Bàn giao', start: '2026-03-29', end: '2026-03-30', color: 'bg-green-500' }
-    ],
-    videos: [
-      { date: '2026-03-15', title: 'Quay thi công thô', status: 'SHOOTING' },
-      { date: '2026-03-25', title: 'Quay lắp nội thất', status: 'PROPOSED' }
-    ]
-  },
-  {
-    id: 'PRJ-002',
-    name: 'Landmark 3PN',
-    status: 'Thiết kế',
-    progress: 15,
-    phases: [
-      { name: 'Thiết kế', start: '2026-03-10', end: '2026-03-20', color: 'bg-blue-500' },
-      { name: 'Thi công thô', start: '2026-03-21', end: '2026-03-30', color: 'bg-orange-500' },
-      { name: 'Lắp nội thất', start: '2026-04-01', end: '2026-04-10', color: 'bg-purple-500' },
-      { name: 'Bàn giao', start: '2026-04-11', end: '2026-04-12', color: 'bg-green-500' }
-    ],
-    videos: [
-      { date: '2026-03-16', title: 'Chốt layout thiết kế', status: 'PROPOSED' }
-    ]
-  }
-];
 
 const platformData = [
   { name: 'Facebook', value: 8, color: '#4ade80' },
