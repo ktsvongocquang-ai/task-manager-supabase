@@ -880,14 +880,21 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Mục tiêu</div>
-                                        <input
-                                            type="text"
+                                        <select
                                             value={form.target || ''}
                                             onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0"
-                                            placeholder="Nhập mục tiêu..."
+                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
-                                        />
+                                        >
+                                            <option value="">Chọn mục tiêu...</option>
+                                            <option value="Hạng Mục đề xuất">Hạng Mục đề xuất</option>
+                                            <option value="Thiết kế">Thiết kế</option>
+                                            <option value="Thi công">Thi công</option>
+                                            <option value="Kiến thức">Kiến thức</option>
+                                            <option value="Vật liệu">Vật liệu</option>
+                                            <option value="Ánh sáng">Ánh sáng</option>
+                                            <option value="Furniture">Furniture</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -895,7 +902,27 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Details Textareas */}
                             <div className="pl-14 pr-4">
                                 <div className="mb-6 relative group/desc">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Nội dung chi tiết (Giải pháp DQH)</div>
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Hook chọn</div>
+                                    <textarea
+                                        value={form.notes}
+                                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[80px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                        placeholder="Nhập Hook..."
+                                    />
+                                </div>
+                                
+                                <div className="mb-6 relative group/desc">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Vấn đề</div>
+                                    <textarea
+                                        value={form.result_links}
+                                        onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[100px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                        placeholder="Nhập Vấn đề..."
+                                    />
+                                </div>
+
+                                <div className="mb-6 relative group/desc">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Giải pháp</div>
                                     <textarea
                                         value={form.description}
                                         onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -920,29 +947,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </button>
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="relative group/notes">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Hashtag</div>
-                                        <textarea
-                                            value={form.notes}
-                                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-indigo-600 min-h-[40px] resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="#Hashtag..."
-                                        />
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ghi chú</div>
-                                        <textarea
-                                            value={form.result_links}
-                                            onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[40px] resize-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Ghi chú..."
-                                        />
-                                    </div>
-                                </div>
                             </div>
-
 
                             <hr className="border-t border-slate-100 my-6" />
 
