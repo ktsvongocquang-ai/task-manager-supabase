@@ -710,7 +710,9 @@ const MarketingApp = () => {
           </div>
         )}
       </div>
+      {/* End Header */}
 
+      {/* Main Content Area */}
       {view === 'KANBAN' ? (
         <>
            {/* Desktop Kanban Board */}
@@ -1598,6 +1600,7 @@ const MarketingApp = () => {
               </div>
             </div>
           </div>
+        </div>
       ) : view === 'TIMELINE' ? (
         <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative">
           <ProjectGanttBoard />
