@@ -1594,7 +1594,8 @@ const MarketingApp = () => {
                          </tr>
                        )}
                      </React.Fragment>
-                   ))
+                   );
+                 })
                  )}
                </tbody>
              </table>
