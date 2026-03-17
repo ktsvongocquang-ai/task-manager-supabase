@@ -18,6 +18,11 @@ import {
   ChevronRight,
   List,
   ExternalLink,
+  Camera,
+  Play,
+  Save,
+  CheckCircle2,
+  Trash2
   ShieldAlert,
   ChevronUp,
   MoreVertical,
@@ -361,10 +366,27 @@ const MarketingApp = () => {
       
       let allTasks: Task[] = [];
       if (projectsData && projectsData.length > 0) {
-        setProjects(projectsData);
-        const { data: tasksData, error: taskErr } = await supabase.from('marketing_tasks').select('*').in('project_id', projectsData.map((p: any) => p.id)).is('parent_id', null);
+        const projectIds = projectsData.map((p: any) => p.id);
+        const [
+          { data: tasksData, error: taskErr },
+          { data: milestonesData },
+          { data: logsData }
+        ] = await Promise.all([
+          supabase.from('marketing_tasks').select('*').in('project_id', projectIds).is('parent_id', null),
+          supabase.from('marketing_shooting_milestones').select('*').in('project_id', projectIds),
+          supabase.from('marketing_daily_logs').select('*').in('project_id', projectIds).order('log_date', { ascending: false })
+        ]);
+        
         if (taskErr) console.error("Error fetching tasks", taskErr);
         if (tasksData) allTasks = tasksData as Task[];
+
+        const combinedProjects = projectsData.map((p: any) => ({
+            ...p,
+            marketing_shooting_milestones: milestonesData?.filter((m: any) => m.project_id === p.id) || [],
+            marketing_daily_logs: logsData?.filter((l: any) => l.project_id === p.id) || []
+        })) as Project[];
+        
+        setProjects(combinedProjects);
       } else {
         setProjects([]);
       }
@@ -1278,6 +1300,7 @@ const MarketingApp = () => {
                        <div className="flex items-center gap-1.5"><ListTodo className="w-3.5 h-3.5" /> Trạng thái cập nhật</div>
                    </th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[280px]">Tiến độ & Nhật ký</th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
@@ -1287,15 +1310,42 @@ const MarketingApp = () => {
                <tbody className="divide-y divide-slate-200">
                  {projects.length === 0 ? (
                    <tr>
-                     <td colSpan={8} className="px-4 py-12 text-center text-slate-400 bg-white">
+                     <td colSpan={9} className="px-4 py-12 text-center text-slate-400 bg-white">
                         Chưa có dự án Marketing nào.
                      </td>
                    </tr>
                  ) : (
-                   projects.map((proj) => (
-                     <React.Fragment key={proj.id}>
-                       <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
-                         <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
+                   projects.map((proj: any) => {
+                     // Parse progress data
+                     let phaseStr = '';
+                     if (proj.actual_start_date) {
+                        const start = parseISO(proj.actual_start_date);
+                        const today = new Date();
+                        const daysPassed = differenceInDays(today, start);
+                        if (daysPassed < 0) {
+                            phaseStr = 'Sắp bắt đầu';
+                        } else {
+                            let current = 0;
+                            if (daysPassed < (current += (proj.design_days || 0))) phaseStr = 'GĐ: Thiết kế';
+                            else if (daysPassed < (current += (proj.rough_construction_days || 0))) phaseStr = 'GĐ: Thi công thô';
+                            else if (daysPassed < (current += (proj.finishing_days || 0))) phaseStr = 'GĐ: Hoàn thiện';
+                            else if (daysPassed < (current += (proj.interior_days || 0))) phaseStr = 'GĐ: Nội thất';
+                            else phaseStr = 'Đã bàn giao';
+                        }
+                     }
+                     
+                     // Get latest log
+                     const logs = proj.marketing_daily_logs || [];
+                     const latestLog = logs.length > 0 ? logs[0] : null;
+
+                     // Get upcoming milestone
+                     const milestones = proj.marketing_shooting_milestones || [];
+                     const upcomingMilestone = milestones.find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
+
+                     return (
+                       <React.Fragment key={proj.id}>
+                         <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
+                           <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
                              {expandedProjects.has(proj.id) ? (
                                 <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                              ) : (
@@ -1333,6 +1383,43 @@ const MarketingApp = () => {
                                  renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
                              />
                          </td>
+                         
+                         {/* TIẾN ĐỘ & NHẬT KÝ COLUMN */}
+                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                             <div className="flex flex-col gap-2 relative">
+                                {/* Phase and Link to Kanban logic wrapper */}
+                                <div className="flex items-center gap-2">
+                                     {phaseStr ? (
+                                         <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{phaseStr}</span>
+                                     ) : (
+                                         <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded">Chưa setup</span>
+                                     )}
+                                     {upcomingMilestone && (
+                                         <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold" title={upcomingMilestone.content}>
+                                             <Video size={10} />
+                                             {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                                         </div>
+                                     )}
+                                </div>
+                                {/* Latest Log Snippet */}
+                                {latestLog ? (
+                                    <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100/50">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-bold text-gray-400 text-[9px]">{format(parseISO(latestLog.log_date), 'dd/MM')}</span>
+                                            {latestLog.media_link && (
+                                                <a href={latestLog.media_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500 font-bold hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm transition-colors" title="Xem tư liệu đính kèm">
+                                                    <Camera size={10} /> Tư liệu
+                                                </a>
+                                            )}
+                                        </div>
+                                        <div className="line-clamp-2 leading-relaxed" title={latestLog.content}>{latestLog.content}</div>
+                                    </div>
+                                ) : (
+                                    <div className="text-[11px] text-gray-400 italic">Chưa có nhật ký</div>
+                                )}
+                             </div>
+                         </td>
+
                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
                              {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
                          </td>
@@ -1355,7 +1442,7 @@ const MarketingApp = () => {
                        {/* Expanded Tasks Row */}
                        {expandedProjects.has(proj.id) && (
                          <tr>
-                           <td colSpan={9} className="p-0 border border-slate-200 bg-slate-50 shadow-inner">
+                           <td colSpan={10} className="p-0 border border-slate-200 bg-slate-50 shadow-inner">
                              <div className="p-4 pl-12">
                                <div className="bg-white border text-center border-slate-200 rounded-lg shadow-sm overflow-hidden">
                                  {videos.filter(v => v.project_id === proj.id).length === 0 ? (
