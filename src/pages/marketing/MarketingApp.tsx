@@ -567,13 +567,13 @@ const MarketingApp = () => {
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2">
         {/* Top Header Row */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full min-h-[64px] min-w-0">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-4">
             <h1 className="text-xl font-bold text-slate-800 hidden md:block">Marketing Workflow</h1>
             <p className="text-sm text-gray-500 mt-1 truncate">Quy trình phối hợp DQH & Team Coach Hiếu</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar min-w-0">
             {/* Mobile Dropdown View Selector */}
-            <div className="md:hidden w-full relative">
+            <div className="md:hidden w-full relative shrink-0">
               <select 
                 value={view}
                 onChange={(e) => handleViewChange(e.target.value as any)}
