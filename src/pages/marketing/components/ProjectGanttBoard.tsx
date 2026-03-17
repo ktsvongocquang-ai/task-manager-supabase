@@ -339,7 +339,6 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                 }}
                             >
                                 <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
-                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
                                 <div className="flex flex-wrap items-center gap-2 mt-1">
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70">
                                         {project.status}
