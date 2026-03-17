@@ -121,6 +121,18 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         }
     };
 
+    const handleDeleteProject = async (id: string, name: string) => {
+        if (!confirm(`Bạn có chắc chắn muốn xóa dự án "${name}"? Thao tác này không thể hoàn tác.`)) return;
+        try {
+            const { error } = await supabase.from('marketing_projects').delete().eq('id', id);
+            if (error) throw error;
+            setProjects(prev => prev.filter(p => p.id !== id));
+        } catch (e: any) {
+            console.error(e);
+            alert(`Lỗi khi xóa dự án: ${e.message}`);
+        }
+    };
+
     // Get a 3-month window around the current date to render
     const startDate = startOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     const endDate = endOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0));
