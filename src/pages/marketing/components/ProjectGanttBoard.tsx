@@ -50,8 +50,11 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
             } else {
                 setProjects([]);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error fetching construction data:", err);
+            if (err.message?.includes('actual_start_date') || err.code === '42703') {
+                alert("Thiếu cột trong database! Vui lòng chạy SQL script để bổ sung các cột tiến độ cho marketing_projects.");
+            }
         }
     };
 
@@ -59,18 +62,31 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         fetchConstructionData();
     }, []);
 
-    const generateNextProjectCode = () => {
-        let maxId = 0;
-        projects.forEach(p => {
-            if (p.project_code) {
-                const match = p.project_code.match(/^DA(\d+)$/i);
-                if (match) {
-                    const num = parseInt(match[1], 10);
-                    if (num > maxId) maxId = num;
-                }
+    const generateNextProjectCode = async () => {
+        try {
+            // Fetch all projects to find the true max ID
+            const { data } = await supabase
+                .from('marketing_projects')
+                .select('project_code')
+                .order('project_code', { ascending: false });
+            
+            let maxId = 0;
+            if (data) {
+                data.forEach(p => {
+                    if (p.project_code) {
+                        const match = p.project_code.match(/^DA(\d+)$/i);
+                        if (match) {
+                            const num = parseInt(match[1], 10);
+                            if (num > maxId) maxId = num;
+                        }
+                    }
+                });
             }
-        });
-        return `DA${String(maxId + 1).padStart(3, '0')}`;
+            return `DA${String(maxId + 1).padStart(3, '0')}`;
+        } catch (e) {
+            console.error("Error generating code", e);
+            return `DA${Math.floor(Math.random() * 900) + 100}`; // Fallback
+        }
     };
 
     const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -78,11 +94,12 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         if (!newProjectName.trim()) return;
         setIsCreating(true);
         try {
+            const nextCode = await generateNextProjectCode();
             const { data, error } = await supabase
                 .from('marketing_projects')
                 .insert({
                     name: newProjectName,
-                    project_code: generateNextProjectCode(),
+                    project_code: nextCode,
                     status: 'Chưa bắt đầu',
                     start_date: new Date().toISOString().split('T')[0],
                     end_date: new Date().toISOString().split('T')[0]
@@ -96,9 +113,9 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                 setNewProjectName('');
                 setIsTimelineModalOpen(true);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            alert("Lỗi tạo dự án");
+            alert(`Lỗi tạo dự án: ${error.message || 'Lỗi không xác định'}. \n\nLưu ý: Bạn có thể cần chạy script bổ sung cột cho marketing_projects.`);
         } finally {
             setIsCreating(false);
         }

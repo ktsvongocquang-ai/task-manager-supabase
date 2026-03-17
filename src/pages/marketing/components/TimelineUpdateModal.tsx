@@ -90,7 +90,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         setIsLoading(true);
         try {
             const { error } = await supabase
-                .from('projects')
+                .from('marketing_projects')
                 .update({
                     actual_start_date: form.actual_start_date || null,
                     design_days: Number(form.design_days),
