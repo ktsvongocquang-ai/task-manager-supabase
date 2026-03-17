@@ -27,7 +27,7 @@ import {
   Clock
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
-// Removed recharts import since it is not used in this file
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useSearchParams } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
 // Removed SmartCard import as it is unused
@@ -179,6 +179,179 @@ const PROJECTS_TIMELINE = [
     ]
   }
 ];
+
+const platformData = [
+  { name: 'Facebook', value: 8, color: '#4ade80' },
+  { name: 'Tiktok', value: 23, color: '#fbbf24' },
+  { name: 'Instagram', value: 3, color: '#f87171' },
+  { name: 'Website', value: 12, color: '#f472b6' },
+  { name: 'Youtube', value: 6, color: '#c084fc' },
+  { name: 'Email', value: 5, color: '#fb923c' },
+  { name: 'Shopee', value: 2, color: '#ef4444' },
+  { name: 'Lazada', value: 0, color: '#d1d5db' },
+  { name: 'Tiki', value: 0, color: '#d1d5db' },
+  { name: 'Zalo', value: 0, color: '#d1d5db' },
+];
+
+const MarketingDashboard = () => {
+  const [timeFilter, setTimeFilter] = useState('Tất cả');
+  const [statusFilter, setStatusFilter] = useState('Tất cả');
+  const [formatFilter, setFormatFilter] = useState('Tất cả');
+
+  // Tạo mock data thay đổi khi lọc để cảm nhận UI động
+  const currentData = React.useMemo(() => {
+    let multiplier = 1;
+    if (timeFilter === 'Theo Tuần') multiplier = 0.3;
+    if (timeFilter === 'Theo Tháng') multiplier = 1.2;
+    if (timeFilter === 'Theo Quý') multiplier = 3.5;
+    if (timeFilter === 'Theo Năm') multiplier = 12.0;
+
+    let basePosts = 6 * multiplier;
+    if (statusFilter !== 'Tất cả') basePosts *= 0.5;
+    if (formatFilter !== 'Tất cả') basePosts *= 0.7;
+
+    return {
+      platforms: platformData.map(p => ({ ...p, value: Math.max(0, Math.floor(p.value * multiplier + (Math.random() * 5 - 2))) })),
+      posts: Math.max(1, Math.floor(basePosts)),
+      views: Math.floor(23000 * multiplier),
+      interactions: Math.floor(1848 * multiplier),
+      shares: Math.floor(360 * multiplier),
+      saves: Math.floor(430 * multiplier)
+    };
+  }, [timeFilter, statusFilter, formatFilter]);
+
+  return (
+    <div className="w-full mb-8">
+      {/* Filters header */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+        <div className="flex items-center bg-white rounded-lg p-1 shadow-sm border border-slate-200">
+          {['Tất cả', 'Theo Tuần', 'Theo Tháng', 'Theo Quý', 'Theo Năm'].map(t => (
+            <button 
+              key={t}
+              onClick={() => setTimeFilter(t)}
+              className={`px-4 py-1.5 text-sm ${timeFilter === t ? 'font-bold bg-white text-slate-800 rounded-md shadow-sm' : 'font-medium text-slate-500 hover:text-slate-700'}`}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-20">
+             <InlineDropdown
+               value={statusFilter}
+               options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
+               onChange={(val) => setStatusFilter(val)}
+               placeholder="Trạng thái"
+               renderValue={(val) => <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium">Trạng thái:</span> <span className="truncate max-w-[80px]">{val}</span></span>}
+             />
+          </div>
+          <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-10">
+             <InlineDropdown
+               value={formatFilter}
+               options={['Tất cả', 'Video ngắn', 'Video dài', 'Bài viết mạng xã hội', 'Hình ảnh/Album']}
+               onChange={(val) => setFormatFilter(val)}
+               placeholder="Định dạng"
+               renderValue={(val) => <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium">Định dạng:</span> <span className="truncate max-w-[80px]">{val}</span></span>}
+             />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart Section */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+          <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest text-center mb-6">SỐ LƯỢNG CONTENT MỖI NỀN TẢNG</h3>
+          <div className="flex-1 min-h-[250px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={currentData.platforms} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={32}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={true} 
+                  tickLine={false} 
+                  tick={{ fontSize: 10, fill: '#64748b' }} 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {currentData.platforms.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Metrics Section */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-6 w-full">
+             <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">HIỆU QUẢ CONTENT</h3>
+             <div className="text-right">
+               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TỔNG BÀI VIẾT</p>
+               <p className="text-2xl font-black text-slate-800 leading-none">{currentData.posts}</p>
+             </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+            {/* Views */}
+            <div className="border border-indigo-50/60 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT XEM</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.views.toLocaleString('vi-VN')}</p>
+              </div>
+            </div>
+
+            {/* Interactions */}
+            <div className="border border-indigo-50/60 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm hover:shadow-md transition-shadow">
+               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                <Target size={22} strokeWidth={2.5} />
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT TƯƠNG TÁC</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.interactions.toLocaleString('vi-VN')}</p>
+              </div>
+            </div>
+
+            {/* Shares */}
+            <div className="border border-indigo-50/60 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm hover:shadow-md transition-shadow">
+               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT CHIA SẺ</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.shares.toLocaleString('vi-VN')}</p>
+              </div>
+            </div>
+
+            {/* Saves */}
+            <div className="border border-indigo-50/60 bg-white rounded-2xl p-4 sm:p-5 flex items-center gap-4 sm:gap-5 shadow-sm hover:shadow-md transition-shadow">
+               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT LƯU LẠI</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.saves.toLocaleString('vi-VN')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function MarketingApp() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1558,8 +1731,8 @@ export default function MarketingApp() {
         </div>
       ) : view === 'WORKFLOW' ? (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
-          <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-            
+          <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
+            <MarketingDashboard />
             {/* PROFILE HEADER & PERMISSIONS SECTION */}
             {profile && (
               <>
