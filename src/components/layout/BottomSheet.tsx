@@ -25,7 +25,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
   if (!isRendered) return null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex flex-col justify-end transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`fixed inset-0 z-[100] flex flex-col justify-center items-center p-4 sm:p-6 transition-all duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
       
       {/* Blurred Backdrop */}
       <div 
@@ -35,15 +35,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
 
       {/* Sheet Content */}
       <div 
-        className={`bg-white w-full max-w-2xl mx-auto rounded-t-3xl shadow-2xl flex flex-col max-h-[90vh] transition-transform duration-300 ease-out transform ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`bg-white w-full max-w-2xl mx-auto rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transition-all duration-300 ease-out transform ${isOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
       >
-        {/* Handle Bar */}
-        <div className="w-full flex justify-center pt-3 pb-1" onClick={onClose}>
-            <div className="w-12 h-1.5 bg-slate-200 rounded-full cursor-pointer"></div>
-        </div>
 
         {/* Header */}
-        <div className="px-6 pb-4 pt-2 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
           <h3 className="text-xl font-bold text-slate-800">{title}</h3>
           <button 
             onClick={onClose}
@@ -54,7 +50,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
         </div>
 
         {/* Body Content */}
-        <div className="overflow-y-auto px-6 py-4 pb-12 hide-scrollbar">
+        <div className="overflow-y-auto px-6 py-6 custom-scrollbar">
           {children}
         </div>
       </div>

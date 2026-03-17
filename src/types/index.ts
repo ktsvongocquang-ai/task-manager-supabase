@@ -34,6 +34,7 @@ export interface Project {
     customer_problem?: string | null
     dqh_solution?: string | null
     other_info?: string | null
+    content_link?: string | null
 }
 
 export interface Task {

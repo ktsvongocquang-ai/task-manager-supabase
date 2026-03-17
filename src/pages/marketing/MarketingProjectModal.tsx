@@ -20,7 +20,8 @@ const UPDATE_STATUSES = [
 ];
 
 const EFFECT_TYPES = [
-    'Bê tông', 'Đất nện', 'Stucco', 'Đá khối', 'Sơn ánh kim', 'Dát vàng'
+    'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Wabi Sabi', 'Modern', 'Neo Classic', 'Indochine', 'Classic'
+    // or whatever standard styles
 ];
 
 export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
@@ -51,7 +52,8 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
         can_shoot_video: 'Có thể',
         customer_problem: '',
         dqh_solution: '',
-        other_info: ''
+        other_info: '',
+        content_link: ''
     });
 
     useEffect(() => {
@@ -77,7 +79,8 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                     can_shoot_video: editingProject.can_shoot_video || 'Có thể',
                     customer_problem: editingProject.customer_problem || '',
                     dqh_solution: editingProject.dqh_solution || '',
-                    other_info: editingProject.other_info || ''
+                    other_info: editingProject.other_info || '',
+                    content_link: editingProject.content_link || ''
                 });
             } else {
                 setForm({
@@ -100,7 +103,8 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                     can_shoot_video: 'Có thể',
                     customer_problem: '',
                     dqh_solution: '',
-                    other_info: ''
+                    other_info: '',
+                    content_link: ''
                 });
             }
         }
@@ -263,7 +267,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-3">Kiểu hiệu ứng (Có thể chọn nhiều)</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-3">Phong cách (Có thể chọn nhiều)</label>
                             <div className="flex flex-wrap gap-3">
                                 {EFFECT_TYPES.map(effect => (
                                     <label key={effect} className={`flex items-center gap-2.5 cursor-pointer border px-4 py-2 rounded-xl transition-all ${isEffectSelected(effect) ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50'}`}>
@@ -283,13 +287,13 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mô tả kiểu hiệu ứng</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Điểm nhấn</label>
                             <input
                                 type="text"
                                 value={form.effect_description || ''}
                                 onChange={(e) => setForm({ ...form, effect_description: e.target.value })}
                                 className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
-                                placeholder="VD: Bê tông đánh dao màu xanh Sage..."
+                                placeholder="VD: Điểm nhấn không gian xanh, vật liệu mộc..."
                             />
                         </div>
                         
@@ -306,14 +310,14 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Vấn đề công trình / khách hàng gặp phải</label>
-                            <p className="text-xs text-slate-500 mb-2">Những khó khăn, mong muốn được giải quyết của khách hàng</p>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nội dung khai thác</label>
+                            <p className="text-xs text-slate-500 mb-2">Chủ đề muốn tập trung khai thác trong bài viết/video</p>
                             <textarea
                                 value={form.customer_problem || ''}
                                 onChange={(e) => setForm({ ...form, customer_problem: e.target.value })}
                                 rows={3}
                                 className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
-                                placeholder="Nhập vấn đề..."
+                                placeholder="Nhập nội dung khai thác..."
                             />
                         </div>
 
@@ -341,8 +345,20 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                             />
                         </div>
                         
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Thông tin khác (nếu có)</label>
+                        <div className="pt-4 border-t border-slate-100">
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brief / Doc Nội dung</label>
+                            <p className="text-xs text-slate-500 mb-2">Đường link tới tài liệu nội dung, kịch bản hoặc brief của dự án</p>
+                            <input
+                                type="url"
+                                value={form.content_link || ''}
+                                onChange={(e) => setForm({ ...form, content_link: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                placeholder="https://docs.google.com/..."
+                            />
+                        </div>
+                        
+                        <div className="pt-4 border-t border-slate-100">
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ghi chú</label>
                             <textarea
                                 value={form.other_info || ''}
                                 onChange={(e) => setForm({ ...form, other_info: e.target.value })}
