@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, DollarSign, MessageSquare, ListPlus, Send, CheckCircle2 } from 'lucide-react';
+import { FileText, DollarSign, MessageSquare, ListPlus, Send, CheckCircle2, Calendar } from 'lucide-react';
 import { BottomSheet } from '../../../components/layout/BottomSheet';
+import { TimelineUpdateModal } from '../../marketing/components/TimelineUpdateModal';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
   });
 
   const [newLog, setNewLog] = useState('');
+  const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -76,7 +78,21 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
   };
 
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={initialData ? 'Chi tiết Dự án' : 'Thêm Dự án mới'}>
+    <BottomSheet isOpen={isOpen} onClose={onClose} title={
+      <div className="flex items-center gap-4">
+        <span>{initialData ? 'Chi tiết Dự án' : 'Thêm Dự án mới'}</span>
+        {initialData && (
+          <button 
+            type="button"
+            onClick={() => setIsTimelineModalOpen(true)}
+            className="flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm font-bold transition-colors border border-indigo-100"
+          >
+            <Calendar size={16} />
+            Tiến độ & Mốc quay
+          </button>
+        )}
+      </div>
+    }>
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white shrink-0 h-full max-h-full">
         <form id="project-form" onSubmit={handleSubmit} className="space-y-8 pb-24">
             
@@ -216,6 +232,18 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
           Lưu Dự án
         </button>
       </div>
+      {initialData && (
+        <TimelineUpdateModal 
+          isOpen={isTimelineModalOpen}
+          onClose={() => setIsTimelineModalOpen(false)}
+          project={initialData}
+          onSaved={() => {
+            setIsTimelineModalOpen(false);
+            // Optionally, we could trigger a refetch of the project here if needed,
+            // but closing the modal is usually enough to see the updated Gantt if they close ProjectModal too.
+          }}
+        />
+      )}
     </BottomSheet>
   );
 }

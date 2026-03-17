@@ -12,7 +12,6 @@ import {
   AlertCircle,
   LayoutTemplate,
   Target,
-  GanttChartSquare,
   X,
   Archive,
   ChevronDown,
@@ -37,7 +36,7 @@ import { supabase } from '../../services/supabase';
 import type { Project, Task } from '../../types';
 import { MarketingProjectModal } from './MarketingProjectModal';
 import { MarketingTaskModal } from './MarketingTaskModal';
-// import MarketingGantt from './MarketingGantt';
+import { ProjectGanttBoard } from './components/ProjectGanttBoard';
 
 // Mock Data based on the Google Doc workflow
 // @ts-ignore
@@ -576,8 +575,6 @@ export default function MarketingApp() {
   const updateVideo = (id: string, updates: Partial<typeof videos[0]>) => {
     setVideos(videos.map(v => v.id === id ? { ...v, ...updates } : v));
   };
-
-  const daysInMonth = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
     <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0">
@@ -1636,99 +1633,7 @@ export default function MarketingApp() {
           </div>
         </div>
       ) : view === 'TIMELINE' ? (
-        <div className="flex-1 overflow-x-auto overflow-y-auto p-6 bg-white">
-          <div className="min-w-[1000px] max-w-7xl mx-auto">
-            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <GanttChartSquare className="w-5 h-5 text-indigo-600" />
-                  Tiến độ thi công & Lịch quay
-                </h2>
-                <p className="text-sm text-gray-500 mt-1 lg:mt-0">Theo dõi tiến độ thực tế của các công trình để lên lịch quay video phù hợp.</p>
-              </div>
-              <button 
-                onClick={() => setIsProjectModalOpen(true)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200 shrink-0 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 shrink-0" />
-                Tạo Dự Án
-              </button>
-            </div>
-
-            {/* Header Days */}
-            <div className="flex border-b border-gray-200 pb-2 mb-4 sticky top-0 bg-white z-30">
-              <div className="w-64 flex-shrink-0 font-bold text-gray-700 text-sm">Dự án (Tháng 3/2026)</div>
-              <div className="flex-1 flex">
-                {daysInMonth.map(day => (
-                  <div key={day} className="flex-1 text-center text-[10px] font-medium text-gray-400">
-                    {day}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Projects */}
-            <div className="space-y-8">
-              {PROJECTS_TIMELINE.map(project => (
-                <div key={project.id} className="flex items-center group">
-                  <div className="w-64 flex-shrink-0 pr-4">
-                    <h3 className="font-bold text-gray-900 text-sm">{project.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] font-medium px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">{project.status}</span>
-                      <span className="text-[10px] text-gray-500">{project.progress}%</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 relative h-16 bg-gray-50 rounded-xl border border-gray-100 group-hover:bg-gray-100/50 transition-colors">
-                    {/* Grid lines */}
-                    <div className="absolute inset-0 flex">
-                      {daysInMonth.map(day => (
-                        <div key={day} className="flex-1 border-r border-gray-100/50 h-full" />
-                      ))}
-                    </div>
-
-                    {/* Render phases */}
-                    {project.phases.map(phase => {
-                       const startDay = parseInt(phase.start.split('-')[2]);
-                       const endDay = parseInt(phase.end.split('-')[2]);
-                       const left = ((startDay - 1) / 31) * 100;
-                       const width = ((endDay - startDay + 1) / 31) * 100;
-                       return (
-                         <div 
-                           key={phase.name}
-                           className={`absolute top-2 bottom-2 rounded-lg ${phase.color} opacity-90 flex items-center justify-center overflow-hidden shadow-sm`}
-                           style={{ left: `${left}%`, width: `${width}%` }}
-                           title={`${phase.name}: ${phase.start} - ${phase.end}`}
-                         >
-                           <span className="text-[10px] text-white font-bold truncate px-2 drop-shadow-sm">{phase.name}</span>
-                         </div>
-                       )
-                    })}
-                    
-                    {/* Render video milestones dynamically from videos array */}
-                    {videos
-                      .filter(v => v.project === project.name && v.dueDate && v.status !== 'REJECTED')
-                      .map((video, idx) => {
-                         const dateObj = new Date(video.dueDate);
-                         const isMarch2026 = dateObj.getFullYear() === 2026 && dateObj.getMonth() === 2; // Check if it's March 2026
-                         if (!isMarch2026) return null;
-                         
-                         const day = dateObj.getDate();
-                         const left = ((day - 1) / 31) * 100;
-                         return (
-                           <div
-                             key={video.id || idx}
-                             className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-indigo-500 border-2 border-white shadow-sm z-10 cursor-pointer hover:scale-125 transition-transform"
-                             style={{ left: `${left}%` }}
-                             title={`Video: ${video.title} - ${video.status}`}
-                           />
-                         );
-                      })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ProjectGanttBoard />
       ) : view === 'WORKFLOW' ? (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">

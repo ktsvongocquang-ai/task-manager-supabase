@@ -37,7 +37,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'IDEA', priority: 'Trung bình', start_date: '', due_date: '',
-        result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: ''
+        result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: '',
+        views: '', interactions: '', shares: '', saves: ''
     });
 
     const [phases, setPhases] = useState<Task[]>([]);
@@ -173,23 +174,27 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             if (editingTask) {
                 const today = new Date().toISOString().split('T')[0];
                 setForm({
-                    task_code: editingTask.task_code || initialData?.task_code || '', 
-                    project_id: editingTask.project_id || initialData?.project_id || '', 
-                    name: editingTask.name || '', 
+                    task_code: editingTask.task_code || initialData?.task_code || '',
+                    project_id: editingTask.project_id || initialData?.project_id || '',
+                    name: editingTask.name || '',
                     description: editingTask.description || '',
-                    assignee_id: editingTask.assignee_id || currentUserProfile?.id || '', 
-                    supporter_id: editingTask.supporter_id || '', 
-                    status: editingTask.status || 'IDEA', 
+                    assignee_id: editingTask.assignee_id || currentUserProfile?.id || '',
+                    supporter_id: editingTask.supporter_id || '',
+                    status: editingTask.status || 'IDEA',
                     priority: editingTask.priority || 'Trung bình',
-                    start_date: editingTask.start_date || today, 
-                    due_date: editingTask.due_date || today, 
-                    result_links: editingTask.result_links || '', 
+                    start_date: editingTask.start_date || today,
+                    due_date: editingTask.due_date || today,
+                    result_links: editingTask.result_links || '',
                     notes: editingTask.notes || '',
                     parent_id: editingTask.parent_id || '',
                     format: editingTask.format || '',
                     platform: editingTask.platform || '',
                     category: editingTask.category || '',
-                    target: editingTask.target || ''
+                    target: editingTask.target || '',
+                    views: editingTask.views?.toString() || '',
+                    interactions: editingTask.interactions?.toString() || '',
+                    shares: editingTask.shares?.toString() || '',
+                    saves: editingTask.saves?.toString() || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -233,7 +238,11 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     format: '',
                     platform: '',
                     category: '',
-                    target: ''
+                    target: '',
+                    views: '',
+                    interactions: '',
+                    shares: '',
+                    saves: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -316,7 +325,11 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 category: form.category || null,
                 format: form.format || null,
                 platform: form.platform || null,
-                target: form.target || null
+                target: form.target || null,
+                views: form.views || null,
+                interactions: form.interactions || null,
+                shares: form.shares || null,
+                saves: form.saves || null
             }
 
             let result;
@@ -684,17 +697,28 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </h2>
                                 )}
                             </div>
-                            {editingTask && form.task_code && (
-                                <div className="mt-1 ml-14 flex items-center">
+                            <div className="mt-1 ml-14 flex items-center gap-4">
                                     <input
                                         type="text"
                                         value={form.task_code}
                                         onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-48 sm:w-64 transition-colors"
+                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-32 sm:w-48 transition-colors"
                                         placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                     />
+                                    <select
+                                        value={form.priority}
+                                        onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                                        className={`bg-transparent border border-slate-200 rounded-md text-xs font-bold focus:ring-1 focus:ring-slate-300 outline-none cursor-pointer px-2 py-0.5 shadow-sm ${form.priority === 'Khẩn cấp' ? 'text-red-600 bg-red-50 border-red-200' :
+                                            form.priority === 'Cao' ? 'text-orange-600 bg-orange-50 border-orange-200' :
+                                                form.priority === 'Trung bình' ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-slate-600 bg-slate-50 border-slate-200'
+                                            }`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="Thấp">Thấp</option>
+                                        <option value="Trung bình">Trung bình</option>
+                                        <option value="Cao">Cao</option>
+                                    </select>
                                 </div>
-                            )}
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -813,23 +837,6 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="Video dài">Video dài</option>
                                             <option value="Bài viết mạng xã hội">Bài viết mạng xã hội</option>
                                             <option value="Hình ảnh/Album">Hình ảnh/Album</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Ưu tiên</div>
-                                        <select
-                                            value={form.priority}
-                                            onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                            className={`w-full bg-transparent border-none text-sm font-medium focus:ring-0 cursor-pointer p-0 ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
-                                                form.priority === 'Cao' ? 'text-orange-600' :
-                                                    form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
-                                                }`}
-                                            disabled={shouldDisableTopFields()}
-                                        >
-                                            <option value="Thấp">Thấp</option>
-                                            <option value="Trung bình">Trung bình</option>
-                                            <option value="Cao">Cao</option>
-                                            <option value="Khẩn cấp">Khẩn cấp</option>
                                         </select>
                                     </div>
                                 </div>
