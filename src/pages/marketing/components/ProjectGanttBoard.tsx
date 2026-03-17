@@ -23,7 +23,6 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                         actual_start_date, design_days, rough_construction_days, finishing_days, interior_days, handover_date
                     `)
                     .not('status', 'in', '("Hoàn thành", "Hủy bỏ")')
-                    .not('actual_start_date', 'is', null) // Only fetch projects that have started
                     .order('created_at', { ascending: false });
 
                 if (projErr) throw projErr;
@@ -178,7 +177,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const activeProjects = projects.filter((p: Project) => p.status !== 'Hoàn thành' && p.status !== 'Hủy bỏ');
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)] overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 overflow-hidden">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <div>
@@ -260,8 +259,10 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             monthSpan++;
                                         } else {
                                             months.push(
-                                                <div key={`${currentMonthStr}-${i}`} className="border-r border-gray-100 flex items-center px-4 font-bold text-xs text-gray-600 truncate bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
-                                                    Tháng {currentMonthStr}
+                                                <div key={`${currentMonthStr}-${i}`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
+                                                    <div className="sticky left-0 px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
+                                                        Tháng {currentMonthStr}
+                                                    </div>
                                                 </div>
                                             );
                                             currentMonthStr = monthStr;
@@ -270,8 +271,10 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
                                         if (i === daysInterval.length - 1) {
                                             months.push(
-                                                <div key={`${currentMonthStr}-${i}-last`} className="border-r border-gray-100 flex items-center px-4 font-bold text-xs text-gray-600 truncate bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
-                                                    Tháng {currentMonthStr}
+                                                <div key={`${currentMonthStr}-${i}-last`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
+                                                    <div className="sticky left-0 px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
+                                                        Tháng {currentMonthStr}
+                                                    </div>
                                                 </div>
                                             );
                                         }

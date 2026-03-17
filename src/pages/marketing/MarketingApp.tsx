@@ -319,7 +319,7 @@ const MarketingDashboard = () => {
   );
 };
 
-export default function MarketingApp() {
+const MarketingApp = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
   
@@ -1598,11 +1598,12 @@ export default function MarketingApp() {
               </div>
             </div>
           </div>
-        </div>
       ) : view === 'TIMELINE' ? (
-        <ProjectGanttBoard />
+        <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative">
+          <ProjectGanttBoard />
+        </div>
       ) : view === 'WORKFLOW' ? (
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 relative">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
             <MarketingDashboard />
             {/* PROFILE HEADER & PERMISSIONS SECTION */}
@@ -2057,4 +2058,6 @@ export default function MarketingApp() {
       />
     </div>
   );
-}
+};
+
+export default MarketingApp;
