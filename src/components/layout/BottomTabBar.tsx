@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Kanban, User, HardHat, HeartHandshake, LayoutTemplate, Folder, Calendar } from 'lucide-react';
+import { Home, Kanban, User, HardHat, HeartHandshake, Folder, Calendar } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 export const BottomTabBar = () => {
@@ -17,10 +17,6 @@ export const BottomTabBar = () => {
         if (role === 'Marketing') {
             return { name: 'Nội dung làm', path: '/marketing?tab=kanban', icon: Kanban };
         }
-        if (role === 'Thiết Kế') {
-            return { name: 'Ý tưởng', path: '/moodboard', icon: LayoutTemplate };
-        }
-        
         // Default to Tasks for normal employees/admins/managers
         return { name: 'Công việc', path: '/tasks', icon: Kanban };
     };

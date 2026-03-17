@@ -39,15 +39,7 @@ const PERMISSIONS = {
             sale: { value: true, note: '' },
             supervisor: { value: false, note: '' }
         },
-        {
-            name: 'Moodboard',
-            admin: { value: true, note: '' },
-            manager: { value: true, note: '' },
-            design: { value: true, note: '' },
-            marketing: { value: false, note: '' },
-            sale: { value: false, note: '' },
-            supervisor: { value: false, note: '' }
-        },
+
     ],
     'QUẢN LÝ DỰ ÁN': [
         {
