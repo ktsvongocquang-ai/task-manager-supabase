@@ -42,6 +42,7 @@ export interface Project {
     finishing_days?: number | null
     interior_days?: number | null
     handover_date?: string | null
+    supervisor_phone?: string | null
     
     // Virtual relations (if fetched together)
     shooting_milestones?: ShootingMilestone[]
