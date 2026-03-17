@@ -332,50 +332,61 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                         {activeProjects.map(project => (
                             <div 
                                 key={project.id} 
-                                className="h-20 border-b border-gray-50 px-6 flex flex-col justify-center hover:bg-indigo-50/30 transition-colors cursor-pointer group relative"
+                                className="h-20 border-b border-gray-50 pl-5 pr-3 flex items-center justify-between hover:bg-indigo-50/30 transition-colors cursor-pointer group"
                                 onClick={() => {
                                     setSelectedProject(project);
                                     setIsTimelineModalOpen(true);
                                 }}
                             >
-                                <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors pr-12">{project.name}</div>
-                                <div className="flex flex-wrap items-center gap-2 mt-1">
-                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70">
-                                        {project.status}
-                                    </span>
-                                    {project.project_code && (
-                                        <span className="text-[10px] text-gray-400 font-mono">{project.project_code}</span>
+                                <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
+                                    <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
+                                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70 whitespace-nowrap">
+                                            {project.status}
+                                        </span>
+                                        {project.project_code && (
+                                            <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">{project.project_code}</span>
+                                        )}
+                                        {project.project_type && (
+                                            <span className="text-[10px] font-bold text-indigo-500 whitespace-nowrap">{project.project_type}</span>
+                                        )}
+                                        {project.address && (
+                                            <span className="text-[10px] text-gray-500 italic truncate max-w-[120px]">{project.address}</span>
+                                        )}
+                                        {(() => {
+                                            if (!project.actual_start_date) return null;
+                                            const start = parseISO(project.actual_start_date);
+                                            const today = new Date();
+                                            const daysPassed = differenceInDays(today, start);
+                                            
+                                            if (daysPassed < 0) return <span className="text-[10px] text-orange-500 font-bold whitespace-nowrap">Sắp bắt đầu</span>;
+                                            
+                                            let current = 0;
+                                            if (daysPassed < (current += (project.design_days || 0))) 
+                                                return <span className="text-[10px] text-indigo-500 font-bold whitespace-nowrap">GĐ: Thiết kế</span>;
+                                            if (daysPassed < (current += (project.rough_construction_days || 0))) 
+                                                return <span className="text-[10px] text-orange-500 font-bold whitespace-nowrap">GĐ: Thi công thô</span>;
+                                            if (daysPassed < (current += (project.finishing_days || 0))) 
+                                                return <span className="text-[10px] text-green-500 font-bold whitespace-nowrap">GĐ: Hoàn thiện</span>;
+                                            if (daysPassed < (current += (project.interior_days || 0))) 
+                                                return <span className="text-[10px] text-teal-500 font-bold whitespace-nowrap">GĐ: Nội thất</span>;
+                                            
+                                            return <span className="text-[10px] text-gray-500 font-bold whitespace-nowrap">Đã quá hạn/Bàn giao</span>;
+                                        })()}
+                                    </div>
+                                    
+                                    {project.marketing_daily_logs && project.marketing_daily_logs.length > 0 && (
+                                        <div className="flex gap-1 mt-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                                            {project.marketing_daily_logs.slice(0, 5).map((log: DailyLog) => (
+                                                <div key={log.id} className="w-1.5 h-1.5 rounded-full bg-slate-400" title={`Nhật ký: ${format(parseISO(log.log_date), 'dd/MM/yyyy')}`}></div>
+                                            ))}
+                                            {project.marketing_daily_logs.length > 5 && <span className="text-[8px] text-gray-400">+{project.marketing_daily_logs.length - 5}</span>}
+                                        </div>
                                     )}
-                                    {project.project_type && (
-                                        <span className="text-[10px] font-bold text-indigo-500">{project.project_type}</span>
-                                    )}
-                                    {project.address && (
-                                        <span className="text-[10px] text-gray-500 italic truncate max-w-[150px]">{project.address}</span>
-                                    )}
-                                    {(() => {
-                                        if (!project.actual_start_date) return null;
-                                        const start = parseISO(project.actual_start_date);
-                                        const today = new Date();
-                                        const daysPassed = differenceInDays(today, start);
-                                        
-                                        if (daysPassed < 0) return <span className="text-[10px] text-orange-500 font-bold">Sắp bắt đầu</span>;
-                                        
-                                        let current = 0;
-                                        if (daysPassed < (current += (project.design_days || 0))) 
-                                            return <span className="text-[10px] text-indigo-500 font-bold">GĐ: Thiết kế</span>;
-                                        if (daysPassed < (current += (project.rough_construction_days || 0))) 
-                                            return <span className="text-[10px] text-orange-500 font-bold">GĐ: Thi công thô</span>;
-                                        if (daysPassed < (current += (project.finishing_days || 0))) 
-                                            return <span className="text-[10px] text-green-500 font-bold">GĐ: Hoàn thiện</span>;
-                                        if (daysPassed < (current += (project.interior_days || 0))) 
-                                            return <span className="text-[10px] text-teal-500 font-bold">GĐ: Nội thất</span>;
-                                        
-                                        return <span className="text-[10px] text-gray-500 font-bold">Đã quá hạn/Bàn giao</span>;
-                                    })()}
                                 </div>
                                 
                                 {/* Hover Actions */}
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -385,7 +396,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                         title="Chỉnh sửa"
                                     >
-                                        <Edit2 size={14} />
+                                        <Edit2 size={13} />
                                     </button>
                                     <button 
                                         onClick={(e) => {
@@ -395,18 +406,9 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Xóa"
                                     >
-                                        <Trash2 size={14} />
+                                        <Trash2 size={13} />
                                     </button>
                                 </div>
-
-                                {project.marketing_daily_logs && project.marketing_daily_logs.length > 0 && (
-                                    <div className="flex gap-1 mt-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
-                                        {project.marketing_daily_logs.slice(0, 5).map((log: DailyLog) => (
-                                            <div key={log.id} className="w-1.5 h-1.5 rounded-full bg-slate-400" title={`Nhật ký: ${format(parseISO(log.log_date), 'dd/MM/yyyy')}`}></div>
-                                        ))}
-                                        {project.marketing_daily_logs.length > 5 && <span className="text-[8px] text-gray-400">+{project.marketing_daily_logs.length - 5}</span>}
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </div>
