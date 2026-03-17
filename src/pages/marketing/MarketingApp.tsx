@@ -359,11 +359,16 @@ export default function MarketingApp() {
 
   const handleSaveProject = async (formData: any) => {
       try {
+          // Convert empty date strings to null to prevent postgres invalid input syntax errors
+          const payload = { ...formData };
+          if (payload.start_date === '') payload.start_date = null;
+          if (payload.end_date === '') payload.end_date = null;
+
           if (editingProject) {
-              const { error } = await supabase.from('marketing_projects').update(formData).eq('id', editingProject.id);
+              const { error } = await supabase.from('marketing_projects').update(payload).eq('id', editingProject.id);
               if (error) throw error;
           } else {
-              const { error } = await supabase.from('marketing_projects').insert([formData]);
+              const { error } = await supabase.from('marketing_projects').insert([payload]);
               if (error) throw error;
           }
           setIsProjectModalOpen(false);
