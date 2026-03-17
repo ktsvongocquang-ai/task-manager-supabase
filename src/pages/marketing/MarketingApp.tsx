@@ -20,7 +20,10 @@ import {
   List,
   ShieldAlert,
   ChevronUp,
-  MoreVertical
+  MoreVertical,
+  Eye,
+  EyeOff,
+  Clock
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear } from 'date-fns';
 // Removed recharts import since it is not used in this file
@@ -720,7 +723,6 @@ export default function MarketingApp() {
                     >
                       {activeVideos.map(video => {
                         const task = video;
-                        const assignee = profiles.find(p => p.id === task.assignee_id);
                         const statusDef = STATUS_MAP[task.status];
                         
                         return (
@@ -734,7 +736,7 @@ export default function MarketingApp() {
                                   setEditingTask(task);
                                   setIsTaskModalOpen(true);
                               }}
-                              className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-grab active:cursor-grabbing group flex flex-col gap-3"
+                              className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-grab active:cursor-grabbing flex flex-col gap-2 relative group"
                             >
                               {/* Header Badges and Actions */}
                               <div className="flex justify-between items-start mb-1">
@@ -749,9 +751,10 @@ export default function MarketingApp() {
                                 <div className="flex items-center gap-1">
                                   <button 
                                     onClick={(e) => { e.stopPropagation(); toggleCard(task.id, e); }}
-                                    className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                    className="p-1 text-slate-400 hover:text-indigo-600 rounded transition-colors ml-1"
+                                    title={expandedCards[task.id] ? "Thu gọn" : "Xem chi tiết"}
                                   >
-                                    {expandedCards[task.id] ? <ChevronUp className="w-5 h-5 stroke-[2.5]" /> : <ChevronDown className="w-5 h-5 stroke-[2.5]" />}
+                                    {expandedCards[task.id] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                   </button>
                                   <button className="text-gray-400 hover:text-gray-600 transition-opacity p-1" onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsTaskModalOpen(true); }}>
                                     <MoreVertical className="w-4 h-4" />
@@ -760,47 +763,37 @@ export default function MarketingApp() {
                               </div>
                               
                               {/* Title and Date Row */}
-                              <div className="flex justify-between items-start gap-2">
-                                <h3 className={`font-bold text-indigo-700 text-[15px] leading-tight group-hover:text-indigo-600 transition-colors ${!expandedCards[task.id] ? 'line-clamp-2' : ''} flex-1`}>
+                              <div className="flex justify-between items-center gap-2">
+                                <h3 className={`font-bold text-gray-900 text-[14px] leading-tight flex-1 ${!expandedCards[task.id] ? 'line-clamp-2' : ''}`}>
                                   {task.title}
                                 </h3>
-                                <div className="bg-yellow-50 text-indigo-700 font-bold px-2 py-1 rounded border border-yellow-100 text-lg shrink-0">
+                                <div className="flex items-center gap-1 bg-white text-slate-500 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-[11px] shrink-0">
+                                  <Clock size={10} className="text-slate-400" />
                                   {task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : '??-??'}
                                 </div>
                               </div>
 
+                              {/* Expanded Content */}
                               {expandedCards[task.id] && (
-                                <div className="mt-2 space-y-2">
-                                  <p className="text-[11px] text-slate-500 flex items-center gap-1.5 truncate">
-                                    <LayoutTemplate className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{task.project || 'Không có dự án'}</span>
-                                  </p>
-                                  
-                                  <div className="flex gap-1.5">
-                                    <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
-                                      <Video className="w-3 h-3" /> {task.format || 'Khác'}
-                                    </span>
-                                    <span className="text-[10px] bg-gray-50 text-slate-500 px-2 py-1 rounded-md flex items-center gap-1 border border-gray-100">
-                                      <UsersIcon className="w-3 h-3" /> {task.platform || '-'}
-                                    </span>
-                                  </div>
-
-                                  <div className="text-[12px] text-left w-full mt-2">
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Platform</span><span className="text-gray-600 line-clamp-1">{task.platform || '-'}</span></div>
-                                    <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook chọn</span><span className="text-gray-600">{task.notes || 'Chưa có'}</span></div>
-                                    <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
-                                  </div>
-
-                                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[11px] font-medium text-slate-500">Thực hiện</span>
-                                      <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
-                                        {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
-                                      </div>
+                                <div className="mt-1 flex flex-col gap-1.5 pt-2 border-t border-slate-100 animate-in slide-in-from-top-2 duration-200 text-[13px]">
+                                  {task.marketing_fields?.['Hook chọn'] && (
+                                    <div className="flex gap-2">
+                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Hook chọn:</span>
+                                      <span className="text-gray-900">{task.marketing_fields['Hook chọn']}</span>
                                     </div>
-                                  </div>
+                                  )}
+                                  {task.marketing_fields?.['Vấn đề'] && (
+                                    <div className="flex gap-2">
+                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Vấn đề:</span>
+                                      <span className="text-gray-900">{task.marketing_fields['Vấn đề']}</span>
+                                    </div>
+                                  )}
+                                  {task.marketing_fields?.['Giải pháp'] && (
+                                    <div className="flex gap-2">
+                                      <span className="text-slate-500 font-medium whitespace-nowrap min-w-[70px]">Giải pháp:</span>
+                                      <span className="text-gray-900 line-clamp-3">{task.marketing_fields['Giải pháp']}</span>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               
@@ -810,7 +803,7 @@ export default function MarketingApp() {
                                     <div className="flex gap-2 w-full mt-2">
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
-                                        className="flex-1 py-1.5 bg-white text-yellow-600 border border-yellow-200 hover:bg-yellow-50 rounded-lg text-[12px] font-bold transition-colors"
+                                        className="flex-1 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 rounded-lg text-[12px] font-bold transition-colors"
                                       >
                                         Phê duyệt
                                       </button>
