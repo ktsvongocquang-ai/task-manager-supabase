@@ -18,6 +18,9 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     onSaved
 }) => {
     const [form, setForm] = useState({
+        name: '',
+        address: '',
+        supervisor_phone: '',
         actual_start_date: '',
         design_days: 0,
         rough_construction_days: 0,
@@ -37,6 +40,9 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     useEffect(() => {
         if (isOpen && project) {
             setForm({
+                name: project.name || '',
+                address: project.address || '',
+                supervisor_phone: project.supervisor_phone || '',
                 actual_start_date: project.actual_start_date || '',
                 design_days: project.design_days || 0,
                 rough_construction_days: project.rough_construction_days || 0,
@@ -53,14 +59,14 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         setIsLoading(true);
         try {
             const { data: msData } = await supabase
-                .from('shooting_milestones')
+                .from('marketing_shooting_milestones')
                 .select('*')
                 .eq('project_id', project.id)
                 .order('milestone_date', { ascending: true });
             if (msData) setMilestones(msData);
 
             const { data: logsData } = await supabase
-                .from('daily_logs')
+                .from('marketing_daily_logs')
                 .select('*')
                 .eq('project_id', project.id)
                 .order('log_date', { ascending: false });
@@ -92,6 +98,9 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
             const { error } = await supabase
                 .from('marketing_projects')
                 .update({
+                    name: form.name,
+                    address: form.address,
+                    supervisor_phone: form.supervisor_phone,
                     actual_start_date: form.actual_start_date || null,
                     design_days: Number(form.design_days),
                     rough_construction_days: Number(form.rough_construction_days),
@@ -120,7 +129,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
             status: 'Chờ quay'
         };
         try {
-            const { data, error } = await supabase.from('shooting_milestones').insert(newMs).select().single();
+            const { data, error } = await supabase.from('marketing_shooting_milestones').insert(newMs).select().single();
             if (error) throw error;
             if (data) setMilestones(prev => [...prev, data]);
         } catch (e) {
@@ -131,7 +140,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     const handleUpdateMilestone = async (id: string, field: string, value: string) => {
         setMilestones(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
         try {
-            await supabase.from('shooting_milestones').update({ [field]: value }).eq('id', id);
+            await supabase.from('marketing_shooting_milestones').update({ [field]: value }).eq('id', id);
         } catch (e) {
             console.error(e);
         }
@@ -141,7 +150,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         if (!confirm('Xoá mốc quay này?')) return;
         setMilestones(prev => prev.filter(m => m.id !== id));
         try {
-            await supabase.from('shooting_milestones').delete().eq('id', id);
+            await supabase.from('marketing_shooting_milestones').delete().eq('id', id);
         } catch (e) {
             console.error(e);
         }
@@ -162,7 +171,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 user_id: userId
             };
 
-            const { data, error } = await supabase.from('daily_logs').insert(newLog).select().single();
+            const { data, error } = await supabase.from('marketing_daily_logs').insert(newLog).select().single();
             if (error) throw error;
             if (data) {
                 setDailyLogs(prev => [data, ...prev]);
@@ -184,12 +193,43 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <div className="flex-1 mr-4">
+                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
                             <Calendar className="text-indigo-500" />
-                            Cập nhật Tiến độ & Mốc quay
+                            Cập nhật Dự án & Mốc quay
                         </h2>
-                        <p className="text-sm font-medium text-gray-500 mt-1">{project.name} {project.project_code ? `(${project.project_code})` : ''}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Tên Dự án</label>
+                                <input 
+                                    type="text" 
+                                    value={form.name} 
+                                    onChange={e => setForm({...form, name: e.target.value})}
+                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-bold p-2 focus:ring-1 focus:ring-indigo-500"
+                                    placeholder="Tên dự án..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Địa chỉ</label>
+                                <input 
+                                    type="text" 
+                                    value={form.address} 
+                                    onChange={e => setForm({...form, address: e.target.value})}
+                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
+                                    placeholder="Địa chỉ công trình..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">SĐT Giám sát</label>
+                                <input 
+                                    type="text" 
+                                    value={form.supervisor_phone} 
+                                    onChange={e => setForm({...form, supervisor_phone: e.target.value})}
+                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
+                                    placeholder="Số điện thoại giám sát..."
+                                />
+                            </div>
+                        </div>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-white rounded-xl transition-colors">
                         <X size={20} />
