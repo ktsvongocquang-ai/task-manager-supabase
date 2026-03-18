@@ -256,12 +256,23 @@ export const Schedule = () => {
 
             {/* Mobile View */}
             <div className="md:hidden flex flex-col space-y-4 flex-1">
-                {/* Horizontal Date Slider */}
-                <div className="bg-white pb-2 pt-2 rounded-2xl border border-slate-200 shadow-sm shrink-0">
-                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-1 px-3 custom-scrollbar">
+                {/* Mini Month Grid */}
+                <div className="bg-white p-3 pt-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
+                    {/* Weekdays Header */}
+                    <div className="grid grid-cols-7 mb-3">
+                        {WEEKDAYS.map(day => (
+                            <div key={day} className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                {day}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Days Grid */}
+                    <div className="grid grid-cols-7 gap-y-1">
                         {calendarDays.map((day) => {
                             const isSelected = isSameDay(day, selectedDate)
                             const isToday = isSameDay(day, new Date())
+                            const isCurrentMonth = isSameMonth(day, currentDate)
                             const dateStr = format(day, 'yyyy-MM-dd')
                             const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
                             const hasTasks = dayTasks.length > 0;
@@ -271,20 +282,26 @@ export const Schedule = () => {
                                     id={`day-btn-${dateStr}`}
                                     key={day.toString()}
                                     onClick={() => setSelectedDate(day)}
-                                    className={`snap-center flex flex-col items-center justify-center min-w-[56px] h-[72px] rounded-xl transition-all relative shrink-0 border-2
-                                        ${isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 
-                                          isToday ? 'bg-indigo-50 border-indigo-100 text-indigo-900' : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50'}
+                                    className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all
+                                        ${isSelected ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105 z-10 font-bold' : 
+                                          !isCurrentMonth ? 'text-slate-300 opacity-50' : 
+                                          isToday ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'}
                                     `}
                                 >
-                                    <span className={`text-[10px] uppercase font-bold tracking-widest mb-1 
-                                        ${isSelected ? 'text-indigo-200' : isToday ? 'text-indigo-500' : 'text-slate-400'}`}>
-                                        {format(day, 'EEE', { locale: vi })}
-                                    </span>
-                                    <span className={`text-lg font-black leading-none ${isToday && !isSelected ? 'text-indigo-600' : ''}`}>
+                                    <span className="text-[14px] leading-none mb-0.5">
                                         {format(day, 'd')}
                                     </span>
                                     {hasTasks && (
-                                        <div className={`absolute bottom-1.5 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-500'}`} />
+                                        <div className="flex gap-0.5 absolute bottom-1 w-full justify-center">
+                                            {dayTasks.slice(0, 3).map((t, i) => (
+                                                <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-200' : 
+                                                    t.status?.includes('Hoàn thành') ? 'bg-emerald-400' : 
+                                                    t.status?.includes('Tạm dừng') ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                                            ))}
+                                            {dayTasks.length > 3 && (
+                                                <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-200' : 'bg-slate-300'}`} />
+                                            )}
+                                        </div>
                                     )}
                                 </button>
                             )

@@ -22,7 +22,8 @@ import {
     Calendar,
     BarChart2,
     Folder,
-    PieChart
+    PieChart,
+    Menu
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -57,6 +58,7 @@ export const Layout = () => {
     const [isNotifOpen, setIsNotifOpen] = useState(false) // Added state for notifications
     const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
     const [isLauncherOpen, setIsLauncherOpen] = useState(false) // Added Fullscreen Launcher state
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false) // Added Mobile Sidebar state
     
     // Accordion sidebar state
     const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Công việc': true })
@@ -234,8 +236,16 @@ export const Layout = () => {
 
     return (
         <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter overflow-hidden">
+            {/* Mobile Sidebar Backdrop */}
+            {isMobileSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-200"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                />
+            )}
+            
             {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className="fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform transition-transform duration-300 ease-out hidden lg:flex flex-col">
+            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform flex flex-col transition-transform duration-300 ease-in-out ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-6 border-b border-border-main">
                     <button onClick={() => setIsLauncherOpen(true)} className="flex items-center space-x-3 mb-6 w-full text-left group hover:opacity-80 transition-opacity">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/30 transition-shadow">
@@ -297,6 +307,11 @@ export const Layout = () => {
                             <NavLink
                                 key={item.path || item.name}
                                 to={item.path || '#'}
+                                onClick={() => {
+                                    if (item.path !== '#') {
+                                        setIsMobileSidebarOpen(false);
+                                    }
+                                }}
                                 className={() =>
                                     `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
@@ -352,6 +367,7 @@ export const Layout = () => {
                                                         <NavLink
                                                             key={child.path}
                                                             to={child.path}
+                                                            onClick={() => setIsMobileSidebarOpen(false)}
                                                             className={() =>
                                                                 `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isChildMatch(location.pathname)
                                                                     ? 'bg-primary text-white shadow-sm'
@@ -399,8 +415,8 @@ export const Layout = () => {
                         {/* Top Row: Title & Actions */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
-                                <button onClick={() => setIsLauncherOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
-                                    <Rocket className="text-white" size={16} />
+                                <button onClick={() => setIsMobileSidebarOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
+                                    <Menu className="text-white" size={16} />
                                 </button>
                                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{currentTitle()}</h2>
                             </div>
