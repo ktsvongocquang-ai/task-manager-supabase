@@ -56,19 +56,6 @@ export const BottomTabBar = () => {
                     }}
                 </NavLink>
 
-                {/* 1.5. Calendar Shortcut */}
-                <NavLink 
-                    to="/schedule" 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
-                >
-                    {({ isActive }) => (
-                        <>
-                            <Calendar size={22} strokeWidth={isActive ? 2.5 : 2} />
-                            <span className="text-[10px] font-bold truncate">Lịch trình</span>
-                        </>
-                    )}
-                </NavLink>
-
                 {/* 2. Dynamic Action Tab (Công việc / CRM / Thi công...) */}
                 <NavLink 
                     to={actionTab.path} 
@@ -83,6 +70,19 @@ export const BottomTabBar = () => {
                             </>
                         )
                     }}
+                </NavLink>
+
+                {/* 2.5. Calendar Shortcut */}
+                <NavLink 
+                    to="/schedule" 
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                >
+                    {({ isActive }) => (
+                        <>
+                            <Calendar size={22} strokeWidth={isActive ? 2.5 : 2} />
+                            <span className="text-[10px] font-bold truncate">Lịch trình</span>
+                        </>
+                    )}
                 </NavLink>
 
                 {/* 3. Dynamic Project Tab (Dự án / Tổng hợp bài đăng...) */}
