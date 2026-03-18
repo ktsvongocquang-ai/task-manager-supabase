@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../../services/supabase';
 import type { Project } from '../../../types';
+import { useAuthStore } from '../../../store/authStore';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2 } from 'lucide-react';
@@ -9,6 +10,8 @@ import { TimelineUpdateModal } from './TimelineUpdateModal';
 interface ProjectGanttBoardProps {}
 
 export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
+    const { profile, hasPermission } = useAuthStore();
+    const canEdit = hasPermission(profile?.role?.trim(), 'Tab Marketing (Sửa)');
     const [projects, setProjects] = useState<Project[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const ganttScrollRef = useRef<HTMLDivElement>(null);
@@ -333,13 +336,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     <p className="text-sm text-gray-500 mt-1">Theo dõi tiến độ thực tế các công trình để lên lịch quay phù hợp.</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Dự Án Mới
-                    </button>
+                    {canEdit && (
+                        <button 
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Dự Án Mới
+                        </button>
+                    )}
                     <div className="flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                         <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 text-gray-600 transition-colors">
                             <ChevronLeft size={20} />
@@ -506,7 +511,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
+                                    {canEdit && <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
                                         <button 
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -528,7 +533,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         >
                                             <Trash2 size={13} />
                                         </button>
-                                    </div>
+                                    </div>}
                                 </div>
 
                                     {/* Timeline Row Content */}

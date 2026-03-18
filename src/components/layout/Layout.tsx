@@ -164,12 +164,16 @@ export const Layout = () => {
         return base
     }
 
-    const getNavItemsByRole = (userRole?: string, department?: string): any[] => {
-        const adminRole = userRole === 'Admin' || userRole === 'Giám đốc';
+    const getNavItemsByRole = (userRole?: string): any[] => {
+        const roleStr = userRole?.trim() || 'Nhân viên';
+        const adminRole = roleStr === 'Admin' || roleStr === 'Giám đốc';
+        const { hasPermission } = useAuthStore.getState();
 
-        // Base items for all users
-        const baseItems = [
-            { 
+        const items: any[] = [];
+
+        // 1. Tab Công Việc
+        if (hasPermission(roleStr, 'Tab Công Việc (Xem)')) {
+            items.push({ 
                 name: 'Công việc', 
                 path: '/kanban',
                 icon: KanbanIcon, 
@@ -182,70 +186,39 @@ export const Layout = () => {
                     { name: 'Dự án', path: '/projects', icon: Folder },
                     { name: 'Dashboard', path: '/dashboard', icon: PieChart },
                 ]
-            }
-        ];
-
-        // 1. Quản lý Sale / Chăm sóc Khách hàng
-        if (userRole === 'Quản lý Sale' || department === 'Sale') {
-            return [
-                { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] },
-                ...baseItems,
-                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
-            ];
+            });
         }
 
-        // 2. Giám sát - Quản lý / Thi Công
-        if (userRole === 'Giám sát - Quản lý' || department === 'Thi công') {
-            return [
-                { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
-                ...baseItems,
-                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
-            ];
+        // 2. Tab Marketing
+        if (hasPermission(roleStr, 'Tab Marketing (Xem)')) {
+            items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
         }
 
-        // 3. Marketing - Quản lý
-        if (userRole === 'Quản lý Marketing' || department === 'Marketing') {
-            return [
-                { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] },
-                ...baseItems,
-                { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
-            ];
+        // 3. Tab Thi Công
+        if (hasPermission(roleStr, 'Tab Thi Công (Xem)')) {
+            items.push({ name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] });
         }
 
-        // 4. Nhân viên Thiết kế
-        if (userRole === 'Nhân viên Thiết kế' || department === 'Thiết kế') {
-            return [
-                ...baseItems
-            ];
+        // 4. Tab CRM / Chăm sóc KH
+        if (hasPermission(roleStr, 'Tab Chăm Sóc KH (Xem)')) {
+            items.push({ name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] });
         }
 
-        // 5. Default Staff (Nếu không thuộc các nhóm trên và không phải Quản lý/Admin)
-        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
-        if (!isManagerOrAdmin) {
-            return [
-                ...baseItems,
-                { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
-                { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] }
-            ];
+        // Lịch sử (Dành cho Manager/Admin/Các cấp leader)
+        const isManagerGroup = ['Admin', 'Giám đốc', 'Quản lý', 'Sale', 'Marketing', 'Giám Sát'].includes(roleStr);
+        if (isManagerGroup) {
+            items.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon });
         }
 
-        // Admin, Giám đốc, Quản lý chung nhìn thấy tất cả
-        const fullItems = [
-            ...baseItems,
-            { name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] },
-            { name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] },
-            { name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] },
-            { name: 'Lịch sử', path: '/history', icon: HistoryIcon }
-        ];
-
+        // Người dùng (Admin only)
         if (adminRole) {
-            fullItems.push({ name: 'Người dùng', path: '/users', icon: Users });
+            items.push({ name: 'Người dùng', path: '/users', icon: Users });
         }
 
-        return fullItems;
+        return items;
     };
 
-    const navItems = getNavItemsByRole(profile?.role || undefined, profile?.position || undefined);
+    const navItems = getNavItemsByRole(profile?.role || undefined);
 
     const getRoleBrand = (role?: string) => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
