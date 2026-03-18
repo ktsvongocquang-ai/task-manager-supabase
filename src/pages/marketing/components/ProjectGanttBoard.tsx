@@ -530,6 +530,24 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             <span className={`text-[10px] font-medium ${isToday ? 'bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-gray-500'}`}>
                                                 {format(date, 'd')}
                                             </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Timeline Body (Rows) */}
+                        <div 
+                            className="flex-1 overflow-y-auto custom-scrollbar relative min-h-0 bg-dots"
+                            ref={timelineVerticalScrollRef}
+                            onScroll={handleVerticalScroll}
+                        >
+                            {/* Grid vertical lines background */}
+                            <div className="absolute inset-0 flex pointer-events-none z-0">
+                                {daysInterval.map((date, i) => {
+                                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                                    return (
+                                        <div 
                                             key={`grid-${i}`} 
                                             className={`border-r border-gray-100/50 h-full ${isWeekend ? 'bg-gray-50/30' : ''}`}
                                             style={{ width: `${DAY_WIDTH}px` }}
