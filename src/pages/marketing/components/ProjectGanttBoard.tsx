@@ -17,7 +17,25 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isCreating, setIsCreating] = useState(false);
-    const [activeTooltip, setActiveTooltip] = useState<{ id: string, type: 'milestone' | 'log' } | null>(null);
+    const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Stores composite ID: `${projectId}-${type}-${itemId}`
+    
+    // Refs for scroll synchronization
+    const listScrollRef = useRef<HTMLDivElement>(null);
+    const timelineVerticalScrollRef = useRef<HTMLDivElement>(null);
+    
+    // Synchronize vertical scroll between project list and timeline grid
+    const handleVerticalScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const { scrollTop } = e.currentTarget;
+        if (e.currentTarget === listScrollRef.current) {
+            if (timelineVerticalScrollRef.current) {
+                timelineVerticalScrollRef.current.scrollTop = scrollTop;
+            }
+        } else if (e.currentTarget === timelineVerticalScrollRef.current) {
+            if (listScrollRef.current) {
+                listScrollRef.current.scrollTop = scrollTop;
+            }
+        }
+    };
 
     const fetchConstructionData = async () => {
         try {
@@ -276,16 +294,17 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         return projectMilestones.map((ms: any) => {
             const msDate = parseISO(ms.milestone_date);
             const offsetDays = differenceInDays(msDate, startDate);
-            const isActive = activeTooltip?.id === ms.id && activeTooltip?.type === 'milestone';
+            const compositeId = `${project.id}-milestone-${ms.id}`;
+            const isActive = activeTooltip === compositeId;
 
             return (
                 <div
                     key={ms.id}
-                    className={`absolute top-0 bottom-0 flex flex-col items-center z-[30] cursor-pointer tooltip-trigger ${isActive ? 'z-[70]' : 'hover:z-[60]'}`}
+                    className={`absolute top-0 bottom-0 flex flex-col items-center z-[30] cursor-pointer tooltip-trigger ${isActive ? 'z-[75]' : 'hover:z-[60]'}`}
                     style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
                     onClick={(e) => {
                         e.stopPropagation();
-                        setActiveTooltip(isActive ? null : { id: ms.id, type: 'milestone' });
+                        setActiveTooltip(isActive ? null : compositeId);
                     }}
                 >
                     <div className={`w-[2px] h-full ${isActive ? 'bg-rose-500' : 'bg-rose-300/50'} transition-colors absolute left-1/2 -translate-x-1/2 -z-10`}></div>
@@ -360,7 +379,11 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     <div className="h-16 border-b border-gray-100 flex items-end pb-3 px-6 shrink-0 bg-gray-50/30">
                         <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
                     </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <div 
+                        className="flex-1 overflow-y-auto custom-scrollbar"
+                        ref={listScrollRef}
+                        onScroll={handleVerticalScroll}
+                    >
                         {activeProjects.map(project => (
                             <div 
                                 key={project.id} 
@@ -507,20 +530,6 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             <span className={`text-[10px] font-medium ${isToday ? 'bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-gray-500'}`}>
                                                 {format(date, 'd')}
                                             </span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Timeline Body (Rows) */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar relative min-h-0 bg-dots">
-                            {/* Grid vertical lines background */}
-                            <div className="absolute inset-0 flex pointer-events-none z-0">
-                                {daysInterval.map((date, i) => {
-                                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                                    return (
-                                        <div 
                                             key={`grid-${i}`} 
                                             className={`border-r border-gray-100/50 h-full ${isWeekend ? 'bg-gray-50/30' : ''}`}
                                             style={{ width: `${DAY_WIDTH}px` }}
@@ -542,7 +551,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                             {/* Rows matching left column */}
                             <div className="relative z-10 h-full">
                                 {activeProjects.map(project => (
-                                    <div key={project.id} className="h-20 border-b border-gray-50/50 relative hover:bg-indigo-50/10 transition-colors w-full group hover:z-[60]">
+                                    <div key={project.id} className={`h-20 border-b border-gray-50/50 relative hover:bg-indigo-50/10 transition-colors w-full group ${activeTooltip?.startsWith(project.id) ? 'z-[60]' : 'hover:z-[55]'}`}>
                                         {/* Row background highlight */}
                                         <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         
@@ -553,15 +562,16 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         {project.marketing_daily_logs?.map(log => {
                                             const logDate = parseISO(log.log_date);
                                             const offsetDays = differenceInDays(logDate, startDate);
-                                            const isActive = activeTooltip?.id === log.id && activeTooltip?.type === 'log';
+                                            const compositeId = `${project.id}-log-${log.id}`;
+                                            const isActive = activeTooltip === compositeId;
                                             return (
                                                 <div 
                                                     key={log.id}
-                                                    className={`absolute bottom-2 flex flex-col items-center z-[20] cursor-pointer tooltip-trigger ${isActive ? 'z-[70]' : 'hover:z-[60]'}`}
+                                                    className={`absolute bottom-2 flex flex-col items-center z-[20] cursor-pointer tooltip-trigger ${isActive ? 'z-[75]' : 'hover:z-[60]'}`}
                                                     style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setActiveTooltip(isActive ? null : { id: log.id, type: 'log' });
+                                                        setActiveTooltip(isActive ? null : compositeId);
                                                     }}
                                                 >
                                                     <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center shadow-sm ${isActive ? 'scale-110 border-indigo-600 bg-indigo-100 text-indigo-700 shadow-indigo-200' : 'border-indigo-400 bg-indigo-50 text-indigo-600'}`}>
