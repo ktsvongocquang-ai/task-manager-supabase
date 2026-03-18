@@ -602,16 +602,16 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0 min-w-0 w-full overflow-hidden">
+    <div className="h-full flex flex-col gap-4 max-w-[1600px] mx-auto min-h-0 min-w-0 w-full overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2">
+      <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2 pb-1">
         {/* Top Header Row */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full min-h-[64px] min-w-0">
           <div className="flex-1 min-w-0 pr-4">
             <h1 className="text-xl font-bold text-slate-800 hidden md:block">Marketing Workflow</h1>
             <p className="text-sm text-gray-500 mt-1 truncate">Quy trình phối hợp DQH & Team Coach Hiếu</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0 justify-start md:justify-end overflow-x-auto hide-scrollbar min-w-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-auto mt-4 md:mt-0 justify-start md:justify-end shrink-0">
             {/* Mobile Dropdown View Selector */}
             <div className="md:hidden w-full relative shrink-0">
               <select 
@@ -644,31 +644,31 @@ const MarketingApp = () => {
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('WORKFLOW')}
               >
-                Tài khoản (Quy chuẩn)
+                Tài khoản
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'KANBAN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('KANBAN')}
               >
-                Bảng công việc
+                Công việc
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'LIST' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('LIST')}
               >
-                Tổng hợp bài đăng
+                Tổng hợp
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'CALENDAR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('CALENDAR')}
               >
-                Lịch đăng bài
+                Lịch đăng
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'TIMELINE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('TIMELINE')}
               >
-                Tiến độ dự án
+                Tiến độ
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'ARCHIVE' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
