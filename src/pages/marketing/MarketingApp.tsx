@@ -120,22 +120,22 @@ const getProjectEffectColor = (ef: string) => {
 
 
 const COLUMNS = [
-  { id: 'COL_IDEA', name: 'idea', color: 'bg-[#FFFBEB] border-[#FEF08A] text-[#854D0E]', border: 'border-[#FEF08A]' },
-  { id: 'COL_CONTENT', name: 'Viết contetn', color: 'bg-[#EFF6FF] border-[#BFDBFE] text-[#1E3A8A]', border: 'border-[#BFDBFE]' },
-  { id: 'COL_PROD', name: 'sản xuất', color: 'bg-[#FDF4FF] border-[#E9D5FF] text-[#86198F]', border: 'border-[#E9D5FF]' },
-  { id: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#166534]', border: 'border-[#BBF7D0]' }
+  { id: 'COL_IDEA', name: 'Idea', color: 'bg-[#FFFBEB] border-[#FEF08A] text-[#854D0E]', border: 'border-[#FEF08A]' },
+  { id: 'COL_CONTENT', name: 'Viết Content', color: 'bg-[#EFF6FF] border-[#BFDBFE] text-[#1E3A8A]', border: 'border-[#BFDBFE]' },
+  { id: 'COL_PROD', name: 'Sản xuất', color: 'bg-[#FDF4FF] border-[#E9D5FF] text-[#86198F]', border: 'border-[#E9D5FF]' },
+  { id: 'COL_DONE', name: 'Hoàn thành đăng', color: 'bg-[#F0FDF4] border-[#BBF7D0] text-[#166534]', border: 'border-[#BBF7D0]' }
 ];
 
-const STATUS_MAP: Record<string, { col: string, name: string, color: string }> = {
-  IDEA: { col: 'COL_IDEA', name: 'idea', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  CONTENT_EDITING: { col: 'COL_CONTENT', name: 'Đang soạn thảo', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  CONTENT_DONE: { col: 'COL_CONTENT', name: 'Chờ duyệt', color: 'bg-orange-100 text-orange-800 border-orange-200' },
-  PROD_DOING: { col: 'COL_PROD', name: 'sản xuất', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-  PROD_DONE: { col: 'COL_PROD', name: 'Đã xong', color: 'bg-green-100 text-green-800 border-green-200' },
-  VIDEO_REVIEW: { col: 'COL_DONE', name: 'hoàn thành đăng', color: 'bg-orange-100 text-orange-800 border-orange-200' },
-  SCHEDULED: { col: 'COL_SCHEDULE', name: 'Chưa đăng', color: 'bg-gray-100 text-gray-800 border-gray-200' },
-  PUBLISHED: { col: 'COL_SCHEDULE', name: 'Đã đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200' }
+const STATUS_MAP: Record<string, { col: string, name: string, color: string, textColor: string }> = {
+  IDEA: { col: 'COL_IDEA', name: 'Idea', color: 'bg-amber-100 text-amber-800 border-amber-200', textColor: 'text-amber-600' },
+  CONTENT_EDITING: { col: 'COL_CONTENT', name: 'Viết Content (Đang soạn)', color: 'bg-blue-100 text-blue-800 border-blue-200', textColor: 'text-blue-600' },
+  CONTENT_DONE: { col: 'COL_CONTENT', name: 'Viết Content (Chờ duyệt)', color: 'bg-blue-100 text-blue-800 border-blue-200', textColor: 'text-blue-600' },
+  PROD_DOING: { col: 'COL_PROD', name: 'Sản xuất (Đang làm)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
+  PROD_DONE: { col: 'COL_PROD', name: 'Sản xuất (Đã xong)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
+  VIDEO_REVIEW: { col: 'COL_DONE', name: 'Gửi qua Phê duyệt', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
+  SCHEDULED: { col: 'COL_SCHEDULE', name: 'Lên lịch đăng', color: 'bg-gray-100 text-gray-800 border-gray-200', textColor: 'text-gray-600' },
+  PUBLISHED: { col: 'COL_SCHEDULE', name: 'Hoàn thành đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
+  REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200', textColor: 'text-red-600' }
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -221,7 +221,26 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
                options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
                onChange={(val) => setStatusFilter(val)}
                placeholder="Trạng thái"
-               renderValue={(val) => <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium">Trạng thái:</span> <span className="truncate max-w-[80px]">{val}</span></span>}
+               renderValue={(val) => {
+                 if (val === 'Tất cả') return <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium">Trạng thái:</span> <span>Tất cả</span></span>;
+                 const info = STATUS_MAP[val];
+                 return (
+                   <span className={`text-sm font-bold flex gap-1 items-center ${info?.textColor || ''}`}>
+                     <span className="text-slate-400 font-medium">Trạng thái:</span> 
+                     <span className="truncate max-w-[100px]">{info?.name || val}</span>
+                   </span>
+                 );
+               }}
+               renderOption={(val) => {
+                 if (val === 'Tất cả') return <span className="text-[13px] font-medium text-slate-600">Tất cả</span>;
+                 const info = STATUS_MAP[val];
+                 return (
+                   <div className="flex items-center gap-2">
+                     <div className={`w-2 h-2 rounded-full ${info?.textColor?.replace('text-', 'bg-') || 'bg-slate-400'}`} />
+                     <span className={`text-[13px] font-bold ${info?.textColor || 'text-slate-700'}`}>{info?.name || val}</span>
+                   </div>
+                 );
+               }}
              />
           </div>
           <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-10">
@@ -1304,13 +1323,24 @@ const MarketingApp = () => {
                            onChange={(val) => setTaskStatusFilter(val)}
                            placeholder="Nhiệm vụ"
                            renderValue={(val) => {
-                               let label = val;
-                               if (val === 'IDEA') label = 'Idea';
-                               else if (val === 'CONTENT_EDITING') label = 'Đang soạn';
-                               else if (val === 'CONTENT_DONE') label = 'Chờ duyệt';
-                               else if (val === 'PROD_DOING') label = 'Sản xuất';
-                               else if (val === 'PUBLISHED') label = 'Đã đăng';
-                               return <span className="text-[11px] font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Task:</span> <span className="truncate max-w-[70px]">{label}</span></span>
+                             if (val === 'Tất cả') return <span className="text-[11px] font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Task:</span> <span>Tất cả</span></span>;
+                             const info = STATUS_MAP[val];
+                             return (
+                               <span className={`text-[11px] font-bold flex gap-1 items-center ${info?.textColor || ''}`}>
+                                 <span className="text-slate-400 font-medium whitespace-nowrap">Task:</span> 
+                                 <span className="truncate max-w-[70px]">{info?.name || val}</span>
+                               </span>
+                             );
+                           }}
+                           renderOption={(val) => {
+                             if (val === 'Tất cả') return <span className="text-[12px] font-medium text-slate-600">Tất cả</span>;
+                             const info = STATUS_MAP[val];
+                             return (
+                               <div className="flex items-center gap-2">
+                                 <div className={`w-1.5 h-1.5 rounded-full ${info?.textColor?.replace('text-', 'bg-') || 'bg-slate-400'}`} />
+                                 <span className={`text-[12px] font-bold ${info?.textColor || 'text-slate-700'}`}>{info?.name || val}</span>
+                               </div>
+                             );
                            }}
                          />
                     </div>
