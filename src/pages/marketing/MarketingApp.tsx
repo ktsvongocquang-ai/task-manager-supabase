@@ -600,7 +600,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0">
+    <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0 min-w-0 w-full overflow-hidden">
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2">
         {/* Top Header Row */}
@@ -1785,7 +1785,7 @@ const MarketingApp = () => {
           </div>
         </div>
       ) : view === 'TIMELINE' ? (
-        <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative">
+        <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative min-w-0 overflow-hidden">
           <ProjectGanttBoard />
         </div>
       ) : view === 'WORKFLOW' ? (

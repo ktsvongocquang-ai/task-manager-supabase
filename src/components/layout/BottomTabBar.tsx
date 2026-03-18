@@ -41,7 +41,7 @@ export const BottomTabBar = () => {
                 {/* 1. Dashboard / Home Tab */}
                 <NavLink 
                     to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=posts' : '/dashboard'} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
@@ -56,10 +56,23 @@ export const BottomTabBar = () => {
                     }}
                 </NavLink>
 
+                {/* 1.5. Calendar Shortcut */}
+                <NavLink 
+                    to="/schedule" 
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                >
+                    {({ isActive }) => (
+                        <>
+                            <Calendar size={22} strokeWidth={isActive ? 2.5 : 2} />
+                            <span className="text-[10px] font-bold truncate">Lịch trình</span>
+                        </>
+                    )}
+                </NavLink>
+
                 {/* 2. Dynamic Action Tab (Công việc / CRM / Thi công...) */}
                 <NavLink 
                     to={actionTab.path} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${(isActive && !window.location.search.includes('tab=')) || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${(isActive && !window.location.search.includes('tab=')) || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingActionMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban');
@@ -75,7 +88,7 @@ export const BottomTabBar = () => {
                 {/* 3. Dynamic Project Tab (Dự án / Tổng hợp bài đăng...) */}
                 <NavLink 
                     to={projectTab.path} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress');
@@ -88,14 +101,14 @@ export const BottomTabBar = () => {
                     }}
                 </NavLink>
 
-                {/* 4. Profile / Calendar Tab */}
+                {/* 4. Profile Tab */}
                 <NavLink 
                     to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=guidelines' : (profile?.role === 'Admin' ? '/users' : '/profile')} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/4 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingProfileMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines');
-                        const Icon = profile?.role?.trim() === 'Marketing' ? Calendar : User;
+                        const Icon = User;
                         return (
                             <>
                                 <Icon size={22} strokeWidth={isActive || isMarketingProfileMatch ? 2.5 : 2} />
