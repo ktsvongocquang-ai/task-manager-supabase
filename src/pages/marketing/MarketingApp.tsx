@@ -17,14 +17,14 @@ import {
   ChevronDown,
   ChevronRight,
   List,
-  ExternalLink,
   Camera,
   ShieldAlert,
   ChevronUp,
   MoreVertical,
   Eye,
   EyeOff,
-  Clock
+  Clock,
+  Edit
 } from 'lucide-react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear, parseISO, differenceInDays, isFuture, isToday } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -1427,272 +1427,152 @@ const MarketingApp = () => {
                       const upcomingMilestone = milestones.find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
 
                       return (
-                        <React.Fragment key={proj.id}>
-                          <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
-                            <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
-                              {expandedProjects.has(proj.id) ? (
-                                 <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                              ) : (
-                                 <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                              )}
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
-                          <td className="px-3 py-2 border border-slate-200">
-                              <InlineDropdown
-                                  value={proj.project_type || ''}
-                                  options={['Chung cư', 'Nhà phố', 'Biệt thự', 'Văn phòng', 'F&B', 'Khác']}
-                                  placeholder="Chọn loại"
-                                  onChange={(val) => updateProjectField(proj.id, 'project_type', val)}
-                                  renderValue={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-xs font-semibold">{val}</span>}
-                                  renderOption={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-[13px] font-semibold">{val}</span>}
-                              />
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                              <InlineDropdown
-                                  value={proj.update_status || ''}
-                                  options={['Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
-                                  placeholder="Trạng thái"
-                                  onChange={(val) => updateProjectField(proj.id, 'update_status', val)}
-                                  renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-xs font-semibold border ${getProjectStatusColor(val)} truncate max-w-[140px]`}>{val}</span>}
-                                  renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[13px] font-semibold border ${getProjectStatusColor(val)}`}>{val}</span>}
-                              />
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                              <InlineDropdown
-                                  value={proj.effect_type ? proj.effect_type.split(',')[0].trim() : ''}
-                                  options={['Hiện đại', 'Tối giản', 'Tân cổ điển', 'Wabi Sabi', 'Japandi', 'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Bê tông']}
-                                  placeholder="Phong cách"
-                                  onChange={(val) => updateProjectField(proj.id, 'effect_type', val)}
-                                  renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[11px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
-                                  renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
-                              />
-                          </td>
-                          
-                          {/* TIẾN ĐỘ & NHẬT KÝ COLUMN */}
-                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                              <div className="flex flex-col gap-2 relative">
-                                 {/* Phase and Link to Kanban logic wrapper */}
-                                 <div className="flex items-center gap-2">
-                                      {phaseStr ? (
-                                          <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{phaseStr}</span>
-                                      ) : (
-                                          <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded">Chưa setup</span>
-                                      )}
-                                      {upcomingMilestone && (
-                                          <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold" title={upcomingMilestone.content}>
-                                              <Video size={10} />
-                                              {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                         <React.Fragment key={proj.id}>
+                           <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
+                             <td className="px-3 py-2 border border-slate-200 text-center" onClick={e => e.stopPropagation()}>
+                                <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
+                               {expandedProjects.has(proj.id) ? (
+                                  <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                               ) : (
+                                  <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                               )}
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
+                             <td className="px-3 py-2 border border-slate-200">
+                               <InlineDropdown
+                                   value={proj.project_type || ''}
+                                   options={['Chung cư', 'Nhà phố', 'Biệt thự', 'Văn phòng', 'F&B', 'Khác']}
+                                   placeholder="Chọn loại"
+                                   onChange={(val) => updateProjectField(proj.id, 'project_type', val)}
+                                   renderValue={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-xs font-semibold">{val}</span>}
+                                   renderOption={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-[13px] font-semibold">{val}</span>}
+                               />
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                               <InlineDropdown
+                                   value={proj.update_status || ''}
+                                   options={['Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
+                                   placeholder="Trạng thái"
+                                   onChange={(val) => updateProjectField(proj.id, 'update_status', val)}
+                                   renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-xs font-semibold border ${getProjectStatusColor(val)} truncate max-w-[140px]`}>{val}</span>}
+                                   renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[13px] font-semibold border ${getProjectStatusColor(val)}`}>{val}</span>}
+                               />
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                               <InlineDropdown
+                                   value={proj.effect_type ? proj.effect_type.split(',')[0].trim() : ''}
+                                   options={['Hiện đại', 'Tối giản', 'Tân cổ điển', 'Wabi Sabi', 'Japandi', 'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Bê tông']}
+                                   placeholder="Phong cách"
+                                   onChange={(val) => updateProjectField(proj.id, 'effect_type', val)}
+                                   renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[11px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                                   renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                               />
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                               <div className="flex flex-col gap-2 relative">
+                                  <div className="flex items-center gap-2">
+                                       {phaseStr ? (
+                                           <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{phaseStr}</span>
+                                       ) : (
+                                           <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded">Chưa setup</span>
+                                       )}
+                                       {upcomingMilestone && (
+                                           <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold" title={upcomingMilestone.content}>
+                                               <Video size={10} />
+                                               {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                                           </div>
+                                       )}
+                                  </div>
+                                  {latestLog ? (
+                                      <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100/50">
+                                          <div className="flex justify-between items-center mb-1">
+                                              <span className="font-bold text-gray-400 text-[9px]">{format(parseISO(latestLog.log_date), 'dd/MM')}</span>
+                                              {latestLog.media_link && (
+                                                  <a href={latestLog.media_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500 font-bold hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm transition-colors" title="Xem tư liệu đính kèm">
+                                                      <Camera size={10} /> Tư liệu
+                                                  </a>
+                                              )}
                                           </div>
-                                      )}
-                                 </div>
-                                 {/* Latest Log Snippet */}
-                                 {latestLog ? (
-                                     <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100/50">
-                                         <div className="flex justify-between items-center mb-1">
-                                             <span className="font-bold text-gray-400 text-[9px]">{format(parseISO(latestLog.log_date), 'dd/MM')}</span>
-                                             {latestLog.media_link && (
-                                                 <a href={latestLog.media_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500 font-bold hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm transition-colors" title="Xem tư liệu đính kèm">
-                                                     <Camera size={10} /> Tư liệu
-                                                 </a>
-                                             )}
-                                         </div>
-                                         <div className="line-clamp-2 leading-relaxed" title={latestLog.content}>{latestLog.content}</div>
-                                     </div>
-                                 ) : (
-                                     <div className="text-[11px] text-gray-400 italic">Chưa có nhật ký</div>
-                                 )}
-                              </div>
-                          </td>
- 
-                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
-                              {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
-                              {proj.customer_problem || <span className="text-slate-300 italic">Chưa có</span>}
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200 text-slate-700 hover:text-indigo-600">
-                              {proj.content_link ? (
-                                  <a href={proj.content_link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                                      <ExternalLink size={14} className="text-indigo-500" />
-                                      <span className="underline decoration-indigo-200 underline-offset-2">Doc Nội Dung</span>
-                                  </a>
-                              ) : <span className="text-slate-300 italic">...</span>}
-                          </td>
-                          <td className="px-3 py-2 border border-slate-200 text-slate-500 text-xs">
-                              {proj.other_info || <span className="text-slate-300 italic">...</span>}
-                          </td>
-                                 </a>
-                             ) : <span className="text-slate-300 italic">...</span>}
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200 text-slate-500 text-xs">
-                             {proj.other_info || <span className="text-slate-300 italic">...</span>}
-                         </td>
-                       </tr>
-                       
-                       {/* Expanded Tasks Row */}
-                       {expandedProjects.has(proj.id) && (
-                         <tr>
-                           <td colSpan={10} className="p-0 border border-slate-200 bg-slate-50 shadow-inner">
-                             <div className="p-4 pl-12">
-                               <div className="bg-white border text-center border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                                 {videos.filter(v => {
-                                     if (v.project_id !== proj.id) return false;
-                                     if (taskStatusFilter !== 'Tất cả' && v.status !== taskStatusFilter) return false;
-                                     return true;
-                                 }).length === 0 ? (
-                                   <div className="p-6 text-sm text-slate-400">Không có bài viết/nhiệm vụ nào phù hợp trong dự án này.</div>
-                                 ) : (
-                                   <table className="w-full text-[13px] text-left">
-                                     <thead className="bg-[#fcfdfd] text-slate-500 border-b border-slate-100">
+                                          <div className="line-clamp-2 leading-relaxed" title={latestLog.content}>{latestLog.content}</div>
+                                      </div>
+                                  ) : (
+                                      <div className="text-[11px] text-gray-400 italic">Chưa có nhật ký</div>
+                                  )}
+                                </div>
+                              </td>
+                             {/* The rest of the table cells for the project row */}
+                             <td className="px-3 py-2 border border-slate-200">Điểm nhấn content</td>
+                             <td className="px-3 py-2 border border-slate-200">Nội dung khai thác content</td>
+                             <td className="px-3 py-2 border border-slate-200">Brief content</td>
+                             <td className="px-3 py-2 border border-slate-200">Ghi chú content</td>
+                           </tr>
+                           {expandedProjects.has(proj.id) && (
+                             <tr>
+                               <td colSpan={11} className="p-0">
+                                 <div className="bg-slate-50 p-4 border-t border-slate-200">
+                                   <h4 className="text-sm font-bold text-slate-700 mb-3">Tasks cho dự án "{proj.name}"</h4>
+                                   <table className="w-full text-[12px] text-left border-collapse border border-slate-200">
+                                     <thead className="bg-slate-100 text-slate-500">
                                        <tr>
-                                         <th className="px-4 py-2.5 font-medium w-[60px]">STT</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[200px]">Tiêu đề bài viết</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[250px] w-1/3">Hook</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Thể loại</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Date</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[120px]">Giai đoạn</th>
-                                         <th className="px-4 py-2.5 font-medium w-[100px]">Link</th>
-                                         <th className="px-4 py-2.5 font-medium min-w-[150px]">Trạng thái</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center"></th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Ngày đăng</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
+                                         <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
                                        </tr>
                                      </thead>
-                                     <tbody className="divide-y divide-slate-100">
-                                       {videos.filter(v => {
-                                           if (v.project_id !== proj.id) return false;
-                                           if (taskStatusFilter !== 'Tất cả' && v.status !== taskStatusFilter) return false;
-                                           return true;
-                                       }).map((task, tidx) => {
-                                          return (
-                                           <tr key={task.id} className="hover:bg-slate-50/80 group">
-                                             <td className="px-4 py-2.5 text-slate-400 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{tidx + 1}</td>
-                                             <td className="px-4 py-2.5 text-slate-700 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{task.title}</td>
-                                             <td className="px-4 py-2.5 text-slate-600">
-                                                 <span className="whitespace-normal break-words">{task.notes || <span className="text-slate-300 italic">...</span>}</span>
-                                             </td>
-                                             <td className="px-4 py-2.5">
-                                                 <InlineDropdown 
-                                                     value={task.format || ''}
-                                                     options={['Video ngắn', 'Video dài', 'Bài viết mạng xã hội', 'Hình ảnh/Album']}
-                                                     placeholder="Thêm..."
-                                                     onChange={async (val) => {
-                                                         try {
-                                                             const { error } = await supabase.from('marketing_tasks').update({ format: val }).eq('id', task.id);
-                                                             if (error) throw error;
-                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, format: val } : t));
-                                                         } catch (err) { console.error('Lỗi khi cập nhật thể loại:', err); }
-                                                     }}
-                                                 />
-                                             </td>
-                                             <td className="px-4 py-2.5 text-slate-600">
-                                                 <input 
-                                                     type="date"
-                                                     value={task.dueDate || ''}
-                                                     onChange={async (e) => {
-                                                         const val = e.target.value;
-                                                         try {
-                                                             const { error } = await supabase.from('marketing_tasks').update({ due_date: val }).eq('id', task.id);
-                                                             if (error) throw error;
-                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, dueDate: val } : t));
-                                                         } catch (err) { console.error('Lỗi khi cập nhật ngày:', err); }
-                                                     }}
-                                                     className="bg-transparent border-0 p-0 text-[13px] text-slate-700 focus:ring-0 cursor-pointer w-full max-w-[110px]"
-                                                 />
-                                             </td>
-                                             <td className="px-4 py-2.5">
-                                                 <InlineDropdown 
-                                                     value={task.target || ''}
-                                                     options={['Hạng Mục đề xuất', 'Thiết kế', 'Thi công', 'Kiến thức', 'Vật liệu', 'Ánh sáng', 'Furniture']}
-                                                     placeholder="Thêm..."
-                                                     onChange={async (val) => {
-                                                         try {
-                                                             const { error } = await supabase.from('marketing_tasks').update({ target: val }).eq('id', task.id);
-                                                             if (error) throw error;
-                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, target: val } : t));
-                                                         } catch (err) { console.error('Lỗi khi cập nhật giai đoạn:', err); }
-                                                     }}
-                                                 />
-                                             </td>
-                                             <td className="px-4 py-2.5">
-                                                 <input
-                                                     type="url"
-                                                     placeholder="Thêm link..."
-                                                     value={task.result_links || ''}
-                                                     onChange={async (e) => {
-                                                         const val = e.target.value;
-                                                         setVideos(prev => prev.map(t => t.id === task.id ? { ...t, result_links: val } : t));
-                                                     }}
-                                                     onBlur={async (e) => {
-                                                         const val = e.target.value;
-                                                         try {
-                                                             await supabase.from('marketing_tasks').update({ result_links: val }).eq('id', task.id);
-                                                         } catch (err) { console.error('Lỗi khi cập nhật link:', err); }
-                                                     }}
-                                                     className="bg-transparent border border-transparent hover:border-slate-200 focus:border-indigo-300 rounded px-1 py-1 text-[12px] text-indigo-600 focus:ring-0 w-full min-w-[80px] transition-colors"
-                                                 />
-                                             </td>
-                                             <td className="px-4 py-2.5">
-                                                 <InlineDropdown
-                                                     value={task.status}
-                                                     options={['IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
-                                                     placeholder="Trạng thái"
-                                                     onChange={async (newStatus) => {
-                                                         try {
-                                                             const { error } = await supabase.from('marketing_tasks').update({ status: newStatus }).eq('id', task.id);
-                                                             if (error) throw error;
-                                                             setVideos(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
-                                                         } catch (err) { console.error('Lỗi khi cập nhật trạng thái:', err); }
-                                                     }}
-                                                     renderValue={(val) => {
-                                                         let label = val;
-                                                         let colorClass = 'text-gray-600';
-                                                         
-                                                         if (val === 'IDEA') { label = 'Idea'; colorClass = 'text-yellow-600'; }
-                                                         else if (val === 'CONTENT_EDITING') { label = 'Viết Content (Đang soạn)'; colorClass = 'text-blue-600'; }
-                                                         else if (val === 'CONTENT_DONE') { label = 'Viết Content (Chờ duyệt)'; colorClass = 'text-blue-600'; }
-                                                         else if (val === 'PROD_DOING') { label = 'Sản xuất (Đang làm)'; colorClass = 'text-purple-600'; }
-                                                         else if (val === 'PROD_DONE') { label = 'Sản xuất (Đã xong)'; colorClass = 'text-purple-600'; }
-                                                         else if (val === 'VIDEO_REVIEW') { label = 'Gửi qua Phê duyệt'; colorClass = 'text-emerald-600'; }
-                                                         else if (val === 'SCHEDULED') { label = 'Chưa đăng (Đã xếp lịch)'; colorClass = 'text-gray-600'; }
-                                                         else if (val === 'PUBLISHED') { label = 'Hoàn thành đăng'; colorClass = 'text-emerald-600'; }
-                                                         else if (val === 'REJECTED') { label = 'Từ chối / Để sau'; colorClass = 'text-red-600'; }
-                                                         
-                                                         return (
-                                                             <div className={`flex items-center justify-between w-full font-bold text-[13px] hover:bg-slate-50 rounded px-1 -mx-1 py-0.5 transition-colors ${colorClass}`}>
-                                                                 <span className="truncate">{label}</span>
-                                                                 <ChevronDown size={14} className="opacity-70 ml-1 shrink-0" />
-                                                             </div>
-                                                         );
-                                                     }}
-                                                     renderOption={(val) => {
-                                                         let label = val;
-                                                         let colorClass = 'text-gray-600';
-                                                         
-                                                         if (val === 'IDEA') { label = 'Idea'; colorClass = 'text-yellow-600'; }
-                                                         else if (val === 'CONTENT_EDITING') { label = 'Viết Content (Đang soạn)'; colorClass = 'text-blue-600'; }
-                                                         else if (val === 'CONTENT_DONE') { label = 'Viết Content (Chờ duyệt)'; colorClass = 'text-blue-600'; }
-                                                         else if (val === 'PROD_DOING') { label = 'Sản xuất (Đang làm)'; colorClass = 'text-purple-600'; }
-                                                         else if (val === 'PROD_DONE') { label = 'Sản xuất (Đã xong)'; colorClass = 'text-purple-600'; }
-                                                         else if (val === 'VIDEO_REVIEW') { label = 'Gửi qua Phê duyệt'; colorClass = 'text-emerald-600'; }
-                                                         else if (val === 'SCHEDULED') { label = 'Chưa đăng (Đã xếp lịch)'; colorClass = 'text-gray-600'; }
-                                                         else if (val === 'PUBLISHED') { label = 'Hoàn thành đăng'; colorClass = 'text-emerald-600'; }
-                                                         else if (val === 'REJECTED') { label = 'Từ chối / Để sau'; colorClass = 'text-red-600'; }
-                                                         
-                                                         return <span className={`font-bold text-[13px] px-1 py-1 w-full block hover:bg-slate-50 cursor-pointer ${colorClass}`}>{label}</span>;
-                                                     }}
-                                                 />
-                                             </td>
-                                           </tr>
-                                          )
-                                       })}
+                                     <tbody className="divide-y divide-slate-200">
+                                       {videos.filter(v => v.project_id === proj.id).length === 0 ? (
+                                         <tr>
+                                           <td colSpan={8} className="px-4 py-6 text-center text-slate-400 bg-white">
+                                             Chưa có task nào cho dự án này.
+                                           </td>
+                                         </tr>
+                                       ) : (
+                                         videos.filter(v => v.project_id === proj.id).map((video: any) => {
+                                           const statusInfo = STATUS_MAP[video.status];
+                                           return (
+                                             <tr key={video.id} className="bg-white hover:bg-slate-50 transition-colors">
+                                               <td className="px-3 py-2 border border-slate-200 text-center">
+                                                 <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
+                                               </td>
+                                               <td className="px-3 py-2 border border-slate-200 font-medium text-slate-800">{video.title}</td>
+                                               <td className="px-3 py-2 border border-slate-200">{video.platform}</td>
+                                               <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
+                                               <td className="px-3 py-2 border border-slate-200">{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'N/A'}</td>
+                                               <td className="px-3 py-2 border border-slate-200">
+                                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>
+                                                   <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
+                                                   {statusInfo?.name || video.status}
+                                                 </span>
+                                               </td>
+                                               <td className="px-3 py-2 border border-slate-200">
+                                                 {video.link && (
+                                                   <a href={video.link} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline text-xs">Link</a>
+                                                 )}
+                                               </td>
+                                               <td className="px-3 py-2 border border-slate-200 text-center">
+                                                 <button onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }} className="text-slate-400 hover:text-indigo-600">
+                                                   <Edit size={14} />
+                                                 </button>
+                                               </td>
+                                             </tr>
+                                           );
+                                         })
+                                       )}
                                      </tbody>
                                    </table>
-                                 )}
-                               </div>
-                             </div>
-                           </td>
-                         </tr>
-                       )}
-                     </React.Fragment>
-                   );
+                                 </div>
+                               </td>
+                             </tr>
+                           )}
+                         </React.Fragment>
+                       );
                     });
                   })()}
                </tbody>
@@ -1804,19 +1684,19 @@ const MarketingApp = () => {
                         <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 gap-4 sm:gap-6">
                             <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-pink-500 border-4 border-white shadow-xl flex flex-col justify-center items-center`}>
                                 <span className="text-4xl sm:text-5xl text-white font-black tracking-tighter">
-                                    {profile.full_name?.substring(0, 2).toUpperCase() || 'MK'}
+                                    {profile?.full_name?.substring(0, 2).toUpperCase() || 'MK'}
                                 </span>
                                 <div className="absolute -bottom-3 bg-white px-3 py-1 rounded-full shadow-lg border border-slate-100 flex items-center gap-1.5">
                                     <Award size={12} className="text-pink-600" />
-                                    <span className="text-[10px] font-bold text-pink-600">{profile.role}</span>
+                                    <span className="text-[10px] font-bold text-pink-600">{profile?.role}</span>
                                 </div>
                             </div>
                             
                             <div className="text-center sm:text-left pt-2 flex-1">
-                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">{profile.full_name || 'Marketing Admin'}</h1>
+                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Marketing Admin'}</h1>
                                 <p className="text-slate-500 text-sm font-medium flex items-center justify-center sm:justify-start gap-1.5">
                                     <Mail size={14} /> 
-                                    {profile.email || 'marketing@dqh.vn'}
+                                    {profile?.email || 'marketing@dqh.vn'}
                                 </p>
                             </div>
                         </div>
@@ -1830,7 +1710,7 @@ const MarketingApp = () => {
                     </h3>
                     <div className="prose prose-slate prose-sm max-w-none">
                         <p className="text-slate-600 leading-relaxed mb-6">
-                            Tài khoản của bạn được định danh với vai trò <span className="bg-pink-50 text-pink-600 font-bold px-2 py-0.5 rounded-md">{profile.role}</span>. Dưới đây là các module bạn được phép truy cập trên hệ thống.
+                            Tài khoản của bạn được định danh với vai trò <span className="bg-pink-50 text-pink-600 font-bold px-2 py-0.5 rounded-md">{profile?.role}</span>. Dưới đây là các module bạn được phép truy cập trên hệ thống.
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 rounded-xl border bg-indigo-50/50 border-indigo-100">
