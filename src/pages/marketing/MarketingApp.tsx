@@ -361,6 +361,7 @@ const MarketingApp = () => {
   
   const getInitialView = () => {
     switch(initialTab) {
+      case 'dashboard': return 'DASHBOARD';
       case 'guidelines': return 'WORKFLOW';
       case 'kanban': return 'KANBAN';
       case 'posts': return 'LIST';
@@ -538,7 +539,7 @@ const MarketingApp = () => {
   const [assigneeFilter, setAssigneeFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('Tất cả');
   const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
-  const [view, setView] = useState<'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
+  const [view, setView] = useState<'DASHBOARD' | 'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date(2024, 10, 1)); // November 2024 to match mock data
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -563,6 +564,7 @@ const MarketingApp = () => {
     setView(newView);
     // Update URL sync mapping
     const tabMap: Record<string, string> = {
+      'DASHBOARD': 'dashboard',
       'WORKFLOW': 'guidelines',
       'KANBAN': 'kanban',
       'LIST': 'posts',
@@ -600,7 +602,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4 max-w-[1600px] mx-auto min-h-0 min-w-0 w-full overflow-hidden">
+    <div className="h-full flex flex-col space-y-4 max-w-none mx-auto min-h-0 min-w-0 w-full overflow-hidden">
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2">
         {/* Top Header Row */}
@@ -617,7 +619,8 @@ const MarketingApp = () => {
                 onChange={(e) => handleViewChange(e.target.value as any)}
                 className="w-full appearance-none bg-white border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all pr-10"
               >
-                <option value="WORKFLOW">Quy chuẩn làm việc</option>
+                <option value="DASHBOARD">Tổng quan</option>
+                <option value="WORKFLOW">Tài khoản (Quy chuẩn)</option>
                 <option value="KANBAN">Bảng công việc</option>
                 <option value="LIST">Tổng hợp bài đăng</option>
                 <option value="CALENDAR">Lịch đăng bài</option>
@@ -632,10 +635,16 @@ const MarketingApp = () => {
             {/* Desktop Horizontal Tabs */}
             <div className="hidden md:flex overflow-x-auto hide-scrollbar max-w-full bg-gray-100 p-1 rounded-lg">
               <button 
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'DASHBOARD' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                onClick={() => handleViewChange('DASHBOARD')}
+              >
+                Tổng quan
+              </button>
+              <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'WORKFLOW' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('WORKFLOW')}
               >
-                Quy chuẩn làm việc
+                Tài khoản (Quy chuẩn)
               </button>
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'KANBAN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -1385,7 +1394,7 @@ const MarketingApp = () => {
                 </button>
               </div>
            </div>
-           <div className="flex-1 overflow-x-auto overflow-y-auto p-0 max-w-[calc(100vw-16rem)] w-full block">
+           <div className="flex-1 overflow-x-auto overflow-y-auto p-0 w-full hidden md:block">
              <table className="w-full text-[13px] text-left border-collapse min-w-[1000px] border border-slate-200">
                <thead className="bg-[#f9fafb] text-slate-500 sticky top-0 z-10">
                  <tr>
@@ -1674,6 +1683,120 @@ const MarketingApp = () => {
                </tbody>
              </table>
            </div>
+
+           {/* Mobile List View */}
+           <div className="md:hidden flex-1 overflow-y-auto p-3 flex flex-col gap-3 bg-slate-50/50">
+             {(() => {
+               const filteredProjects = projects.filter(p => {
+                   if (projectStatusFilter !== 'Tất cả' && p.update_status !== projectStatusFilter) return false;
+                   if (taskStatusFilter !== 'Tất cả') {
+                       const hasMatchingTask = videos.some(v => v.project_id === p.id && v.status === taskStatusFilter);
+                       if (!hasMatchingTask) return false;
+                   }
+                   return true;
+               });
+
+               if (filteredProjects.length === 0) {
+                   return <div className="p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200 shadow-sm">Không tìm thấy dự án phù hợp</div>;
+               }
+
+               return filteredProjects.map(proj => {
+                 const projTasks = videos.filter(v => v.project_id === proj.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                 const isExpanded = expandedProjects.has(proj.id);
+                 const upcomingMilestone = (proj.marketing_shooting_milestones || []).find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
+                 
+                 return (
+                   <div key={proj.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                     {/* Project Header */}
+                     <div 
+                       className="p-4 flex items-center justify-between cursor-pointer active:bg-slate-50 transition-colors"
+                       onClick={(e) => toggleProjectRow(proj.id, e)}
+                     >
+                       <div className="flex-1 pr-4">
+                         <h4 className="font-bold text-slate-900 text-[15px]">{proj.name}</h4>
+                         <div className="flex flex-wrap gap-2 mt-2">
+                           {proj.update_status && (
+                             <span className={`inline-flex px-2 py-0.5 rounded-sm text-[10px] font-bold border ${getProjectStatusColor(proj.update_status)}`}>
+                               {proj.update_status}
+                             </span>
+                           )}
+                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-sm text-[10px] font-medium border border-slate-200">
+                             {projTasks.length} tasks
+                           </span>
+                         </div>
+                       </div>
+                       <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-100 transition-transform">
+                         {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                       </div>
+                     </div>
+
+                     {/* Expanded Tasks Area */}
+                     {isExpanded && (
+                       <div className="bg-slate-50/80 border-t border-slate-100 p-3 flex flex-col gap-3">
+                         <div className="flex justify-between items-center px-1 mb-1">
+                           <span className="text-[11px] font-bold text-slate-500 tracking-wide uppercase">Ideas & Tasks</span>
+                           <button 
+                             onClick={() => { setEditingTask({ project_id: proj.id, status: 'IDEA' } as any); setIsTaskModalOpen(true); }}
+                             className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm"
+                           >
+                             <Plus className="w-3.5 h-3.5" /> Thêm Idea
+                           </button>
+                         </div>
+
+                         {projTasks.length === 0 ? (
+                           <div className="text-center text-slate-400 text-[12px] py-5 bg-white rounded-xl border border-slate-200 border-dashed">
+                             Dự án này chưa có task nào.
+                           </div>
+                         ) : (
+                           projTasks.map((task: any, index: number) => {
+                             const statusInfo = STATUS_MAP[task.status];
+                             return (
+                               <div key={task.id} className="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 relative hover:border-indigo-300 transition-colors cursor-pointer" onClick={() => { setEditingTask(task); setIsTaskModalOpen(true); }}>
+                                 <div className="flex justify-between items-start gap-3 mb-2">
+                                   <h5 className="font-bold text-slate-800 text-[13px] leading-snug flex-1">{task.title}</h5>
+                                   <div className="text-[10px] font-bold text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100 mt-0.5 shrink-0">
+                                     #{String(index + 1).padStart(2, '0')}
+                                   </div>
+                                 </div>
+                                 
+                                 <div className="flex flex-wrap gap-1.5 mb-3">
+                                   <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusInfo?.color}`}>
+                                     <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
+                                     {statusInfo?.name || task.status}
+                                   </span>
+                                   {task.status === 'PROD_FILMING' && upcomingMilestone && (
+                                     <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                       <Video size={10} /> {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                                     </span>
+                                   )}
+                                   {task.platform && task.platform !== 'Khác' && (
+                                     <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
+                                       {task.platform}
+                                     </span>
+                                   )}
+                                 </div>
+                                 
+                                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-50">
+                                   <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                                     <UsersIcon size={12} />
+                                     <span className="truncate max-w-[120px]">{task.assignee.split(',')[0]}</span>
+                                   </div>
+                                   <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
+                                     <CalendarIcon size={12} />
+                                     {task.dueDate ? format(parseISO(task.dueDate), 'dd/MM') : '--/--'}
+                                   </div>
+                                 </div>
+                               </div>
+                             );
+                           })
+                         )}
+                       </div>
+                     )}
+                   </div>
+                 );
+               });
+             })()}
+           </div>
         </div>
       ) : view === 'CALENDAR' ? (
         <div className="flex-1 overflow-y-auto p-6 bg-white">
@@ -1789,10 +1912,15 @@ const MarketingApp = () => {
         <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative min-w-0 overflow-hidden">
           <ProjectGanttBoard />
         </div>
-      ) : view === 'WORKFLOW' ? (
+      ) : view === 'DASHBOARD' ? (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 relative">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
             <MarketingDashboard videos={videos} />
+          </div>
+        </div>
+      ) : view === 'WORKFLOW' ? (
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 relative">
+          <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
             {/* PROFILE HEADER & PERMISSIONS SECTION */}
             {profile && (
               <>

@@ -26,7 +26,7 @@ export const BottomTabBar = () => {
     const getDynamicProjectTab = () => {
         const role = profile?.role?.trim();
         if (role === 'Marketing') {
-            return { name: 'Tổng hợp', path: '/marketing?tab=progress', icon: Folder };
+            return { name: 'Tổng hợp', path: '/marketing?tab=posts', icon: Folder };
         }
         
         return { name: 'Dự án', path: '/projects', icon: Folder };
@@ -40,11 +40,11 @@ export const BottomTabBar = () => {
             <div className="flex justify-around items-center h-16 px-2">
                 {/* 1. Dashboard / Home Tab */}
                 <NavLink 
-                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=posts' : '/dashboard'} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=dashboard' : '/dashboard'} 
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=dashboard')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
-                        const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
+                        const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=dashboard');
                         return (
                             <>
                                 <Home size={22} strokeWidth={isActive || isMarketingHomeMatch ? 2.5 : 2} />
@@ -91,7 +91,7 @@ export const BottomTabBar = () => {
                     className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                     {({ isActive }) => {
-                        const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress');
+                        const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
                         return (
                             <>
                                 <projectTab.icon size={22} strokeWidth={isActive || isMarketingProjectMatch ? 2.5 : 2} />
