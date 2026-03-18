@@ -46,7 +46,8 @@ const viewTitles: Record<string, string> = {
 }
 
 export const Layout = () => {
-    const { profile, signOut, systemPermissions } = useAuthStore()
+    const { profile, signOut } = useAuthStore()
+    useAuthStore(state => state.systemPermissions) // Trigger re-render on permission change
     const navigate = useNavigate()
     const location = useLocation()
     const [searchParams] = useSearchParams()
