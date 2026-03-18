@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -920,50 +920,82 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             
                             {/* Performance Metrics - Only for Published Tasks */}
                             {form.status === 'PUBLISHED' && (
-                                <div className="px-14 py-4 bg-indigo-50/30 rounded-2xl mx-14 mb-6 border border-indigo-100/50">
-                                    <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                        <Sparkles size={12} /> Hiệu quả Content (Chỉ số thực tế)
-                                    </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                        <div>
-                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Số lượt xem</div>
-                                            <input
-                                                type="number"
-                                                value={form.views}
-                                                onChange={(e) => setForm({ ...form, views: e.target.value })}
-                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
-                                                placeholder="0"
-                                            />
+                                <div className="mx-14 mb-8 relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-3xl blur-xl group-hover:opacity-75 transition-opacity" />
+                                    <div className="relative bg-white/60 backdrop-blur-xl border border-indigo-100/50 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-200">
+                                                    <Sparkles size={16} className="text-white" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[11px] font-black text-indigo-900 uppercase tracking-widest leading-none mb-0.5">Hiệu quả Content</div>
+                                                    <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Chỉ số thực tế từ nền tảng</div>
+                                                </div>
+                                            </div>
+                                            <div className="h-px flex-1 bg-gradient-to-r from-indigo-100 to-transparent mx-4" />
                                         </div>
-                                        <div>
-                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Tương tác</div>
-                                            <input
-                                                type="number"
-                                                value={form.interactions}
-                                                onChange={(e) => setForm({ ...form, interactions: e.target.value })}
-                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
-                                                placeholder="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Chia sẻ</div>
-                                            <input
-                                                type="number"
-                                                value={form.shares}
-                                                onChange={(e) => setForm({ ...form, shares: e.target.value })}
-                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
-                                                placeholder="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Lưu lại</div>
-                                            <input
-                                                type="number"
-                                                value={form.saves}
-                                                onChange={(e) => setForm({ ...form, saves: e.target.value })}
-                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
-                                                placeholder="0"
-                                            />
+                                        
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                            {/* Views Item */}
+                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
+                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-indigo-500 transition-colors">
+                                                    <Eye size={12} />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Lượt xem</span>
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    value={form.views}
+                                                    onChange={(e) => setForm({ ...form, views: e.target.value })}
+                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            
+                                            {/* Interactions Item */}
+                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
+                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-rose-500 transition-colors">
+                                                    <MousePointerClick size={12} />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Tương tác</span>
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    value={form.interactions}
+                                                    onChange={(e) => setForm({ ...form, interactions: e.target.value })}
+                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            
+                                            {/* Shares Item */}
+                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
+                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-emerald-500 transition-colors">
+                                                    <Share2 size={12} />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Chia sẻ</span>
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    value={form.shares}
+                                                    onChange={(e) => setForm({ ...form, shares: e.target.value })}
+                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            
+                                            {/* Saves Item */}
+                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
+                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-amber-500 transition-colors">
+                                                    <Bookmark size={12} />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Lưu lại</span>
+                                                </div>
+                                                <input
+                                                    type="number"
+                                                    value={form.saves}
+                                                    onChange={(e) => setForm({ ...form, saves: e.target.value })}
+                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
+                                                    placeholder="0"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
