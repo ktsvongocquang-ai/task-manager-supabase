@@ -3,7 +3,7 @@ import { Home, Kanban, User, HardHat, HeartHandshake, Folder, Calendar } from 'l
 import { useAuthStore } from '../../store/authStore';
 
 export const BottomTabBar = () => {
-    const { profile } = useAuthStore();
+    const { profile, systemPermissions } = useAuthStore();
 
     const getDynamicActionTab = () => {
         const role = profile?.role?.trim();
