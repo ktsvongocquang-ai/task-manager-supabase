@@ -17,6 +17,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [activeTooltip, setActiveTooltip] = useState<{ id: string, type: 'milestone' | 'log' } | null>(null);
 
     const fetchConstructionData = async () => {
         try {
@@ -158,6 +159,17 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         }
     }, [startDate]);
 
+    // Click away to close tooltips
+    useEffect(() => {
+        const handleClickAway = (e: MouseEvent) => {
+            if (!(e.target as HTMLElement).closest('.tooltip-trigger')) {
+                setActiveTooltip(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickAway);
+        return () => document.removeEventListener('mousedown', handleClickAway);
+    }, []);
+
     const renderGanttBar = (project: Project) => {
         if (!project.actual_start_date) return null;
 
@@ -262,24 +274,42 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         return projectMilestones.map((ms: any) => {
             const msDate = parseISO(ms.milestone_date);
             const offsetDays = differenceInDays(msDate, startDate);
-            if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
+            const isActive = activeTooltip?.id === ms.id && activeTooltip?.type === 'milestone';
 
             return (
                 <div
                     key={ms.id}
-                    className="absolute top-0 bottom-0 flex flex-col items-center group z-20 cursor-help"
+                    className={`absolute top-0 bottom-0 flex flex-col items-center z-[30] cursor-pointer tooltip-trigger ${isActive ? 'z-[70]' : 'hover:z-[60]'}`}
                     style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveTooltip(isActive ? null : { id: ms.id, type: 'milestone' });
+                    }}
                 >
-                    <div className="w-[2px] h-full bg-rose-300/50 group-hover:bg-rose-500 transition-colors absolute left-1/2 -translate-x-1/2 -z-10"></div>
-                    <div className="mt-1 w-6 h-6 rounded-full bg-white border-2 border-rose-500 text-rose-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                    <div className={`w-[2px] h-full ${isActive ? 'bg-rose-500' : 'bg-rose-300/50'} transition-colors absolute left-1/2 -translate-x-1/2 -z-10`}></div>
+                    <div className={`mt-1 w-6 h-6 rounded-full bg-white border-2 flex items-center justify-center shadow-md transition-all ${isActive ? 'scale-110 border-rose-600 text-rose-700 shadow-rose-200' : 'border-rose-500 text-rose-600'}`}>
                         <Video size={12} />
                     </div>
                     {/* Tooltip */}
-                    <div className="hidden group-hover:block absolute top-8 mb-2 w-48 bg-gray-900 text-white text-xs p-2 rounded-lg shadow-xl z-50">
-                        <div className="font-bold mb-1 text-rose-300">Mốc quay: {format(msDate, 'dd/MM/yyyy')}</div>
-                        <div className="px-1">{ms.content}</div>
-                        <div className="mt-1 text-right text-[10px] text-gray-400">Trạng thái: {ms.status}</div>
-                    </div>
+                    {isActive && (
+                        <div className="absolute top-8 mb-2 w-48 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in zoom-in-95 duration-150">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="font-bold text-rose-300">Mốc quay</span>
+                                <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-rose-300 ml-2">
+                                    <X size={10} />
+                                </button>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mb-1">{format(msDate, 'dd/MM/yyyy')}</div>
+                            <div className="px-1 text-gray-100">{ms.content}</div>
+                            <div className="mt-2 text-right">
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${ms.status === 'Đã xong' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                                    {ms.status}
+                                </span>
+                            </div>
+                            {/* Arrow */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full border-8 border-transparent border-b-gray-900"></div>
+                        </div>
+                    )}
                 </div>
             );
         });
@@ -510,7 +540,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                             {/* Rows matching left column */}
                             <div className="relative z-10 h-full">
                                 {activeProjects.map(project => (
-                                    <div key={project.id} className="h-20 border-b border-gray-50/50 relative hover:bg-indigo-50/10 transition-colors w-full group">
+                                    <div key={project.id} className="h-20 border-b border-gray-50/50 relative hover:bg-indigo-50/10 transition-colors w-full group hover:z-[60]">
                                         {/* Row background highlight */}
                                         <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         
@@ -521,20 +551,34 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         {project.marketing_daily_logs?.map(log => {
                                             const logDate = parseISO(log.log_date);
                                             const offsetDays = differenceInDays(logDate, startDate);
-                                            if (offsetDays < 0 || offsetDays > daysInterval.length) return null;
+                                            const isActive = activeTooltip?.id === log.id && activeTooltip?.type === 'log';
                                             return (
                                                 <div 
                                                     key={log.id}
-                                                    className="absolute bottom-2 flex flex-col items-center z-20 group cursor-help"
+                                                    className={`absolute bottom-2 flex flex-col items-center z-[20] cursor-pointer tooltip-trigger ${isActive ? 'z-[70]' : 'hover:z-[60]'}`}
                                                     style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setActiveTooltip(isActive ? null : { id: log.id, type: 'log' });
+                                                    }}
                                                 >
-                                                    <div className="w-5 h-5 rounded border-2 border-indigo-400 bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                    <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center shadow-sm ${isActive ? 'scale-110 border-indigo-600 bg-indigo-100 text-indigo-700 shadow-indigo-200' : 'border-indigo-400 bg-indigo-50 text-indigo-600'}`}>
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
                                                     </div>
-                                                    <div className="hidden group-hover:block absolute bottom-6 w-48 bg-gray-900 text-white text-xs p-2 rounded-lg shadow-xl z-50 pointer-events-none">
-                                                        <div className="font-bold text-indigo-300 mb-1">Nhật ký: {format(logDate, 'dd/MM')}</div>
-                                                        <div className="line-clamp-3">{log.content}</div>
-                                                    </div>
+                                                    {isActive && (
+                                                        <div className="absolute bottom-6 mb-2 w-52 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <span className="font-bold text-indigo-300">Nhật ký</span>
+                                                                <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-indigo-300 ml-2">
+                                                                    <X size={10} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="text-[10px] text-gray-400 mb-2">{format(logDate, 'dd/MM/yyyy')}</div>
+                                                            <div className="line-clamp-6 text-gray-100 leading-relaxed">{log.content}</div>
+                                                            {/* Arrow */}
+                                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full border-8 border-transparent border-t-gray-900"></div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
