@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../services/supabase'
 import type { Profile } from '../types'
+import { generateFlatPermissions } from '../constants/permissions'
 
 interface AuthState {
     user: any | null
@@ -69,11 +70,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (role === 'Admin' || role === 'Giám đốc') return true;
 
         const { systemPermissions } = get();
-        if (!systemPermissions) {
-            // Default safe fallback if table is empty or error
-            return false;
-        }
+        const fallbackPermissions = generateFlatPermissions();
+        const permsToUse = systemPermissions && Object.keys(systemPermissions).length > 0 ? systemPermissions : fallbackPermissions;
 
-        return !!systemPermissions[actionKey]?.[role];
+        return !!permsToUse[actionKey]?.[role];
     }
 }))
