@@ -130,7 +130,8 @@ const STATUS_MAP: Record<string, { col: string, name: string, color: string, tex
   IDEA: { col: 'COL_IDEA', name: 'Idea', color: 'bg-amber-100 text-amber-800 border-amber-200', textColor: 'text-amber-600' },
   CONTENT_EDITING: { col: 'COL_CONTENT', name: 'Viết Content (Đang soạn)', color: 'bg-blue-100 text-blue-800 border-blue-200', textColor: 'text-blue-600' },
   CONTENT_DONE: { col: 'COL_CONTENT', name: 'Viết Content (Chờ duyệt)', color: 'bg-blue-100 text-blue-800 border-blue-200', textColor: 'text-blue-600' },
-  PROD_DOING: { col: 'COL_PROD', name: 'Sản xuất (Đang làm)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
+  PROD_FILMING: { col: 'COL_PROD', name: 'Sản xuất (Đang Quay)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
+  PROD_EDITING: { col: 'COL_PROD', name: 'Sản xuất (Đang Edit)', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', textColor: 'text-indigo-600' },
   PROD_DONE: { col: 'COL_PROD', name: 'Sản xuất (Đã xong)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
   VIDEO_REVIEW: { col: 'COL_DONE', name: 'Gửi qua Phê duyệt', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
   SCHEDULED: { col: 'COL_SCHEDULE', name: 'Lên lịch đăng', color: 'bg-gray-100 text-gray-800 border-gray-200', textColor: 'text-gray-600' },
@@ -218,7 +219,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
           <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-20">
              <InlineDropdown
                value={statusFilter}
-               options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
+               options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_FILMING', 'PROD_EDITING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
                onChange={(val) => setStatusFilter(val)}
                placeholder="Trạng thái"
                renderValue={(val) => {
@@ -901,6 +902,11 @@ const MarketingApp = () => {
                                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
                                     {statusDef?.name || task.status}
                                   </span>
+                                  {task.status === 'PROD_FILMING' && (
+                                    <div className="flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[10px] font-bold">
+                                      {task.start_date ? format(new Date(task.start_date), 'dd/MM') : 'Lên lịch quay'}
+                                    </div>
+                                  )}
                                   <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
                                     {task.priority || 'Trung bình'}
                                   </span>
@@ -997,7 +1003,7 @@ const MarketingApp = () => {
                                   {task.status === 'CONTENT_DONE' && (
                                     <div className="flex gap-2 w-full mt-2">
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_FILMING' }); }}
                                         className="flex-1 min-h-[36px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors"
                                       >
                                         Phê duyệt
@@ -1011,6 +1017,25 @@ const MarketingApp = () => {
                                     </div>
                                   )}
 
+                                  {task.status === 'PROD_FILMING' && (
+                                    <div className="flex gap-2 w-full mt-2">
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_EDITING' }); }}
+                                        className="flex-1 min-h-[36px] bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors"
+                                      >
+                                        Đã xong quay
+                                      </button>
+                                    </div>
+                                  )}
+
+                                  {task.status === 'PROD_EDITING' && (
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
+                                      className="w-full min-h-[36px] bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 rounded-xl text-[12px] font-bold transition-colors mt-2"
+                                    >
+                                      Đã xong edit
+                                    </button>
+                                  )}
                                   {task.status === 'PROD_DOING' && (
                                     <button 
                                       onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DONE' }); }}
@@ -1229,7 +1254,7 @@ const MarketingApp = () => {
                                                       {task.status === 'CONTENT_DONE' && (
                                                         <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_EDITING' }); }}
                                                             className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
                                                           >
                                                             Phê duyệt
@@ -1270,7 +1295,7 @@ const MarketingApp = () => {
                                                             Phê duyệt
                                                           </button>
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_DOING' }); }}
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_EDITING' }); }}
                                                             className="flex-1 sm:flex-none min-w-[80px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                                           >
                                                             Từ chối
@@ -1319,7 +1344,7 @@ const MarketingApp = () => {
                     <div className="min-w-[140px] bg-white rounded-lg shadow-sm border border-slate-200 px-1 py-0.5 relative z-20">
                          <InlineDropdown
                            value={taskStatusFilter}
-                           options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
+                           options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_FILMING', 'PROD_EDITING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
                            onChange={(val) => setTaskStatusFilter(val)}
                            placeholder="Nhiệm vụ"
                            renderValue={(val) => {
