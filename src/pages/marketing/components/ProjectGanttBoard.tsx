@@ -162,7 +162,9 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     // Click away to close tooltips
     useEffect(() => {
         const handleClickAway = (e: MouseEvent) => {
-            if (!(e.target as HTMLElement).closest('.tooltip-trigger')) {
+            const target = e.target as HTMLElement;
+            // Close if click is NOT on a trigger AND NOT inside a tooltip content
+            if (!target.closest('.tooltip-trigger') && !target.closest('.tooltip-content')) {
                 setActiveTooltip(null);
             }
         };
@@ -292,7 +294,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     </div>
                     {/* Tooltip */}
                     {isActive && (
-                        <div className="absolute top-8 mb-2 w-48 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in zoom-in-95 duration-150">
+                        <div className="absolute top-8 mb-2 w-48 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in zoom-in-95 duration-150 tooltip-content">
                             <div className="flex justify-between items-start mb-2">
                                 <span className="font-bold text-rose-300">Mốc quay</span>
                                 <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-rose-300 ml-2">
@@ -566,7 +568,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
                                                     </div>
                                                     {isActive && (
-                                                        <div className="absolute bottom-6 mb-2 w-52 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                                                        <div className="absolute bottom-6 mb-2 w-52 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in slide-in-from-bottom-2 duration-150 tooltip-content">
                                                             <div className="flex justify-between items-start mb-2">
                                                                 <span className="font-bold text-indigo-300">Nhật ký</span>
                                                                 <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-indigo-300 ml-2">
