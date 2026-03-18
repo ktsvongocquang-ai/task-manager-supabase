@@ -718,6 +718,20 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="Trung bình">Trung bình</option>
                                         <option value="Cao">Cao</option>
                                     </select>
+
+                                    {form.status === 'PROD_FILMING' && (
+                                        <div className="ml-auto flex items-center gap-2">
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Lên lịch quay</span>
+                                                <input
+                                                    type="date"
+                                                    value={form.start_date}
+                                                    onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                                    className="bg-red-50 border border-red-100 rounded-lg px-2 py-1 text-xs font-bold text-red-600 outline-none focus:ring-1 focus:ring-red-200 transition-all cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                         </div>
 
@@ -816,7 +830,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="IDEA">Idea</option>
                                             <option value="CONTENT_EDITING">Viết Content (Đang soạn)</option>
                                             <option value="CONTENT_DONE">Viết Content (Chờ duyệt)</option>
-                                            <option value="PROD_DOING">Sản xuất (Đang làm)</option>
+                                            <option value="PROD_FILMING">Sản xuất (Đang Quay)</option>
+                                            <option value="PROD_EDITING">Sản xuất (Đang Edit)</option>
                                             <option value="PROD_DONE">Sản xuất (Đã xong)</option>
                                             <option value="VIDEO_REVIEW">Gửi qua Phê duyệt</option>
                                             <option value="SCHEDULED">Chưa đăng (Đã xếp lịch)</option>
