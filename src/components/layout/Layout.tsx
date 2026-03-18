@@ -46,7 +46,7 @@ const viewTitles: Record<string, string> = {
 }
 
 export const Layout = () => {
-    const { profile, signOut } = useAuthStore()
+    const { profile, signOut, systemPermissions } = useAuthStore()
     const navigate = useNavigate()
     const location = useLocation()
     const [searchParams] = useSearchParams()
