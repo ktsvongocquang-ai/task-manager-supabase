@@ -34,26 +34,26 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
 }) => {
     const [form, setForm] = useState({
         name: '',
-        project_code: '',
-        description: '',
-        status: 'Chưa bắt đầu',
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        manager_id: currentUserProfile?.id || '',
-        department: 'Marketing',
-        project_type: '',
-        update_status: '',
-        scale: '',
-        effect_type: '',
-        effect_description: '',
-        address: '',
-        image_folder_link: '',
-        video_folder_link: '',
-        can_shoot_video: 'Có thể',
-        customer_problem: '',
-        dqh_solution: '',
-        other_info: '',
-        content_link: ''
+        project_code: editingProject?.project_code || `PRJ-${Math.floor(Date.now() / 1000)}`,
+        description: editingProject?.description || '',
+        status: editingProject?.status || 'Chưa bắt đầu',
+        start_date: editingProject?.start_date || new Date().toISOString().split('T')[0],
+        end_date: editingProject?.end_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        manager_id: editingProject?.manager_id || currentUserProfile?.id || '',
+        department: editingProject?.department || 'Marketing',
+        project_type: editingProject?.project_type || '',
+        update_status: editingProject?.update_status || '',
+        scale: editingProject?.scale || '',
+        effect_type: editingProject?.effect_type || '',
+        effect_description: editingProject?.effect_description || '',
+        address: editingProject?.address || '',
+        image_folder_link: editingProject?.image_folder_link || '',
+        video_folder_link: editingProject?.video_folder_link || '',
+        can_shoot_video: editingProject?.can_shoot_video || 'Có thể',
+        customer_problem: editingProject?.customer_problem || '',
+        dqh_solution: editingProject?.dqh_solution || '',
+        other_info: editingProject?.other_info || '',
+        content_link: editingProject?.content_link || ''
     });
 
     const [isListening, setIsListening] = useState<'description' | 'customer_problem' | 'dqh_solution' | null>(null);
@@ -235,18 +235,32 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                 
                 <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar bg-slate-50/30">
                     <div className="space-y-5">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div className="sm:col-span-2">
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Tên công trình <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400 font-bold text-slate-900"
                                     placeholder="VD: Chung cư Palm Height"
                                     required
                                 />
                             </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1 uppercase tracking-tight">Mã công trình <span className="text-red-500">*</span></label>
+                                <input
+                                    type="text"
+                                    value={form.project_code}
+                                    onChange={(e) => setForm({ ...form, project_code: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all font-mono font-bold text-indigo-600"
+                                    placeholder="DA001"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Loại công trình <span className="text-red-500">*</span></label>
                                 <select
@@ -259,25 +273,6 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                     {PROJECT_TYPES.map(pt => <option key={pt} value={pt}>{pt}</option>)}
                                 </select>
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Tình trạng <span className="text-red-500">*</span></label>
-                                <select
-                                    value={form.status}
-                                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
-                                    required
-                                >
-                                    <option value="">Chọn tình trạng</option>
-                                    <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                    <option value="Đang thực hiện">Đang thực hiện</option>
-                                    <option value="Hoàn thành">Hoàn thành</option>
-                                    <option value="Tạm dừng">Tạm dừng</option>
-                                    <option value="Hủy bỏ">Hủy bỏ</option>
-                                </select>
-                            </div>
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Trạng thái cập nhật hình ảnh</label>
                                 <select
@@ -287,6 +282,39 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 >
                                     <option value="">Chọn trạng thái</option>
                                     {UPDATE_STATUSES.map(us => <option key={us} value={us}>{us}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                             <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Tình trạng thi công <span className="text-red-500">*</span></label>
+                                <select
+                                    value={form.status}
+                                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    required
+                                >
+                                    <option value="">Chọn tình trạng</option>
+                                    <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                    <option value="Đang thực hiện">Đang thực hiện</option>
+                                    <option value="Đã bàn giao">Đã bàn giao</option>
+                                    <option value="Tạm dừng">Tạm dừng</option>
+                                    <option value="Hủy bỏ">Hủy bỏ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                                    <span>Có thể đến quay video không?</span>
+                                </label>
+                                <select
+                                    value={form.can_shoot_video || 'Có thể'}
+                                    onChange={(e) => setForm({ ...form, can_shoot_video: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                >
+                                    <option value="Có thể">Có thể</option>
+                                    <option value="Không thể">Không thể</option>
+                                    <option value="Cần xin phép thêm">Cần xin phép thêm</option>
                                 </select>
                             </div>
                         </div>
@@ -324,19 +352,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Có thể đến quay video không?</label>
-                                <select
-                                    value={form.can_shoot_video || 'Có thể'}
-                                    onChange={(e) => setForm({ ...form, can_shoot_video: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
-                                >
-                                    <option value="Có thể">Có thể</option>
-                                    <option value="Không thể">Không thể</option>
-                                    <option value="Cần xin phép thêm">Cần xin phép thêm</option>
-                                </select>
-                            </div>
-                            <div>
+                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phong cách</label>
                                 <select
                                     value={form.effect_type}
@@ -503,30 +519,19 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
                         
                         {/* Hidden Manager ID & Project Code to keep the data model consistent */}
-                        <div className="pt-6 border-t border-slate-200 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5 opacity-80 bg-slate-100/50 p-4 rounded-xl">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Mã dự án (Hệ thống)</label>
-                                <input
-                                    type="text"
-                                    value={form.project_code}
-                                    onChange={(e) => setForm({ ...form, project_code: e.target.value })}
-                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Quản lý dự án (Admin view)</label>
-                                <select
-                                    value={form.manager_id}
-                                    onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
-                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none"
-                                    disabled={currentUserProfile?.role !== 'Admin' && currentUserProfile?.role !== 'Quản lý'}
-                                >
-                                    <option value="">Chọn quản lý</option>
-                                    {profiles.map(p => (
-                                        <option key={p.id} value={p.id}>{p.full_name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                        <div className="pt-6 border-t border-slate-200 mt-6 bg-slate-100/30 p-4 rounded-xl">
+                             <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Quản lý dự án (Admin view)</label>
+                             <select
+                                 value={form.manager_id}
+                                 onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
+                                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                 disabled={currentUserProfile?.role !== 'Admin' && currentUserProfile?.role !== 'Quản lý'}
+                             >
+                                 <option value="">Chọn quản lý</option>
+                                 {profiles.map(p => (
+                                     <option key={p.id} value={p.id}>{p.full_name}</option>
+                                 ))}
+                             </select>
                         </div>
                     </div>
                 </div>
