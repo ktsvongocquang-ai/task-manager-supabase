@@ -24,8 +24,10 @@ import {
   Eye,
   EyeOff,
   Clock,
-  Edit
+  Edit,
+  GripVertical
 } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear, parseISO, differenceInDays, isFuture, isToday } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useSearchParams } from 'react-router-dom';
@@ -1540,61 +1542,130 @@ const MarketingApp = () => {
                              <tr>
                                <td colSpan={11} className="p-0">
                                  <div className="bg-slate-50 p-4 border-t border-slate-200">
-                                   <h4 className="text-sm font-bold text-slate-700 mb-3">Tasks cho dự án "{proj.name}"</h4>
-                                   <table className="w-full text-[12px] text-left border-collapse border border-slate-200">
-                                     <thead className="bg-slate-100 text-slate-500">
-                                       <tr>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center"></th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Ngày đăng</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
-                                         <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
-                                       </tr>
-                                     </thead>
-                                     <tbody className="divide-y divide-slate-200">
+                                   <div className="flex justify-between items-center mb-3">
+                                     <h4 className="text-sm font-bold text-slate-700">Tasks cho dự án "{proj.name}"</h4>
+                                     <button 
+                                       onClick={() => { setEditingTask({ project_id: proj.id, status: 'IDEA' } as any); setIsTaskModalOpen(true); }}
+                                       className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"
+                                       title="Thêm Idea"
+                                     >
+                                       <Plus className="w-3.5 h-3.5" /> Thêm Idea
+                                     </button>
+                                   </div>
+                                   <DragDropContext onDragEnd={(result) => {
+                                      const { destination, source } = result;
+                                      if (!destination) return;
+                                      if (destination.index === source.index) return;
+                                      
+                                      const projTasks = videos.filter(v => v.project_id === proj.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                                      const draggedTask = projTasks[source.index];
+                                      const updatedTasks = Array.from(projTasks);
+                                      updatedTasks.splice(source.index, 1);
+                                      updatedTasks.splice(destination.index, 0, draggedTask);
+                                      
+                                      // Calculate new created_at
+                                      let newTime = Date.now();
+                                      if (updatedTasks.length > 1) {
+                                          if (destination.index === 0) {
+                                              newTime = new Date(updatedTasks[1].created_at).getTime() - 1000;
+                                          } else if (destination.index === updatedTasks.length - 1) {
+                                              newTime = new Date(updatedTasks[destination.index - 1].created_at).getTime() + 1000;
+                                          } else {
+                                              const prevTime = new Date(updatedTasks[destination.index - 1].created_at).getTime();
+                                              const nextTime = new Date(updatedTasks[destination.index + 1].created_at).getTime();
+                                              newTime = prevTime + (nextTime - prevTime) / 2;
+                                          }
+                                      }
+                                      const newDateString = new Date(newTime).toISOString();
+                                      
+                                      setVideos(prev => prev.map(v => v.id === draggedTask.id ? { ...v, created_at: newDateString } : v));
+                                      supabase.from('marketing_tasks').update({ created_at: newDateString }).eq('id', draggedTask.id).then(({error}) => {
+                                          if(error) console.error("Error updating order", error);
+                                      });
+                                   }}>
+                                   <Droppable droppableId={`proj-${proj.id}`}>
+                                     {(provided) => (
+                                       <table className="w-full text-[12px] text-left border-collapse border border-slate-200" ref={provided.innerRef} {...provided.droppableProps}>
+                                         <thead className="bg-slate-100 text-slate-500">
+                                           <tr>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal w-[30px] text-center"></th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
+                                                <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
+                                             </th>
+                                             <th className="px-3 py-2 border border-slate-200 font-bold w-[40px] text-center">STT</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Ngày đăng</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
+                                           </tr>
+                                         </thead>
+                                         <tbody className="divide-y divide-slate-200">
+
                                        {videos.filter(v => v.project_id === proj.id).length === 0 ? (
                                          <tr>
-                                           <td colSpan={8} className="px-4 py-6 text-center text-slate-400 bg-white">
+                                           <td colSpan={10} className="px-4 py-6 text-center text-slate-400 bg-white">
                                              Chưa có task nào cho dự án này.
                                            </td>
                                          </tr>
                                        ) : (
-                                         videos.filter(v => v.project_id === proj.id).map((video: any) => {
+                                         videos.filter(v => v.project_id === proj.id)
+                                           .sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                                           .map((video: any, index: number) => {
                                            const statusInfo = STATUS_MAP[video.status];
                                            return (
-                                             <tr key={video.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                               <td className="px-3 py-2 border border-slate-200 text-center">
-                                                 <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
-                                               </td>
-                                               <td className="px-3 py-2 border border-slate-200 font-medium text-slate-800">{video.title}</td>
-                                               <td className="px-3 py-2 border border-slate-200">{video.platform}</td>
-                                               <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
-                                               <td className="px-3 py-2 border border-slate-200">{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'N/A'}</td>
-                                               <td className="px-3 py-2 border border-slate-200">
-                                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>
-                                                   <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
-                                                   {statusInfo?.name || video.status}
-                                                 </span>
-                                               </td>
-                                               <td className="px-3 py-2 border border-slate-200">
-                                                 {video.link && (
-                                                   <a href={video.link} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline text-xs">Link</a>
-                                                 )}
-                                               </td>
-                                               <td className="px-3 py-2 border border-slate-200 text-center">
-                                                 <button onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }} className="text-slate-400 hover:text-indigo-600">
-                                                   <Edit size={14} />
-                                                 </button>
-                                               </td>
-                                             </tr>
+                                            <Draggable key={video.id} draggableId={video.id} index={index}>
+                                              {(provided, snapshot) => (
+                                               <tr
+                                                 ref={provided.innerRef}
+                                                 {...provided.draggableProps}
+                                                 className={`bg-white hover:bg-slate-50 transition-colors ${snapshot.isDragging ? 'shadow-lg border border-indigo-300' : ''}`}
+                                               >
+                                                 <td className="px-2 py-2 border border-slate-200 text-center text-slate-300 hover:text-indigo-500">
+                                                   <div {...provided.dragHandleProps} className="flex justify-center cursor-grab active:cursor-grabbing p-1">
+                                                     <GripVertical size={16} />
+                                                   </div>
+                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200 text-center">
+                                                   <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
+                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200 text-center font-bold text-slate-400">
+                                                   {String(index + 1).padStart(2, '0')}
+                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200 font-medium text-slate-800">{video.title}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">{video.platform}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'N/A'}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">
+                                                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>
+                                                     <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
+                                                     {statusInfo?.name || video.status}
+                                                   </span>
+                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200">
+                                                   {video.link && (
+                                                     <a href={video.link} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline text-xs">Link</a>
+                                                   )}
+                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200 text-center">
+                                                   <button onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }} className="text-slate-400 hover:text-indigo-600">
+                                                     <Edit size={14} />
+                                                   </button>
+                                                 </td>
+                                               </tr>
+                                              )}
+                                            </Draggable>
                                            );
                                          })
                                        )}
+                                       {provided.placeholder}
                                      </tbody>
                                    </table>
+                                  )}
+                                 </Droppable>
+                                 </DragDropContext>
                                  </div>
                                </td>
                              </tr>
@@ -1660,6 +1731,13 @@ const MarketingApp = () => {
                     
                     // Find videos for this day
                     const dayVideos = videos.filter(v => isSameDay(new Date(v.dueDate), cloneDay));
+                    const dayMilestones = projects.flatMap(p => 
+                        (p.marketing_shooting_milestones || []).map((m: any) => ({
+                            ...m,
+                            projectName: p.name,
+                            projectId: p.id
+                        }))
+                    ).filter(m => isSameDay(parseISO(m.milestone_date), cloneDay));
 
                     days.push(
                       <div 
@@ -1668,13 +1746,28 @@ const MarketingApp = () => {
                       >
                         <div className="text-right text-sm font-medium mb-1">{formattedDate}</div>
                         <div className="space-y-1">
+                          {dayMilestones.map(milestone => (
+                            <div 
+                              key={milestone.id} 
+                              className="text-xs p-1.5 rounded border border-rose-200 bg-rose-50 text-rose-700 truncate hover:bg-rose-100 transition-colors mb-1"
+                              title={`${milestone.projectName} - ${milestone.content}`}
+                            >
+                              <div className="font-bold flex items-center gap-1">
+                                <Video size={12} className="shrink-0" /> Lịch Quay: <span className="truncate">{milestone.projectName}</span>
+                              </div>
+                              <div className="mt-0.5 truncate text-[10px] opacity-80">
+                                {milestone.content}
+                              </div>
+                            </div>
+                          ))}
                           {dayVideos.map(video => {
                             const statusDef = STATUS_MAP[video.status];
                             return (
                               <div 
                                 key={video.id} 
-                                className={`text-xs p-1.5 rounded border ${statusDef?.color} truncate cursor-pointer hover:opacity-80 transition-opacity`}
+                                className={`text-xs p-1.5 rounded border ${statusDef?.color} truncate cursor-pointer hover:opacity-80 transition-opacity mb-1`}
                                 title={video.title}
+                                onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }}
                               >
                                 <div className="font-semibold truncate">{video.title}</div>
                                 <div className="flex justify-between items-center mt-1">
