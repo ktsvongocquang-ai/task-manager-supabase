@@ -1361,13 +1361,17 @@ const MarketingApp = () => {
                    <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
                        <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" disabled />
                    </th>
-                   <th classN                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
-                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[280px]">Tiến độ & Nhật ký</th>
-                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
-                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
-                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
-                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Ghi chú</th>
-                  </tr>
+                   <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center"></th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[200px]">Dự án</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Loại</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Trạng thái</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[280px]">Tiến độ & Nhật ký</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
+                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Ghi chú</th>
+                 </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {(() => {
@@ -1517,11 +1521,6 @@ const MarketingApp = () => {
                           <td className="px-3 py-2 border border-slate-200 text-slate-500 text-xs">
                               {proj.other_info || <span className="text-slate-300 italic">...</span>}
                           </td>
-                        </tr>">
-                             {proj.content_link ? (
-                                 <a href={proj.content_link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                                     <ExternalLink size={14} className="text-indigo-500" />
-                                     <span className="underline decoration-indigo-200 underline-offset-2">Doc Nội Dung</span>
                                  </a>
                              ) : <span className="text-slate-300 italic">...</span>}
                          </td>
