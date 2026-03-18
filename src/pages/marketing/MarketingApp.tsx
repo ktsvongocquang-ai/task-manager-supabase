@@ -165,12 +165,19 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
   const [statusFilter, setStatusFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
 
-  // Calculate real performance from published tasks
+  // Calculate real performance from filtered tasks
   const performanceData = React.useMemo(() => {
-    const publishedTasks = videos.filter(v => v.status === 'PUBLISHED');
+    const filteredTasks = videos.filter(v => {
+      if (statusFilter !== 'Tất cả' && v.status !== statusFilter) return false;
+      if (formatFilter !== 'Tất cả' && v.format !== formatFilter) return false;
+      return true;
+    });
     
-    // Total posts matches the length of PUBLISHED tasks
-    const posts = publishedTasks.length;
+    // Sum metrics from published tasks within the filtered set
+    const publishedTasks = filteredTasks.filter(v => v.status === 'PUBLISHED');
+    
+    // Total posts matches the length of ALL tasks in the filtered set
+    const posts = filteredTasks.length;
     
     const views = publishedTasks.reduce((acc, v) => acc + (parseInt(v.views || '0', 10) || 0), 0);
     const interactions = publishedTasks.reduce((acc, v) => acc + (parseInt(v.interactions || '0', 10) || 0), 0);
@@ -178,7 +185,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
     const saves = publishedTasks.reduce((acc, v) => acc + (parseInt(v.saves || '0', 10) || 0), 0);
 
     return { posts, views, interactions, shares, saves };
-  }, [videos]);
+  }, [videos, statusFilter, formatFilter]);
 
   const currentData = React.useMemo(() => {
     let multiplier = 1;
@@ -515,6 +522,7 @@ const MarketingApp = () => {
   const [listTimeFilter, setListTimeFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
   const [projectStatusFilter, setProjectStatusFilter] = useState('Tất cả');
+  const [taskStatusFilter, setTaskStatusFilter] = useState('Tất cả');
   const [showKanbanFilters, setShowKanbanFilters] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
@@ -1279,14 +1287,33 @@ const MarketingApp = () => {
                <h2 className="text-lg font-bold text-gray-900 uppercase tracking-widest">TỔNG HỢP DỰ ÁN</h2>
              </div>
              <div className="flex items-center gap-3">
-                <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-20">
-                     <InlineDropdown
-                       value={projectStatusFilter}
-                       options={['Tất cả', 'Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
-                       onChange={(val) => setProjectStatusFilter(val)}
-                       placeholder="Trạng thái"
-                       renderValue={(val) => <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Lọc:</span> <span className="truncate max-w-[80px]">{val}</span></span>}
-                     />
+                <div className="flex bg-slate-100/50 p-1 rounded-xl border border-slate-200 shadow-inner gap-1">
+                    <div className="min-w-[140px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-20">
+                         <InlineDropdown
+                           value={projectStatusFilter}
+                           options={['Tất cả', 'Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
+                           onChange={(val) => setProjectStatusFilter(val)}
+                           placeholder="Dự án"
+                           renderValue={(val) => <span className="text-[11px] font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Dự án:</span> <span className="truncate max-w-[70px]">{val}</span></span>}
+                         />
+                    </div>
+                    <div className="min-w-[140px] bg-white rounded-lg shadow-sm border border-slate-200 px-1 py-0.5 relative z-20">
+                         <InlineDropdown
+                           value={taskStatusFilter}
+                           options={['Tất cả', 'IDEA', 'CONTENT_EDITING', 'CONTENT_DONE', 'PROD_DOING', 'PROD_DONE', 'VIDEO_REVIEW', 'SCHEDULED', 'PUBLISHED', 'REJECTED']}
+                           onChange={(val) => setTaskStatusFilter(val)}
+                           placeholder="Nhiệm vụ"
+                           renderValue={(val) => {
+                               let label = val;
+                               if (val === 'IDEA') label = 'Idea';
+                               else if (val === 'CONTENT_EDITING') label = 'Đang soạn';
+                               else if (val === 'CONTENT_DONE') label = 'Chờ duyệt';
+                               else if (val === 'PROD_DOING') label = 'Sản xuất';
+                               else if (val === 'PUBLISHED') label = 'Đã đăng';
+                               return <span className="text-[11px] font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Task:</span> <span className="truncate max-w-[70px]">{label}</span></span>
+                           }}
+                         />
+                    </div>
                 </div>
                 <button 
                   onClick={() => setIsProjectModalOpen(true)}
@@ -1325,6 +1352,13 @@ const MarketingApp = () => {
                  {(() => {
                     const filteredProjects = projects.filter(p => {
                         if (projectStatusFilter !== 'Tất cả' && p.update_status !== projectStatusFilter) return false;
+                        
+                        // If task filter is active, only show projects that have at least one task matching the status
+                        if (taskStatusFilter !== 'Tất cả') {
+                            const hasMatchingTask = videos.some(v => v.project_id === p.id && v.status === taskStatusFilter);
+                            if (!hasMatchingTask) return false;
+                        }
+
                         return true;
                     });
 
@@ -1468,8 +1502,12 @@ const MarketingApp = () => {
                            <td colSpan={10} className="p-0 border border-slate-200 bg-slate-50 shadow-inner">
                              <div className="p-4 pl-12">
                                <div className="bg-white border text-center border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                                 {videos.filter(v => v.project_id === proj.id).length === 0 ? (
-                                   <div className="p-6 text-sm text-slate-400">Không có bài viết/nhiệm vụ nào trong dự án này.</div>
+                                 {videos.filter(v => {
+                                     if (v.project_id !== proj.id) return false;
+                                     if (taskStatusFilter !== 'Tất cả' && v.status !== taskStatusFilter) return false;
+                                     return true;
+                                 }).length === 0 ? (
+                                   <div className="p-6 text-sm text-slate-400">Không có bài viết/nhiệm vụ nào phù hợp trong dự án này.</div>
                                  ) : (
                                    <table className="w-full text-[13px] text-left">
                                      <thead className="bg-[#fcfdfd] text-slate-500 border-b border-slate-100">
@@ -1485,7 +1523,11 @@ const MarketingApp = () => {
                                        </tr>
                                      </thead>
                                      <tbody className="divide-y divide-slate-100">
-                                       {videos.filter(v => v.project_id === proj.id).map((task, tidx) => {
+                                       {videos.filter(v => {
+                                           if (v.project_id !== proj.id) return false;
+                                           if (taskStatusFilter !== 'Tất cả' && v.status !== taskStatusFilter) return false;
+                                           return true;
+                                       }).map((task, tidx) => {
                                           return (
                                            <tr key={task.id} className="hover:bg-slate-50/80 group">
                                              <td className="px-4 py-2.5 text-slate-400 font-medium cursor-pointer" onClick={() => { setEditingProject(projects.find(p => p.id === task.project_id) || null); setEditingTask(task); setIsTaskModalOpen(true); }}>{tidx + 1}</td>
