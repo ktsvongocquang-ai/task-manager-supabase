@@ -11,7 +11,8 @@ import { logActivity } from '../../services/activity'
 
 export const Tasks = () => {
     const navigate = useNavigate();
-    const { profile } = useAuthStore()
+    const { profile, hasPermission } = useAuthStore()
+    const canEdit = hasPermission(profile?.role?.trim(), 'Tab Công Việc (Sửa)')
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [profiles, setProfiles] = useState<any[]>([])
@@ -387,12 +388,14 @@ export const Tasks = () => {
                             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
-                    <button
-                        onClick={() => openAddModal()}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                    >
-                        <Plus size={18} /> Tạo mới nhiệm vụ
-                    </button>
+                    {canEdit && (
+                        <button
+                            onClick={() => openAddModal()}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                        >
+                            <Plus size={18} /> Tạo mới nhiệm vụ
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -462,7 +465,7 @@ export const Tasks = () => {
                                         {projectTasks.filter(t => !t.parent_id).length} NHIỆM VỤ
                                     </span>
                                 </div>
-                                {(profile?.role === 'Admin' || project?.manager_id === profile?.id) && (
+                                {canEdit && (profile?.role === 'Admin' || project?.manager_id === profile?.id || profile?.role === 'Quản lý') && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); openAddModal(projectId); }}
                                         className="text-xs font-bold text-indigo-600 hover:underline"
@@ -544,7 +547,7 @@ export const Tasks = () => {
                                                                         checked={t.status?.includes('Hoàn thành')}
                                                                         onChange={() => toggleComplete(t)}
                                                                         className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                                        disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || t.assignee_id === profile?.id)}
+                                                                        disabled={!canEdit || !(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || t.assignee_id === profile?.id)}
                                                                     />
                                                                 </td>
                                                                 <td className={`px-4 py-3 min-w-[250px]`}>
@@ -571,7 +574,7 @@ export const Tasks = () => {
                                                                             value={t.assignee_id || ''}
                                                                             onChange={(e) => updateTaskField(t.id, 'assignee_id', e.target.value || null)}
                                                                             className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
-                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            disabled={!canEdit}
                                                                         >
                                                                             <option value="">Chưa gán</option>
                                                                             {profiles.map(p => (
@@ -585,7 +588,7 @@ export const Tasks = () => {
                                                                         value={t.status}
                                                                         onChange={(e) => updateTaskField(t.id, 'status', e.target.value)}
                                                                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(t.status)}`}
-                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        disabled={!canEdit}
                                                                     >
                                                                         <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                                                         <option value="Cần làm">Cần làm</option>
@@ -600,7 +603,7 @@ export const Tasks = () => {
                                                                         value={t.priority}
                                                                         onChange={(e) => updateTaskField(t.id, 'priority', e.target.value)}
                                                                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(t.priority)}`}
-                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        disabled={!canEdit}
                                                                     >
                                                                         <option value="Thấp">Thấp</option>
                                                                         <option value="Trung bình">Trung bình</option>
@@ -638,24 +641,28 @@ export const Tasks = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[120px] min-w-[120px]">
                                                                     <div className="flex items-center justify-center gap-2">
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); handleCopy(t); }}
-                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
-                                                                        >
-                                                                            <Copy size={13} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
-                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity"
-                                                                        >
-                                                                            <Edit3 size={13} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
-                                                                            className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
-                                                                        >
-                                                                            <Trash2 size={13} />
-                                                                        </button>
+                                                                        {canEdit && (
+                                                                            <>
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); handleCopy(t); }}
+                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
+                                                                                >
+                                                                                    <Copy size={13} />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); openEditModal(t); }}
+                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-amber-50 text-amber-500 rounded-lg flex items-center justify-center border border-amber-100 hover:bg-amber-100 transition-opacity"
+                                                                                >
+                                                                                    <Edit3 size={13} />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
+                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
+                                                                                >
+                                                                                    <Trash2 size={13} />
+                                                                                </button>
+                                                                            </>
+                                                                        )}
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -720,7 +727,7 @@ export const Tasks = () => {
                                                                                                 checked={isCompleted}
                                                                                                 onChange={(e) => { e.stopPropagation(); toggleComplete(child); }}
                                                                                                 className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                                                                disabled={!(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id)}
+                                                                                                disabled={!canEdit || !(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || child.assignee_id === profile?.id)}
                                                                                             />
                                                                                         </td>
 
@@ -747,7 +754,7 @@ export const Tasks = () => {
                                                                                                     value={child.assignee_id || ''}
                                                                                                     onChange={(e) => updateTaskField(child.id, 'assignee_id', e.target.value || null)}
                                                                                                     className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
-                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                    disabled={!canEdit}
                                                                                                 >
                                                                                                     <option value="">Chưa gán</option>
                                                                                                     {profiles.map(p => (
@@ -763,7 +770,7 @@ export const Tasks = () => {
                                                                                                 value={child.status}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'status', e.target.value)}
                                                                                                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(child.status)}`}
-                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                disabled={!canEdit}
                                                                                             >
                                                                                                 <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                                                                                 <option value="Cần làm">Cần làm</option>
@@ -779,7 +786,7 @@ export const Tasks = () => {
                                                                                                 value={child.priority}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'priority', e.target.value)}
                                                                                                 className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(child.priority)}`}
-                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                disabled={!canEdit}
                                                                                             >
                                                                                                 <option value="Thấp">Thấp</option>
                                                                                                 <option value="Trung bình">Trung bình</option>

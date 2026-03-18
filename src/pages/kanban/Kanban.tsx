@@ -16,7 +16,8 @@ const KANBAN_COLUMNS = [
 ]
 
 export const Kanban = () => {
-    const { profile } = useAuthStore()
+    const { profile, hasPermission } = useAuthStore()
+    const canEdit = hasPermission(profile?.role?.trim(), 'Tab Công Việc (Sửa)')
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [profiles, setProfiles] = useState<any[]>([])
@@ -248,13 +249,15 @@ export const Kanban = () => {
                                             {colTasks.length}
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={() => openAddModalWithStatus()}
-                                        className="text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center w-11 h-11 md:w-8 md:h-8 hover:bg-slate-50 rounded-lg shrink-0"
-                                        title={`Thêm nhiệm vụ "${column.title}"`}
-                                    >
-                                        <Plus size={20} className="md:w-[18px] md:h-[18px]" />
-                                    </button>
+                                    {canEdit && (
+                                        <button
+                                            onClick={() => openAddModalWithStatus()}
+                                            className="text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center w-11 h-11 md:w-8 md:h-8 hover:bg-slate-50 rounded-lg shrink-0"
+                                            title={`Thêm nhiệm vụ "${column.title}"`}
+                                        >
+                                            <Plus size={20} className="md:w-[18px] md:h-[18px]" />
+                                        </button>
+                                    )}
                                 </div>
 
                                 <Droppable droppableId={column.id}>
@@ -270,7 +273,7 @@ export const Kanban = () => {
                                                 const totalSub = childTasks.length;
                                                 const completedSub = childTasks.filter(ct => ct.status === 'Hoàn thành').length;
                                                 const project = projects.find(p => p.id === task.project_id);
-                                                const isDraggable = Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
+                                                const isDraggable = canEdit && Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
 
                                                 return (
                                                     <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={!isDraggable}>
@@ -280,7 +283,7 @@ export const Kanban = () => {
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                                 onClick={() => {
-                                                                    if (!snapshot.isDragging) {
+                                                                    if (!snapshot.isDragging && canEdit) {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}

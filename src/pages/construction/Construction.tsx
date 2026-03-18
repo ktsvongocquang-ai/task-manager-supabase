@@ -42,7 +42,8 @@ export const Construction = () => {
   // -------------------------------------------------------------
   // STATE MANAGEMENT
   // -------------------------------------------------------------
-  const { profile } = useAuthStore();
+  const { profile, hasPermission } = useAuthStore();
+  const canEdit = hasPermission(profile?.role?.trim(), 'Tab Thi Công (Sửa)');
   const [_loading, setLoading] = useState(true);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -418,15 +419,17 @@ export const Construction = () => {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <button 
-          onClick={() => setCurrentView('CREATE_PROJECT')}
-          className="bg-indigo-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 aspect-square sm:aspect-auto sm:h-32 hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-            <Plus className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-semibold text-white">TẠO DỰ ÁN MỚI</span>
-        </button>
+        {canEdit && (
+            <button 
+              onClick={() => setCurrentView('CREATE_PROJECT')}
+              className="bg-indigo-600 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 aspect-square sm:aspect-auto sm:h-32 hover:bg-indigo-700 transition-colors shadow-sm"
+            >
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                <Plus className="w-6 h-6 text-white" />
+              </div>
+              <span className="font-semibold text-white">TẠO DỰ ÁN MỚI</span>
+            </button>
+        )}
         
         <button className="bg-white rounded-2xl p-4 flex flex-col items-center justify-center gap-3 aspect-square sm:aspect-auto sm:h-32 border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all">
           <Bell className="w-8 h-8 text-indigo-500" />
@@ -601,7 +604,7 @@ export const Construction = () => {
           <button className="bg-white/5 hover:bg-white/10 text-white font-bold px-6 py-3 rounded-xl border border-white/10 transition-all flex items-center gap-2">
             <Settings className="w-4 h-4" /> Cấu hình
           </button>
-          {!hasData && (
+          {!hasData && canEdit && (
              <button 
                onClick={() => setCurrentView('DATA_UPLOAD')}
                className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-8 py-3 rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2"

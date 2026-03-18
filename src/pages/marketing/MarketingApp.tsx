@@ -370,7 +370,8 @@ const MarketingApp = () => {
   };
 
   const [videos, setVideos] = useState<any[]>([]);
-  const { profile } = useAuthStore();
+  const { profile, hasPermission } = useAuthStore();
+  const canEdit = hasPermission(profile?.role?.trim(), 'Tab Marketing (Sửa)');
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -673,13 +674,15 @@ const MarketingApp = () => {
             )}
 
 
-            <button 
-              onClick={() => setIsTaskModalOpen(true)}
-              className="bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4 shrink-0" />
-              Tạo Task
-            </button>
+            {canEdit && (
+              <button 
+                onClick={() => setIsTaskModalOpen(true)}
+                className="bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2 shadow-sm shrink-0 whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 shrink-0" />
+                Tạo Task
+              </button>
+            )}
 
           </div>
         </div>

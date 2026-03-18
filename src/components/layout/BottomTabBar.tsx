@@ -7,14 +7,15 @@ export const BottomTabBar = () => {
 
     const getDynamicActionTab = () => {
         const role = profile?.role?.trim();
+        const { hasPermission } = useAuthStore.getState();
 
-        if (role === 'Sale') {
+        if (role === 'Sale' && hasPermission(role, 'Tab Chăm Sóc KH (Xem)')) {
             return { name: 'CRM', path: '/customers', icon: HeartHandshake };
         }
-        if (role === 'Giám Sát') {
+        if (role === 'Giám Sát' && hasPermission(role, 'Tab Thi Công (Xem)')) {
             return { name: 'Thi Công', path: '/construction', icon: HardHat };
         }
-        if (role === 'Marketing') {
+        if (role === 'Marketing' && hasPermission(role, 'Tab Marketing (Xem)')) {
             return { name: 'Nội dung làm', path: '/marketing?tab=kanban', icon: Kanban };
         }
         // Default to Tasks for normal employees/admins/managers
