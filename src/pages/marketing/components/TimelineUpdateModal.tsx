@@ -193,7 +193,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-start bg-gray-50/50 shrink-0">
                     <div className="flex-1 mr-4">
                         <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
                             <Calendar className="text-indigo-500" />

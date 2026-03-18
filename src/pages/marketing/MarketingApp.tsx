@@ -912,7 +912,7 @@ const MarketingApp = () => {
                                       {task.start_date ? format(new Date(task.start_date), 'dd/MM') : 'Lên lịch quay'}
                                     </div>
                                   )}
-                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
+                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
                                     {task.priority || 'Trung bình'}
                                   </span>
                                 </div>
@@ -1160,7 +1160,7 @@ const MarketingApp = () => {
                                                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
                                                       {statusDef?.name || task.status}
                                                     </span>
-                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'} border-red-200 text-red-600 bg-white`}>
+                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
                                                       {task.priority || 'Trung bình'}
                                                     </span>
                                                   </div>
@@ -1188,7 +1188,8 @@ const MarketingApp = () => {
                                                   >
                                                     {task.title}
                                                   </h3>
-                                                  <div className="bg-yellow-50 text-indigo-700 font-bold px-2 py-1 rounded border border-yellow-100 text-lg shrink-0">
+                                                  <div className="flex items-center gap-1 bg-white text-slate-500 font-bold px-1.5 py-0.5 rounded border border-slate-200 text-[11px] shrink-0">
+                                                    <Clock size={10} className="text-slate-400" />
                                                     {task.dueDate ? format(new Date(task.dueDate), 'dd-MM') : '??-??'}
                                                   </div>
                                                 </div>
@@ -1259,7 +1260,7 @@ const MarketingApp = () => {
                                                       {task.status === 'CONTENT_DONE' && (
                                                         <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full">
                                                           <button 
-                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_EDITING' }); }}
+                                                            onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'PROD_FILMING' }); }}
                                                             className="flex-1 min-h-[44px] bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-[12px] font-bold transition-colors flex items-center justify-center gap-1"
                                                           >
                                                             Phê duyệt
@@ -1268,7 +1269,7 @@ const MarketingApp = () => {
                                                             onClick={(e) => { e.stopPropagation(); updateTask(task.id, { status: 'CONTENT_EDITING' }); }}
                                                             className="flex-1 sm:flex-none min-w-[100px] min-h-[44px] bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[12px] font-bold transition-colors"
                                                           >
-                                                            Từ chối (Edit)
+                                                            Từ chối
                                                           </button>
                                                         </div>
                                                       )}
