@@ -1589,9 +1589,6 @@ const MarketingApp = () => {
                                          <thead className="bg-slate-100 text-slate-500">
                                            <tr>
                                              <th className="px-3 py-2 border border-slate-200 font-normal w-[30px] text-center"></th>
-                                             <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
-                                                <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
-                                             </th>
                                              <th className="px-3 py-2 border border-slate-200 font-bold w-[40px] text-center">STT</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
@@ -1628,9 +1625,6 @@ const MarketingApp = () => {
                                                      <GripVertical size={16} />
                                                    </div>
                                                  </td>
-                                                 <td className="px-3 py-2 border border-slate-200 text-center">
-                                                   <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
-                                                 </td>
                                                  <td className="px-3 py-2 border border-slate-200 text-center font-bold text-slate-400">
                                                    {String(index + 1).padStart(2, '0')}
                                                  </td>
@@ -1639,10 +1633,18 @@ const MarketingApp = () => {
                                                  <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
                                                  <td className="px-3 py-2 border border-slate-200">{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'N/A'}</td>
                                                  <td className="px-3 py-2 border border-slate-200">
-                                                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>
-                                                     <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
-                                                     {statusInfo?.name || video.status}
-                                                   </span>
+                                                   <div className="flex items-center gap-2">
+                                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>
+                                                       <span className={`w-1.5 h-1.5 rounded-full ${statusInfo?.textColor?.replace('text-', 'bg-')}`}></span>
+                                                       {statusInfo?.name || video.status}
+                                                     </span>
+                                                     {video.status === 'PROD_FILMING' && upcomingMilestone && (
+                                                       <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold whitespace-nowrap" title={upcomingMilestone.content}>
+                                                           <Video size={10} />
+                                                           {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                                                       </div>
+                                                     )}
+                                                   </div>
                                                  </td>
                                                  <td className="px-3 py-2 border border-slate-200">
                                                    {video.link && (
