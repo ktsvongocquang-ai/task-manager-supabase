@@ -1388,9 +1388,6 @@ const MarketingApp = () => {
              <table className="w-full text-[13px] text-left border-collapse min-w-[1000px] border border-slate-200">
                <thead className="bg-[#f9fafb] text-slate-500 sticky top-0 z-10">
                  <tr>
-                   <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
-                       <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" disabled />
-                   </th>
                    <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center"></th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[200px]">Dự án</th>
                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Loại</th>
@@ -1459,9 +1456,6 @@ const MarketingApp = () => {
                       return (
                          <React.Fragment key={proj.id}>
                            <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
-                             <td className="px-3 py-2 border border-slate-200 text-center" onClick={e => e.stopPropagation()}>
-                                <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" />
-                             </td>
                              <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
                                {expandedProjects.has(proj.id) ? (
                                   <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -1540,7 +1534,7 @@ const MarketingApp = () => {
                            </tr>
                            {expandedProjects.has(proj.id) && (
                              <tr>
-                               <td colSpan={11} className="p-0">
+                               <td colSpan={10} className="p-0">
                                  <div className="bg-slate-50 p-4 border-t border-slate-200">
                                    <div className="flex justify-between items-center mb-3">
                                      <h4 className="text-sm font-bold text-slate-700">Tasks cho dự án "{proj.name}"</h4>
