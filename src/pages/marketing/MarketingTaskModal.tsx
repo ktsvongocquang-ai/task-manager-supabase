@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -737,20 +737,6 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="Trung bình">Trung bình</option>
                                         <option value="Cao">Cao</option>
                                     </select>
-
-                                    {form.status === 'PROD_FILMING' && (
-                                        <div className="ml-auto flex items-center gap-2">
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight leading-none mb-1">Lên lịch quay</span>
-                                                <input
-                                                    type="date"
-                                                    value={form.start_date}
-                                                    onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                                    className="bg-red-50 border border-red-100 rounded-lg px-2 py-1 text-xs font-bold text-red-600 outline-none focus:ring-1 focus:ring-red-200 transition-all cursor-pointer"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                         </div>
 
@@ -895,10 +881,22 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="date"
                                             value={form.due_date}
                                             onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0"
+                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         />
                                     </div>
+                                    {form.status === 'PROD_FILMING' && (
+                                        <div className="bg-red-50/80 p-2 -mx-2 rounded-lg border border-red-100 animate-in fade-in transition-all">
+                                            <div className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Video size={12} /> Lên lịch quay</div>
+                                            <input
+                                                type="date"
+                                                value={form.start_date}
+                                                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                                className="w-full bg-transparent border-none text-sm font-bold text-red-600 p-0 focus:ring-0 cursor-pointer"
+                                                disabled={shouldDisableTopFields()}
+                                            />
+                                        </div>
+                                    )}
                                     <div className="hidden">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><ListTodo size={12} /> Thuộc Task lớn</div>
                                         <select
