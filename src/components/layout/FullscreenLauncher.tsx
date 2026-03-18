@@ -84,31 +84,32 @@ export const FullscreenLauncher: React.FC<FullscreenLauncherProps> = ({ isOpen, 
   ];
 
   const getFilteredModules = () => {
-      const role = profile?.role;
+      const role = profile?.role?.trim() || 'Nhân viên';
       const dept = profile?.position;
       const isAdmin = role === 'Admin' || role === 'Giám đốc';
 
       if (isAdmin) return modules;
 
-      if (role === 'Quản lý Sale' || dept === 'Sale') {
-          return modules.filter(m => ['finance', 'kanban', 'customers', 'projects'].includes(m.id));
-      }
+      const { hasPermission } = useAuthStore.getState();
 
-      if (role === 'Giám sát - Quản lý' || dept === 'Thi công') {
-          return modules.filter(m => ['kanban', 'construction', 'projects'].includes(m.id));
-      }
-
-      if (role === 'Quản lý Marketing' || dept === 'Marketing') {
-          return modules.filter(m => ['kanban', 'marketing', 'projects'].includes(m.id));
-      }
-
-      if (role === 'Nhân viên Thiết kế' || dept === 'Thiết kế') {
-          // Designers only need Kanban, Projects (maybe), and Moodboard (which isn't a module yet but kanban is enough here)
-          return modules.filter(m => ['kanban', 'projects'].includes(m.id));
-      }
-
-      // Default
-      return modules.filter(m => ['kanban', 'construction', 'marketing', 'projects'].includes(m.id));
+      return modules.filter(m => {
+          if (m.id === 'kanban' || m.id === 'projects') {
+              return hasPermission(role, 'Tab Công Việc (Xem)');
+          }
+          if (m.id === 'marketing') {
+              return hasPermission(role, 'Tab Marketing (Xem)');
+          }
+          if (m.id === 'construction') {
+              return hasPermission(role, 'Tab Thi Công (Xem)');
+          }
+          if (m.id === 'customers') {
+              return hasPermission(role, 'Tab Chăm Sóc KH (Xem)');
+          }
+          if (m.id === 'finance') {
+              return role === 'Quản lý Sale' || dept === 'Sale';
+          }
+          return false;
+      });
   };
 
   const filteredModules = getFilteredModules();
