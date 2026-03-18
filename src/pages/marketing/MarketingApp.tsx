@@ -1361,25 +1361,16 @@ const MarketingApp = () => {
                    <th className="px-3 py-2 border border-slate-200 font-normal w-[40px] text-center">
                        <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300" disabled />
                    </th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[200px]">
-                       <div className="flex items-center gap-1.5"><span className="font-bold font-sans text-slate-400">Aa</span> Tên công trình</div>
-                   </th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[160px]">
-                       <div className="flex items-center gap-1.5">Loại công trình</div>
-                   </th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[160px]">
-                       <div className="flex items-center gap-1.5"><ListTodo className="w-3.5 h-3.5" /> Trạng thái cập nhật</div>
-                   </th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[280px]">Tiến độ & Nhật ký</th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
-                   <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Ghi chú</th>
-                 </tr>
-               </thead>
-               <tbody className="divide-y divide-slate-200">
-                 {(() => {
+                   <th classN                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[140px]">Phong cách</th>
+                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[280px]">Tiến độ & Nhật ký</th>
+                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Điểm nhấn</th>
+                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[180px]">Nội dung khai thác</th>
+                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Brief</th>
+                    <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Ghi chú</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {(() => {
                     const filteredProjects = projects.filter(p => {
                         if (projectStatusFilter !== 'Tất cả' && p.update_status !== projectStatusFilter) return false;
                         
@@ -1403,117 +1394,130 @@ const MarketingApp = () => {
                     }
 
                     return filteredProjects.map((proj: any) => {
-                     // Parse progress data
-                     let phaseStr = '';
-                     if (proj.actual_start_date) {
-                        const start = parseISO(proj.actual_start_date);
-                        const today = new Date();
-                        const daysPassed = differenceInDays(today, start);
-                        if (daysPassed < 0) {
-                            phaseStr = 'Sắp bắt đầu';
-                        } else {
-                            let current = 0;
-                            if (daysPassed < (current += (proj.design_days || 0))) phaseStr = 'GĐ: Thiết kế';
-                            else if (daysPassed < (current += (proj.rough_construction_days || 0))) phaseStr = 'GĐ: Thi công thô';
-                            else if (daysPassed < (current += (proj.finishing_days || 0))) phaseStr = 'GĐ: Hoàn thiện';
-                            else if (daysPassed < (current += (proj.interior_days || 0))) phaseStr = 'GĐ: Nội thất';
-                            else phaseStr = 'Đã bàn giao';
-                        }
-                     }
-                     
-                     // Get latest log
-                     const logs = proj.marketing_daily_logs || [];
-                     const latestLog = logs.length > 0 ? logs[0] : null;
+                      // Parse progress data
+                      let phaseStr = '';
+                      const start = proj.actual_start_date ? parseISO(proj.actual_start_date) : null;
+                      const handover = proj.handover_date ? parseISO(proj.handover_date) : null;
+                      const today = new Date();
+                      
+                      if (handover && today >= handover) {
+                          phaseStr = 'Đã bàn giao';
+                      } else if (start && today >= start) {
+                          const daysSinceStart = differenceInDays(today, start);
+                          let current = 0;
+                          if (daysSinceStart < (current += (proj.design_days || 0))) phaseStr = 'GĐ: Thiết kế';
+                          else if (daysSinceStart < (current += (proj.rough_construction_days || 0))) phaseStr = 'GĐ: Thi công thô';
+                          else if (daysSinceStart < (current += (proj.finishing_days || 0))) phaseStr = 'GĐ: Hoàn thiện';
+                          else if (daysSinceStart < (current += (proj.interior_days || 0))) phaseStr = 'GĐ: Nội thất';
+                          else phaseStr = 'GĐ: Đang bàn giao';
+                      } else {
+                          phaseStr = proj.status || 'Chưa bắt đầu';
+                      }
+                      
+                      // Get latest log
+                      const logs = proj.marketing_daily_logs || [];
+                      const latestLog = logs.length > 0 ? logs[0] : null;
 
-                     // Get upcoming milestone
-                     const milestones = proj.marketing_shooting_milestones || [];
-                     const upcomingMilestone = milestones.find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
+                      // Get upcoming milestone
+                      const milestones = proj.marketing_shooting_milestones || [];
+                      const upcomingMilestone = milestones.find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
 
-                     return (
-                       <React.Fragment key={proj.id}>
-                         <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
-                           <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
-                             {expandedProjects.has(proj.id) ? (
-                                <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                             ) : (
-                                <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                             )}
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
-                         <td className="px-3 py-2 border border-slate-200">
-                             <InlineDropdown
-                                 value={proj.project_type || ''}
-                                 options={['Chung cư', 'Nhà phố', 'Biệt thự', 'Văn phòng', 'F&B', 'Khác']}
-                                 placeholder="Chọn loại"
-                                 onChange={(val) => updateProjectField(proj.id, 'project_type', val)}
-                                 renderValue={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-xs font-semibold">{val}</span>}
-                                 renderOption={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-[13px] font-semibold">{val}</span>}
-                             />
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                             <InlineDropdown
-                                 value={proj.update_status || ''}
-                                 options={['Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
-                                 placeholder="Trạng thái"
-                                 onChange={(val) => updateProjectField(proj.id, 'update_status', val)}
-                                 renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-xs font-semibold border ${getProjectStatusColor(val)} truncate max-w-[140px]`}>{val}</span>}
-                                 renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[13px] font-semibold border ${getProjectStatusColor(val)}`}>{val}</span>}
-                             />
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                             <InlineDropdown
-                                 value={proj.effect_type ? proj.effect_type.split(',')[0].trim() : ''}
-                                 options={['Hiện đại', 'Tối giản', 'Tân cổ điển', 'Wabi Sabi', 'Japandi', 'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Bê tông']}
-                                 placeholder="Phong cách"
-                                 onChange={(val) => updateProjectField(proj.id, 'effect_type', val)}
-                                 renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[11px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
-                                 renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
-                             />
-                         </td>
-                         
-                         {/* TIẾN ĐỘ & NHẬT KÝ COLUMN */}
-                         <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
-                             <div className="flex flex-col gap-2 relative">
-                                {/* Phase and Link to Kanban logic wrapper */}
-                                <div className="flex items-center gap-2">
-                                     {phaseStr ? (
-                                         <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{phaseStr}</span>
-                                     ) : (
-                                         <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded">Chưa setup</span>
-                                     )}
-                                     {upcomingMilestone && (
-                                         <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold" title={upcomingMilestone.content}>
-                                             <Video size={10} />
-                                             {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                      return (
+                        <React.Fragment key={proj.id}>
+                          <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
+                            <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
+                              {expandedProjects.has(proj.id) ? (
+                                 <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                              ) : (
+                                 <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                              )}
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200 text-slate-900 font-semibold">{proj.name}</td>
+                          <td className="px-3 py-2 border border-slate-200">
+                              <InlineDropdown
+                                  value={proj.project_type || ''}
+                                  options={['Chung cư', 'Nhà phố', 'Biệt thự', 'Văn phòng', 'F&B', 'Khác']}
+                                  placeholder="Chọn loại"
+                                  onChange={(val) => updateProjectField(proj.id, 'project_type', val)}
+                                  renderValue={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-xs font-semibold">{val}</span>}
+                                  renderOption={(val) => <span className="inline-flex bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-sm text-[13px] font-semibold">{val}</span>}
+                              />
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                              <InlineDropdown
+                                  value={proj.update_status || ''}
+                                  options={['Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
+                                  placeholder="Trạng thái"
+                                  onChange={(val) => updateProjectField(proj.id, 'update_status', val)}
+                                  renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-xs font-semibold border ${getProjectStatusColor(val)} truncate max-w-[140px]`}>{val}</span>}
+                                  renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[13px] font-semibold border ${getProjectStatusColor(val)}`}>{val}</span>}
+                              />
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                              <InlineDropdown
+                                  value={proj.effect_type ? proj.effect_type.split(',')[0].trim() : ''}
+                                  options={['Hiện đại', 'Tối giản', 'Tân cổ điển', 'Wabi Sabi', 'Japandi', 'Minimal', 'Rustic', 'Industrial', 'Tropical', 'Bê tông']}
+                                  placeholder="Phong cách"
+                                  onChange={(val) => updateProjectField(proj.id, 'effect_type', val)}
+                                  renderValue={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[11px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                                  renderOption={(val) => <span className={`inline-flex px-2 py-0.5 rounded-sm text-[12px] font-bold ${getProjectEffectColor(val)}`}>{val}</span>}
+                              />
+                          </td>
+                          
+                          {/* TIẾN ĐỘ & NHẬT KÝ COLUMN */}
+                          <td className="px-3 py-2 border border-slate-200" onClick={e => e.stopPropagation()}>
+                              <div className="flex flex-col gap-2 relative">
+                                 {/* Phase and Link to Kanban logic wrapper */}
+                                 <div className="flex items-center gap-2">
+                                      {phaseStr ? (
+                                          <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{phaseStr}</span>
+                                      ) : (
+                                          <span className="bg-gray-50 text-gray-500 border border-gray-100 text-[10px] font-medium px-2 py-0.5 rounded">Chưa setup</span>
+                                      )}
+                                      {upcomingMilestone && (
+                                          <div className="flex items-center gap-1 text-[10px] bg-rose-50 text-rose-600 border border-rose-100 px-2 py-0.5 rounded font-bold" title={upcomingMilestone.content}>
+                                              <Video size={10} />
+                                              {format(parseISO(upcomingMilestone.milestone_date), 'dd/MM')}
+                                          </div>
+                                      )}
+                                 </div>
+                                 {/* Latest Log Snippet */}
+                                 {latestLog ? (
+                                     <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100/50">
+                                         <div className="flex justify-between items-center mb-1">
+                                             <span className="font-bold text-gray-400 text-[9px]">{format(parseISO(latestLog.log_date), 'dd/MM')}</span>
+                                             {latestLog.media_link && (
+                                                 <a href={latestLog.media_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500 font-bold hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm transition-colors" title="Xem tư liệu đính kèm">
+                                                     <Camera size={10} /> Tư liệu
+                                                 </a>
+                                             )}
                                          </div>
-                                     )}
-                                </div>
-                                {/* Latest Log Snippet */}
-                                {latestLog ? (
-                                    <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100/50">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="font-bold text-gray-400 text-[9px]">{format(parseISO(latestLog.log_date), 'dd/MM')}</span>
-                                            {latestLog.media_link && (
-                                                <a href={latestLog.media_link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500 font-bold hover:text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-sm transition-colors" title="Xem tư liệu đính kèm">
-                                                    <Camera size={10} /> Tư liệu
-                                                </a>
-                                            )}
-                                        </div>
-                                        <div className="line-clamp-2 leading-relaxed" title={latestLog.content}>{latestLog.content}</div>
-                                    </div>
-                                ) : (
-                                    <div className="text-[11px] text-gray-400 italic">Chưa có nhật ký</div>
-                                )}
-                             </div>
-                         </td>
-
-                         <td className="px-3 py-2 border border-slate-200 text-slate-700">
-                             {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200 text-slate-700">
-                             {proj.customer_problem || <span className="text-slate-300 italic">Chưa có</span>}
-                         </td>
-                         <td className="px-3 py-2 border border-slate-200 text-slate-700 hover:text-indigo-600">
+                                         <div className="line-clamp-2 leading-relaxed" title={latestLog.content}>{latestLog.content}</div>
+                                     </div>
+                                 ) : (
+                                     <div className="text-[11px] text-gray-400 italic">Chưa có nhật ký</div>
+                                 )}
+                              </div>
+                          </td>
+ 
+                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
+                              {proj.effect_description || <span className="text-slate-300 italic">Chưa có</span>}
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200 text-slate-700">
+                              {proj.customer_problem || <span className="text-slate-300 italic">Chưa có</span>}
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200 text-slate-700 hover:text-indigo-600">
+                              {proj.content_link ? (
+                                  <a href={proj.content_link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                      <ExternalLink size={14} className="text-indigo-500" />
+                                      <span className="underline decoration-indigo-200 underline-offset-2">Doc Nội Dung</span>
+                                  </a>
+                              ) : <span className="text-slate-300 italic">...</span>}
+                          </td>
+                          <td className="px-3 py-2 border border-slate-200 text-slate-500 text-xs">
+                              {proj.other_info || <span className="text-slate-300 italic">...</span>}
+                          </td>
+                        </tr>">
                              {proj.content_link ? (
                                  <a href={proj.content_link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                                      <ExternalLink size={14} className="text-indigo-500" />

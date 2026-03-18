@@ -471,11 +471,38 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
                                         <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
-                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70 whitespace-nowrap">
-                                                {project.status}
-                                            </span>
+                                            {(() => {
+                                                const start = project.actual_start_date ? parseISO(project.actual_start_date) : null;
+                                                const handover = project.handover_date ? parseISO(project.handover_date) : null;
+                                                const today = new Date();
+                                                
+                                                let statusText = project.status || 'Chưa bắt đầu';
+                                                let statusColor = 'bg-gray-100 text-gray-600';
+
+                                                if (handover && today >= handover) {
+                                                    statusText = 'Đã bàn giao';
+                                                    statusColor = 'bg-emerald-50 text-emerald-700 border border-emerald-100';
+                                                } else if (start && today >= start) {
+                                                    // Calculate phase
+                                                    const daysPassed = differenceInDays(today, start);
+                                                    let current = 0;
+                                                    if (daysPassed < (current += (project.design_days || 0))) statusText = 'Thiết kế';
+                                                    else if (daysPassed < (current += (project.rough_construction_days || 0))) statusText = 'Thi công thô';
+                                                    else if (daysPassed < (current += (project.finishing_days || 0))) statusText = 'Hoàn thiện';
+                                                    else if (daysPassed < (current += (project.interior_days || 0))) statusText = 'Nội thất';
+                                                    else statusText = 'Đang bàn giao';
+                                                    
+                                                    statusColor = 'bg-indigo-50 text-indigo-700 border border-indigo-100';
+                                                }
+
+                                                return (
+                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${statusColor} whitespace-nowrap`}>
+                                                        {statusText}
+                                                    </span>
+                                                );
+                                            })()}
                                             {project.project_code && (
-                                                <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">{project.project_code}</span>
+                                                <span className="text-[10px] text-gray-400 font-mono font-bold whitespace-nowrap">{project.project_code}</span>
                                             )}
                                         </div>
                                     </div>

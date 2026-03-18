@@ -21,6 +21,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         name: '',
         address: '',
         supervisor_phone: '',
+        project_code: '',
         actual_start_date: '',
         design_days: 0,
         rough_construction_days: 0,
@@ -43,6 +44,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 name: project.name || '',
                 address: project.address || '',
                 supervisor_phone: project.supervisor_phone || '',
+                project_code: project.project_code || '',
                 actual_start_date: project.actual_start_date || '',
                 design_days: project.design_days || 0,
                 rough_construction_days: project.rough_construction_days || 0,
@@ -98,15 +100,14 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
             const { error } = await supabase
                 .from('marketing_projects')
                 .update({
-                    name: form.name,
-                    address: form.address,
-                    supervisor_phone: form.supervisor_phone,
+                    project_code: form.project_code,
                     actual_start_date: form.actual_start_date || null,
                     design_days: Number(form.design_days),
                     rough_construction_days: Number(form.rough_construction_days),
                     finishing_days: Number(form.finishing_days),
                     interior_days: Number(form.interior_days),
-                    handover_date: form.handover_date || null
+                    handover_date: form.handover_date || null,
+                    status: (form.handover_date && new Date(form.handover_date) <= new Date()) ? 'Đã bàn giao' : project.status
                 })
                 .eq('id', project.id);
                 
@@ -198,8 +199,18 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                             <Calendar className="text-indigo-500" />
                             Cập nhật Dự án & Mốc quay
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div className="md:col-span-1">
+                                <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Mã Dự án</label>
+                                <input 
+                                    type="text" 
+                                    value={form.project_code} 
+                                    onChange={e => setForm({...form, project_code: e.target.value})}
+                                    className="w-full bg-slate-50 border border-gray-200 rounded-lg text-sm font-mono font-bold p-2 focus:ring-1 focus:ring-indigo-500 text-indigo-600"
+                                    placeholder="DA001"
+                                />
+                            </div>
+                            <div className="md:col-span-1">
                                 <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Tên Dự án</label>
                                 <input 
                                     type="text" 
@@ -209,7 +220,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     placeholder="Tên dự án..."
                                 />
                             </div>
-                            <div>
+                            <div className="md:col-span-1">
                                 <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">Địa chỉ</label>
                                 <input 
                                     type="text" 
@@ -219,7 +230,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     placeholder="Địa chỉ công trình..."
                                 />
                             </div>
-                            <div>
+                            <div className="md:col-span-1">
                                 <label className="block text-[10px] uppercase font-bold text-gray-400 mb-1">SĐT Giám sát</label>
                                 <input 
                                     type="text" 
