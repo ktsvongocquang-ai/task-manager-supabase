@@ -160,12 +160,26 @@ const platformData = [
   { name: 'Zalo', value: 0, color: '#d1d5db' },
 ];
 
-const MarketingDashboard = () => {
+const MarketingDashboard = ({ videos }: { videos: any[] }) => {
   const [timeFilter, setTimeFilter] = useState('Tất cả');
   const [statusFilter, setStatusFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
 
-  // Tạo mock data thay đổi khi lọc để cảm nhận UI động
+  // Calculate real performance from published tasks
+  const performanceData = React.useMemo(() => {
+    const publishedTasks = videos.filter(v => v.status === 'PUBLISHED');
+    
+    // Total posts matches the length of PUBLISHED tasks
+    const posts = publishedTasks.length;
+    
+    const views = publishedTasks.reduce((acc, v) => acc + (parseInt(v.views || '0', 10) || 0), 0);
+    const interactions = publishedTasks.reduce((acc, v) => acc + (parseInt(v.interactions || '0', 10) || 0), 0);
+    const shares = publishedTasks.reduce((acc, v) => acc + (parseInt(v.shares || '0', 10) || 0), 0);
+    const saves = publishedTasks.reduce((acc, v) => acc + (parseInt(v.saves || '0', 10) || 0), 0);
+
+    return { posts, views, interactions, shares, saves };
+  }, [videos]);
+
   const currentData = React.useMemo(() => {
     let multiplier = 1;
     if (timeFilter === 'Theo Tuần') multiplier = 0.3;
@@ -173,19 +187,11 @@ const MarketingDashboard = () => {
     if (timeFilter === 'Theo Quý') multiplier = 3.5;
     if (timeFilter === 'Theo Năm') multiplier = 12.0;
 
-    let basePosts = 6 * multiplier;
-    if (statusFilter !== 'Tất cả') basePosts *= 0.5;
-    if (formatFilter !== 'Tất cả') basePosts *= 0.7;
-
     return {
       platforms: platformData.map(p => ({ ...p, value: Math.max(0, Math.floor(p.value * multiplier + (Math.random() * 5 - 2))) })),
-      posts: Math.max(1, Math.floor(basePosts)),
-      views: Math.floor(23000 * multiplier),
-      interactions: Math.floor(1848 * multiplier),
-      shares: Math.floor(360 * multiplier),
-      saves: Math.floor(430 * multiplier)
+      ...performanceData
     };
-  }, [timeFilter, statusFilter, formatFilter]);
+  }, [timeFilter, statusFilter, formatFilter, performanceData]);
 
   return (
     <div className="w-full mb-8">
@@ -415,10 +421,10 @@ const MarketingApp = () => {
             hashtags: t.notes || '',
             assetLink: '',
             notes: t.notes || '',
-            views: 0,
-            interactions: 0,
-            shares: 0,
-            saves: 0
+            views: t.views || '0',
+            interactions: t.interactions || '0',
+            shares: t.shares || '0',
+            saves: t.saves || '0'
           };
       });
 
@@ -508,6 +514,7 @@ const MarketingApp = () => {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [listTimeFilter, setListTimeFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
+  const [projectStatusFilter, setProjectStatusFilter] = useState('Tất cả');
   const [showKanbanFilters, setShowKanbanFilters] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState<typeof videos[0] | null>(null);
   const [showArchivePopup, setShowArchivePopup] = useState<string | null>(null);
@@ -1271,13 +1278,24 @@ const MarketingApp = () => {
                <ListTodo className="w-5 h-5 text-indigo-600" />
                <h2 className="text-lg font-bold text-gray-900 uppercase tracking-widest">TỔNG HỢP DỰ ÁN</h2>
              </div>
-             <button 
-                onClick={() => setIsProjectModalOpen(true)}
-                className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Dự Án Mới
-              </button>
+             <div className="flex items-center gap-3">
+                <div className="w-[180px] bg-white rounded-lg shadow-sm border border-slate-200 px-2 py-0.5 relative z-20">
+                     <InlineDropdown
+                       value={projectStatusFilter}
+                       options={['Tất cả', 'Thiết kế', 'Đang thi công', 'Đã bàn giao', 'Đầy đủ hình ảnh', 'Có link Highres']}
+                       onChange={(val) => setProjectStatusFilter(val)}
+                       placeholder="Trạng thái"
+                       renderValue={(val) => <span className="text-sm font-bold flex gap-1 items-center"><span className="text-slate-400 font-medium whitespace-nowrap">Lọc:</span> <span className="truncate max-w-[80px]">{val}</span></span>}
+                     />
+                </div>
+                <button 
+                  onClick={() => setIsProjectModalOpen(true)}
+                  className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Dự Án Mới
+                </button>
+              </div>
            </div>
            <div className="flex-1 overflow-x-auto overflow-y-auto p-0 max-w-[calc(100vw-16rem)] w-full block">
              <table className="w-full text-[13px] text-left border-collapse min-w-[1000px] border border-slate-200">
@@ -1304,14 +1322,23 @@ const MarketingApp = () => {
                  </tr>
                </thead>
                <tbody className="divide-y divide-slate-200">
-                 {projects.length === 0 ? (
-                   <tr>
-                     <td colSpan={9} className="px-4 py-12 text-center text-slate-400 bg-white">
-                        Chưa có dự án Marketing nào.
-                     </td>
-                   </tr>
-                 ) : (
-                   projects.map((proj: any) => {
+                 {(() => {
+                    const filteredProjects = projects.filter(p => {
+                        if (projectStatusFilter !== 'Tất cả' && p.update_status !== projectStatusFilter) return false;
+                        return true;
+                    });
+
+                    if (filteredProjects.length === 0) {
+                        return (
+                            <tr>
+                                <td colSpan={10} className="px-4 py-12 text-center text-slate-400 bg-white">
+                                    {projectStatusFilter !== 'Tất cả' ? `Không tìm thấy dự án nào có trạng thái "${projectStatusFilter}"` : 'Chưa có dự án Marketing nào.'}
+                                </td>
+                            </tr>
+                        );
+                    }
+
+                    return filteredProjects.map((proj: any) => {
                      // Parse progress data
                      let phaseStr = '';
                      if (proj.actual_start_date) {
@@ -1591,8 +1618,8 @@ const MarketingApp = () => {
                        )}
                      </React.Fragment>
                    );
-                 })
-                 )}
+                    });
+                  })()}
                </tbody>
              </table>
            </div>
@@ -1692,7 +1719,7 @@ const MarketingApp = () => {
       ) : view === 'WORKFLOW' ? (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 relative">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
-            <MarketingDashboard />
+            <MarketingDashboard videos={videos} />
             {/* PROFILE HEADER & PERMISSIONS SECTION */}
             {profile && (
               <>

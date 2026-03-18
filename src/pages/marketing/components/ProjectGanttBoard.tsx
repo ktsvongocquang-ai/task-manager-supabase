@@ -359,11 +359,11 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                 className="flex-1 overflow-auto custom-scrollbar relative bg-gray-50/20"
                 ref={ganttScrollRef}
             >
-                <div className="flex flex-col min-w-max h-full">
+                <div className="flex flex-col min-w-max">
                     {/* Header Row (Sticky Top) */}
-                    <div className="flex sticky top-0 z-40 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.01)] border-b border-gray-100">
-                        {/* Top-Left Cell (Sticky Top & Left) */}
-                        <div className="w-[280px] shrink-0 sticky left-0 z-50 bg-gray-50/50 border-r border-gray-100 h-16 flex items-end pb-3 px-6">
+                    <div className="flex sticky top-0 z-[60] bg-white shadow-sm border-b border-gray-100 h-16">
+                        {/* Top-Left Cell (Sticky Top & Left) - Highest visibility */}
+                        <div className="w-[280px] shrink-0 sticky left-0 z-[70] bg-gray-50 border-r border-gray-100 h-full flex items-end pb-3 px-6">
                             <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
                         </div>
 
@@ -430,7 +430,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     </div>
 
                     {/* Timeline Body Rows */}
-                    <div className="flex flex-col relative flex-1 min-h-max bg-dots">
+                    <div className="flex flex-col relative bg-dots">
                         {/* Grid vertical lines background */}
                         <div className="absolute top-0 bottom-0 left-[280px] flex pointer-events-none z-0">
                             {daysInterval.map((date, i) => {
@@ -456,16 +456,18 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                         </div>
 
                         {/* Projects Content */}
-                        {activeProjects.map(project => (
-                            <div key={project.id} className="flex border-b border-gray-50/50 group relative">
-                                {/* Project Card (Sticky Left) */}
-                                <div 
-                                    className={`w-[280px] shrink-0 sticky left-0 z-30 bg-white pl-5 pr-3 h-20 flex items-center justify-between hover:bg-indigo-50/30 transition-colors cursor-pointer border-r border-gray-50/50 ${activeTooltip?.startsWith(project.id) ? 'z-[45]' : ''}`}
-                                    onClick={() => {
-                                        setSelectedProject(project);
-                                        setIsTimelineModalOpen(true);
-                                    }}
-                                >
+                        {activeProjects.map(project => {
+                            const isProjectActive = activeTooltip?.startsWith(project.id);
+                            return (
+                                <div key={project.id} className="flex border-b border-gray-100/50 hover:bg-indigo-50/5 group relative h-20 items-stretch bg-white">
+                                    {/* Project Card (Sticky Left) */}
+                                    <div 
+                                        className={`w-[280px] shrink-0 sticky left-0 z-[50] bg-white pl-5 pr-3 h-full flex items-center justify-between transition-colors cursor-pointer border-r border-gray-100 ${isProjectActive ? 'bg-indigo-50/30' : ''}`}
+                                        onClick={() => {
+                                            setSelectedProject(project);
+                                            setIsTimelineModalOpen(true);
+                                        }}
+                                    >
                                     <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
                                         <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
@@ -502,8 +504,8 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     </div>
                                 </div>
 
-                                {/* Timeline Row Content */}
-                                <div className={`flex-1 relative h-20 hover:bg-indigo-50/10 transition-colors ${activeTooltip?.startsWith(project.id) ? 'z-[40]' : ''}`}>
+                                    {/* Timeline Row Content */}
+                                    <div className={`flex-1 relative h-full transition-colors ${isProjectActive ? 'z-[20] bg-indigo-50/5' : 'z-[10]'}`}>
                                     {project.actual_start_date ? renderGanttBar(project) : renderEmptyTimeline(project)}
                                     {renderMilestones(project)}
                                     
@@ -544,7 +546,8 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     })}
                                 </div>
                             </div>
-                        ))}
+                        );
+                    })}
                         {/* Buffer Space */}
                         <div className="h-32"></div>
                     </div>

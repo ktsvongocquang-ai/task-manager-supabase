@@ -917,6 +917,57 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Performance Metrics - Only for Published Tasks */}
+                            {form.status === 'PUBLISHED' && (
+                                <div className="px-14 py-4 bg-indigo-50/30 rounded-2xl mx-14 mb-6 border border-indigo-100/50">
+                                    <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                        <Sparkles size={12} /> Hiệu quả Content (Chỉ số thực tế)
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                        <div>
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Số lượt xem</div>
+                                            <input
+                                                type="number"
+                                                value={form.views}
+                                                onChange={(e) => setForm({ ...form, views: e.target.value })}
+                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Tương tác</div>
+                                            <input
+                                                type="number"
+                                                value={form.interactions}
+                                                onChange={(e) => setForm({ ...form, interactions: e.target.value })}
+                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Chia sẻ</div>
+                                            <input
+                                                type="number"
+                                                value={form.shares}
+                                                onChange={(e) => setForm({ ...form, shares: e.target.value })}
+                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div>
+                                            <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Lưu lại</div>
+                                            <input
+                                                type="number"
+                                                value={form.saves}
+                                                onChange={(e) => setForm({ ...form, saves: e.target.value })}
+                                                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all"
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Details Textareas */}
                             <div className="pl-14 pr-4">
