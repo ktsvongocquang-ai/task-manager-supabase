@@ -3,7 +3,8 @@ import { Home, Kanban, User, HardHat, HeartHandshake, Folder, Calendar } from 'l
 import { useAuthStore } from '../../store/authStore';
 
 export const BottomTabBar = () => {
-    const { profile, systemPermissions } = useAuthStore();
+    const { profile } = useAuthStore();
+    useAuthStore(state => state.systemPermissions); // Trigger re-render on permission change
 
     const getDynamicActionTab = () => {
         const role = profile?.role?.trim();
