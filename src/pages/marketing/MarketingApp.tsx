@@ -1561,7 +1561,7 @@ const MarketingApp = () => {
                                       if (!destination) return;
                                       if (destination.index === source.index) return;
                                       
-                                      const projTasks = videos.filter(v => v.project_id === proj.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                                      const projTasks = videos.filter(v => v.project_id === proj.id && (taskStatusFilter === 'Tất cả' || v.status === taskStatusFilter)).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
                                       const draggedTask = projTasks[source.index];
                                       const updatedTasks = Array.from(projTasks);
                                       updatedTasks.splice(source.index, 1);
@@ -1605,14 +1605,14 @@ const MarketingApp = () => {
                                          </thead>
                                          <tbody className="divide-y divide-slate-200">
 
-                                       {videos.filter(v => v.project_id === proj.id).length === 0 ? (
+                                       {videos.filter(v => v.project_id === proj.id && (taskStatusFilter === 'Tất cả' || v.status === taskStatusFilter)).length === 0 ? (
                                          <tr>
                                            <td colSpan={10} className="px-4 py-6 text-center text-slate-400 bg-white">
-                                             Chưa có task nào cho dự án này.
+                                             {taskStatusFilter !== 'Tất cả' ? `Không tìm thấy task "${taskStatusFilter}" cho dự án này.` : 'Chưa có task nào cho dự án này.'}
                                            </td>
                                          </tr>
                                        ) : (
-                                         videos.filter(v => v.project_id === proj.id)
+                                         videos.filter(v => v.project_id === proj.id && (taskStatusFilter === 'Tất cả' || v.status === taskStatusFilter))
                                            .sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                                            .map((video: any, index: number) => {
                                            const statusInfo = STATUS_MAP[video.status];
