@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../../services/supabase';
-import type { Project, DailyLog } from '../../../types';
+import type { Project } from '../../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2 } from 'lucide-react';
@@ -11,31 +11,13 @@ interface ProjectGanttBoardProps {}
 export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const ganttScrollRef = useRef<HTMLDivElement>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [newProjectName, setNewProjectName] = useState('');
     const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [activeTooltip, setActiveTooltip] = useState<string | null>(null); // Stores composite ID: `${projectId}-${type}-${itemId}`
-    
-    // Refs for scroll synchronization
-    const listScrollRef = useRef<HTMLDivElement>(null);
-    const timelineVerticalScrollRef = useRef<HTMLDivElement>(null);
-    
-    // Synchronize vertical scroll between project list and timeline grid
-    const handleVerticalScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const { scrollTop } = e.currentTarget;
-        if (e.currentTarget === listScrollRef.current) {
-            if (timelineVerticalScrollRef.current) {
-                timelineVerticalScrollRef.current.scrollTop = scrollTop;
-            }
-        } else if (e.currentTarget === timelineVerticalScrollRef.current) {
-            if (listScrollRef.current) {
-                listScrollRef.current.scrollTop = scrollTop;
-            }
-        }
-    };
 
     const fetchConstructionData = async () => {
         try {
@@ -169,11 +151,11 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
     // Auto scroll to current day on mount
     useEffect(() => {
-        if (scrollContainerRef.current) {
+        if (ganttScrollRef.current) {
             const today = new Date();
             const daysFromStart = differenceInDays(today, startDate);
-            const scrollPos = Math.max(0, (daysFromStart * DAY_WIDTH) - (scrollContainerRef.current.clientWidth / 2));
-            scrollContainerRef.current.scrollLeft = scrollPos;
+            const scrollPos = Math.max(0, (daysFromStart * DAY_WIDTH) - (ganttScrollRef.current.clientWidth / 2));
+            ganttScrollRef.current.scrollLeft = scrollPos;
         }
     }, [startDate]);
 
@@ -372,111 +354,21 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                 </div>
             </div>
 
-            {/* Gantt Body */}
-            <div className="flex flex-1 overflow-hidden relative">
-                {/* Left Column: Project List (30%) */}
-                <div className="w-[25%] min-w-[240px] max-w-[320px] border-r border-gray-100 bg-white z-20 flex flex-col shadow-[4px_0_10px_rgba(0,0,0,0.02)]">
-                    <div className="h-16 border-b border-gray-100 flex items-end pb-3 px-6 shrink-0 bg-gray-50/30">
-                        <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
-                    </div>
-                    <div 
-                        className="flex-1 overflow-y-auto custom-scrollbar"
-                        ref={listScrollRef}
-                        onScroll={handleVerticalScroll}
-                    >
-                        {activeProjects.map(project => (
-                            <div 
-                                key={project.id} 
-                                className="h-20 border-b border-gray-50 pl-5 pr-3 flex items-center justify-between hover:bg-indigo-50/30 transition-colors cursor-pointer group"
-                                onClick={() => {
-                                    setSelectedProject(project);
-                                    setIsTimelineModalOpen(true);
-                                }}
-                            >
-                                <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
-                                    <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
-                                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70 whitespace-nowrap">
-                                            {project.status}
-                                        </span>
-                                        {project.project_code && (
-                                            <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">{project.project_code}</span>
-                                        )}
-                                        {project.project_type && (
-                                            <span className="text-[10px] font-bold text-indigo-500 whitespace-nowrap">{project.project_type}</span>
-                                        )}
-                                        {project.address && (
-                                            <span className="text-[10px] text-gray-500 italic truncate max-w-[120px]">{project.address}</span>
-                                        )}
-                                        {(() => {
-                                            if (!project.actual_start_date) return null;
-                                            const start = parseISO(project.actual_start_date);
-                                            const today = new Date();
-                                            const daysPassed = differenceInDays(today, start);
-                                            
-                                            if (daysPassed < 0) return <span className="text-[10px] text-orange-500 font-bold whitespace-nowrap">Sắp bắt đầu</span>;
-                                            
-                                            let current = 0;
-                                            if (daysPassed < (current += (project.design_days || 0))) 
-                                                return <span className="text-[10px] text-indigo-500 font-bold whitespace-nowrap">GĐ: Thiết kế</span>;
-                                            if (daysPassed < (current += (project.rough_construction_days || 0))) 
-                                                return <span className="text-[10px] text-orange-500 font-bold whitespace-nowrap">GĐ: Thi công thô</span>;
-                                            if (daysPassed < (current += (project.finishing_days || 0))) 
-                                                return <span className="text-[10px] text-green-500 font-bold whitespace-nowrap">GĐ: Hoàn thiện</span>;
-                                            if (daysPassed < (current += (project.interior_days || 0))) 
-                                                return <span className="text-[10px] text-teal-500 font-bold whitespace-nowrap">GĐ: Nội thất</span>;
-                                            
-                                            return <span className="text-[10px] text-gray-500 font-bold whitespace-nowrap">Đã quá hạn/Bàn giao</span>;
-                                        })()}
-                                    </div>
-                                    
-                                    {project.marketing_daily_logs && project.marketing_daily_logs.length > 0 && (
-                                        <div className="flex gap-1 mt-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                                            {project.marketing_daily_logs.slice(0, 5).map((log: DailyLog) => (
-                                                <div key={log.id} className="w-1.5 h-1.5 rounded-full bg-slate-400" title={`Nhật ký: ${format(parseISO(log.log_date), 'dd/MM/yyyy')}`}></div>
-                                            ))}
-                                            {project.marketing_daily_logs.length > 5 && <span className="text-[8px] text-gray-400">+{project.marketing_daily_logs.length - 5}</span>}
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                {/* Hover Actions */}
-                                <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedProject(project);
-                                            setIsTimelineModalOpen(true);
-                                        }}
-                                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                        title="Chỉnh sửa"
-                                    >
-                                        <Edit2 size={13} />
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteProject(project.id, project.name);
-                                        }}
-                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Xóa"
-                                    >
-                                        <Trash2 size={13} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            {/* Single Scroll Container for Both Project List and Timeline */}
+            <div 
+                className="flex-1 overflow-auto custom-scrollbar relative bg-gray-50/20"
+                ref={ganttScrollRef}
+            >
+                <div className="flex flex-col min-w-max h-full">
+                    {/* Header Row (Sticky Top) */}
+                    <div className="flex sticky top-0 z-40 bg-white shadow-[0_4px_10px_rgba(0,0,0,0.01)] border-b border-gray-100">
+                        {/* Top-Left Cell (Sticky Top & Left) */}
+                        <div className="w-[280px] shrink-0 sticky left-0 z-50 bg-gray-50/50 border-r border-gray-100 h-16 flex items-end pb-3 px-6">
+                            <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
+                        </div>
 
-                {/* Right Column: Gantt Chart (70%) */}
-                <div 
-                    className="flex-1 overflow-x-auto overflow-y-hidden bg-gray-50/20 custom-scrollbar relative gantt-scroll-container pb-4"
-                    ref={scrollContainerRef}
-                >
-                    <div className="flex flex-col h-full min-w-max">
-                        {/* Timeline Header (Months & Days) */}
-                        <div className="h-16 border-b border-gray-100 bg-white sticky top-0 z-30 shrink-0 shadow-[0_4px_10px_rgba(0,0,0,0.01)]">
+                        {/* Timeline Header (Sticky Top) */}
+                        <div className="flex-1 flex flex-col h-16">
                             {/* Months Row */}
                             <div className="flex h-8">
                                 {useMemo(() => {
@@ -494,7 +386,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         } else {
                                             months.push(
                                                 <div key={`${currentMonthStr}-${i}`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
-                                                    <div className="sticky left-0 px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
+                                                    <div className="sticky left-[280px] px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
                                                         Tháng {currentMonthStr}
                                                     </div>
                                                 </div>
@@ -506,7 +398,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                         if (i === daysInterval.length - 1) {
                                             months.push(
                                                 <div key={`${currentMonthStr}-${i}-last`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
-                                                    <div className="sticky left-0 px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
+                                                    <div className="sticky left-[280px] px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
                                                         Tháng {currentMonthStr}
                                                     </div>
                                                 </div>
@@ -524,7 +416,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     return (
                                         <div
                                             key={date.toISOString()}
-                                            className={`flex flex-col items-center justify-center border-r border-gray-100 shrink-0 relative ${isWeekend ? 'bg-gray-50/80' : ''}`}
+                                            className={`flex flex-col items-center justify-center border-r border-gray-100 shrink-0 relative ${isWeekend ? 'bg-gray-50/30' : ''}`}
                                             style={{ width: `${DAY_WIDTH}px` }}
                                         >
                                             <span className={`text-[10px] font-medium ${isToday ? 'bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-gray-500'}`}>
@@ -535,90 +427,126 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                 })}
                             </div>
                         </div>
+                    </div>
 
-                        {/* Timeline Body (Rows) */}
+                    {/* Timeline Body Rows */}
+                    <div className="flex flex-col relative flex-1 min-h-max bg-dots">
+                        {/* Grid vertical lines background */}
+                        <div className="absolute top-0 bottom-0 left-[280px] flex pointer-events-none z-0">
+                            {daysInterval.map((date, i) => {
+                                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                                return (
+                                    <div 
+                                        key={`grid-${i}`} 
+                                        className={`border-r border-gray-100/50 h-full ${isWeekend ? 'bg-gray-50/30' : ''}`}
+                                        style={{ width: `${DAY_WIDTH}px` }}
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        {/* Today vertical line */}
                         <div 
-                            className="flex-1 overflow-y-auto custom-scrollbar relative min-h-0 bg-dots"
-                            ref={timelineVerticalScrollRef}
-                            onScroll={handleVerticalScroll}
+                            className="absolute top-0 bottom-0 border-l-2 border-dashed border-indigo-400 z-50 pointer-events-none"
+                            style={{ left: `${280 + Math.max(0, differenceInDays(new Date(), startDate)) * DAY_WIDTH + (DAY_WIDTH/2)}px` }}
                         >
-                            {/* Grid vertical lines background */}
-                            <div className="absolute inset-0 flex pointer-events-none z-0">
-                                {daysInterval.map((date, i) => {
-                                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                                    return (
-                                        <div 
-                                            key={`grid-${i}`} 
-                                            className={`border-r border-gray-100/50 h-full ${isWeekend ? 'bg-gray-50/30' : ''}`}
-                                            style={{ width: `${DAY_WIDTH}px` }}
-                                        />
-                                    );
-                                })}
-                            </div>
-
-                            {/* Today vertical line */}
-                            <div 
-                                className="absolute top-0 bottom-0 border-l-2 border-dashed border-indigo-400 z-50 pointer-events-none"
-                                style={{ left: `${Math.max(0, differenceInDays(new Date(), startDate)) * DAY_WIDTH + (DAY_WIDTH/2)}px` }}
-                            >
-                                <div className="absolute top-2 -translate-x-1/2 bg-indigo-500 text-white text-[8px] font-bold px-1.5 py-1 rounded uppercase tracking-wider shadow-md border border-white">
-                                    Hôm nay
-                                </div>
-                            </div>
-
-                            {/* Rows matching left column */}
-                            <div className="relative z-10 h-full">
-                                {activeProjects.map(project => (
-                                    <div key={project.id} className={`h-20 border-b border-gray-50/50 relative hover:bg-indigo-50/10 transition-colors w-full group ${activeTooltip?.startsWith(project.id) ? 'z-[60]' : 'hover:z-[55]'}`}>
-                                        {/* Row background highlight */}
-                                        <div className="absolute inset-0 bg-transparent group-hover:bg-black/5 mix-blend-multiply opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                        
-                                        {project.actual_start_date ? renderGanttBar(project) : renderEmptyTimeline(project)}
-                                        {renderMilestones(project)}
-                                        
-                                        {/* Daily logs indicators on timeline */}
-                                        {project.marketing_daily_logs?.map(log => {
-                                            const logDate = parseISO(log.log_date);
-                                            const offsetDays = differenceInDays(logDate, startDate);
-                                            const compositeId = `${project.id}-log-${log.id}`;
-                                            const isActive = activeTooltip === compositeId;
-                                            return (
-                                                <div 
-                                                    key={log.id}
-                                                    className={`absolute bottom-2 flex flex-col items-center z-[20] cursor-pointer tooltip-trigger ${isActive ? 'z-[75]' : 'hover:z-[60]'}`}
-                                                    style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setActiveTooltip(isActive ? null : compositeId);
-                                                    }}
-                                                >
-                                                    <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center shadow-sm ${isActive ? 'scale-110 border-indigo-600 bg-indigo-100 text-indigo-700 shadow-indigo-200' : 'border-indigo-400 bg-indigo-50 text-indigo-600'}`}>
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
-                                                    </div>
-                                                    {isActive && (
-                                                        <div className="absolute bottom-6 mb-2 w-52 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[70] animate-in fade-in slide-in-from-bottom-2 duration-150 tooltip-content">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <span className="font-bold text-indigo-300">Nhật ký</span>
-                                                                <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-indigo-300 ml-2">
-                                                                    <X size={10} />
-                                                                </button>
-                                                            </div>
-                                                            <div className="text-[10px] text-gray-400 mb-2">{format(logDate, 'dd/MM/yyyy')}</div>
-                                                            <div className="line-clamp-6 text-gray-100 leading-relaxed">{log.content}</div>
-                                                            {/* Arrow */}
-                                                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full border-8 border-transparent border-t-gray-900"></div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                        
-                                    </div>
-                                ))}
-                                {/* Empty space at the bottom for scrolling margin */}
-                                <div className="h-32"></div>
+                            <div className="absolute top-2 -translate-x-1/2 bg-indigo-500 text-white text-[8px] font-bold px-1.5 py-1 rounded uppercase tracking-wider shadow-md border border-white">
+                                Hôm nay
                             </div>
                         </div>
+
+                        {/* Projects Content */}
+                        {activeProjects.map(project => (
+                            <div key={project.id} className="flex border-b border-gray-50/50 group relative">
+                                {/* Project Card (Sticky Left) */}
+                                <div 
+                                    className={`w-[280px] shrink-0 sticky left-0 z-30 bg-white pl-5 pr-3 h-20 flex items-center justify-between hover:bg-indigo-50/30 transition-colors cursor-pointer border-r border-gray-50/50 ${activeTooltip?.startsWith(project.id) ? 'z-[45]' : ''}`}
+                                    onClick={() => {
+                                        setSelectedProject(project);
+                                        setIsTimelineModalOpen(true);
+                                    }}
+                                >
+                                    <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
+                                        <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
+                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600 bg-opacity-70 whitespace-nowrap">
+                                                {project.status}
+                                            </span>
+                                            {project.project_code && (
+                                                <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">{project.project_code}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity shrink-0">
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedProject(project);
+                                                setIsTimelineModalOpen(true);
+                                            }}
+                                            className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                            title="Chỉnh sửa"
+                                        >
+                                            <Edit2 size={13} />
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteProject(project.id, project.name);
+                                            }}
+                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Xóa"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Timeline Row Content */}
+                                <div className={`flex-1 relative h-20 hover:bg-indigo-50/10 transition-colors ${activeTooltip?.startsWith(project.id) ? 'z-[40]' : ''}`}>
+                                    {project.actual_start_date ? renderGanttBar(project) : renderEmptyTimeline(project)}
+                                    {renderMilestones(project)}
+                                    
+                                    {/* Daily logs indicators */}
+                                    {project.marketing_daily_logs?.map(log => {
+                                        const logDate = parseISO(log.log_date);
+                                        const offsetDays = differenceInDays(logDate, startDate);
+                                        const compositeId = `${project.id}-log-${log.id}`;
+                                        const isActive = activeTooltip === compositeId;
+                                        return (
+                                            <div 
+                                                key={log.id}
+                                                className={`absolute bottom-2 flex flex-col items-center z-[20] cursor-pointer tooltip-trigger ${isActive ? 'z-[75]' : 'hover:z-[60]'}`}
+                                                style={{ left: `${offsetDays * DAY_WIDTH}px`, width: `${DAY_WIDTH}px` }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setActiveTooltip(isActive ? null : compositeId);
+                                                }}
+                                            >
+                                                <div className={`w-5 h-5 rounded border-2 transition-all flex items-center justify-center shadow-sm ${isActive ? 'scale-110 border-indigo-600 bg-indigo-100 text-indigo-700 shadow-indigo-200' : 'border-indigo-400 bg-indigo-50 text-indigo-600'}`}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                                                </div>
+                                                {isActive && (
+                                                    <div className="absolute bottom-6 mb-2 w-52 bg-gray-900 text-white text-xs p-3 rounded-xl shadow-2xl z-[80] animate-in fade-in slide-in-from-bottom-2 duration-150 tooltip-content">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <span className="font-bold text-indigo-300">Nhật ký</span>
+                                                            <button onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }} className="hover:text-indigo-300 ml-2">
+                                                                <X size={10} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-400 mb-2">{format(logDate, 'dd/MM/yyyy')}</div>
+                                                        <div className="line-clamp-6 text-gray-100 leading-relaxed">{log.content}</div>
+                                                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full border-8 border-transparent border-t-gray-900"></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                        {/* Buffer Space */}
+                        <div className="h-32"></div>
                     </div>
                 </div>
             </div>
