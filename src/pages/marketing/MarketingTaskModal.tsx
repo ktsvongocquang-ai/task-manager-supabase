@@ -325,11 +325,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 category: form.category || null,
                 format: form.format || null,
                 platform: form.platform || null,
-                target: form.target || null,
-                views: form.views || null,
-                interactions: form.interactions || null,
-                shares: form.shares || null,
-                saves: form.saves || null
+                target: form.target || null
+                // Removed performance metrics from initial save payload to avoid "Column not found" schema errors.
             }
 
             let result;
@@ -377,6 +374,28 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     console.error('Supabase Task Error:', result.error)
                     alert(`Lỗi Supabase(Nhiệm vụ): ${result.error.message} `)
                     return
+                }
+            }
+
+            // --- Auto-create Shooting Milestone ---
+            if (form.status === 'PROD_FILMING' && form.start_date && form.project_id) {
+                try {
+                    const { data: existingMs } = await supabase.from('marketing_shooting_milestones')
+                        .select('id')
+                        .eq('project_id', form.project_id)
+                        .eq('milestone_date', form.start_date)
+                        .eq('content', form.name);
+                        
+                    if (!existingMs || existingMs.length === 0) {
+                        await supabase.from('marketing_shooting_milestones').insert({
+                            project_id: form.project_id,
+                            milestone_date: form.start_date,
+                            content: form.name,
+                            status: 'Chờ quay'
+                        });
+                    }
+                } catch (msError) {
+                    console.error('Error auto-creating shooting milestone:', msError);
                 }
             }
 
