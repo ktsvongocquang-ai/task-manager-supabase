@@ -52,10 +52,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
 
     // AI & Speech states
-    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | 'notes' | 'result_links' | null>(null);
-    const [isRefining, setIsRefining] = useState<'name' | 'description' | 'notes' | 'result_links' | null>(null);
+    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'category' | null>(null);
+    const [isRefining, setIsRefining] = useState<'name' | 'description' | 'notes' | 'result_links' | 'category' | null>(null);
 
-    const handleSpeechToText = (field: 'name' | 'description' | 'subtask' | 'notes' | 'result_links') => {
+    const handleSpeechToText = (field: 'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'category') => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
             alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử dùng Chrome hoặc Safari mới nhất.");
@@ -132,7 +132,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
-    const handleAIRefine = async (field: 'name' | 'description' | 'notes' | 'result_links') => {
+    const handleAIRefine = async (field: 'name' | 'description' | 'notes' | 'result_links' | 'category') => {
         const textToRefine = form[field as keyof typeof form];
         if (!textToRefine) {
             alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
@@ -1041,7 +1041,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <textarea
                                             value={form.notes}
                                             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[80px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[90px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
                                             placeholder="Nhập Hook..."
                                         />
                                         <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
@@ -1070,7 +1070,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <textarea
                                             value={form.result_links}
                                             onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[100px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[130px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
                                             placeholder="Nhập Vấn đề..."
                                         />
                                         <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
@@ -1099,7 +1099,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <textarea
                                             value={form.description}
                                             onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[120px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[250px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
                                             placeholder="Kịch bản, nội dung chi tiết..."
                                         />
                                         <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
@@ -1121,12 +1121,41 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </div>
                                     </div>
                                 </div>
+
+                                <div className="mb-6 relative group/desc">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">CTA</div>
+                                    <div className="relative">
+                                        <textarea
+                                            value={form.category || ''}
+                                            onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[90px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
+                                            placeholder="Lời kêu gọi hành động (Call To Action)..."
+                                        />
+                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleSpeechToText('category')}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'category' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                                title="Ghi âm CTA"
+                                            >
+                                                {isListening === 'category' ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAIRefine('category')}
+                                                disabled={isRefining === 'category'}
+                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                                title="AI tinh chỉnh"
+                                            >
+                                                {isRefining === 'category' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr className="border-t border-slate-100 my-6" />
 
                             {/* Tabs Section */}
-                            <div className="mt-8">
+                            <div className="mt-8 pl-14 pr-4">
                                 <div className="flex gap-6 border-b border-slate-200 mb-6">
                                     <button
                                         onClick={() => setActiveTab('subtasks')}
