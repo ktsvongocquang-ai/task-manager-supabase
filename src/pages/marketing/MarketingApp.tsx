@@ -602,7 +602,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 max-w-[1600px] mx-auto min-h-0 min-w-0 w-full overflow-hidden">
+    <div className="h-full flex flex-col gap-4 w-full min-h-0 min-w-0 overflow-hidden px-1 md:px-4">
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2 pb-1">
         {/* Top Header Row */}
@@ -633,7 +633,7 @@ const MarketingApp = () => {
             </div>
 
             {/* Desktop Horizontal Tabs */}
-            <div className="hidden md:flex overflow-x-auto hide-scrollbar max-w-full bg-gray-100 p-1 rounded-lg">
+            <div className="hidden md:flex flex-wrap items-center bg-gray-100 p-1 rounded-lg">
               <button 
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${view === 'DASHBOARD' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => handleViewChange('DASHBOARD')}
