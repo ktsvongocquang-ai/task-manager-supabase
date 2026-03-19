@@ -23,6 +23,7 @@ import {
   MoreVertical,
   Eye,
   EyeOff,
+  Trash2,
   Clock,
   Edit,
   Search,
@@ -2362,14 +2363,33 @@ const MarketingApp = () => {
                       <div className="hidden sm:flex col-span-2 items-center justify-center text-xs font-semibold text-gray-500">
                         {video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : '-'}
                       </div>
-                      <div className="col-span-1 flex items-center justify-end">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); updateTask(video.id, { isArchived: false, status: video.status === 'REJECTED' ? 'IDEA' : video.status }); }}
-                          className="px-2.5 py-1.5 text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
-                          title="Khôi phục trạng thái"
-                        >
-                          Khôi phục
-                        </button>
+                      <div className="col-span-1 flex flex-col sm:flex-row items-center justify-end gap-2">
+                        {profile?.role?.trim() === 'Admin' && (
+                          <>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); updateTask(video.id, { isArchived: false, status: video.status === 'REJECTED' ? 'IDEA' : video.status }); }}
+                              className="px-2.5 py-1.5 text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+                              title="Khôi phục trạng thái"
+                            >
+                              Khôi phục
+                            </button>
+                            <button 
+                              onClick={async (e) => { 
+                                e.stopPropagation(); 
+                                if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) {
+                                  try {
+                                    await supabase.from('marketing_tasks').delete().eq('id', video.id);
+                                    fetchData();
+                                  } catch (err) { console.error('Lỗi xóa task', err); }
+                                }
+                              }}
+                              className="px-2.5 py-1.5 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+                              title="Xóa vĩnh viễn"
+                            >
+                              <Trash2 size={12} /> Xóa
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
