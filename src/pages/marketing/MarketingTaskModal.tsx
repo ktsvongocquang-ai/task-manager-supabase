@@ -933,8 +933,6 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="Facebook">Facebook</option>
                                             <option value="TikTok">TikTok</option>
                                             <option value="YouTube">YouTube</option>
-                                            <option value="Website">Website</option>
-                                            <option value="Zalo">Zalo</option>
                                         </select>
                                     </div>
                                     <div>

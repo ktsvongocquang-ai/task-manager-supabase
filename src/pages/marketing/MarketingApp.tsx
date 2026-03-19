@@ -25,6 +25,8 @@ import {
   EyeOff,
   Clock,
   Edit,
+  Search,
+  Flag,
   GripVertical
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -141,14 +143,7 @@ const STATUS_MAP: Record<string, { col: string, name: string, color: string, tex
   REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200', textColor: 'text-red-600' }
 };
 
-const PRIORITY_COLORS: Record<string, string> = {
-  'Khẩn cấp': 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20',
-  'Ưu tiên': 'bg-orange-50 text-orange-600 border-orange-100',
-  'Cao': 'bg-orange-50 text-orange-600 border-orange-100',
-  'Trung bình': 'bg-yellow-50 text-yellow-600 border-yellow-100',
-  'Thấp': 'bg-slate-50 text-slate-500 border-slate-100',
-  'Từ từ': 'bg-slate-50 text-slate-500 border-slate-100'
-};
+
 
 const platformData = [
   { name: 'Facebook', value: 8, color: '#4ade80' },
@@ -372,6 +367,7 @@ const MarketingApp = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [archiveSearch, setArchiveSearch] = useState('');
 
   // New Modals for Project and Task
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
@@ -942,8 +938,8 @@ const MarketingApp = () => {
                                       {task.start_date ? format(new Date(task.start_date), 'dd/MM') : 'Lên lịch quay'}
                                     </div>
                                   )}
-                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
-                                    {task.priority || 'Trung bình'}
+                                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${task.platform && task.platform !== 'Khác' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                                    {task.platform && task.platform !== 'Khác' ? task.platform : 'Chưa nền tảng'}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1190,8 +1186,8 @@ const MarketingApp = () => {
                                                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${statusDef?.color || 'bg-gray-100 text-gray-800'}`}>
                                                       {statusDef?.name || task.status}
                                                     </span>
-                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${PRIORITY_COLORS[task.priority || 'Trung bình'] || 'bg-gray-100 text-gray-600'}`}>
-                                                      {task.priority || 'Trung bình'}
+                                                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border min-h-[22px] flex items-center ${task.platform && task.platform !== 'Khác' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                                                      {task.platform && task.platform !== 'Khác' ? task.platform : 'Chưa nền tảng'}
                                                     </span>
                                                   </div>
                                                   <div className="flex items-center gap-1">
@@ -2301,39 +2297,79 @@ const MarketingApp = () => {
       ) : view === 'ARCHIVE' ? (
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 shrink-0">
                 <FileText className="w-6 h-6 text-gray-500" />
                 Mục Lưu trữ
               </h2>
+              <div className="relative w-full sm:max-w-xs">
+                <input
+                  type="text"
+                  placeholder="Bộ phễu lọc (Tìm kiếm)..."
+                  value={archiveSearch}
+                  onChange={(e) => setArchiveSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors bg-white shadow-sm"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              </div>
             </div>
-            {videos.filter(v => v.status === 'REJECTED').length === 0 ? (
+            {videos.filter(v => v.status === 'REJECTED' && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <div className="w-8 h-6 rounded-sm border-2 border-gray-400 flex items-start justify-center pt-1"><div className="w-3 h-[2px] bg-gray-400"></div></div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Chưa có bài viết lưu trữ</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Chưa có bài viết lưu trữ phù hợp</h3>
                 <p className="text-sm text-gray-500 max-w-sm mx-auto">Danh sách các bài viết bị từ chối, xóa, hoặc để làm sau sẽ nằm ở đây.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {videos.filter(v => v.status === 'REJECTED').map(video => (
-                  <div key={video.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex justify-between items-center opacity-75 hover:opacity-100 transition-opacity">
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-sm mb-1">{video.title}</h3>
-                      <p className="text-xs text-gray-500">{video.project} • {video.assignee}</p>
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden auto-cols-auto">
+                <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider items-center hidden sm:grid">
+                  <div className="col-span-5">Nội dung</div>
+                  <div className="col-span-2 text-center">Nền tảng</div>
+                  <div className="col-span-2 text-center">Tình trạng Task</div>
+                  <div className="col-span-2 text-center">Date</div>
+                  <div className="col-span-1 border-l-0 text-right pr-2">Actions</div>
+                </div>
+                
+                <div className="divide-y divide-gray-100">
+                  {videos.filter(v => v.status === 'REJECTED' && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).map(video => (
+                    <div key={video.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 p-4 items-center hover:bg-gray-50 transition-colors group">
+                      <div className="col-span-1 sm:col-span-5 flex flex-col justify-center min-w-0">
+                        <h3 className="font-bold text-gray-900 text-sm mb-0.5 truncate group-hover:text-indigo-600 transition-colors" title={video.title}>{video.title}</h3>
+                        <p className="text-xs text-gray-500 flex items-center gap-1 truncate"><LayoutTemplate className="w-3 h-3 shrink-0"/> <span className="truncate">{video.project} • {video.assignee}</span></p>
+                      </div>
+                      
+                      <div className="sm:hidden flex flex-wrap gap-2 text-[11px] font-medium border-t border-gray-100 pt-2 mt-1 w-full">
+                        <div className="flex gap-1 items-center px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-100/50"><Video className="w-3 h-3"/> {video.platform || 'Chưa nền tảng'}</div>
+                        <div className="flex gap-1 items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-md"><Flag className="w-3 h-3"/> {STATUS_MAP[video.status]?.name || 'Từ chối / Để làm sau'}</div>
+                        <div className="flex gap-1 items-center px-2 py-1 bg-gray-50 text-gray-500 rounded-md"><CalendarIcon className="w-3 h-3"/> {video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : '-'}</div>
+                      </div>
+
+                      <div className="hidden sm:flex col-span-2 items-center justify-center">
+                        <span className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border flex items-center gap-1 ${video.platform && video.platform !== 'Khác' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                          {video.platform || 'Chưa nền tảng'}
+                        </span>
+                      </div>
+                      <div className="hidden sm:flex col-span-2 items-center justify-center">
+                        <span className="px-2.5 py-1 text-red-700 bg-red-50 border border-red-100 rounded-lg text-[11px] font-bold truncate max-w-full text-center">
+                          {STATUS_MAP[video.status]?.name || 'Từ chối / Để làm sau'}
+                        </span>
+                      </div>
+                      <div className="hidden sm:flex col-span-2 items-center justify-center text-xs font-semibold text-gray-500">
+                        {video.dueDate ? format(new Date(video.dueDate), 'dd/MM/yyyy') : '-'}
+                      </div>
+                      <div className="col-span-1 flex items-center justify-end">
+                        <button 
+                          onClick={() => updateTask(video.id, { status: 'IDEA' })}
+                          className="px-2.5 py-1.5 text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+                          title="Khôi phục trạng thái Idea"
+                        >
+                          Khôi phục
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold">Từ chối / Để làm sau</span>
-                      <button 
-                        onClick={() => updateTask(video.id, { status: 'IDEA' })}
-                        className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
-                      >
-                        Khôi phục
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
