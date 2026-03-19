@@ -71,21 +71,30 @@ export const createNotification = async (
     type: string,
     actorId?: string | null,
     taskId?: string | null,
-    projectId?: string | null
+    projectId?: string | null,
+    moduleType: 'core' | 'marketing' = 'core'
 ) => {
     try {
         // Prevent duplicate assignment notifications in a short span if needed, but for now just insert
+        const payload: any = {
+            user_id: userId,
+            content: content,
+            type: type,
+            actor_id: actorId || null,
+            is_read: false
+        };
+
+        if (moduleType === 'marketing') {
+            payload.marketing_task_id = taskId || null;
+            payload.marketing_project_id = projectId || null;
+        } else {
+            payload.related_task_id = taskId || null;
+            payload.related_project_id = projectId || null;
+        }
+
         const { error } = await supabase
             .from('notifications')
-            .insert({
-                user_id: userId,
-                content: content,
-                type: type,
-                actor_id: actorId || null,
-                related_task_id: taskId || null,
-                related_project_id: projectId || null,
-                is_read: false
-            });
+            .insert(payload);
 
         if (error) throw error;
         return true;

@@ -38,6 +38,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'IDEA', priority: 'Trung bình', start_date: '', due_date: '',
         result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: '',
+        output: '',
         views: '', interactions: '', shares: '', saves: ''
     });
 
@@ -52,10 +53,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
 
     // AI & Speech states
-    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'category' | null>(null);
-    const [isRefining, setIsRefining] = useState<'name' | 'description' | 'notes' | 'result_links' | 'category' | null>(null);
+    const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'output' | 'category' | null>(null);
+    const [isRefining, setIsRefining] = useState<'name' | 'description' | 'notes' | 'result_links' | 'output' | 'category' | null>(null);
 
-    const handleSpeechToText = (field: 'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'category') => {
+    const handleSpeechToText = (field: 'name' | 'description' | 'subtask' | 'notes' | 'result_links' | 'output' | 'category') => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
             alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Hãy thử dùng Chrome hoặc Safari mới nhất.");
@@ -132,7 +133,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
-    const handleAIRefine = async (field: 'name' | 'description' | 'notes' | 'result_links' | 'category') => {
+    const handleAIRefine = async (field: 'name' | 'description' | 'notes' | 'result_links' | 'output' | 'category') => {
         const textToRefine = form[field as keyof typeof form];
         if (!textToRefine) {
             alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
@@ -185,6 +186,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     start_date: editingTask.start_date || today,
                     due_date: editingTask.due_date || today,
                     result_links: editingTask.result_links || '',
+                    output: editingTask.output || '',
                     notes: editingTask.notes || '',
                     parent_id: editingTask.parent_id || '',
                     format: editingTask.format || '',
@@ -233,6 +235,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     start_date: today,
                     due_date: today,
                     result_links: '',
+                    output: '',
                     notes: '',
                     parent_id: '',
                     format: '',
@@ -331,6 +334,9 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
             let result;
             let finalTaskCode = form.task_code;
+            if (!finalTaskCode) {
+                finalTaskCode = `TSK-${Math.floor(Date.now() / 1000)}`;
+            }
 
             if (editingTask && editingTask.id) {
                 result = await supabase.from('marketing_tasks').update(payload).eq('id', editingTask.id)
@@ -1068,26 +1074,26 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Vấn đề</div>
                                     <div className="relative">
                                         <textarea
-                                            value={form.result_links}
-                                            onChange={(e) => setForm({ ...form, result_links: e.target.value })}
+                                            value={form.output || ''}
+                                            onChange={(e) => setForm({ ...form, output: e.target.value })}
                                             className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[130px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
                                             placeholder="Nhập Vấn đề..."
                                         />
                                         <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
                                             <button
-                                                onClick={() => handleSpeechToText('result_links' as any)}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'result_links' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                                onClick={() => handleSpeechToText('output' as any)}
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'output' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
                                                 title="Ghi âm Vấn đề"
                                             >
-                                                {isListening === 'result_links' ? <MicOff size={16} /> : <Mic size={16} />}
+                                                {isListening === 'output' ? <MicOff size={16} /> : <Mic size={16} />}
                                             </button>
                                             <button
-                                                onClick={() => handleAIRefine('result_links' as any)}
-                                                disabled={isRefining === 'result_links'}
+                                                onClick={() => handleAIRefine('output' as any)}
+                                                disabled={isRefining === 'output'}
                                                 className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
                                                 title="AI tinh chỉnh"
                                             >
-                                                {isRefining === 'result_links' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                                {isRefining === 'output' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                                             </button>
                                         </div>
                                     </div>
@@ -1309,6 +1315,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                 currentUserProfile={currentUserProfile}
                                                 profiles={profiles}
                                                 itemName={editingTask.name}
+                                                moduleType="marketing"
                                             />
                                         ) : (
                                             <div className="text-center py-8 text-slate-400 text-sm font-medium">

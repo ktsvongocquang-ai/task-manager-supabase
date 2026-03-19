@@ -12,9 +12,10 @@ interface CommentSectionProps {
     currentUserProfile: any;
     profiles: any[];
     itemName: string; // Used for notification context
+    moduleType?: 'core' | 'marketing';
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectId, currentUserProfile, profiles, itemName }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectId, currentUserProfile, profiles, itemName, moduleType = 'core' }) => {
     const [comments, setComments] = useState<Comment[]>([])
     const [newMessage, setNewMessage] = useState('')
     const [newThreadMessage, setNewThreadMessage] = useState('')
@@ -56,7 +57,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
 
     const fetchComments = async () => {
         setLoading(true)
-        const data = await getComments(taskId, projectId)
+        const data = await getComments(taskId, projectId, moduleType)
         setComments(data as Comment[])
         setLoading(false)
     }
@@ -136,7 +137,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
             setNewThreadMessage('')
         }
 
-        const success = await createComment(currentUserProfile.id, content, detectedMentions, taskId, projectId, parentId)
+        const success = await createComment(currentUserProfile.id, content, detectedMentions, taskId, projectId, parentId, moduleType)
 
         if (success) {
             // Send notifications to mentioned users
@@ -149,7 +150,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                         'mention',
                         currentUserProfile.id,
                         taskId,
-                        projectId
+                        projectId,
+                        moduleType
                     )
                 }
             }
@@ -164,7 +166,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                         'mention', // reuse mention type for replies
                         currentUserProfile.id,
                         taskId,
-                        projectId
+                        projectId,
+                        moduleType
                     )
                 }
             }
