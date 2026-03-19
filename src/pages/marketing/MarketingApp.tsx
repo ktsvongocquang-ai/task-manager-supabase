@@ -630,7 +630,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-scroll flex flex-col gap-4 w-full min-h-0 min-w-0 px-1 md:px-4 custom-scrollbar">
+    <div className={`flex-1 flex flex-col gap-4 w-full min-h-0 min-w-0 px-1 md:px-4 custom-scrollbar ${view === 'TIMELINE' ? 'overflow-hidden' : 'overflow-y-scroll'}`}>
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2 pb-1">
         {/* Top Header Row */}
@@ -1948,8 +1948,7 @@ const MarketingApp = () => {
         </div>
       ) : view === 'TIMELINE' ? (
         <div 
-          className="w-full shrink-0 flex flex-col p-2 md:p-4 bg-slate-50 relative overflow-hidden transition-all duration-300 rounded-2xl"
-          style={{ height: 'calc(100vh - 210px)', minHeight: '600px' }}
+          className="flex-1 min-h-0 min-w-0 flex flex-col p-2 md:p-4 bg-slate-50 relative overflow-hidden transition-all duration-300 rounded-2xl"
         >
           <ProjectGanttBoard />
         </div>

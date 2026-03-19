@@ -327,7 +327,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                 <div>
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                         <Calendar className="text-indigo-500" size={24} />
