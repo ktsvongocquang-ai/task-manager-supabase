@@ -1467,7 +1467,7 @@ const MarketingApp = () => {
                          <React.Fragment key={proj.id}>
                            <tr className="bg-white hover:bg-slate-50 transition-colors cursor-pointer group" onClick={(e) => toggleProjectRow(proj.id, e)} onDoubleClick={() => { setEditingProject(proj); setIsProjectModalOpen(true); }}>
                              <td className="px-3 py-2 border border-slate-200 text-center text-slate-400 group-hover:text-slate-600 font-medium cursor-pointer">
-                               {expandedProjects.has(proj.id) ? (
+                               {expandedProjects.has(proj.id) || taskStatusFilter !== 'Tất cả' ? (
                                   <svg className="w-4 h-4 mx-auto text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                ) : (
                                   <svg className="w-4 h-4 mx-auto text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -1537,12 +1537,22 @@ const MarketingApp = () => {
                                 </div>
                               </td>
                              {/* The rest of the table cells for the project row */}
-                             <td className="px-3 py-2 border border-slate-200">Điểm nhấn content</td>
-                             <td className="px-3 py-2 border border-slate-200">Nội dung khai thác content</td>
-                             <td className="px-3 py-2 border border-slate-200">Brief content</td>
-                             <td className="px-3 py-2 border border-slate-200">Ghi chú content</td>
+                             <td className="px-3 py-2 border border-slate-200" title={proj.effect_description || ''}>
+                               <div className="text-[12px] font-medium text-slate-700 line-clamp-2">{proj.effect_description || '-'}</div>
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200" title={proj.customer_problem || ''}>
+                               <div className="text-[12px] font-medium text-slate-700 line-clamp-2">{proj.customer_problem || '-'}</div>
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200">
+                               {proj.content_link ? (
+                                 <a href={proj.content_link} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline text-[12px] font-medium" onClick={e => e.stopPropagation()}>Mở Link</a>
+                               ) : <span className="text-[12px] text-slate-400">-</span>}
+                             </td>
+                             <td className="px-3 py-2 border border-slate-200" title={proj.other_info || ''}>
+                               <div className="text-[12px] font-medium text-slate-700 line-clamp-2">{proj.other_info || '-'}</div>
+                             </td>
                            </tr>
-                           {expandedProjects.has(proj.id) && (
+                           {(expandedProjects.has(proj.id) || taskStatusFilter !== 'Tất cả') && (
                              <tr>
                                <td colSpan={10} className="p-0">
                                  <div className="bg-slate-50 p-4 border-t border-slate-200">
