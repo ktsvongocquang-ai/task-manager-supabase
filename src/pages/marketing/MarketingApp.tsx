@@ -1701,7 +1701,7 @@ const MarketingApp = () => {
                }
 
                return filteredProjects.map(proj => {
-                 const projTasks = videos.filter(v => v.project_id === proj.id).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+                 const projTasks = videos.filter(v => v.project_id === proj.id && (taskStatusFilter === 'Tất cả' || v.status === taskStatusFilter)).sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
                  const isExpanded = expandedProjects.has(proj.id);
                  const upcomingMilestone = (proj.marketing_shooting_milestones || []).find((m: any) => isFuture(parseISO(m.milestone_date)) || isToday(parseISO(m.milestone_date)));
                  
