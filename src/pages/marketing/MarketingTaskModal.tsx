@@ -628,7 +628,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         setSubTasks(prev => prev.filter(st => st.id !== id));
 
         try {
-            const { error } = await supabase.from('marketing_tasks').delete().eq('id', id);
+            const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', id);
             if (error) throw error;
         } catch (err) {
             console.error('Error deleting subtask:', err);
@@ -774,9 +774,9 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <div className="w-[1px] h-4 bg-slate-300"></div>
                                     <button 
                                       onClick={async () => {
-                                        if (confirm('Bạn có chắc chắn muốn xóa vĩnh viễn nhiệm vụ này? Hành động này không thể hoàn tác.')) {
+                                        if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? (Nhiệm vụ sẽ được chuyển vào mục Lưu trữ)')) {
                                             try {
-                                                const { error } = await supabase.from('marketing_tasks').delete().eq('id', editingTask.id);
+                                                const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', editingTask.id);
                                                 if (error) throw error;
                                                 onSaved();
                                                 onClose();

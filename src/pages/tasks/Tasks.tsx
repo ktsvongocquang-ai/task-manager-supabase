@@ -90,6 +90,7 @@ export const Tasks = () => {
         'Chờ duyệt': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chờ duyệt')).length,
         'Hoàn thành': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')).length,
         'Tạm dừng': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Tạm dừng') || t.status?.includes('Hủy'))).length,
+        'Lưu trữ': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Lưu trữ')).length,
     }
 
     const filteredTasks = baseFilteredTasks.filter(t => {
@@ -99,6 +100,7 @@ export const Tasks = () => {
         if (statusFilter === 'Chờ duyệt') return t.status === 'Chờ duyệt';
         if (statusFilter === 'Hoàn thành') return t.status?.includes('Hoàn thành');
         if (statusFilter === 'Tạm dừng') return t.status?.includes('Tạm dừng') || t.status?.includes('Hủy');
+        if (statusFilter === 'Lưu trữ') return t.status === 'Lưu trữ';
         return t.status === statusFilter;
     })
 
@@ -231,9 +233,18 @@ export const Tasks = () => {
         }
     }
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Xóa nhiệm vụ này?')) return
-        await supabase.from('tasks').delete().eq('id', id)
+    const handleDelete = async (t: Task) => {
+        if (t.status === 'Lưu trữ') {
+            if (['Admin'].includes(profile?.role?.trim() || '')) {
+                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
+                await supabase.from('tasks').delete().eq('id', t.id)
+                fetchAll()
+            }
+            return
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
+        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
         fetchAll()
     }
 
@@ -325,7 +336,8 @@ export const Tasks = () => {
         { id: 'todo', label: 'Cần làm', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Cần làm' || t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo')) },
         { id: 'in_progress', label: 'Đang thực hiện', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Đang thực hiện' || t.status === 'Tạm dừng')) },
         { id: 'review', label: 'Chờ duyệt', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Chờ duyệt') },
-        { id: 'done', label: 'Hoàn thành', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')) }
+        { id: 'done', label: 'Hoàn thành', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')) },
+        { id: 'archived', label: 'Lưu trữ', items: filteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status === 'Lưu trữ') }
     ];
 
     if (loading) {
@@ -656,12 +668,26 @@ export const Tasks = () => {
                                                                                     <Edit3 size={13} />
                                                                                 </button>
                                                                                 <button
-                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
+                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(t); }}
                                                                                     className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
+                                                                                    title={t.status === 'Lưu trữ' ? "Xóa vĩnh viễn" : "Lưu trữ"}
                                                                                 >
                                                                                     <Trash2 size={13} />
                                                                                 </button>
                                                                             </>
+                                                                        )}
+                                                                        {t.status === 'Lưu trữ' && profile?.role?.trim() === 'Admin' && (
+                                                                            <button
+                                                                                onClick={async (e) => {
+                                                                                    e.stopPropagation();
+                                                                                    await supabase.from('tasks').update({ status: 'Chưa bắt đầu' }).eq('id', t.id);
+                                                                                    fetchAll();
+                                                                                }}
+                                                                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100 hover:bg-indigo-100 transition-opacity"
+                                                                                title="Khôi phục"
+                                                                            >
+                                                                                <CheckCircle2 size={13} />
+                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 </td>
@@ -844,11 +870,25 @@ export const Tasks = () => {
                                                                                                     <Edit3 size={13} />
                                                                                                 </button>
                                                                                                 <button
-                                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(child.id); }}
+                                                                                                    onClick={(e) => { e.stopPropagation(); handleDelete(child); }}
                                                                                                     className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity shrink-0"
+                                                                                                    title={child.status === 'Lưu trữ' ? "Xóa vĩnh viễn" : "Lưu trữ"}
                                                                                                 >
                                                                                                     <Trash2 size={13} />
                                                                                                 </button>
+                                                                                                {child.status === 'Lưu trữ' && profile?.role?.trim() === 'Admin' && (
+                                                                                                    <button
+                                                                                                        onClick={async (e) => {
+                                                                                                            e.stopPropagation();
+                                                                                                            await supabase.from('tasks').update({ status: 'Chưa bắt đầu' }).eq('id', child.id);
+                                                                                                            fetchAll();
+                                                                                                        }}
+                                                                                                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100 hover:bg-indigo-100 transition-opacity shrink-0"
+                                                                                                        title="Khôi phục"
+                                                                                                    >
+                                                                                                        <CheckCircle2 size={13} />
+                                                                                                    </button>
+                                                                                                )}
                                                                                             </div>
                                                                                         </td>
                                                                                     </tr>
