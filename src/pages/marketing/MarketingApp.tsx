@@ -153,14 +153,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 const platformData = [
   { name: 'Facebook', value: 8, color: '#4ade80' },
   { name: 'Tiktok', value: 23, color: '#fbbf24' },
-  { name: 'Instagram', value: 3, color: '#f87171' },
-  { name: 'Website', value: 12, color: '#f472b6' },
-  { name: 'Youtube', value: 6, color: '#c084fc' },
-  { name: 'Email', value: 5, color: '#fb923c' },
-  { name: 'Shopee', value: 2, color: '#ef4444' },
-  { name: 'Lazada', value: 0, color: '#d1d5db' },
-  { name: 'Tiki', value: 0, color: '#d1d5db' },
-  { name: 'Zalo', value: 0, color: '#d1d5db' },
+  { name: 'Youtube', value: 6, color: '#c084fc' }
 ];
 
 const MarketingDashboard = ({ videos }: { videos: any[] }) => {
