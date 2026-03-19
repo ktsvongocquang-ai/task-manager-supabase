@@ -630,7 +630,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col gap-4 w-full min-h-0 min-w-0 px-1 md:px-4 custom-scrollbar">
+    <div className="flex-1 overflow-y-scroll flex flex-col gap-4 w-full min-h-0 min-w-0 px-1 md:px-4 custom-scrollbar">
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2 pb-1">
         {/* Top Header Row */}
