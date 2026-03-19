@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../../services/supabase';
 import type { Project } from '../../../types';
 import { useAuthStore } from '../../../store/authStore';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, differenceInDays, parseISO } from 'date-fns';
+import { format, eachDayOfInterval, isSameDay, differenceInDays, parseISO, subDays, addDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight, Video, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { TimelineUpdateModal } from './TimelineUpdateModal';
@@ -137,9 +137,9 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
         }
     };
 
-    // Get a 3-month window around the current date to render
-    const startDate = startOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-    const endDate = endOfMonth(new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0));
+    // Render a window starting exactly 45 days before the current reference date, and 4 months ahead
+    const startDate = subDays(currentDate, 45);
+    const endDate = addDays(currentDate, 120);
     const daysInterval = useMemo(() => eachDayOfInterval({ start: startDate, end: endDate }), [startDate, endDate]);
 
     const DAY_WIDTH = 40; // width of a single day column in px

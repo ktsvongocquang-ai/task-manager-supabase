@@ -333,7 +333,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 category: form.category || null,
                 format: form.format || null,
                 platform: form.platform || null,
-                target: form.target || null
+                target: form.target || null,
+                output: form.output || null
                 // Removed performance metrics from initial save payload to avoid "Column not found" schema errors.
             }
 
