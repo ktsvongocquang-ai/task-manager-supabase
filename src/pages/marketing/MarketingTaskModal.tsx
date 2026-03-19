@@ -312,9 +312,14 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const handleSave = async () => {
         try {
+            let finalTaskCode = form.task_code;
+            if (!finalTaskCode) {
+                finalTaskCode = `TSK-${Math.floor(Date.now() / 1000)}`;
+            }
+
             const payload = {
                 name: form.name,
-                task_code: form.task_code,
+                task_code: finalTaskCode,
                 description: form.description || null,
                 assignee_id: form.assignee_id || null,
                 supporter_id: form.supporter_id || null,
@@ -333,10 +338,6 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             }
 
             let result;
-            let finalTaskCode = form.task_code;
-            if (!finalTaskCode) {
-                finalTaskCode = `TSK-${Math.floor(Date.now() / 1000)}`;
-            }
 
             if (editingTask && editingTask.id) {
                 result = await supabase.from('marketing_tasks').update(payload).eq('id', editingTask.id)
