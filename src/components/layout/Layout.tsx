@@ -408,7 +408,7 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0">
+            <main className="flex-1 lg:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0 min-w-0">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex flex-col gap-3">
@@ -544,7 +544,7 @@ export const Layout = () => {
                 />
 
                 {/* Page View */}
-                <div className={`flex-1 overflow-y-scroll overflow-x-hidden w-full max-w-full flex flex-col relative ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
+                <div className={`flex-1 overflow-y-scroll overflow-x-hidden w-full max-w-full flex flex-col relative min-w-0 ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
                     <Outlet />
                 </div>
             </main>
