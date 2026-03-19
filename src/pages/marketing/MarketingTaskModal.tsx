@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video, Archive } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -1347,13 +1347,36 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0 rounded-b-3xl">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
-                        >
-                            Hủy
-                        </button>
+                    <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
+                        <div>
+                            {editingTask && (
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return;
+                                        try {
+                                            const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', editingTask.id);
+                                            if (error) throw error;
+                                            onSaved();
+                                            onClose();
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert('Lỗi lưu trữ');
+                                        }
+                                    }}
+                                    className="px-5 py-2.5 hover:bg-rose-50 text-rose-600 rounded-xl text-sm font-bold transition-colors flex items-center gap-2"
+                                    title="Chuyển Task này vào mục Lưu trữ"
+                                >
+                                    <Archive size={16} /> Lưu trữ
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex justify-end gap-3 items-center">
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
+                            >
+                                Hủy
+                            </button>
 
                         {editingTask && form.status === 'Chờ duyệt' && ['Admin', 'Quản lý', 'Giám đốc'].includes(currentUserProfile?.role?.trim() || '') && (
                             currentUserProfile?.role === 'Admin' ||
@@ -1385,12 +1408,13 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </button>
                             )}
 
-                        <button
-                            onClick={handleSave}
-                            className="px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
-                        >
-                            Lưu Lại
-                        </button>
+                            <button
+                                onClick={handleSave}
+                                className="px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                Lưu Lại
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
