@@ -60,3 +60,31 @@ export const createComment = async (
         return false;
     }
 }
+
+export const updateComment = async (commentId: string, newContent: string) => {
+    try {
+        const { error } = await supabase
+            .from('comments')
+            .update({ content: newContent })
+            .eq('id', commentId);
+        if (error) throw error;
+        return true;
+    } catch (err) {
+        console.error('Error updating comment:', err);
+        return false;
+    }
+}
+
+export const deleteComment = async (commentId: string) => {
+    try {
+        // Delete child replies first (cascade)
+        await supabase.from('comments').delete().eq('parent_id', commentId);
+        // Then delete the comment itself
+        const { error } = await supabase.from('comments').delete().eq('id', commentId);
+        if (error) throw error;
+        return true;
+    } catch (err) {
+        console.error('Error deleting comment:', err);
+        return false;
+    }
+}

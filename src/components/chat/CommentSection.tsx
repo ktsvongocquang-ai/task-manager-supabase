@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Send, User as UserIcon, MessageSquare, ChevronRight, X } from 'lucide-react'
-import { getComments, createComment } from '../../services/comments'
+import { Send, User as UserIcon, MessageSquare, ChevronRight, X, Pencil, Trash2, Check } from 'lucide-react'
+import { getComments, createComment, updateComment, deleteComment } from '../../services/comments'
 import { createNotification } from '../../services/notifications'
 import type { Comment } from '../../types'
 import { formatDistanceToNow, parseISO } from 'date-fns'
@@ -24,6 +24,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
     const [mentionFilter, setMentionFilter] = useState('')
     const [activeMentionTarget, setActiveMentionTarget] = useState<'main' | 'thread'>('main')
     const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+    const [editContent, setEditContent] = useState('')
 
     const mentionsRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -185,6 +187,35 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
         }
     }
 
+    const handleStartEdit = (comment: Comment) => {
+        setEditingCommentId(comment.id)
+        setEditContent(comment.content)
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editingCommentId || !editContent.trim()) return
+        const success = await updateComment(editingCommentId, editContent.trim())
+        if (success) {
+            setComments(prev => prev.map(c => c.id === editingCommentId ? { ...c, content: editContent.trim() } : c))
+        }
+        setEditingCommentId(null)
+        setEditContent('')
+    }
+
+    const handleCancelEdit = () => {
+        setEditingCommentId(null)
+        setEditContent('')
+    }
+
+    const handleDelete = async (commentId: string) => {
+        if (!confirm('Bạn có chắc muốn xóa bình luận này?')) return
+        const success = await deleteComment(commentId)
+        if (success) {
+            setComments(prev => prev.filter(c => c.id !== commentId && c.parent_id !== commentId))
+            if (activeThreadId === commentId) setActiveThreadId(null)
+        }
+    }
+
     const filteredProfiles = profiles.filter(p => p.full_name.toLowerCase().includes(mentionFilter) && p.id !== currentUserProfile?.id)
 
     // Render mention text with blue highlights
@@ -273,7 +304,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                             const hasReplies = replies.length > 0;
 
                             return (
-                                <div key={comment.id || idx} className={`flex gap-3 max-w-[90%] ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
+                                <div key={comment.id || idx} className={`flex gap-3 max-w-[90%] group/comment ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
                                     <div className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] text-white font-bold shadow-sm ${isMe ? 'bg-indigo-500' : 'bg-slate-500'}`}>
                                         {getProfileInitials(comment.user_id)}
                                     </div>
@@ -283,10 +314,39 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                             <span className="text-[10px] font-medium text-slate-400">
                                                 {formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true, locale: vi })}
                                             </span>
+                                            {/* Edit/Delete buttons - only for comment author */}
+                                            {isMe && editingCommentId !== comment.id && (
+                                                <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleStartEdit(comment); }} className="p-0.5 text-slate-400 hover:text-indigo-600 transition-colors" title="Sửa">
+                                                        <Pencil size={12} />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(comment.id); }} className="p-0.5 text-slate-400 hover:text-red-500 transition-colors" title="Xóa">
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className={`px-4 py-2.5 shadow-sm text-sm break-words whitespace-pre-wrap ${isMe ? 'bg-[#ebf0fe] text-slate-800 border border-[#d6e0fd] rounded-2xl rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'}`}>
-                                            {renderContent(comment.content)}
-                                        </div>
+                                        {editingCommentId === comment.id ? (
+                                            <div className="flex items-center gap-2 w-full">
+                                                <input
+                                                    autoFocus
+                                                    value={editContent}
+                                                    onChange={(e) => setEditContent(e.target.value)}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit(); }}
+                                                    className="flex-1 bg-white border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700"
+                                                />
+                                                <button onClick={handleSaveEdit} className="p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors" title="Lưu">
+                                                    <Check size={14} />
+                                                </button>
+                                                <button onClick={handleCancelEdit} className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors" title="Hủy">
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className={`px-4 py-2.5 shadow-sm text-sm break-words whitespace-pre-wrap ${isMe ? 'bg-[#ebf0fe] text-slate-800 border border-[#d6e0fd] rounded-2xl rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'}`}>
+                                                {renderContent(comment.content)}
+                                            </div>
+                                        )}
 
                                         {/* Thread Summary UI (Lark-style) */}
                                         <div className={`mt-2 flex items-center gap-2 group cursor-pointer w-full ${isMe ? 'flex-row-reverse' : ''}`} onClick={() => setActiveThreadId(comment.id)}>
@@ -375,8 +435,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                 <div className="h-px bg-slate-200 w-full rounded-full flex-1" />
                             </div>
 
-                            {activeThreadReplies.map((reply, idx) => (
-                                <div key={reply.id || idx} className="flex gap-3 group">
+                            {activeThreadReplies.map((reply, idx) => {
+                                const isReplyMine = reply.user_id === currentUserProfile?.id;
+                                return (
+                                <div key={reply.id || idx} className="flex gap-3 group/reply">
                                     <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0 text-[10px] font-bold shadow-sm">
                                         {getProfileInitials(reply.user_id)}
                                     </div>
@@ -386,13 +448,28 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                             <span className="text-[10px] font-medium text-slate-400">
                                                 {formatDistanceToNow(parseISO(reply.created_at), { addSuffix: true, locale: vi })}
                                             </span>
+                                            {isReplyMine && editingCommentId !== reply.id && (
+                                                <div className="flex items-center gap-1 opacity-0 group-hover/reply:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleStartEdit(reply)} className="p-0.5 text-slate-400 hover:text-indigo-600 transition-colors" title="Sửa"><Pencil size={12} /></button>
+                                                    <button onClick={() => handleDelete(reply.id)} className="p-0.5 text-slate-400 hover:text-red-500 transition-colors" title="Xóa"><Trash2 size={12} /></button>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="text-sm text-slate-800 leading-relaxed break-words whitespace-pre-wrap">
-                                            {renderContent(reply.content)}
-                                        </div>
+                                        {editingCommentId === reply.id ? (
+                                            <div className="flex items-center gap-2 w-full">
+                                                <input autoFocus value={editContent} onChange={(e) => setEditContent(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit(); }} className="flex-1 bg-white border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700" />
+                                                <button onClick={handleSaveEdit} className="p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"><Check size={14} /></button>
+                                                <button onClick={handleCancelEdit} className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"><X size={14} /></button>
+                                            </div>
+                                        ) : (
+                                            <div className="text-sm text-slate-800 leading-relaxed break-words whitespace-pre-wrap">
+                                                {renderContent(reply.content)}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                             <div ref={threadBottomRef} className="h-1" />
                         </div>
                     </div>
