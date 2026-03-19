@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export const getComments = async (taskId?: string | null, projectId?: string | null) => {
+export const getComments = async (taskId?: string | null, projectId?: string | null, moduleType: 'core' | 'marketing' = 'core') => {
     try {
         let query = supabase
             .from('comments')
@@ -8,9 +8,9 @@ export const getComments = async (taskId?: string | null, projectId?: string | n
             .order('created_at', { ascending: true }); // Oldest first for chat feel
 
         if (taskId) {
-            query = query.eq('task_id', taskId);
+            query = query.eq(moduleType === 'marketing' ? 'marketing_task_id' : 'task_id', taskId);
         } else if (projectId) {
-            query = query.eq('project_id', projectId);
+            query = query.eq(moduleType === 'marketing' ? 'marketing_project_id' : 'project_id', projectId);
         } else {
             return [];
         }
@@ -30,19 +30,28 @@ export const createComment = async (
     mentions: string[] = [],
     taskId?: string | null,
     projectId?: string | null,
-    parentId?: string | null
+    parentId?: string | null,
+    moduleType: 'core' | 'marketing' = 'core'
 ) => {
     try {
+        const payload: any = {
+            user_id: userId,
+            content: content,
+            mentions: mentions,
+            parent_id: parentId || null
+        };
+        
+        if (moduleType === 'marketing') {
+            payload.marketing_task_id = taskId || null;
+            payload.marketing_project_id = projectId || null;
+        } else {
+            payload.task_id = taskId || null;
+            payload.project_id = projectId || null;
+        }
+
         const { error } = await supabase
             .from('comments')
-            .insert({
-                user_id: userId,
-                content: content,
-                mentions: mentions,
-                task_id: taskId || null,
-                project_id: projectId || null,
-                parent_id: parentId || null
-            });
+            .insert(payload);
 
         if (error) throw error;
         return true;

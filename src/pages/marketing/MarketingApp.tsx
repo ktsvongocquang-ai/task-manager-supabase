@@ -136,8 +136,8 @@ const STATUS_MAP: Record<string, { col: string, name: string, color: string, tex
   PROD_EDITING: { col: 'COL_PROD', name: 'Sản xuất (Đang Edit)', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', textColor: 'text-indigo-600' },
   PROD_DONE: { col: 'COL_PROD', name: 'Sản xuất (Đã xong)', color: 'bg-purple-100 text-purple-800 border-purple-200', textColor: 'text-purple-600' },
   VIDEO_REVIEW: { col: 'COL_DONE', name: 'Gửi qua Phê duyệt', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
-  SCHEDULED: { col: 'COL_SCHEDULE', name: 'Lên lịch đăng', color: 'bg-gray-100 text-gray-800 border-gray-200', textColor: 'text-gray-600' },
-  PUBLISHED: { col: 'COL_SCHEDULE', name: 'Hoàn thành đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
+  SCHEDULED: { col: 'COL_DONE', name: 'Lên lịch đăng', color: 'bg-gray-100 text-gray-800 border-gray-200', textColor: 'text-gray-600' },
+  PUBLISHED: { col: 'COL_DONE', name: 'Hoàn thành đăng', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', textColor: 'text-emerald-600' },
   REJECTED: { col: 'COL_REJECTED', name: 'Từ chối / Để sau', color: 'bg-red-100 text-red-800 border-red-200', textColor: 'text-red-600' }
 };
 
@@ -510,6 +510,34 @@ const MarketingApp = () => {
       }
   };
 
+  const handleDeleteProjectFn = async (id: string, name: string) => {
+      if (!confirm(`Bạn có chắc chắn muốn xóa dự án "${name}"? Thao tác này không thể hoàn tác.`)) return;
+      try {
+          const { error } = await supabase.from('marketing_projects').delete().eq('id', id);
+          if (error) throw error;
+          setIsProjectModalOpen(false);
+          setEditingProject(null);
+          await fetchData();
+      } catch (e: any) {
+          console.error(e);
+          alert(`Lỗi khi xóa dự án: ${e.message}`);
+      }
+  };
+
+  const handleArchiveProjectFn = async (id: string, name: string) => {
+      if (!confirm(`Bạn có chắc muốn lưu trữ dự án "${name}"? Dự án sẽ được chuyển sang Hủy bỏ / Lưu trữ.`)) return;
+      try {
+          const { error } = await supabase.from('marketing_projects').update({ status: 'Hủy bỏ' }).eq('id', id);
+          if (error) throw error;
+          setIsProjectModalOpen(false);
+          setEditingProject(null);
+          await fetchData();
+      } catch (e: any) {
+          console.error(e);
+          alert(`Lỗi khi lưu trữ dự án: ${e.message}`);
+      }
+  };
+
   const updateProjectField = async (projectId: string, field: string, value: string) => {
       try {
           const { error } = await supabase.from('marketing_projects').update({ [field]: value }).eq('id', projectId);
@@ -602,7 +630,7 @@ const MarketingApp = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 w-full min-h-0 min-w-0 overflow-hidden px-1 md:px-4">
+    <div className="flex-1 overflow-y-auto flex flex-col gap-4 w-full min-h-0 min-w-0 px-1 md:px-4 custom-scrollbar">
       {/* Header */}
       <div className="flex flex-col justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0 pt-2 pb-1">
         {/* Top Header Row */}
@@ -1919,7 +1947,10 @@ const MarketingApp = () => {
           </div>
         </div>
       ) : view === 'TIMELINE' ? (
-        <div className="flex-1 min-h-[500px] flex flex-col p-4 md:p-6 bg-slate-50 relative min-w-0 overflow-hidden">
+        <div 
+          className="w-full shrink-0 flex flex-col p-2 md:p-4 bg-slate-50 relative overflow-hidden transition-all duration-300 rounded-2xl"
+          style={{ height: 'calc(100vh - 210px)', minHeight: '600px' }}
+        >
           <ProjectGanttBoard />
         </div>
       ) : view === 'DASHBOARD' ? (
@@ -2354,6 +2385,8 @@ const MarketingApp = () => {
         onClose={() => { setIsProjectModalOpen(false); setEditingProject(null); }}
         editingProject={editingProject}
         onSave={handleSaveProject}
+        onDelete={handleDeleteProjectFn}
+        onArchive={handleArchiveProjectFn}
         profiles={profiles}
         currentUserProfile={profile}
       />

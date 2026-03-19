@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { type Project } from '../../types';
-import { X, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react';
+import { X, Mic, MicOff, Sparkles, Loader2, Archive, Trash2 } from 'lucide-react';
 
 interface MarketingProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (formData: any) => Promise<void>;
+    onDelete?: (id: string, name: string) => Promise<void>;
+    onArchive?: (id: string, name: string) => Promise<void>;
     editingProject?: Project | null;
     profiles: any[];
     currentUserProfile: any;
@@ -28,6 +30,8 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
     isOpen,
     onClose,
     onSave,
+    onDelete,
+    onArchive,
     editingProject,
     profiles,
     currentUserProfile
@@ -228,9 +232,34 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                             Điền đầy đủ thông tin để team Marketing có chất liệu lên nội dung
                         </p>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-lg self-start">
-                        <X size={20} />
-                    </button>
+                    <div className="flex items-center gap-2 self-start">
+                        {editingProject && (
+                            <>
+                                {onArchive && (
+                                    <button 
+                                        onClick={() => onArchive(editingProject.id, editingProject.name || '')}
+                                        className="text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
+                                        title="Lưu trữ dự án"
+                                    >
+                                        <Archive size={20} />
+                                    </button>
+                                )}
+                                {onDelete && (
+                                    <button 
+                                        onClick={() => onDelete(editingProject.id, editingProject.name || '')}
+                                        className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
+                                        title="Xóa dự án"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                )}
+                                <div className="w-px h-6 bg-slate-200 mx-1"></div>
+                            </>
+                        )}
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-xl">
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
                 
                 <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar bg-slate-50/30">

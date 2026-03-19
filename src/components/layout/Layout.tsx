@@ -544,7 +544,7 @@ export const Layout = () => {
                 />
 
                 {/* Page View */}
-                <div className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
+                <div className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full flex flex-col relative ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
                     <Outlet />
                 </div>
             </main>
