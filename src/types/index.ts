@@ -52,6 +52,7 @@ export interface Project {
 export interface ShootingMilestone {
     id: string
     project_id: string
+    task_id?: string | null
     milestone_date: string
     content: string
     status?: string | 'Chờ quay' | 'Đã quay' | 'Đã huỷ'

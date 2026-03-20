@@ -32,6 +32,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
 
     const [milestones, setMilestones] = useState<ShootingMilestone[]>([]);
     const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
+    const [projectTasks, setProjectTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     
     // New daily log form
@@ -73,6 +74,12 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 .eq('project_id', project.id)
                 .order('log_date', { ascending: false });
             if (logsData) setDailyLogs(logsData);
+
+            const { data: tasksData } = await supabase
+                .from('marketing_tasks')
+                .select('id, name')
+                .eq('project_id', project.id);
+            if (tasksData) setProjectTasks(tasksData);
         } catch (e) {
             console.error('Error fetching timeline data', e);
         } finally {
@@ -127,6 +134,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
             project_id: project.id,
             milestone_date: new Date().toISOString().split('T')[0],
             content: 'Nội dung quay mới',
+            task_id: null,
             status: 'Chờ quay'
         };
         try {
@@ -139,11 +147,37 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     };
 
     const handleUpdateMilestone = async (id: string, field: string, value: string) => {
-        setMilestones(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
-        try {
-            await supabase.from('marketing_shooting_milestones').update({ [field]: value }).eq('id', id);
-        } catch (e) {
-            console.error(e);
+        if (field === 'task_id') {
+            const selectedTask = projectTasks.find(t => t.id === value);
+            const contentName = selectedTask ? selectedTask.name : 'Nội dung quay mới';
+            setMilestones(prev => prev.map(m => m.id === id ? { ...m, task_id: value, content: contentName } : m));
+            try {
+                await supabase.from('marketing_shooting_milestones').update({ task_id: value || null, content: contentName }).eq('id', id);
+                const ms = milestones.find(m => m.id === id);
+                if (ms && value) {
+                    await supabase.from('marketing_tasks').update({ start_date: ms.milestone_date }).eq('id', value);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        } else if (field === 'milestone_date') {
+            setMilestones(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+            try {
+                await supabase.from('marketing_shooting_milestones').update({ [field]: value }).eq('id', id);
+                const ms = milestones.find(m => m.id === id);
+                if (ms && ms.task_id) {
+                    await supabase.from('marketing_tasks').update({ start_date: value }).eq('id', ms.task_id);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            setMilestones(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
+            try {
+                await supabase.from('marketing_shooting_milestones').update({ [field]: value }).eq('id', id);
+            } catch (e) {
+                console.error(e);
+            }
         }
     };
 
@@ -365,13 +399,16 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                                     <Trash2 size={14} />
                                                 </button>
                                             </div>
-                                            <input 
-                                                type="text" 
-                                                value={ms.content}
-                                                onChange={e => handleUpdateMilestone(ms.id, 'content', e.target.value)}
-                                                className="w-full mt-2 bg-gray-50 border border-gray-100 rounded text-sm p-1.5 focus:bg-white focus:ring-1 focus:ring-rose-400"
-                                                placeholder="Nội dung cần quay..."
-                                            />
+                                            <select
+                                                value={ms.task_id || ''}
+                                                onChange={e => handleUpdateMilestone(ms.id, 'task_id', e.target.value)}
+                                                className="w-full mt-2 bg-white border border-rose-200 rounded text-sm p-1.5 focus:bg-rose-50 focus:ring-1 focus:ring-rose-400 font-medium text-slate-700"
+                                            >
+                                                <option value="" disabled className="text-gray-400">--- Gắn với nội dung Task ---</option>
+                                                {projectTasks.map(t => (
+                                                    <option key={t.id} value={t.id}>{t.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     ))
                                 )}
