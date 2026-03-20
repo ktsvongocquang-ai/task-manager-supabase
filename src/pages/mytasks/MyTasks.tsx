@@ -753,7 +753,7 @@ export default function MyTasks() {
         {pinnedNotes.length > 0 && (
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Được ghim</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {pinnedNotes.map(note => (
                 <NoteCard 
                   key={note.id} 
@@ -775,7 +775,7 @@ export default function MyTasks() {
         {unpinnedNotes.length > 0 && (
           <div>
             {pinnedNotes.length > 0 && <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Khác</h3>}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {unpinnedNotes.map(note => (
                 <NoteCard 
                   key={note.id} 
@@ -1161,7 +1161,7 @@ export default function MyTasks() {
         {/* Decorative background */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none"></div>
         
-        <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="relative w-full max-w-[2000px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <greeting.icon className={`w-5 h-5 ${greeting.color}`} />
@@ -1193,7 +1193,7 @@ export default function MyTasks() {
       </div>
 
       {/* Controls & Quick Add */}
-      <div className="max-w-5xl mx-auto w-full px-4 sm:px-8 py-6">
+      <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           {/* View Toggle */}
           <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto">
@@ -1360,7 +1360,7 @@ export default function MyTasks() {
           </div>
         ) : (
           /* Category-Based Board View (Kanban) */
-          <div className="flex gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto no-scrollbar snap-x items-start">
+          <div className="flex xl:grid xl:grid-cols-5 gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto xl:overflow-visible no-scrollbar snap-x xl:snap-none items-start">
             {Object.values(categories).map((cat: CategoryItem) => {
               const catTasks = filteredTasks.filter(t => t.category === cat.id);
               const activeTasks = catTasks.filter(t => t.status !== 'done' && t.status !== 'archived');
@@ -1390,7 +1390,7 @@ export default function MyTasks() {
               return (
                 <div 
                   key={cat.id}
-                  className={`w-[85vw] sm:w-[340px] flex-shrink-0 flex flex-col rounded-3xl snap-center border border-gray-200 bg-gray-50/30 shadow-sm`}
+                  className={`w-[85vw] sm:w-[340px] xl:w-auto flex-shrink-0 flex flex-col rounded-3xl snap-center xl:snap-none border border-gray-200 bg-gray-50/30 shadow-sm`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropCategory(e, cat.id)}
                 >
