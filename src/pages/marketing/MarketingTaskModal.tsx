@@ -628,7 +628,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         setSubTasks(prev => prev.filter(st => st.id !== id));
 
         try {
-            const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', id);
+            const { error } = await supabase.from('marketing_tasks').update({ isarchived: true }).eq('id', id);
             if (error) throw error;
         } catch (err) {
             console.error('Error deleting subtask:', err);
@@ -756,7 +756,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                       onClick={async () => {
                                         if (confirm('Bạn có chắc chắn muốn Lưu Trữ (Archive) nhiệm vụ này? Hành động này sẽ chuyển nó vào mục Lưu trữ.')) {
                                             try {
-                                                const { error } = await supabase.from('marketing_tasks').update({ status: 'REJECTED' }).eq('id', editingTask.id);
+                                                const { error } = await supabase.from('marketing_tasks').update({ isarchived: true }).eq('id', editingTask.id);
                                                 if (error) throw error;
                                                 onSaved();
                                                 onClose();
@@ -776,7 +776,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                       onClick={async () => {
                                         if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? (Nhiệm vụ sẽ được chuyển vào mục Lưu trữ)')) {
                                             try {
-                                                const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', editingTask.id);
+                                                const { error } = await supabase.from('marketing_tasks').update({ isarchived: true }).eq('id', editingTask.id);
                                                 if (error) throw error;
                                                 onSaved();
                                                 onClose();
@@ -1354,7 +1354,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     onClick={async () => {
                                         if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return;
                                         try {
-                                            const { error } = await supabase.from('marketing_tasks').update({ isArchived: true }).eq('id', editingTask.id);
+                                            const { error } = await supabase.from('marketing_tasks').update({ isarchived: true }).eq('id', editingTask.id);
                                             if (error) throw error;
                                             onSaved();
                                             onClose();
