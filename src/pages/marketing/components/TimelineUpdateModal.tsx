@@ -39,6 +39,10 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     const [newLogContent, setNewLogContent] = useState('');
     const [newLogMedia, setNewLogMedia] = useState('');
 
+    // New milestone form
+    const [newMsDate, setNewMsDate] = useState(new Date().toISOString().split('T')[0]);
+    const [newMsTaskId, setNewMsTaskId] = useState('');
+
     useEffect(() => {
         if (isOpen && project) {
             setForm({
@@ -130,19 +134,33 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
     };
 
     const handleAddMilestone = async () => {
+        if (!newMsTaskId) {
+            alert("Vui lòng chọn Task nội dung trước khi thêm mốc quay!");
+            return;
+        }
+        setIsLoading(true);
+        const selectedTask = projectTasks.find(t => t.id === newMsTaskId);
         const newMs = {
             project_id: project.id,
-            milestone_date: new Date().toISOString().split('T')[0],
-            content: 'Nội dung quay mới',
-            task_id: null,
+            milestone_date: newMsDate,
+            content: selectedTask ? selectedTask.name : 'Nội dung quay mới',
+            task_id: newMsTaskId,
             status: 'Chờ quay'
         };
         try {
             const { data, error } = await supabase.from('marketing_shooting_milestones').insert(newMs).select().single();
             if (error) throw error;
-            if (data) setMilestones(prev => [...prev, data]);
+            if (data) {
+                setMilestones(prev => [...prev, data]);
+                setNewMsTaskId('');
+                // Sync start_date to task natively
+                await supabase.from('marketing_tasks').update({ start_date: newMsDate }).eq('id', newMsTaskId);
+            }
         } catch (e) {
             console.error(e);
+            alert("Lỗi thêm mốc quay.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -367,9 +385,31 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     <Video size={16} className="text-rose-500" />
                                     Mốc quay Phim (Marketing)
                                 </h3>
-                                <button onClick={handleAddMilestone} className="text-xs font-bold text-rose-600 bg-rose-50 p-1.5 rounded-lg hover:bg-rose-100 transition-colors flex items-center gap-1">
-                                    <Plus size={14} /> Thêm mốc
-                                </button>
+                            </div>
+
+                            <div className="bg-rose-50/50 border border-rose-200 p-3 rounded-xl mb-4 shadow-sm">
+                                <div className="text-[10px] sm:text-xs font-bold text-rose-800 mb-2 uppercase flex items-center gap-1.5"><Plus size={14}/> Thêm mốc quay mới</div>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <input 
+                                        type="date" 
+                                        value={newMsDate}
+                                        onChange={e => setNewMsDate(e.target.value)}
+                                        className="sm:w-32 w-full bg-white border border-gray-200 text-xs font-bold text-gray-700 p-2 focus:ring-1 focus:ring-rose-400 rounded-lg"
+                                    />
+                                    <select
+                                        value={newMsTaskId}
+                                        onChange={e => setNewMsTaskId(e.target.value)}
+                                        className="flex-1 bg-white border border-gray-200 rounded-lg text-xs p-2 focus:ring-1 focus:ring-rose-400 font-bold text-slate-700"
+                                    >
+                                        <option value="" disabled className="text-gray-400">--- Chọn Task để gắn lịch ---</option>
+                                        {projectTasks.map(t => (
+                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                    <button onClick={handleAddMilestone} disabled={!newMsTaskId || isLoading} className="bg-rose-500 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-rose-600 disabled:opacity-50 shrink-0 transition-colors">
+                                        Thêm
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="overflow-y-auto flex-1 custom-scrollbar space-y-3 pr-2 min-h-[150px]">
