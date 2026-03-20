@@ -826,8 +826,8 @@ const MarketingApp = () => {
                   return true;
                 });
 
-                const activeVideos = columnVideos.filter((v: any) => !v.isArchived);
-                const archivedVideos = columnVideos.filter((v: any) => v.isArchived);
+                const activeVideos = columnVideos.filter((v: any) => !v.isarchived);
+                const archivedVideos = columnVideos.filter((v: any) => v.isarchived);
 
                 return (
                   <div key={column.id} className={`w-[90vw] sm:w-[300px] md:flex-1 md:min-w-[300px] md:max-w-[400px] h-full bg-white rounded-2xl border ${column.border} flex flex-col shrink-0 snap-center md:snap-align-none relative max-h-full`}>
@@ -877,7 +877,7 @@ const MarketingApp = () => {
                               <p className="text-[10px] text-gray-500 mb-2 truncate flex items-center gap-1"><LayoutTemplate className="w-3 h-3"/> {video.project}</p>
                               <div className="flex justify-end border-t border-gray-50 pt-2 mt-2">
                                  <button 
-                                   onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isArchived: false } as any); if(archivedVideos.length === 1) setShowArchivePopup(null); }}
+                                   onClick={(e) => { e.stopPropagation(); updateVideo(video.id, { isarchived: false } as any); if(archivedVideos.length === 1) setShowArchivePopup(null); }}
                                    className="text-[10px] font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded transition-colors border border-emerald-100"
                                  >
                                    Khôi phục
@@ -1015,7 +1015,7 @@ const MarketingApp = () => {
                                         Từ chối
                                       </button>
                                       <button 
-                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { isArchived: true }); }}
+                                        onClick={(e) => { e.stopPropagation(); updateTask(task.id, { isarchived: true }); }}
                                         className="flex-1 py-1.5 bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors"
                                       >
                                         Để sau
@@ -1143,7 +1143,7 @@ const MarketingApp = () => {
                         return true;
                     });
 
-                    const activeVideos = columnVideos.filter((v: any) => !v.isArchived);
+                    const activeVideos = columnVideos.filter((v: any) => !v.isarchived);
 
                     return (
                         <div key={column.id} className={`bg-white overflow-hidden flex flex-col ${!isLast ? 'border-b border-slate-100' : ''}`}>
@@ -2314,7 +2314,7 @@ const MarketingApp = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
             </div>
-            {videos.filter(v => (v.status === 'REJECTED' || v.isArchived) && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).length === 0 ? (
+            {videos.filter(v => (v.status === 'REJECTED' || v.isarchived) && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                   <div className="w-8 h-6 rounded-sm border-2 border-gray-400 flex items-start justify-center pt-1"><div className="w-3 h-[2px] bg-gray-400"></div></div>
@@ -2333,7 +2333,7 @@ const MarketingApp = () => {
                 </div>
                 
                 <div className="divide-y divide-gray-100">
-                  {videos.filter(v => (v.status === 'REJECTED' || v.isArchived) && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).map(video => (
+                  {videos.filter(v => (v.status === 'REJECTED' || v.isarchived) && (!archiveSearch || (v.title?.toLowerCase().includes(archiveSearch.toLowerCase()) || v.platform?.toLowerCase().includes(archiveSearch.toLowerCase())))).map(video => (
                     <div 
                       key={video.id} 
                       onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }}
@@ -2367,7 +2367,7 @@ const MarketingApp = () => {
                         {profile?.role?.trim() === 'Admin' && (
                           <>
                             <button 
-                              onClick={(e) => { e.stopPropagation(); updateTask(video.id, { isArchived: false, status: video.status === 'REJECTED' ? 'IDEA' : video.status }); }}
+                              onClick={(e) => { e.stopPropagation(); updateTask(video.id, { isarchived: false, status: video.status === 'REJECTED' ? 'IDEA' : video.status }); }}
                               className="px-2.5 py-1.5 text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
                               title="Khôi phục trạng thái"
                             >
