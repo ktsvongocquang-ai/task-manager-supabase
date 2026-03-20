@@ -197,7 +197,14 @@ export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
-  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>('focus');
+  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>(() => {
+    const saved = localStorage.getItem('dqh_mytasks_view');
+    return (saved as any) || 'focus';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('dqh_mytasks_view', viewMode);
+  }, [viewMode]);
   const [searchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -357,12 +364,15 @@ export default function MyTasks() {
   ) => {
     if (!title.trim() || !profile?.id) return;
     try {
+      const finalCategoryId = categoryOverride || newTaskCategory;
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(finalCategoryId);
+      
       const payload: any = {
         user_id: profile.id,
         title: title.trim(),
         status,
         due_date: dueDate,
-        category_id: categoryOverride || newTaskCategory,
+        category_id: isValidUUID ? finalCategoryId : null,
         priority: 'none'
       };
       if (description) payload.description = description;
@@ -381,8 +391,9 @@ export default function MyTasks() {
           category: data.category_id,
         }, ...prev]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error quick creating task', err);
+      alert('Không thể lưu công việc. Lỗi: ' + (err?.message || JSON.stringify(err)));
     }
   };
 
