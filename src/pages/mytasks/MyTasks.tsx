@@ -639,22 +639,19 @@ export default function MyTasks() {
                  <input 
                    autoFocus
                    type="text"
-                   className="w-full text-base font-medium text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
+                   className="w-full text-[16px] font-semibold text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
                    value={task.title}
                    onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
                  />
                  <div className="flex items-start gap-0.5 shrink-0 -mt-1 -mr-1">
-                    <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                     <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
                       <MoreVertical className="w-4 h-4" />
                     </button>
                  </div>
               </div>
               <textarea 
-                className="w-full text-[13px] text-gray-500 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400 resize-none overflow-hidden"
+                className="w-full text-[14px] text-gray-600 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400 resize-none overflow-hidden"
                 placeholder="Thêm chi tiết công trình này là..."
                 value={task.description || ''}
                 rows={1}
@@ -670,14 +667,14 @@ export default function MyTasks() {
               <div className="flex items-center gap-1.5 flex-wrap pt-2 pb-0.5">
                  <button 
                    onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
-                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[12px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
                  >Hôm nay</button>
                  <button 
                    onClick={() => {
                      const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
                      updateTaskField(task.id, 'dueDate', tmr.toISOString().split('T')[0], 'due_date');
                    }}
-                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[12px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
                  >Ngày mai</button>
                  <div className="relative shrink-0">
                    <input 
@@ -690,6 +687,9 @@ export default function MyTasks() {
                      <CalendarIcon className="w-3.5 h-3.5" />
                    </button>
                  </div>
+                 <button onClick={() => handleDeleteTask(task.id)} className="ml-auto p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
+                   <Trash2 className="w-4 h-4" />
+                 </button>
               </div>
            </div>
         </div>
