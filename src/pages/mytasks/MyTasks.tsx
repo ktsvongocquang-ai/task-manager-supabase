@@ -3,7 +3,7 @@ import {
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, RefreshCw,
   Sun, Moon, Coffee, Star, Flag, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, Archive
+  BarChart2, X, FileText, Pin, CheckSquare, Square, Archive, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -281,6 +281,7 @@ export default function MyTasks() {
   
   const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
   const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
+  const [expandedMobileCol, setExpandedMobileCol] = useState<string>('todo');
 
   // Add Category State
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -930,16 +931,20 @@ export default function MyTasks() {
           </div>
         </div>
         
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
-          {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
-            <div key={day} className="py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0">
-              {day}
+        {/* Calendar Grid - horizontally scrollable on mobile */}
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="min-w-[700px]">
+            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
+                <div key={day} className="py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0">
+                  {day}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7">
-          {days}
+            <div className="grid grid-cols-7">
+              {days}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -1116,31 +1121,31 @@ export default function MyTasks() {
           <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto overflow-x-auto no-scrollbar snap-x">
             <button 
               onClick={() => setViewMode('focus')}
-              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap flex-shrink-0 snap-center flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Star className="w-4 h-4" /> Focus Hôm nay
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap flex-shrink-0 snap-center flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <LayoutGrid className="w-4 h-4" /> Bảng Kanban
             </button>
             <button 
               onClick={() => setViewMode('calendar')}
-              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap flex-shrink-0 snap-center flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <CalendarIcon className="w-4 h-4" /> Lịch
             </button>
             <button 
               onClick={() => setViewMode('dashboard')}
-              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap flex-shrink-0 snap-center flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <BarChart2 className="w-4 h-4" /> Thống kê
             </button>
             <button 
               onClick={() => setViewMode('notes')}
-              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap flex-shrink-0 snap-center flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <FileText className="w-4 h-4" /> Ghi chú
             </button>
@@ -1270,13 +1275,14 @@ export default function MyTasks() {
           </div>
         ) : (
           /* Kanban View */
-          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-8 min-h-[500px] snap-x snap-mandatory px-4 sm:px-0 no-scrollbar">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-8 min-h-[500px]">
             {[
               { id: 'todo', title: 'Cần làm', color: 'bg-slate-100/50 border-slate-200' },
               { id: 'in-progress', title: 'Đang làm', color: 'bg-blue-50/50 border-blue-100' },
               { id: 'done', title: 'Hoàn thành', color: 'bg-emerald-50/50 border-emerald-100' }
             ].map(column => {
               const columnTasks = filteredTasks.filter(t => t.status === column.id);
+              const isExpanded = expandedMobileCol === column.id;
               
               const handleKanbanInputConfirm = () => {
                 const currentTitle = kanbanNewTaskTitle.trim();
@@ -1290,36 +1296,44 @@ export default function MyTasks() {
               return (
                 <div 
                   key={column.id}
-                  className={`w-[85vw] sm:w-80 flex-shrink-0 flex flex-col rounded-2xl border snap-center ${column.color}`}
+                  className={`w-full sm:w-80 flex-shrink-0 flex flex-col rounded-2xl border ${column.color}`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, column.id as TaskStatus)}
                 >
-                  <div className="p-4 flex items-center justify-between group">
-                    <h3 className="font-bold text-gray-700">{column.title}</h3>
+                  <div 
+                    className="p-4 flex items-center justify-between group cursor-pointer sm:cursor-default"
+                    onClick={() => setExpandedMobileCol(isExpanded ? '' : column.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-700">{column.title}</h3>
+                      <span className="px-2.5 py-0.5 bg-white text-gray-600 text-xs font-bold rounded-full shadow-sm">
+                        {columnTasks.length}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                        {/* Make plus icon always visible on mobile */}
                       <button 
-                        onClick={(e) => { e.stopPropagation(); setKanbanAddingStatus(column.id as TaskStatus); }}
-                        className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => { e.stopPropagation(); setKanbanAddingStatus(column.id as TaskStatus); setExpandedMobileCol(column.id); }}
+                        className={`p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-opacity ${isExpanded ? 'opacity-100' : 'opacity-0'} sm:opacity-0 group-hover:opacity-100`}
                         title="Thêm công việc"
                       >
                         <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
                       </button>
                       {column.id === 'done' && (
                         <button 
-                          onClick={() => setShowArchived(!showArchived)}
+                          onClick={(e) => { e.stopPropagation(); setShowArchived(!showArchived); }}
                           className={`p-1 rounded-md transition-colors ${showArchived ? 'bg-emerald-200 text-emerald-800' : 'text-gray-400 hover:bg-black/5'}`}
                           title={showArchived ? "Ẩn lưu trữ" : "Hiện lưu trữ"}
                         >
                           <Archive className="w-4 h-4" />
                         </button>
                       )}
-                      <span className="px-2.5 py-0.5 bg-white text-gray-600 text-xs font-bold rounded-full shadow-sm">
-                        {columnTasks.length}
-                      </span>
+                      
+                      {/* Accordion Chevron for Mobile */}
+                      <ChevronRight className={`w-5 h-5 text-gray-400 sm:hidden transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                     </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                  <div className={`flex-1 overflow-y-auto p-3 space-y-3 ${isExpanded ? 'block' : 'hidden sm:block'}`}>
                     {kanbanAddingStatus === column.id && (
                       <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
                         <input 
