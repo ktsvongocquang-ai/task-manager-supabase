@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Search, Calendar as CalendarIcon, MoreVertical, 
   CheckCircle2, Circle, Lock, Trash2, UserCircle, RefreshCw,
   Sun, Moon, Coffee, Star, Clock, Tag, Flag, LayoutGrid, ListTodo,
   BarChart2, X, FileText, Pin, CheckSquare, Square, Archive
 } from 'lucide-react';
+import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../store/authStore';
 
 type TaskStatus = 'todo' | 'in-progress' | 'done' | 'archived';
 type Priority = 'high' | 'medium' | 'low' | 'none';
@@ -161,14 +163,92 @@ const initialNotes: Note[] = [
 ];
 
 export default function MyTasks() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
-  const [categories, setCategories] = useState<Record<string, CategoryItem>>(INITIAL_CATEGORIES);
+  const { profile } = useAuthStore();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
+  const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>('focus');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showArchived, setShowArchived] = useState(false);
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchData();
+    }
+  }, [profile]);
+
+  const fetchData = async () => {
+    if (!profile?.id) return;
+    setIsLoading(true);
+    try {
+      // 1. Fetch Categories
+      const { data: catData } = await supabase.from('personal_categories').select('*').eq('user_id', profile.id);
+      const catMap: Record<string, CategoryItem> = {};
+      
+      if (!catData || catData.length === 0) {
+        // Insert default categories
+        const defaultsToInsert = Object.keys(INITIAL_CATEGORIES).map(k => ({
+          user_id: profile.id,
+          label: INITIAL_CATEGORIES[k].label,
+          icon: INITIAL_CATEGORIES[k].icon,
+          color: INITIAL_CATEGORIES[k].color,
+        }));
+        const { data: insertedCats } = await supabase.from('personal_categories').insert(defaultsToInsert).select();
+        insertedCats?.forEach(c => catMap[c.id] = { id: c.id, label: c.label, icon: c.icon, color: c.color });
+      } else {
+        catData.forEach(c => catMap[c.id] = { id: c.id, label: c.label, icon: c.icon, color: c.color });
+      }
+      setCategories(catMap);
+
+      // 2. Fetch Tasks
+      const { data: taskData } = await supabase.from('personal_tasks').select('*').eq('user_id', profile.id).order('created_at', { ascending: false });
+      if (taskData) {
+        setTasks(taskData.map(t => ({
+          id: t.id,
+          title: t.title,
+          status: t.status as TaskStatus,
+          dueDate: t.due_date,
+          priority: t.priority as Priority,
+          category: t.category_id,
+        })));
+      }
+
+      // 3. Fetch Notes & Items
+      const { data: noteData } = await supabase.from('personal_notes')
+        .select('*, personal_note_items(*)')
+        .eq('user_id', profile.id)
+        .order('created_at', { ascending: false });
+        
+      if (noteData) {
+        setNotes(noteData.map(n => ({
+          id: n.id,
+          title: n.title || 'Ghi chú',
+          color: n.color,
+          isPinned: n.is_pinned,
+          items: (n.personal_note_items || []).map((i: any) => ({
+            id: i.id,
+            text: i.text,
+            isCompleted: i.is_completed,
+            created_at: i.created_at
+          })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        })));
+      }
+    } catch (err) {
+      console.error('Error fetching personal data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
+  useEffect(() => {
+    if (Object.keys(categories).length > 0 && newTaskCategory === 'personal') {
+      const personalCat = Object.values(categories).find(c => c.label === 'Cá nhân') || Object.values(categories)[0];
+      if (personalCat) setNewTaskCategory(personalCat.id);
+    }
+  }, [categories]);
+
   // Quick Add State
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskCategory, setNewTaskCategory] = useState<string>('personal');
@@ -199,83 +279,136 @@ export default function MyTasks() {
     task.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTaskTitle.trim()) return;
+    if (!newTaskTitle.trim() || !profile?.id) return;
     
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: newTaskTitle.trim(),
-      status: 'todo',
-      dueDate: viewMode === 'focus' ? todayStr : undefined,
-      category: newTaskCategory,
-      priority: newTaskPriority
-    };
-    
-    setTasks([newTask, ...tasks]);
-    setNewTaskTitle('');
-    setNewTaskPriority('none');
-    setNewTaskCategory('personal');
-  };
+    try {
+      const { data, error } = await supabase.from('personal_tasks').insert([{
+        user_id: profile.id,
+        title: newTaskTitle.trim(),
+        status: 'todo',
+        due_date: viewMode === 'focus' ? todayStr : null,
+        category_id: newTaskCategory,
+        priority: newTaskPriority
+      }]).select().single();
 
-  const toggleTaskStatus = (taskId: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === taskId) {
-        return { ...task, status: task.status === 'done' ? 'todo' : 'done' };
+      if (error) throw error;
+      if (data) {
+        setTasks([{
+          id: data.id,
+          title: data.title,
+          status: data.status as TaskStatus,
+          dueDate: data.due_date,
+          priority: data.priority as Priority,
+          category: data.category_id,
+        }, ...tasks]);
       }
-      return task;
-    }));
+      setNewTaskTitle('');
+      setNewTaskPriority('none');
+    } catch (err) {
+      console.error('Error adding task', err);
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+  const toggleTaskStatus = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const newStatus = task.status === 'done' ? 'todo' : 'done';
+    
+    // optimistic update
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+
+    try {
+      const { error } = await supabase.from('personal_tasks').update({ status: newStatus }).eq('id', taskId);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error updating task status', err);
+      // revert
+      setTasks(tasks.map(t => t.id === taskId ? { ...t, status: task.status } : t));
+    }
   };
 
-  const handleAddCategory = () => {
-    if (!newCategoryName.trim()) return;
-    const id = `cat_${Date.now()}`;
-    setCategories(prev => ({
-      ...prev,
-      [id]: {
-        id,
+  const handleDeleteTask = async (taskId: string) => {
+    // optimistic
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    setTasks(updatedTasks);
+    try {
+      await supabase.from('personal_tasks').delete().eq('id', taskId);
+    } catch (err) {
+      console.error('Error deleting task', err);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim() || !profile?.id) return;
+    try {
+      const { data, error } = await supabase.from('personal_categories').insert([{
+        user_id: profile.id,
         label: newCategoryName.trim(),
         icon: '📌',
         color: 'bg-gray-100 text-gray-700'
+      }]).select().single();
+
+      if (error) throw error;
+      if (data) {
+        setCategories(prev => ({
+          ...prev,
+          [data.id]: {
+            id: data.id,
+            label: data.label,
+            icon: data.icon,
+            color: data.color
+          }
+        }));
+        setNewTaskCategory(data.id);
       }
-    }));
-    setNewTaskCategory(id);
-    setNewCategoryName('');
-    setShowAddCategory(false);
+      setNewCategoryName('');
+      setShowAddCategory(false);
+    } catch (err) {
+      console.error('Error adding category', err);
+    }
   };
 
-  const handleDashboardAddCat = () => {
-    if (!dashboardCatName.trim()) return;
-    const id = `cat_${Date.now()}`;
-    setCategories(prev => ({
-      ...prev,
-      [id]: {
-        id,
+  const handleDashboardAddCat = async () => {
+    if (!dashboardCatName.trim() || !profile?.id) return;
+    try {
+      const { data, error } = await supabase.from('personal_categories').insert([{
+        user_id: profile.id,
         label: dashboardCatName.trim(),
         icon: dashboardCatIcon,
         color: dashboardCatColor
+      }]).select().single();
+
+      if (error) throw error;
+      if (data) {
+        setCategories(prev => ({
+          ...prev,
+          [data.id]: {
+            id: data.id,
+            label: data.label,
+            icon: data.icon,
+            color: data.color
+          }
+        }));
       }
-    }));
-    setDashboardCatName('');
-    setDashboardCatIcon(SUGGESTED_ICONS[0]);
-    setDashboardCatColor(SUGGESTED_COLORS[0]);
-    setShowDashboardAddCat(false);
+      setDashboardCatName('');
+      setDashboardCatIcon(SUGGESTED_ICONS[0]);
+      setDashboardCatColor(SUGGESTED_COLORS[0]);
+      setShowDashboardAddCat(false);
+    } catch (err) {
+      console.error('Error adding category from dashboard', err);
+    }
   };
 
-  const handleArchiveTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: 'archived' } : task
-    ));
+  const handleArchiveTask = async (taskId: string) => {
+    setTasks(tasks.map(task => task.id === taskId ? { ...task, status: 'archived' } : task));
+    await supabase.from('personal_tasks').update({ status: 'archived' }).eq('id', taskId);
   };
 
-  const handleUnarchiveTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, status: 'done' } : task
-    ));
+  const handleUnarchiveTask = async (taskId: string) => {
+    setTasks(tasks.map(task => task.id === taskId ? { ...task, status: 'done' } : task));
+    await supabase.from('personal_tasks').update({ status: 'done' }).eq('id', taskId);
   };
 
   // --- NOTES LOGIC ---
