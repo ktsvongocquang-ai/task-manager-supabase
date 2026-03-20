@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Calendar as CalendarIcon, 
-  CheckCircle2, Circle, Lock, Trash2, RefreshCw,
+  CheckCircle2, Circle, Lock, Trash2,
   Sun, Moon, Coffee, Star, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, Archive, ChevronLeft, ChevronRight
+  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, GripVertical, MoreVertical
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
@@ -286,7 +286,7 @@ export default function MyTasks() {
   const [kanbanNewTaskDesc, setKanbanNewTaskDesc] = useState('');
   const [kanbanNewTaskDate, setKanbanNewTaskDate] = useState<string | null>(null);
   const [expandedDoneCols, setExpandedDoneCols] = useState<Record<string, boolean>>({});
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   
   const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
   const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
@@ -476,16 +476,6 @@ export default function MyTasks() {
     }
   };
 
-  const handleArchiveTask = async (taskId: string) => {
-    setTasks(tasks.map(task => task.id === taskId ? { ...task, status: 'archived' } : task));
-    await supabase.from('personal_tasks').update({ status: 'archived' }).eq('id', taskId);
-  };
-
-  const handleUnarchiveTask = async (taskId: string) => {
-    setTasks(tasks.map(task => task.id === taskId ? { ...task, status: 'done' } : task));
-    await supabase.from('personal_tasks').update({ status: 'done' }).eq('id', taskId);
-  };
-
   // --- NOTES LOGIC ---
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteColor, setNewNoteColor] = useState(NOTE_COLORS[0]);
@@ -631,6 +621,78 @@ export default function MyTasks() {
   const renderTaskCard = (task: Task, isKanban = false) => {
     const isOverdue = task.dueDate && task.dueDate < todayStr && task.status !== 'done';
     const cat = categories[task.category] || categories['personal'];
+    const isEditing = editingTaskId === task.id && task.status !== 'done' && task.status !== 'archived';
+
+    if (isEditing) {
+      return (
+        <div key={task.id} className="bg-white rounded-2xl border border-blue-200 shadow-sm p-4 animate-in zoom-in-95 duration-200">
+           <div className="flex gap-3">
+              <div className="flex flex-col items-center gap-3 pt-1 opacity-40 shrink-0">
+                 <GripVertical className="w-5 h-5 text-gray-400" />
+                 <button onClick={() => toggleTaskStatus(task.id)}>
+                    <Circle className="w-6 h-6 text-gray-300" />
+                 </button>
+              </div>
+              <div className="flex-1 min-w-0">
+                 <div className="mb-4">
+                    <input 
+                      autoFocus
+                      type="text"
+                      className="w-full text-lg font-bold text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
+                      value={task.title}
+                      onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') setEditingTaskId(null);
+                      }}
+                    />
+                    <input 
+                      type="text"
+                      className="w-full text-sm text-gray-600 border-none bg-transparent p-0 focus:ring-0 mt-2 placeholder-gray-400"
+                      placeholder="Thêm chi tiết công trình này là..."
+                      value={task.description || ''}
+                      onChange={(e) => updateTaskField(task.id, 'description', e.target.value, 'description')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') setEditingTaskId(null);
+                      }}
+                    />
+                 </div>
+                 <div className="flex flex-wrap items-center gap-2">
+                    <button 
+                      onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 transition-colors ${task.dueDate === todayStr ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                    >Hôm nay</button>
+                    <button 
+                      onClick={() => {
+                        const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
+                        updateTaskField(task.id, 'dueDate', tmr.toISOString().split('T')[0], 'due_date');
+                      }}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                    >Ngày mai</button>
+                    <div className="relative">
+                      <input 
+                        type="date"
+                        className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
+                        value={task.dueDate || ''}
+                        onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
+                      />
+                      <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
+                        <CalendarIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                 </div>
+              </div>
+              <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
+                 <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                   <Trash2 className="w-5 h-5" />
+                 </button>
+                 <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                   <MoreVertical className="w-5 h-5" />
+                 </button>
+              </div>
+           </div>
+        </div>
+      );
+    }
 
     return (
       <div 
@@ -639,13 +701,22 @@ export default function MyTasks() {
         onDragStart={(e) => {
           if (isKanban) handleDragStart(e, task.id);
         }}
-        className={`group bg-white rounded-2xl border transition-all duration-200 ${
+        onClick={(e) => {
+           // Prevent entering edit mode if clicking actionable buttons inside
+           if ((e.target as HTMLElement).closest('button, select, input')) return;
+           setEditingTaskId(task.id);
+        }}
+        className={`group bg-white rounded-2xl border transition-all duration-200 cursor-pointer ${
           task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
-        } ${isKanban ? 'p-4 cursor-grab active:cursor-grabbing' : 'p-4 sm:p-5 flex items-center gap-4'}`}
+        } p-4 sm:p-5 flex items-start gap-3`}
       >
+        <div className={`mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
+           <GripVertical className="w-4 h-4" />
+        </div>
+        
         <button 
-          onClick={() => toggleTaskStatus(task.id)}
-          className={`flex-shrink-0 transition-transform active:scale-90 ${isKanban ? 'mt-0.5 float-left mr-3' : ''}`}
+          onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
+          className="flex-shrink-0 transition-transform active:scale-90 mt-0.5"
         >
           {task.status === 'done' ? (
             <CheckCircle2 className="w-6 h-6 text-emerald-500 fill-emerald-50" />
@@ -654,17 +725,15 @@ export default function MyTasks() {
           )}
         </button>
 
-        <div className={`flex-1 ${isKanban ? 'clear-right' : ''}`}>
-          <h4 
-            onClick={() => setEditingTask(task)}
-            className={`font-medium transition-all hover:text-emerald-600 cursor-pointer ${
+        <div className="flex-1 min-w-0 pr-2">
+          <h4 className={`font-medium transition-all group-hover:text-emerald-600 truncate ${
             task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
           } ${isKanban ? 'text-sm mb-2' : 'text-base mb-1'}`}>
             {task.title}
           </h4>
           
           {task.description && (
-             <p className="text-xs text-gray-500 line-clamp-2 mb-2 break-words" onClick={() => setEditingTask(task)}>
+             <p className="text-xs text-gray-500 line-clamp-2 mb-2 break-words">
                 {task.description}
              </p>
           )}
@@ -695,14 +764,7 @@ export default function MyTasks() {
                 type="date"
                 value={task.dueDate || ''}
                 onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  try {
-                    if (e.currentTarget.showPicker) {
-                      e.currentTarget.showPicker();
-                    }
-                  } catch (err) {}
-                }}
+                onClick={(e) => { e.stopPropagation(); try { if (e.currentTarget.showPicker) e.currentTarget.showPicker(); } catch (err) {} }}
                 className="absolute text-transparent bg-transparent inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
@@ -710,37 +772,16 @@ export default function MyTasks() {
           </div>
         </div>
 
-        <div className="flex flex-row sm:flex-col gap-2 mt-3 sm:mt-0">
-          {task.status === 'done' && (
-            <button 
-              onClick={() => handleArchiveTask(task.id)}
-              className={`text-gray-400 sm:text-gray-300 hover:text-blue-500 transition-colors ${
-                isKanban ? 'sm:absolute sm:top-4 sm:right-10 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
-              }`}
-              title="Lưu trữ"
-            >
-              <Archive className="w-5 h-5 sm:w-4 sm:h-4" />
-            </button>
-          )}
-          {task.status === 'archived' && (
-            <button 
-              onClick={() => handleUnarchiveTask(task.id)}
-              className={`text-gray-400 sm:text-gray-300 hover:text-blue-500 transition-colors ${
-                isKanban ? 'sm:absolute sm:top-4 sm:right-10 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
-              }`}
-              title="Khôi phục"
-            >
-              <RefreshCw className="w-5 h-5 sm:w-4 sm:h-4" />
-            </button>
-          )}
+        <div className="flex items-start gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button 
-            onClick={() => handleDeleteTask(task.id)}
-            className={`text-gray-400 sm:text-gray-300 hover:text-red-500 transition-colors ${
-              isKanban ? 'sm:absolute sm:top-4 sm:right-4 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
-            }`}
+            onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
+            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             title="Xoá"
           >
-            <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <MoreVertical className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -1565,97 +1606,6 @@ export default function MyTasks() {
           </div>
         )}
       </div>
-
-      {/* Editing Task Modal Overlay */}
-      {editingTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
-            
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                 <button 
-                   onClick={() => toggleTaskStatus(editingTask.id)}
-                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${editingTask.status === 'done' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-300 text-transparent hover:border-emerald-400'}`}
-                 >
-                   <CheckCircle2 className="w-4 h-4" />
-                 </button>
-                 <select
-                   value={editingTask.category}
-                   onChange={(e) => updateTaskField(editingTask!.id, 'category', e.target.value, 'category_id')}
-                   className="text-xs font-bold text-gray-500 uppercase bg-gray-100/50 hover:bg-gray-100 px-2 py-1 rounded-lg border-none focus:ring-0 cursor-pointer"
-                 >
-                   {Object.values(categories).map((c: CategoryItem) => (
-                     <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
-                   ))}
-                 </select>
-              </div>
-              <div className="flex items-center gap-2">
-                 <button onClick={() => { handleDeleteTask(editingTask.id); setEditingTask(null); }} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
-                   <Trash2 className="w-5 h-5" />
-                 </button>
-                 <button onClick={() => setEditingTask(null)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                   <X className="w-5 h-5" />
-                 </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              
-              <div>
-                <input
-                  type="text"
-                  value={editingTask.title || ''}
-                  onChange={(e) => updateTaskField(editingTask!.id, 'title', e.target.value, 'title')}
-                  placeholder="Tên công việc..."
-                  className="w-full text-2xl font-bold border-none bg-transparent focus:ring-0 p-0 text-gray-900 placeholder-gray-300"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-6 sm:gap-12">
-                 <div className="flex-1 space-y-5">
-                    
-                    <div>
-                       <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
-                         <FileText className="w-4 h-4" /> Chi tiết
-                       </label>
-                       <textarea
-                         value={editingTask.description || ''}
-                         onChange={(e) => {
-                             e.target.style.height = 'auto';
-                             e.target.style.height = `${e.target.scrollHeight}px`;
-                             updateTaskField(editingTask!.id, 'description', e.target.value, 'description');
-                         }}
-                         placeholder="Thêm mô tả chi tiết cho công việc này..."
-                         className="w-full text-sm border border-gray-200 rounded-xl p-4 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none min-h-[120px] text-gray-800"
-                       />
-                    </div>
-                    
-                 </div>
-                 
-                 <div className="w-full sm:w-64 space-y-5">
-                    <div>
-                       <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
-                         <CalendarIcon className="w-4 h-4" /> Hạn chót
-                       </label>
-                       <input
-                         type="date"
-                         value={editingTask.dueDate || ''}
-                         onChange={(e) => updateTaskField(editingTask!.id, 'dueDate', e.target.value || null, 'due_date')}
-                         className="w-full text-sm border border-gray-200 rounded-xl p-2.5 bg-gray-50/50 hover:bg-gray-100 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-800"
-                       />
-                    </div>
-                 </div>
-              </div>
-
-            </div>
-
-            <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50/50">
-               <button onClick={() => setEditingTask(null)} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm">Xong</button>
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </div>
   );
