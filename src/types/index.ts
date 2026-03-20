@@ -75,7 +75,7 @@ export interface Task {
     parent_id?: string | null
     name: string
     description: string | null
-    assignee_id: string | null
+    assignee_id: string | string[] | null
     supporter_id?: string | null
     status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Hoàn thành' | 'Tạm dừng' | 'Hủy bỏ'
     priority: string | 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'

@@ -35,7 +35,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     generateNextTaskCode
 }) => {
     const [form, setForm] = useState({
-        task_code: '', project_id: '', name: '', description: '', assignee_id: '',
+        task_code: '', project_id: '', name: '', description: '', assignee_id: [] as string[],
         supporter_id: '', status: 'IDEA', priority: 'Trung bình', start_date: '', due_date: '',
         result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: '',
         output: '',
@@ -179,7 +179,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     project_id: editingTask.project_id || initialData?.project_id || '',
                     name: editingTask.name || '',
                     description: editingTask.description || '',
-                    assignee_id: editingTask.assignee_id || currentUserProfile?.id || '',
+                    assignee_id: Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id : (editingTask.assignee_id ? [editingTask.assignee_id] : (currentUserProfile?.id ? [currentUserProfile.id] : [])),
                     supporter_id: editingTask.supporter_id || '',
                     status: editingTask.status || 'IDEA',
                     priority: editingTask.priority || 'Trung bình',
@@ -228,7 +228,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     project_id: initialData?.project_id || '',
                     name: '',
                     description: '',
-                    assignee_id: currentUserProfile?.id || '',
+                    assignee_id: currentUserProfile?.id ? [currentUserProfile.id] : [],
                     supporter_id: '',
                     status: 'IDEA',
                     priority: 'Trung bình',
@@ -260,7 +260,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 ...prev,
                 project_id: projectId,
                 task_code: nextCode,
-                assignee_id: currentUserProfile?.id || prev.assignee_id,
+                assignee_id: prev.assignee_id.length > 0 ? prev.assignee_id : (currentUserProfile?.id ? [currentUserProfile.id] : []),
                 parent_id: '' // reset phase when project changes
             }
         });
@@ -321,7 +321,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 name: form.name,
                 task_code: finalTaskCode,
                 description: form.description || null,
-                assignee_id: form.assignee_id || null,
+                assignee_id: form.assignee_id.length > 0 ? form.assignee_id : null,
                 supporter_id: form.supporter_id || null,
                 status: form.status,
                 priority: form.priority,
@@ -408,13 +408,19 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             }
 
             // --- Notifications ---
-            const newAssigneeId = form.assignee_id;
-            if (newAssigneeId && newAssigneeId !== currentUserProfile?.id) {
-                // Check if it's a new assignment
-                const isNewAssignment = !editingTask || (editingTask.assignee_id !== newAssigneeId);
-                if (isNewAssignment) {
+            // Multi-assignee support omitted for push notifications temporarily to avoid spamming multiple people on setup.
+            // If needed, we can loop through form.assignee_id here.
+            const newAssigneeIds: string[] = form.assignee_id || [];
+            const oldAssigneeTuple = editingTask?.assignee_id;
+            const oldAssigneeIds: string[] = Array.isArray(oldAssigneeTuple) ? oldAssigneeTuple : (oldAssigneeTuple ? [oldAssigneeTuple] : []);
+
+            // Find newly assigned users
+            const newlyAssigned = newAssigneeIds.filter(id => !oldAssigneeIds.includes(id));
+
+            for (const assigneeId of newlyAssigned) {
+                if (assigneeId && assigneeId !== currentUserProfile?.id) {
                     await createNotification(
-                        newAssigneeId,
+                        assigneeId,
                         `${currentUserProfile?.full_name || 'Admin'} đã giao cho bạn nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
@@ -431,7 +437,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                userId: newAssigneeId,
+                                userId: assigneeId,
                                 message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
                                 taskUrl: taskLink
                             })
@@ -484,10 +490,12 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 if (editingTask.status !== form.status) {
                     changes.push(`Trạng thái: ${editingTask.status || 'Trống'} -> ${form.status}`);
                 }
-                if ((editingTask.assignee_id || '') !== (form.assignee_id || '')) {
-                    const oldAssignee = profiles.find(p => p.id === editingTask.assignee_id)?.full_name || 'Trống';
-                    const newAssignee = profiles.find(p => p.id === form.assignee_id)?.full_name || 'Trống';
-                    changes.push(`Chủ trì: ${oldAssignee} -> ${newAssignee}`);
+                const oldAssigneeArr = Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id : (editingTask.assignee_id ? [editingTask.assignee_id] : []);
+                const newAssigneeArr = form.assignee_id || [];
+                if (JSON.stringify(oldAssigneeArr.sort()) !== JSON.stringify(newAssigneeArr.sort())) {
+                    const oldAssigneeNames = oldAssigneeArr.map((id:string) => profiles.find((p:any) => p.id === id)?.full_name).filter(Boolean).join(', ') || 'Trống';
+                    const newAssigneeNames = newAssigneeArr.map((id:string) => profiles.find((p:any) => p.id === id)?.full_name).filter(Boolean).join(', ') || 'Trống';
+                    changes.push(`Chủ trì: ${oldAssigneeNames} -> ${newAssigneeNames}`);
                 }
                 if ((editingTask.supporter_id || '') !== (form.supporter_id || '')) {
                     const oldSup = profiles.find(p => p.id === editingTask.supporter_id)?.full_name || 'Trống';
@@ -636,8 +644,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     };
 
     const updateSubTaskAssignee = async (id: string, assigneeId: string) => {
-        const newVal = assigneeId || null;
-        setSubTasks(prev => prev.map(st => st.id === id ? { ...st, assignee_id: newVal } : st));
+        const newVal = assigneeId ? [assigneeId] : null;
+        setSubTasks(prev => prev.map(st => st.id === id ? { ...st, assignee_id: newVal as any } : st));
         try {
             const { error } = await supabase.from('marketing_tasks').update({ assignee_id: newVal }).eq('id', id);
             if (error) throw error;
@@ -871,17 +879,49 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                                 {/* Column 2 */}
                                 <div className="space-y-5">
-                                    <div>
+                                    <div className="relative">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><User size={12} /> Người thực hiện</div>
-                                        <select
-                                            value={form.assignee_id}
-                                            onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
-                                            disabled={shouldDisableTopFields()}
+                                        <div 
+                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 cursor-pointer overflow-hidden flex items-center"
+                                            onClick={(e) => {
+                                                if(shouldDisableTopFields()) return;
+                                                e.stopPropagation();
+                                                const selectEl = document.getElementById('assignee-dropdown-popup');
+                                                if(selectEl) selectEl.classList.toggle('hidden');
+                                            }}
                                         >
-                                            <option value="">Bổ sung sau...</option>
-                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                        </select>
+                                            <div className="truncate flex-1">
+                                                {form.assignee_id.length > 0
+                                                    ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
+                                                    : 'Chọn người thực hiện...'}
+                                            </div>
+                                        </div>
+                                        {!shouldDisableTopFields() && (
+                                            <div id="assignee-dropdown-popup" className="hidden absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto pt-2 pb-2">
+                                                {profiles.map(p => (
+                                                    <label key={p.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
+                                                        <input 
+                                                            type="checkbox"
+                                                            checked={form.assignee_id.includes(p.id)}
+                                                            onChange={(e) => {
+                                                                const checked = e.target.checked;
+                                                                setForm(prev => ({
+                                                                    ...prev,
+                                                                    assignee_id: checked 
+                                                                        ? [...prev.assignee_id, p.id] 
+                                                                        : prev.assignee_id.filter(id => id !== p.id)
+                                                                }));
+                                                            }}
+                                                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                                        />
+                                                        <span className="text-[13px] font-medium text-slate-700">{p.full_name}</span>
+                                                    </label>
+                                                ))}
+                                                <div className="px-4 pt-2 mt-2 border-t border-slate-100 flex justify-end">
+                                                    <button type="button" onClick={() => document.getElementById('assignee-dropdown-popup')?.classList.add('hidden')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">Xong</button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Calendar size={12} /> Lịch đăng</div>
@@ -1237,7 +1277,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         {st.name}
                                                                                     </button>
                                                                                     <select
-                                                                                        value={st.assignee_id || ''}
+                                                                                        value={Array.isArray(st.assignee_id) ? ((st.assignee_id as any[])[0] || '') : (st.assignee_id || '')}
                                                                                         onChange={(e) => updateSubTaskAssignee(st.id, e.target.value)}
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                         className="text-[10px] font-bold bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"

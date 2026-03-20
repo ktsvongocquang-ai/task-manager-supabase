@@ -245,7 +245,7 @@ export const Dashboard = () => {
         setSelectedTask(t)
         setTaskForm({
             task_code: t.task_code, project_id: t.project_id, name: t.name,
-            description: t.description || '', assignee_id: t.assignee_id || '',
+            description: t.description || '', assignee_id: (t.assignee_id as string) || '',
             status: t.status, priority: t.priority, start_date: t.start_date || '',
             due_date: t.due_date || '', completion_pct: t.completion_pct,
             target: t.target || '', result_links: t.result_links || '',
@@ -255,8 +255,11 @@ export const Dashboard = () => {
     }
     const closePopup = () => { setActivePopup(null); setSelectedProject(null); setSelectedTask(null) }
 
-    const getAssigneeName = (id: string | null) => {
-        if (!id) return 'Chưa gán'
+    const getAssigneeName = (id: string | string[] | null) => {
+        if (!id || (Array.isArray(id) && id.length === 0)) return 'Chưa gán'
+        if (Array.isArray(id)) {
+            return id.map(i => allProfiles.find(p => p.id === i)?.full_name).filter(Boolean).join(', ') || 'N/A'
+        }
         return allProfiles.find((p: any) => p.id === id)?.full_name || 'N/A'
     }
 
