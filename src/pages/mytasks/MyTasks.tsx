@@ -675,7 +675,14 @@ export default function MyTasks() {
                 type="date"
                 value={task.dueDate || ''}
                 onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  try {
+                    if (e.currentTarget.showPicker) {
+                      e.currentTarget.showPicker();
+                    }
+                  } catch (err) {}
+                }}
                 className="absolute text-transparent bg-transparent inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
