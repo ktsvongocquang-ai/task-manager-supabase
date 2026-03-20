@@ -10,6 +10,7 @@ import {
     RefreshCw,
     KeyRound,
     Bell, // Added Bell icon
+    UserCircle,
     History as HistoryIcon,
     Kanban as KanbanIcon,
     X,
@@ -173,6 +174,14 @@ export const Layout = () => {
         const { hasPermission } = useAuthStore.getState();
 
         const items: any[] = [];
+
+        // Tab Việc Cá Nhân (New)
+        items.push({ 
+            name: 'Việc cá nhân', 
+            path: '/mytasks',
+            icon: UserCircle, 
+            matchPrefix: ['/mytasks'],
+        });
 
         // 1. Tab Công Việc
         if (hasPermission(roleStr, 'Tab Công Việc (Xem)')) {
