@@ -1558,13 +1558,17 @@ export default function MyTasks() {
                            )}
                         </div>
                      )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Editing Task Modal Overlay */}
       {editingTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
             
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
@@ -1577,7 +1581,7 @@ export default function MyTasks() {
                  </button>
                  <select
                    value={editingTask.category}
-                   onChange={(e) => updateTaskField(editingTask.id, 'category', e.target.value, 'category_id')}
+                   onChange={(e) => updateTaskField(editingTask!.id, 'category', e.target.value, 'category_id')}
                    className="text-xs font-bold text-gray-500 uppercase bg-gray-100/50 hover:bg-gray-100 px-2 py-1 rounded-lg border-none focus:ring-0 cursor-pointer"
                  >
                    {Object.values(categories).map((c: CategoryItem) => (
@@ -1586,7 +1590,7 @@ export default function MyTasks() {
                  </select>
               </div>
               <div className="flex items-center gap-2">
-                 <button onClick={() => handleDeleteTask(editingTask.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                 <button onClick={() => { handleDeleteTask(editingTask.id); setEditingTask(null); }} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
                    <Trash2 className="w-5 h-5" />
                  </button>
                  <button onClick={() => setEditingTask(null)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
@@ -1600,14 +1604,14 @@ export default function MyTasks() {
               <div>
                 <input
                   type="text"
-                  value={editingTask.title}
-                  onChange={(e) => updateTaskField(editingTask.id, 'title', e.target.value, 'title')}
+                  value={editingTask.title || ''}
+                  onChange={(e) => updateTaskField(editingTask!.id, 'title', e.target.value, 'title')}
                   placeholder="Tên công việc..."
                   className="w-full text-2xl font-bold border-none bg-transparent focus:ring-0 p-0 text-gray-900 placeholder-gray-300"
                 />
               </div>
 
-              <div className="flex gap-12">
+              <div className="flex flex-col sm:flex-row gap-6 sm:gap-12">
                  <div className="flex-1 space-y-5">
                     
                     <div>
@@ -1619,7 +1623,7 @@ export default function MyTasks() {
                          onChange={(e) => {
                              e.target.style.height = 'auto';
                              e.target.style.height = `${e.target.scrollHeight}px`;
-                             updateTaskField(editingTask.id, 'description', e.target.value, 'description');
+                             updateTaskField(editingTask!.id, 'description', e.target.value, 'description');
                          }}
                          placeholder="Thêm mô tả chi tiết cho công việc này..."
                          className="w-full text-sm border border-gray-200 rounded-xl p-4 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none min-h-[120px] text-gray-800"
@@ -1628,7 +1632,7 @@ export default function MyTasks() {
                     
                  </div>
                  
-                 <div className="w-64 space-y-5">
+                 <div className="w-full sm:w-64 space-y-5">
                     <div>
                        <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
                          <CalendarIcon className="w-4 h-4" /> Hạn chót
@@ -1636,7 +1640,7 @@ export default function MyTasks() {
                        <input
                          type="date"
                          value={editingTask.dueDate || ''}
-                         onChange={(e) => updateTaskField(editingTask.id, 'dueDate', e.target.value || null, 'due_date')}
+                         onChange={(e) => updateTaskField(editingTask!.id, 'dueDate', e.target.value || null, 'due_date')}
                          className="w-full text-sm border border-gray-200 rounded-xl p-2.5 bg-gray-50/50 hover:bg-gray-100 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-800"
                        />
                     </div>
