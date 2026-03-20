@@ -1660,10 +1660,12 @@ const MarketingApp = () => {
                                                  <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
                                                  <td className="px-3 py-2 border border-slate-200">
                                                    <div className="flex flex-col gap-1">
-                                                     <div className="flex items-center gap-1.5 text-[11px] text-slate-500" title="Lịch quay">
-                                                       <Video className="w-3.5 h-3.5" />
-                                                       <span>{video.start_date ? format(parseISO(video.start_date), 'dd/MM/yyyy') : 'Chưa xếp'}</span>
-                                                     </div>
+                                                     {video.start_date && (
+                                                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500" title="Lịch quay">
+                                                         <Video className="w-3.5 h-3.5" />
+                                                         <span>{format(parseISO(video.start_date), 'dd/MM/yyyy')}</span>
+                                                       </div>
+                                                     )}
                                                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-700" title="Ngày đăng">
                                                        <CalendarIcon className="w-3.5 h-3.5" />
                                                        <span>{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'Chưa xếp'}</span>

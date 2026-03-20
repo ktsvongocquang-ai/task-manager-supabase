@@ -386,21 +386,27 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             }
 
             // --- Auto-create Shooting Milestone ---
-            if (form.status === 'PROD_FILMING' && form.start_date && form.project_id) {
+            const savedTaskId = editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id;
+
+            if (form.status === 'PROD_FILMING' && form.start_date && form.project_id && savedTaskId) {
                 try {
                     const { data: existingMs } = await supabase.from('marketing_shooting_milestones')
                         .select('id')
-                        .eq('project_id', form.project_id)
-                        .eq('milestone_date', form.start_date)
-                        .eq('content', form.name);
+                        .eq('task_id', savedTaskId);
                         
                     if (!existingMs || existingMs.length === 0) {
                         await supabase.from('marketing_shooting_milestones').insert({
                             project_id: form.project_id,
+                            task_id: savedTaskId,
                             milestone_date: form.start_date,
                             content: form.name,
                             status: 'Chờ quay'
                         });
+                    } else {
+                         await supabase.from('marketing_shooting_milestones').update({
+                            milestone_date: form.start_date,
+                            content: form.name
+                        }).eq('id', existingMs[0].id);
                     }
                 } catch (msError) {
                     console.error('Error auto-creating shooting milestone:', msError);
