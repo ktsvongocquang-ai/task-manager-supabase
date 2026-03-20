@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, RefreshCw,
-  Sun, Moon, Coffee, Star, Flag, LayoutGrid, 
+  Sun, Moon, Coffee, Star, LayoutGrid, 
   BarChart2, X, FileText, Pin, CheckSquare, Square, Archive, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
@@ -77,12 +77,7 @@ const INITIAL_CATEGORIES: Record<string, CategoryItem> = {
   personal: { id: 'personal', label: 'Cá nhân', icon: '🎯', color: 'bg-purple-100 text-purple-700' },
 };
 
-const PRIORITIES: Record<Priority, { label: string, icon: any, color: string }> = {
-  high: { label: 'Cao', icon: Flag, color: 'text-red-500' },
-  medium: { label: 'Trung bình', icon: Flag, color: 'text-yellow-500' },
-  low: { label: 'Thấp', icon: Flag, color: 'text-blue-500' },
-  none: { label: 'Không', icon: Flag, color: 'text-gray-300' },
-};
+
 
 // Removed initial data constants
 
@@ -195,7 +190,6 @@ export default function MyTasks() {
   const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>('focus');
   const [searchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
@@ -601,12 +595,6 @@ export default function MyTasks() {
     }
   };
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-  const handleDrop = async (e: React.DragEvent, status: TaskStatus) => {
-    e.preventDefault();
-    const taskId = e.dataTransfer.getData('taskId');
-    setTasks(tasks.map(task => task.id === taskId ? { ...task, status } : task));
-    await supabase.from('personal_tasks').update({ status }).eq('id', taskId);
-  };
   const updateTaskField = async (taskId: string, field: keyof Task, value: any, dbField: string) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t));
     try {
