@@ -84,6 +84,107 @@ const PRIORITIES: Record<Priority, { label: string, icon: any, color: string }> 
 
 // Removed initial data constants
 
+const NoteCard = ({ 
+  note, 
+  updateNoteTitle, 
+  saveNoteTitle, 
+  togglePinNote, 
+  deleteNote, 
+  toggleNoteItem, 
+  updateNoteItem, 
+  addNoteItem 
+}: {
+  note: Note;
+  updateNoteTitle: (id: string, title: string) => void;
+  saveNoteTitle: (id: string, title: string) => void;
+  togglePinNote: (id: string) => void;
+  deleteNote: (id: string) => void;
+  toggleNoteItem: (noteId: string, itemId: string) => void;
+  updateNoteItem: (noteId: string, itemId: string, text: string) => void;
+  addNoteItem: (noteId: string) => void;
+}) => {
+  const activeItems = note.items.filter(i => !i.isCompleted);
+  const completedItems = note.items.filter(i => i.isCompleted);
+  const [showCompleted, setShowCompleted] = useState(false);
+
+  return (
+    <div className={`rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col ${note.color}`}>
+      <div className="p-4 flex items-start justify-between group">
+        <input 
+          type="text" 
+          value={note.title}
+          onChange={(e) => updateNoteTitle(note.id, e.target.value)}
+          onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
+          className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
+          placeholder="Tiêu đề..."
+        />
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => togglePinNote(note.id)} className={`p-1.5 rounded-md hover:bg-black/5 ${note.isPinned ? 'text-blue-600' : 'text-gray-400'}`}>
+            <Pin className="w-4 h-4" />
+          </button>
+          <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-md hover:bg-black/5 text-gray-400 hover:text-red-600">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-4 pb-4 flex-1">
+        <div className="space-y-2">
+          {activeItems.map(item => (
+            <div key={item.id} className="flex items-start gap-2 group/item">
+              <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600">
+                <Square className="w-4 h-4" />
+              </button>
+              <input 
+                type="text"
+                value={item.text}
+                onChange={(e) => updateNoteItem(note.id, item.id, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addNoteItem(note.id);
+                  }
+                }}
+                placeholder="Mục danh sách..."
+                className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm"
+              />
+            </div>
+          ))}
+          <div className="flex items-center gap-2 pt-2">
+            <button onClick={() => addNoteItem(note.id)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
+              <Plus className="w-4 h-4" /> Thêm mục
+            </button>
+          </div>
+        </div>
+
+        {completedItems.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-black/5">
+            <button 
+              onClick={() => setShowCompleted(!showCompleted)}
+              className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 mb-2"
+            >
+              <span className={`transform transition-transform ${showCompleted ? 'rotate-90' : ''}`}>›</span>
+              Đã hoàn tất {completedItems.length} mục
+            </button>
+            {showCompleted && (
+              <div className="space-y-2">
+                {completedItems.map(item => (
+                  <div key={item.id} className="flex items-start gap-2 opacity-60">
+                    <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-600">
+                      <CheckSquare className="w-4 h-4" />
+                    </button>
+                    <span className="flex-1 text-sm text-gray-700 line-through">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function MyTasks() {
   const { profile } = useAuthStore();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -172,7 +273,15 @@ export default function MyTasks() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskCategory, setNewTaskCategory] = useState<string>('personal');
   const [newTaskPriority, setNewTaskPriority] = useState<Priority>('none');
+  const [newTaskDate, setNewTaskDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
+  // Inline Add states
+  const [kanbanAddingStatus, setKanbanAddingStatus] = useState<TaskStatus | null>(null);
+  const [kanbanNewTaskTitle, setKanbanNewTaskTitle] = useState('');
+  
+  const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
+  const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
+
   // Add Category State
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -207,7 +316,7 @@ export default function MyTasks() {
         user_id: profile.id,
         title: newTaskTitle.trim(),
         status: 'todo',
-        due_date: viewMode === 'focus' ? todayStr : null,
+        due_date: newTaskDate || null,
         category_id: newTaskCategory,
         priority: newTaskPriority
       }]).select().single();
@@ -227,6 +336,34 @@ export default function MyTasks() {
       setNewTaskPriority('none');
     } catch (err) {
       console.error('Error adding task', err);
+    }
+  };
+
+  const createQuickTask = async (title: string, status: TaskStatus, dueDate: string | null) => {
+    if (!title.trim() || !profile?.id) return;
+    try {
+      const { data, error } = await supabase.from('personal_tasks').insert([{
+        user_id: profile.id,
+        title: title.trim(),
+        status,
+        due_date: dueDate,
+        category_id: newTaskCategory,
+        priority: 'none'
+      }]).select().single();
+
+      if (error) throw error;
+      if (data) {
+        setTasks(prev => [{
+          id: data.id,
+          title: data.title,
+          status: data.status as TaskStatus,
+          dueDate: data.due_date,
+          priority: data.priority as Priority,
+          category: data.category_id,
+        }, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error quick creating task', err);
     }
   };
 
@@ -451,7 +588,16 @@ export default function MyTasks() {
   };
 
   // --- KANBAN DRAG & DROP ---
-  const handleDragStart = (e: React.DragEvent, taskId: string) => e.dataTransfer.setData('taskId', taskId);
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.stopPropagation();
+    e.dataTransfer.setData('taskId', taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    
+    // Fallback Fix for Ghost Image: ensure only the card is used as the ghost image
+    if (e.currentTarget instanceof HTMLElement) {
+      e.dataTransfer.setDragImage(e.currentTarget, 20, 20);
+    }
+  };
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
   const handleDrop = async (e: React.DragEvent, status: TaskStatus) => {
     e.preventDefault();
@@ -469,7 +615,9 @@ export default function MyTasks() {
       <div 
         key={task.id}
         draggable={isKanban}
-        onDragStart={(e) => isKanban && handleDragStart(e, task.id)}
+        onDragStart={(e) => {
+          if (isKanban) handleDragStart(e, task.id);
+        }}
         className={`group bg-white rounded-2xl border transition-all duration-200 ${
           task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
         } ${isKanban ? 'p-4 cursor-grab active:cursor-grabbing' : 'p-4 sm:p-5 flex items-center gap-4'}`}
@@ -557,89 +705,6 @@ export default function MyTasks() {
     const pinnedNotes = notes.filter(n => n.isPinned);
     const unpinnedNotes = notes.filter(n => !n.isPinned);
 
-    const NoteCard = ({ note }: { note: Note }) => {
-      const activeItems = note.items.filter(i => !i.isCompleted);
-      const completedItems = note.items.filter(i => i.isCompleted);
-      const [showCompleted, setShowCompleted] = useState(false);
-
-      return (
-        <div className={`rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col ${note.color}`}>
-          <div className="p-4 flex items-start justify-between group">
-            <input 
-              type="text" 
-              value={note.title}
-              onChange={(e) => updateNoteTitle(note.id, e.target.value)}
-              onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
-              className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
-              placeholder="Tiêu đề..."
-            />
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => togglePinNote(note.id)} className={`p-1.5 rounded-md hover:bg-black/5 ${note.isPinned ? 'text-blue-600' : 'text-gray-400'}`}>
-                <Pin className="w-4 h-4" />
-              </button>
-              <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-md hover:bg-black/5 text-gray-400 hover:text-red-600">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          <div className="px-4 pb-4 flex-1">
-            <div className="space-y-2">
-              {activeItems.map(item => (
-                <div key={item.id} className="flex items-start gap-2 group/item">
-                  <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600">
-                    <Square className="w-4 h-4" />
-                  </button>
-                  <input 
-                    type="text"
-                    value={item.text}
-                    onChange={(e) => updateNoteItem(note.id, item.id, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addNoteItem(note.id);
-                      }
-                    }}
-                    placeholder="Mục danh sách..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm"
-                  />
-                </div>
-              ))}
-              <div className="flex items-center gap-2 pt-2">
-                <button onClick={() => addNoteItem(note.id)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
-                  <Plus className="w-4 h-4" /> Thêm mục
-                </button>
-              </div>
-            </div>
-
-            {completedItems.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-black/5">
-                <button 
-                  onClick={() => setShowCompleted(!showCompleted)}
-                  className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 mb-2"
-                >
-                  <span className={`transform transition-transform ${showCompleted ? 'rotate-90' : ''}`}>›</span>
-                  Đã hoàn tất {completedItems.length} mục
-                </button>
-                {showCompleted && (
-                  <div className="space-y-2">
-                    {completedItems.map(item => (
-                      <div key={item.id} className="flex items-start gap-2 opacity-60">
-                        <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-600">
-                          <CheckSquare className="w-4 h-4" />
-                        </button>
-                        <span className="flex-1 text-sm text-gray-700 line-through">{item.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    };
-
     return (
       <div className="space-y-8 pb-12">
         {/* Add Note Form */}
@@ -674,7 +739,19 @@ export default function MyTasks() {
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Được ghim</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {pinnedNotes.map(note => <NoteCard key={note.id} note={note} />)}
+              {pinnedNotes.map(note => (
+                <NoteCard 
+                  key={note.id} 
+                  note={note} 
+                  updateNoteTitle={updateNoteTitle}
+                  saveNoteTitle={saveNoteTitle}
+                  togglePinNote={togglePinNote}
+                  deleteNote={deleteNote}
+                  toggleNoteItem={toggleNoteItem}
+                  updateNoteItem={updateNoteItem}
+                  addNoteItem={addNoteItem}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -684,7 +761,19 @@ export default function MyTasks() {
           <div>
             {pinnedNotes.length > 0 && <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Khác</h3>}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {unpinnedNotes.map(note => <NoteCard key={note.id} note={note} />)}
+              {unpinnedNotes.map(note => (
+                <NoteCard 
+                  key={note.id} 
+                  note={note} 
+                  updateNoteTitle={updateNoteTitle}
+                  saveNoteTitle={saveNoteTitle}
+                  togglePinNote={togglePinNote}
+                  deleteNote={deleteNote}
+                  toggleNoteItem={toggleNoteItem}
+                  updateNoteItem={updateNoteItem}
+                  addNoteItem={addNoteItem}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -710,17 +799,51 @@ export default function MyTasks() {
       const isToday = dateStr === todayStr;
       
       days.push(
-        <div key={i} className={`min-h-[120px] bg-white border-r border-b border-gray-200 p-2 transition-colors hover:bg-gray-50 ${isToday ? 'bg-emerald-50/30' : ''}`}>
+        <div key={i} className={`min-h-[120px] bg-white border-r border-b border-gray-200 p-2 transition-colors hover:bg-gray-50 cursor-pointer flex flex-col ${isToday ? 'bg-emerald-50/30' : ''}`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('calendar-cell-content')) {
+              setCalendarAddingDate(dateStr);
+            }
+          }}
+        >
           <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' : 'text-gray-700'}`}>
+            <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full pointer-events-none ${isToday ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' : 'text-gray-700'}`}>
               {i}
             </span>
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 flex-1 calendar-cell-content">
+            {calendarAddingDate === dateStr && (
+              <input 
+                autoFocus
+                type="text"
+                className="w-full text-xs border border-emerald-300 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-800"
+                placeholder="Thêm việc..."
+                value={calendarNewTaskTitle}
+                onChange={e => setCalendarNewTaskTitle(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const title = calendarNewTaskTitle.trim();
+                    setCalendarAddingDate(null);
+                    setCalendarNewTaskTitle('');
+                    if (title) createQuickTask(title, 'todo', dateStr);
+                  } else if (e.key === 'Escape') {
+                    setCalendarAddingDate(null);
+                    setCalendarNewTaskTitle('');
+                  }
+                }}
+                onBlur={() => {
+                  const title = calendarNewTaskTitle.trim();
+                  setCalendarAddingDate(null);
+                  setCalendarNewTaskTitle('');
+                  if (title) createQuickTask(title, 'todo', dateStr);
+                }}
+              />
+            )}
             {dayTasks.map(task => (
               <div 
                 key={task.id} 
-                onClick={() => toggleTaskStatus(task.id)}
+                onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
                 className={`text-xs p-1.5 rounded-md truncate cursor-pointer transition-all ${
                   task.status === 'done' 
                     ? 'bg-gray-100 text-gray-400 line-through' 
@@ -1033,6 +1156,12 @@ export default function MyTasks() {
                 </button>
               </div>
             )}
+            <input 
+              type="date"
+              value={newTaskDate}
+              onChange={(e) => setNewTaskDate(e.target.value)}
+              className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+            />
             <select 
               value={newTaskPriority}
               onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
@@ -1104,6 +1233,16 @@ export default function MyTasks() {
               { id: 'done', title: 'Hoàn thành', color: 'bg-emerald-50/50 border-emerald-100' }
             ].map(column => {
               const columnTasks = filteredTasks.filter(t => t.status === column.id);
+              
+              const handleKanbanInputConfirm = () => {
+                const currentTitle = kanbanNewTaskTitle.trim();
+                setKanbanAddingStatus(null);
+                setKanbanNewTaskTitle('');
+                if (currentTitle) {
+                  createQuickTask(currentTitle, column.id as TaskStatus, null);
+                }
+              };
+
               return (
                 <div 
                   key={column.id}
@@ -1111,9 +1250,16 @@ export default function MyTasks() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, column.id as TaskStatus)}
                 >
-                  <div className="p-4 flex items-center justify-between">
+                  <div className="p-4 flex items-center justify-between group">
                     <h3 className="font-bold text-gray-700">{column.title}</h3>
                     <div className="flex items-center gap-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setKanbanAddingStatus(column.id as TaskStatus); }}
+                        className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Thêm công việc"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                       {column.id === 'done' && (
                         <button 
                           onClick={() => setShowArchived(!showArchived)}
@@ -1129,6 +1275,28 @@ export default function MyTasks() {
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                    {kanbanAddingStatus === column.id && (
+                      <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
+                        <input 
+                          autoFocus
+                          type="text" 
+                          placeholder="Tên công việc..." 
+                          className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-800"
+                          value={kanbanNewTaskTitle}
+                          onChange={e => setKanbanNewTaskTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleKanbanInputConfirm();
+                            } else if (e.key === 'Escape') {
+                              setKanbanAddingStatus(null);
+                              setKanbanNewTaskTitle('');
+                            }
+                          }}
+                          onBlur={handleKanbanInputConfirm}
+                        />
+                      </div>
+                    )}
                     {columnTasks.map(task => renderTaskCard(task, true))}
                     
                     {/* Show Archived Tasks in Done column if toggled */}
