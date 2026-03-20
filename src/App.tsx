@@ -13,6 +13,7 @@ import { Kanban } from './pages/kanban/Kanban'
 import { Schedule } from './pages/schedule/Schedule'
 import { Construction } from './pages/construction/Construction'
 import { Customers } from './pages/customers/Customers'
+import MyTasks from './pages/mytasks/MyTasks'
 
 import MarketingApp from './pages/marketing/MarketingApp'
 import QuoteGenerator from './pages/customers/QuoteGenerator'
@@ -43,6 +44,7 @@ function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="customers/quotes/new" element={<QuoteGenerator />} />
           <Route path="marketing" element={<MarketingApp />} />
+          <Route path="mytasks" element={<MyTasks />} />
         </Route>
 
         {/* Catch all */}
