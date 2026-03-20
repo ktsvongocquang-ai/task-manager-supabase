@@ -25,6 +25,7 @@ interface Task {
   title: string;
   status: TaskStatus;
   dueDate?: string;
+  description?: string;
   priority: Priority;
   category: string;
 }
@@ -132,18 +133,27 @@ const NoteCard = ({
               <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600">
                 <Square className="w-4 h-4" />
               </button>
-              <input 
-                type="text"
+              <textarea 
                 value={item.text}
-                onChange={(e) => updateNoteItem(note.id, item.id, e.target.value)}
+                onChange={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                  updateNoteItem(note.id, item.id, e.target.value);
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     addNoteItem(note.id);
                   }
                 }}
+                rows={1}
                 placeholder="Mục danh sách..."
-                className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm"
+                className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm resize-none overflow-hidden leading-snug outline-none py-1"
+                style={{ height: 'auto', minHeight: '24px' }}
+                onFocus={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
               />
             </div>
           ))}
@@ -167,10 +177,10 @@ const NoteCard = ({
               <div className="space-y-2">
                 {completedItems.map(item => (
                   <div key={item.id} className="flex items-start gap-2 opacity-60">
-                    <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-600">
+                    <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-600 shrink-0">
                       <CheckSquare className="w-4 h-4" />
                     </button>
-                    <span className="flex-1 text-sm text-gray-700 line-through">{item.text}</span>
+                    <span className="flex-1 text-sm text-gray-700 line-through break-words whitespace-pre-wrap pt-0.5">{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -273,7 +283,10 @@ export default function MyTasks() {
   // Inline Add states
   const [kanbanAddingCategory, setKanbanAddingCategory] = useState<string | null>(null);
   const [kanbanNewTaskTitle, setKanbanNewTaskTitle] = useState('');
+  const [kanbanNewTaskDesc, setKanbanNewTaskDesc] = useState('');
+  const [kanbanNewTaskDate, setKanbanNewTaskDate] = useState<string | null>(null);
   const [expandedDoneCols, setExpandedDoneCols] = useState<Record<string, boolean>>({});
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   
   const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
   const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
@@ -335,23 +348,33 @@ export default function MyTasks() {
     }
   };
 
-  const createQuickTask = async (title: string, status: TaskStatus = 'todo', dueDate: string | null = null, categoryOverride: string | null = null) => {
+  const createQuickTask = async (
+    title: string, 
+    status: TaskStatus = 'todo', 
+    dueDate: string | null = null, 
+    categoryOverride: string | null = null,
+    description: string | null = null
+  ) => {
     if (!title.trim() || !profile?.id) return;
     try {
-      const { data, error } = await supabase.from('personal_tasks').insert([{
+      const payload: any = {
         user_id: profile.id,
         title: title.trim(),
         status,
         due_date: dueDate,
         category_id: categoryOverride || newTaskCategory,
         priority: 'none'
-      }]).select().single();
+      };
+      if (description) payload.description = description;
+
+      const { data, error } = await supabase.from('personal_tasks').insert([payload]).select().single();
 
       if (error) throw error;
       if (data) {
         setTasks(prev => [{
           id: data.id,
           title: data.title,
+          description: data.description,
           status: data.status as TaskStatus,
           dueDate: data.due_date,
           priority: data.priority as Priority,
@@ -632,11 +655,19 @@ export default function MyTasks() {
         </button>
 
         <div className={`flex-1 ${isKanban ? 'clear-right' : ''}`}>
-          <h4 className={`font-medium transition-all ${
+          <h4 
+            onClick={() => setEditingTask(task)}
+            className={`font-medium transition-all hover:text-emerald-600 cursor-pointer ${
             task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
-          } ${isKanban ? 'text-sm mb-3' : 'text-base mb-1.5'}`}>
+          } ${isKanban ? 'text-sm mb-2' : 'text-base mb-1'}`}>
             {task.title}
           </h4>
+          
+          {task.description && (
+             <p className="text-xs text-gray-500 line-clamp-2 mb-2 break-words" onClick={() => setEditingTask(task)}>
+                {task.description}
+             </p>
+          )}
           
           <div className="flex flex-wrap items-center gap-2 relative z-10">
             {/* Category Dropdown */}
@@ -1369,11 +1400,17 @@ export default function MyTasks() {
               
               const handleKanbanInputConfirm = () => {
                 const currentTitle = kanbanNewTaskTitle.trim();
+                const currentDesc = kanbanNewTaskDesc.trim();
+                const currentDate = kanbanNewTaskDate;
+                
+                if (currentTitle) {
+                  createQuickTask(currentTitle, 'todo', currentDate, cat.id, currentDesc || null);
+                }
+                
                 setKanbanAddingCategory(null);
                 setKanbanNewTaskTitle('');
-                if (currentTitle) {
-                  createQuickTask(currentTitle, 'todo', null, cat.id);
-                }
+                setKanbanNewTaskDesc('');
+                setKanbanNewTaskDate(null);
               };
 
               const handleDropCategory = async (e: React.DragEvent, categoryId: string) => {
@@ -1416,12 +1453,12 @@ export default function MyTasks() {
                           <Plus className="w-5 h-5 ml-2" /> Thêm việc cần làm
                         </button>
                      ) : (
-                        <div className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3">
+                        <div className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3 focus-within:ring-2 focus-within:ring-emerald-100 transition-shadow">
                           <input 
                             autoFocus
                             type="text" 
                             placeholder="Tên công việc..." 
-                            className="w-full text-[15px] border-none bg-transparent focus:ring-0 p-0 text-gray-900 font-medium"
+                            className="w-full text-base border-none bg-transparent focus:ring-0 p-0 text-gray-900 font-bold mb-2 placeholder-gray-400"
                             value={kanbanNewTaskTitle}
                             onChange={e => setKanbanNewTaskTitle(e.target.value)}
                             onKeyDown={e => {
@@ -1431,10 +1468,73 @@ export default function MyTasks() {
                               } else if (e.key === 'Escape') {
                                 setKanbanAddingCategory(null);
                                 setKanbanNewTaskTitle('');
+                                setKanbanNewTaskDesc('');
+                                setKanbanNewTaskDate(null);
                               }
                             }}
-                            onBlur={handleKanbanInputConfirm}
                           />
+                          <textarea
+                            placeholder="Chi tiết..."
+                            rows={1}
+                            className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-600 resize-none overflow-hidden placeholder-gray-400 mb-3"
+                            value={kanbanNewTaskDesc}
+                            onChange={(e) => {
+                               e.target.style.height = 'auto';
+                               e.target.style.height = `${e.target.scrollHeight}px`;
+                               setKanbanNewTaskDesc(e.target.value);
+                            }}
+                            onFocus={(e) => {
+                               e.target.style.height = 'auto';
+                               e.target.style.height = `${e.target.scrollHeight}px`;
+                            }}
+                          />
+                          <div className="flex items-center gap-2">
+                             <button 
+                               onClick={() => setKanbanNewTaskDate(todayStr)}
+                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors ${kanbanNewTaskDate === todayStr ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-transparent border-gray-200 text-gray-600'}`}
+                             >
+                               Hôm nay
+                             </button>
+                             <button 
+                               onClick={() => {
+                                 const tmr = new Date();
+                                 tmr.setDate(tmr.getDate() + 1);
+                                 setKanbanNewTaskDate(tmr.toISOString().split('T')[0]);
+                               }}
+                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors ${kanbanNewTaskDate && kanbanNewTaskDate !== todayStr ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-600'}`}
+                             >
+                               Ngày mai
+                             </button>
+                             <div className="relative">
+                               <input 
+                                 type="date"
+                                 className="absolute opacity-0 inset-0 cursor-pointer w-full h-full"
+                                 onChange={(e) => setKanbanNewTaskDate(e.target.value)}
+                               />
+                               <button className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
+                                 <CalendarIcon className="w-3.5 h-3.5" />
+                               </button>
+                             </div>
+                             <div className="flex-1"></div>
+                             <button
+                               onClick={() => {
+                                 setKanbanAddingCategory(null);
+                                 setKanbanNewTaskTitle('');
+                                 setKanbanNewTaskDesc('');
+                                 setKanbanNewTaskDate(null);
+                               }}
+                               className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+                             >
+                               <X className="w-4 h-4" />
+                             </button>
+                             <button
+                               onClick={handleKanbanInputConfirm}
+                               disabled={!kanbanNewTaskTitle.trim()}
+                               className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                             >
+                               Thêm
+                             </button>
+                          </div>
                         </div>
                      )}
 
@@ -1458,13 +1558,101 @@ export default function MyTasks() {
                            )}
                         </div>
                      )}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         )}
       </div>
+
+      {/* Editing Task Modal Overlay */}
+      {editingTask && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                 <button 
+                   onClick={() => toggleTaskStatus(editingTask.id)}
+                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${editingTask.status === 'done' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-300 text-transparent hover:border-emerald-400'}`}
+                 >
+                   <CheckCircle2 className="w-4 h-4" />
+                 </button>
+                 <select
+                   value={editingTask.category}
+                   onChange={(e) => updateTaskField(editingTask.id, 'category', e.target.value, 'category_id')}
+                   className="text-xs font-bold text-gray-500 uppercase bg-gray-100/50 hover:bg-gray-100 px-2 py-1 rounded-lg border-none focus:ring-0 cursor-pointer"
+                 >
+                   {Object.values(categories).map((c: CategoryItem) => (
+                     <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                   ))}
+                 </select>
+              </div>
+              <div className="flex items-center gap-2">
+                 <button onClick={() => handleDeleteTask(editingTask.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+                   <Trash2 className="w-5 h-5" />
+                 </button>
+                 <button onClick={() => setEditingTask(null)} className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                   <X className="w-5 h-5" />
+                 </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              <div>
+                <input
+                  type="text"
+                  value={editingTask.title}
+                  onChange={(e) => updateTaskField(editingTask.id, 'title', e.target.value, 'title')}
+                  placeholder="Tên công việc..."
+                  className="w-full text-2xl font-bold border-none bg-transparent focus:ring-0 p-0 text-gray-900 placeholder-gray-300"
+                />
+              </div>
+
+              <div className="flex gap-12">
+                 <div className="flex-1 space-y-5">
+                    
+                    <div>
+                       <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
+                         <FileText className="w-4 h-4" /> Chi tiết
+                       </label>
+                       <textarea
+                         value={editingTask.description || ''}
+                         onChange={(e) => {
+                             e.target.style.height = 'auto';
+                             e.target.style.height = `${e.target.scrollHeight}px`;
+                             updateTaskField(editingTask.id, 'description', e.target.value, 'description');
+                         }}
+                         placeholder="Thêm mô tả chi tiết cho công việc này..."
+                         className="w-full text-sm border border-gray-200 rounded-xl p-4 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none min-h-[120px] text-gray-800"
+                       />
+                    </div>
+                    
+                 </div>
+                 
+                 <div className="w-64 space-y-5">
+                    <div>
+                       <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-2 mb-2">
+                         <CalendarIcon className="w-4 h-4" /> Hạn chót
+                       </label>
+                       <input
+                         type="date"
+                         value={editingTask.dueDate || ''}
+                         onChange={(e) => updateTaskField(editingTask.id, 'dueDate', e.target.value || null, 'due_date')}
+                         className="w-full text-sm border border-gray-200 rounded-xl p-2.5 bg-gray-50/50 hover:bg-gray-100 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-gray-800"
+                       />
+                    </div>
+                 </div>
+              </div>
+
+            </div>
+
+            <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50/50">
+               <button onClick={() => setEditingTask(null)} className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-colors text-sm">Xong</button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

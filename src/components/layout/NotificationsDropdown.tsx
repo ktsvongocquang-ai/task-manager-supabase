@@ -105,9 +105,9 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                             <div
                                 key={notif.id}
                                 className={`p-4 transition-colors cursor-pointer group ${getBgColor(notif.type, notif.is_read)}`}
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     if (!notif.is_read) {
-                                        handleMarkAsRead(notif.id, e);
+                                        await handleMarkAsRead(notif.id, e);
                                     }
                                     navigate('/dashboard', {
                                         state: {
@@ -134,7 +134,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                                             </span>
                                             {!notif.is_read && (
                                                 <button
-                                                    onClick={(e) => handleMarkAsRead(notif.id, e)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleMarkAsRead(notif.id, e);
+                                                    }}
                                                     className="w-5 h-5 rounded-full hover:bg-black/5 flex items-center justify-center text-transparent group-hover:text-blue-500 transition-colors"
                                                     title="Đánh dấu đã đọc"
                                                 >
