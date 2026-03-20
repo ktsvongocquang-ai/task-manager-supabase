@@ -46,7 +46,7 @@ export const Schedule = () => {
 
     const fetchAll = async () => {
         try {
-            setLoading(true)
+            if (tasks.length === 0) setLoading(true)
             const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
@@ -121,10 +121,15 @@ export const Schedule = () => {
     const startDate = startOfWeek(monthStart)
     const endDate = endOfWeek(monthEnd)
 
-    const calendarDays = eachDayOfInterval({
+    let calendarDays = eachDayOfInterval({
         start: startDate,
         end: endDate
     })
+
+    // Pad to exactly 42 days (6 weeks) to prevent calendar jumping between 5 and 6 row months
+    while (calendarDays.length < 42) {
+        calendarDays.push(new Date(calendarDays[calendarDays.length - 1].getTime() + 24 * 60 * 60 * 1000))
+    }
 
     const getStatusColor = (status: string) => {
         if (status?.includes('Hoàn thành')) return 'bg-emerald-100 text-emerald-700 border-emerald-200'
@@ -210,7 +215,7 @@ export const Schedule = () => {
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 flex-1 auto-rows-[minmax(120px,1fr)]">
+                <div className="grid grid-cols-7 grid-rows-6 flex-1 h-0">
                     {calendarDays.map((day, idx) => {
                         const dateStr = format(day, 'yyyy-MM-dd')
                         const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
@@ -220,9 +225,10 @@ export const Schedule = () => {
                         return (
                             <div
                                 key={day.toString()}
-                                className={`border-b border-r border-slate-100 p-2 transition-colors flex flex-col gap-1 overflow-y-auto
+                                className={`border-b border-r border-slate-100 p-2 transition-colors flex flex-col gap-1 overflow-hidden
                                     ${!isCurrentMonth ? 'bg-slate-50/50' : 'bg-white'} 
                                     ${idx % 7 === 6 ? 'border-r-0' : ''}
+                                    ${idx >= 35 ? 'border-b-0' : ''}
                                 `}
                             >
                                 <div className="flex items-center justify-between mb-1">
