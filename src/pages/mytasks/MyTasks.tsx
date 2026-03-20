@@ -274,12 +274,12 @@ export default function MyTasks() {
   // Quick Add State
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskCategory, setNewTaskCategory] = useState<string>('personal');
-  const [newTaskPriority, setNewTaskPriority] = useState<Priority>('none');
   const [newTaskDate, setNewTaskDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
   // Inline Add states
-  const [kanbanAddingStatus, setKanbanAddingStatus] = useState<TaskStatus | null>(null);
+  const [kanbanAddingCategory, setKanbanAddingCategory] = useState<string | null>(null);
   const [kanbanNewTaskTitle, setKanbanNewTaskTitle] = useState('');
+  const [expandedDoneCols, setExpandedDoneCols] = useState<Record<string, boolean>>({});
   
   const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
   const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
@@ -321,7 +321,7 @@ export default function MyTasks() {
         status: 'todo',
         due_date: newTaskDate || null,
         category_id: newTaskCategory,
-        priority: newTaskPriority
+        priority: 'none'
       }]).select().single();
 
       if (error) throw error;
@@ -336,13 +336,12 @@ export default function MyTasks() {
         }, ...tasks]);
       }
       setNewTaskTitle('');
-      setNewTaskPriority('none');
     } catch (err) {
       console.error('Error adding task', err);
     }
   };
 
-  const createQuickTask = async (title: string, status: TaskStatus, dueDate: string | null) => {
+  const createQuickTask = async (title: string, status: TaskStatus = 'todo', dueDate: string | null = null, categoryOverride: string | null = null) => {
     if (!title.trim() || !profile?.id) return;
     try {
       const { data, error } = await supabase.from('personal_tasks').insert([{
@@ -350,7 +349,7 @@ export default function MyTasks() {
         title: title.trim(),
         status,
         due_date: dueDate,
-        category_id: newTaskCategory,
+        category_id: categoryOverride || newTaskCategory,
         priority: 'none'
       }]).select().single();
 
@@ -619,7 +618,6 @@ export default function MyTasks() {
   };
 
   const renderTaskCard = (task: Task, isKanban = false) => {
-    const PriorityIcon = PRIORITIES[task.priority].icon;
     const isOverdue = task.dueDate && task.dueDate < todayStr && task.status !== 'done';
     const cat = categories[task.category] || categories['personal'];
 
@@ -689,22 +687,6 @@ export default function MyTasks() {
                 className="absolute text-transparent bg-transparent inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
-            </div>
-            
-            {/* Priority Dropdown */}
-            <div className={`relative inline-flex items-center gap-1 text-[11px] font-medium ${task.priority !== 'none' ? PRIORITIES[task.priority].color : 'text-gray-400 bg-gray-100'} px-2 py-0.5 rounded-md hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
-              {task.priority !== 'none' ? <PriorityIcon className="w-3 h-3 flex-shrink-0" /> : <Plus className="w-3 h-3 flex-shrink-0" />}
-              <select 
-                value={task.priority}
-                onChange={(e) => updateTaskField(task.id, 'priority', e.target.value as Priority, 'priority')}
-                onClick={(e) => e.stopPropagation()}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              >
-                {Object.entries(PRIORITIES).map(([key, { label }]) => (
-                  <option key={key} value={key}>{key !== 'none' ? `${label}` : 'Ưu tiên'}</option>
-                ))}
-              </select>
-              <span className="whitespace-nowrap">{task.priority !== 'none' ? PRIORITIES[task.priority].label : 'Ưu tiên'}</span>
             </div>
           </div>
         </div>
@@ -1333,18 +1315,8 @@ export default function MyTasks() {
                 type="date"
                 value={newTaskDate}
                 onChange={(e) => setNewTaskDate(e.target.value)}
-                className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+                className="flex-1 sm:flex-none bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               />
-              <select 
-                value={newTaskPriority}
-                onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
-                className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
-              >
-                <option value="none">Độ ưu tiên</option>
-                <option value="high">🔴 Cao</option>
-                <option value="medium">🟡 Trung bình</option>
-                <option value="low">🔵 Thấp</option>
-              </select>
               <button 
                 type="submit"
                 disabled={!newTaskTitle.trim()}
@@ -1399,99 +1371,105 @@ export default function MyTasks() {
             </div>
           </div>
         ) : (
-          /* Kanban View */
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pb-8 sm:min-h-[500px]">
-            {[
-              { id: 'todo', title: 'Cần làm', color: 'bg-slate-100/50 border-slate-200' },
-              { id: 'in-progress', title: 'Đang làm', color: 'bg-blue-50/50 border-blue-100' },
-              { id: 'done', title: 'Hoàn thành', color: 'bg-emerald-50/50 border-emerald-100' }
-            ].map(column => {
-              const columnTasks = filteredTasks.filter(t => t.status === column.id);
+          /* Category-Based Board View (Kanban) */
+          <div className="flex gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto no-scrollbar snap-x items-start">
+            {Object.values(categories).map((cat: CategoryItem) => {
+              const catTasks = filteredTasks.filter(t => t.category === cat.id);
+              const activeTasks = catTasks.filter(t => t.status !== 'done' && t.status !== 'archived');
+              const doneTasks = catTasks.filter(t => t.status === 'done');
+              const isDoneExpanded = expandedDoneCols[cat.id] || false;
               
               const handleKanbanInputConfirm = () => {
                 const currentTitle = kanbanNewTaskTitle.trim();
-                setKanbanAddingStatus(null);
+                setKanbanAddingCategory(null);
                 setKanbanNewTaskTitle('');
                 if (currentTitle) {
-                  createQuickTask(currentTitle, column.id as TaskStatus, null);
+                  createQuickTask(currentTitle, 'todo', null, cat.id);
                 }
               };
 
+              const handleDropCategory = async (e: React.DragEvent, categoryId: string) => {
+                e.preventDefault();
+                const taskId = e.dataTransfer.getData('taskId');
+                if (taskId) {
+                  updateTaskField(taskId, 'category', categoryId, 'category_id');
+                }
+              };
+
+              const headerBgColor = cat.color?.replace('text-', 'bg-').replace('600', '100') || 'bg-gray-100';
+              const headerTextColor = cat.color || 'text-gray-800';
+
               return (
                 <div 
-                  key={column.id}
-                  className={`w-full sm:w-80 flex-shrink-0 flex flex-col rounded-2xl border ${column.color}`}
+                  key={cat.id}
+                  className={`w-[85vw] sm:w-[340px] flex-shrink-0 flex flex-col rounded-3xl snap-center border border-gray-200 bg-gray-50/30 shadow-sm`}
                   onDragOver={handleDragOver}
-                  onDrop={(e) => handleDrop(e, column.id as TaskStatus)}
+                  onDrop={(e) => handleDropCategory(e, cat.id)}
                 >
-                  <div className="p-4 flex items-center justify-between group">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-700">{column.title}</h3>
-                      <span className="px-2.5 py-0.5 bg-white text-gray-600 text-xs font-bold rounded-full shadow-sm">
-                        {columnTasks.length}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       {/* Make plus icon always visible on mobile */}
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setKanbanAddingStatus(column.id as TaskStatus); }}
-                        className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Thêm công việc"
-                      >
-                        <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </button>
-                      {column.id === 'done' && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setShowArchived(!showArchived); }}
-                          className={`p-1 rounded-md transition-colors ${showArchived ? 'bg-emerald-200 text-emerald-800' : 'text-gray-400 hover:bg-black/5'}`}
-                          title={showArchived ? "Ẩn lưu trữ" : "Hiện lưu trữ"}
-                        >
-                          <Archive className="w-4 h-4" />
-                        </button>
-                      )}
+                  {/* Column Header */}
+                  <div className={`p-4 sm:p-5 flex items-center justify-between rounded-t-3xl border-b border-gray-200/50 ${headerBgColor} bg-opacity-50`}>
+                    <div className="flex items-center gap-3">
+                       <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg bg-white shadow-sm border border-gray-100 ${headerTextColor}`}>
+                         {cat.icon}
+                       </span>
+                       <h3 className={`font-extrabold text-[15px] uppercase tracking-wide ${headerTextColor}`}>{cat.label}</h3>
                     </div>
                   </div>
-                  <div className="sm:flex-1 overflow-y-auto p-3 space-y-3">
-                    {kanbanAddingStatus === column.id && (
-                      <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
-                        <input 
-                          autoFocus
-                          type="text" 
-                          placeholder="Tên công việc..." 
-                          className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-800"
-                          value={kanbanNewTaskTitle}
-                          onChange={e => setKanbanNewTaskTitle(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleKanbanInputConfirm();
-                            } else if (e.key === 'Escape') {
-                              setKanbanAddingStatus(null);
-                              setKanbanNewTaskTitle('');
-                            }
-                          }}
-                          onBlur={handleKanbanInputConfirm}
-                        />
-                      </div>
-                    )}
-                    {columnTasks.map(task => renderTaskCard(task, true))}
-                    
-                    {/* Show Archived Tasks in Done column if toggled */}
-                    {column.id === 'done' && showArchived && (
-                      <>
-                        <div className="pt-4 pb-2 border-t border-emerald-200/50 flex items-center justify-between">
-                          <span className="text-xs font-bold text-emerald-800/60 uppercase tracking-wider">Đã lưu trữ</span>
-                          <span className="text-xs text-emerald-800/60">{filteredTasks.filter(t => t.status === 'archived').length}</span>
-                        </div>
-                        {filteredTasks.filter(t => t.status === 'archived').map(task => renderTaskCard(task, true))}
-                      </>
-                    )}
 
-                    {columnTasks.length === 0 && (
-                      <div className="h-24 flex items-center justify-center border-2 border-dashed border-gray-300/50 rounded-xl text-sm text-gray-400">
-                        Kéo thả vào đây
-                      </div>
-                    )}
+                  {/* Column Body */}
+                  <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 custom-scrollbar h-auto max-h-[70vh]">
+                     
+                     {/* Add task button inline */}
+                     {!kanbanAddingCategory || kanbanAddingCategory !== cat.id ? (
+                        <button 
+                          onClick={() => setKanbanAddingCategory(cat.id)}
+                          className="w-full py-3 flex items-center gap-2 text-[15px] font-semibold text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-dashed border-gray-300 hover:border-emerald-300"
+                        >
+                          <Plus className="w-5 h-5 ml-2" /> Thêm việc cần làm
+                        </button>
+                     ) : (
+                        <div className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3">
+                          <input 
+                            autoFocus
+                            type="text" 
+                            placeholder="Tên công việc..." 
+                            className="w-full text-[15px] border-none bg-transparent focus:ring-0 p-0 text-gray-900 font-medium"
+                            value={kanbanNewTaskTitle}
+                            onChange={e => setKanbanNewTaskTitle(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleKanbanInputConfirm();
+                              } else if (e.key === 'Escape') {
+                                setKanbanAddingCategory(null);
+                                setKanbanNewTaskTitle('');
+                              }
+                            }}
+                            onBlur={handleKanbanInputConfirm}
+                          />
+                        </div>
+                     )}
+
+                     {/* Active Tasks */}
+                     {activeTasks.map(task => renderTaskCard(task, true))}
+                     
+                     {/* Done Tasks Accordion */}
+                     {doneTasks.length > 0 && (
+                        <div className="mt-6 pt-3 border-t border-gray-200/60">
+                           <button 
+                             onClick={() => setExpandedDoneCols(prev => ({...prev, [cat.id]: !prev[cat.id]}))}
+                             className="w-full flex items-center gap-2 py-2 px-1 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors rounded-lg group"
+                           >
+                              <ChevronRight className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-transform ${isDoneExpanded ? 'rotate-90' : ''}`} />
+                              Đã hoàn thành ({doneTasks.length})
+                           </button>
+                           {isDoneExpanded && (
+                             <div className="space-y-3 mt-3 animate-in fade-in slide-in-from-top-2">
+                                {doneTasks.map(task => renderTaskCard(task, true))}
+                             </div>
+                           )}
+                        </div>
+                     )}
                   </div>
                 </div>
               );
