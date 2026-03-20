@@ -47,12 +47,26 @@ export const Schedule = () => {
     const fetchAll = async () => {
         try {
             if (tasks.length === 0) setLoading(true)
-            const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
+            const [{ data: t }, { data: pt }, { data: p }, { data: pr }] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
+                profile?.id ? supabase.from('personal_tasks').select('*').eq('user_id', profile.id) : Promise.resolve({ data: [] }),
                 supabase.from('projects').select('*'),
                 supabase.from('profiles').select('id, full_name, role, email')
             ])
-            setTasks((t || []) as Task[])
+
+            const companyTasks = (t || []) as Task[];
+            const personalTasksMapped = (pt || []).map((t: any) => ({
+                id: t.id,
+                name: t.title, // Map title -> name
+                task_code: 'CÁ NHÂN', // Special code for Personal tasks
+                status: t.status === 'done' ? 'Hoàn thành' : (t.status === 'in-progress' ? 'Đang làm' : 'Cần làm'),
+                due_date: t.due_date,
+                project_id: 'personal', // Use a mocked project_id so type matching is slightly better, but doesn't map to real db project
+                assignee_id: profile?.id,
+                created_at: t.created_at,
+            })) as unknown as Task[];
+
+            setTasks([...companyTasks, ...personalTasksMapped])
             setProjects((p || []) as Project[])
             setProfiles(pr || [])
         } catch (err) {
@@ -66,7 +80,7 @@ export const Schedule = () => {
         const projTasks = tasks.filter(t => t.project_id === projectId);
         let maxId = 0;
         projTasks.forEach(t => {
-            const match = t.task_code.match(/-(\d+)$/);
+            const match = t.task_code?.match(/-(\d+)$/);
             if (match) {
                 const num = parseInt(match[1], 10);
                 if (num > maxId) maxId = num;
@@ -78,6 +92,10 @@ export const Schedule = () => {
     }
 
     const openEditModal = (t: Task) => {
+        if (t.task_code === 'CÁ NHÂN') {
+            alert('Đây là Việc cá nhân. Vui lòng mở tab "Việc cá nhân" trên thanh điều hướng để xem và chỉnh sửa chi tiết!');
+            return;
+        }
         setEditingTask(t)
         setInitialTaskData({ task_code: t.task_code, project_id: t.project_id })
         setShowModal(true)
