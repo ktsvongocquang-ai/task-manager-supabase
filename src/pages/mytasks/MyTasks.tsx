@@ -82,85 +82,7 @@ const PRIORITIES: Record<Priority, { label: string, icon: any, color: string }> 
   none: { label: 'Không', icon: Flag, color: 'text-gray-300' },
 };
 
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Gia hạn visa',
-    status: 'todo',
-    dueDate: new Date().toISOString().split('T')[0], // Today
-    priority: 'high',
-    category: 'personal'
-  },
-  {
-    id: '2',
-    title: 'Lên lịch khám sức khoẻ định kỳ',
-    status: 'in-progress',
-    dueDate: new Date().toISOString().split('T')[0], // Today
-    priority: 'medium',
-    category: 'health'
-  },
-  {
-    id: '3',
-    title: 'Đóng tiền điện tháng 3',
-    status: 'todo',
-    dueDate: '2026-03-22',
-    priority: 'high',
-    category: 'finance'
-  },
-  {
-    id: '4',
-    title: 'Mua quà sinh nhật cho mẹ',
-    status: 'done',
-    dueDate: new Date().toISOString().split('T')[0], // Today
-    priority: 'high',
-    category: 'family'
-  },
-  {
-    id: '5',
-    title: 'Đọc xong chương 3 sách Clean Code',
-    status: 'todo',
-    priority: 'low',
-    category: 'learning'
-  },
-  {
-    id: '6',
-    title: 'Task cũ đã lưu trữ',
-    status: 'archived',
-    priority: 'none',
-    category: 'personal'
-  }
-];
-
-const initialNotes: Note[] = [
-  {
-    id: 'n1',
-    title: 'Personal Healthy',
-    color: 'bg-orange-100',
-    isPinned: true,
-    items: [
-      { id: 'i1', text: 'chạy bộ 5km', isCompleted: false },
-      { id: 'i2', text: 'hít xà 50 cái hít đất 100 cái buổi sáng', isCompleted: false },
-      { id: 'i3', text: 'cardio Cuối tuần', isCompleted: false },
-      { id: 'i4', text: 'Đi chill', isCompleted: false },
-      { id: 'i5', text: 'tập gym - gập bụng 60 cái sau buổi tập', isCompleted: true },
-    ]
-  },
-  {
-    id: 'n2',
-    title: 'Personal Training',
-    color: 'bg-blue-50',
-    isPinned: true,
-    items: [
-      { id: 'i6', text: 'học tiếng anh', isCompleted: false },
-      { id: 'i7', text: 'Đọc sách 7 thói quen', isCompleted: false },
-      { id: 'i8', text: 'tập vẽ massing sektchup', isCompleted: false },
-      { id: 'i9', text: 'xem các kĩ năng lumion', isCompleted: false },
-      { id: 'i10', text: 'học corona Minh Quang', isCompleted: true },
-      { id: 'i11', text: 'học corona A cường', isCompleted: true },
-      { id: 'i12', text: 'học ryhno', isCompleted: true },
-    ]
-  }
-];
+// Removed initial data constants
 
 export default function MyTasks() {
   const { profile } = useAuthStore();
@@ -415,21 +337,45 @@ export default function MyTasks() {
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteColor, setNewNoteColor] = useState(NOTE_COLORS[0]);
 
-  const handleAddNote = (e: React.FormEvent) => {
+  const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newNote: Note = {
-      id: `n_${Date.now()}`,
-      title: newNoteTitle.trim() || 'Ghi chú mới',
-      items: [{ id: `i_${Date.now()}`, text: '', isCompleted: false }],
-      color: newNoteColor,
-      isPinned: false
-    };
-    setNotes([newNote, ...notes]);
-    setNewNoteTitle('');
-    setNewNoteColor(NOTE_COLORS[0]);
+    if (!profile?.id) return;
+    try {
+      const { data, error } = await supabase.from('personal_notes').insert([{
+        user_id: profile.id,
+        title: newNoteTitle.trim() || 'Ghi chú mới',
+        color: newNoteColor,
+        is_pinned: false
+      }]).select().single();
+
+      if (error) throw error;
+      if (data) {
+        // Also add the first empty item
+        const { data: itemData, error: itemError } = await supabase.from('personal_note_items').insert([{
+          note_id: data.id,
+          text: '',
+          is_completed: false
+        }]).select().single();
+        
+        if (itemError) throw itemError;
+
+        const newNote: Note = {
+          id: data.id,
+          title: data.title,
+          items: itemData ? [{ id: itemData.id, text: itemData.text, isCompleted: itemData.is_completed }] : [],
+          color: data.color,
+          isPinned: data.is_pinned
+        };
+        setNotes([newNote, ...notes]);
+      }
+      setNewNoteTitle('');
+      setNewNoteColor(NOTE_COLORS[0]);
+    } catch (err) {
+      console.error('Error adding note', err);
+    }
   };
 
-  const updateNoteItem = (noteId: string, itemId: string, text: string) => {
+  const updateNoteItem = async (noteId: string, itemId: string, text: string) => {
     setNotes(notes.map(note => {
       if (note.id === noteId) {
         return {
@@ -439,47 +385,82 @@ export default function MyTasks() {
       }
       return note;
     }));
+    await supabase.from('personal_note_items').update({ text }).eq('id', itemId);
   };
 
-  const toggleNoteItem = (noteId: string, itemId: string) => {
-    setNotes(notes.map(note => {
-      if (note.id === noteId) {
+  const toggleNoteItem = async (noteId: string, itemId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    const item = note?.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const newCompleted = !item.isCompleted;
+
+    setNotes(notes.map(n => {
+      if (n.id === noteId) {
         return {
-          ...note,
-          items: note.items.map(item => item.id === itemId ? { ...item, isCompleted: !item.isCompleted } : item)
+          ...n,
+          items: n.items.map(i => i.id === itemId ? { ...i, isCompleted: newCompleted } : i)
         };
       }
-      return note;
+      return n;
     }));
+    await supabase.from('personal_note_items').update({ is_completed: newCompleted }).eq('id', itemId);
   };
 
-  const addNoteItem = (noteId: string) => {
-    setNotes(notes.map(note => {
-      if (note.id === noteId) {
-        return {
-          ...note,
-          items: [...note.items, { id: `i_${Date.now()}`, text: '', isCompleted: false }]
-        };
+  const addNoteItem = async (noteId: string) => {
+    try {
+      const { data, error } = await supabase.from('personal_note_items').insert([{
+        note_id: noteId,
+        text: '',
+        is_completed: false
+      }]).select().single();
+
+      if (error) throw error;
+      if (data) {
+        setNotes(notes.map(note => {
+          if (note.id === noteId) {
+            return {
+              ...note,
+              items: [...note.items, { id: data.id, text: data.text, isCompleted: data.is_completed }]
+            };
+          }
+          return note;
+        }));
       }
-      return note;
-    }));
+    } catch (err) {
+      console.error('Error adding note item', err);
+    }
   };
 
-  const deleteNote = (noteId: string) => {
+  const deleteNote = async (noteId: string) => {
     setNotes(notes.filter(note => note.id !== noteId));
+    await supabase.from('personal_notes').delete().eq('id', noteId);
   };
 
-  const togglePinNote = (noteId: string) => {
-    setNotes(notes.map(note => note.id === noteId ? { ...note, isPinned: !note.isPinned } : note));
+  const togglePinNote = async (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+    const newPinned = !note.isPinned;
+    setNotes(notes.map(n => n.id === noteId ? { ...n, isPinned: newPinned } : n));
+    await supabase.from('personal_notes').update({ is_pinned: newPinned }).eq('id', noteId);
+  };
+
+  const updateNoteTitle = (noteId: string, title: string) => {
+    setNotes(notes.map(n => n.id === noteId ? { ...n, title } : n));
+  };
+
+  const saveNoteTitle = async (noteId: string, title: string) => {
+    await supabase.from('personal_notes').update({ title }).eq('id', noteId);
   };
 
   // --- KANBAN DRAG & DROP ---
   const handleDragStart = (e: React.DragEvent, taskId: string) => e.dataTransfer.setData('taskId', taskId);
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-  const handleDrop = (e: React.DragEvent, status: TaskStatus) => {
+  const handleDrop = async (e: React.DragEvent, status: TaskStatus) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('taskId');
     setTasks(tasks.map(task => task.id === taskId ? { ...task, status } : task));
+    await supabase.from('personal_tasks').update({ status }).eq('id', taskId);
   };
 
   const renderTaskCard = (task: Task, isKanban = false) => {
@@ -590,9 +571,8 @@ export default function MyTasks() {
             <input 
               type="text" 
               value={note.title}
-              onChange={(e) => {
-                setNotes(notes.map(n => n.id === note.id ? { ...n, title: e.target.value } : n));
-              }}
+              onChange={(e) => updateNoteTitle(note.id, e.target.value)}
+              onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
               className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
               placeholder="Tiêu đề..."
             />
