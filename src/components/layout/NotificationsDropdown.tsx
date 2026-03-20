@@ -9,10 +9,11 @@ import { useNavigate } from 'react-router-dom'
 interface NotificationsDropdownProps {
     userId?: string;
     onClose: () => void;
-    onCountChange: (count: number) => void;
+    onCountChange: (count: number | ((prev: number) => number)) => void;
+    unreadCount: number;
 }
 
-export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ userId, onClose, onCountChange }) => {
+export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ userId, onClose, onCountChange, unreadCount }) => {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState<AppNotification[]>([])
     const [loading, setLoading] = useState(false)
@@ -27,9 +28,6 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
         setLoading(true)
         const data = await getNotifications(userId!)
         setNotifications(data)
-
-        const unreadCount = data.filter(n => !n.is_read).length
-        onCountChange(unreadCount)
         setLoading(false)
     }
 
@@ -38,7 +36,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
         await markNotificationAsRead(id)
         const updated = notifications.map(n => n.id === id ? { ...n, is_read: true } : n)
         setNotifications(updated)
-        onCountChange(updated.filter(n => !n.is_read).length)
+        onCountChange(prev => Math.max(0, prev - 1))
     }
 
     const handleMarkAllAsRead = async () => {
@@ -77,7 +75,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                     <Bell className="text-yellow-500 fill-yellow-500" size={18} />
                     <h3 className="font-bold text-gray-900 text-sm">Thông báo</h3>
                 </div>
-                {notifications.some(n => !n.is_read) && (
+                {unreadCount > 0 && (
                     <button
                         onClick={handleMarkAllAsRead}
                         className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md transition-colors"

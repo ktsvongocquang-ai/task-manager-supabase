@@ -455,6 +455,7 @@ export const Layout = () => {
                                                 userId={profile?.id}
                                                 onClose={() => setIsNotifOpen(false)}
                                                 onCountChange={setUnreadNotifCount}
+                                                unreadCount={unreadNotifCount}
                                             />
                                         </>
                                     )}
