@@ -3,10 +3,12 @@ import {
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, RefreshCw,
   Sun, Moon, Coffee, Star, Flag, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, Archive
+  BarChart2, X, FileText, Pin, CheckSquare, Square, Archive, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, eachDayOfInterval } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 type TaskStatus = 'todo' | 'in-progress' | 'done' | 'archived';
 type Priority = 'high' | 'medium' | 'low' | 'none';
@@ -281,6 +283,7 @@ export default function MyTasks() {
   
   const [calendarAddingDate, setCalendarAddingDate] = useState<string | null>(null);
   const [calendarNewTaskTitle, setCalendarNewTaskTitle] = useState('');
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(new Date());
 
   // Add Category State
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -824,127 +827,233 @@ export default function MyTasks() {
   };
 
   const renderCalendarView = () => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDay = new Date(year, month, 1).getDay(); // 0 is Sunday
-    const startingDay = firstDay === 0 ? 6 : firstDay - 1; // Make Monday = 0
-    
-    const days = [];
-    for (let i = 0; i < startingDay; i++) {
-      days.push(<div key={`empty-${i}`} className="min-h-[100px] bg-gray-50/50 border-r border-b border-gray-100 p-2"></div>);
+    const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
+    const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
+
+    const monthStart = startOfMonth(currentMonth)
+    const monthEnd = endOfMonth(monthStart)
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 })
+
+    let calendarDays = eachDayOfInterval({ start: startDate, end: endDate })
+    while (calendarDays.length < 42) {
+        calendarDays.push(new Date(calendarDays[calendarDays.length - 1].getTime() + 24 * 60 * 60 * 1000))
     }
-    
-    for (let i = 1; i <= daysInMonth; i++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      const dayTasks = filteredTasks.filter(t => t.dueDate === dateStr);
-      const isToday = dateStr === todayStr;
-      
-      days.push(
-        <div key={i} className={`min-h-[120px] bg-white border-r border-b border-gray-200 p-2 transition-colors hover:bg-gray-50 cursor-pointer flex flex-col ${isToday ? 'bg-emerald-50/30' : ''}`}
-          onClick={(e) => {
-            if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('calendar-cell-content')) {
-              setCalendarAddingDate(dateStr);
-            }
-          }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full pointer-events-none ${isToday ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' : 'text-gray-700'}`}>
-              {i}
-            </span>
+
+    const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+    const renderDesktopGrid = () => (
+      <div className="hidden md:flex flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex-col min-h-[600px] mt-4">
+          <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/50 shrink-0">
+              {WEEKDAYS.map(day => (
+                  <div key={day} className="py-3 text-center text-xs font-bold text-gray-500">{day}</div>
+              ))}
           </div>
-          <div className="space-y-1.5 flex-1 calendar-cell-content">
-            {calendarAddingDate === dateStr && (
-              <input 
-                autoFocus
-                type="text"
-                className="w-full text-xs border border-emerald-300 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-800"
-                placeholder="Thêm việc..."
-                value={calendarNewTaskTitle}
-                onChange={e => setCalendarNewTaskTitle(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const title = calendarNewTaskTitle.trim();
-                    setCalendarAddingDate(null);
-                    setCalendarNewTaskTitle('');
-                    if (title) createQuickTask(title, 'todo', dateStr);
-                  } else if (e.key === 'Escape') {
-                    setCalendarAddingDate(null);
-                    setCalendarNewTaskTitle('');
-                  }
-                }}
-                onBlur={() => {
-                  const title = calendarNewTaskTitle.trim();
-                  setCalendarAddingDate(null);
-                  setCalendarNewTaskTitle('');
-                  if (title) createQuickTask(title, 'todo', dateStr);
-                }}
-              />
-            )}
-            {dayTasks.map(task => (
-              <div 
-                key={task.id} 
-                onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
-                className={`text-xs p-1.5 rounded-md truncate cursor-pointer transition-all ${
-                  task.status === 'done' 
-                    ? 'bg-gray-100 text-gray-400 line-through' 
-                    : `${categories[task.category]?.color || 'bg-gray-100 text-gray-700'} bg-opacity-50 hover:opacity-80`
-                }`}
-                title={task.title}
-              >
-                {task.status === 'done' ? '✓ ' : ''}{task.title}
+          <div className="grid grid-cols-7 grid-rows-6 flex-1 h-0">
+              {calendarDays.map((day, idx) => {
+                  const dateStr = format(day, 'yyyy-MM-dd')
+                  const dayTasks = filteredTasks.filter(t => t.dueDate === dateStr)
+                  const isCurMonth = isSameMonth(day, currentMonth)
+                  const isToday = isSameDay(day, new Date())
+
+                  return (
+                      <div
+                          key={day.toString()}
+                          onClick={() => { setCalendarAddingDate(dateStr); setSelectedCalendarDate(day); }}
+                          className={`border-b border-r border-gray-100 p-2 transition-colors flex flex-col gap-1 overflow-hidden cursor-pointer
+                              ${!isCurMonth ? 'bg-gray-50/50' : 'bg-white hover:bg-gray-50'} 
+                              ${idx % 7 === 6 ? 'border-r-0' : ''}
+                              ${idx >= 35 ? 'border-b-0' : ''}
+                          `}
+                      >
+                          <div className="flex items-center justify-between mb-1">
+                              <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-emerald-500 text-white' : !isCurMonth ? 'text-gray-400' : 'text-gray-700'}`}>
+                                  {format(day, 'd')}
+                              </span>
+                          </div>
+
+                          <div className="space-y-1 overflow-y-auto flex-1 pr-1 custom-scrollbar">
+                              {calendarAddingDate === dateStr && (
+                                <input 
+                                  autoFocus type="text"
+                                  className="w-full text-[10px] border border-emerald-300 rounded px-1.5 py-1 mb-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-800"
+                                  placeholder="Việc mới..."
+                                  value={calendarNewTaskTitle}
+                                  onChange={e => setCalendarNewTaskTitle(e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const title = calendarNewTaskTitle.trim();
+                                      setCalendarAddingDate(null);
+                                      setCalendarNewTaskTitle('');
+                                      if (title) createQuickTask(title, 'todo', dateStr);
+                                    } else if (e.key === 'Escape') {
+                                      setCalendarAddingDate(null);
+                                      setCalendarNewTaskTitle('');
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const title = calendarNewTaskTitle.trim();
+                                    setCalendarAddingDate(null);
+                                    setCalendarNewTaskTitle('');
+                                    if (title) createQuickTask(title, 'todo', dateStr);
+                                  }}
+                                />
+                              )}
+                              {dayTasks.map(task => (
+                                  <div
+                                      key={task.id}
+                                      onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
+                                      className={`text-[10px] px-2 py-1.5 rounded truncate border shadow-sm transition-all
+                                          ${task.status === 'done' 
+                                            ? 'bg-gray-100/80 text-gray-400 line-through border-gray-100' 
+                                            : `${categories[task.category]?.color?.replace('bg-', 'bg-').replace('text-', 'text-') || 'bg-white text-gray-700'} border-emerald-100 hover:shadow`}
+                                      `}
+                                      title={task.title}
+                                  >
+                                      {task.title}
+                                  </div>
+                              ))}
+                          </div>
+                      </div>
+                  )
+              })}
+          </div>
+      </div>
+    );
+
+    const renderMobileGrid = () => (
+      <div className="md:hidden flex flex-col space-y-4 w-full mt-4">
+          <div className="bg-white p-3 pt-4 rounded-2xl border border-gray-200 shadow-sm shrink-0">
+              <div className="grid grid-cols-7 mb-3">
+                  {WEEKDAYS.map(day => (
+                      <div key={day} className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">{day}</div>
+                  ))}
               </div>
-            ))}
+              <div className="grid grid-cols-7 gap-y-1">
+                  {calendarDays.map((day) => {
+                      const isSelected = isSameDay(day, selectedCalendarDate)
+                      const isToday = isSameDay(day, new Date())
+                      const isCurMonth = isSameMonth(day, currentMonth)
+                      const dateStr = format(day, 'yyyy-MM-dd')
+                      const dayTasks = filteredTasks.filter(t => t.dueDate === dateStr)
+                      const hasTasks = dayTasks.length > 0;
+
+                      return (
+                          <button
+                              key={day.toString()}
+                              onClick={() => { setSelectedCalendarDate(day); setCalendarAddingDate(null); }}
+                              className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all
+                                  ${isSelected ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 scale-105 z-10 font-bold' : 
+                                    !isCurMonth ? 'text-gray-300 opacity-50' : 
+                                    isToday ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-gray-700 hover:bg-gray-50 font-medium'}
+                              `}
+                          >
+                              <span className="text-[14px] leading-none mb-0.5">{format(day, 'd')}</span>
+                              {hasTasks && (
+                                  <div className="flex gap-0.5 absolute bottom-1 w-full justify-center">
+                                      {dayTasks.slice(0, 3).map((t, i) => {
+                                          const dotColor = isSelected ? 'bg-emerald-200' : t.status === 'done' ? 'bg-gray-300' : t.priority === 'high' ? 'bg-red-400' : 'bg-emerald-400';
+                                          return <div key={i} className={`w-1 h-1 rounded-full ${dotColor}`} />
+                                      })}
+                                      {dayTasks.length > 3 && (
+                                          <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-emerald-200' : 'bg-gray-300'}`} />
+                                      )}
+                                  </div>
+                              )}
+                          </button>
+                      )
+                  })}
+              </div>
           </div>
-        </div>
-      );
-    }
-    
+
+          <div className="flex-1 space-y-3 pb-8">
+              <div className="flex items-center justify-between mb-2 px-1">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                      <CalendarIcon className="w-4 h-4 text-emerald-500" />
+                      {format(selectedCalendarDate, 'dd/MM/yyyy')}
+                  </h3>
+                  <button 
+                      onClick={() => setCalendarAddingDate(format(selectedCalendarDate, 'yyyy-MM-dd'))}
+                      className="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors"
+                  >
+                      <Plus className="w-4 h-4" />
+                  </button>
+              </div>
+
+              {calendarAddingDate === format(selectedCalendarDate, 'yyyy-MM-dd') && (
+                  <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
+                      <input 
+                        autoFocus type="text" 
+                        placeholder="Tên công việc mới..." 
+                        className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-800"
+                        value={calendarNewTaskTitle}
+                        onChange={e => setCalendarNewTaskTitle(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const title = calendarNewTaskTitle.trim();
+                            setCalendarAddingDate(null);
+                            setCalendarNewTaskTitle('');
+                            if (title) createQuickTask(title, 'todo', format(selectedCalendarDate, 'yyyy-MM-dd'));
+                          } else if (e.key === 'Escape') {
+                            setCalendarAddingDate(null);
+                            setCalendarNewTaskTitle('');
+                          }
+                        }}
+                        onBlur={() => {
+                            const title = calendarNewTaskTitle.trim();
+                            setCalendarAddingDate(null);
+                            setCalendarNewTaskTitle('');
+                            if (title) createQuickTask(title, 'todo', format(selectedCalendarDate, 'yyyy-MM-dd'));
+                        }}
+                      />
+                  </div>
+              )}
+
+              {(() => {
+                  const dateStr = format(selectedCalendarDate, 'yyyy-MM-dd')
+                  const dayTasks = filteredTasks.filter(t => t.dueDate === dateStr)
+                  
+                  if (dayTasks.length === 0 && !calendarAddingDate) {
+                      return (
+                          <div className="py-12 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-gray-200">
+                              <Coffee className="w-8 h-8 text-gray-300 mb-2" />
+                              <p className="text-sm font-medium text-gray-500">Trống việc ngày này!</p>
+                          </div>
+                      )
+                  }
+                  return dayTasks.map(task => renderTaskCard(task, false));
+              })()}
+          </div>
+      </div>
+    );
+
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 capitalize">
-            Tháng {month + 1}, {year}
-          </h2>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              &lt;
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-gray-200 shadow-sm shrink-0">
+          <div className="flex items-center gap-2">
+            <button onClick={prevMonth} className="p-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
+                <ChevronLeft size={20} />
             </button>
-            <button 
-              onClick={() => setCurrentMonth(new Date())}
-              className="px-3 py-1.5 text-sm font-medium hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Hôm nay
+            <button onClick={nextMonth} className="p-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
+                <ChevronRight size={20} />
             </button>
-            <button 
-              onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              &gt;
-            </button>
+            <h2 className="text-base sm:text-lg font-bold text-gray-800 ml-2 sm:ml-4 capitalize">
+                Tháng {format(currentMonth, 'M, yyyy', { locale: vi })}
+            </h2>
           </div>
+          <button 
+              onClick={() => { setCurrentMonth(new Date()); setSelectedCalendarDate(new Date()); }}
+              className="px-4 py-2 text-sm font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition-colors border border-gray-200"
+          >
+              Hôm nay
+          </button>
         </div>
         
-        {/* Calendar Grid - horizontally scrollable on mobile */}
-        <div className="overflow-x-auto no-scrollbar">
-          <div className="min-w-[700px]">
-            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
-              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(day => (
-                <div key={day} className="py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0">
-                  {day}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-7">
-              {days}
-            </div>
-          </div>
-        </div>
+        {renderDesktopGrid()}
+        {renderMobileGrid()}
       </div>
     );
   };
@@ -1120,38 +1229,50 @@ export default function MyTasks() {
           <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto">
             <button 
               onClick={() => setViewMode('focus')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:px-5 rounded-lg transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Star className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Focus</span>
+              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+                <span className="sm:hidden">Focus</span>
+                <span className="hidden sm:inline">Focus Hôm nay</span>
+              </span>
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:px-5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <LayoutGrid className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Kanban</span>
+              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+                <span className="sm:hidden">Kanban</span>
+                <span className="hidden sm:inline">Bảng Kanban</span>
+              </span>
             </button>
             <button 
               onClick={() => setViewMode('calendar')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:px-5 rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <CalendarIcon className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Lịch</span>
             </button>
             <button 
               onClick={() => setViewMode('dashboard')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <BarChart2 className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Thống kê</span>
+              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+                <span className="sm:hidden">Chart</span>
+                <span className="hidden sm:inline">Thống kê</span>
+              </span>
             </button>
             <button 
               onClick={() => setViewMode('notes')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:px-5 rounded-lg transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <FileText className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Ghi chú</span>
+              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+                <span className="sm:hidden">Note</span>
+                <span className="hidden sm:inline">Ghi chú</span>
+              </span>
             </button>
           </div>
         </div>
