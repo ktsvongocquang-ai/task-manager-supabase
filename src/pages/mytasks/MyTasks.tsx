@@ -625,70 +625,66 @@ export default function MyTasks() {
 
     if (isEditing) {
       return (
-        <div key={task.id} className="bg-white rounded-2xl border border-blue-200 shadow-sm p-4 animate-in zoom-in-95 duration-200">
-           <div className="flex gap-3">
-              <div className="flex flex-col items-center gap-3 pt-1 opacity-40 shrink-0">
-                 <GripVertical className="w-5 h-5 text-gray-400" />
-                 <button onClick={() => toggleTaskStatus(task.id)}>
-                    <Circle className="w-6 h-6 text-gray-300" />
-                 </button>
-              </div>
-              <div className="flex-1 min-w-0">
-                 <div className="mb-4">
-                    <input 
-                      autoFocus
-                      type="text"
-                      className="w-full text-lg font-bold text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
-                      value={task.title}
-                      onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') setEditingTaskId(null);
-                      }}
-                    />
-                    <input 
-                      type="text"
-                      className="w-full text-sm text-gray-600 border-none bg-transparent p-0 focus:ring-0 mt-2 placeholder-gray-400"
-                      placeholder="Thêm chi tiết công trình này là..."
-                      value={task.description || ''}
-                      onChange={(e) => updateTaskField(task.id, 'description', e.target.value, 'description')}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') setEditingTaskId(null);
-                      }}
-                    />
-                 </div>
-                 <div className="flex flex-wrap items-center gap-2">
-                    <button 
-                      onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
-                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 transition-colors ${task.dueDate === todayStr ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-500'}`}
-                    >Hôm nay</button>
-                    <button 
-                      onClick={() => {
-                        const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
-                        updateTaskField(task.id, 'dueDate', tmr.toISOString().split('T')[0], 'due_date');
-                      }}
-                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-500'}`}
-                    >Ngày mai</button>
-                    <div className="relative">
-                      <input 
-                        type="date"
-                        className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
-                        value={task.dueDate || ''}
-                        onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
-                      />
-                      <button className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
-                        <CalendarIcon className="w-4 h-4" />
-                      </button>
-                    </div>
+        <div key={task.id} className={`group bg-white rounded-2xl border border-emerald-300 shadow-md transition-all duration-200 ${isKanban ? 'p-3 sm:p-4 relative pl-8' : 'p-4 sm:p-5 flex items-start gap-3 relative pl-8'}`}>
+           <div className={`absolute left-1 top-1/2 -translate-y-1/2 cursor-grab p-1 rounded-md text-gray-400 opacity-40`}>
+              <GripVertical className="w-4 h-4" />
+           </div>
+           
+           <button onClick={() => toggleTaskStatus(task.id)} className={`flex-shrink-0 transition-transform active:scale-90 mt-0.5 ${isKanban ? 'float-left mr-3' : ''}`}>
+              <Circle className="w-6 h-6 text-gray-300 hover:text-emerald-500 transition-colors" />
+           </button>
+           
+           <div className={`flex-1 min-w-0 pr-2 flex flex-col gap-0.5 ${isKanban ? 'clear-right' : ''}`}>
+              <input 
+                autoFocus
+                type="text"
+                className="w-full text-base font-medium text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
+                value={task.title}
+                onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
+                onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
+              />
+              <input 
+                type="text"
+                className="w-full text-[13px] text-gray-500 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400"
+                placeholder="Thêm chi tiết công trình này là..."
+                value={task.description || ''}
+                onChange={(e) => updateTaskField(task.id, 'description', e.target.value, 'description')}
+                onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
+              />
+              
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2 pb-0.5">
+                 <button 
+                   onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
+                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                 >Hôm nay</button>
+                 <button 
+                   onClick={() => {
+                     const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
+                     updateTaskField(task.id, 'dueDate', tmr.toISOString().split('T')[0], 'due_date');
+                   }}
+                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
+                 >Ngày mai</button>
+                 <div className="relative shrink-0">
+                   <input 
+                     type="date"
+                     className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
+                     value={task.dueDate || ''}
+                     onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
+                   />
+                   <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr && task.dueDate !== new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                     <CalendarIcon className="w-3.5 h-3.5" />
+                   </button>
                  </div>
               </div>
-              <div className="flex flex-col items-center gap-1 shrink-0 pt-1">
-                 <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                   <Trash2 className="w-5 h-5" />
-                 </button>
-                 <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                   <MoreVertical className="w-5 h-5" />
-                 </button>
-              </div>
+           </div>
+
+           <div className={`flex flex-col items-center justify-between self-stretch shrink-0 py-0.5 ${isKanban ? 'absolute top-3 right-3' : ''}`}>
+              <button onClick={() => setEditingTaskId(null)} className="p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+              <button onClick={() => handleDeleteTask(task.id)} className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors mt-auto" title="Xoá">
+                <Trash2 className="w-4 h-4" />
+              </button>
            </div>
         </div>
       );
