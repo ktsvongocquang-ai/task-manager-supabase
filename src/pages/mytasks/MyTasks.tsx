@@ -751,8 +751,8 @@ export default function MyTasks() {
           )}
         </button>
 
-        <div className="flex-1 min-w-0 pr-2">
-          <h4 className={`font-medium transition-all group-hover:text-emerald-600 truncate ${
+        <div className="flex-1 min-w-0 pr-1">
+          <h4 className={`font-medium transition-all group-hover:text-emerald-600 line-clamp-2 ${
             task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
           } ${isKanban ? 'text-sm mb-2' : 'text-base mb-1'}`}>
             {task.title}
@@ -765,21 +765,23 @@ export default function MyTasks() {
           )}
           
           <div className="flex flex-wrap items-center gap-2 relative z-10">
-            {/* Category Dropdown */}
-            <div className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${cat?.color || 'bg-gray-100 text-gray-700'} hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
-              <span>{cat?.icon}</span>
-              <select 
-                value={task.category}
-                onChange={(e) => updateTaskField(task.id, 'category', e.target.value, 'category_id')}
-                onClick={(e) => e.stopPropagation()}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              >
-                {Object.values(categories).map((c: CategoryItem) => (
-                  <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
-                ))}
-              </select>
-              <span className="truncate max-w-[80px] sm:max-w-[120px] block">{cat?.label}</span>
-            </div>
+            {/* Category Dropdown (Duy trì cho Dashboard, Ẩn ở Kanban) */}
+            {!isKanban && (
+              <div className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${cat?.color || 'bg-gray-100 text-gray-700'} hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
+                <span>{cat?.icon}</span>
+                <select 
+                  value={task.category}
+                  onChange={(e) => updateTaskField(task.id, 'category', e.target.value, 'category_id')}
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                >
+                  {Object.values(categories).map((c: CategoryItem) => (
+                    <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                  ))}
+                </select>
+                <span className="truncate max-w-[80px] sm:max-w-[120px] block">{cat?.label}</span>
+              </div>
+            )}
 
             {/* Date Picker */}
             <div className={`relative inline-flex items-center gap-1 text-[11px] font-medium ${
@@ -796,19 +798,6 @@ export default function MyTasks() {
               <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-start gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button 
-            onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
-            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-            title="Xoá"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-            <MoreVertical className="w-4 h-4" />
-          </button>
         </div>
       </div>
     );
