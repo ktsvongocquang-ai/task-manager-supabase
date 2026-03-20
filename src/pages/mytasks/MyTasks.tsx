@@ -605,6 +605,15 @@ export default function MyTasks() {
     setTasks(tasks.map(task => task.id === taskId ? { ...task, status } : task));
     await supabase.from('personal_tasks').update({ status }).eq('id', taskId);
   };
+  const updateTaskField = async (taskId: string, field: keyof Task, value: any, dbField: string) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t));
+    try {
+      const { error } = await supabase.from('personal_tasks').update({ [dbField]: value }).eq('id', taskId);
+      if (error) throw error;
+    } catch (err) {
+      console.error(`Error updating task ${field}`, err);
+    }
+  };
 
   const renderTaskCard = (task: Task, isKanban = false) => {
     const PriorityIcon = PRIORITIES[task.priority].icon;
@@ -640,27 +649,53 @@ export default function MyTasks() {
             {task.title}
           </h4>
           
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${cat.color}`}>
-              <span>{cat.icon}</span>
-              {cat.label}
-            </span>
-            
-            {task.priority !== 'none' && (
-              <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${PRIORITIES[task.priority].color}`}>
-                <PriorityIcon className="w-3 h-3" />
-                {PRIORITIES[task.priority].label}
-              </span>
-            )}
+          <div className="flex flex-wrap items-center gap-2 relative z-10">
+            {/* Category Dropdown */}
+            <div className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${cat?.color || 'bg-gray-100 text-gray-700'} hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
+              <span>{cat?.icon}</span>
+              <select 
+                value={task.category}
+                onChange={(e) => updateTaskField(task.id, 'category', e.target.value, 'category_id')}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              >
+                {Object.values(categories).map((c: CategoryItem) => (
+                  <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                ))}
+              </select>
+              <span className="truncate max-w-[80px] sm:max-w-[120px] block">{cat?.label}</span>
+            </div>
 
-            {task.dueDate && (
-              <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                isOverdue ? 'text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md' : 'text-gray-500'
-              }`}>
-                <CalendarIcon className="w-3 h-3" />
-                {task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')}
-              </span>
-            )}
+            {/* Date Picker */}
+            <div className={`relative inline-flex items-center gap-1 text-[11px] font-medium ${
+                isOverdue ? 'text-red-600 bg-red-50' : task.dueDate ? 'text-emerald-700 bg-emerald-50' : 'text-gray-400 bg-gray-100'
+              } px-2 py-0.5 rounded-md hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
+              <CalendarIcon className="w-3 h-3 flex-shrink-0" />
+              <input 
+                type="date"
+                value={task.dueDate || ''}
+                onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute text-transparent bg-transparent inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
+            </div>
+            
+            {/* Priority Dropdown */}
+            <div className={`relative inline-flex items-center gap-1 text-[11px] font-medium ${task.priority !== 'none' ? PRIORITIES[task.priority].color : 'text-gray-400 bg-gray-100'} px-2 py-0.5 rounded-md hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
+              {task.priority !== 'none' ? <PriorityIcon className="w-3 h-3 flex-shrink-0" /> : <Plus className="w-3 h-3 flex-shrink-0" />}
+              <select 
+                value={task.priority}
+                onChange={(e) => updateTaskField(task.id, 'priority', e.target.value as Priority, 'priority')}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              >
+                {Object.entries(PRIORITIES).map(([key, { label }]) => (
+                  <option key={key} value={key}>{key !== 'none' ? `${label}` : 'Ưu tiên'}</option>
+                ))}
+              </select>
+              <span className="whitespace-nowrap">{task.priority !== 'none' ? PRIORITIES[task.priority].label : 'Ưu tiên'}</span>
+            </div>
           </div>
         </div>
 
@@ -1106,81 +1141,83 @@ export default function MyTasks() {
         </div>
 
         {/* Smart Quick Add */}
-        <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-8">
-          <div className="flex-1 flex items-center gap-3 w-full px-2">
-            <Plus className="w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Thêm việc mới (VD: Mua hoa tặng vợ...)"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              className="w-full py-2 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-base"
-            />
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-gray-100 pt-3 sm:pt-0 sm:pl-3">
-            {showAddCategory ? (
-              <div className="flex items-center gap-1 flex-1 sm:flex-none">
-                <input 
-                  autoFocus
-                  type="text" 
-                  value={newCategoryName}
-                  onChange={e => setNewCategoryName(e.target.value)}
-                  placeholder="Tên danh mục..."
-                  className="w-28 sm:w-32 bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg py-1.5 px-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); }
-                    if (e.key === 'Escape') setShowAddCategory(false);
-                  }}
-                />
-                <button type="button" onClick={handleAddCategory} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md"><CheckCircle2 className="w-4 h-4"/></button>
-                <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md"><X className="w-4 h-4"/></button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 flex-1 sm:flex-none">
-                <select 
-                  value={newTaskCategory}
-                  onChange={(e) => setNewTaskCategory(e.target.value)}
-                  className="w-full bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
-                >
-                  {Object.values(categories).map((cat: CategoryItem) => (
-                    <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
-                  ))}
-                </select>
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddCategory(true)}
-                  className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                  title="Thêm danh mục"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-            <input 
-              type="date"
-              value={newTaskDate}
-              onChange={(e) => setNewTaskDate(e.target.value)}
-              className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
-            />
-            <select 
-              value={newTaskPriority}
-              onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
-              className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
-            >
-              <option value="none">Độ ưu tiên</option>
-              <option value="high">🔴 Cao</option>
-              <option value="medium">🟡 Trung bình</option>
-              <option value="low">🔵 Thấp</option>
-            </select>
-            <button 
-              type="submit"
-              disabled={!newTaskTitle.trim()}
-              className="flex-shrink-0 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shadow-emerald-200"
-            >
-              Thêm
-            </button>
-          </div>
-        </form>
+        {viewMode === 'focus' && (
+          <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-8">
+            <div className="flex-1 flex items-center gap-3 w-full px-2">
+              <Plus className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Thêm việc mới (VD: Mua hoa tặng vợ...)"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                className="w-full py-2 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-base"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-gray-100 pt-3 sm:pt-0 sm:pl-3">
+              {showAddCategory ? (
+                <div className="flex items-center gap-1 flex-1 sm:flex-none">
+                  <input 
+                    autoFocus
+                    type="text" 
+                    value={newCategoryName}
+                    onChange={e => setNewCategoryName(e.target.value)}
+                    placeholder="Tên danh mục..."
+                    className="w-28 sm:w-32 bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg py-1.5 px-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); }
+                      if (e.key === 'Escape') setShowAddCategory(false);
+                    }}
+                  />
+                  <button type="button" onClick={handleAddCategory} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md"><CheckCircle2 className="w-4 h-4"/></button>
+                  <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md"><X className="w-4 h-4"/></button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 flex-1 sm:flex-none">
+                  <select 
+                    value={newTaskCategory}
+                    onChange={(e) => setNewTaskCategory(e.target.value)}
+                    className="w-full bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+                  >
+                    {Object.values(categories).map((cat: CategoryItem) => (
+                      <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowAddCategory(true)}
+                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                    title="Thêm danh mục"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              <input 
+                type="date"
+                value={newTaskDate}
+                onChange={(e) => setNewTaskDate(e.target.value)}
+                className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+              />
+              <select 
+                value={newTaskPriority}
+                onChange={(e) => setNewTaskPriority(e.target.value as Priority)}
+                className="flex-1 sm:flex-none bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+              >
+                <option value="none">Độ ưu tiên</option>
+                <option value="high">🔴 Cao</option>
+                <option value="medium">🟡 Trung bình</option>
+                <option value="low">🔵 Thấp</option>
+              </select>
+              <button 
+                type="submit"
+                disabled={!newTaskTitle.trim()}
+                className="flex-shrink-0 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shadow-emerald-200"
+              >
+                Thêm
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Content Area */}
         {viewMode === 'notes' ? (
