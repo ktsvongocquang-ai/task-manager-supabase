@@ -634,25 +634,40 @@ export default function MyTasks() {
               <Circle className="w-6 h-6 text-gray-300 hover:text-emerald-500 transition-colors" />
            </button>
            
-           <div className={`flex-1 min-w-0 pr-2 flex flex-col gap-0.5 ${isKanban ? 'clear-right' : ''}`}>
-              <input 
-                autoFocus
-                type="text"
-                className="w-full text-base font-medium text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
-                value={task.title}
-                onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
-                onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
-              />
-              <input 
-                type="text"
-                className="w-full text-[13px] text-gray-500 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400"
+           <div className={`flex-1 min-w-0 pr-0 flex flex-col gap-0.5 ${isKanban ? 'clear-right' : ''}`}>
+              <div className="flex items-start justify-between gap-1">
+                 <input 
+                   autoFocus
+                   type="text"
+                   className="w-full text-base font-medium text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
+                   value={task.title}
+                   onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
+                   onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
+                 />
+                 <div className="flex items-start gap-0.5 shrink-0 -mt-1 -mr-1">
+                    <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+                 </div>
+              </div>
+              <textarea 
+                className="w-full text-[13px] text-gray-500 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400 resize-none overflow-hidden"
                 placeholder="Thêm chi tiết công trình này là..."
                 value={task.description || ''}
-                onChange={(e) => updateTaskField(task.id, 'description', e.target.value, 'description')}
-                onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
+                rows={1}
+                onChange={(e) => {
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                  updateTaskField(task.id, 'description', e.target.value, 'description');
+                }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
+                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
               />
               
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2 pb-0.5">
+              <div className="flex items-center gap-1.5 flex-wrap pt-2 pb-0.5">
                  <button 
                    onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
                    className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
@@ -676,15 +691,6 @@ export default function MyTasks() {
                    </button>
                  </div>
               </div>
-           </div>
-
-           <div className={`flex flex-col items-center justify-between self-stretch shrink-0 py-0.5 ${isKanban ? 'absolute top-3 right-3' : ''}`}>
-              <button onClick={() => setEditingTaskId(null)} className="p-1 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-              <button onClick={() => handleDeleteTask(task.id)} className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors mt-auto" title="Xoá">
-                <Trash2 className="w-4 h-4" />
-              </button>
            </div>
         </div>
       );
