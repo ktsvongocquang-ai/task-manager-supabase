@@ -706,37 +706,37 @@ export default function MyTasks() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-row sm:flex-col gap-2 mt-3 sm:mt-0">
           {task.status === 'done' && (
             <button 
               onClick={() => handleArchiveTask(task.id)}
-              className={`text-gray-300 hover:text-blue-500 transition-colors ${
-                isKanban ? 'absolute top-4 right-10 opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100 p-2'
+              className={`text-gray-400 sm:text-gray-300 hover:text-blue-500 transition-colors ${
+                isKanban ? 'sm:absolute sm:top-4 sm:right-10 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
               }`}
               title="Lưu trữ"
             >
-              <Archive className="w-4 h-4" />
+              <Archive className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           )}
           {task.status === 'archived' && (
             <button 
               onClick={() => handleUnarchiveTask(task.id)}
-              className={`text-gray-300 hover:text-blue-500 transition-colors ${
-                isKanban ? 'absolute top-4 right-10 opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100 p-2'
+              className={`text-gray-400 sm:text-gray-300 hover:text-blue-500 transition-colors ${
+                isKanban ? 'sm:absolute sm:top-4 sm:right-10 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
               }`}
               title="Khôi phục"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           )}
           <button 
             onClick={() => handleDeleteTask(task.id)}
-            className={`text-gray-300 hover:text-red-500 transition-colors ${
-              isKanban ? 'absolute top-4 right-4 opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100 p-2'
+            className={`text-gray-400 sm:text-gray-300 hover:text-red-500 transition-colors ${
+              isKanban ? 'sm:absolute sm:top-4 sm:right-4 opacity-100 sm:opacity-0 group-hover:opacity-100 p-2 sm:p-0' : 'opacity-100 sm:opacity-0 group-hover:opacity-100 p-2'
             }`}
             title="Xoá"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>
@@ -1113,34 +1113,34 @@ export default function MyTasks() {
       <div className="max-w-5xl mx-auto w-full px-4 sm:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
           {/* View Toggle */}
-          <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto">
+          <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto overflow-x-auto no-scrollbar snap-x">
             <button 
               onClick={() => setViewMode('focus')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Star className="w-4 h-4" /> Focus Hôm nay
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <LayoutGrid className="w-4 h-4" /> Bảng Kanban
             </button>
             <button 
               onClick={() => setViewMode('calendar')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <CalendarIcon className="w-4 h-4" /> Lịch
             </button>
             <button 
               onClick={() => setViewMode('dashboard')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <BarChart2 className="w-4 h-4" /> Thống kê
             </button>
             <button 
               onClick={() => setViewMode('notes')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`whitespace-nowrap snap-center flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <FileText className="w-4 h-4" /> Ghi chú
             </button>
@@ -1270,7 +1270,7 @@ export default function MyTasks() {
           </div>
         ) : (
           /* Kanban View */
-          <div className="flex gap-6 overflow-x-auto pb-8 min-h-[500px]">
+          <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-8 min-h-[500px] snap-x snap-mandatory px-4 sm:px-0 no-scrollbar">
             {[
               { id: 'todo', title: 'Cần làm', color: 'bg-slate-100/50 border-slate-200' },
               { id: 'in-progress', title: 'Đang làm', color: 'bg-blue-50/50 border-blue-100' },
@@ -1290,19 +1290,20 @@ export default function MyTasks() {
               return (
                 <div 
                   key={column.id}
-                  className={`w-80 flex-shrink-0 flex flex-col rounded-2xl border ${column.color}`}
+                  className={`w-[85vw] sm:w-80 flex-shrink-0 flex flex-col rounded-2xl border snap-center ${column.color}`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, column.id as TaskStatus)}
                 >
                   <div className="p-4 flex items-center justify-between group">
                     <h3 className="font-bold text-gray-700">{column.title}</h3>
                     <div className="flex items-center gap-2">
+                       {/* Make plus icon always visible on mobile */}
                       <button 
                         onClick={(e) => { e.stopPropagation(); setKanbanAddingStatus(column.id as TaskStatus); }}
-                        className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Thêm công việc"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
                       </button>
                       {column.id === 'done' && (
                         <button 
