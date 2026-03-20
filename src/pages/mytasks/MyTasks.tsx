@@ -476,6 +476,26 @@ export default function MyTasks() {
     }
   };
 
+  const handleDeleteCategory = async (categoryId: string) => {
+    // Only allow deleting custom categories (not core system ones if any)
+    if (window.confirm('Bạn có chắc chắn muốn xoá danh mục này? Tất cả công việc thuộc danh mục cũng sẽ bị xoá theo.')) {
+      try {
+        const { error } = await supabase.from('personal_categories').delete().eq('id', categoryId);
+        if (error) throw error;
+        setCategories(prev => {
+          const newCats = { ...prev };
+          delete newCats[categoryId];
+          return newCats;
+        });
+        setTasks(prev => prev.filter(t => t.category !== categoryId));
+      } catch (err) {
+        console.error('Error deleting category', err);
+        alert('Có lỗi xảy ra khi xoá danh mục.');
+      }
+    }
+  };
+
+
   // --- NOTES LOGIC ---
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteColor, setNewNoteColor] = useState(NOTE_COLORS[0]);
@@ -669,13 +689,6 @@ export default function MyTasks() {
                    onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
                    className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[12px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
                  >Hôm nay</button>
-                 <button 
-                   onClick={() => {
-                     const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
-                     updateTaskField(task.id, 'dueDate', tmr.toISOString().split('T')[0], 'due_date');
-                   }}
-                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[12px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate !== todayStr && task.dueDate === new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
-                 >Ngày mai</button>
                  <div className="relative shrink-0">
                    <input 
                      type="date"
@@ -683,7 +696,7 @@ export default function MyTasks() {
                      value={task.dueDate || ''}
                      onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
                    />
-                   <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr && task.dueDate !== new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0] ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                   <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                      <CalendarIcon className="w-3.5 h-3.5" />
                    </button>
                  </div>
@@ -1206,12 +1219,21 @@ export default function MyTasks() {
               <p className="text-center text-gray-500 py-4">Chưa có dữ liệu công việc.</p>
             ) : (
               categoryStats.map(stat => (
-                <div key={stat.id}>
-                  <div className="flex justify-between text-sm mb-2">
+                <div key={stat.id} className="group">
+                  <div className="flex items-center justify-between text-sm mb-2">
                     <span className="font-medium flex items-center gap-2 text-gray-700">
                       <span>{stat.icon}</span> {stat.label}
                     </span>
-                    <span className="text-gray-500 font-medium">{stat.completed} / {stat.total}</span>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleDeleteCategory(stat.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all"
+                        title="Xoá danh mục"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                      <span className="text-gray-500 font-medium whitespace-nowrap">{stat.completed} / {stat.total}</span>
+                    </div>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                     <div 
