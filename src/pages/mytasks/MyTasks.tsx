@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Plus, Search, Calendar as CalendarIcon, MoreVertical, 
-  CheckCircle2, Circle, Lock, Trash2, UserCircle, RefreshCw,
-  Sun, Moon, Coffee, Star, Clock, Tag, Flag, LayoutGrid, ListTodo,
+  Plus, Calendar as CalendarIcon, 
+  CheckCircle2, Circle, Lock, Trash2, RefreshCw,
+  Sun, Moon, Coffee, Star, Flag, LayoutGrid, 
   BarChart2, X, FileText, Pin, CheckSquare, Square, Archive
 } from 'lucide-react';
 import { supabase } from '../../services/supabase';
@@ -89,9 +89,8 @@ export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
-  const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>('focus');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showArchived, setShowArchived] = useState(false);
 
@@ -103,7 +102,7 @@ export default function MyTasks() {
 
   const fetchData = async () => {
     if (!profile?.id) return;
-    setIsLoading(true);
+    
     try {
       // 1. Fetch Categories
       const { data: catData } = await supabase.from('personal_categories').select('*').eq('user_id', profile.id);
@@ -159,8 +158,6 @@ export default function MyTasks() {
       }
     } catch (err) {
       console.error('Error fetching personal data:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
   
