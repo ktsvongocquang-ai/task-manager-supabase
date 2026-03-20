@@ -1620,7 +1620,7 @@ const MarketingApp = () => {
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
-                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[130px]">Lịch quay / Ngày đăng</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[130px]">Ngày đăng</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
@@ -1660,12 +1660,6 @@ const MarketingApp = () => {
                                                  <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
                                                  <td className="px-3 py-2 border border-slate-200">
                                                    <div className="flex flex-col gap-1">
-                                                     {video.start_date && (
-                                                       <div className="flex items-center gap-1.5 text-[11px] text-slate-500" title="Lịch quay">
-                                                         <Video className="w-3.5 h-3.5" />
-                                                         <span>{format(parseISO(video.start_date), 'dd/MM/yyyy')}</span>
-                                                       </div>
-                                                     )}
                                                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-700" title="Ngày đăng">
                                                        <CalendarIcon className="w-3.5 h-3.5" />
                                                        <span>{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'Chưa xếp'}</span>
