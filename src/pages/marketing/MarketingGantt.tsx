@@ -61,14 +61,14 @@ export const MarketingGantt = () => {
 
             if (currentProfile?.role === 'Nhân viên') {
                 const employeeTasks = fetchedTasks.filter(task =>
-                    task.assignee_id === currentProfile?.id ||
+                    (Array.isArray(task.assignee_id) ? task.assignee_id.includes(currentProfile?.id || '') : task.assignee_id === currentProfile?.id) ||
                     task.supporter_id === currentProfile?.id
                 );
                 
                 const parentIds = new Set(employeeTasks.map(t => t.parent_id).filter(Boolean));
                 
                 fetchedTasks = fetchedTasks.filter(task => 
-                    task.assignee_id === currentProfile?.id ||
+                    (Array.isArray(task.assignee_id) ? task.assignee_id.includes(currentProfile?.id || '') : task.assignee_id === currentProfile?.id) ||
                     task.supporter_id === currentProfile?.id ||
                     parentIds.has(task.id)
                 );
@@ -379,8 +379,11 @@ export const MarketingGantt = () => {
         }
     }
 
-    const getAssigneeName = (id: string | null) => {
-        if (!id) return 'Chưa gán'
+    const getAssigneeName = (id: string | string[] | null) => {
+        if (!id || (Array.isArray(id) && id.length === 0)) return 'Chưa gán'
+        if (Array.isArray(id)) {
+            return id.map(i => profiles.find(x => x.id === i)?.full_name).filter(Boolean).join(', ') || 'N/A'
+        }
         const p = profiles.find(x => x.id === id)
         return p?.full_name || 'N/A'
     }
@@ -399,7 +402,7 @@ export const MarketingGantt = () => {
         let updatePayload: any = {};
         
         if (field === 'assignee_id') {
-            updatePayload.assignee_id = editValue;
+            updatePayload.assignee_id = editValue ? [editValue] : null;
         } else if (field === 'start_date') {
             updatePayload.start_date = editValue ? new Date(editValue).toISOString() : null;
         } else if (field === 'end_date') {
@@ -622,7 +625,7 @@ export const MarketingGantt = () => {
                                                                 {/* Assignee if any */}
                                                                 <div 
                                                                     className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1 cursor-pointer hover:bg-slate-100 px-1 -ml-1 rounded transition-colors"
-                                                                    onDoubleClick={(e) => handleCellClick(item, 'assignee_id', item.task.assignee_id || '', e)}
+                                                                    onDoubleClick={(e) => handleCellClick(item, 'assignee_id', Array.isArray(item.task.assignee_id) ? (item.task.assignee_id[0] || '') : (item.task.assignee_id || ''), e)}
                                                                 >
                                                                     <User size={10} /> 
                                                                     {editingCell?.id === item.id && editingCell?.field === 'assignee_id' ? (

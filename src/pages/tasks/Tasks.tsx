@@ -58,8 +58,11 @@ export const Tasks = () => {
         return p?.project_code || ''
     }
 
-    const getAssigneeName = (id: string | null) => {
-        if (!id) return 'Chưa gán'
+    const getAssigneeName = (id: string | string[] | null) => {
+        if (!id || (Array.isArray(id) && id.length === 0)) return 'Chưa gán'
+        if (Array.isArray(id)) {
+            return id.map(i => profiles.find(x => x.id === i)?.full_name).filter(Boolean).join(', ') || 'N/A'
+        }
         const p = profiles.find(x => x.id === id)
         return p?.full_name || 'N/A'
     }

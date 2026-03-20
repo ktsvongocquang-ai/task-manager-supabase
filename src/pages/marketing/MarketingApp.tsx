@@ -418,7 +418,12 @@ const MarketingApp = () => {
 
       // Map Tasks to the format expected by the MarketingApp UI
       const mappedVideos = allTasks.map(t => {
-          const assigneeProfile = profilesData?.find(p => p.id === t.assignee_id);
+          let assigneeNames = '';
+          if (Array.isArray(t.assignee_id)) {
+              assigneeNames = t.assignee_id.map(id => profilesData?.find(p => p.id === id)?.full_name).filter(Boolean).join(', ');
+          } else {
+              assigneeNames = profilesData?.find(p => p.id === t.assignee_id)?.full_name || '';
+          }
           const projectObj = projectsData?.find(p => p.id === t.project_id);
           return {
             ...t, // Keep original task properties for edit modal
@@ -426,7 +431,7 @@ const MarketingApp = () => {
             title: t.name,
             project: projectObj?.name || t.project_id,
             status: t.status,
-            assignee: assigneeProfile?.full_name || '',
+            assignee: assigneeNames,
             assignee_id: t.assignee_id,
             dueDate: t.due_date || '',
             format: t.format || 'Khác',
@@ -808,8 +813,8 @@ const MarketingApp = () => {
                   
                   // Apply filters if they are active
                   if (assigneeFilter && profile && assigneeFilter === profile.id) {
-                     // In mock data, assignee is a name. Profile has full_name.
-                     if (v.assignee !== profile.full_name) return false;
+                     // Check if profile.full_name is in the combined string
+                     if (!v.assignee.includes(profile.full_name)) return false;
                   }
                   
                   if (listTimeFilter !== 'Tất cả') {
@@ -1129,7 +1134,7 @@ const MarketingApp = () => {
                     
                     const columnVideos = videos.filter(v => {
                         if (STATUS_MAP[v.status]?.col !== column.id) return false;
-                        if (assigneeFilter && profile && assigneeFilter === profile.id && v.assignee !== profile.full_name) return false;
+                        if (assigneeFilter && profile && assigneeFilter === profile.id && !v.assignee.includes(profile.full_name)) return false;
                         if (listTimeFilter !== 'Tất cả') {
                             if (!v.dueDate) return false;
                             const date = new Date(v.dueDate);
@@ -1171,7 +1176,6 @@ const MarketingApp = () => {
                                     ) : (
                                         activeVideos.map(video => {
                                             const task = video;
-                                            const assignee = profiles.find(p => p.id === task.assignee_id);
                                             const statusDef = STATUS_MAP[task.status];
                                             const isCardExpanded = expandedCards[task.id];
                                             
@@ -1236,20 +1240,11 @@ const MarketingApp = () => {
                                                       </span>
                                                     </div>
 
-                                                    <div className="text-[12px] text-left w-full mt-2">
-                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Công trình</span><span className="text-gray-600 line-clamp-1">{task.project || '-'}</span></div>
-                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Nhân vật</span><span className="text-gray-600 line-clamp-1">{task.assignee || '-'}</span></div>
-                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Format</span><span className="text-gray-600 line-clamp-1">{task.format || 'Khác'}</span></div>
-                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Platform</span><span className="text-gray-600 line-clamp-1">{task.platform || '-'}</span></div>
-                                                      <div className="flex gap-2 mb-2"><span className="font-bold text-gray-700 w-20 shrink-0">Hook chọn</span><span className="text-gray-600">{task.notes || 'Chưa có'}</span></div>
-                                                      <div className="flex gap-2 pt-2 border-t border-gray-100"><span className="font-bold text-gray-700 w-20 shrink-0">Giải pháp:</span><span className="text-gray-600 line-clamp-3">{task.description || '-'}</span></div>
-                                                    </div>
-
-                                                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
                                                       <div className="flex items-center gap-2">
                                                         <span className="text-[11px] font-medium text-slate-500">Thực hiện</span>
-                                                        <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={assignee?.full_name || task.assignee || 'Chưa gán'}>
-                                                          {(assignee?.full_name || task.assignee || '?').substring(0, 2).toUpperCase()}
+                                                        <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[10px] font-bold" title={task.assignee || 'Chưa gán'}>
+                                                          {(task.assignee || '?').substring(0, 2).toUpperCase()}
                                                         </div>
                                                       </div>
                                                     </div>
@@ -1625,7 +1620,7 @@ const MarketingApp = () => {
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
-                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Ngày đăng</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[130px]">Lịch quay / Ngày đăng</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
@@ -1663,7 +1658,18 @@ const MarketingApp = () => {
                                                  <td className="px-3 py-2 border border-slate-200 font-medium text-slate-800">{video.title}</td>
                                                  <td className="px-3 py-2 border border-slate-200">{video.platform}</td>
                                                  <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
-                                                 <td className="px-3 py-2 border border-slate-200">{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'N/A'}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">
+                                                   <div className="flex flex-col gap-1">
+                                                     <div className="flex items-center gap-1.5 text-[11px] text-slate-500" title="Lịch quay">
+                                                       <Video className="w-3.5 h-3.5" />
+                                                       <span>{video.start_date ? format(parseISO(video.start_date), 'dd/MM/yyyy') : 'Chưa xếp'}</span>
+                                                     </div>
+                                                     <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-700" title="Ngày đăng">
+                                                       <CalendarIcon className="w-3.5 h-3.5" />
+                                                       <span>{video.dueDate ? format(parseISO(video.dueDate), 'dd/MM/yyyy') : 'Chưa xếp'}</span>
+                                                     </div>
+                                                   </div>
+                                                 </td>
                                                  <td className="px-3 py-2 border border-slate-200">
                                                    <div className="flex items-center gap-2">
                                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo?.color}`}>

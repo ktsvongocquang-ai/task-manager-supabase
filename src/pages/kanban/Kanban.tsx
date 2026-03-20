@@ -55,9 +55,10 @@ export const Kanban = () => {
         }
     }
 
-    const getAssignee = (id: string | null) => {
-        if (!id) return null
-        return profiles.find(x => x.id === id) || null
+    const getAssignee = (id: string | string[] | null) => {
+        if (!id || (Array.isArray(id) && id.length === 0)) return null
+        const targetId = Array.isArray(id) ? id[0] : id;
+        return profiles.find(x => x.id === targetId) || null
     }
 
     const generateNextTaskCode = (projectId: string) => {
