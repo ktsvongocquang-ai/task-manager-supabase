@@ -180,7 +180,7 @@ export const Kanban = () => {
     }
 
     return (
-        <div className="h-full flex flex-col space-y-6 max-w-[1600px] mx-auto min-h-0">
+        <div className="flex flex-col space-y-6 max-w-[1600px] mx-auto w-full min-h-0" style={{ height: 'calc(100vh - 120px)' }}>
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0">
                 <h1 className="text-xl font-bold text-slate-800 hidden md:block">Kanban Board</h1>
