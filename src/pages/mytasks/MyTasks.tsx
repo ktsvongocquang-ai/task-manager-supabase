@@ -657,7 +657,7 @@ export default function MyTasks() {
     if (isEditing) {
       return (
         <div key={task.id} className={`group bg-white rounded-2xl border border-emerald-300 shadow-md transition-all duration-200 ${isKanban ? 'p-3 sm:p-4 relative pl-8' : 'p-4 sm:p-5 flex items-start gap-3 relative pl-8'}`}>
-           <div className={`absolute left-1 top-1/2 -translate-y-1/2 cursor-grab p-1 rounded-md text-gray-400 opacity-40`}>
+           <div className={`absolute left-1 top-1/2 -translate-y-1/2 cursor-grab p-1 rounded-md text-gray-400 opacity-40 lg:opacity-0 lg:group-hover:opacity-40 transition-opacity`}>
               <GripVertical className="w-4 h-4" />
            </div>
            
@@ -736,7 +736,7 @@ export default function MyTasks() {
           task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
         } p-4 sm:p-5 flex items-start gap-3`}
       >
-        <div className={`mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
+        <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
            <GripVertical className="w-4 h-4" />
         </div>
         
