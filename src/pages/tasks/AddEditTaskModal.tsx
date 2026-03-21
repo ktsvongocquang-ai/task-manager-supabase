@@ -184,12 +184,17 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    taskTitle: form.name,
-                    taskDescription: form.description,
-                    dueDate: form.due_date,
-                    assigneeName: assignee.full_name,
-                    assigneeEmail: assignee.email,
-                    projectName: project ? project.name : ''
+                    to_email: assignee.email,
+                    subject: `[Task Manager] Bạn được giao một công việc mới: ${form.name}`,
+                    template_data: {
+                        actor_name: currentUserProfile?.full_name || 'Hệ thống',
+                        action: 'đã giao cho bạn công việc',
+                        task_title: form.name,
+                        project_name: project ? project.name : 'Công việc nội bộ',
+                        priority: form.priority,
+                        due_date: form.due_date || 'Chưa định',
+                        task_url: `${window.location.origin}/tasks`
+                    }
                 })
             });
 
