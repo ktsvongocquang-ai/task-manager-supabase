@@ -57,6 +57,21 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, user: data.user });
         }
 
+        else if (action === 'update_email') {
+            const { userId, newEmail } = payload;
+            if (!userId || !newEmail) {
+                return res.status(400).json({ error: 'Missing userId or newEmail' });
+            }
+
+            const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+                email: newEmail,
+                email_confirm: true // Auto-confirm without requiring verification
+            });
+
+            if (error) throw error;
+            return res.status(200).json({ success: true, user: data.user });
+        }
+
         else {
             return res.status(400).json({ error: 'Unknown action' });
         }
