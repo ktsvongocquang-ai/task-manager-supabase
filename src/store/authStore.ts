@@ -40,11 +40,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const { data: { session } } = await supabase.auth.getSession()
             if (session?.user) {
                 // Fetch custom profile data (staff_id, full_name, role) from profiles table
-                const { data: profileData } = await supabase
+                let { data: profileData, error: profileError } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single()
+
+                // If profile doesn't exist (e.g. first time Google Login), auto-create one
+                if (profileError && profileError.code === 'PGRST116') {
+                    const newStaffId = `NV${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
+                    const { data: newProfile, error: insertError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: session.user.id,
+                            email: session.user.email,
+                            full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
+                            role: 'Nhân viên',
+                            staff_id: newStaffId,
+                            position: 'Nhân viên mới'
+                        })
+                        .select()
+                        .single()
+                    
+                    if (!insertError && newProfile) {
+                        profileData = newProfile
+                        profileError = null
+                    } else {
+                        console.error("Auto-create profile failed:", insertError)
+                        throw insertError || new Error('Failed to create default profile')
+                    }
+                } else if (profileError) {
+                    throw profileError
+                }
 
                 set({ user: session.user, profile: profileData, loading: false })
                 // Fetch dynamic permissions after profile is loaded
