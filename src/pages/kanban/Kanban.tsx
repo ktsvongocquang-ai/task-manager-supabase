@@ -241,7 +241,7 @@ export const Kanban = () => {
                         return (
                                 <div
                                     key={column.id}
-                                    className="w-[90vw] sm:w-[300px] md:flex-1 md:min-w-[300px] md:max-w-[400px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 snap-center md:snap-align-none h-full max-h-full"
+                                    className="w-[90vw] sm:w-[300px] md:w-[320px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 snap-center md:snap-align-none h-full max-h-full"
                                 >
                                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
