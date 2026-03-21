@@ -60,16 +60,48 @@ export const Users = () => {
     const handleSave = async () => {
         try {
             if (editingProfile) {
+                // 1. Update profiles table (including email)
                 const { error: profileError } = await supabase.from('profiles').update({
-                    full_name: form.full_name, position: form.position, role: form.role
+                    full_name: form.full_name, position: form.position, role: form.role, email: form.email
                 }).eq('id', editingProfile.id)
 
                 if (profileError) {
                     console.error('Update profile error:', profileError)
-                    alert(`Lỗi cập nhật: ${profileError.message}`)
+                    alert(`Lỗi cập nhật danh bạ: ${profileError.message}`)
                     return
                 }
 
+                // 2. Update Supabase Auth Email if it changed
+                if (form.email && form.email !== editingProfile.email) {
+                    try {
+                        const res = await fetch(`/api/admin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'update_email',
+                                payload: {
+                                    userId: editingProfile.id,
+                                    newEmail: form.email
+                                }
+                            })
+                        });
+                        if (!res.ok) {
+                            const resText = await res.text();
+                            let errMsg = res.statusText;
+                            try {
+                                const errData = JSON.parse(resText);
+                                errMsg = errData.error || res.statusText;
+                            } catch (e) {}
+                            throw new Error(errMsg);
+                        }
+                    } catch (emailError: any) {
+                        console.error('Update email error:', emailError)
+                        alert(`Lỗi khi cập nhật Email đăng nhập: ${emailError.message}`)
+                        return
+                    }
+                }
+
+                // 3. Update Supabase Auth Password if provided
                 if (form.password) {
                     try {
                         const res = await fetch(`/api/admin`, {
@@ -83,15 +115,13 @@ export const Users = () => {
                                 }
                             })
                         });
-                        const resText = await res.text();
                         if (!res.ok) {
+                            const resText = await res.text();
                             let errMsg = res.statusText;
                             try {
                                 const errData = JSON.parse(resText);
                                 errMsg = errData.error || res.statusText;
-                            } catch (e) {
-                                // Ignore JSON parse error, use fallback
-                            }
+                            } catch (e) {}
                             throw new Error(errMsg);
                         }
                     } catch (passwordError: any) {

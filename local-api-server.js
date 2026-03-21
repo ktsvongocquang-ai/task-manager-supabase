@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from '@google/genai';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -144,6 +145,55 @@ Bắt buộc phải trả về định dạng JSON theo schema gồm subject và
     } catch (err) {
         console.error("AI Email Error:", err);
         return res.status(500).json({ error: err.message || 'Lỗi khi tạo và gửi email.' });
+    }
+});
+
+app.post('/api/admin', async (req, res) => {
+    try {
+        const { action, payload } = req.body;
+        const supabaseUrl = process.env.VITE_SUPABASE_URL;
+        const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !serviceKey) {
+            return res.status(500).json({ error: 'Missing Supabase Admin credentials.' });
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        });
+
+        if (action === 'update_password') {
+            const { userId, newPassword } = payload;
+            if (!userId || !newPassword) return res.status(400).json({ error: 'Missing userId or newPassword' });
+            const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: newPassword });
+            if (error) throw error;
+            return res.status(200).json({ success: true, user: data.user });
+        }
+
+        else if (action === 'create_user') {
+            const { email, password, full_name } = payload;
+            if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
+            const { data, error } = await supabaseAdmin.auth.signUp({
+                email, password, options: { data: { full_name } }
+            });
+            if (error) throw error;
+            return res.status(200).json({ success: true, user: data.user });
+        }
+
+        else if (action === 'update_email') {
+            const { userId, newEmail } = payload;
+            if (!userId || !newEmail) return res.status(400).json({ error: 'Missing userId or newEmail' });
+            const { data, error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+                email: newEmail, email_confirm: true
+            });
+            if (error) throw error;
+            return res.status(200).json({ success: true, user: data.user });
+        }
+
+        else return res.status(400).json({ error: 'Unknown action' });
+
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
     }
 });
 
