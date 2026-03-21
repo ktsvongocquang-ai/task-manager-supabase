@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Mail } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -160,8 +160,51 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             console.error('AI Refine error:', error);
             alert("Lỗi khi AI tinh chỉnh nội dung.");
         } finally {
-            setIsRefining(field);
             setIsRefining(null);
+        }
+    };
+
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const handleSendEmail = async () => {
+        if (!form.assignee_id) {
+            alert('Vui lòng chọn chủ trì để gửi email.');
+            return;
+        }
+        
+        const assignee = profiles.find(p => p.id === form.assignee_id);
+        if (!assignee || !assignee.email) {
+            alert('Không tìm thấy email của nhân sự này.');
+            return;
+        }
+
+        setIsSendingEmail(true);
+        try {
+            const project = projects.find(p => p.id === form.project_id);
+            const res = await fetch('/api/send-ai-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskTitle: form.name,
+                    taskDescription: form.description,
+                    dueDate: form.due_date,
+                    assigneeName: assignee.full_name,
+                    assigneeEmail: assignee.email,
+                    projectName: project ? project.name : ''
+                })
+            });
+
+            if (!res.ok) throw new Error('Network error');
+            const data = await res.json();
+            if (data.success) {
+                alert('Đã gửi email thông báo thành công!');
+            } else {
+                throw new Error(data.error || 'Lỗi gửi mail');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Có lỗi xảy ra khi gửi email qua AI.');
+        } finally {
+            setIsSendingEmail(false);
         }
     };
 
@@ -808,7 +851,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
                                     <User size={16} /> Chủ trì
                                 </div>
-                                <div className="flex-1">
+                                <div className="flex-1 flex gap-2 items-center">
                                     <select
                                         value={form.assignee_id}
                                         onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
@@ -818,6 +861,17 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="" className="text-slate-400 font-normal">Chọn chủ trì...</option>
                                         {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
+                                    
+                                    {form.assignee_id && (
+                                        <button 
+                                            onClick={handleSendEmail}
+                                            disabled={isSendingEmail}
+                                            className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50"
+                                            title="Gửi Email Thông Báo Bằng AI"
+                                        >
+                                            {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

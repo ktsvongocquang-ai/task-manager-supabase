@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video, Archive } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video, Archive, Mail } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -158,8 +158,54 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
             console.error('AI Refine error:', error);
             alert("Lỗi khi AI tinh chỉnh nội dung.");
         } finally {
-            setIsRefining(field);
             setIsRefining(null);
+        }
+    };
+
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const handleSendEmail = async () => {
+        if (!form.assignee_id || form.assignee_id.length === 0) {
+            alert('Vui lòng chọn người nhận (chủ trì) để gửi email.');
+            return;
+        }
+        
+        const assignees = form.assignee_id.map(id => profiles.find(p => p.id === id)).filter(Boolean);
+        const assigneeNames = assignees.map((a:any) => a.full_name).join(', ');
+        const assigneeEmails = assignees.map((a:any) => a.email).filter(Boolean).join(', ');
+
+        if (!assigneeEmails) {
+            alert('Không tìm thấy địa chỉ email hợp lệ của nhân sự nào.');
+            return;
+        }
+
+        setIsSendingEmail(true);
+        try {
+            const project = projects.find(p => p.id === form.project_id);
+            const res = await fetch('/api/send-ai-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskTitle: form.name,
+                    taskDescription: form.description,
+                    dueDate: form.due_date,
+                    assigneeName: assigneeNames,
+                    assigneeEmail: assigneeEmails,
+                    projectName: project ? project.name : ''
+                })
+            });
+
+            if (!res.ok) throw new Error('Network error');
+            const data = await res.json();
+            if (data.success) {
+                alert(`Đã gửi email thông báo thành công tới: ${assigneeNames}`);
+            } else {
+                throw new Error(data.error || 'Lỗi gửi mail');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Có lỗi xảy ra khi gửi email qua AI.');
+        } finally {
+            setIsSendingEmail(false);
         }
     };
 
@@ -887,20 +933,32 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <div className="space-y-5">
                                     <div className="relative">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><User size={12} /> Người thực hiện</div>
-                                        <div 
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 cursor-pointer overflow-hidden flex items-center"
-                                            onClick={(e) => {
-                                                if(shouldDisableTopFields()) return;
-                                                e.stopPropagation();
-                                                const selectEl = document.getElementById('assignee-dropdown-popup');
-                                                if(selectEl) selectEl.classList.toggle('hidden');
-                                            }}
-                                        >
-                                            <div className="truncate flex-1">
-                                                {form.assignee_id.length > 0
-                                                    ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
-                                                    : 'Chọn người thực hiện...'}
+                                        <div className="flex items-center gap-2">
+                                            <div 
+                                                className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 p-0 cursor-pointer overflow-hidden flex items-center"
+                                                onClick={(e) => {
+                                                    if(shouldDisableTopFields()) return;
+                                                    e.stopPropagation();
+                                                    const selectEl = document.getElementById('assignee-dropdown-popup');
+                                                    if(selectEl) selectEl.classList.toggle('hidden');
+                                                }}
+                                            >
+                                                <div className="truncate flex-1">
+                                                    {form.assignee_id.length > 0
+                                                        ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
+                                                        : 'Chọn người thực hiện...'}
+                                                </div>
                                             </div>
+                                            {form.assignee_id.length > 0 && (
+                                                <button 
+                                                    onClick={handleSendEmail}
+                                                    disabled={isSendingEmail}
+                                                    className="p-1 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center shrink-0 disabled:opacity-50"
+                                                    title="Gửi Email Thông Báo Bằng AI"
+                                                >
+                                                    {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                                                </button>
+                                            )}
                                         </div>
                                         {!shouldDisableTopFields() && (
                                             <div id="assignee-dropdown-popup" className="hidden absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto pt-2 pb-2">
