@@ -2,6 +2,7 @@ import express from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -65,6 +66,81 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
     } catch (err) {
         console.error("AI Refine Error:", err);
         return res.status(500).json({ error: err.message || 'Lỗi khi AI tinh chỉnh nội dung.' });
+    }
+});
+
+app.post('/api/send-ai-email', async (req, res) => {
+    try {
+        const { taskTitle, taskDescription, dueDate, assigneeName, assigneeEmail, projectName } = req.body;
+
+        if (!assigneeEmail) {
+            return res.status(400).json({ error: 'Thiếu email người nhận.' });
+        }
+        if (!process.env.GEMINI_API_KEY || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            return res.status(500).json({ error: 'Thiếu cấu hình API Key hoặc thông tin Email trong biến môi trường.' });
+        }
+
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        const schema = {
+            type: Type.OBJECT,
+            properties: {
+                subject: { type: Type.STRING, description: "Tiêu đề của email (ngắn gọn, xúc tích, báo giao việc mới)." },
+                bodyHtml: { type: Type.STRING, description: "Nội dung thân email được định dạng bằng HTML (sử dụng thẻ <p>, <ul>, <strong>... để trình bày đẹp mắt)." }
+            },
+            required: ["subject", "bodyHtml"]
+        };
+
+        const systemInstruction = `
+Bạn là trợ lý ảo quản lý dự án đóng vai trò gửi email thông báo công việc mới.
+Nhiệm vụ: Viết một email chuyên nghiệp, thân thiện để gửi tới nhân viên về công việc họ vừa nhận.
+Email phải bao gồm lời chào, tóm tắt nhiệm vụ, thời hạn hoàn thành, và lời cảm ơn. Không dùng placeholder []. Thay vào đó dùng thông tin thực tế được cung cấp.
+Phải định dạng kết quả dưới dạng JSON theo đúng schema, phần \`bodyHtml\` cần có định dạng HTML rõ ràng (xuống dòng bằng <br>, tô đậm text quan trọng).
+`;
+
+        let prompt = `Tên nhân sự: ${assigneeName || 'Bạn'}
+Tên công việc: ${taskTitle}
+Mô tả chi tiết: ${taskDescription || 'Không có mô tả thêm.'}
+Hạn chót (Due date): ${dueDate || 'Không có hạn cụ thể'}
+Dự án: ${projectName || 'Công việc nội bộ'}
+Hãy viết email dựa trên các thông tin này.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [prompt],
+            config: {
+                systemInstruction: systemInstruction,
+                responseSchema: schema,
+                responseMimeType: 'application/json',
+                temperature: 0.3,
+            }
+        });
+
+        const generatedData = JSON.parse(response.text);
+
+        // Send Email via Nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: `"DQH Hệ Thống Quản Lý" <${process.env.EMAIL_USER}>`,
+            to: assigneeEmail,
+            subject: generatedData.subject,
+            html: generatedData.bodyHtml
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({ success: true, message: 'Đã gửi email thành công!', aiGenerated: generatedData });
+
+    } catch (err) {
+        console.error("AI Email Error:", err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi tạo và gửi email.' });
     }
 });
 
