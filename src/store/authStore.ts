@@ -46,28 +46,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     .eq('id', session.user.id)
                     .single()
 
-                // If profile doesn't exist (e.g. first time Google Login), auto-create one
+                // If profile doesn't exist (e.g. first time Google Login), auto-create one securely via Admin API
                 if (profileError && profileError.code === 'PGRST116') {
                     const newStaffId = `NV${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`
-                    const { data: newProfile, error: insertError } = await supabase
-                        .from('profiles')
-                        .insert({
-                            id: session.user.id,
-                            email: session.user.email,
-                            full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
-                            role: 'Nhân viên',
-                            staff_id: newStaffId,
-                            position: 'Nhân viên mới'
-                        })
-                        .select()
-                        .single()
-                    
-                    if (!insertError && newProfile) {
-                        profileData = newProfile
-                        profileError = null
-                    } else {
-                        console.error("Auto-create profile failed:", insertError)
-                        throw insertError || new Error('Failed to create default profile')
+                    try {
+                        const res = await fetch('/api/admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                action: 'auto_provision_profile',
+                                payload: {
+                                    id: session.user.id,
+                                    email: session.user.email,
+                                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
+                                    role: 'Nhân viên',
+                                    staff_id: newStaffId,
+                                    position: 'Nhân viên mới'
+                                }
+                            })
+                        });
+                        
+                        if (!res.ok) {
+                            let errMsg = res.statusText;
+                            try {
+                                const errData = await res.json();
+                                errMsg = errData.error || res.statusText;
+                            } catch (e) {}
+                            throw new Error(errMsg);
+                        }
+                        
+                        const responseData = await res.json();
+                        if (responseData.success && responseData.profile) {
+                            profileData = responseData.profile;
+                            profileError = null;
+                        } else {
+                            throw new Error('Failed to create default profile API');
+                        }
+                    } catch (apiError) {
+                        console.error("Auto-provision profile API failed:", apiError)
+                        throw apiError;
                     }
                 } else if (profileError) {
                     throw profileError
