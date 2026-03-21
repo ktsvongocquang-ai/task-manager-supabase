@@ -72,6 +72,26 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: true, user: data.user });
         }
 
+        else if (action === 'auto_provision_profile') {
+            const { id, email, full_name, role, staff_id, position } = payload;
+            
+            const { data, error } = await supabaseAdmin
+                .from('profiles')
+                .insert({
+                    id,
+                    email,
+                    full_name,
+                    role,
+                    staff_id,
+                    position
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            return res.status(200).json({ success: true, profile: data });
+        }
+
         else {
             return res.status(400).json({ error: 'Unknown action' });
         }
