@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Calendar } from 'lucide-react'
+import { Plus, Search, Calendar, GripVertical } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
@@ -232,7 +232,7 @@ export const Kanban = () => {
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 flex gap-4 overflow-x-auto pb-4 md:min-h-[500px] hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex-1 flex gap-4 overflow-x-auto pb-4 custom-scrollbar md:min-h-[500px] -mx-4 px-4 sm:mx-0 sm:px-0">
                     {KANBAN_COLUMNS.map(column => {
                         const colTasks = filteredTasks
                             .filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
@@ -282,7 +282,6 @@ export const Kanban = () => {
                                                             <div
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
-                                                                {...provided.dragHandleProps}
                                                                 onClick={() => {
                                                                     if (!snapshot.isDragging && canEdit) {
                                                                         openEditModal(task);
@@ -294,6 +293,12 @@ export const Kanban = () => {
                                                                 style={provided.draggableProps.style}
                                                             >
                                                                 <div className="flex justify-between items-start mb-1.5 gap-2">
+                                                                    <div 
+                                                                        {...provided.dragHandleProps} 
+                                                                        className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:bg-slate-100 p-0.5 rounded-md text-slate-400 shrink-0"
+                                                                    >
+                                                                        <GripVertical className="w-4 h-4" />
+                                                                    </div>
                                                                     <h4 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
                                                                         {task.name}
                                                                     </h4>

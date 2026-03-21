@@ -1456,7 +1456,7 @@ export default function MyTasks() {
           </div>
         ) : (
           /* Category-Based Board View (Kanban) */
-          <div className="flex xl:grid xl:grid-cols-5 gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto xl:overflow-visible no-scrollbar snap-x xl:snap-none items-start">
+          <div className="flex gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto custom-scrollbar items-start px-2 sm:px-0">
             {Object.values(categories).map((cat: CategoryItem) => {
               const catTasks = filteredTasks.filter(t => t.category === cat.id);
               const activeTasks = catTasks.filter(t => t.status !== 'done' && t.status !== 'archived');
@@ -1492,7 +1492,7 @@ export default function MyTasks() {
               return (
                 <div 
                   key={cat.id}
-                  className={`w-[85vw] sm:w-[340px] xl:w-auto flex-shrink-0 flex flex-col rounded-3xl snap-center xl:snap-none border border-gray-200 bg-gray-50/30 shadow-sm`}
+                  className={`w-[85vw] sm:w-[300px] md:w-[320px] flex-shrink-0 flex flex-col rounded-3xl border border-gray-200 bg-gray-50/30 shadow-sm`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropCategory(e, cat.id)}
                 >
