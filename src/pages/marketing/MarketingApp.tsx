@@ -835,7 +835,7 @@ const MarketingApp = () => {
                 const archivedVideos = columnVideos.filter((v: any) => v.isarchived);
 
                 return (
-                  <div key={column.id} className={`w-[90vw] sm:w-[300px] md:flex-1 md:min-w-[300px] md:max-w-[400px] h-full bg-white rounded-2xl border ${column.border} flex flex-col shrink-0 snap-center md:snap-align-none relative max-h-full`}>
+                  <div key={column.id} className={`w-[90vw] sm:w-[300px] md:w-[320px] h-full bg-white rounded-2xl border ${column.border} flex flex-col shrink-0 snap-center md:snap-align-none relative max-h-full`}>
                     <div className={`p-4 border-b flex items-center justify-between rounded-t-2xl shadow-sm shrink-0 ${column.color}`}>
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold uppercase text-[15px] opacity-90">{column.name}</h3>
