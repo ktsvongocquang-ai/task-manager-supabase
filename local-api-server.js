@@ -71,9 +71,13 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
 
 app.post('/api/send-ai-email', async (req, res) => {
     try {
-        const { taskTitle, taskDescription, dueDate, assigneeName, assigneeEmail, projectName } = req.body;
+        const { 
+            to_email,
+            subject,
+            template_data
+        } = req.body;
 
-        if (!assigneeEmail) {
+        if (!to_email) {
             return res.status(400).json({ error: 'Thiếu email người nhận.' });
         }
         if (!process.env.GEMINI_API_KEY || !process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -85,25 +89,24 @@ app.post('/api/send-ai-email', async (req, res) => {
         const schema = {
             type: Type.OBJECT,
             properties: {
-                subject: { type: Type.STRING, description: "Tiêu đề của email (ngắn gọn, xúc tích, báo giao việc mới)." },
+                subject: { type: Type.STRING, description: "Tiêu đề của email (ngắn gọn, xúc tích, ví dụ: [Task Manager] Bạn được giao công việc mới...)." },
                 bodyHtml: { type: Type.STRING, description: "Nội dung thân email được định dạng bằng HTML (sử dụng thẻ <p>, <ul>, <strong>... để trình bày đẹp mắt)." }
             },
             required: ["subject", "bodyHtml"]
         };
 
         const systemInstruction = `
-Bạn là trợ lý ảo quản lý dự án đóng vai trò gửi email thông báo công việc mới.
-Nhiệm vụ: Viết một email chuyên nghiệp, thân thiện để gửi tới nhân viên về công việc họ vừa nhận.
-Email phải bao gồm lời chào, tóm tắt nhiệm vụ, thời hạn hoàn thành, và lời cảm ơn. Không dùng placeholder []. Thay vào đó dùng thông tin thực tế được cung cấp.
-Phải định dạng kết quả dưới dạng JSON theo đúng schema, phần \`bodyHtml\` cần có định dạng HTML rõ ràng (xuống dòng bằng <br>, tô đậm text quan trọng).
+Bạn là hệ thống tự động gửi email thông báo công việc.
+Nhiệm vụ: Dựa vào thông tin JSON được cung cấp, hãy viết một email chuyên nghiệp, thiết kế đẹp mắt bằng HTML.
+Trong email cần nhắc rõ: Người giao (actor_name), Hành động (action), Tên công việc, Dự án, Mức độ ưu tiên, Thời hạn, và có một nút CTA (Call to action) để "Xem chi tiết công việc" trỏ tới task_url.
+Bắt buộc phải trả về định dạng JSON theo schema gồm subject và bodyHtml.
 `;
 
-        let prompt = `Tên nhân sự: ${assigneeName || 'Bạn'}
-Tên công việc: ${taskTitle}
-Mô tả chi tiết: ${taskDescription || 'Không có mô tả thêm.'}
-Hạn chót (Due date): ${dueDate || 'Không có hạn cụ thể'}
-Dự án: ${projectName || 'Công việc nội bộ'}
-Hãy viết email dựa trên các thông tin này.`;
+        const prompt = JSON.stringify({
+            to_email,
+            subject: subject || `[Task Manager] Bạn được giao một công việc mới: ${template_data?.task_title}`,
+            template_data
+        }, null, 2);
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -129,7 +132,7 @@ Hãy viết email dựa trên các thông tin này.`;
 
         const mailOptions = {
             from: `"DQH Hệ Thống Quản Lý" <${process.env.EMAIL_USER}>`,
-            to: assigneeEmail,
+            to: to_email,
             subject: generatedData.subject,
             html: generatedData.bodyHtml
         };
