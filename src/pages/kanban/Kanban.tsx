@@ -295,7 +295,7 @@ export const Kanban = () => {
                                                                 <div className="flex justify-between items-start mb-1.5 gap-2">
                                                                     <div 
                                                                         {...provided.dragHandleProps} 
-                                                                        className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:bg-slate-100 p-0.5 rounded-md text-slate-400 shrink-0"
+                                                                        className="mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-slate-100 p-0.5 rounded-md text-slate-400 shrink-0"
                                                                     >
                                                                         <GripVertical className="w-4 h-4" />
                                                                     </div>
