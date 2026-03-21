@@ -232,7 +232,7 @@ export const Kanban = () => {
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="flex-1 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 md:min-h-[500px] hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex-1 flex gap-4 overflow-x-auto pb-4 md:min-h-[500px] hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
                     {KANBAN_COLUMNS.map(column => {
                         const colTasks = filteredTasks
                             .filter(t => column.matchStatuses.includes(t.status || 'Chưa bắt đầu'))
@@ -241,7 +241,7 @@ export const Kanban = () => {
                         return (
                                 <div
                                     key={column.id}
-                                    className="w-[90vw] sm:w-[300px] md:w-[320px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 snap-center md:snap-align-none h-full max-h-full"
+                                    className="w-[90vw] sm:w-[300px] md:w-[320px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 h-full max-h-full"
                                 >
                                 <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
