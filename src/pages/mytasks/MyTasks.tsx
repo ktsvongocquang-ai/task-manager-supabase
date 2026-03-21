@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, Calendar as CalendarIcon, 
-  CheckCircle2, Circle, Lock, Trash2,
+  CheckCircle2, Circle, Lock, Trash2, Mic, MicOff, Sparkles, Loader2,
   Sun, Moon, Coffee, Star, LayoutGrid, 
   BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, GripVertical, MoreVertical
 } from 'lucide-react';
@@ -243,6 +243,7 @@ export default function MyTasks() {
         setTasks(taskData.map(t => ({
           id: t.id,
           title: t.title,
+          description: t.description,
           status: t.status as TaskStatus,
           dueDate: t.due_date,
           priority: t.priority as Priority,
@@ -281,6 +282,111 @@ export default function MyTasks() {
       if (personalCat) setNewTaskCategory(personalCat.id);
     }
   }, [categories]);
+
+  // AI & Voice State
+  const [isListening, setIsListening] = useState<string | null>(null);
+  const [isRefining, setIsRefining] = useState<string | null>(null);
+
+  const handleSpeechToText = (field: 'kanbanDesc' | 'kanbanTitle' | 'editTitle' | 'editDesc') => {
+    if (isListening === field) {
+      setIsListening(null);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    setIsListening(field);
+
+    let silenceTimer: any;
+    recognition.onstart = () => {
+      silenceTimer = setTimeout(() => {
+        recognition.stop();
+      }, 10000);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (transcript) {
+        if (field === 'kanbanTitle') setKanbanNewTaskTitle(prev => prev ? `${prev} ${transcript}` : transcript);
+        if (field === 'kanbanDesc') setKanbanNewTaskDesc(prev => prev ? `${prev} ${transcript}` : transcript);
+        if (field === 'editTitle' && editingTaskId) {
+          const t = tasks.find(x => x.id === editingTaskId);
+          if (t) updateTaskField(t.id, 'title', t.title ? `${t.title} ${transcript}` : transcript, 'title');
+        }
+        if (field === 'editDesc' && editingTaskId) {
+           const t = tasks.find(x => x.id === editingTaskId);
+           if (t) updateTaskField(t.id, 'description', t.description ? `${t.description} ${transcript}` : transcript, 'description');
+        }
+      }
+      recognition.stop();
+    };
+
+    recognition.onerror = (event: any) => {
+      clearTimeout(silenceTimer);
+      let messageStr = "Lỗi nhận diện giọng nói.";
+      if (event.error === 'not-allowed') messageStr = "Không có quyền truy cập Micro.";
+      alert(messageStr);
+      setIsListening(null);
+    };
+
+    recognition.onend = () => {
+      setIsListening(null);
+      clearTimeout(silenceTimer);
+    };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      setIsListening(null);
+    }
+  };
+
+  const handleAIRefine = async (field: 'kanbanDesc' | 'kanbanTitle' | 'editTitle' | 'editDesc') => {
+    let textToRefine = '';
+    let t = editingTaskId ? tasks.find(x => x.id === editingTaskId) : null;
+    
+    if (field === 'kanbanTitle') textToRefine = kanbanNewTaskTitle;
+    if (field === 'kanbanDesc') textToRefine = kanbanNewTaskDesc;
+    if (field === 'editTitle' && t) textToRefine = t.title;
+    if (field === 'editDesc' && t) textToRefine = t.description || '';
+
+    if (!textToRefine) {
+      alert("Vui lòng nhập nội dung trước khi tinh chỉnh.");
+      return;
+    }
+
+    setIsRefining(field);
+    try {
+      const res = await fetch('/api/refine-task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToRefine, field: field.includes('Title') ? 'name' : 'description' })
+      });
+
+      if (!res.ok) throw new Error('Failed to refine text');
+
+      const data = await res.json();
+      if (data.refinedText) {
+        if (field === 'kanbanTitle') setKanbanNewTaskTitle(data.refinedText);
+        if (field === 'kanbanDesc') setKanbanNewTaskDesc(data.refinedText);
+        if (field === 'editTitle' && t) updateTaskField(t.id, 'title', data.refinedText, 'title');
+        if (field === 'editDesc' && t) updateTaskField(t.id, 'description', data.refinedText, 'description');
+      }
+    } catch (error) {
+      alert("Lỗi khi AI tinh chỉnh nội dung.");
+    } finally {
+      setIsRefining(null);
+    }
+  };
 
   // Quick Add State
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -656,65 +762,77 @@ export default function MyTasks() {
 
     if (isEditing) {
       return (
-        <div key={task.id} className={`group bg-white rounded-2xl border border-emerald-300 shadow-md transition-all duration-200 ${isKanban ? 'p-3 sm:p-4 relative pl-8' : 'p-4 sm:p-5 flex items-start gap-3 relative pl-8'}`}>
-           <div className={`absolute left-1 top-1/2 -translate-y-1/2 cursor-grab p-1 rounded-md text-gray-400 opacity-40 lg:opacity-0 lg:group-hover:opacity-40 transition-opacity`}>
-              <GripVertical className="w-4 h-4" />
-           </div>
-           
-           <button onClick={() => toggleTaskStatus(task.id)} className={`flex-shrink-0 transition-transform active:scale-90 mt-0.5 ${isKanban ? 'float-left mr-3' : ''}`}>
-              <Circle className="w-6 h-6 text-gray-300 hover:text-emerald-500 transition-colors" />
-           </button>
-           
-           <div className={`flex-1 min-w-0 pr-0 flex flex-col gap-0.5 ${isKanban ? 'clear-right' : ''}`}>
-              <div className="flex items-start justify-between gap-1">
+        <div key={task.id} className={`group bg-white rounded-lg border border-emerald-300 shadow-md transition-all duration-200 px-4 py-3 flex flex-col`}>
+           <div className="flex justify-between items-start mb-1.5 gap-2">
+               <div className={`mt-0.5 cursor-grab p-0.5 rounded-md text-gray-400 opacity-40 lg:opacity-0 lg:group-hover:opacity-40 transition-opacity ${isKanban ? '-ml-2' : ''}`}>
+                  <GripVertical className="w-4 h-4" />
+               </div>
+               
+               <div className="flex-1 min-w-0 relative group/editdesc">
                  <input 
                    autoFocus
                    type="text"
-                   className="w-full text-[16px] font-semibold text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400"
+                   className={`w-full font-[600] text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400 ${isKanban ? 'text-[14px]' : 'text-base'}`}
                    value={task.title}
                    onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
                  />
-                 <div className="flex items-start gap-0.5 shrink-0 -mt-1 -mr-1">
-                    <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
-                      <MoreVertical className="w-4 h-4" />
+                 <textarea 
+                   className="w-full text-[12px] text-gray-600 border-none bg-transparent p-0 focus:ring-0 mt-1 placeholder-gray-400 resize-none overflow-hidden pb-6 transition-all"
+                   placeholder="Thêm chi tiết việc này..."
+                   value={task.description || ''}
+                   rows={1}
+                   onChange={(e) => {
+                     e.target.style.height = 'auto';
+                     e.target.style.height = e.target.scrollHeight + 'px';
+                     updateTaskField(task.id, 'description', e.target.value, 'description');
+                   }}
+                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
+                   ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+                 />
+                 <div className="absolute right-0 bottom-0 opacity-0 group-hover/editdesc:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-md">
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSpeechToText('editDesc'); }}
+                      className={`p-1 rounded-md transition-colors ${isListening === 'editDesc' ? 'text-red-500 bg-red-50 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                      title="Ghi âm mô tả"
+                    >
+                      {isListening === 'editDesc' ? <MicOff size={14} /> : <Mic size={14} />}
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAIRefine('editDesc'); }}
+                      disabled={isRefining === 'editDesc' || !task.description}
+                      className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                      title="AI Tinh chỉnh"
+                    >
+                      {isRefining === 'editDesc' ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                     </button>
                  </div>
+               </div>
+               
+               <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
+                 <MoreVertical className="w-4 h-4" />
+               </button>
+           </div>
+           
+           <div className={`flex items-center gap-1.5 flex-wrap pt-2 pb-0.5 border-t border-slate-50 mt-1 ${isKanban ? 'pl-[26px]' : ''}`}>
+              <button 
+                onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
+                className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
+              >Hôm nay</button>
+              <div className="relative shrink-0 flex items-center">
+                <input 
+                  type="date"
+                  className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
+                  value={task.dueDate || ''}
+                  onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
+                />
+                <button className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                  <CalendarIcon className="w-3 h-3" />
+                </button>
               </div>
-              <textarea 
-                className="w-full text-[14px] text-gray-600 border-none bg-transparent p-0 focus:ring-0 mt-0.5 placeholder-gray-400 resize-none overflow-hidden"
-                placeholder="Thêm chi tiết công trình này là..."
-                value={task.description || ''}
-                rows={1}
-                onChange={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = e.target.scrollHeight + 'px';
-                  updateTaskField(task.id, 'description', e.target.value, 'description');
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
-                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
-              />
-              
-              <div className="flex items-center gap-1.5 flex-wrap pt-2 pb-0.5">
-                 <button 
-                   onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
-                   className={`shrink-0 whitespace-nowrap px-3 py-1 rounded-full border text-[12px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
-                 >Hôm nay</button>
-                 <div className="relative shrink-0">
-                   <input 
-                     type="date"
-                     className="absolute opacity-0 inset-0 w-full h-full cursor-pointer"
-                     value={task.dueDate || ''}
-                     onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
-                   />
-                   <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
-                     <CalendarIcon className="w-3.5 h-3.5" />
-                   </button>
-                 </div>
-                 <button onClick={() => handleDeleteTask(task.id)} className="ml-auto p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
-                   <Trash2 className="w-4 h-4" />
-                 </button>
-              </div>
+              <button onClick={() => handleDeleteTask(task.id)} className="ml-auto p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
+                <Trash2 className="w-4 h-4" />
+              </button>
            </div>
         </div>
       );
@@ -728,76 +846,78 @@ export default function MyTasks() {
           if (isKanban) handleDragStart(e, task.id);
         }}
         onClick={(e) => {
-           // Prevent entering edit mode if clicking actionable buttons inside
            if ((e.target as HTMLElement).closest('button, select, input')) return;
            setEditingTaskId(task.id);
         }}
-        className={`group bg-white rounded-2xl border transition-all duration-200 cursor-pointer ${
+        className={`group bg-white rounded-lg border transition-all duration-200 cursor-pointer ${
           task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
-        } p-4 sm:p-5 flex items-start gap-3`}
+        } px-4 py-3 flex flex-col`}
       >
-        <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
-           <GripVertical className="w-4 h-4" />
+        <div className="flex justify-between items-start mb-1.5 gap-2">
+            <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
+               <GripVertical className="w-4 h-4" />
+            </div>
+            
+            <h4 className={`font-[600] transition-all group-hover:text-emerald-600 line-clamp-2 leading-tight flex-1 ${
+              task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
+            } ${isKanban ? 'text-[14px]' : 'text-base'}`}>
+              {task.title}
+            </h4>
+            
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${
+                task.priority === 'high' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
+                task.priority === 'medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                task.priority === 'low' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                'bg-slate-50 text-slate-500 border-slate-100'
+            }`}>
+                {task.priority === 'high' ? 'Khẩn cấp' : task.priority === 'medium' ? 'Cao' : task.priority === 'low' ? 'Thấp' : 'Trung bình'}
+            </span>
         </div>
         
-        <button 
-          onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
-          className="flex-shrink-0 transition-transform active:scale-90 mt-0.5"
-        >
-          {task.status === 'done' ? (
-            <CheckCircle2 className="w-6 h-6 text-emerald-500 fill-emerald-50" />
-          ) : (
-            <Circle className="w-6 h-6 text-gray-300 hover:text-emerald-500 transition-colors" />
-          )}
-        </button>
-
-        <div className="flex-1 min-w-0 pr-1">
-          <h4 className={`font-medium transition-all group-hover:text-emerald-600 line-clamp-2 ${
-            task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
-          } ${isKanban ? 'text-sm mb-2' : 'text-base mb-1'}`}>
-            {task.title}
-          </h4>
-          
-          {task.description && (
-             <p className="text-xs text-gray-500 line-clamp-2 mb-2 break-words">
-                {task.description}
-             </p>
-          )}
-          
-          <div className="flex flex-wrap items-center gap-2 relative z-10">
-            {/* Category Dropdown (Duy trì cho Dashboard, Ẩn ở Kanban) */}
-            {!isKanban && (
-              <div className={`relative inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${cat?.color || 'bg-gray-100 text-gray-700'} hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
-                <span>{cat?.icon}</span>
-                <select 
-                  value={task.category}
-                  onChange={(e) => updateTaskField(task.id, 'category', e.target.value, 'category_id')}
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                >
-                  {Object.values(categories).map((c: CategoryItem) => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
-                  ))}
-                </select>
-                <span className="truncate max-w-[80px] sm:max-w-[120px] block">{cat?.label}</span>
-              </div>
-            )}
-
-            {/* Date Picker */}
-            <div className={`relative inline-flex items-center gap-1 text-[11px] font-medium ${
-                isOverdue ? 'text-red-600 bg-red-50' : task.dueDate ? 'text-emerald-700 bg-emerald-50' : 'text-gray-400 bg-gray-100'
-              } px-2 py-0.5 rounded-md hover:opacity-80 transition-opacity cursor-pointer shadow-sm`}>
-              <CalendarIcon className="w-3 h-3 flex-shrink-0" />
-              <input 
-                type="date"
-                value={task.dueDate || ''}
-                onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
-                onClick={(e) => { e.stopPropagation(); try { if (e.currentTarget.showPicker) e.currentTarget.showPicker(); } catch (err) {} }}
-                className="absolute text-transparent bg-transparent inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <span className="whitespace-nowrap">{task.dueDate ? (task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')) : 'Ngày'}</span>
+        {task.description && (
+           <p className={`text-[12px] text-gray-500 line-clamp-2 mb-2 break-words ${isKanban ? 'pl-[26px]' : ''}`}>
+              {task.description}
+           </p>
+        )}
+        
+        <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
+            <div className={`flex items-center gap-2 flex-wrap ${isKanban ? 'pl-[26px]' : ''}`}>
+                {task.dueDate && (
+                    <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${isOverdue ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-500 bg-slate-50 border-slate-200'}`}>
+                        <CalendarIcon size={10} className={isOverdue ? 'text-red-500' : 'text-slate-400'} />
+                        {task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')}
+                    </div>
+                )}
+                
+                {!isKanban && (
+                  <div className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-slate-200 text-[10px] font-bold ${cat?.color || 'bg-gray-50 text-gray-500'} hover:opacity-80 transition-opacity cursor-pointer`}>
+                    <span>{cat?.icon}</span>
+                    <select 
+                      value={task.category}
+                      onChange={(e) => updateTaskField(task.id, 'category', e.target.value, 'category_id')}
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    >
+                      {Object.values(categories).map((c: CategoryItem) => (
+                        <option key={c.id} value={c.id}>{c.icon} {c.label}</option>
+                      ))}
+                    </select>
+                    <span className="truncate max-w-[80px] block">{cat?.label}</span>
+                  </div>
+                )}
             </div>
-          </div>
+            
+            <button 
+              onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
+              className="flex-shrink-0 transition-transform active:scale-90 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full z-10"
+              title={task.status === 'done' ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}
+            >
+              {task.status === 'done' ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50" />
+              ) : (
+                <Circle className="w-5 h-5 text-gray-300 hover:text-emerald-500 transition-colors" />
+              )}
+            </button>
         </div>
       </div>
     );
@@ -1456,7 +1576,10 @@ export default function MyTasks() {
           </div>
         ) : (
           /* Category-Based Board View (Kanban) */
-          <div className="flex gap-4 sm:gap-6 pb-8 min-h-[500px] overflow-x-auto custom-scrollbar items-start px-2 sm:px-0">
+          <div 
+             className="flex gap-4 sm:gap-6 pb-4 min-h-[500px] overflow-x-auto custom-scrollbar items-start px-2 sm:px-0"
+             style={{ height: 'calc(100vh - 320px)' }}
+          >
             {Object.values(categories).map((cat: CategoryItem) => {
               const catTasks = filteredTasks.filter(t => t.category === cat.id);
               const activeTasks = catTasks.filter(t => t.status !== 'done' && t.status !== 'archived');
@@ -1502,7 +1625,12 @@ export default function MyTasks() {
                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg bg-white shadow-sm border border-gray-100 ${headerTextColor}`}>
                          {cat.icon}
                        </span>
-                       <h3 className={`font-extrabold text-[15px] uppercase tracking-wide ${headerTextColor}`}>{cat.label}</h3>
+                       <div className="flex items-center gap-2">
+                         <h3 className={`font-extrabold text-[15px] uppercase tracking-wide ${headerTextColor}`}>{cat.label}</h3>
+                         <span className="bg-slate-200/60 text-slate-700 px-2.5 py-0.5 rounded-full text-[13px] font-bold shadow-sm ml-1 border border-slate-300/30">
+                           {activeTasks.length}
+                         </span>
+                       </div>
                     </div>
                   </div>
 
@@ -1538,21 +1666,40 @@ export default function MyTasks() {
                               }
                             }}
                           />
-                          <textarea
-                            placeholder="Chi tiết..."
-                            rows={1}
-                            className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-600 resize-none overflow-hidden placeholder-gray-400 mb-3"
-                            value={kanbanNewTaskDesc}
-                            onChange={(e) => {
-                               e.target.style.height = 'auto';
-                               e.target.style.height = `${e.target.scrollHeight}px`;
-                               setKanbanNewTaskDesc(e.target.value);
-                            }}
-                            onFocus={(e) => {
-                               e.target.style.height = 'auto';
-                               e.target.style.height = `${e.target.scrollHeight}px`;
-                            }}
-                          />
+                          <div className="relative group/adddesc mb-3">
+                            <textarea
+                              placeholder="Chi tiết..."
+                              rows={1}
+                              className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-600 resize-none overflow-hidden placeholder-gray-400 pb-6 transition-all"
+                              value={kanbanNewTaskDesc}
+                              onChange={(e) => {
+                                 setKanbanNewTaskDesc(e.target.value);
+                                 e.target.style.height = 'auto';
+                                 e.target.style.height = `${e.target.scrollHeight}px`;
+                              }}
+                              onFocus={(e) => {
+                                 e.target.style.height = 'auto';
+                                 e.target.style.height = `${e.target.scrollHeight}px`;
+                              }}
+                            />
+                            <div className="absolute right-0 bottom-0 opacity-0 group-hover/adddesc:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-md">
+                              <button
+                                onClick={(e) => { e.preventDefault(); handleSpeechToText('kanbanDesc'); }}
+                                className={`p-1 rounded-md transition-colors ${isListening === 'kanbanDesc' ? 'text-red-500 bg-red-50 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
+                                title="Ghi âm chi tiết"
+                              >
+                                {isListening === 'kanbanDesc' ? <MicOff size={14} /> : <Mic size={14} />}
+                              </button>
+                              <button
+                                onClick={(e) => { e.preventDefault(); handleAIRefine('kanbanDesc'); }}
+                                disabled={isRefining === 'kanbanDesc' || !kanbanNewTaskDesc}
+                                className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                                title="AI Tinh chỉnh"
+                              >
+                                {isRefining === 'kanbanDesc' ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                              </button>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
                              <button 
                                onClick={() => setKanbanNewTaskDate(todayStr)}
