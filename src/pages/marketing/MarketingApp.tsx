@@ -1569,8 +1569,7 @@ const MarketingApp = () => {
                              <tr>
                                <td colSpan={10} className="p-0">
                                  <div className="bg-slate-50 p-4 border-t border-slate-200">
-                                   <div className="flex justify-between items-center mb-3">
-                                     <h4 className="text-sm font-bold text-slate-700">Tasks cho dự án "{proj.name}"</h4>
+                                   <div className="flex items-center gap-3 mb-3">
                                      <button 
                                        onClick={() => { setEditingTask({ project_id: proj.id, status: 'IDEA' } as any); setIsTaskModalOpen(true); }}
                                        className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"
@@ -1578,6 +1577,7 @@ const MarketingApp = () => {
                                      >
                                        <Plus className="w-3.5 h-3.5" /> Thêm Idea
                                      </button>
+                                     <h4 className="text-sm font-bold text-slate-700">Tasks cho dự án "{proj.name}"</h4>
                                    </div>
                                    <DragDropContext onDragEnd={(result) => {
                                       const { destination, source } = result;
@@ -1619,10 +1619,10 @@ const MarketingApp = () => {
                                              <th className="px-3 py-2 border border-slate-200 font-bold w-[40px] text-center">STT</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[150px]">Tiêu đề</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Nền tảng</th>
-                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[130px]">Ngày đăng</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal min-w-[120px]">Trạng thái</th>
-                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Link</th>
+                                             <th className="px-3 py-2 border border-slate-200 font-normal min-w-[100px]">Người phụ trách</th>
                                              <th className="px-3 py-2 border border-slate-200 font-normal w-[80px] text-center"></th>
                                            </tr>
                                          </thead>
@@ -1655,9 +1655,18 @@ const MarketingApp = () => {
                                                  <td className="px-3 py-2 border border-slate-200 text-center font-bold text-slate-400">
                                                    {String(index + 1).padStart(2, '0')}
                                                  </td>
-                                                 <td className="px-3 py-2 border border-slate-200 font-medium text-slate-800">{video.title}</td>
+                                                 <td 
+                                                   className="px-3 py-2 border border-slate-200 font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer hover:underline transition-colors"
+                                                   onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }}
+                                                 >
+                                                   {video.title}
+                                                 </td>
                                                  <td className="px-3 py-2 border border-slate-200">{video.platform}</td>
-                                                 <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
+                                                 <td className="px-3 py-2 border border-slate-200">
+                                                   {video.link && (
+                                                     <a href={video.link} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline text-xs">Link</a>
+                                                   )}
+                                                 </td>
                                                  <td className="px-3 py-2 border border-slate-200">
                                                    <div className="flex flex-col gap-1">
                                                      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-700" title="Ngày đăng">
@@ -1680,11 +1689,7 @@ const MarketingApp = () => {
                                                      )}
                                                    </div>
                                                  </td>
-                                                 <td className="px-3 py-2 border border-slate-200">
-                                                   {video.link && (
-                                                     <a href={video.link} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline text-xs">Link</a>
-                                                   )}
-                                                 </td>
+                                                 <td className="px-3 py-2 border border-slate-200">{video.assignee.split(',')[0]}</td>
                                                  <td className="px-3 py-2 border border-slate-200 text-center">
                                                    <button onClick={() => { setEditingTask(video); setIsTaskModalOpen(true); }} className="text-slate-400 hover:text-indigo-600">
                                                      <Edit size={14} />
@@ -1763,14 +1768,14 @@ const MarketingApp = () => {
                      {/* Expanded Tasks Area */}
                      {isExpanded && (
                        <div className="bg-slate-50/80 border-t border-slate-100 p-3 flex flex-col gap-3">
-                         <div className="flex justify-between items-center px-1 mb-1">
-                           <span className="text-[11px] font-bold text-slate-500 tracking-wide uppercase">Ideas & Tasks</span>
+                         <div className="flex items-center gap-2 px-1 mb-1">
                            <button 
                              onClick={() => { setEditingTask({ project_id: proj.id, status: 'IDEA' } as any); setIsTaskModalOpen(true); }}
                              className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm"
                            >
                              <Plus className="w-3.5 h-3.5" /> Thêm Idea
                            </button>
+                           <span className="text-[11px] font-bold text-slate-500 tracking-wide uppercase">Ideas & Tasks</span>
                          </div>
 
                          {projTasks.length === 0 ? (
