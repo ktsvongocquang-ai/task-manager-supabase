@@ -244,7 +244,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                         <Archive size={20} />
                                     </button>
                                 )}
-                                {onDelete && (
+                                {onDelete && currentUserProfile?.role === 'Admin' && (
                                     <button 
                                         onClick={() => onDelete(editingProject.id, editingProject.name || '')}
                                         className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"

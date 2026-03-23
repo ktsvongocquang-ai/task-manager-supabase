@@ -814,7 +814,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            {editingTask && (!shouldDisableTopFields() || editingTask.assignee_id === currentUserProfile?.id) && (
+                            {editingTask && (currentUserProfile?.role === 'Admin' || (Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id.includes(currentUserProfile?.id) : editingTask.assignee_id === currentUserProfile?.id)) && (
                                 <div className="flex bg-slate-100 rounded-xl overflow-hidden mr-2 items-center">
                                     <button 
                                       type="button"
@@ -1458,7 +1458,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     {/* Footer fixed */}
                     <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
                         <div>
-                            {editingTask && (
+                            {editingTask && (currentUserProfile?.role === 'Admin' || (Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id.includes(currentUserProfile?.id) : editingTask.assignee_id === currentUserProfile?.id)) && (
                                 <button
                                     onClick={async () => {
                                         if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return;
