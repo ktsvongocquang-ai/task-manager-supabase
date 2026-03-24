@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Award,
   Mail,
@@ -602,30 +602,42 @@ const MarketingApp = () => {
   };
 
   const location = useLocation();
+  const pendingOpenRef = useRef<{ taskId?: string | null; projectId?: string | null } | null>(null);
+
+  // Capture navigation state into ref
   useEffect(() => {
     const state = location.state as any;
-    if (!state) return;
-    const { openTaskId, openProjectId } = state;
+    if (state?.openTaskId || state?.openProjectId) {
+      pendingOpenRef.current = {
+        taskId: state.openTaskId,
+        projectId: state.openProjectId
+      };
+      window.history.replaceState({}, '');
+    }
+  }, [location.key]);
 
-    if (!openTaskId && !openProjectId) return;
-    if (isLoading || videos.length === 0) return;
+  // Act on pending navigation once data is loaded
+  useEffect(() => {
+    if (!pendingOpenRef.current || isLoading) return;
 
-    if (openTaskId) {
-      const task = videos.find(v => v.id === openTaskId);
+    const { taskId, projectId } = pendingOpenRef.current;
+
+    if (taskId) {
+      const task = videos.find(v => v.id === taskId);
       if (task) {
         setEditingTask(task);
         setIsTaskModalOpen(true);
+        pendingOpenRef.current = null;
       }
-    } else if (openProjectId) {
-      const project = projects.find(p => p.id === openProjectId);
+    } else if (projectId) {
+      const project = projects.find(p => p.id === projectId);
       if (project) {
         setEditingProject(project);
         setIsProjectModalOpen(true);
+        pendingOpenRef.current = null;
       }
     }
-
-    window.history.replaceState({}, '');
-  }, [location.key, isLoading, videos, projects]);
+  }, [isLoading, videos, projects]);
 
   const toggleMobileGroup = (id: string) => {
     const next = new Set(expandedMobileGroups);

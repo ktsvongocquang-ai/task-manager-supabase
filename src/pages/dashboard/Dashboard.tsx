@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
@@ -85,31 +85,41 @@ export const Dashboard = () => {
     }, [profile, assigneeFilter, monthFilter])
 
     const location = useLocation()
+    const pendingOpenRef = useRef<{ taskId?: string | null; projectId?: string | null } | null>(null)
+
+    // Capture navigation state into ref
     useEffect(() => {
         const state = location.state as any
-        if (!state) return
-        const { openTaskId, openProjectId } = state
+        if (state?.openTaskId || state?.openProjectId) {
+            pendingOpenRef.current = {
+                taskId: state.openTaskId,
+                projectId: state.openProjectId
+            }
+            // Clear location state immediately to prevent re-captures
+            window.history.replaceState({}, '')
+        }
+    }, [location.key])
 
-        if (!openTaskId && !openProjectId) return
+    // Act on pending navigation once data is loaded
+    useEffect(() => {
+        if (!pendingOpenRef.current || loading) return
 
-        // Wait for data to load before trying to open
-        if (loading || allTasks.length === 0) return
+        const { taskId, projectId } = pendingOpenRef.current
 
-        if (openTaskId) {
-            const task = allTasks.find(t => t.id === openTaskId)
+        if (taskId) {
+            const task = allTasks.find(t => t.id === taskId)
             if (task) {
                 openEditTask(task)
+                pendingOpenRef.current = null
             }
-        } else if (openProjectId) {
-            const proj = allProjects.find(p => p.id === openProjectId)
+        } else if (projectId) {
+            const proj = allProjects.find(p => p.id === projectId)
             if (proj) {
                 openProjectDetail(proj)
+                pendingOpenRef.current = null
             }
         }
-
-        // Clear state after handling to prevent re-triggering on re-renders
-        window.history.replaceState({}, '')
-    }, [location.key, loading, allTasks, allProjects])
+    }, [loading, allTasks, allProjects])
 
     const fetchDashboardData = async () => {
         try {

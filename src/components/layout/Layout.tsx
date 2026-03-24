@@ -127,7 +127,32 @@ export const Layout = () => {
         }
 
         fetchUnreadCount()
+
+        // Subscribe to notification changes to update badge in real-time
+        if (profile?.id) {
+            const channel = supabase.channel('notif_badge_updates')
+                .on(
+                    'postgres_changes',
+                    { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+                    async () => {
+                        const count = await getUnreadNotificationCount(profile.id!)
+                        setUnreadNotifCount(count)
+                    }
+                )
+                .subscribe()
+
+            return () => {
+                supabase.removeChannel(channel)
+            }
+        }
     }, [profile?.id])
+
+    // Re-fetch unread count when notification dropdown closes
+    useEffect(() => {
+        if (!isNotifOpen && profile?.id) {
+            getUnreadNotificationCount(profile.id).then(count => setUnreadNotifCount(count))
+        }
+    }, [isNotifOpen])
 
     const handleSignOut = async () => {
         await signOut()

@@ -481,8 +481,9 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         `${currentUserProfile?.full_name || 'Admin'} đã giao cho bạn nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
-                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
-                        form.project_id
+                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id,
+                        form.project_id,
+                        'marketing'
                     );
 
                     // Gửi thông báo qua Telegram ngầm
@@ -515,8 +516,9 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm Người thực hiện nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
-                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
-                        form.project_id
+                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id,
+                        form.project_id,
+                        'marketing'
                     );
 
                     // Gửi thông báo qua Telegram ngầm cho Người thực hiện
