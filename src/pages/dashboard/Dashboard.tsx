@@ -86,21 +86,30 @@ export const Dashboard = () => {
 
     const location = useLocation()
     useEffect(() => {
-        if (location.state && !loading) {
-            const { openTaskId, openProjectId } = location.state as any
-            if (openTaskId) {
-                const task = allTasks.find(t => t.id === openTaskId)
-                if (task) {
-                    openEditTask(task)
-                }
-            } else if (openProjectId) {
-                const proj = allProjects.find(p => p.id === openProjectId)
-                if (proj) {
-                    openProjectDetail(proj)
-                }
+        const state = location.state as any
+        if (!state) return
+        const { openTaskId, openProjectId } = state
+
+        if (!openTaskId && !openProjectId) return
+
+        // Wait for data to load before trying to open
+        if (loading || allTasks.length === 0) return
+
+        if (openTaskId) {
+            const task = allTasks.find(t => t.id === openTaskId)
+            if (task) {
+                openEditTask(task)
+            }
+        } else if (openProjectId) {
+            const proj = allProjects.find(p => p.id === openProjectId)
+            if (proj) {
+                openProjectDetail(proj)
             }
         }
-    }, [location.state, loading, allTasks, allProjects])
+
+        // Clear state after handling to prevent re-triggering on re-renders
+        window.history.replaceState({}, '')
+    }, [location.key, loading, allTasks, allProjects])
 
     const fetchDashboardData = async () => {
         try {

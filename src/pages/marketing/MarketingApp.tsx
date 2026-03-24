@@ -603,23 +603,29 @@ const MarketingApp = () => {
 
   const location = useLocation();
   useEffect(() => {
-    if (location.state && !isLoading) {
-      const { openTaskId, openProjectId } = location.state as any;
-      if (openTaskId) {
-        const task = videos.find(v => v.id === openTaskId);
-        if (task) {
-          setEditingTask(task);
-          setIsTaskModalOpen(true);
-        }
-      } else if (openProjectId) {
-        const project = projects.find(p => p.id === openProjectId);
-        if (project) {
-          setEditingProject(project);
-          setIsProjectModalOpen(true);
-        }
+    const state = location.state as any;
+    if (!state) return;
+    const { openTaskId, openProjectId } = state;
+
+    if (!openTaskId && !openProjectId) return;
+    if (isLoading || videos.length === 0) return;
+
+    if (openTaskId) {
+      const task = videos.find(v => v.id === openTaskId);
+      if (task) {
+        setEditingTask(task);
+        setIsTaskModalOpen(true);
+      }
+    } else if (openProjectId) {
+      const project = projects.find(p => p.id === openProjectId);
+      if (project) {
+        setEditingProject(project);
+        setIsProjectModalOpen(true);
       }
     }
-  }, [location.state, isLoading, videos, projects]);
+
+    window.history.replaceState({}, '');
+  }, [location.key, isLoading, videos, projects]);
 
   const toggleMobileGroup = (id: string) => {
     const next = new Set(expandedMobileGroups);

@@ -113,15 +113,19 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                 navigate('/marketing', {
                     state: {
                         openTaskId: notif.marketing_task_id,
-                        openProjectId: notif.marketing_project_id
-                    }
+                        openProjectId: notif.marketing_project_id,
+                        _ts: Date.now()
+                    },
+                    replace: true
                 });
             } else {
                 navigate('/dashboard', {
                     state: {
                         openTaskId: notif.related_task_id,
-                        openProjectId: notif.related_project_id
-                    }
+                        openProjectId: notif.related_project_id,
+                        _ts: Date.now()
+                    },
+                    replace: true
                 });
             }
                                     onClose();
