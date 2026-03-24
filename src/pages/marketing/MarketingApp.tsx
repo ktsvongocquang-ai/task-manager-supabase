@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Award,
   Mail,
@@ -33,7 +33,7 @@ import {
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, isSameWeek, isSameQuarter, isSameYear, parseISO, differenceInDays, isFuture, isToday } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import MarketingRequestModal from './MarketingRequestModal';
 // Removed SmartCard import as it is unused
 import { BottomSheet } from '../../components/layout/BottomSheet';
@@ -483,6 +483,7 @@ const MarketingApp = () => {
           const payload = { ...formData };
           if (payload.start_date === '') payload.start_date = null;
           if (payload.end_date === '') payload.end_date = null;
+          if (payload.start_date) payload.actual_start_date = payload.start_date;
 
           if (editingProject) {
               const { error } = await supabase.from('marketing_projects').update(payload).eq('id', editingProject.id);
@@ -599,6 +600,26 @@ const MarketingApp = () => {
       setSearchParams({ tab: tabMap[newView] }, { replace: true });
     }
   };
+
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state && !isLoading) {
+      const { openTaskId, openProjectId } = location.state as any;
+      if (openTaskId) {
+        const task = videos.find(v => v.id === openTaskId);
+        if (task) {
+          setEditingTask(task);
+          setIsTaskModalOpen(true);
+        }
+      } else if (openProjectId) {
+        const project = projects.find(p => p.id === openProjectId);
+        if (project) {
+          setEditingProject(project);
+          setIsProjectModalOpen(true);
+        }
+      }
+    }
+  }, [location.state, isLoading, videos, projects]);
 
   const toggleMobileGroup = (id: string) => {
     const next = new Set(expandedMobileGroups);

@@ -50,7 +50,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 address: project.address || '',
                 supervisor_phone: project.supervisor_phone || '',
                 project_code: project.project_code || '',
-                actual_start_date: project.actual_start_date || '',
+                actual_start_date: project.actual_start_date || project.start_date || '',
                 design_days: project.design_days || 0,
                 rough_construction_days: project.rough_construction_days || 0,
                 finishing_days: project.finishing_days || 0,
@@ -113,6 +113,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 .update({
                     project_code: form.project_code,
                     actual_start_date: form.actual_start_date || null,
+                    start_date: form.actual_start_date || null,
                     design_days: Number(form.design_days),
                     rough_construction_days: Number(form.rough_construction_days),
                     finishing_days: Number(form.finishing_days),

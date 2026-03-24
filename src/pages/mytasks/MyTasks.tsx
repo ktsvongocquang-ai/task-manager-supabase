@@ -99,11 +99,22 @@ const NoteCard = ({
   deleteNote: (id: string) => void;
   toggleNoteItem: (noteId: string, itemId: string) => void;
   updateNoteItem: (noteId: string, itemId: string, text: string) => void;
-  addNoteItem: (noteId: string) => void;
+  addNoteItem: (noteId: string) => Promise<string | undefined>;
 }) => {
   const activeItems = note.items.filter(i => !i.isCompleted);
   const completedItems = note.items.filter(i => i.isCompleted);
   const [showCompleted, setShowCompleted] = useState(false);
+  const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (newlyAddedId) {
+      const el = document.getElementById(`note-item-${newlyAddedId}`);
+      if (el) {
+        (el as HTMLTextAreaElement).focus();
+        setNewlyAddedId(null);
+      }
+    }
+  }, [newlyAddedId, note.items]);
 
   return (
     <div className={`rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col ${note.color}`}>
@@ -134,6 +145,7 @@ const NoteCard = ({
                 <Square className="w-4 h-4" />
               </button>
               <textarea 
+                id={`note-item-${item.id}`}
                 value={item.text}
                 onChange={(e) => {
                   e.target.style.height = 'auto';
@@ -143,7 +155,9 @@ const NoteCard = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    addNoteItem(note.id);
+                    addNoteItem(note.id).then(id => {
+                        if (id) setNewlyAddedId(id);
+                    });
                   }
                 }}
                 rows={1}
@@ -687,7 +701,7 @@ export default function MyTasks() {
     await supabase.from('personal_note_items').update({ is_completed: newCompleted }).eq('id', itemId);
   };
 
-  const addNoteItem = async (noteId: string) => {
+  const addNoteItem = async (noteId: string): Promise<string | undefined> => {
     try {
       const { data, error } = await supabase.from('personal_note_items').insert([{
         note_id: noteId,
@@ -706,6 +720,7 @@ export default function MyTasks() {
           }
           return note;
         }));
+        return data.id;
       }
     } catch (err) {
       console.error('Error adding note item', err);

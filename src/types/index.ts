@@ -140,6 +140,8 @@ export interface AppNotification {
     type: string | 'mention' | 'assignment' | 'overdue' | 'due_today' | 'system'
     related_task_id: string | null
     related_project_id: string | null
+    marketing_task_id?: string | null
+    marketing_project_id?: string | null
     content: string
     is_read: boolean
     created_at: string

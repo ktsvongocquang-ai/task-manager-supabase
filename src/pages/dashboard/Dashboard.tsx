@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project, type ActivityLog } from '../../types'
@@ -82,6 +83,24 @@ export const Dashboard = () => {
             supabase.removeChannel(channel)
         }
     }, [profile, assigneeFilter, monthFilter])
+
+    const location = useLocation()
+    useEffect(() => {
+        if (location.state && !loading) {
+            const { openTaskId, openProjectId } = location.state as any
+            if (openTaskId) {
+                const task = allTasks.find(t => t.id === openTaskId)
+                if (task) {
+                    openEditTask(task)
+                }
+            } else if (openProjectId) {
+                const proj = allProjects.find(p => p.id === openProjectId)
+                if (proj) {
+                    openProjectDetail(proj)
+                }
+            }
+        }
+    }, [location.state, loading, allTasks, allProjects])
 
     const fetchDashboardData = async () => {
         try {

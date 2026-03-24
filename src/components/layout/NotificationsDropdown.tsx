@@ -109,12 +109,21 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                                     if (!notif.is_read) {
                                         await handleMarkAsRead(notif.id, e);
                                     }
-                                    navigate('/dashboard', {
-                                        state: {
-                                            openTaskId: notif.related_task_id,
-                                            openProjectId: notif.related_project_id
-                                        }
-                                    });
+            if (notif.marketing_task_id || notif.marketing_project_id) {
+                navigate('/marketing', {
+                    state: {
+                        openTaskId: notif.marketing_task_id,
+                        openProjectId: notif.marketing_project_id
+                    }
+                });
+            } else {
+                navigate('/dashboard', {
+                    state: {
+                        openTaskId: notif.related_task_id,
+                        openProjectId: notif.related_project_id
+                    }
+                });
+            }
                                     onClose();
                                 }}
                             >
