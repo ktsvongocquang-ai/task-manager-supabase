@@ -108,11 +108,13 @@ const NoteCard = ({
 
   useEffect(() => {
     if (newlyAddedId) {
-      const el = document.getElementById(`note-item-${newlyAddedId}`);
-      if (el) {
-        (el as HTMLTextAreaElement).focus();
-        setNewlyAddedId(null);
-      }
+      setTimeout(() => {
+        const el = document.getElementById(`note-item-${newlyAddedId}`);
+        if (el) {
+          (el as HTMLTextAreaElement).focus();
+          setNewlyAddedId(null);
+        }
+      }, 50);
     }
   }, [newlyAddedId, note.items]);
 
