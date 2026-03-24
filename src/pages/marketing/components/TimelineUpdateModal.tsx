@@ -50,12 +50,12 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                 address: project.address || '',
                 supervisor_phone: project.supervisor_phone || '',
                 project_code: project.project_code || '',
-                actual_start_date: project.actual_start_date || project.start_date || '',
-                design_days: project.design_days || 0,
+                actual_start_date: project.start_date || project.actual_start_date || '',
+                design_days: 0,
                 rough_construction_days: project.rough_construction_days || 0,
                 finishing_days: project.finishing_days || 0,
                 interior_days: project.interior_days || 0,
-                handover_date: project.handover_date || ''
+                handover_date: project.end_date || project.handover_date || ''
             });
             fetchRelatedData();
         }
@@ -91,19 +91,22 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
         }
     };
 
-    // Calculate handover date automatically
+    // Calculate interior days automatically
     useEffect(() => {
-        if (form.actual_start_date && (form.design_days || form.rough_construction_days || form.finishing_days || form.interior_days)) {
-            const startDate = parseISO(form.actual_start_date);
-            const totalDays = Number(form.design_days) + Number(form.rough_construction_days) + Number(form.finishing_days) + Number(form.interior_days);
-            if (totalDays > 0) {
-                const calculatedEnd = addDays(startDate, totalDays);
-                const endDateStr = format(calculatedEnd, 'yyyy-MM-dd');
-                // Only auto-update if they are different and user hasn't manually overridden it heavily (or just overwrite for preview)
-                setForm(prev => ({ ...prev, handover_date: endDateStr }));
-            }
+        if (form.actual_start_date && form.handover_date) {
+            const start = parseISO(form.actual_start_date);
+            const end = parseISO(form.handover_date);
+            const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+            
+            const rough = Number(form.rough_construction_days) || 0;
+            const finishing = Number(form.finishing_days) || 0;
+            
+            let interior = totalDays - rough - finishing;
+            if (interior < 0) interior = 0; // Prevent negative days if logic is flawed
+            
+            setForm(prev => ({ ...prev, interior_days: interior }));
         }
-    }, [form.actual_start_date, form.design_days, form.rough_construction_days, form.finishing_days, form.interior_days]);
+    }, [form.actual_start_date, form.handover_date, form.rough_construction_days, form.finishing_days]);
 
     const handleSaveTimeline = async () => {
         setIsLoading(true);
@@ -114,11 +117,12 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                     project_code: form.project_code,
                     actual_start_date: form.actual_start_date || null,
                     start_date: form.actual_start_date || null,
-                    design_days: Number(form.design_days),
+                    design_days: 0, // Removed design phase
                     rough_construction_days: Number(form.rough_construction_days),
                     finishing_days: Number(form.finishing_days),
                     interior_days: Number(form.interior_days),
                     handover_date: form.handover_date || null,
+                    end_date: form.handover_date || null,
                     status: (form.handover_date && new Date(form.handover_date) <= new Date()) ? 'Đã bàn giao' : project.status
                 })
                 .eq('id', project.id);
