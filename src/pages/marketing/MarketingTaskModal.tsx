@@ -60,29 +60,56 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
 
     const updateToolbarPosition = () => {
         const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        if (!selection || selection.rangeCount === 0) {
             setShowToolbar(false);
             return;
         }
 
         const range = selection.getRangeAt(0);
-        // Kiểm tra xem vùng chọn có nằm trong editor này không
+        // Kiểm tra xem vùng chọn/con trỏ có nằm trong editor này không
         if (editorRef.current && !editorRef.current.contains(range.commonAncestorContainer)) {
             setShowToolbar(false);
             return;
         }
 
-        const rect = range.getBoundingClientRect();
+        // Lấy tọa độ vùng chọn hoặc con trỏ
+        let rect = range.getBoundingClientRect();
+        
+        // Xử lý khi click vào dòng trống (rect có thể có kích thước bằng 0)
+        if (rect.width === 0 && rect.height === 0) {
+            const rects = range.getClientRects();
+            if (rects.length > 0) {
+                rect = rects[0];
+            } else {
+                // Cố gắng lấy tọa độ cursor bằng cách chèn một phần tử ảo nếu cần, 
+                // nhưng thường thì containerRect sẽ cung cấp mốc cơ bản
+                const containerRect = containerRef.current?.getBoundingClientRect();
+                if (containerRect) {
+                    // Mặc định ở góc trên bên trái của editor nếu không tính được chính xác
+                    setToolbarPos({ top: 10, left: 10 });
+                    setShowToolbar(true);
+                    return;
+                }
+            }
+        }
+
         const containerRect = containerRef.current?.getBoundingClientRect();
 
         if (containerRect) {
+            // Giới hạn left để không bị tràn ra ngoài container
+            const leftPos = Math.max(0, Math.min(
+                rect.left - containerRect.left + (rect.width / 2) - 75,
+                containerRect.width - 150
+            ));
+
             setToolbarPos({
-                top: rect.top - containerRect.top - 45, // Hiện phía trên vùng chọn
-                left: rect.left - containerRect.left + (rect.width / 2) - 75 // Căn giữa theo vùng chọn (75 ~ nửa chiều rộng toolbar)
+                top: rect.top - containerRect.top - 48, // Khoảng cách lý tưởng phía trên con trỏ
+                left: leftPos
             });
             setShowToolbar(true);
         }
     };
+
 
     const handleMouseUp = () => {
         // Delay một chút để selection kịp cập nhật
