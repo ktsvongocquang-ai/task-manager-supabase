@@ -8,9 +8,13 @@ interface AdMetrics {
     name: string;
     spend: number;
     impressions: number;
+    reach?: number;
     clicks: number;
     ctr: number;
     cpc: number;
+    messages?: number;
+    leads?: number;
+    post_engagements?: number;
 }
 
 interface AIReport {
@@ -340,6 +344,9 @@ export default function FacebookAdsAnalyzer() {
                                                                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}/>
                                                                     <Bar yAxisId="left" dataKey="spend" name="Chi phí (đ/VND)" fill="#4f46e5" radius={[4, 4, 0, 0]} />
                                                                     <Bar yAxisId="right" dataKey="clicks" name="Clicks" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                                                                    <Bar yAxisId="right" dataKey="messages" name="Tin nhắn" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                                                                    <Bar yAxisId="right" dataKey="leads" name="Tiềm năng" fill="#10b981" radius={[4, 4, 0, 0]} />
+                                                                    <Bar yAxisId="right" dataKey="reach" name="Lượt tiếp cận" fill="#94a3b8" radius={[4, 4, 0, 0]} />
                                                                 </BarChart>
                                                             </ResponsiveContainer>
                                                         </div>

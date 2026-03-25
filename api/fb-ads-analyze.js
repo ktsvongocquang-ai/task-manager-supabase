@@ -7,7 +7,11 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt, fbToken, adAccountId, reportType } = req.body;
+        let { prompt, fbToken, adAccountId, reportType } = req.body;
+        
+        if (adAccountId && !adAccountId.startsWith('act_')) {
+            adAccountId = 'act_' + adAccountId;
+        }
 
         if (!prompt || !fbToken || !adAccountId) {
             return res.status(400).json({ error: 'Thiếu thông tin prompt, fbToken hoặc adAccountId.' });
@@ -64,10 +68,11 @@ export default async function handler(req, res) {
         // Bước 3: Đưa dữ liệu thô vào LLM (Đóng vai Giám đốc Marketing)
         const analyzeInstruction = `
 Bạn là một Giám Đốc Marketing (CMO) và Chuyên gia chạy Facebook Ads xuất sắc với 10 năm kinh nghiệm.
-Nhiệm vụ: Dựa vào tập tin dữ liệu JSON (Facebook Ads Insights) trình bày chi tiết từng bài viết (ad) dưới đây, hãy:
-1. Đánh giá tổng quan hiệu suất ngân sách và KPIs.
-2. Đi sâu đánh giá từng bài viết cụ thể (bài nào đang "cắn" tiền ngon, bài đắt đỏ, bài nào mang lại leads/purchases thực tế tốt nhất, CPA bao nhiêu). Hãy tính toán từ JSON nếu cần (ví dụ: spend / leads).
-3. ĐƯA RA LỜI KHUYÊN CHIẾN LƯỢC: Là Giám đốc, bạn quyết định nên tắt bài nào, dồn tiền bài nào, hay thay đổi nội dung gì?
+Nhiệm vụ: Dựa vào tập tin dữ liệu JSON (Facebook Ads Insights) trình bày chi tiết từng bài viết (ad) bao gồm các chỉ số chuẩn (Spend, CPM, CTR) và các chỉ số chuyển đổi quan trọng (Messages, Leads, Post Engagements).
+Hãy:
+1. Đánh giá tổng quan hiệu suất ngân sách và KPIs toàn chiến dịch.
+2. Đi sâu đánh giá từng bài viết cụ thể: bài nào đang có giá Tin nhắn (Cost per Message) rẻ, bài nào có tỷ lệ chuyển đổi cao, bài nào lãng phí ngân sách mà không có tương tác.
+3. ĐƯA RA LỜI KHUYÊN CHIẾN LƯỢC: Là Giám đốc, bạn quyết định nên tắt bài nào, dồn tiền bài nào, hay thay đổi nội dung gì để tối ưu ROI/CPA?
 Khung báo cáo: Chuyên nghiệp, dùng Format Markdown, rõ ràng như một báo cáo trình cấp trên. KHÔNG ĐƯỢC CHỨA CÚ PHÁP LỘ JSON thô.
 `;
         
@@ -95,14 +100,31 @@ ${JSON.stringify(adsDataRaw)}
                     auth: { autoRefreshToken: false, persistSession: false }
                 });
                 
-                const metricsJson = adsDataRaw.slice(0, 10).map(ad => ({
-                    name: (ad.ad_name || ad.campaign_name || 'Unknown').substring(0, 20) + '...',
-                    spend: parseFloat(ad.spend) || 0,
-                    impressions: parseInt(ad.impressions) || 0,
-                    clicks: parseInt(ad.clicks) || 0,
-                    ctr: parseFloat(ad.ctr) || 0,
-                    cpc: parseFloat(ad.cpc) || 0,
-                }));
+                const metricsJson = adsDataRaw.slice(0, 10).map(ad => {
+                    const actions = ad.actions || [];
+                    const getAction = (type) => {
+                        const action = actions.find(a => a.action_type === type);
+                        return action ? parseInt(action.value) : 0;
+                    };
+
+                    const messages = getAction('onsite_conversion.messaging_first_reply') + getAction('messaging_conversation_started_7d');
+                    const linkClicks = getAction('link_click');
+                    const postEngagements = getAction('post_engagement');
+                    const leads = getAction('lead') + getAction('onsite_conversion.lead_grouped');
+
+                    return {
+                        name: (ad.ad_name || ad.campaign_name || 'No Name').substring(0, 20),
+                        spend: parseFloat(ad.spend) || 0,
+                        impressions: parseInt(ad.impressions) || 0,
+                        reach: parseInt(ad.reach) || 0,
+                        clicks: parseInt(ad.clicks) || linkClicks || 0,
+                        ctr: parseFloat(ad.ctr) || 0,
+                        cpc: parseFloat(ad.cpc) || 0,
+                        messages: messages,
+                        post_engagements: postEngagements,
+                        leads: leads
+                    };
+                });
 
                 await supabaseAdmin.from('marketing_ai_reports').insert({
                     report_type: reportType || 'Tùy chỉnh',
