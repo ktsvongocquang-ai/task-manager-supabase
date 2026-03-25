@@ -55,7 +55,7 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
         const response = await ai.getGenerativeModel({ 
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             systemInstruction: systemInstruction 
         }).generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
