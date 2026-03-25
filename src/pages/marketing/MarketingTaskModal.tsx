@@ -34,7 +34,10 @@ const defaultSections = [
 
 const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onChange: (val: string) => void, placeholder?: string }) => {
     const editorRef = React.useRef<HTMLDivElement>(null);
+    const containerRef = React.useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = React.useState(false);
+    const [showToolbar, setShowToolbar] = React.useState(false);
+    const [toolbarPos, setToolbarPos] = React.useState({ top: 0, left: 0 });
 
     // Cập nhật innerHTML chỉ khi không focused và giá trị bên ngoài thay đổi
     React.useEffect(() => {
@@ -55,37 +58,84 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
         }
     };
 
+    const updateToolbarPosition = () => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+            setShowToolbar(false);
+            return;
+        }
+
+        const range = selection.getRangeAt(0);
+        // Kiểm tra xem vùng chọn có nằm trong editor này không
+        if (editorRef.current && !editorRef.current.contains(range.commonAncestorContainer)) {
+            setShowToolbar(false);
+            return;
+        }
+
+        const rect = range.getBoundingClientRect();
+        const containerRect = containerRef.current?.getBoundingClientRect();
+
+        if (containerRect) {
+            setToolbarPos({
+                top: rect.top - containerRect.top - 45, // Hiện phía trên vùng chọn
+                left: rect.left - containerRect.left + (rect.width / 2) - 75 // Căn giữa theo vùng chọn (75 ~ nửa chiều rộng toolbar)
+            });
+            setShowToolbar(true);
+        }
+    };
+
+    const handleMouseUp = () => {
+        // Delay một chút để selection kịp cập nhật
+        setTimeout(updateToolbarPosition, 10);
+    };
+
+    const handleKeyUp = (e: React.KeyboardEvent) => {
+        if (e.key.startsWith('Arrow') || e.key === 'End' || e.key === 'Home') {
+            updateToolbarPosition();
+        }
+    };
+
     return (
-        <div className="flex flex-col gap-1 w-full group/rte relative">
-            {/* Toolbar dạng pill nổi */}
-            <div className={`absolute -top-10 left-0 flex items-center gap-0.5 p-1 bg-white border border-slate-200 shadow-lg rounded-lg z-50 transition-all duration-200 ${isFocused || value ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none group-hover/rte:opacity-100 group-hover/rte:translate-y-0'}`}>
-                <button 
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
-                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-bold text-sm transition-colors"
-                    title="Bôi đậm (Ctrl+B)"
-                >B</button>
-                <button 
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
-                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 italic font-medium text-sm transition-colors"
-                    title="In nghiêng (Ctrl+I)"
-                >I</button>
-                <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
-                <button 
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); handleFormat('hiliteColor', 'yellow'); }}
-                    className="w-8 h-8 flex items-center justify-center rounded bg-[#FFD700] hover:bg-[#FFC000] text-slate-900 font-bold text-sm transition-colors shadow-sm"
-                    title="Bôi vàng"
-                >A</button>
-                <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
-                <button 
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); handleFormat('clear'); }}
-                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                    title="Xóa định dạng"
-                ><X size={14} /></button>
-            </div>
+        <div ref={containerRef} className="flex flex-col gap-1 w-full group/rte relative">
+            {/* Toolbar dạng pill nổi theo vùng chọn */}
+            {showToolbar && (
+                <div 
+                    className="absolute flex items-center gap-0.5 p-1 bg-white border border-slate-200 shadow-lg rounded-lg z-[100] transition-all duration-200"
+                    style={{ 
+                        top: `${toolbarPos.top}px`, 
+                        left: `${toolbarPos.left}px`,
+                        transform: 'scale(0.95)',
+                    }}
+                    onMouseDown={(e) => e.preventDefault()} // Ngăn mất focus khi nhấn toolbar
+                >
+                    <button 
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-bold text-sm transition-colors"
+                        title="Bôi đậm (Ctrl+B)"
+                    >B</button>
+                    <button 
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 italic font-medium text-sm transition-colors"
+                        title="In nghiêng (Ctrl+I)"
+                    >I</button>
+                    <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
+                    <button 
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); handleFormat('hiliteColor', 'yellow'); }}
+                        className="w-8 h-8 flex items-center justify-center rounded bg-[#FFD700] hover:bg-[#FFC000] text-slate-900 font-bold text-sm transition-colors shadow-sm"
+                        title="Bôi vàng"
+                    >A</button>
+                    <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
+                    <button 
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); handleFormat('clear'); }}
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                        title="Xóa định dạng"
+                    ><X size={14} /></button>
+                </div>
+            )}
 
             <div
                 ref={editorRef}
@@ -95,8 +145,12 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
                     setIsFocused(false);
+                    // Ẩn toolbar sau một khoảng thời gian ngắn để kịp nhấn vào toolbar nếu cần
+                    setTimeout(() => setShowToolbar(false), 200);
                     if (editorRef.current) onChange(editorRef.current.innerHTML);
                 }}
+                onMouseUp={handleMouseUp}
+                onKeyUp={handleKeyUp}
                 onKeyDown={(e) => {
                     if (e.ctrlKey || e.metaKey) {
                         if (e.key === 'b') { e.preventDefault(); handleFormat('bold'); }
@@ -104,6 +158,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
                     }
                 }}
             />
+
             {(!value || value === '<br>' || value === '') && !isFocused && (
                 <div className="absolute top-2 left-1 text-slate-400 pointer-events-none text-[13px]">
                     {placeholder}
