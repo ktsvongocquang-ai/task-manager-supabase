@@ -89,7 +89,7 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào (gồm Hội thoại 
 4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,

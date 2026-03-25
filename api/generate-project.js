@@ -156,7 +156,7 @@ ${JSON.stringify(workingDaysCalendar)}
 `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             contents: "Tạo Lịch trình JSON WBS chi tiết cho dự án, dựa trên thông tin tôi nhập và hướng dẫn động (Dynamic WBS) của bạn:",
             config: {
                 systemInstruction: systemInstruction,

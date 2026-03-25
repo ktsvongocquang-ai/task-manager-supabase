@@ -43,7 +43,7 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.0-flash',
             contents: [prompt],
             config: {
                 systemInstruction: systemInstruction,

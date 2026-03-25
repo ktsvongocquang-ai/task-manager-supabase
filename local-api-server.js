@@ -1,5 +1,5 @@
 import express from 'express';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
@@ -10,6 +10,11 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.json({ status: "DQH AI Local Server is running!", time: new Date().toISOString() });
+});
 
 app.post('/api/refine-task', async (req, res) => {
     try {
@@ -24,14 +29,14 @@ app.post('/api/refine-task', async (req, res) => {
         }
 
         const schema = {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-                refinedText: { type: Type.STRING, description: "Nội dung đã được tinh chỉnh, chuyên nghiệp và súc tích." }
+                refinedText: { type: SchemaType.STRING, description: "Nội dung đã được tinh chỉnh, chuyên nghiệp và súc tích." }
             },
             required: ["refinedText"]
         };
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }); // Assuming GEMINI_API_KEY is defined in .env
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
         const systemInstruction = `
 [VAI TRÒ]
@@ -49,18 +54,19 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [prompt],
-            config: {
-                systemInstruction: systemInstruction,
+        const response = await ai.getGenerativeModel({ 
+            model: 'gemini-2.0-flash',
+            systemInstruction: systemInstruction 
+        }).generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
                 responseSchema: schema,
                 responseMimeType: 'application/json',
                 temperature: 0.1,
             }
         });
 
-        const generatedData = JSON.parse(response.text);
+        const generatedData = JSON.parse(response.response.text());
 
         return res.status(200).json(generatedData);
 
@@ -85,13 +91,13 @@ app.post('/api/send-ai-email', async (req, res) => {
             return res.status(500).json({ error: 'Thiếu cấu hình API Key hoặc thông tin Email trong biến môi trường.' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
         const schema = {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-                subject: { type: Type.STRING, description: "Tiêu đề của email (ngắn gọn, xúc tích, ví dụ: [Task Manager] Bạn được giao công việc mới...)." },
-                bodyHtml: { type: Type.STRING, description: "Nội dung thân email được định dạng bằng HTML (sử dụng thẻ <p>, <ul>, <strong>... để trình bày đẹp mắt)." }
+                subject: { type: SchemaType.STRING, description: "Tiêu đề của email (ngắn gọn, xúc tích, ví dụ: [Task Manager] Bạn được giao công việc mới...)." },
+                bodyHtml: { type: SchemaType.STRING, description: "Nội dung thân email được định dạng bằng HTML (sử dụng thẻ <p>, <ul>, <strong>... để trình bày đẹp mắt)." }
             },
             required: ["subject", "bodyHtml"]
         };
@@ -109,18 +115,19 @@ Bắt buộc phải trả về định dạng JSON theo schema gồm subject và
             template_data
         }, null, 2);
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [prompt],
-            config: {
-                systemInstruction: systemInstruction,
+        const response = await ai.getGenerativeModel({ 
+            model: 'gemini-2.0-flash',
+            systemInstruction: systemInstruction 
+        }).generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
                 responseSchema: schema,
                 responseMimeType: 'application/json',
                 temperature: 0.3,
             }
         });
 
-        const generatedData = JSON.parse(response.text);
+        const generatedData = JSON.parse(response.response.text());
 
         // Send Email via Nodemailer
         const transporter = nodemailer.createTransport({
@@ -160,32 +167,33 @@ app.post('/api/fb-ads-analyze', async (req, res) => {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const currentDate = new Date().toISOString().split('T')[0];
 
         // Bước 1: Trích xuất tham số thời gian từ Prompt
         const schema = {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-                since: { type: Type.STRING, description: "Ngày bắt đầu theo chuẩn YYYY-MM-DD" },
-                until: { type: Type.STRING, description: "Ngày kết thúc chuẩn YYYY-MM-DD" }
+                since: { type: SchemaType.STRING, description: "Ngày bắt đầu theo chuẩn YYYY-MM-DD" },
+                until: { type: SchemaType.STRING, description: "Ngày kết thúc chuẩn YYYY-MM-DD" }
             },
             required: ["since", "until"]
         };
 
         const configPrompt = `Giao tiếp: Hôm nay là ${currentDate}. Dựa vào yêu cầu sau: "${prompt}". Hãy trích xuất khoảng thời gian (since, until) dạng YYYY-MM-DD. Mặc định nếu không ghi rõ là xem 7 ngày qua.`;
         
-        const configResponse = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [configPrompt],
-            config: {
+        const configResponse = await ai.getGenerativeModel({ 
+            model: 'gemini-2.0-flash' 
+        }).generateContent({
+            contents: [{ role: 'user', parts: [{ text: configPrompt }] }],
+            generationConfig: {
                 responseSchema: schema,
                 responseMimeType: 'application/json',
                 temperature: 0.1,
             }
         });
 
-        const timeRangeObj = JSON.parse(configResponse.text);
+        const timeRangeObj = JSON.parse(configResponse.response.text());
         const timeRangeStr = JSON.stringify({ since: timeRangeObj.since, until: timeRangeObj.until });
 
         // Bước 2: Gọi Facebook Graph API (Lấy cấp độ Ad để phân tích chi tiết từng bài viết)
@@ -222,16 +230,17 @@ DỮ LIỆU TỪ FACEBOOK ADS (CẤP ĐỘ TỪNG BÀI VIẾT QUẢNG CÁO):
 ${JSON.stringify(adsDataRaw)}
         `;
 
-        const analysisResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [analysisPrompt],
-            config: {
-                systemInstruction: analyzeInstruction,
+        const analysisResponse = await ai.getGenerativeModel({
+            model: 'gemini-2.0-flash',
+            systemInstruction: analyzeInstruction
+        }).generateContent({
+            contents: [{ role: 'user', parts: [{ text: analysisPrompt }] }],
+            generationConfig: {
                 temperature: 0.5,
             }
         });
 
-        const aiAdvice = analysisResponse.text;
+        const aiAdvice = analysisResponse.response.text();
 
         // Bước 4: Lưu vào Supabase Dashboard
         const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -372,6 +381,6 @@ app.post('/api/admin', async (req, res) => {
 });
 
 const PORT = 3001;
-app.listen(PORT, () => {
-    console.log(`Local AI API server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Local AI API server running on http://0.0.0.0:${PORT}`);
 });

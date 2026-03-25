@@ -64,8 +64,7 @@ export default function FacebookAdsAnalyzer() {
 
     const fetchHistory = async (accountId: string) => {
         try {
-            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
-            const res = await fetch(`${apiBase}/api/fb-ads-reports?adAccountId=${accountId}`);
+            const res = await fetch(`/api/fb-ads-reports?adAccountId=${accountId}`);
             const data = await res.json();
             if (data.reports && data.reports.length > 0) {
                 // Đảo ngược để báo cáo cũ ở trên, mới ở dưới
@@ -110,8 +109,7 @@ export default function FacebookAdsAnalyzer() {
         }]);
 
         try {
-            const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '';
-            const response = await fetch(`${apiBase}/api/fb-ads-analyze`, {
+            const response = await fetch('/api/fb-ads-analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -123,8 +121,15 @@ export default function FacebookAdsAnalyzer() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Lỗi kết nối đến máy chủ AI');
+                const errorText = await response.text();
+                let errorMsg = 'Lỗi máy chủ';
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    errorMsg = errorJson.error || errorJson.message || errorMsg;
+                } catch (e) {
+                    errorMsg = errorText.substring(0, 100);
+                }
+                throw new Error(errorMsg);
             }
 
             // Sau khi backend xử lý và lưu DB thành công, fetch lại lịch sử để lấy biểu đồ mới nhất

@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
         const configPrompt = `Giao tiếp: Hôm nay là ${currentDate}. Dựa vào yêu cầu sau: "${prompt}". Hãy trích xuất khoảng thời gian (since, until) dạng YYYY-MM-DD. Mặc định nếu không ghi rõ là xem 7 ngày qua.`;
         
-        const configResponse = await ai.getGenerativeModel({ model: 'gemini-1.5-flash' }).generateContent({
+        const configResponse = await ai.getGenerativeModel({ model: 'gemini-2.0-flash' }).generateContent({
             contents: [{ role: 'user', parts: [{ text: configPrompt }] }],
             generationConfig: {
                 responseSchema: schema,
@@ -79,7 +79,7 @@ ${JSON.stringify(adsDataRaw)}
         `;
 
         const analysisResponse = await ai.getGenerativeModel({ 
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.0-flash',
             systemInstruction: analyzeInstruction 
         }).generateContent(analysisPrompt);
 
