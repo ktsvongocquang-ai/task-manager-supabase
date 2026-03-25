@@ -47,10 +47,10 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                 <thead className="bg-[#f8fafc] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shadow-sm">
                     <tr>
                         <th className="p-3 text-center border-r border-slate-200" style={{ width: '5%' }}>STT</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '13%' }}>Nội dung</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '35%' }}>Kịch bản</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '22%' }}>Source clip</th>
-                        <th className="p-3" style={{ width: '25%' }}>Chú thích & minh họa</th>
+                        <th className="p-3 border-r border-slate-200" style={{ width: '15%' }}>Nội dung</th>
+                        <th className="p-3 border-r border-slate-200" style={{ width: '40%' }}>Kịch bản</th>
+                        <th className="p-3 border-r border-slate-200" style={{ width: '20%' }}>Source clip</th>
+                        <th className="p-3" style={{ width: '20%' }}>Chú thích & minh họa</th>
                     </tr>
                 </thead>
                 <tbody className="text-sm">
