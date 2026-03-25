@@ -31,13 +31,85 @@ const defaultSections = [
     { id: 'cta', label: 'CTA', badge_color: 'bg-[#FAEEDA] text-[#633806]', description: 'Follow', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' }
 ];
 
+
+const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onChange: (val: string) => void, placeholder?: string }) => {
+    const editorRef = React.useRef<HTMLDivElement>(null);
+    const [isFocused, setIsFocused] = React.useState(false);
+
+    // Cập nhật innerHTML chỉ khi không focused và giá trị bên ngoài thay đổi
+    React.useEffect(() => {
+        if (editorRef.current && !isFocused && editorRef.current.innerHTML !== value) {
+            editorRef.current.innerHTML = value || '';
+        }
+    }, [value, isFocused]);
+
+    const handleFormat = (command: string, arg?: string) => {
+        document.execCommand(command, false, arg);
+        if (editorRef.current) {
+            onChange(editorRef.current.innerHTML);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-1 w-full group/rte relative">
+            <div className={`flex items-center gap-1 mb-1 pb-1 opacity-0 group-hover/rte:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm sticky top-0 z-10 border-b border-slate-100 ${isFocused ? 'opacity-100' : ''}`}>
+                <button 
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
+                    className="p-1 hover:bg-slate-100 rounded text-slate-700 font-bold text-[10px] w-6 h-6 flex items-center justify-center border border-slate-200 shadow-sm"
+                    title="Bôi đậm (Ctrl+B)"
+                >B</button>
+                <button 
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
+                    className="p-1 hover:bg-slate-100 rounded text-slate-700 italic text-[10px] w-6 h-6 flex items-center justify-center border border-slate-200 shadow-sm"
+                    title="In nghiêng (Ctrl+I)"
+                >I</button>
+                <button 
+                    type="button"
+                    onMouseDown={(e) => { 
+                        e.preventDefault(); 
+                        // Kiểm tra xem đã có highlight chưa, nếu có thì xóa, chưa thì thêm
+                        handleFormat('hiliteColor', 'yellow'); 
+                    }}
+                    className="p-1 hover:bg-yellow-100 rounded text-slate-700 text-[10px] w-6 h-6 flex items-center justify-center border border-yellow-200 bg-yellow-50 shadow-sm"
+                    title="Bôi vàng"
+                ><Sparkles size={11} className="text-yellow-600" /></button>
+            </div>
+            <div
+                ref={editorRef}
+                contentEditable
+                className="w-full bg-transparent border-none outline-none p-1 text-slate-700 text-[13px] leading-relaxed min-h-[80px] focus:ring-0 whitespace-pre-wrap"
+                onInput={(e) => onChange(e.currentTarget.innerHTML)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => {
+                    setIsFocused(false);
+                    if (editorRef.current) onChange(editorRef.current.innerHTML);
+                }}
+                onKeyDown={(e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (e.key === 'b') { e.preventDefault(); handleFormat('bold'); }
+                        if (e.key === 'i') { e.preventDefault(); handleFormat('italic'); }
+                    }
+                }}
+            />
+            {(!value || value === '<br>' || value === '') && !isFocused && (
+                <div className="absolute top-[35px] left-1 text-slate-400 pointer-events-none text-[13px]">
+                    {placeholder}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChange: (s: any[]) => void }) => {
     
-    // Auto-resize textarea
+    // Auto-resize textarea cho các trường không phải rich text
     const autoResize = (el: HTMLTextAreaElement) => {
         el.style.height = 'auto';
         el.style.height = el.scrollHeight + 'px';
     };
+
 
     const currentSections = (sections && sections.length > 0) ? sections : defaultSections;
 
@@ -66,19 +138,16 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                 </div>
                             </td>
                             <td className="p-3 align-top border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
-                                <textarea 
-                                    className="w-full bg-transparent border-none resize-none p-1 text-slate-700 text-[13px] leading-relaxed focus:ring-0 focus:outline-none min-h-[68px]" 
+                                <RichTextEditor 
                                     placeholder="Viết kịch bản..."
                                     value={sec.kich_ban || ''}
-                                    onChange={(e) => {
+                                    onChange={(val) => {
                                         const newS = [...currentSections];
-                                        newS[index] = {...newS[index], kich_ban: e.target.value};
+                                        newS[index] = {...newS[index], kich_ban: val};
                                         onChange(newS);
                                     }}
-                                    onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
-                                    // Trigger auto-resize on mount
-                                    ref={(el) => { if(el) autoResize(el); }}
                                 />
+
                             </td>
                             <td className="p-3 align-top border-r border-slate-100">
                                 <div className="flex flex-col gap-1.5">
