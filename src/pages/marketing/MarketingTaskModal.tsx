@@ -44,7 +44,12 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
     }, [value, isFocused]);
 
     const handleFormat = (command: string, arg?: string) => {
-        document.execCommand(command, false, arg);
+        if (command === 'clear') {
+            document.execCommand('removeFormat', false, undefined);
+            document.execCommand('hiliteColor', false, 'transparent');
+        } else {
+            document.execCommand(command, false, arg);
+        }
         if (editorRef.current) {
             onChange(editorRef.current.innerHTML);
         }
@@ -52,34 +57,40 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
 
     return (
         <div className="flex flex-col gap-1 w-full group/rte relative">
-            <div className={`flex items-center gap-1 mb-1 pb-1 opacity-0 group-hover/rte:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm sticky top-0 z-10 border-b border-slate-100 ${isFocused ? 'opacity-100' : ''}`}>
+            {/* Toolbar dạng pill nổi */}
+            <div className={`absolute -top-10 left-0 flex items-center gap-0.5 p-1 bg-white border border-slate-200 shadow-lg rounded-lg z-50 transition-all duration-200 ${isFocused || value ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none group-hover/rte:opacity-100 group-hover/rte:translate-y-0'}`}>
                 <button 
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
-                    className="p-1 hover:bg-slate-100 rounded text-slate-700 font-bold text-[10px] w-6 h-6 flex items-center justify-center border border-slate-200 shadow-sm"
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-bold text-sm transition-colors"
                     title="Bôi đậm (Ctrl+B)"
                 >B</button>
                 <button 
                     type="button"
                     onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
-                    className="p-1 hover:bg-slate-100 rounded text-slate-700 italic text-[10px] w-6 h-6 flex items-center justify-center border border-slate-200 shadow-sm"
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 italic font-medium text-sm transition-colors"
                     title="In nghiêng (Ctrl+I)"
                 >I</button>
+                <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
                 <button 
                     type="button"
-                    onMouseDown={(e) => { 
-                        e.preventDefault(); 
-                        // Kiểm tra xem đã có highlight chưa, nếu có thì xóa, chưa thì thêm
-                        handleFormat('hiliteColor', 'yellow'); 
-                    }}
-                    className="p-1 hover:bg-yellow-100 rounded text-slate-700 text-[10px] w-6 h-6 flex items-center justify-center border border-yellow-200 bg-yellow-50 shadow-sm"
+                    onMouseDown={(e) => { e.preventDefault(); handleFormat('hiliteColor', 'yellow'); }}
+                    className="w-8 h-8 flex items-center justify-center rounded bg-[#FFD700] hover:bg-[#FFC000] text-slate-900 font-bold text-sm transition-colors shadow-sm"
                     title="Bôi vàng"
-                ><Sparkles size={11} className="text-yellow-600" /></button>
+                >A</button>
+                <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
+                <button 
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); handleFormat('clear'); }}
+                    className="w-8 h-8 flex items-center justify-center rounded hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                    title="Xóa định dạng"
+                ><X size={14} /></button>
             </div>
+
             <div
                 ref={editorRef}
                 contentEditable
-                className="w-full bg-transparent border-none outline-none p-1 text-slate-700 text-[13px] leading-relaxed min-h-[80px] focus:ring-0 whitespace-pre-wrap"
+                className="w-full bg-transparent border-none outline-none p-1 text-slate-700 text-[13px] leading-relaxed min-h-[100px] focus:ring-0 whitespace-pre-wrap relative z-0"
                 onInput={(e) => onChange(e.currentTarget.innerHTML)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
@@ -94,13 +105,14 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
                 }}
             />
             {(!value || value === '<br>' || value === '') && !isFocused && (
-                <div className="absolute top-[35px] left-1 text-slate-400 pointer-events-none text-[13px]">
+                <div className="absolute top-2 left-1 text-slate-400 pointer-events-none text-[13px]">
                     {placeholder}
                 </div>
             )}
         </div>
     );
 };
+
 
 const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChange: (s: any[]) => void }) => {
     
