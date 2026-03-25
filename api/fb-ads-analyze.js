@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
@@ -17,22 +17,23 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const ai = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const currentDate = new Date().toISOString().split('T')[0];
 
         // Bước 1: Trích xuất tham số thời gian từ Prompt
         const schema = {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-                since: { type: Type.STRING, description: "Ngày bắt đầu theo chuẩn YYYY-MM-DD" },
-                until: { type: Type.STRING, description: "Ngày kết thúc chuẩn YYYY-MM-DD" }
+                since: { type: SchemaType.STRING, description: "Ngày bắt đầu theo chuẩn YYYY-MM-DD" },
+                until: { type: SchemaType.STRING, description: "Ngày kết thúc chuẩn YYYY-MM-DD" }
             },
             required: ["since", "until"]
         };
 
         const configPrompt = `Giao tiếp: Hôm nay là ${currentDate}. Dựa vào yêu cầu sau: "${prompt}". Hãy trích xuất khoảng thời gian (since, until) dạng YYYY-MM-DD. Mặc định nếu không ghi rõ là xem 7 ngày qua.`;
         
-        const configResponse = await ai.getGenerativeModel({ model: 'gemini-2.0-flash' }).generateContent({
+        const configResponse = await ai.generateContent({
             contents: [{ role: 'user', parts: [{ text: configPrompt }] }],
             generationConfig: {
                 responseSchema: schema,
@@ -78,7 +79,7 @@ DỮ LIỆU TỪ FACEBOOK ADS (CẤP ĐỘ TỪNG BÀI VIẾT QUẢNG CÁO):
 ${JSON.stringify(adsDataRaw)}
         `;
 
-        const analysisResponse = await ai.getGenerativeModel({ 
+        const analysisResponse = await genAI.getGenerativeModel({ 
             model: 'gemini-2.0-flash',
             systemInstruction: analyzeInstruction 
         }).generateContent(analysisPrompt);

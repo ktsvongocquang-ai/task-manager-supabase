@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -16,49 +16,50 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
         const schema = {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-                refinedText: { type: Type.STRING, description: "Nội dung đã được tinh chỉnh, chuyên nghiệp và súc tích." }
+                refinedText: { type: SchemaType.STRING, description: "Nội dung đã được tinh chỉnh, chuyên nghiệp và súc tích." }
             },
             required: ["refinedText"]
         };
-
-        const ai = new GoogleGenAI({});
 
         const systemInstruction = `
 [VAI TRÒ]
 Bạn là chuyên gia quản lý dự án và biên tập nội dung chuyên nghiệp.
 
 [NHIỆM VỤ]
-Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường là kết quả ghi âm bằng giọng nói) thành văn bản chuyên nghiệp, rõ ràng, súc tích và đúng ngữ pháp tiếng Việt.
+Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp thành văn bản chuyên nghiệp, rõ ràng, súc tích và đúng ngữ pháp tiếng Việt.
 
 [QUY TẮC]
 1. Nếu field là 'name': Tạo tiêu đề ngắn gọn (dưới 10 từ), mang tính hành động.
-2. Nếu field là 'description': Viết chi tiết hơn, liệt kê các ý chính nếu cần, giữ phong cách chuyên nghiệp.
+2. Nếu field là 'description': Viết chi tiết hơn, liệt kê các ý chính nếu cần.
 3. Giữ nguyên các thông tin quan trọng như tên riêng, con số, thời hạn.
-4. Trả về kết quả dưới dạng JSON theo đúng schema.
 `;
+
+        const model = genAI.getGenerativeModel({ 
+            model: 'gemini-2.0-flash',
+            systemInstruction: systemInstruction 
+        });
 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: [prompt],
-            config: {
-                systemInstruction: systemInstruction,
+        const result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: {
                 responseSchema: schema,
                 responseMimeType: 'application/json',
                 temperature: 0.1,
             }
         });
 
-        const generatedData = JSON.parse(response.text);
-
+        const generatedData = JSON.parse(result.response.text());
         return res.status(200).json(generatedData);
 
     } catch (err) {
-        console.error("AI Refine Error:", err);
-        return res.status(500).json({ error: err.message || 'Lỗi khi AI tinh chỉnh nội dung.' });
+        console.error("Gemini Refine Error:", err);
+        return res.status(500).json({ error: err.message || 'Internal Server Error' });
     }
 }
