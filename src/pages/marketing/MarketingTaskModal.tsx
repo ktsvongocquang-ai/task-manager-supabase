@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { X, Plus, Trash2, CheckCircle2, Folder, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Archive } from 'lucide-react'
@@ -24,64 +24,6 @@ interface AddEditTaskModalProps {
 }
 
 
-// --- Rich Text Cell ---
-const RichTextCell = ({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) => {
-    const divRef = useRef<HTMLDivElement>(null);
-    const isFocused = useRef(false);
-
-    // Sync value into DOM only when not focused (to avoid cursor jump)
-    useEffect(() => {
-        if (divRef.current && !isFocused.current) {
-            divRef.current.innerHTML = value || '';
-        }
-    }, [value]);
-
-    const applyFmt = (cmd: string, val?: string) => {
-        divRef.current?.focus();
-        document.execCommand(cmd, false, val);
-        if (divRef.current) onChange(divRef.current.innerHTML);
-    };
-
-    return (
-        <div className="relative group/rich w-full min-h-[68px]">
-            {/* Floating Toolbar */}
-            <div className="absolute top-0 right-0 z-10 flex items-center gap-0.5 p-0.5 bg-white border border-slate-200 rounded-lg shadow-md opacity-0 group-hover/rich:opacity-100 focus-within:opacity-100 transition-all">
-                <button
-                    title="In đậm (Bold)"
-                    onMouseDown={(e) => { e.preventDefault(); applyFmt('bold'); }}
-                    className="w-6 h-6 flex items-center justify-center font-bold text-[12px] text-slate-700 hover:bg-slate-100 rounded transition-colors"
-                >B</button>
-                <button
-                    title="Chữ in nghiêng (Italic)"
-                    onMouseDown={(e) => { e.preventDefault(); applyFmt('italic'); }}
-                    className="w-6 h-6 flex items-center justify-center italic text-[12px] text-slate-700 hover:bg-slate-100 rounded transition-colors"
-                >I</button>
-                <button
-                    title="Bôi vàng (Highlight)"
-                    onMouseDown={(e) => { e.preventDefault(); applyFmt('hiliteColor', '#FDE68A'); }}
-                    className="w-6 h-6 flex items-center justify-center text-[11px] font-bold text-amber-700 bg-yellow-200 hover:bg-yellow-300 rounded transition-colors"
-                >A</button>
-                <button
-                    title="Xóa định dạng"
-                    onMouseDown={(e) => { e.preventDefault(); applyFmt('removeFormat'); }}
-                    className="w-6 h-6 flex items-center justify-center text-[10px] text-slate-400 hover:bg-slate-100 rounded transition-colors"
-                >✕</button>
-            </div>
-            <div
-                ref={divRef}
-                contentEditable
-                suppressContentEditableWarning
-                onFocus={() => { isFocused.current = true; }}
-                onBlur={(e) => { isFocused.current = false; onChange(e.currentTarget.innerHTML); }}
-                onInput={(e) => onChange(e.currentTarget.innerHTML)}
-                data-placeholder={placeholder}
-                className="w-full min-h-[68px] p-1 pr-24 text-slate-700 text-[13px] leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300 empty:before:pointer-events-none"
-            />
-        </div>
-    );
-};
-// --- End RichTextCell ---
-
 const defaultSections = [
     { id: 'mo_dau', label: 'Mở đầu', badge_color: 'bg-[#E1F5EE] text-[#085041]', description: 'Hook', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' },
     { id: 'van_de', label: 'Vấn đề', badge_color: 'bg-[#FCEBEB] text-[#791F1F]', description: 'Pain point', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' },
@@ -95,19 +37,6 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
     const autoResize = (el: HTMLTextAreaElement) => {
         el.style.height = 'auto';
         el.style.height = el.scrollHeight + 'px';
-    };
-
-    // Inline "add clip" state: which row index is open (-1 = none)
-    const [addingClipIdx, setAddingClipIdx] = useState<number>(-1);
-    const [clipDraft, setClipDraft] = useState({ url: '', desc: '' });
-
-    const commitClip = (index: number, currentSections: any[]) => {
-        if (!clipDraft.url.trim()) return;
-        const newS = [...currentSections];
-        newS[index].source_clips = [...(newS[index].source_clips || []), { url: clipDraft.url.trim(), desc: clipDraft.desc.trim() }];
-        onChange(newS);
-        setAddingClipIdx(-1);
-        setClipDraft({ url: '', desc: '' });
     };
 
     const currentSections = (sections && sections.length > 0) ? sections : defaultSections;
@@ -136,15 +65,19 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                     <div className="text-slate-800 font-semibold text-xs mt-1">{sec.description}</div>
                                 </div>
                             </td>
-                            <td className="p-3 align-top border-r border-slate-100 relative hover:bg-indigo-50/10 transition-colors">
-                                <RichTextCell
-                                    value={sec.kich_ban || ''}
+                            <td className="p-3 align-top border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
+                                <textarea 
+                                    className="w-full bg-transparent border-none resize-none p-1 text-slate-700 text-[13px] leading-relaxed focus:ring-0 focus:outline-none min-h-[68px]" 
                                     placeholder="Viết kịch bản..."
-                                    onChange={(html) => {
+                                    value={sec.kich_ban || ''}
+                                    onChange={(e) => {
                                         const newS = [...currentSections];
-                                        newS[index] = {...newS[index], kich_ban: html};
+                                        newS[index] = {...newS[index], kich_ban: e.target.value};
                                         onChange(newS);
                                     }}
+                                    onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
+                                    // Trigger auto-resize on mount
+                                    ref={(el) => { if(el) autoResize(el); }}
                                 />
                             </td>
                             <td className="p-3 align-top border-r border-slate-100">
@@ -179,37 +112,17 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                             </div>
                                         );
                                     })}
-                                    {/* Inline Add-Clip Form */}
-                                    {addingClipIdx === index ? (
-                                        <div className="flex flex-col gap-1.5 p-2 border border-indigo-200 rounded-lg bg-indigo-50/30">
-                                            <input
-                                                autoFocus
-                                                type="url"
-                                                className="w-full text-[11px] border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:border-indigo-400 bg-white placeholder:text-slate-300"
-                                                placeholder="Link video / clip..."
-                                                value={clipDraft.url}
-                                                onChange={(e) => setClipDraft(d => ({ ...d, url: e.target.value }))}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.currentTarget.nextElementSibling as HTMLInputElement)?.focus(); } if (e.key === 'Escape') { setAddingClipIdx(-1); setClipDraft({ url: '', desc: '' }); } }}
-                                            />
-                                            <input
-                                                type="text"
-                                                className="w-full text-[11px] border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:border-indigo-400 bg-white placeholder:text-slate-300"
-                                                placeholder="Mô tả: dùng cho phần gì? (VD: Hook, Giải pháp...)"
-                                                value={clipDraft.desc}
-                                                onChange={(e) => setClipDraft(d => ({ ...d, desc: e.target.value }))}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commitClip(index, currentSections); } if (e.key === 'Escape') { setAddingClipIdx(-1); setClipDraft({ url: '', desc: '' }); } }}
-                                            />
-                                            <div className="flex gap-1.5 justify-end">
-                                                <button onClick={() => { setAddingClipIdx(-1); setClipDraft({ url: '', desc: '' }); }} className="text-[10px] px-2 py-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">Hủy</button>
-                                                <button onClick={() => commitClip(index, currentSections)} className="text-[10px] px-3 py-1 rounded bg-indigo-500 text-white hover:bg-indigo-600 transition-colors font-medium">Thêm</button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <button 
-                                            className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
-                                            onClick={() => { setAddingClipIdx(index); setClipDraft({ url: '', desc: '' }); }}
-                                        >+ Thêm clip</button>
-                                    )}
+                                    <button 
+                                        className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
+                                        onClick={() => {
+                                            const url = prompt('Nhập link Video/Clip:');
+                                            if (!url) return;
+                                            const desc = prompt('Mô tả clip này dùng cho phần gì? (VD: Hook mở đầu, Tham khảo giải pháp...)') || '';
+                                            const newS = [...currentSections];
+                                            newS[index].source_clips = [...(newS[index].source_clips||[]), { url, desc }];
+                                            onChange(newS);
+                                        }}
+                                    >+ Thêm clip</button>
                                 </div>
                             </td>
                             <td className="p-0 align-top">
