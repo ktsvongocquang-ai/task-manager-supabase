@@ -209,105 +209,122 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
 
     return (
         <div className="w-full border border-slate-200 rounded-xl overflow-hidden bg-white">
-            <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed' }}>
-                <thead className="bg-[#f8fafc] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shadow-sm">
-                    <tr>
-                        <th className="p-3 text-center border-r border-slate-200" style={{ width: '5%' }}>STT</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '15%' }}>Nội dung</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '40%' }}>Kịch bản</th>
-                        <th className="p-3 border-r border-slate-200" style={{ width: '20%' }}>Source clip</th>
-                        <th className="p-3" style={{ width: '20%' }}>Chú thích & minh họa</th>
-                    </tr>
-                </thead>
-                <tbody className="text-sm">
-                    {currentSections.map((sec: any, index: number) => (
-                        <tr key={sec.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 align-top text-center text-slate-400 font-bold border-r border-slate-100">{index + 1}</td>
-                            <td className="p-4 align-top border-r border-slate-100">
+            {/* Desktop Table Header - Hidden on Mobile */}
+            <div className="hidden lg:grid grid-cols-[5%_15%_40%_20%_20%] bg-[#f8fafc] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shadow-sm">
+                <div className="p-3 text-center border-r border-slate-200">STT</div>
+                <div className="p-3 border-r border-slate-200">Nội dung</div>
+                <div className="p-3 border-r border-slate-200">Kịch bản</div>
+                <div className="p-3 border-r border-slate-200">Source clip</div>
+                <div className="p-3">Chú thích & minh họa</div>
+            </div>
+
+            {/* Body */}
+            <div className="text-sm">
+                {currentSections.map((sec: any, index: number) => (
+                    <div key={sec.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors flex flex-col lg:grid lg:grid-cols-[5%_15%_40%_20%_20%]">
+                        
+                        {/* Ngăn cách giữa các Card trên Mobile */}
+                        {index > 0 && <div className="h-2 bg-slate-50 lg:hidden w-full"></div>}
+
+                        {/* STT & Nội dung (Gộp chung trên mobile cho gọn) */}
+                        <div className="p-4 lg:p-0 lg:col-span-2 flex lg:grid lg:grid-cols-[25%_75%] border-b lg:border-b-0 border-slate-100 bg-slate-50/30 lg:bg-transparent">
+                            <div className="hidden lg:flex p-4 align-top justify-center text-slate-400 font-bold border-r border-slate-100">
+                                {index + 1}
+                            </div>
+                            <div className="flex-1 lg:p-4 align-top border-r-0 lg:border-r border-slate-100">
                                 <div className="flex flex-col items-start gap-1">
-                                    <div className={`${sec.badge_color} px-2 py-0.5 rounded text-[10px] font-bold`}>
-                                        {sec.label}
+                                    <div className="flex items-center gap-2">
+                                        <span className="lg:hidden text-slate-400 font-bold text-xs">#{index + 1}</span>
+                                        <div className={`${sec.badge_color} px-2 py-0.5 rounded text-[10px] font-bold`}>
+                                            {sec.label}
+                                        </div>
                                     </div>
                                     <div className="text-slate-800 font-semibold text-xs mt-1">{sec.description}</div>
                                 </div>
-                            </td>
-                            <td className="p-3 align-top border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
-                                <RichTextEditor 
-                                    placeholder="Viết kịch bản..."
-                                    value={sec.kich_ban || ''}
-                                    onChange={(val) => {
+                            </div>
+                        </div>
+
+                        {/* Kịch bản (Chiếm full width trên mobile) */}
+                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
+                            <RichTextEditor 
+                                placeholder="Viết kịch bản..."
+                                value={sec.kich_ban || ''}
+                                onChange={(val) => {
+                                    const newS = [...currentSections];
+                                    newS[index] = {...newS[index], kich_ban: val};
+                                    onChange(newS);
+                                }}
+                            />
+                        </div>
+
+                        {/* Source Clip */}
+                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/30 lg:bg-transparent">
+                            <div className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Source clip</div>
+                            <div className="flex flex-col gap-1.5">
+                                {(sec.source_clips || []).map((clip: any, i: number) => {
+                                    const isObj = clip && typeof clip === 'object';
+                                    const url = isObj ? clip.url : clip;
+                                    const desc = isObj ? clip.desc : '';
+                                    const href = url?.startsWith('http') ? url : `https://${url}`;
+                                    return (
+                                        <div key={i} className="flex items-start gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0 mt-1"></div>
+                                            <div className="flex-1 min-w-0">
+                                                {desc && <div className="font-semibold text-slate-700 text-[11px] leading-tight mb-0.5">{desc}</div>}
+                                                <a
+                                                    href={href}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="truncate block text-[10px] text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+                                                    title={url}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >{url}</a>
+                                            </div>
+                                            <button 
+                                                className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors shrink-0"
+                                                onClick={() => {
+                                                    const newS = [...currentSections];
+                                                    newS[index].source_clips = newS[index].source_clips.filter((_: any, idx: number) => idx !== i);
+                                                    onChange(newS);
+                                                }}
+                                            ><X size={10} /></button>
+                                        </div>
+                                    );
+                                })}
+                                <button 
+                                    className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
+                                    onClick={() => {
+                                        const url = prompt('Nhập link Video/Clip:');
+                                        if (!url) return;
+                                        const desc = prompt('Mô tả clip này dùng cho phần gì? (VD: Hook mở đầu, Tham khảo giải pháp...)') || '';
                                         const newS = [...currentSections];
-                                        newS[index] = {...newS[index], kich_ban: val};
+                                        newS[index].source_clips = [...(newS[index].source_clips||[]), { url, desc }];
                                         onChange(newS);
                                     }}
-                                />
+                                >+ Thêm clip</button>
+                            </div>
+                        </div>
 
-                            </td>
-                            <td className="p-3 align-top border-r border-slate-100">
-                                <div className="flex flex-col gap-1.5">
-                                    {(sec.source_clips || []).map((clip: any, i: number) => {
-                                        const isObj = clip && typeof clip === 'object';
-                                        const url = isObj ? clip.url : clip;
-                                        const desc = isObj ? clip.desc : '';
-                                        const href = url?.startsWith('http') ? url : `https://${url}`;
-                                        return (
-                                            <div key={i} className="flex items-start gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0 mt-1"></div>
-                                                <div className="flex-1 min-w-0">
-                                                    {desc && <div className="font-semibold text-slate-700 text-[11px] leading-tight mb-0.5">{desc}</div>}
-                                                    <a
-                                                        href={href}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="truncate block text-[10px] text-blue-500 hover:text-blue-700 hover:underline transition-colors"
-                                                        title={url}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >{url}</a>
-                                                </div>
-                                                <button 
-                                                    className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors shrink-0"
-                                                    onClick={() => {
-                                                        const newS = [...currentSections];
-                                                        newS[index].source_clips = newS[index].source_clips.filter((_: any, idx: number) => idx !== i);
-                                                        onChange(newS);
-                                                    }}
-                                                ><X size={10} /></button>
-                                            </div>
-                                        );
-                                    })}
-                                    <button 
-                                        className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
-                                        onClick={() => {
-                                            const url = prompt('Nhập link Video/Clip:');
-                                            if (!url) return;
-                                            const desc = prompt('Mô tả clip này dùng cho phần gì? (VD: Hook mở đầu, Tham khảo giải pháp...)') || '';
-                                            const newS = [...currentSections];
-                                            newS[index].source_clips = [...(newS[index].source_clips||[]), { url, desc }];
-                                            onChange(newS);
-                                        }}
-                                    >+ Thêm clip</button>
-                                </div>
-                            </td>
-                            <td className="p-0 align-top">
-                                <div className="flex flex-col h-full min-h-[100px]">
-                                    <textarea 
-                                        className="w-full bg-transparent border-none resize-none p-4 text-slate-600 text-[11px] leading-relaxed focus:bg-indigo-50/10 focus:ring-0 focus:outline-none min-h-[68px] transition-colors" 
-                                        placeholder="Ghi chú dựng video..."
-                                        value={sec.chu_thich || ''}
-                                        onChange={(e) => {
-                                            const newS = [...currentSections];
-                                            newS[index] = {...newS[index], chu_thich: e.target.value};
-                                            onChange(newS);
-                                        }}
-                                        onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
-                                        ref={(el) => { if(el) autoResize(el); }}
-                                    />
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+                        {/* Chú thích */}
+                        <div className="p-0 align-top bg-amber-50/10 lg:bg-transparent">
+                            <div className="flex flex-col h-full min-h-[100px]">
+                                <textarea 
+                                    className="w-full bg-transparent border-none resize-none p-4 text-slate-600 text-[11px] leading-relaxed focus:bg-indigo-50/10 focus:ring-0 focus:outline-none min-h-[68px] transition-colors" 
+                                    placeholder="Ghi chú dựng video..."
+                                    value={sec.chu_thich || ''}
+                                    onChange={(e) => {
+                                        const newS = [...currentSections];
+                                        newS[index] = {...newS[index], chu_thich: e.target.value};
+                                        onChange(newS);
+                                    }}
+                                    onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
+                                    ref={(el) => { if(el) autoResize(el); }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };
@@ -978,15 +995,15 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[1020px] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
 
                     {/* Header */}
-                    <div className="px-8 py-6 flex justify-between items-start bg-white shrink-0">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                                {/* Nút delete nhỏ ở góc thay vì nằm cạnh title */}
-                                <div className="bg-slate-100 p-2.5 rounded-xl text-slate-500">
+                    <div className="px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-start bg-white shrink-0 border-b border-slate-100 sm:border-none">
+                        <div className="flex-1 min-w-0 pr-2">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                {/* Icon trang trí */}
+                                <div className="hidden sm:block bg-slate-100 p-2.5 rounded-xl text-slate-500 shrink-0">
                                     <AlignLeft size={20} />
                                 </div>
                                 {editingTask ? (
@@ -995,10 +1012,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-[300px] transition-colors"
+                                            className="text-lg sm:text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 w-full min-w-0 transition-colors truncate focus:truncate-none"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
-                                        <div className="flex gap-1 ml-2">
+                                        <div className="flex gap-1 ml-1 sm:ml-2 shrink-0">
                                             <button
                                                 onClick={() => handleSpeechToText('name')}
                                                 className={`p-1.5 rounded-lg transition-colors ${isListening === 'name' ? 'bg-red-50 text-red-500 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
@@ -1022,12 +1039,12 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </h2>
                                 )}
                             </div>
-                            <div className="mt-1 ml-14 flex items-center gap-4">
+                            <div className="mt-2 sm:mt-1 sm:ml-14 flex items-center gap-2 sm:gap-4 flex-wrap">
                                     <input
                                         type="text"
                                         value={form.task_code}
                                         onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-32 sm:w-48 transition-colors"
+                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-24 sm:w-48 transition-colors shrink-0"
                                         placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                     />
                                     <select
@@ -1095,10 +1112,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Body scrollable */}
-                    <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-4 sm:px-8 sm:pb-8 custom-scrollbar">
 
                         {!editingTask && (
-                            <div className="mb-6 ml-14">
+                            <div className="mb-6 sm:ml-14">
                                 <input
                                     type="text"
                                     value={form.name}
@@ -1114,7 +1131,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         {/* Form Grid Layout - Clean 3 Columns */}
                         <div className="space-y-6">
                             {/* Full width Project Select */}
-                            <div className="px-14">
+                            <div className="sm:px-14">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Folder size={12} /> Dự án</div>
                                 <select
                                     value={form.project_id}
@@ -1127,9 +1144,9 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </select>
                             </div>
 
-                                                        <div className="px-8 mt-4 mb-6 relative z-10">
-                                <div className="flex border border-slate-200 rounded-xl bg-white shadow-sm">
-                                    <div className="flex-1 p-3 border-r border-slate-200">
+                            <div className="sm:px-8 mt-4 mb-6 relative z-10">
+                                <div className="grid grid-cols-2 lg:flex border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                                    <div className="p-3 border-r border-b lg:border-b-0 border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Trạng thái</div>
                                         <select
                                             value={form.status}
@@ -1149,7 +1166,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="REJECTED">Từ chối / Để sau</option>
                                         </select>
                                     </div>
-                                    <div className="flex-1 p-3 border-r border-slate-200 relative group/assignee dropdown-container">
+                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-slate-200 lg:flex-1 relative group/assignee dropdown-container">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Người thực hiện</div>
                                         <div className="cursor-pointer text-[13px] font-semibold text-slate-800 truncate" onClick={(e) => { e.stopPropagation(); document.getElementById('assignee-dropdown-popup2')?.classList.toggle('hidden'); }}>
                                             {form.assignee_id.length > 0
@@ -1171,7 +1188,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="flex-1 p-3 border-r border-slate-200">
+                                    <div className="p-3 border-r border-b lg:border-b-0 border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Nền tảng</div>
                                         <select
                                             value={form.platform || ''}
@@ -1185,7 +1202,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="YouTube">YouTube</option>
                                         </select>
                                     </div>
-                                    <div className="flex-1 p-3 border-r border-slate-200">
+                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Định dạng</div>
                                         <select
                                             value={form.format || ''}
@@ -1200,7 +1217,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="Hình ảnh">Hình ảnh/Album</option>
                                         </select>
                                     </div>
-                                    <div className="flex-1 p-3">
+                                    <div className="p-3 col-span-2 lg:col-span-1 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Lịch đăng</div>
                                         <input
                                             type="date"
@@ -1225,7 +1242,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             
 
                             {/* Tabs Section */}
-                            <div className="mt-8 pl-14 pr-4">
+                            <div className="mt-8 pl-4 sm:pl-14 pr-4">
                                 <div className="flex gap-6 border-b border-slate-200 mb-6">
                                     <button
                                         onClick={() => setActiveTab('subtasks')}
@@ -1411,7 +1428,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 bg-white border-t border-slate-100 flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
                         <div>
                             {editingTask && (currentUserProfile?.role === 'Admin' || (Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id.includes(currentUserProfile?.id) : editingTask.assignee_id === currentUserProfile?.id)) && (
                                 <button

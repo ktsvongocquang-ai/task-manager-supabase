@@ -13,6 +13,7 @@ import TaskTracking from './TaskTracking';
 import Projects from './Projects';
 import GanttChart from './GanttChart';
 import Invoices from './Invoices';
+import FacebookAdsAnalyzer from './FacebookAdsAnalyzer';
 
 const conversionData = [
   { name: 'Mới', value: 400 },
@@ -53,6 +54,7 @@ export const Customers = () => {
     { id: 'GANTT', name: 'Gantt Chart', icon: Clock },
     { id: 'INVOICES', name: 'Hóa đơn', icon: FileText },
     { id: 'ACTIVITY_LOG', name: 'Nhật ký', icon: Clock },
+    { id: 'FB_ADS_AI', name: 'AI Phân tích Ads', icon: TrendingUp },
   ];
 
   const renderDashboard = () => (
@@ -239,7 +241,8 @@ export const Customers = () => {
             {activeTab === 'PROJECTS' && <Projects />}
             {activeTab === 'GANTT' && <GanttChart />}
             {activeTab === 'INVOICES' && <Invoices />}
-            {!['DASHBOARD', 'CUSTOMERS', 'LEADS', 'TASKS', 'PROJECTS', 'GANTT', 'INVOICES'].includes(activeTab) && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
+            {activeTab === 'FB_ADS_AI' && <FacebookAdsAnalyzer />}
+            {!['DASHBOARD', 'CUSTOMERS', 'LEADS', 'TASKS', 'PROJECTS', 'GANTT', 'INVOICES', 'FB_ADS_AI'].includes(activeTab) && renderPlaceholder(menuItems.find(item => item.id === activeTab)?.name || 'Tính năng')}
           </div>
         </div>
       </div>

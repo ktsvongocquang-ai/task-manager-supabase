@@ -548,6 +548,7 @@ export const Layout = () => {
                                     { id: 'GANTT', name: 'Gantt Chart' },
                                     { id: 'INVOICES', name: 'Hóa đơn' },
                                     { id: 'ACTIVITY_LOG', name: 'Nhật ký' },
+                                    { id: 'FB_ADS_AI', name: 'AI Phân tích Ads' },
                                 ].map(item => {
                                     const isActive = activeCrmTab === item.id;
                                     return (
