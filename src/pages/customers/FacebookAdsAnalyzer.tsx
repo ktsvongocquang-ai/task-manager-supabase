@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Settings, Save, BrainCircuit, RefreshCw, X, Check, BarChart3, Clock, Calendar, Hash } from 'lucide-react';
+import { Send, Settings, Save, BrainCircuit, RefreshCw, X, Check, BarChart3, Clock, Calendar } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer 
 } from 'recharts';
