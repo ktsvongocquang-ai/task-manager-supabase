@@ -433,7 +433,7 @@ export const Layout = () => {
                 <div className="p-6">
                     <div className="glass-card p-4 text-center flex flex-col items-center justify-center gap-1 hover:bg-white/60 transition-colors">
                         <div className="text-sm font-bold text-slate-700 tracking-tight">App QLDA DQH</div>
-                        <div className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">version 1.2</div>
+                        <div className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">version 1.3</div>
                         <div className="text-[10px] text-slate-400 mt-2 font-medium">
                             © 2026 <a href="https://dqharchitects.vn" className="text-slate-500 font-bold hover:text-indigo-600 hover:underline transition-colors" target="_blank" rel="noreferrer">dqharchitects.vn</a>
                         </div>
