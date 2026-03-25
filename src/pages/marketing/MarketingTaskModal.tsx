@@ -85,7 +85,14 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                     {(sec.source_clips || []).map((clip: string, i: number) => (
                                         <div key={i} className="flex items-center gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
                                             <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0"></div>
-                                            <span className="truncate flex-1" title={clip}>{clip}</span>
+                                            <a
+                                                href={clip.startsWith('http') ? clip : `https://${clip}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="truncate flex-1 hover:text-blue-600 hover:underline transition-colors"
+                                                title={clip}
+                                                onClick={(e) => e.stopPropagation()}
+                                            >{clip}</a>
                                             <button 
                                                 className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors"
                                                 onClick={() => {
@@ -112,7 +119,7 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                             <td className="p-0 align-top">
                                 <div className="flex flex-col h-full min-h-[100px]">
                                     <textarea 
-                                        className="w-full bg-transparent border-none resize-none p-4 pb-2 text-slate-600 text-[11px] leading-relaxed focus:bg-indigo-50/10 focus:ring-0 focus:outline-none min-h-[68px] transition-colors" 
+                                        className="w-full bg-transparent border-none resize-none p-4 text-slate-600 text-[11px] leading-relaxed focus:bg-indigo-50/10 focus:ring-0 focus:outline-none min-h-[68px] transition-colors" 
                                         placeholder="Ghi chú dựng video..."
                                         value={sec.chu_thich || ''}
                                         onChange={(e) => {
@@ -123,34 +130,6 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                         onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
                                         ref={(el) => { if(el) autoResize(el); }}
                                     />
-                                    <div className="h-[0.5px] bg-slate-200 mx-3"></div>
-                                    <div className="p-3 flex flex-col gap-1.5">
-                                        <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Ảnh minh họa</div>
-                                        {(sec.anh_minh_hoa || []).map((anh: string, i: number) => (
-                                            <div key={i} className="flex items-center gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
-                                                <span className="truncate flex-1" title={anh}>{anh}</span>
-                                                <button 
-                                                    className="text-slate-400 hover:text-red-500 ml-auto transition-colors"
-                                                    onClick={() => {
-                                                        const newS = [...currentSections];
-                                                        newS[index].anh_minh_hoa = newS[index].anh_minh_hoa.filter((_: any, idx: number) => idx !== i);
-                                                        onChange(newS);
-                                                    }}
-                                                ><X size={10} /></button>
-                                            </div>
-                                        ))}
-                                        <button 
-                                            className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
-                                            onClick={() => {
-                                                const name = prompt('Nhập tên hoặc link ảnh minh họa:');
-                                                if (name) {
-                                                    const newS = [...currentSections];
-                                                    newS[index].anh_minh_hoa = [...(newS[index].anh_minh_hoa||[]), name];
-                                                    onChange(newS);
-                                                }
-                                            }}
-                                        >+ Thêm ảnh</button>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
