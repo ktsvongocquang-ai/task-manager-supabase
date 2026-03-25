@@ -82,36 +82,45 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                             </td>
                             <td className="p-3 align-top border-r border-slate-100">
                                 <div className="flex flex-col gap-1.5">
-                                    {(sec.source_clips || []).map((clip: string, i: number) => (
-                                        <div key={i} className="flex items-center gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0"></div>
-                                            <a
-                                                href={clip.startsWith('http') ? clip : `https://${clip}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="truncate flex-1 hover:text-blue-600 hover:underline transition-colors"
-                                                title={clip}
-                                                onClick={(e) => e.stopPropagation()}
-                                            >{clip}</a>
-                                            <button 
-                                                className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors"
-                                                onClick={() => {
-                                                    const newS = [...currentSections];
-                                                    newS[index].source_clips = newS[index].source_clips.filter((_: any, idx: number) => idx !== i);
-                                                    onChange(newS);
-                                                }}
-                                            ><X size={10} /></button>
-                                        </div>
-                                    ))}
+                                    {(sec.source_clips || []).map((clip: any, i: number) => {
+                                        const isObj = clip && typeof clip === 'object';
+                                        const url = isObj ? clip.url : clip;
+                                        const desc = isObj ? clip.desc : '';
+                                        const href = url?.startsWith('http') ? url : `https://${url}`;
+                                        return (
+                                            <div key={i} className="flex items-start gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0 mt-1"></div>
+                                                <div className="flex-1 min-w-0">
+                                                    {desc && <div className="font-semibold text-slate-700 text-[11px] leading-tight mb-0.5">{desc}</div>}
+                                                    <a
+                                                        href={href}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="truncate block text-[10px] text-blue-500 hover:text-blue-700 hover:underline transition-colors"
+                                                        title={url}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >{url}</a>
+                                                </div>
+                                                <button 
+                                                    className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors shrink-0"
+                                                    onClick={() => {
+                                                        const newS = [...currentSections];
+                                                        newS[index].source_clips = newS[index].source_clips.filter((_: any, idx: number) => idx !== i);
+                                                        onChange(newS);
+                                                    }}
+                                                ><X size={10} /></button>
+                                            </div>
+                                        );
+                                    })}
                                     <button 
                                         className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
                                         onClick={() => {
-                                            const name = prompt('Nhập tên file Video/Clip:');
-                                            if (name) {
-                                                const newS = [...currentSections];
-                                                newS[index].source_clips = [...(newS[index].source_clips||[]), name];
-                                                onChange(newS);
-                                            }
+                                            const url = prompt('Nhập link Video/Clip:');
+                                            if (!url) return;
+                                            const desc = prompt('Mô tả clip này dùng cho phần gì? (VD: Hook mở đầu, Tham khảo giải pháp...)') || '';
+                                            const newS = [...currentSections];
+                                            newS[index].source_clips = [...(newS[index].source_clips||[]), { url, desc }];
+                                            onChange(newS);
                                         }}
                                     >+ Thêm clip</button>
                                 </div>
