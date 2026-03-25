@@ -5,8 +5,8 @@ dotenv.config();
 async function listModels() {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const models = [
-        'gemini-2.5-flash-lite',
-        'gemini-2.5-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.0-flash',
         'gemini-2.0-flash',
         'gemini-2.0-flash-lite-preview-0205',
         'gemini-1.5-flash-8b'
