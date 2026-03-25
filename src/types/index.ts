@@ -103,6 +103,7 @@ export interface Task {
     interactions?: string | null
     shares?: string | null
     saves?: string | null
+    sections?: any[] | null
 }
 
 export interface ChatMessage {

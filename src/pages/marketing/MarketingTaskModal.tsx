@@ -23,6 +23,145 @@ interface AddEditTaskModalProps {
     generateNextTaskCode?: (projectId: string) => string;
 }
 
+
+const defaultSections = [
+    { id: 'mo_dau', label: 'Mở đầu', badge_color: 'bg-[#E1F5EE] text-[#085041]', description: 'Hook', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' },
+    { id: 'van_de', label: 'Vấn đề', badge_color: 'bg-[#FCEBEB] text-[#791F1F]', description: 'Pain point', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' },
+    { id: 'giai_phap', label: 'Giải pháp', badge_color: 'bg-[#E6F1FB] text-[#0C447C]', description: 'Case thực tế', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' },
+    { id: 'cta', label: 'CTA', badge_color: 'bg-[#FAEEDA] text-[#633806]', description: 'Follow', kich_ban: '', source_clips: [], anh_minh_hoa: [], chu_thich: '' }
+];
+
+const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChange: (s: any[]) => void }) => {
+    
+    // Auto-resize textarea
+    const autoResize = (el: HTMLTextAreaElement) => {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    };
+
+    const currentSections = (sections && sections.length > 0) ? sections : defaultSections;
+
+    return (
+        <div className="w-full border border-slate-200 rounded-xl overflow-hidden bg-white">
+            <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed' }}>
+                <thead className="bg-[#f8fafc] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shadow-sm">
+                    <tr>
+                        <th className="p-3 w-[45px] text-center border-r border-slate-200">STT</th>
+                        <th className="p-3 w-[130px] border-r border-slate-200">Nội dung</th>
+                        <th className="p-3 w-[34%] border-r border-slate-200">Kịch bản</th>
+                        <th className="p-3 w-[20%] border-r border-slate-200">Source clip</th>
+                        <th className="p-3 w-[26%]">Chú thích & minh họa</th>
+                    </tr>
+                </thead>
+                <tbody className="text-sm">
+                    {currentSections.map((sec: any, index: number) => (
+                        <tr key={sec.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                            <td className="p-4 align-top text-center text-slate-400 font-bold border-r border-slate-100">{index + 1}</td>
+                            <td className="p-4 align-top border-r border-slate-100">
+                                <div className="flex flex-col items-start gap-1">
+                                    <div className={`${sec.badge_color} px-2 py-0.5 rounded text-[10px] font-bold`}>
+                                        {sec.label}
+                                    </div>
+                                    <div className="text-slate-800 font-semibold text-xs mt-1">{sec.description}</div>
+                                </div>
+                            </td>
+                            <td className="p-3 align-top border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
+                                <textarea 
+                                    className="w-full bg-transparent border-none resize-none p-1 text-slate-700 text-[13px] leading-relaxed focus:ring-0 focus:outline-none min-h-[68px]" 
+                                    placeholder="Viết kịch bản..."
+                                    value={sec.kich_ban || ''}
+                                    onChange={(e) => {
+                                        const newS = [...currentSections];
+                                        newS[index] = {...newS[index], kich_ban: e.target.value};
+                                        onChange(newS);
+                                    }}
+                                    onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
+                                    // Trigger auto-resize on mount
+                                    ref={(el) => { if(el) autoResize(el); }}
+                                />
+                            </td>
+                            <td className="p-3 align-top border-r border-slate-100">
+                                <div className="flex flex-col gap-1.5">
+                                    {(sec.source_clips || []).map((clip: string, i: number) => (
+                                        <div key={i} className="flex items-center gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0"></div>
+                                            <span className="truncate flex-1" title={clip}>{clip}</span>
+                                            <button 
+                                                className="text-slate-400 hover:text-[#E24B4A] ml-auto transition-colors"
+                                                onClick={() => {
+                                                    const newS = [...currentSections];
+                                                    newS[index].source_clips = newS[index].source_clips.filter((_: any, idx: number) => idx !== i);
+                                                    onChange(newS);
+                                                }}
+                                            ><X size={10} /></button>
+                                        </div>
+                                    ))}
+                                    <button 
+                                        className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
+                                        onClick={() => {
+                                            const name = prompt('Nhập tên file Video/Clip:');
+                                            if (name) {
+                                                const newS = [...currentSections];
+                                                newS[index].source_clips = [...(newS[index].source_clips||[]), name];
+                                                onChange(newS);
+                                            }
+                                        }}
+                                    >+ Thêm clip</button>
+                                </div>
+                            </td>
+                            <td className="p-0 align-top">
+                                <div className="flex flex-col h-full min-h-[100px]">
+                                    <textarea 
+                                        className="w-full bg-transparent border-none resize-none p-4 pb-2 text-slate-600 text-[11px] leading-relaxed focus:bg-indigo-50/10 focus:ring-0 focus:outline-none min-h-[68px] transition-colors" 
+                                        placeholder="Ghi chú dựng video..."
+                                        value={sec.chu_thich || ''}
+                                        onChange={(e) => {
+                                            const newS = [...currentSections];
+                                            newS[index] = {...newS[index], chu_thich: e.target.value};
+                                            onChange(newS);
+                                        }}
+                                        onInput={(e) => autoResize(e.target as HTMLTextAreaElement)}
+                                        ref={(el) => { if(el) autoResize(el); }}
+                                    />
+                                    <div className="h-[0.5px] bg-slate-200 mx-3"></div>
+                                    <div className="p-3 flex flex-col gap-1.5">
+                                        <div className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Ảnh minh họa</div>
+                                        {(sec.anh_minh_hoa || []).map((anh: string, i: number) => (
+                                            <div key={i} className="flex items-center gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
+                                                <span className="truncate flex-1" title={anh}>{anh}</span>
+                                                <button 
+                                                    className="text-slate-400 hover:text-red-500 ml-auto transition-colors"
+                                                    onClick={() => {
+                                                        const newS = [...currentSections];
+                                                        newS[index].anh_minh_hoa = newS[index].anh_minh_hoa.filter((_: any, idx: number) => idx !== i);
+                                                        onChange(newS);
+                                                    }}
+                                                ><X size={10} /></button>
+                                            </div>
+                                        ))}
+                                        <button 
+                                            className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
+                                            onClick={() => {
+                                                const name = prompt('Nhập tên hoặc link ảnh minh họa:');
+                                                if (name) {
+                                                    const newS = [...currentSections];
+                                                    newS[index].anh_minh_hoa = [...(newS[index].anh_minh_hoa||[]), name];
+                                                    onChange(newS);
+                                                }
+                                            }}
+                                        >+ Thêm ảnh</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+
 export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     isOpen,
     onClose,
@@ -39,11 +178,13 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         supporter_id: '', status: 'IDEA', priority: 'Trung bình', start_date: '', due_date: '',
         result_links: '', notes: '', parent_id: '', format: '', platform: '', category: '', target: '',
         output: '',
-        views: '', interactions: '', shares: '', saves: ''
+        views: '', interactions: '', shares: '', saves: '',
+        sections: [] as any[]
     });
 
-    const [phases, setPhases] = useState<Task[]>([]);
+    
 
+    const [phases, setPhases] = useState<Task[]>([]);
     const [subTasks, setSubTasks] = useState<Task[]>([]);
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
     const [newSubtaskName, setNewSubtaskName] = useState('');
@@ -162,57 +303,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     };
 
-    const [isSendingEmail, setIsSendingEmail] = useState(false);
-    const handleSendEmail = async () => {
-        if (!form.assignee_id || form.assignee_id.length === 0) {
-            alert('Vui lòng chọn người nhận (chủ trì) để gửi email.');
-            return;
-        }
-        
-        const assignees = form.assignee_id.map(id => profiles.find(p => p.id === id)).filter(Boolean);
-        const assigneeNames = assignees.map((a:any) => a.full_name).join(', ');
-        const assigneeEmails = assignees.map((a:any) => a.email).filter(Boolean).join(', ');
-
-        if (!assigneeEmails) {
-            alert('Không tìm thấy địa chỉ email hợp lệ của nhân sự nào.');
-            return;
-        }
-
-        setIsSendingEmail(true);
-        try {
-            const project = projects.find(p => p.id === form.project_id);
-            const res = await fetch('/api/send-ai-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    to_email: assigneeEmails,
-                    subject: `[Task Manager] Bạn được giao một công việc mới: ${form.name}`,
-                    template_data: {
-                        actor_name: currentUserProfile?.full_name || 'Hệ thống',
-                        action: 'đã giao cho bạn công việc Marketing',
-                        task_title: form.name,
-                        project_name: project ? project.name : 'Dự án nội bộ',
-                        priority: form.priority,
-                        due_date: form.due_date || 'Chưa định',
-                        task_url: `${window.location.origin}/marketing`
-                    }
-                })
-            });
-
-            if (!res.ok) throw new Error('Network error');
-            const data = await res.json();
-            if (data.success) {
-                alert(`Đã gửi email thông báo thành công tới: ${assigneeNames}`);
-            } else {
-                throw new Error(data.error || 'Lỗi gửi mail');
-            }
-        } catch (err) {
-            console.error(err);
-            alert('Có lỗi xảy ra khi gửi email qua AI.');
-        } finally {
-            setIsSendingEmail(false);
-        }
-    };
+    
+    
 
     const handleOpenDeepLink = async (subtaskId: string) => {
         const { data } = await supabase.from('marketing_tasks').select('*').eq('id', subtaskId).single();
@@ -247,7 +339,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     views: editingTask.views?.toString() || '',
                     interactions: editingTask.interactions?.toString() || '',
                     shares: editingTask.shares?.toString() || '',
-                    saves: editingTask.saves?.toString() || ''
+                    saves: editingTask.saves?.toString() || '',
+                    sections: editingTask.sections || []
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -296,7 +389,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     views: '',
                     interactions: '',
                     shares: '',
-                    saves: ''
+                    saves: '',
+                    sections: []
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -385,7 +479,8 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                 format: form.format || null,
                 platform: form.platform || null,
                 target: form.target || null,
-                output: form.output || null
+                output: form.output || null,
+                sections: form.sections && form.sections.length > 0 ? form.sections : null
                 // Removed performance metrics from initial save payload to avoid "Column not found" schema errors.
             }
 
@@ -496,7 +591,11 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId: assigneeId,
-                                message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!
+
+📌 *${form.name}*
+🗓 Hạn chót: ${dueStr}
+📈 Ưu tiên: ${form.priority}`,
                                 taskUrl: taskLink
                             })
                         }).catch(e => console.error('Lỗi gọi Telegram API:', e));
@@ -531,7 +630,11 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId: newSupporterId,
-                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người thực hiện cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người thực hiện cho một nhiệm vụ!
+
+📌 *${form.name}*
+🗓 Hạn chót: ${dueStr}
+📈 Ưu tiên: ${form.priority}`,
                                 taskUrl: taskLink
                             })
                         }).catch(e => console.error('Lỗi gọi Telegram API:', e));
@@ -748,7 +851,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     return (
         <>
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[1020px] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
 
                     {/* Header */}
                     <div className="px-8 py-6 flex justify-between items-start bg-white shrink-0">
@@ -896,15 +999,14 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-slate-100 pl-14 pr-4">
-                                {/* Column 1 */}
-                                <div className="space-y-5">
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><CheckCircle2 size={12} /> Trạng thái</div>
+                                                        <div className="px-8 mt-4 mb-6 relative z-10">
+                                <div className="flex border border-slate-200 rounded-xl bg-white shadow-sm">
+                                    <div className="flex-1 p-3 border-r border-slate-200">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Trạng thái</div>
                                         <select
                                             value={form.status}
                                             onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="IDEA">Idea</option>
@@ -919,125 +1021,34 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="REJECTED">Từ chối / Để sau</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><AlignLeft size={12} /> Định dạng</div>
-                                        <select
-                                            value={form.format || ''}
-                                            onChange={(e) => setForm({ ...form, format: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
-                                            disabled={shouldDisableTopFields()}
-                                        >
-                                            <option value="">Chọn định dạng...</option>
-                                            <option value="Video ngắn">Video ngắn</option>
-                                            <option value="Video dài">Video dài</option>
-                                            <option value="Bài viết mạng xã hội">Bài viết mạng xã hội</option>
-                                            <option value="Hình ảnh/Album">Hình ảnh/Album</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {/* Column 2 */}
-                                <div className="space-y-5">
-                                    <div className="relative">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><User size={12} /> Người thực hiện</div>
-                                        <div className="flex items-center gap-2">
-                                            <div 
-                                                className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 p-0 cursor-pointer overflow-hidden flex items-center"
-                                                onClick={(e) => {
-                                                    if(shouldDisableTopFields()) return;
-                                                    e.stopPropagation();
-                                                    const selectEl = document.getElementById('assignee-dropdown-popup');
-                                                    if(selectEl) selectEl.classList.toggle('hidden');
-                                                }}
-                                            >
-                                                <div className="truncate flex-1">
-                                                    {form.assignee_id.length > 0
-                                                        ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
-                                                        : 'Chọn người thực hiện...'}
-                                                </div>
-                                            </div>
-                                            {form.assignee_id.length > 0 && (
-                                                <button 
-                                                    onClick={handleSendEmail}
-                                                    disabled={isSendingEmail}
-                                                    className="p-1 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center shrink-0 disabled:opacity-50"
-                                                    title="Gửi Email Thông Báo Bằng AI"
-                                                >
-                                                    {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-                                                </button>
-                                            )}
+                                    <div className="flex-1 p-3 border-r border-slate-200 relative group/assignee dropdown-container">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Người thực hiện</div>
+                                        <div className="cursor-pointer text-[13px] font-semibold text-slate-800 truncate" onClick={(e) => { e.stopPropagation(); document.getElementById('assignee-dropdown-popup2')?.classList.toggle('hidden'); }}>
+                                            {form.assignee_id.length > 0
+                                                ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
+                                                : 'Chọn người...'}
                                         </div>
-                                        {!shouldDisableTopFields() && (
-                                            <div id="assignee-dropdown-popup" className="hidden absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto pt-2 pb-2">
-                                                {profiles.map(p => (
-                                                    <label key={p.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
-                                                        <input 
-                                                            type="checkbox"
-                                                            checked={form.assignee_id.includes(p.id)}
-                                                            onChange={(e) => {
-                                                                const checked = e.target.checked;
-                                                                setForm(prev => ({
-                                                                    ...prev,
-                                                                    assignee_id: checked 
-                                                                        ? [...prev.assignee_id, p.id] 
-                                                                        : prev.assignee_id.filter(id => id !== p.id)
-                                                                }));
-                                                            }}
-                                                            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="text-[13px] font-medium text-slate-700">{p.full_name}</span>
-                                                    </label>
-                                                ))}
-                                                <div className="px-4 pt-2 mt-2 border-t border-slate-100 flex justify-end">
-                                                    <button type="button" onClick={() => document.getElementById('assignee-dropdown-popup')?.classList.add('hidden')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">Xong</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Calendar size={12} /> Lịch đăng</div>
-                                        <input
-                                            type="date"
-                                            value={form.due_date}
-                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
-                                            disabled={shouldDisableTopFields()}
-                                        />
-                                    </div>
-                                    {form.status === 'PROD_FILMING' && (
-                                        <div className="bg-red-50/80 p-2 -mx-2 rounded-lg border border-red-100 animate-in fade-in transition-all">
-                                            <div className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Video size={12} /> Lên lịch quay</div>
-                                            <input
-                                                type="date"
-                                                value={form.start_date}
-                                                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                                className="w-full bg-transparent border-none text-sm font-bold text-red-600 p-0 focus:ring-0 cursor-pointer"
-                                                disabled={shouldDisableTopFields()}
-                                            />
+                                        <div id="assignee-dropdown-popup2" className="hidden absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto py-2">
+                                            {profiles.map(p => (
+                                                <label key={p.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
+                                                    <input type="checkbox" checked={form.assignee_id.includes(p.id)} onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setForm(prev => ({
+                                                            ...prev,
+                                                            assignee_id: checked ? [...prev.assignee_id, p.id] : prev.assignee_id.filter(id => id !== p.id)
+                                                        }));
+                                                    }} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
+                                                    <span className="text-[13px] font-medium text-slate-700">{p.full_name}</span>
+                                                </label>
+                                            ))}
                                         </div>
-                                    )}
-                                    <div className="hidden">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><ListTodo size={12} /> Thuộc Task lớn</div>
-                                        <select
-                                            value={form.parent_id || ''}
-                                            onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
-                                            disabled={shouldDisableTopFields() || !form.project_id}
-                                        >
-                                            <option value="">Không có Task lớn...</option>
-                                            {phases.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                        </select>
                                     </div>
-                                </div>
-
-                                {/* Column 3 */}
-                                <div className="space-y-5">
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><ExternalLink size={12} /> Nền tảng</div>
+                                    <div className="flex-1 p-3 border-r border-slate-200">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Nền tảng</div>
                                         <select
                                             value={form.platform || ''}
                                             onChange={(e) => setForm({ ...form, platform: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="">Chọn nền tảng...</option>
@@ -1046,230 +1057,44 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="YouTube">YouTube</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Flag size={12} /> Mục tiêu</div>
+                                    <div className="flex-1 p-3 border-r border-slate-200">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Định dạng</div>
                                         <select
-                                            value={form.target || ''}
-                                            onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                            className="w-full bg-transparent border-none text-sm font-medium text-slate-700 p-0 focus:ring-0 cursor-pointer"
+                                            value={form.format || ''}
+                                            onChange={(e) => setForm({ ...form, format: e.target.value })}
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
-                                            <option value="">Chọn mục tiêu...</option>
-                                            <option value="Hạng Mục đề xuất">Hạng Mục đề xuất</option>
-                                            <option value="Thiết kế">Thiết kế</option>
-                                            <option value="Thi công">Thi công</option>
-                                            <option value="Kiến thức">Kiến thức</option>
-                                            <option value="Vật liệu">Vật liệu</option>
-                                            <option value="Ánh sáng">Ánh sáng</option>
-                                            <option value="Furniture">Furniture</option>
+                                            <option value="">Chọn định dạng...</option>
+                                            <option value="Video ngắn">Video ngắn</option>
+                                            <option value="Video dài">Video dài</option>
+                                            <option value="Bài viết MXH">Bài viết mạng xã hội</option>
+                                            <option value="Hình ảnh">Hình ảnh/Album</option>
                                         </select>
                                     </div>
+                                    <div className="flex-1 p-3">
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Lịch đăng</div>
+                                        <input
+                                            type="date"
+                                            value={form.due_date}
+                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
+                                            disabled={shouldDisableTopFields()}
+                                        />
+                                    </div>
                                 </div>
+                            </div>
+
+                            
+
+                            {/* Details Content Table */}
+                            <div className="px-8 mb-6">
+                                <MarketingSectionTable 
+                                    sections={form.sections} 
+                                    onChange={(newSections: any[]) => setForm({ ...form, sections: newSections })} 
+                                />
                             </div>
                             
-                            {/* Performance Metrics - Only for Published Tasks */}
-                            {form.status === 'PUBLISHED' && (
-                                <div className="mx-14 mb-8 relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-3xl blur-xl group-hover:opacity-75 transition-opacity" />
-                                    <div className="relative bg-white/60 backdrop-blur-xl border border-indigo-100/50 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-200">
-                                                    <Sparkles size={16} className="text-white" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-[11px] font-black text-indigo-900 uppercase tracking-widest leading-none mb-0.5">Hiệu quả Content</div>
-                                                    <div className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">Chỉ số thực tế từ nền tảng</div>
-                                                </div>
-                                            </div>
-                                            <div className="h-px flex-1 bg-gradient-to-r from-indigo-100 to-transparent mx-4" />
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                            {/* Views Item */}
-                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
-                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-indigo-500 transition-colors">
-                                                    <Eye size={12} />
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Lượt xem</span>
-                                                </div>
-                                                <input
-                                                    type="number"
-                                                    value={form.views}
-                                                    onChange={(e) => setForm({ ...form, views: e.target.value })}
-                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
-                                                    placeholder="0"
-                                                />
-                                            </div>
-                                            
-                                            {/* Interactions Item */}
-                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
-                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-rose-500 transition-colors">
-                                                    <MousePointerClick size={12} />
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Tương tác</span>
-                                                </div>
-                                                <input
-                                                    type="number"
-                                                    value={form.interactions}
-                                                    onChange={(e) => setForm({ ...form, interactions: e.target.value })}
-                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
-                                                    placeholder="0"
-                                                />
-                                            </div>
-                                            
-                                            {/* Shares Item */}
-                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
-                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-emerald-500 transition-colors">
-                                                    <Share2 size={12} />
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Chia sẻ</span>
-                                                </div>
-                                                <input
-                                                    type="number"
-                                                    value={form.shares}
-                                                    onChange={(e) => setForm({ ...form, shares: e.target.value })}
-                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
-                                                    placeholder="0"
-                                                />
-                                            </div>
-                                            
-                                            {/* Saves Item */}
-                                            <div className="bg-slate-50/50 hover:bg-white hover:shadow-md hover:shadow-slate-200/50 rounded-2xl p-3 px-4 border border-slate-100 transition-all group/item">
-                                                <div className="flex items-center gap-2 mb-2 text-slate-400 group-hover/item:text-amber-500 transition-colors">
-                                                    <Bookmark size={12} />
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider">Lưu lại</span>
-                                                </div>
-                                                <input
-                                                    type="number"
-                                                    value={form.saves}
-                                                    onChange={(e) => setForm({ ...form, saves: e.target.value })}
-                                                    className="w-full bg-transparent border-0 p-0 text-lg font-black text-slate-900 focus:ring-0 placeholder:text-slate-300"
-                                                    placeholder="0"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Details Textareas */}
-                            <div className="pl-14 pr-4">
-                                <div className="mb-6 relative group/desc">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Hook chọn</div>
-                                    <div className="relative">
-                                        <textarea
-                                            value={form.notes}
-                                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[90px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Nhập Hook..."
-                                        />
-                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleSpeechToText('notes')}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'notes' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
-                                                title="Ghi âm Hook"
-                                            >
-                                                {isListening === 'notes' ? <MicOff size={16} /> : <Mic size={16} />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleAIRefine('notes')}
-                                                disabled={isRefining === 'notes'}
-                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
-                                                title="AI tinh chỉnh"
-                                            >
-                                                {isRefining === 'notes' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div className="mb-6 relative group/desc">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Vấn đề</div>
-                                    <div className="relative">
-                                        <textarea
-                                            value={form.output || ''}
-                                            onChange={(e) => setForm({ ...form, output: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[130px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Nhập Vấn đề..."
-                                        />
-                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleSpeechToText('output' as any)}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'output' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
-                                                title="Ghi âm Vấn đề"
-                                            >
-                                                {isListening === 'output' ? <MicOff size={16} /> : <Mic size={16} />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleAIRefine('output' as any)}
-                                                disabled={isRefining === 'output'}
-                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
-                                                title="AI tinh chỉnh"
-                                            >
-                                                {isRefining === 'output' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6 relative group/desc">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">Giải pháp</div>
-                                    <div className="relative">
-                                        <textarea
-                                            value={form.description}
-                                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[250px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Kịch bản, nội dung chi tiết..."
-                                        />
-                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleSpeechToText('description')}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
-                                                title="Ghi âm Giải pháp"
-                                            >
-                                                {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleAIRefine('description')}
-                                                disabled={isRefining === 'description'}
-                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
-                                                title="AI tinh chỉnh"
-                                            >
-                                                {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6 relative group/desc">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">CTA</div>
-                                    <div className="relative">
-                                        <textarea
-                                            value={form.category || ''}
-                                            onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-700 min-h-[90px] pb-12 resize-none focus:bg-white focus:border-indigo-200 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300"
-                                            placeholder="Lời kêu gọi hành động (Call To Action)..."
-                                        />
-                                        <div className="absolute right-3 bottom-3 flex gap-2 opacity-0 group-hover/desc:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleSpeechToText('category')}
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'category' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
-                                                title="Ghi âm CTA"
-                                            >
-                                                {isListening === 'category' ? <MicOff size={16} /> : <Mic size={16} />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleAIRefine('category')}
-                                                disabled={isRefining === 'category'}
-                                                className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
-                                                title="AI tinh chỉnh"
-                                            >
-                                                {isRefining === 'category' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr className="border-t border-slate-100 my-6" />
 
                             {/* Tabs Section */}
                             <div className="mt-8 pl-14 pr-4">
