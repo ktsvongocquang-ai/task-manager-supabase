@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../services/supabase';
 import type { Project, ShootingMilestone, DailyLog } from '../../../types';
-import { format, parseISO, addDays } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { X, Calendar, Plus, Trash2, Save, Loader2, Video, FileText, Camera } from 'lucide-react';
 
 interface TimelineUpdateModalProps {

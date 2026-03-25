@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
-import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Eye, MousePointerClick, Share2, Bookmark, Video, Archive, Mail } from 'lucide-react'
+import { X, Plus, Trash2, CheckCircle2, Folder, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Archive } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
@@ -184,7 +184,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     
 
-    const [phases, setPhases] = useState<Task[]>([]);
+    // removed unused phases state
     const [subTasks, setSubTasks] = useState<Task[]>([]);
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
     const [newSubtaskName, setNewSubtaskName] = useState('');
@@ -411,30 +411,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
         });
     }
 
-    useEffect(() => {
-        if (!isOpen || !form.project_id) {
-            setPhases([]);
-            return;
-        }
-
-        const fetchPhases = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('marketing_tasks')
-                    .select('id, name')
-                    .eq('project_id', form.project_id)
-                    .is('parent_id', null)
-                    .order('created_at', { ascending: true });
-                if (!error && data) {
-                    setPhases(data as Task[]);
-                }
-            } catch (e) {
-                console.error('Error fetching phases:', e);
-            }
-        };
-
-        fetchPhases();
-    }, [isOpen, form.project_id]);
+    
 
     useEffect(() => {
         if (!isOpen) return;
