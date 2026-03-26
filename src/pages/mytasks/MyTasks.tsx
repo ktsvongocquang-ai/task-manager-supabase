@@ -3,8 +3,10 @@ import {
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, Mic, MicOff, Sparkles, Loader2,
   Sun, Moon, Coffee, Star, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, GripVertical, MoreVertical
+  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, GripVertical, MoreVertical,
+  Globe
 } from 'lucide-react';
+import { NewsDashboard } from '../news/NewsDashboard';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, eachDayOfInterval } from 'date-fns';
@@ -213,7 +215,7 @@ export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
-  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes'>(() => {
+  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes' | 'news'>(() => {
     const saved = localStorage.getItem('dqh_mytasks_view');
     return (saved as any) || 'focus';
   });
@@ -1477,6 +1479,16 @@ export default function MyTasks() {
                 <span className="hidden sm:inline">Ghi chú</span>
               </span>
             </button>
+            <button 
+              onClick={() => setViewMode('news')}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'news' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <Globe className="w-5 h-5 sm:w-4 sm:h-4" /> 
+              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+                <span className="sm:hidden">Grok</span>
+                <span className="hidden sm:inline">Tin Grok</span>
+              </span>
+            </button>
           </div>
         </div>
 
@@ -1550,7 +1562,9 @@ export default function MyTasks() {
         )}
 
         {/* Content Area */}
-        {viewMode === 'notes' ? (
+        {viewMode === 'news' ? (
+          <NewsDashboard />
+        ) : viewMode === 'notes' ? (
           renderNotesView()
         ) : viewMode === 'dashboard' ? (
           renderDashboardView()
