@@ -447,15 +447,15 @@ Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitte
 
 ⚠️ QUY TẮC VỀ ĐỘ CHÍNH XÁC DỮ LIỆU (BẮT BUỘC TUÂN THỦ):
 1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Tra cứu ngay trên X/Twitter, sàn giao dịch, báo tài chính.
-2. Lấy GIÁ CAO NHẤT trên thị trường — KHÔNG lấy giá trung bình. Ví dụ: nếu xi măng từ 1.5-1.8 triệu thì ghi 1.800.000 VND.
+2. QUY TẮC LẤY SỐ LIỆU ĐỂ KHÔNG BỊ SAI LỆCH VỚI ĐỈNH LỊCH SỬ HAY DỰ BÁO:
+   - Xăng Dầu: TÌM GIÁ BÁN LẺ NIÊM YẾT VÙNG 1 của Petrolimex ngày hôm nay. (Tuyệt đối không lấy đỉnh cũ, không lấy giá dự báo).
+   - Vàng / Chứng khoán: Lấy giá niêm yết chốt phiên gần nhất.
+   - Vật tư xây dựng (Thép, Xi măng, Cát, Đá): Nếu bài báo cung cấp 1 "KHOẢNG GIÁ" hôm nay (ví dụ: 15.000 - 18.000), BẠN BẮT BUỘC CHỌN SỐ CAO NHẤT CỦA CÁI KHOẢNG ĐÓ (18.000). TUYỆT ĐỐI KHÔNG dùng mức giá của các bài dự báo tương lai hoặc lịch sử.
 3. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
 4. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
 5. KHÔNG ĐƯỢC ĐỂ TRỐNG BẤT KỲ THÔNG SỐ NÀO. Mọi ô trong bảng PHẢI có số liệu cụ thể. Nếu không có dữ liệu ngày hôm nay, hãy lấy dữ liệu gần nhất bạn tra được và ghi rõ ngày.
 6. KHÔNG ĐƯỢC ghi "…", "N/A", "chưa có dữ liệu", hay để trống. Bạn PHẢI điền đầy đủ 100% các ô.
-7. Với vật tư xây dựng: tra giá bán lẻ cao nhất tại TP.HCM từ nhà cung cấp lớn.
-8. Với xăng dầu: lấy giá niêm yết mới nhất từ Petrolimex/PV Oil.
-9. Với vàng SJC: lấy giá MUA VÀO và BÁN RA cụ thể từ SJC/DOJI.
-10. Với chứng khoán: lấy giá đóng cửa phiên gần nhất từ HOSE/HNX.
+7. Ưu tiên: Dữ liệu hôm nay > Dữ liệu hôm qua > Dữ liệu tuần này. KHÔNG BAO GIỜ bỏ trống.
 
 Hãy tạo BẢNG THÔNG TIN ĐẦU TƯ theo định dạng:
 ## 📊 EXECUTIVE SUMMARY (CHO CEO)
@@ -494,7 +494,7 @@ Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
-            model: 'gemini-2.0-flash',
+            model: 'gemini-3-flash-preview',
             tools: [{ googleSearch: {} }] 
         });
 
