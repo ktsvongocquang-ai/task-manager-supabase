@@ -87,8 +87,8 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào (gồm Hội thoại 
 4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.`;
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-2.0-flash',
-            systemInstruction: systemInstruction 
+            model: 'gemini-3-flash-preview',
+            systemInstruction: 'Bạn là Chuyên gia Quản lý Dự án cao cấp...'
         });
 
         const result = await model.generateContent({
