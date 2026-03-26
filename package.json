@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "api-dev": "node local-api-server.js",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

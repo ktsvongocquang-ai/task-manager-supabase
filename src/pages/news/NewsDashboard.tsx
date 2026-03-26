@@ -5,6 +5,7 @@ import { supabase } from '../../services/supabase';
 export const NewsDashboard = () => {
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     fetchNews();
@@ -12,16 +13,32 @@ export const NewsDashboard = () => {
 
   const fetchNews = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('grok_news_feed')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
     
-    if (data) {
-      setNews(data);
-    }
+    if (data) setNews(data);
     setLoading(false);
+  };
+
+  const generateNewReport = async () => {
+    if (generating) return;
+    setGenerating(true);
+    try {
+      const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
+      const res = await fetch(`${baseUrl}/api/generate-grok-news`);
+      const result = await res.json();
+      if (result.success && !result.skipped) {
+        await fetchNews(); // reload to show new article
+      } else if (result.skipped) {
+        alert('Bản tin phiên này đã được tạo trước đó. Hãy đợi phiên tiếp theo!');
+      }
+    } catch (err) {
+      alert('Lỗi kết nối API. Vui lòng thử lại sau.');
+    }
+    setGenerating(false);
   };
 
   return (
@@ -29,32 +46,54 @@ export const NewsDashboard = () => {
        <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
                <h1 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                  <span className="text-3xl">📰</span> Bản Tin Vĩ Mô & Đầu Tư
+                  <span className="text-3xl">📰</span> Bảng Tin Đầu Tư
                </h1>
-               <p className="text-sm text-slate-500 font-medium mt-1">Được tổng hợp hoàn toàn tự động bởi xAI (Grok)</p>
+               <p className="text-sm text-slate-500 font-medium mt-1">
+                 Tự động 7h sáng · Bấm nút để cập nhật thêm bất kỳ lúc nào
+               </p>
             </div>
             
-            <button onClick={fetchNews} className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 transition-colors text-sm border border-indigo-200 shadow-sm">
-                Làm mới
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={generateNewReport} 
+                disabled={generating}
+                className={`px-4 py-2 font-bold rounded-xl text-sm border shadow-sm transition-all ${generating 
+                  ? 'bg-amber-50 text-amber-400 border-amber-200 cursor-wait animate-pulse' 
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400 hover:from-amber-600 hover:to-orange-600 hover:shadow-md'}`}
+              >
+                {generating ? '⏳ Đang tạo...' : '🚀 Tạo tin mới'}
+              </button>
+              <button 
+                onClick={fetchNews} 
+                className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 transition-colors text-sm border border-indigo-200 shadow-sm"
+              >
+                🔄 Làm mới
+              </button>
+            </div>
        </div>
 
        {loading ? (
            <p className="text-center text-slate-500 py-10 font-medium animate-pulse">Đang tải bản tin từ hệ thống...</p>
        ) : news.length === 0 ? (
            <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200 border-dashed">
-               <p className="text-slate-500 font-medium text-lg">Chưa có bản tin nào.</p>
-               <p className="text-sm text-slate-400 mt-2">Hãy chờ hệ thống tự động tải tin mới vào sáng mai hoặc yêu cầu kỹ thuật viên kích hoạt Cron job.</p>
+               <p className="text-5xl mb-4">📈</p>
+               <p className="text-slate-700 font-bold text-lg">Chưa có bản tin nào</p>
+               <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto">Bấm nút <strong>"🚀 Tạo tin mới"</strong> ở trên để tạo bản tin đầu tiên, hoặc đợi hệ thống tự động tạo vào 7h sáng hàng ngày.</p>
            </div>
        ) : (
            <div className="space-y-6">
                {news.map((item) => (
                    <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 hover:shadow-md transition-shadow">
                        <h2 className="text-xl sm:text-2xl font-black text-[#7A1216] mb-3 leading-tight">{item.title}</h2>
-                       <div className="flex items-center gap-3 mb-6">
+                       <div className="flex items-center gap-3 mb-6 flex-wrap">
                            <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
                                {item.category}
                            </span>
+                           {item.ai_model && (
+                             <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold uppercase tracking-wider">
+                               🤖 {item.ai_model}
+                             </span>
+                           )}
                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wider flex items-center gap-1">
                                ⏱ {new Date(item.created_at).toLocaleString('vi-VN')}
                            </span>
