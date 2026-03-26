@@ -1,5 +1,5 @@
 -- =============================================
--- Bảng lưu trữ Bản tin Grok AI (Optimized v2)
+-- Bảng lưu trữ Bản tin Grok AI (Optimized v3)
 -- =============================================
 
 -- 1. Tạo bảng chính
@@ -10,8 +10,9 @@ CREATE TABLE IF NOT EXISTS public.grok_news_feed (
     content_markdown text NOT NULL,
     category text DEFAULT 'Tổng hợp',
     ai_model text DEFAULT 'grok-3-mini',
-    -- Cột chống trùng lặp: mỗi ngày chỉ cho phép tối đa 1 bản tin Sáng + 1 bản tin Chiều
-    edition text DEFAULT 'AM' CHECK (edition IN ('AM', 'PM'))
+    edition text DEFAULT 'AM' CHECK (edition IN ('AM', 'PM')),
+    -- Cột chống trùng lặp: lưu ngày cụ thể (YYYY-MM-DD)
+    edition_date date DEFAULT CURRENT_DATE
 );
 
 -- 2. Index tăng tốc truy vấn (Frontend luôn query ORDER BY created_at DESC)
@@ -19,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_grok_news_created_at ON public.grok_news_feed (cr
 
 -- 3. Chống trùng lặp: Mỗi ngày chỉ có 1 bản tin AM và 1 bản tin PM
 CREATE UNIQUE INDEX IF NOT EXISTS idx_grok_news_unique_edition 
-ON public.grok_news_feed (date_trunc('day', created_at), edition);
+ON public.grok_news_feed (edition_date, edition);
 
 -- 4. Bật Row Level Security (RLS)
 ALTER TABLE public.grok_news_feed ENABLE ROW LEVEL SECURITY;
