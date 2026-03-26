@@ -113,6 +113,26 @@ CẤU TRÚC BẮT BUỘC (không thêm, không bớt):
 ## 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM
 [Phân tích cụ thể: XNK, FDI, logistics, lạm phát, lãi suất, và khuyến nghị doanh nghiệp]
 
+## 🏗️ NGÀNH XÂY DỰNG & NỘI THẤT
+Phân tích chuyên sâu cho CEO công ty kiến trúc & nội thất:
+
+### Vật tư - Vật liệu
+| Vật liệu | Giá hiện tại | Xu hướng | Khuyến nghị |
+|---|---|---|---|
+| Xi măng (tấn) | [giá VND] | ↑/↓ | Mua dự trữ / Chờ giảm |
+| Sắt thép (kg) | [giá VND] | ↑/↓ | - |
+| Gỗ công nghiệp (m²) | [giá VND] | ↑/↓ | - |
+| Gạch ốp lát (m²) | [giá VND] | ↑/↓ | - |
+| Sơn nội thất (thùng) | [giá VND] | ↑/↓ | - |
+
+### Nhân công
+- **TP.HCM:** Thợ xây: …đ/ngày | Thợ nội thất: …đ/ngày | Thợ điện/nước: …đ/ngày
+- **Đắk Lắk:** Thợ xây: …đ/ngày | Thợ nội thất: …đ/ngày | Thợ điện/nước: …đ/ngày
+- **Xu hướng nhân công:** [Khan hiếm / Ổn định / Dư thừa]
+
+### Lời khuyên cho CEO ngành xây dựng nội thất
+- [2-3 bullet: Chiến lược mua vật tư, quản lý nhân công, cơ hội dự án mới tại HCM và Đắk Lắk]
+
 Kết thúc bằng:
 - Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
 - Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;

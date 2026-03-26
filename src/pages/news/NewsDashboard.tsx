@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { supabase } from '../../services/supabase';
 
 export const NewsDashboard = () => {
@@ -101,6 +102,7 @@ export const NewsDashboard = () => {
                        <hr className="border-slate-100 mb-6" />
                        <div className="text-slate-700 leading-relaxed">
                            <ReactMarkdown
+                               remarkPlugins={[remarkGfm]}
                                components={{
                                    h1: ({node, ...props}) => <h1 className="text-2xl font-black text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props} />,
                                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-indigo-900 mt-8 mb-4 flex items-center gap-2 before:content-[''] before:w-2 before:h-6 before:bg-indigo-500 before:rounded-full before:inline-block" {...props} />,
@@ -110,7 +112,17 @@ export const NewsDashboard = () => {
                                    li: ({node, ...props}) => <li className="text-slate-700" {...props} />,
                                    p: ({node, ...props}) => <p className="mb-5 text-[15px] text-slate-700 leading-8" {...props} />,
                                    strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
-                                   em: ({node, ...props}) => <em className="text-slate-500 italic block mt-8 pt-4 border-t border-slate-100 text-sm text-center" {...props} />
+                                   em: ({node, ...props}) => <em className="text-slate-500 italic block mt-8 pt-4 border-t border-slate-100 text-sm text-center" {...props} />,
+                                   table: ({node, ...props}) => (
+                                     <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm">
+                                       <table className="w-full text-sm text-left" {...props} />
+                                     </div>
+                                   ),
+                                   thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs uppercase tracking-wider" {...props} />,
+                                   tbody: ({node, ...props}) => <tbody className="divide-y divide-slate-100" {...props} />,
+                                   tr: ({node, ...props}) => <tr className="hover:bg-indigo-50/50 transition-colors even:bg-slate-50" {...props} />,
+                                   th: ({node, ...props}) => <th className="px-4 py-3 font-bold whitespace-nowrap" {...props} />,
+                                   td: ({node, ...props}) => <td className="px-4 py-3 text-slate-700" {...props} />
                                }}
                            >
                                {item.content_markdown}
