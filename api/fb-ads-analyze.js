@@ -49,30 +49,44 @@ export default async function handler(req, res) {
         const timeRangeObj = JSON.parse(configResponse.response.text());
         const timeRangeStr = JSON.stringify({ since: timeRangeObj.since, until: timeRangeObj.until });
 
-        // Bước 2: Gọi Facebook Graph API
+        // Bước 2: Gọi Facebook Graph API (Lấy dữ liệu tổng quan các Ads)
         const fbUrl = `https://graph.facebook.com/v19.0/${adAccountId}/insights?fields=ad_name,campaign_name,spend,impressions,reach,clicks,cpc,cpm,ctr,actions,objective&level=ad&time_range=${encodeURIComponent(timeRangeStr)}&access_token=${fbToken}`;
         
-        const fbResponse = await fetch(fbUrl);
+        // Bước 2.5: Gọi API thứ 2 (Lấy dữ liệu phân tách theo Nhân khẩu học - Demographics)
+        const demoUrl = `https://graph.facebook.com/v19.0/${adAccountId}/insights?fields=ad_name,spend,actions&level=ad&breakdowns=age,region&time_range=${encodeURIComponent(timeRangeStr)}&access_token=${fbToken}`;
+
+        const [fbResponse, demoResponse] = await Promise.all([
+            fetch(fbUrl),
+            fetch(demoUrl)
+        ]);
+
         const fbData = await fbResponse.json();
+        const demoData = await demoResponse.json();
 
         if (fbData.error) {
             throw new Error('Graph API Error: ' + fbData.error.message);
         }
 
         let adsDataRaw = fbData.data || [];
-        
         if (adsDataRaw.length > 50) {
             adsDataRaw = adsDataRaw.sort((a,b) => (parseFloat(b.spend)||0) - (parseFloat(a.spend)||0)).slice(0, 50);
+        }
+
+        let demoDataRaw = demoData.data || [];
+        if (demoDataRaw.length > 30) {
+            // Lọc ra Top 30 phân khúc (độ tuổi/khu vực) tốn nhiều tiền nhất để AI phân tích
+            demoDataRaw = demoDataRaw.sort((a,b) => (parseFloat(b.spend)||0) - (parseFloat(a.spend)||0)).slice(0, 30);
         }
 
         // Bước 3: Đưa dữ liệu thô vào LLM (Đóng vai Giám đốc Marketing)
         const analyzeInstruction = `
 Bạn là một Giám Đốc Marketing (CMO) và Chuyên gia chạy Facebook Ads xuất sắc với 10 năm kinh nghiệm.
-Nhiệm vụ: Dựa vào tập tin dữ liệu JSON (Facebook Ads Insights) trình bày chi tiết từng bài viết (ad) bao gồm các chỉ số chuẩn (Spend, CPM, CTR) và các chỉ số chuyển đổi quan trọng (Messages, Leads, Post Engagements).
+Nhiệm vụ: Dựa vào tập tin dữ liệu JSON (Facebook Ads Insights) trình bày chi tiết từng bài viết (ad) bao gồm các chỉ số chuẩn (Spend, CPM, CTR) và phân tích Nhân khẩu học (Demographics: Độ tuổi, Khu vực).
 Hãy:
-1. Đánh giá tổng quan hiệu suất ngân sách và KPIs toàn chiến dịch.
-2. Đi sâu đánh giá từng bài viết cụ thể: bài nào đang có giá Tin nhắn (Cost per Message) rẻ, bài nào có tỷ lệ chuyển đổi cao, bài nào lãng phí ngân sách mà không có tương tác.
-3. ĐƯA RA LỜI KHUYÊN CHIẾN LƯỢC: Là Giám đốc, bạn quyết định nên tắt bài nào, dồn tiền bài nào, hay thay đổi nội dung gì để tối ưu ROI/CPA?
+1. Đánh giá tổng quan hiệu suất ngân sách và KPIs toàn chiến dịch dựa trên Data Tổng.
+2. Đi sâu đánh giá từng bài viết cụ thể: bài nào đang có giá Tin nhắn (Cost per Message) rẻ, bài nào có tỷ lệ chuyển đổi cao.
+3. PHÂN TÍCH NHÂN KHẨU HỌC: Dựa vào Data Demographics, hãy chỉ ra Độ tuổi nào và Khu vực (Region) nào đang tương tác/tạo ra chuyển đổi tốt nhất (rẻ nhất) cho từng bài quảng cáo.
+4. ĐƯA RA LỜI KHUYÊN CHIẾN LƯỢC: Là Giám đốc, bạn quyết định nên tắt bài nào, dồn tiền bài nào? Có nên đổi target (độ tuổi, vùng miền) không?
 Khung báo cáo: Chuyên nghiệp, dùng Format Markdown, rõ ràng như một báo cáo trình cấp trên. KHÔNG ĐƯỢC CHỨA CÚ PHÁP LỘ JSON thô.
 `;
         
@@ -80,8 +94,11 @@ Khung báo cáo: Chuyên nghiệp, dùng Format Markdown, rõ ràng như một b
 Yêu cầu của sếp: "${prompt}"
 Khoảng thời gian đã quét: ${timeRangeStr}
 
-DỮ LIỆU TỪ FACEBOOK ADS (CẤP ĐỘ TỪNG BÀI VIẾT QUẢNG CÁO):
+1. DỮ LIỆU TỔNG QUAN FACEBOOK ADS (TOP 50 ADS):
 ${JSON.stringify(adsDataRaw)}
+
+2. DỮ LIỆU NHÂN KHẨU HỌC (TOP 30 PHÂN KHÚC ĐỘ TUỔI/KHU VỰC):
+${JSON.stringify(demoDataRaw)}
         `;
 
         const analysisResponse = await genAI.getGenerativeModel({ 
