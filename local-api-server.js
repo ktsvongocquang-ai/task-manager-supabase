@@ -400,10 +400,10 @@ app.post('/api/admin', async (req, res) => {
 
 app.get('/api/generate-grok-news', async (req, res) => {
     try {
-        console.log("[Grok Local] Bắt đầu tổng hợp tin tức...");
-        const xaiApiKey = process.env.XAI_API_KEY;
-        if (!xaiApiKey) {
-            return res.status(500).json({ error: 'Missing XAI_API_KEY in server environment.' });
+        console.log("[Gemini Local] Bắt đầu tổng hợp tin tức...");
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        if (!geminiApiKey) {
+            return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
         const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -412,13 +412,15 @@ app.get('/api/generate-grok-news', async (req, res) => {
              return res.status(500).json({ error: 'Missing Supabase credentials.' });
         }
 
-        const supabaseAdmin = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
+        const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        });
 
-        // Chống trùng lặp
         const now = new Date();
         const vnHour = (now.getUTCHours() + 7) % 24;
         const edition = vnHour < 12 ? 'AM' : 'PM';
         const todayStr = now.toISOString().split('T')[0];
+        const forceRegenerate = req.query?.force === 'true';
 
         const { data: existing } = await supabaseAdmin
             .from('grok_news_feed')
@@ -428,56 +430,105 @@ app.get('/api/generate-grok-news', async (req, res) => {
             .limit(1);
 
         if (existing && existing.length > 0) {
-            return res.status(200).json({ success: true, message: `Bản tin ${edition} hôm nay đã có sẵn.`, skipped: true });
+            if (forceRegenerate) {
+                await supabaseAdmin.from('grok_news_feed').delete().eq('id', existing[0].id);
+                console.log(`[Gemini] Force regenerate: đã xóa bản tin ${edition} cũ.`);
+            } else {
+                console.log(`[Gemini Local] Bản tin ${edition} ngày ${todayStr} đã tồn tại. Bỏ qua.`);
+                return res.status(200).json({ success: true, message: `Bản tin ${edition} hôm nay đã có sẵn, không cần tạo mới.`, skipped: true });
+            }
         }
 
-        const systemPrompt = `
-Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao và Biên tập viên tin tức kinh tế quốc tế.
-Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter).
-NHIỆM VỤ: Hãy quét các tin nóng hổi nhất trong 12-24 giờ qua và viết một "Bản tin Ban Giám Đốc" bao gồm 4 phần chính:
+        const dateVN = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+        const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-1. 🚨 CHIẾN SỰ & ĐỊA CHÍNH TRỊ — Các điểm nóng xung đột, bầu cử, cấm vận mới, căng thẳng ngoại giao.
-2. 💰 GIÁ VÀNG & HÀNG HÓA — Biến động giá vàng thế giới (USD/oz), dầu thô Brent, tỷ giá USD/VND. Ghi rõ số liệu cụ thể nếu có.
-3. 📈 CHỨNG KHOÁN — Dow Jones, S&P 500, Nasdaq (Mỹ), Nikkei (Nhật), VN-Index (Việt Nam). Phân tích xu hướng ngắn hạn.
-4. 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM — Tổng hợp: Các sự kiện trên ảnh hưởng gì đến nhà đầu tư và doanh nghiệp Việt Nam?
+        const systemPrompt = `Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao và Biên tập viên tin tức kinh tế quốc tế.
+Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter) và các nguồn tài chính.
 
-YÊU CẦU ĐỊNH DẠNG:
-- Markdown với Heading H2, H3 rõ ràng. KHÔNG dùng code block \`\`\`.
-- Gắn emoji chuyên nghiệp (📈, 🚨, 💰, 🇻🇳) làm tiêu đề section.
-- Nêu SỐ LIỆU CỤ THỂ khi có thể (giá vàng, chỉ số chứng khoán, tỷ giá).
-- Kết thúc bằng dòng in nghiêng: "*Tin tức được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại theo múi giờ UTC+7]*".
-        `;
+⚠️ QUY TẮC VỀ ĐỘ CHÍNH XÁC DỮ LIỆU (BẮT BUỘC TUÂN THỦ):
+1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Tra cứu ngay trên X/Twitter, sàn giao dịch, báo tài chính.
+2. Lấy GIÁ CAO NHẤT trên thị trường — KHÔNG lấy giá trung bình. Ví dụ: nếu xi măng từ 1.5-1.8 triệu thì ghi 1.800.000 VND.
+3. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
+4. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
+5. KHÔNG ĐƯỢC ĐỂ TRỐNG BẤT KỲ THÔNG SỐ NÀO. Mọi ô trong bảng PHẢI có số liệu cụ thể. Nếu không có dữ liệu ngày hôm nay, hãy lấy dữ liệu gần nhất bạn tra được và ghi rõ ngày.
+6. KHÔNG ĐƯỢC ghi "…", "N/A", "chưa có dữ liệu", hay để trống. Bạn PHẢI điền đầy đủ 100% các ô.
+7. Với vật tư xây dựng: tra giá bán lẻ cao nhất tại TP.HCM từ nhà cung cấp lớn.
+8. Với xăng dầu: lấy giá niêm yết mới nhất từ Petrolimex/PV Oil.
+9. Với vàng SJC: lấy giá MUA VÀO và BÁN RA cụ thể từ SJC/DOJI.
+10. Với chứng khoán: lấy giá đóng cửa phiên gần nhất từ HOSE/HNX.
 
-        const requestBody = {
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: `Hãy lập báo cáo tin tức vĩ mô mới nhất ngay bây giờ. Hôm nay là ngày ${new Date().toLocaleDateString('vi-VN')}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.` }
-            ],
-            model: "grok-3-mini", stream: false, temperature: 0.3
-        };
+Hãy tạo BẢNG THÔNG TIN ĐẦU TƯ theo định dạng:
+## 📊 EXECUTIVE SUMMARY (CHO CEO)
+[Tóm tắt ngắn gọn]
 
-        const response = await fetch("https://api.x.ai/v1/chat/completions", {
-            method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${xaiApiKey}` }, body: JSON.stringify(requestBody)
+## 📈 BẢNG THÔNG TIN ĐẦU TƯ
+[Bảng Markdown chứa VN-Index, Vàng thế giới, Vàng SJC, BĐS TP.HCM, BĐS Bình Dương, BĐS Đắk Lắk]
+
+## 🎯 HÀNH ĐỘNG ƯU TIÊN CHO CEO HÔM NAY
+[Hành động mua bán]
+
+## 🔮 TÓM TẮT DỰ ĐOÁN VĨ MÔ
+[Dự đoán]
+
+## 🚨 PHÂN TÍCH ĐỊA CHÍNH TRỊ
+[Phân tích thời sự]
+
+## 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM
+[Phân tích XNK, FDI]
+
+## 🏗️ NGÀNH XÂY DỰNG & NỘI THẤT
+[Bảng giá Vật tư: Xi măng, Sắt Thép, Gạch, Đá, Nhôm, Kính, Gỗ, Xăng RON 95, Dầu diesel]
+[Khuyến nghị ngành xây dựng]
+
+YÊU CẦU: MỌI BẢNG PHẢI VIẾT BẰNG MARKDOWN (dấu |). MỌI SỐ LIỆU PHẢI CÓ SỐ THẬT Ở ĐỀ MỤC. Kết thúc bản tin bằng: *Bảng tin đầu tư được tổng hợp tự động bởi Gemini AI lúc [Giờ hiện tại]*`;
+
+        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy tra cứu Google Search để lấy số liệu thực tế MỚI NHẤT và báo cáo. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
+
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const ai = genAI.getGenerativeModel({ 
+            model: 'gemini-2.0-flash',
+            tools: [{ googleSearch: {} }] 
         });
 
-        if (!response.ok) throw new Error(`xAI API Error: ${response.status} - ${await response.text()}`);
+        // Khởi tạo timeout 55s tương tự production
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 55000);
 
-        const xaiData = await response.json();
-        const newsContent = xaiData.choices[0].message.content;
-        const tokensUsed = xaiData.usage?.total_tokens || 0;
+        const result = await ai.generateContent({
+             contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }]
+        }, { signal: controller.signal });
+
+        clearTimeout(timeout);
+
+        const newsContent = result.response.text();
+        
+        let tokensUsed = 0;
+        try {
+             const { totalTokens } = await ai.countTokens(systemPrompt + '\n\n' + userPrompt);
+             tokensUsed = totalTokens;
+        } catch(e) {}
 
         const timeLabel = edition === 'AM' ? "Sáng" : "Chiều";
-        const dateStrVN = new Date(now.getTime() + 7 * 60 * 60 * 1000).toLocaleDateString('vi-VN');
-        const title = `Bản tin Vĩ mô ${timeLabel} ${dateStrVN}`;
+        const dateStrVN = dateVN.toLocaleDateString('vi-VN');
+        const title = `Bảng Tin Đầu Tư ${timeLabel} ${dateStrVN}`;
+        const editionDate = dateVN.toISOString().split('T')[0];
 
-        await supabaseAdmin.from('grok_news_feed').insert({
-            title, content_markdown: newsContent, category: 'Tổng hợp', ai_model: 'grok-3-mini', edition
+        const { error } = await supabaseAdmin.from('grok_news_feed').insert({
+            title: title,
+            content_markdown: newsContent,
+            category: 'Đầu tư CEO',
+            ai_model: 'gemini-2.0-flash (google_search)',
+            edition: edition,
+            edition_date: editionDate
         });
 
-        console.log(`[Grok Local] Thành công! Tokens: ${tokensUsed}`);
+        if (error) throw error;
+
+        console.log(`[Gemini Local] Thành công! Tokens: ${tokensUsed}`);
         return res.status(200).json({ success: true, message: 'Đã tổng hợp tin tức thành công', title, tokens_used: tokensUsed });
+
     } catch (err) {
-        console.error("[Grok Local] Error:", err);
+        console.error("[Gemini Local] Error:", err);
         return res.status(500).json({ error: err.message || 'Lỗi xử lý tạo tin tức.' });
     }
 });
