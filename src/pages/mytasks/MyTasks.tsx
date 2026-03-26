@@ -1485,8 +1485,8 @@ export default function MyTasks() {
             >
               <Globe className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
-                <span className="sm:hidden">Grok</span>
-                <span className="hidden sm:inline">Tin Grok</span>
+                <span className="sm:hidden">Đầu tư</span>
+                <span className="hidden sm:inline">Bảng Tin Đầu tư</span>
               </span>
             </button>
           </div>
