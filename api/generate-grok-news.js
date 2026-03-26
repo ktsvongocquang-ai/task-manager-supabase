@@ -62,16 +62,17 @@ export default async function handler(req, res) {
 Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter) và các nguồn tài chính.
 
 ⚠️ QUY TẮC VỀ ĐỘ CHÍNH XÁC DỮ LIỆU (BẮT BUỘC TUÂN THỦ):
-1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Không ước tính, không dùng dữ liệu cũ.
-2. Tra cứu giá THỰC TẾ từ X/Twitter, sàn giao dịch, báo tài chính trong vòng 24 giờ qua.
-3. Lấy GIÁ CAO NHẤT trên thị trường — KHÔNG lấy giá trung bình. Ví dụ: nếu xi măng từ 1.5-1.8 triệu thì ghi 1.800.000 VND.
-4. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
-5. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
-6. Nếu không tìm được dữ liệu thời gian thực cho một mục, ghi rõ "⚠️ Chưa có dữ liệu real-time" thay vì bịa số.
-7. Với vật tư xây dựng: tra giá bán lẻ tại TP.HCM, lấy giá cao nhất từ các nhà cung cấp lớn (Hòa Phát, Pomina, Vicem, SCG).
+1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Tra cứu ngay trên X/Twitter, sàn giao dịch, báo tài chính.
+2. Lấy GIÁ CAO NHẤT trên thị trường — KHÔNG lấy giá trung bình. Ví dụ: nếu xi măng từ 1.5-1.8 triệu thì ghi 1.800.000 VND.
+3. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
+4. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
+5. KHÔNG ĐƯỢC ĐỂ TRỐNG BẤT KỲ THÔNG SỐ NÀO. Mọi ô trong bảng PHẢI có số liệu cụ thể. Nếu không có dữ liệu ngày hôm nay, hãy lấy dữ liệu gần nhất bạn tra được và ghi rõ ngày.
+6. KHÔNG ĐƯỢC ghi "…", "N/A", "chưa có dữ liệu", hay để trống. Bạn PHẢI điền đầy đủ 100% các ô.
+7. Với vật tư xây dựng: tra giá bán lẻ cao nhất tại TP.HCM từ nhà cung cấp lớn (Hòa Phát, Pomina, Vicem, SCG).
 8. Với xăng dầu: lấy giá niêm yết mới nhất từ Petrolimex/PV Oil.
-9. Với vàng SJC: lấy giá MUA VÀO và BÁN RA từ SJC hoặc DOJI.
-10. Với chứng khoán: lấy giá đóng cửa phiên gần nhất, KHÔNG lấy giá ước tính.
+9. Với vàng SJC: lấy giá MUA VÀO và BÁN RA cụ thể từ SJC hoặc DOJI.
+10. Với chứng khoán: lấy giá đóng cửa phiên gần nhất từ HOSE/HNX.
+11. Ưu tiên: Dữ liệu hôm nay > Dữ liệu hôm qua > Dữ liệu tuần này. KHÔNG BAO GIỜ bỏ trống.
 
 Hãy tạo ngay **BẢNG THÔNG TIN ĐẦU TƯ CHUẨN HÀNG NGÀY** theo đúng định dạng tối ưu cho CEO.
 
