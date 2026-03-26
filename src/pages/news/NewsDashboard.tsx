@@ -107,22 +107,22 @@ export const NewsDashboard = () => {
                                    h1: ({node, ...props}) => <h1 className="text-2xl font-black text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props} />,
                                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-indigo-900 mt-8 mb-4 flex items-center gap-2 before:content-[''] before:w-2 before:h-6 before:bg-indigo-500 before:rounded-full before:inline-block" {...props} />,
                                    h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-800 mt-6 mb-3" {...props} />,
-                                   ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-5 space-y-2 marker:text-indigo-400" {...props} />,
-                                   ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-5 space-y-2 marker:text-indigo-400 font-medium" {...props} />,
+                                   ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-1.5 marker:text-indigo-400" {...props} />,
+                                   ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-1.5 marker:text-indigo-400 font-medium" {...props} />,
                                    li: ({node, ...props}) => <li className="text-slate-700" {...props} />,
-                                   p: ({node, ...props}) => <p className="mb-5 text-[15px] text-slate-700 leading-8" {...props} />,
+                                   p: ({node, ...props}) => <p className="mb-3 text-[15px] text-slate-700 leading-relaxed last:mb-0" {...props} />,
                                    strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
-                                   em: ({node, ...props}) => <em className="text-slate-500 italic block mt-8 pt-4 border-t border-slate-100 text-sm text-center" {...props} />,
+                                   em: ({node, ...props}) => <em className="text-slate-500 italic" {...props} />,
                                    table: ({node, ...props}) => (
                                      <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm">
-                                       <table className="w-full text-sm text-left" {...props} />
+                                       <table className="w-full text-[14px] text-left" {...props} />
                                      </div>
                                    ),
                                    thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs uppercase tracking-wider" {...props} />,
                                    tbody: ({node, ...props}) => <tbody className="divide-y divide-slate-100" {...props} />,
                                    tr: ({node, ...props}) => <tr className="hover:bg-indigo-50/50 transition-colors even:bg-slate-50" {...props} />,
                                    th: ({node, ...props}) => <th className="px-4 py-3 font-bold whitespace-nowrap" {...props} />,
-                                   td: ({node, ...props}) => <td className="px-4 py-3 text-slate-700" {...props} />
+                                   td: ({node, ...props}) => <td className="px-4 py-3 text-slate-700 align-middle [&>p]:mb-1 [&>p:last-child]:mb-0" {...props} />
                                }}
                            >
                                {item.content_markdown}
