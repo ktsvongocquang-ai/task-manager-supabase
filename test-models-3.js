@@ -5,11 +5,11 @@ dotenv.config();
 async function listModels() {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const models = [
-        'gemini-3-flash-preview-lite',
-        'gemini-3-flash-preview',
-        'gemini-3-flash-preview',
-        'gemini-3-flash-preview-lite-preview-0205',
-        'gemini-3-flash-preview-8b'
+        'gemini-2.0-flash-lite',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite-preview-0205',
+        'gemini-2.0-flash-8b'
     ];
     
     console.log("--- START MODEL TEST ---");

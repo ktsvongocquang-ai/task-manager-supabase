@@ -156,7 +156,7 @@ Kết thúc bằng:
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             tools: [{ googleSearch: {} }] 
         });
 
@@ -191,7 +191,7 @@ Kết thúc bằng:
             title: title,
             content_markdown: newsContent,
             category: 'Đầu tư CEO',
-            ai_model: 'gemini-3-flash-preview (google_search)',
+            ai_model: 'gemini-2.0-flash (google_search)',
             edition: edition,
             edition_date: editionDate
         });

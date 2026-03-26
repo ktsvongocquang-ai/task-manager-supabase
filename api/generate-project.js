@@ -120,7 +120,7 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và si
 ${JSON.stringify(workingDaysCalendar)}
 `;
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const result = await model.generateContent({
             contents: [{ role: 'user', parts: [{ text: "Tạo Lịch trình JSON WBS chi tiết cho dự án" }] }],
