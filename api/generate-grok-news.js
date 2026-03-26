@@ -33,6 +33,7 @@ export default async function handler(req, res) {
         const vnHour = (now.getUTCHours() + 7) % 24;
         const edition = vnHour < 12 ? 'AM' : 'PM';
         const todayStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const forceRegenerate = req.query?.force === 'true';
 
         // Kiểm tra đã có bản tin cho phiên này chưa
         const { data: existing } = await supabaseAdmin
@@ -43,32 +44,83 @@ export default async function handler(req, res) {
             .limit(1);
 
         if (existing && existing.length > 0) {
-            console.log(`[Grok Cron] Bản tin ${edition} ngày ${todayStr} đã tồn tại. Bỏ qua.`);
-            return res.status(200).json({ success: true, message: `Bản tin ${edition} hôm nay đã có sẵn, không cần tạo mới.`, skipped: true });
+            if (forceRegenerate) {
+                // Xóa bản tin cũ để tạo mới
+                await supabaseAdmin.from('grok_news_feed').delete().eq('id', existing[0].id);
+                console.log(`[Grok] Force regenerate: đã xóa bản tin ${edition} cũ.`);
+            } else {
+                console.log(`[Grok Cron] Bản tin ${edition} ngày ${todayStr} đã tồn tại. Bỏ qua.`);
+                return res.status(200).json({ success: true, message: `Bản tin ${edition} hôm nay đã có sẵn, không cần tạo mới.`, skipped: true });
+            }
         }
 
         // === GỌI API xAI ===
-        const systemPrompt = `
-Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao và Biên tập viên tin tức kinh tế quốc tế.
-Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter).
-NHIỆM VỤ: Hãy quét các tin nóng hổi nhất trong 12-24 giờ qua và viết một "Bản tin Ban Giám Đốc" bao gồm 4 phần chính:
+        const dateVN = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+        const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-1. 🚨 CHIẾN SỰ & ĐỊA CHÍNH TRỊ — Các điểm nóng xung đột, bầu cử, cấm vận mới, căng thẳng ngoại giao.
-2. 💰 GIÁ VÀNG & HÀNG HÓA — Biến động giá vàng thế giới (USD/oz), dầu thô Brent, tỷ giá USD/VND. Ghi rõ số liệu cụ thể nếu có.
-3. 📈 CHỨNG KHOÁN — Dow Jones, S&P 500, Nasdaq (Mỹ), Nikkei (Nhật), VN-Index (Việt Nam). Phân tích xu hướng ngắn hạn.
-4. 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM — Tổng hợp: Các sự kiện trên ảnh hưởng gì đến nhà đầu tư và doanh nghiệp Việt Nam?
+        const systemPrompt = `Bạn là Grok – Trợ lý Đầu tư Cá nhân & Cố vấn Chiến lược cho CEO & Nhà đầu tư.
+Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter) và các nguồn tài chính.
 
-YÊU CẦU ĐỊNH DẠNG:
-- Markdown với Heading H2, H3 rõ ràng. KHÔNG dùng code block \`\`\`.
-- Gắn emoji chuyên nghiệp (📈, 🚨, 💰, 🇻🇳) làm tiêu đề section.
-- Nêu SỐ LIỆU CỤ THỂ khi có thể (giá vàng, chỉ số chứng khoán, tỷ giá).
-- Kết thúc bằng dòng in nghiêng: "*Tin tức được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại theo múi giờ UTC+7]*".
-        `;
+Hãy tạo ngay **BẢNG THÔNG TIN ĐẦU TƯ CHUẨN HÀNG NGÀY** theo đúng định dạng tối ưu cho CEO.
+
+**Dữ liệu cần cập nhật mới nhất từ thị trường:**
+- VN-Index đóng cửa + % thay đổi
+- Giá vàng thế giới (spot USD/ounce)
+- Giá vàng SJC mua/bán (triệu VND/lượng)
+- Xu hướng BĐS ngắn gọn: TP.HCM (đất trung tâm + căn hộ), Bình Dương (đất KCN + nhà phố), Đắk Lắk (đất đô thị + du lịch)
+
+**Nội dung cố định phải tích hợp:**
+- Địa chính trị cao: Trung Đông (Israel-Iran-Hezbollah), căng thẳng Mỹ-Trung, lo ngại thuế quan Trump.
+- Giá vàng & hàng hóa: Biến động giá vàng do bất ổn.
+- Chứng khoán Mỹ: Biến động mạnh (Nasdaq, S&P500, Dow Jones).
+- Tác động VN: Logistics, xuất khẩu, FDI, lạm phát, lãi suất.
+
+YÊU CẦU ĐỊNH DẠNG (QUAN TRỌNG - TUÂN THỦ CHÍNH XÁC):
+- Viết bằng Markdown. KHÔNG dùng code block.
+- Dùng bảng Markdown chuẩn (dấu |) cho bảng dữ liệu.
+- Gắn emoji chuyên nghiệp cho tiêu đề section.
+
+CẤU TRÚC BẮT BUỘC (không thêm, không bớt):
+
+## 📊 EXECUTIVE SUMMARY (CHO CEO)
+[Viết 1–2 câu tóm tắt cao cấp: tình hình thị trường hôm nay, rủi ro chính, cơ hội lớn nhất]
+
+## 📈 BẢNG THÔNG TIN ĐẦU TƯ
+
+| Chỉ số | Giá trị hiện tại | Thay đổi | Hành động CEO hôm nay | Ghi chú / Rủi ro |
+|---|---|---|---|---|
+| VN-Index | [cập nhật] | +/- % | DCA / Hold / Bán | - |
+| Vàng Thế Giới | [USD/ounce] | +/- % | Giữ / Mua dip / Chốt | - |
+| Vàng SJC Trong Nước | Mua: … / Bán: … (triệu VND/lượng) | +/- triệu | Giữ / Mua thêm | Chênh lệch SJC |
+| BĐS TP.HCM | Đất trung tâm: … triệu/m² / Căn hộ: … triệu/m² | +/- % | Theo dõi / Mua hạ tầng | Thanh khoản |
+| BĐS Bình Dương | Đất KCN: … triệu/m² / Nhà phố: … triệu/m² | +/- % | Mua dần FDI | Tăng mạnh |
+| BĐS Đắk Lắk | Đất đô thị: … triệu/m² / Đất du lịch: … triệu/ha | +/- % | Mua dài hạn hạ tầng | Tăng mạnh Km7 |
+| Tỷ trọng danh mục gợi ý | Vàng: 25–30% / Cổ phiếu VN: 55–60% / Tiền mặt: 10–15% | - | Rebalance nếu lệch >5% | - |
+| Ngành ưu tiên | Ngân hàng (VCB, MBB, BID), Tiêu dùng (MWG, PNJ, VNM), Logistics (GEX) | - | DCA tuần này | Ít phụ thuộc Mỹ |
+
+## 🎯 HÀNH ĐỘNG ƯU TIÊN CHO CEO HÔM NAY
+[Viết ngắn gọn 2–3 bullet: mua gì, bán gì, tỷ trọng điều chỉnh, rủi ro cần theo dõi]
+
+## 🔮 TÓM TẮT DỰ ĐOÁN VĨ MÔ
+- **Tuần sau:** Biến động cao, ưu tiên vàng & phòng thủ.
+- **Tháng 4:** Phục hồi nhẹ nếu địa chính trị lắng.
+- **Quý II:** GDP VN 6,5–7,0%.
+- **Cả năm 2026:** VN-Index mục tiêu 1.450–1.550 điểm (kịch bản cơ sở).
+
+## 🚨 PHÂN TÍCH ĐỊA CHÍNH TRỊ & CHIẾN SỰ
+[Chi tiết các điểm nóng: Trung Đông, Mỹ-Trung, thuế quan, và tác động đến thị trường]
+
+## 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM
+[Phân tích cụ thể: XNK, FDI, logistics, lạm phát, lãi suất, và khuyến nghị doanh nghiệp]
+
+Kết thúc bằng:
+- Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
+- Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
 
         const requestBody = {
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `Hãy lập báo cáo tin tức vĩ mô mới nhất ngay bây giờ. Hôm nay là ngày ${new Date().toLocaleDateString('vi-VN')}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.` }
+                { role: "user", content: `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy cập nhật số liệu thực tế mới nhất và đưa ra khuyến nghị hành động cụ thể cho CEO.` }
             ],
             model: "grok-3-mini",
             stream: false,
@@ -101,15 +153,17 @@ YÊU CẦU ĐỊNH DẠNG:
 
         // === LƯU VÀO SUPABASE ===
         const timeLabel = edition === 'AM' ? "Sáng" : "Chiều";
-        const dateStrVN = new Date(now.getTime() + 7 * 60 * 60 * 1000).toLocaleDateString('vi-VN');
-        const title = `Bản tin Vĩ mô ${timeLabel} ${dateStrVN}`;
+        const dateStrVN = dateVN.toLocaleDateString('vi-VN');
+        const title = `Bảng Tin Đầu Tư ${timeLabel} ${dateStrVN}`;
+        const editionDate = dateVN.toISOString().split('T')[0]; // YYYY-MM-DD
 
         const { error } = await supabaseAdmin.from('grok_news_feed').insert({
             title: title,
             content_markdown: newsContent,
-            category: 'Tổng hợp',
+            category: 'Đầu tư CEO',
             ai_model: 'grok-3-mini',
-            edition: edition
+            edition: edition,
+            edition_date: editionDate
         });
 
         if (error) {

@@ -28,7 +28,7 @@ export const NewsDashboard = () => {
     setGenerating(true);
     try {
       const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
-      const res = await fetch(`${baseUrl}/api/generate-grok-news`);
+      const res = await fetch(`${baseUrl}/api/generate-grok-news?force=true`);
       const result = await res.json();
       if (result.success && !result.skipped) {
         await fetchNews(); // reload to show new article
