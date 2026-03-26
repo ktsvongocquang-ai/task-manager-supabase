@@ -1,0 +1,197 @@
+{
+  "created_at": 0,
+  "completed_at": 1774537154,
+  "id": "73091f8d-abf7-9bfa-a50c-9203a8a33138",
+  "max_output_tokens": null,
+  "model": "grok-4.20-reasoning",
+  "object": "response",
+  "output": [
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_0",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "query": "current VN-Index value",
+        "sources": []
+      }
+    },
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_1",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "query": "VN-Index live",
+        "sources": []
+      }
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_2",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://finance.yahoo.com/quote/%5EVNINDEX.VN/"
+      }
+    },
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_3",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://www.investing.com/indices/vn"
+      }
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_4",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "search",
+        "query": "VN-Index exact current value site:hsx.vn OR site:vietstock.vn OR site:cafef.vn",
+        "sources": []
+      }
+    },
+    {
+      "id": "ws_73091f8d-abf7-9bfa-a50c-9203a8a33138_5",
+      "type": "web_search_call",
+      "status": "completed",
+      "action": {
+        "type": "open_page",
+        "url": "https://www.tradingview.com/symbols/HOSE-VNINDEX/"
+      }
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "id": "tco_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "summary": [],
+      "type": "reasoning",
+      "status": "completed"
+    },
+    {
+      "content": [
+        {
+          "type": "output_text",
+          "text": "**The VN-Index is currently at 1,644.63.**[[1]](https://www.tradingview.com/symbols/HOSE-VNINDEX/)\n\nThis is the closing value as of March 26, 2026 (down 13.56 points or -0.82% for the day). Multiple major financial sites report this exact figure:\n\n- TradingView, Yahoo Finance, Trading Economics, and Investing.com all show **1,644.63** (or very close to it, such as 1,644.20/1,644.6) at or near close.[[2]](https://www.investing.com/indices/vn)\n- The market appears to have closed for the day (typically around 3:00 PM Vietnam time / GMT+7).[[1]](https://www.tradingview.com/symbols/HOSE-VNINDEX/)\n\n**Note:** Stock indices update in real time during trading hours. For the absolute latest live value, check a source like Investing.com, TradingView, or Vietstock directly, as minor variations can appear depending on the exact second of the quote.",
+          "logprobs": [],
+          "annotations": [
+            {
+              "type": "url_citation",
+              "url": "https://www.tradingview.com/symbols/HOSE-VNINDEX/",
+              "start_index": 42,
+              "end_index": 98,
+              "title": "1"
+            },
+            {
+              "type": "url_citation",
+              "url": "https://www.investing.com/indices/vn",
+              "start_index": 402,
+              "end_index": 445,
+              "title": "2"
+            },
+            {
+              "type": "url_citation",
+              "url": "https://www.tradingview.com/symbols/HOSE-VNINDEX/",
+              "start_index": 542,
+              "end_index": 598,
+              "title": "1"
+            }
+          ]
+        }
+      ],
+      "id": "msg_73091f8d-abf7-9bfa-a50c-9203a8a33138",
+      "role": "assistant",
+      "type": "message",
+      "status": "completed"
+    }
+  ],
+  "parallel_tool_calls": true,
+  "previous_response_id": null,
+  "reasoning": {
+    "effort": null,
+    "summary": null
+  },
+  "temperature": 0.7,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [
+    {
+      "type": "web_search",
+      "search_context_size": "medium"
+    }
+  ],
+  "top_p": 0.95,
+  "usage": {
+    "input_tokens": 15141,
+    "input_tokens_details": {
+      "cached_tokens": 9984
+    },
+    "output_tokens": 1913,
+    "output_tokens_details": {
+      "reasoning_tokens": 1695
+    },
+    "total_tokens": 17054,
+    "num_sources_used": 0,
+    "num_server_side_tools_used": 6,
+    "cost_in_usd_ticks": 537888000,
+    "server_side_tool_usage_details": {
+      "web_search_calls": 6,
+      "x_search_calls": 0,
+      "code_interpreter_calls": 0,
+      "file_search_calls": 0,
+      "mcp_calls": 0,
+      "document_search_calls": 0
+    }
+  },
+  "user": null,
+  "incomplete_details": null,
+  "status": "completed",
+  "store": true,
+  "metadata": {},
+  "background": false,
+  "service_tier": "default",
+  "truncation": "disabled",
+  "top_logprobs": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0,
+  "prompt_cache_key": null,
+  "max_tool_calls": null,
+  "safety_identifier": null,
+  "error": null,
+  "instructions": null
+}

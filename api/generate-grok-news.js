@@ -152,19 +152,21 @@ Kết thúc bằng:
 - Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
 
         const requestBody = {
-            messages: [
+            model: "grok-4.20-reasoning",
+            input: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy cập nhật số liệu thực tế mới nhất và đưa ra khuyến nghị hành động cụ thể cho CEO.` }
+                { role: "user", content: `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy tra cứu web để lấy số liệu thực tế MỚI NHẤT và đưa ra khuyến nghị hành động cụ thể cho CEO. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.` }
             ],
-            model: "grok-3-mini",
-            stream: false,
+            tools: [
+                { type: "web_search" }
+            ],
             temperature: 0.3
         };
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 55000); // Timeout 55s
 
-        const response = await fetch("https://api.x.ai/v1/chat/completions", {
+        const response = await fetch("https://api.x.ai/v1/responses", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -182,7 +184,22 @@ Kết thúc bằng:
         }
 
         const xaiData = await response.json();
-        const newsContent = xaiData.choices[0].message.content;
+        // Responses API returns output array — extract text content
+        let newsContent = '';
+        if (xaiData.output) {
+            for (const item of xaiData.output) {
+                if (item.type === 'message' && item.content) {
+                    for (const block of item.content) {
+                        if (block.type === 'output_text' || block.text) {
+                            newsContent += block.text;
+                        }
+                    }
+                }
+            }
+        }
+        if (!newsContent) {
+            throw new Error('Grok không trả về nội dung. Response: ' + JSON.stringify(xaiData).substring(0, 500));
+        }
         const tokensUsed = xaiData.usage?.total_tokens || 0;
 
         // === LƯU VÀO SUPABASE ===
@@ -195,7 +212,7 @@ Kết thúc bằng:
             title: title,
             content_markdown: newsContent,
             category: 'Đầu tư CEO',
-            ai_model: 'grok-3-mini',
+            ai_model: 'grok-4.20-reasoning (web_search)',
             edition: edition,
             edition_date: editionDate
         });
