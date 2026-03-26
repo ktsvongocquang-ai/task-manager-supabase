@@ -152,7 +152,15 @@ Kết thúc bằng:
 - Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
 - Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
 
-        const userPrompt = `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy tra cứu Google Search để lấy số liệu thực tế MỚI NHẤT và đưa ra khuyến nghị hành động cụ thể cho CEO. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
+        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. 
+LỆNH BẮT BUỘC TRƯỚC KHI VIẾT BÁO CÁO: Bạn PHẢI dùng công cụ Google Search để tìm kiếm ĐỘC LẬP 5 thông tin sau đây để có số liệu chính xác nhất của ngày hôm nay (${dateVN}):
+1. "Giá xăng RON 95 và Dầu Diesel Petrolimex hôm nay"
+2. "Giá Vàng SJC và Vàng thế giới hôm nay"
+3. "Chỉ số VN-Index đóng cửa hôm nay"
+4. "Giá Thép xây dựng Hòa Phát hôm nay"
+5. "Giá Xi măng Vicem và Gạch, Đá xây dựng hôm nay"
+
+Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU TƯ. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
