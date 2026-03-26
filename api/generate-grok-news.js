@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Vercel serverless cấu hình thời gian chạy tối đa
 export const config = {
@@ -11,10 +12,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log("[Grok Cron] Bắt đầu tổng hợp tin tức...");
-        const xaiApiKey = process.env.XAI_API_KEY;
-        if (!xaiApiKey) {
-            return res.status(500).json({ error: 'Missing XAI_API_KEY in server environment.' });
+        console.log("[Gemini Cron] Bắt đầu tổng hợp tin tức...");
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        if (!geminiApiKey) {
+            return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
         const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -151,56 +152,34 @@ Kết thúc bằng:
 - Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
 - Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
 
-        const requestBody = {
-            model: "grok-4.20-reasoning",
-            input: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy tra cứu web để lấy số liệu thực tế MỚI NHẤT và đưa ra khuyến nghị hành động cụ thể cho CEO. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.` }
-            ],
-            tools: [
-                { type: "web_search" }
-            ],
-            temperature: 0.3
-        };
+        const userPrompt = `Hãy lập BẢNG THÔNG TIN ĐẦU TƯ mới nhất ngay bây giờ. Hôm nay là ${dateStrFull}, phiên bản tin ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. Hãy tra cứu Google Search để lấy số liệu thực tế MỚI NHẤT và đưa ra khuyến nghị hành động cụ thể cho CEO. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
+
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const ai = genAI.getGenerativeModel({ 
+            model: 'gemini-3-flash-preview',
+            tools: [{ googleSearch: {} }] 
+        });
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 55000); // Timeout 55s
 
-        const response = await fetch("https://api.x.ai/v1/responses", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${xaiApiKey}`
-            },
-            body: JSON.stringify(requestBody),
-            signal: controller.signal
-        });
+        const result = await ai.generateContent({
+             contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }]
+        }, { signal: controller.signal });
 
         clearTimeout(timeout);
 
-        if (!response.ok) {
-            const errData = await response.text();
-            throw new Error(`xAI API Error: ${response.status} - ${errData}`);
-        }
-
-        const xaiData = await response.json();
-        // Responses API returns output array — extract text content
-        let newsContent = '';
-        if (xaiData.output) {
-            for (const item of xaiData.output) {
-                if (item.type === 'message' && item.content) {
-                    for (const block of item.content) {
-                        if (block.type === 'output_text' || block.text) {
-                            newsContent += block.text;
-                        }
-                    }
-                }
-            }
-        }
+        const newsContent = result.response.text();
         if (!newsContent) {
-            throw new Error('Grok không trả về nội dung. Response: ' + JSON.stringify(xaiData).substring(0, 500));
+            throw new Error('Gemini không trả về nội dung.');
         }
-        const tokensUsed = xaiData.usage?.total_tokens || 0;
+        
+        // Count approximate tokens (Gemini 2.5 flash uses character counting essentially or its own tokenizer, we can just estimate or leave it 0)
+        let tokensUsed = 0;
+        try {
+             const { totalTokens } = await ai.countTokens(systemPrompt + '\n\n' + userPrompt);
+             tokensUsed = totalTokens;
+        } catch(e) {}
 
         // === LƯU VÀO SUPABASE ===
         const timeLabel = edition === 'AM' ? "Sáng" : "Chiều";
@@ -212,7 +191,7 @@ Kết thúc bằng:
             title: title,
             content_markdown: newsContent,
             category: 'Đầu tư CEO',
-            ai_model: 'grok-4.20-reasoning (web_search)',
+            ai_model: 'gemini-3-flash-preview (google_search)',
             edition: edition,
             edition_date: editionDate
         });

@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const ai = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const ai = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
         const currentDate = new Date().toISOString().split('T')[0];
 
         // Bước 1: Trích xuất tham số thời gian từ Prompt
@@ -102,7 +102,7 @@ ${JSON.stringify(demoDataRaw)}
         `;
 
         const analysisResponse = await genAI.getGenerativeModel({ 
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             systemInstruction: analyzeInstruction 
         }).generateContent(analysisPrompt);
 

@@ -55,7 +55,7 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp (thường 
         const prompt = `Hãy tinh chỉnh nội dung sau cho trường '${field || 'description'}': "${text}"`;
 
         const response = await ai.getGenerativeModel({ 
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             systemInstruction: systemInstruction 
         }).generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -116,7 +116,7 @@ Bắt buộc phải trả về định dạng JSON theo schema gồm subject và
         }, null, 2);
 
         const response = await ai.getGenerativeModel({ 
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             systemInstruction: systemInstruction 
         }).generateContent({
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -183,7 +183,7 @@ app.post('/api/fb-ads-analyze', async (req, res) => {
         const configPrompt = `Giao tiếp: Hôm nay là ${currentDate}. Dựa vào yêu cầu sau: "${prompt}". Hãy trích xuất khoảng thời gian (since, until) dạng YYYY-MM-DD. Mặc định nếu không ghi rõ là xem 7 ngày qua.`;
         
         const configResponse = await ai.getGenerativeModel({ 
-            model: 'gemini-2.5-flash' 
+            model: 'gemini-3-flash-preview' 
         }).generateContent({
             contents: [{ role: 'user', parts: [{ text: configPrompt }] }],
             generationConfig: {
@@ -249,7 +249,7 @@ ${JSON.stringify(demoDataRaw)}
         `;
 
         const analysisResponse = await ai.getGenerativeModel({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3-flash-preview',
             systemInstruction: analyzeInstruction
         }).generateContent({
             contents: [{ role: 'user', parts: [{ text: analysisPrompt }] }],
