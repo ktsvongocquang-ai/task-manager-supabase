@@ -541,6 +541,63 @@ Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU
     }
 });
 
+app.get('/api/backup-db', async (req, res) => {
+    try {
+        console.log("[Backup] Đang chuẩn bị sao lưu dữ liệu...");
+        const supabaseUrl = process.env.VITE_SUPABASE_URL;
+        const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !serviceKey) {
+            return res.status(500).json({ error: 'Missing Supabase credentials.' });
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+            auth: { autoRefreshToken: false, persistSession: false }
+        });
+
+        const tables = [
+            'profiles',
+            'projects',
+            'tasks',
+            'comments',
+            'notifications',
+            'marketing_ai_reports',
+            'grok_news_feed',
+            'global_messages'
+        ];
+
+        const backupData = {
+            timestamp: new Date().toISOString(),
+            version: "1.0",
+            tables: {}
+        };
+
+        // Fetch data from each table
+        for (const table of tables) {
+            console.log(`[Backup] Đang lấy dữ liệu từ bảng: ${table}...`);
+            const { data, error } = await supabaseAdmin.from(table).select('*');
+            
+            if (error) {
+                console.error(`[Backup] Lỗi khi lấy dữ liệu bảng ${table}:`, error);
+                backupData.tables[table] = { error: error.message };
+            } else {
+                backupData.tables[table] = data;
+                console.log(`[Backup] Đã lấy ${data.length} bản ghi từ ${table}.`);
+            }
+        }
+
+        const fileName = `supabase_backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        return res.status(200).send(JSON.stringify(backupData, null, 2));
+
+    } catch (err) {
+        console.error("[Backup] Error:", err);
+        return res.status(500).json({ error: err.message || 'Lỗi khi sao lưu dữ liệu.' });
+    }
+});
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Local AI API server running on http://0.0.0.0:${PORT}`);

@@ -24,7 +24,8 @@ import {
     BarChart2,
     Folder,
     PieChart,
-    Menu
+    Menu,
+    Database
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -81,6 +82,37 @@ export const Layout = () => {
     const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false)
     const [telegramChatId, setTelegramChatId] = useState(profile?.telegram_chat_id || '')
     const [isUpdatingTelegram, setIsUpdatingTelegram] = useState(false)
+
+    // Backup state
+    const [isBackingUp, setIsBackingUp] = useState(false)
+
+    const handleBackup = async () => {
+        if (!window.confirm('Bạn có muốn tải bản sao lưu toàn bộ dữ liệu hệ thống không?')) return;
+        
+        setIsBackingUp(true);
+        try {
+            const response = await fetch('/api/backup-db');
+            if (!response.ok) throw new Error('Lỗi khi gọi API sao lưu');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            a.download = `supabase_backup_${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            alert('Đã tải bản sao lưu thành công!');
+        } catch (err: any) {
+            console.error('Backup error:', err);
+            alert(`Lỗi sao lưu: ${err.message}`);
+        } finally {
+            setIsBackingUp(false);
+        }
+    }
 
     useEffect(() => {
         if (profile?.telegram_chat_id) {
@@ -314,6 +346,18 @@ export const Layout = () => {
                                 <Send size={14} /> Telegram ID
                             </button>
                         </div>
+                        
+                        {(profile?.role === 'Admin' || profile?.role === 'Giám đốc') && (
+                            <button 
+                                onClick={handleBackup} 
+                                disabled={isBackingUp}
+                                className={`mt-2 w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-indigo-50 text-xs font-bold text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors ${isBackingUp ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                <Database size={14} className={isBackingUp ? 'animate-spin' : ''} /> 
+                                {isBackingUp ? 'Đang sao lưu...' : 'Sao lưu Hệ thống'}
+                            </button>
+                        )}
+
                         <button onClick={handleSignOut} className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-red-600 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
                             <LogOut size={14} /> Đăng xuất
                         </button>

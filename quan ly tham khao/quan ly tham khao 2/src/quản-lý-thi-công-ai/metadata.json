@@ -1,0 +1,5 @@
+{
+  "name": "Quản Lý Thi Công AI",
+  "description": "Hệ thống quản lý thi công xây dựng thông minh với AI, theo dõi tiến độ, nhật ký công trình và quản lý tài chính.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+}

@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useConstructionData } from '../../hooks/useConstructionData';
-import { aiConstructionService } from '../../services/aiConstructionService';
 import { 
   Plus, Bell, Camera, Upload, Download, Folder, FileText, Users, Settings, 
   ChevronLeft, Calendar, DollarSign, FileSpreadsheet, CheckCircle2, Copy, X, 
@@ -10,7 +8,7 @@ import {
   Target, MapPin, ShieldCheck, Eye, ListChecks, History, BarChart3, 
   Smartphone, Monitor, UserCircle, ThermometerSun, Check, User, 
   HelpCircle, LogOut, AlertCircle, Mic, Play, Square as SquareIcon, Zap
-, ListTodo } from 'lucide-react';
+} from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
@@ -297,24 +295,18 @@ const ProgressBar = ({ progress, label }: { progress: number, label?: string }) 
   </div>
 );
 
-const DashboardGrid = ({ children }: { children: React.ReactNode }) => (
-  <div className="grid grid-cols-2 gap-4">
-    {children}
-  </div>
-);
-
-const DashboardCard = ({ icon, label, value, color, dark, onClick }: { icon: React.ReactNode, label: string, value: string | number, color?: string, dark?: boolean, onClick?: () => void }) => (
+const DashboardCard = ({ icon, label, value, color, onClick }: { icon: React.ReactNode, label: string, value: string | number, color: string, onClick?: () => void }) => (
   <motion.button 
     whileTap={{ scale: 0.95 }}
     onClick={onClick}
-    className={`${dark ? 'bg-[#1C1C28] border-gray-800' : 'bg-white border-gray-100'} rounded-2xl p-4 border shadow-sm flex flex-col items-start gap-3 text-left w-full`}
+    className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col items-start gap-3 text-left"
   >
-    <div className={`p-2 rounded-xl ${color ? color + ' bg-opacity-10' : (dark ? 'bg-white/5' : 'bg-gray-50')}`}>
-      {color ? React.cloneElement(icon as React.ReactElement, { className: `w-5 h-5 ${color.replace('bg-', 'text-')}` }) : icon}
+    <div className={`p-2 rounded-xl ${color} bg-opacity-10`}>
+      {React.cloneElement(icon as React.ReactElement, { className: `w-5 h-5 ${color.replace('bg-', 'text-')}` })}
     </div>
     <div>
-      <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</div>
-      <div className={`text-sm font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{value}</div>
+      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</div>
+      <div className="text-sm font-bold text-gray-900">{value}</div>
     </div>
   </motion.button>
 );
@@ -354,24 +346,7 @@ function VoiceLogModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                   onClick={() => {
                     setIsRecording(!isRecording);
                     if (!isRecording) {
-                      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.onresult = (event: any) => {
-        setTranscript(event.results[0][0].transcript);
-        setIsRecording(false);
-      };
-      recognition.onerror = () => {
-        alert("Lỗi microphone. Bật chế độ Demo.");
-        setTimeout(() => { setTranscript("Hôm nay đội thợ xây đã hoàn thành 80% tường bao tầng 1. Vật tư gạch đã về đủ. Thời tiết nắng ráo thuận lợi..."); setIsRecording(false); }, 2000);
-      };
-      recognition.start();
-    } else {
-      setTimeout(() => { setTranscript("Hôm nay đội thợ xây đã hoàn thành 80% tường bao tầng 1. Vật tư gạch đã về đủ. Thời tiết nắng ráo thuận lợi..."); setIsRecording(false); }, 2000);
-    }
+                      setTimeout(() => setTranscript("Hôm nay đội thợ xây đã hoàn thành 80% tường bao tầng 1. Vật tư gạch đã về đủ. Thời tiết nắng ráo thuận lợi..."), 2000);
                     }
                   }}
                   className={`relative z-10 w-full h-full rounded-full flex items-center justify-center transition-all duration-300 ${
@@ -426,171 +401,210 @@ function VoiceLogModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
   );
 }
 
-function AcceptanceModal({ isOpen, onClose, task, onSave }: { isOpen: boolean, onClose: () => void, task: any, onSave?: (taskId: string, checklist: any[], issues: any[]) => void }) {
-  const [localChecklist, setLocalChecklist] = useState<any[]>([]);
-  const [localIssues, setLocalIssues] = useState<any[]>([]);
-  const [newIssueTitle, setNewIssueTitle] = useState('');
+function AcceptanceModal({ isOpen, onClose, task }: { isOpen: boolean, onClose: () => void, task: Task | null }) {
+  const [newChecklistItem, setNewChecklistItem] = useState("");
+  const [localChecklist, setLocalChecklist] = useState<ChecklistItem[]>([]);
+  const [localIssues, setLocalIssues] = useState<Issue[]>([]);
   const [isAddingIssue, setIsAddingIssue] = useState(false);
+  const [newIssueTitle, setNewIssueTitle] = useState("");
 
   useEffect(() => {
     if (task) {
-      setLocalChecklist([...(task.checklist || [])]);
-      setLocalIssues([...(task.issues || [])]);
+      setLocalChecklist(task.checklist || []);
+      setLocalIssues(task.issues || []);
     }
   }, [task]);
 
-  const addIssue = () => {
-    if (!newIssueTitle) return;
-    setLocalIssues([...localIssues, { title: newIssueTitle, status: 'OPEN' }]);
-    setNewIssueTitle('');
-    setIsAddingIssue(false);
+  if (!task) return null;
+
+  const addChecklistItem = () => {
+    if (!newChecklistItem.trim()) return;
+    const newItem: ChecklistItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      label: newChecklistItem,
+      completed: false,
+      required: true
+    };
+    setLocalChecklist([...localChecklist, newItem]);
+    setNewChecklistItem("");
   };
 
-  if (!task) return null;
+  const addIssue = () => {
+    if (!newIssueTitle.trim()) return;
+    const newIssue: Issue = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: newIssueTitle,
+      description: "Lỗi phát sinh trong quá trình thi công",
+      status: 'OPEN',
+      severity: 'MEDIUM',
+      createdAt: new Date().toISOString()
+    };
+    setLocalIssues([...localIssues, newIssue]);
+    setNewIssueTitle("");
+    setIsAddingIssue(false);
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
         >
-          <div className="w-full max-w-5xl bg-[#1C1C28] rounded-3xl border border-gray-800 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            
-            {/* Header matching Screenshot 1 */}
-            <div className="p-4 flex justify-between items-center border-b border-gray-800 bg-[#15151e]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shadow-lg">
-                  <ListTodo className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-white text-lg">{task.name}</h3>
-                  <div className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mt-0.5">MEP</div>
-                </div>
-              </div>
-              <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors">
-                <X className="w-6 h-6" />
+          <div className="w-full max-w-sm bg-[#1C1C28] rounded-3xl border border-gray-800 overflow-hidden shadow-2xl">
+            <div className="p-4 flex justify-between items-center border-b border-gray-800">
+              <h3 className="font-bold text-white flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Nghiệm Thu Hạng Mục
+              </h3>
+              <button onClick={onClose} className="p-2 text-gray-400">
+                <X className="w-5 h-5" />
               </button>
             </div>
+            <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto no-scrollbar">
+              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">Hạng mục</div>
+                <div className="text-sm font-bold text-white">{task.name}</div>
+              </div>
 
-            <div className="p-8 space-y-8 overflow-y-auto no-scrollbar">
-              
-              {/* SMART CHECKLIST - Wide, Read-Only Structure */}
+              {/* SMART CHECKLIST */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2 border-b border-gray-800 pb-2">
-                  <CheckCircle2 className="w-4 h-4 text-gray-500" />
+                <div className="flex justify-between items-center">
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">SMART CHECKLIST</h4>
+                  <span className="text-[10px] text-indigo-400 font-bold">Thêm check</span>
                 </div>
                 
                 <div className="space-y-3">
                   {localChecklist.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-[#1C1C28] rounded-xl border border-gray-800 group hover:border-gray-700 transition-colors">
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 group">
                       <div 
                         onClick={() => {
-                          setLocalChecklist(prev => prev.map((c, i) => i === idx ? { ...c, completed: !c.completed } : c));
+                          const updated = [...localChecklist];
+                          updated[idx].completed = !updated[idx].completed;
+                          setLocalChecklist(updated);
                         }}
-                        className={`w-6 h-6 rounded-md flex items-center justify-center cursor-pointer transition-all border ${item.completed ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-transparent border-gray-700'}`}
+                        className={`w-5 h-5 rounded flex items-center justify-center cursor-pointer transition-all ${item.completed ? 'bg-emerald-500 text-white' : 'border border-gray-700'}`}
                       >
-                        {item.completed && <Check className="w-4 h-4" />}
+                        {item.completed && <Check className="w-3 h-3" />}
                       </div>
                       <div className="flex-1">
-                        <div className={`text-sm ${item.completed ? 'text-gray-500 line-through' : 'text-gray-200 font-medium'}`}>
-                          {item.label} {item.required && <span className="text-rose-500 ml-1">*</span>}
+                        <div className={`text-xs ${item.completed ? 'text-gray-500 line-through' : 'text-white font-medium'}`}>
+                          {item.label} {item.required && <span className="text-rose-500">*</span>}
                         </div>
                       </div>
+                      <button 
+                        onClick={() => setLocalChecklist(localChecklist.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-gray-600 hover:text-rose-500 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Thêm tiêu chí nghiệm thu..." 
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  />
+                  <button 
+                    onClick={addChecklistItem}
+                    className="p-2.5 bg-indigo-600 text-white rounded-xl active:scale-95 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
               {/* PUNCHLIST (LỖI) */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center mb-2 border-b border-gray-800 pb-2">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-gray-500" />
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">PUNCHLIST (LỖI)</h4>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">PUNCHLIST (LỖI)</h4>
                   <button 
                     onClick={() => setIsAddingIssue(true)}
-                    className="bg-gray-800/50 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-gray-700 transition-colors"
+                    className="bg-indigo-600/20 text-indigo-400 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1"
                   >
                     + Báo lỗi mới
                   </button>
                 </div>
 
                 {isAddingIssue && (
-                  <div className="flex gap-3 p-4 bg-[#15151e] border border-gray-800 rounded-xl">
+                  <div className="flex gap-2 p-3 bg-rose-500/5 border border-rose-500/20 rounded-xl">
                     <input 
                       type="text" 
-                      placeholder="Mô tả lỗi phát hiện..." 
+                      placeholder="Mô tả lỗi..." 
                       autoFocus
                       value={newIssueTitle}
                       onChange={(e) => setNewIssueTitle(e.target.value)}
-                      className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-white"
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-xs text-white"
                     />
-                    <button onClick={addIssue} className="bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg font-bold text-xs uppercase">Lưu</button>
-                    <button onClick={() => setIsAddingIssue(false)} className="bg-gray-800 text-gray-400 border border-gray-700 px-4 py-2 rounded-lg font-bold text-xs uppercase">Hủy</button>
+                    <button onClick={addIssue} className="text-emerald-400 font-bold text-xs uppercase">Lưu</button>
+                    <button onClick={() => setIsAddingIssue(false)} className="text-gray-500 font-bold text-xs uppercase">Hủy</button>
                   </div>
                 )}
                 
                 <div className="space-y-3">
                   {localIssues.length === 0 ? (
-                    <div className="bg-[#0A1A14] border border-[#103A25] rounded-xl p-8 flex flex-col items-center justify-center text-center">
-                      <ShieldCheck className="w-8 h-8 text-emerald-500 mb-2" />
-                      <p className="text-xs text-emerald-500/80 font-medium tracking-wide">Không có lỗi nào được ghi nhận.</p>
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                      <ShieldCheck className="w-8 h-8 text-emerald-500/30 mb-2" />
+                      <p className="text-[10px] text-emerald-500/60 font-medium tracking-wide uppercase">Không có lỗi nào được ghi nhận.</p>
                     </div>
                   ) : (
                     localIssues.map((issue, idx) => (
-                      <div key={idx} className="flex items-center gap-4 p-4 bg-[#1A0F14] rounded-xl border border-[#3A101C]">
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-rose-500/5 rounded-xl border border-rose-500/20">
                         <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                         <div className="flex-1">
-                          <div className="text-sm text-gray-200 font-medium">{issue.title}</div>
+                          <div className="text-xs text-white font-medium">{issue.title}</div>
+                          <div className="text-[8px] text-gray-500 uppercase font-bold mt-0.5">{issue.status}</div>
                         </div>
-                        <div className="text-[9px] text-rose-400 uppercase font-bold border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 rounded">
-                          {issue.status}
-                        </div>
+                        <button onClick={() => setLocalIssues(localIssues.filter((_, i) => i !== idx))} className="text-gray-600">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     ))
                   )}
                 </div>
               </div>
 
-              {/* TÀI CHÍNH HẠNG MỤC - Wide row layout */}
+              {/* TÀI CHÍNH HẠNG MỤC */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2 border-b border-gray-800 pb-2">
-                  <DollarSign className="w-4 h-4 text-gray-500" />
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">$ TÀI CHÍNH HẠNG MỤC</h4>
-                </div>
-                <div className="bg-[#1C1C28] rounded-2xl p-6 border border-gray-800 flex flex-col gap-6">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">$ TÀI CHÍNH HẠNG MỤC</h4>
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-4">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Ngân sách</div>
-                      <div className="text-lg font-bold text-white">{task.budget.toLocaleString('vi-VN')} đ</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">Đã chi</div>
-                      <div className="text-lg font-bold text-gray-400">{task.spent.toLocaleString('vi-VN')} đ</div>
-                    </div>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase">Ngân sách:</span>
+                    <span className="text-xs font-bold text-white">{task.budget.toLocaleString('vi-VN')} đ</span>
                   </div>
-                  
-                  <div className="flex gap-4">
-                    <button 
-                      onClick={() => {
-                        if (task && onSave) onSave(task.id, localChecklist, localIssues);
-                        alert("Hạng mục đã được nghiệm thu thành công.");
-                        onClose();
-                      }}
-                      className="flex-1 bg-[#10b981] hover:bg-[#059669] text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle2 className="w-5 h-5" /> Nghiệm thu
-                    </button>
-                    <button onClick={() => alert("Đã gửi yêu cầu thanh toán.")} className="flex-1 bg-[#6366f1] hover:bg-[#4f46e5] text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-900/20 active:scale-95 transition-all">
-                      Yêu cầu thanh toán
-                    </button>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase">Đã chi:</span>
+                    <span className="text-xs font-bold text-white">{task.spent.toLocaleString('vi-VN')} đ</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-900 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${task.spent > task.budget ? 'bg-rose-500' : 'bg-emerald-500'}`} 
+                      style={{ width: `${Math.min(100, (task.spent / task.budget) * 100)}%` }}
+                    />
                   </div>
                 </div>
               </div>
 
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => {
+                    alert("Hạng mục đã được nghiệm thu thành công.");
+                    onClose();
+                  }}
+                  className="flex-[2] bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 className="w-5 h-5" /> Nghiệm thu
+                </button>
+                <button className="flex-[2] bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-900/20 active:scale-95 transition-all">
+                  Yêu cầu thanh toán
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -700,7 +714,7 @@ function SmartTaskBar({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                     placeholder="Hỏi AI về công việc..."
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <button onClick={() => setIsLogModalOpen(true)} className="p-2 bg-indigo-600 rounded-xl text-white">
+                  <button className="p-2 bg-indigo-600 rounded-xl text-white">
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
@@ -913,139 +927,16 @@ const WeatherWidget = ({ weather, temp }: { weather: string, temp: number }) => 
 
 // --- Main App Component ---
 
-
-function CreateProjectModal({ isOpen, onClose, onCreated }: { isOpen: boolean, onClose: () => void, onCreated: (project: any) => void }) {
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [budget, setBudget] = useState('');
-  
-  const handleSave = async () => {
-    if (!name) return alert("Tên dự án bắt buộc!");
-    onCreated({
-       name, address, status: 'MỚI', progress: 0, budget: Number(budget) || 0, spent: 0,
-       start_date: new Date().toISOString()
-    });
-    onClose();
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-4 border-b flex justify-between items-center"><h3 className="font-bold">Tạo Dự Án Mới</h3><button onClick={onClose}><X className="w-5 h-5"/></button></div>
-            <div className="p-6 space-y-4">
-               <div><label className="text-xs font-bold text-gray-500">Tên dự án</label><input type="text" className="w-full border rounded-xl px-3 py-2 mt-1" value={name} onChange={e=>setName(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">Địa chỉ</label><input type="text" className="w-full border rounded-xl px-3 py-2 mt-1" value={address} onChange={e=>setAddress(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">Ngân sách dự kiến</label><input type="number" className="w-full border rounded-xl px-3 py-2 mt-1" value={budget} onChange={e=>setBudget(e.target.value)} /></div>
-               <button onClick={handleSave} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl mt-4">Lưu Dự Án</button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-
-function DailyLogModal({ isOpen, onClose, onSubmit }: { isOpen: boolean, onClose: () => void, onSubmit: (log: any) => Promise<boolean> }) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [weatherMorning, setWeatherMorning] = useState('Nắng - Làm bình thường');
-  const [weatherAfternoon, setWeatherAfternoon] = useState('Nắng - Làm bình thường');
-  const [progress, setProgress] = useState(0);
-  const [notes, setNotes] = useState('');
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Mocking photo upload via Base64 simulation or external URL
-  const handlePhotoUpload = () => {
-     // Simulated successful photo capture
-     setPhotos(prev => [...prev, 'https://images.unsplash.com/photo-1541888081696-6eecac213cc8?w=100&h=100&fit=crop']);
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    const success = await onSubmit({
-       date,
-       weatherMorning,
-       weatherAfternoon,
-       progress: Number(progress),
-       notes,
-       photo_urls: photos
-    });
-    setLoading(false);
-    if(success) {
-       alert("Đã lưu nhật ký!");
-       onClose();
-    } else {
-       alert("Lỗi khi lưu nhật ký.");
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
-          <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b flex justify-between items-center"><h3 className="font-bold">Báo Cáo Nhật Ký Mới</h3><button disabled={loading} onClick={onClose}><X className="w-5 h-5"/></button></div>
-            <div className="p-6 space-y-4 overflow-y-auto">
-               <div><label className="text-xs font-bold text-gray-500">Ngày</label><input type="date" className="w-full border rounded-xl px-3 py-2 mt-1" value={date} onChange={e=>setDate(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">Thời tiết sáng</label><input type="text" className="w-full border rounded-xl px-3 py-2 mt-1" value={weatherMorning} onChange={e=>setWeatherMorning(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">Thời tiết chiều</label><input type="text" className="w-full border rounded-xl px-3 py-2 mt-1" value={weatherAfternoon} onChange={e=>setWeatherAfternoon(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">% Tiến độ hoàn thành thêm</label><input type="number" className="w-full border rounded-xl px-3 py-2 mt-1" value={progress} onChange={e=>setProgress(e.target.value)} /></div>
-               <div><label className="text-xs font-bold text-gray-500">Ghi chú sự cố / phát sinh</label><textarea className="w-full border rounded-xl px-3 py-2 mt-1" value={notes} onChange={e=>setNotes(e.target.value)} /></div>
-               
-               <div>
-                 <label className="text-xs font-bold text-gray-500 mb-2 block">Hình ảnh đính kèm (Mô phỏng)</label>
-                 <div className="flex gap-2 flex-wrap">
-                   {photos.map((url, idx) => <img key={idx} src={url} className="w-16 h-16 object-cover rounded-lg border"/>)}
-                   <button onClick={handlePhotoUpload} className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-400 hover:text-indigo-600 hover:border-indigo-600 transition-colors">
-                     <Camera className="w-6 h-6"/>
-                   </button>
-                 </div>
-               </div>
-
-               <button disabled={loading} onClick={handleSave} className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all mt-6">
-                 {loading ? "Đang lưu..." : "Gửi Báo Cáo"}
-               </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-export const Construction = () => {
+export default function ConstructionApp() {
   const [userRole, setUserRole] = useState<UserRole>('ENGINEER');
   const [currentView, setCurrentView] = useState('DASHBOARD');
-  
-  const { projects: dbProjects, tasks: dbTasks, logs: dbLogs, createProject, createTimelineTasks, updateTaskStatusChecklist, submitDailyLog } = useConstructionData();
-  const [isProjectCreateOpen, setIsProjectCreateOpen] = useState(false);
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
-  
-  // Tie mock states to DB if available
-  const activeProjects = dbProjects.length > 0 ? (dbProjects as any) : INITIAL_PROJECTS;
-  const activeTasks = dbTasks.length > 0 ? (dbTasks as any) : INITIAL_TASKS;
-
-  const [projects] = useState<Project[]>(INITIAL_PROJECTS); // Leaving legacy just in case
+  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<Project>(INITIAL_PROJECTS[0]);
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
-
-  useEffect(() => {
-     if (dbProjects.length > 0 && (!selectedProject || selectedProject.id === INITIAL_PROJECTS[0].id)) {
-        setSelectedProject(dbProjects[0] as any);
-     }
-  }, [dbProjects]);
-
-  useEffect(() => {
-     if (dbTasks.length > 0) setTasks(dbTasks as any);
-  }, [dbTasks]);
-
-  const [payments] = useState<Payment[]>(INITIAL_PAYMENTS);
+  const [payments, setPayments] = useState<Payment[]>(INITIAL_PAYMENTS);
   const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [logs] = useState<DailyLog[]>(INITIAL_LOGS);
+  const [logs, setLogs] = useState<DailyLog[]>(INITIAL_LOGS);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [activeLog, setActiveLog] = useState<DailyLog>(logs[0]);
@@ -1053,11 +944,11 @@ export const Construction = () => {
   const [isMaterialRequestOpen, setIsMaterialRequestOpen] = useState(false);
   const [isFaceRecognitionOpen, setIsFaceRecognitionOpen] = useState(false);
   const [isAcceptanceModalOpen, setIsAcceptanceModalOpen] = useState(false);
-  const [selectedTaskForAcceptance, setSelectedTaskForAcceptance] = useState<Task | null>(null);
   const [isVoiceLogOpen, setIsVoiceLogOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [isSmartTaskBarOpen, setIsSmartTaskBarOpen] = useState(true);
+  const [selectedTaskForAcceptance, setSelectedTaskForAcceptance] = useState<Task | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'FINANCIALS' | 'HISTORY' | 'SUBS'>('OVERVIEW');
   const [progressViewMode, setProgressViewMode] = useState<'LIST' | 'TIMELINE' | 'GALLERY'>('TIMELINE');
@@ -1113,7 +1004,24 @@ export const Construction = () => {
     </div>
   );
 
-  
+  const DashboardGrid = ({ children }: { children: React.ReactNode }) => (
+  <div className="grid grid-cols-2 gap-4">
+    {children}
+  </div>
+);
+
+const DashboardCard = ({ icon, label, value, color, dark, onClick }: { icon: React.ReactNode, label: string, value: string | number, color?: string, dark?: boolean, onClick?: () => void }) => (
+  <button 
+    onClick={onClick}
+    className={`${dark ? 'bg-[#1C1C28] border-gray-800' : 'bg-white border-gray-100'} p-4 rounded-3xl border shadow-sm text-left transition-all active:scale-95 group`}
+  >
+    <div className={`w-10 h-10 rounded-2xl ${dark ? 'bg-white/5' : 'bg-gray-50'} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+      {icon}
+    </div>
+    <div className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${dark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</div>
+    <div className={`text-lg font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{value}</div>
+  </button>
+);
 
   const renderProgressView = () => (
     <div className={`flex flex-col h-full pb-32 ${userRole === 'HOMEOWNER' ? 'bg-[#F5F5F5]' : 'bg-[#0A0A0F]'}`}>
@@ -1121,16 +1029,12 @@ export const Construction = () => {
       <div className={`p-4 sticky top-0 z-10 border-b ${userRole === 'HOMEOWNER' ? 'bg-white border-gray-100' : 'bg-[#1C1C28] border-gray-800'}`}>
         <div className="flex justify-between items-center mb-6">
           <h1 className={`text-xl font-bold ${userRole === 'HOMEOWNER' ? 'text-gray-900' : 'text-white'}`}>Tiến Độ Công Trình</h1>
-          
-  <div className="flex gap-2">
-    <button onClick={() => setIsProjectCreateOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95">
-      <Plus className="w-4 h-4" /> Tạo Dự Án
-    </button>
-    <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95">
-      <FileSpreadsheet className="w-4 h-4" /> AI Tiến Độ
-    </button>
-  </div>
-
+          <button 
+            onClick={() => setIsQuotationModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-900/20 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" /> Nhập Báo Giá
+          </button>
         </div>
 
         {/* View Switcher */}
@@ -1213,7 +1117,7 @@ export const Construction = () => {
                         <p className={`text-[10px] font-medium leading-relaxed ${userRole === 'HOMEOWNER' ? 'text-rose-700' : 'text-rose-300'}`}>
                           <span className="font-bold">Đề xuất AI:</span> Để kịp tiến độ đổ sàn T2 vào 28/03, cần tăng cường thêm 04 thợ xây và làm thêm ca tối (18h-21h) trong 3 ngày tới.
                         </p>
-                        <button onClick={() => alert("Đã cập nhật nguồn lực theo đề xuất AI.")} className="text-[9px] font-bold text-rose-600 uppercase tracking-wider hover:underline">Áp dụng ngay</button>
+                        <button className="text-[9px] font-bold text-rose-600 uppercase tracking-wider hover:underline">Áp dụng ngay</button>
                       </div>
                     </motion.div>
                   )}
@@ -1329,8 +1233,8 @@ const renderHomeownerView = () => (
           </div>
           <ProgressBar progress={selectedProject.progress} />
           <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase">
-            <span>Bắt đầu: {new Date(selectedProject.startDate).toLocaleDateString('vi-VN')}</span>
-            <span>Dự kiến: {new Date(new Date(selectedProject.startDate).getTime() + 150*24*60*60*1000).toLocaleDateString('vi-VN')}</span>
+            <span>Bắt đầu: 12/01/2024</span>
+            <span>Dự kiến: 15/06/2024</span>
           </div>
         </div>
       </div>
@@ -1512,7 +1416,7 @@ const renderHomeownerView = () => (
           </button>
         </div>
 
-        <WeatherWidget weather={logs[0].weatherMorning} temp={logs[0].temperature} />
+        <WeatherWidget weather={logs[0].weather} temp={logs[0].temperature} />
 
         {/* Navigation Tabs for Engineer */}
         <div className="flex bg-[#1C1C28] p-1 rounded-2xl border border-gray-800 mt-4 overflow-x-auto no-scrollbar">
@@ -2509,7 +2413,7 @@ const renderHomeownerView = () => (
     <div className="bg-white min-h-full p-4 space-y-6 pb-32">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold text-gray-900">Nhật Ký Công Việc</h1>
-        <button onClick={() => alert("Tính năng chat AI đang trong giai đoạn thử nghiệm.")} className="p-2 bg-indigo-600 rounded-xl text-white">
+        <button className="p-2 bg-indigo-600 rounded-xl text-white">
           <Plus className="w-5 h-5" />
         </button>
       </div>
@@ -2615,14 +2519,21 @@ const renderHomeownerView = () => (
         onClose={() => setIsVoiceLogOpen(false)} 
       />
 
-      <AcceptanceModal isOpen={isAcceptanceModalOpen} onClose={() => setIsAcceptanceModalOpen(false)} task={selectedTaskForAcceptance} onSave={(taskId, checklist, issues) => setTasks(prev => prev.map(t => t.id === taskId ? { ...t, checklist, issues, status: 'DONE' } : t))} />
+      <AcceptanceModal 
+        isOpen={isAcceptanceModalOpen} 
+        onClose={() => setIsAcceptanceModalOpen(false)} 
+        task={selectedTaskForAcceptance}
+      />
 
       <ImportQuotationModal 
         isOpen={isQuotationModalOpen} 
         onClose={() => setIsQuotationModalOpen(false)} 
       />
 
-      <SmartTaskBar isOpen={isSmartTaskBarOpen} onClose={() => setIsSmartTaskBarOpen(false)} tasks={tasks} project={selectedProject} />
+      <SmartTaskBar 
+        isOpen={isSmartTaskBarOpen} 
+        onClose={() => setIsSmartTaskBarOpen(false)} 
+      />
 
       {/* Role Switcher (Floating) */}
       {renderRoleSwitcher()}
