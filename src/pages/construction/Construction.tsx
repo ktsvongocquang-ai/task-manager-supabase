@@ -619,11 +619,10 @@ export const Construction = () => {
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
       { id: 'COST', label: 'Chi phí', icon: <DollarSign className="w-4 h-4" /> },
       { id: 'PAYMENTS', label: 'Thanh toán', icon: <DollarSign className="w-4 h-4" /> },
-      { id: 'PROGRESS', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'SUBS', label: 'Thầu phụ', icon: <Users className="w-4 h-4" /> },
       { id: 'ATTENDANCE', label: 'Chấm công', icon: <Users className="w-4 h-4" /> },
       { id: 'REPORTS', label: 'Báo cáo', icon: <Download className="w-4 h-4" /> },
-      { id: 'AI_GANTT', label: 'AI Sync', icon: <Bot className="w-4 h-4 text-indigo-500 animate-pulse" /> },
     ];
   };
 
