@@ -10,8 +10,9 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import type { UserRole, TaskStatus, ViewTab, CTask, Project } from './types';
 import { fmt, statusConfig, catColors } from './types';
-import { PROJECTS, TASKS, APPROVALS, MILESTONES, SUBCONTRACTORS, NOTIFICATIONS, FINANCE, ATTENDANCE } from './mockData';
-import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView } from './views';
+import { PROJECTS, TASKS, APPROVALS, MILESTONES, SUBCONTRACTORS, NOTIFICATIONS, FINANCE, ATTENDANCE, DAILY_LOGS, PAYMENT_RECORDS, CONSTRUCTION_PHASES } from './mockData';
+import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
+import type { DailyLog } from './types';
 import { useConstructionData } from '../../hooks/useConstructionData';
 
 // ═══════════════════════════════════════════════════════════
@@ -553,8 +554,14 @@ export const Construction = () => {
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
+  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
+
+  const handleAddDailyLog = useCallback((log: DailyLog) => {
+    setDailyLogs(prev => [log, ...prev]);
+    showToast('Đã thêm nhật ký mới');
+  }, [showToast]);
 
   // Sync Supabase tasks when they load
   useEffect(() => {
@@ -596,16 +603,21 @@ export const Construction = () => {
   const getTabsForRole = (): { id: ViewTab; label: string; icon: React.ReactNode }[] => {
     if (userRole === 'HOMEOWNER') return [
       { id: 'DASHBOARD', label: 'Nhà của tôi', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
+      { id: 'PAYMENTS', label: 'Thanh toán', icon: <DollarSign className="w-4 h-4" /> },
     ];
     if (userRole === 'ENGINEER') return [
       { id: 'KANBAN', label: 'Kanban', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
       { id: 'LOGS', label: 'Báo cáo', icon: <FileText className="w-4 h-4" /> },
       { id: 'PROGRESS', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
+      { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
       { id: 'COST', label: 'Chi phí', icon: <DollarSign className="w-4 h-4" /> },
+      { id: 'PAYMENTS', label: 'Thanh toán', icon: <DollarSign className="w-4 h-4" /> },
       { id: 'PROGRESS', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'SUBS', label: 'Thầu phụ', icon: <Users className="w-4 h-4" /> },
       { id: 'ATTENDANCE', label: 'Chấm công', icon: <Users className="w-4 h-4" /> },
@@ -705,11 +717,14 @@ export const Construction = () => {
           <motion.div key={activeTab + userRole} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
             {/* Manager Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'MANAGER' && (
-              <ManagerDashboard projects={PROJECTS} finance={FINANCE} approvals={APPROVALS} notifications={NOTIFICATIONS} onSelectProject={p => { setSelectedProject(p); setActiveTab('KANBAN'); }} />
+              <div className="space-y-6">
+                <ManagerDashboard projects={PROJECTS} finance={FINANCE} approvals={APPROVALS} notifications={NOTIFICATIONS} onSelectProject={p => { setSelectedProject(p); setActiveTab('KANBAN'); }} />
+                <ProjectOverview project={selectedProject} subcontractors={SUBCONTRACTORS} milestones={MILESTONES} />
+              </div>
             )}
             {/* Homeowner Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'HOMEOWNER' && (
-              <ClientCountdown project={selectedProject} milestones={MILESTONES} />
+              <ClientCountdown project={selectedProject} milestones={MILESTONES} dailyLogs={dailyLogs} phases={CONSTRUCTION_PHASES} />
             )}
             {/* Kanban */}
             {activeTab === 'KANBAN' && <KanbanView tasks={filteredTasks} onTaskClick={openTask} onMoveTask={(taskId, newStatus) => {
@@ -726,37 +741,28 @@ export const Construction = () => {
             {activeTab === 'PROGRESS' && <ProgressTimeline tasks={tasks} />}
             {/* Engineer Daily Report */}
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}
-            {/* Manager Logs */}
+            {/* Manager Logs — now uses DailyLogView */}
             {activeTab === 'LOGS' && userRole !== 'ENGINEER' && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                  <h3 className="font-bold text-slate-700">Nhật ký Công trường</h3>
-                  <button className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold"><Plus className="w-4 h-4" /> Tạo báo cáo</button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50"><tr><th className="p-4 text-left text-[10px] font-bold text-slate-400 uppercase">Ngày</th><th className="p-4 text-left text-[10px] font-bold text-slate-400 uppercase">Thời tiết</th><th className="p-4 text-left text-[10px] font-bold text-slate-400 uppercase">Nhân sự</th><th className="p-4 text-left text-[10px] font-bold text-slate-400 uppercase">Ghi chú</th><th className="p-4 text-right text-[10px] font-bold text-slate-400 uppercase">Tiến độ</th></tr></thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {[
-                        { date: '28/03', weather: 'Nắng 33°C', workers: '5TC+3TP', note: 'Đổ bê tông sàn lầu 1', progress: 5 },
-                        { date: '27/03', weather: 'Nắng 34°C', workers: '6TC+3TP', note: 'Lắp cốt thép sàn lầu 1', progress: 3 },
-                        { date: '26/03', weather: 'Mưa chiều', workers: '4TC+2TP', note: 'Ghép cốp pha, chiều nghỉ mưa', progress: 0 },
-                      ].map((l, i) => (
-                        <tr key={i} className="hover:bg-slate-50 cursor-pointer">
-                          <td className="p-4 text-xs font-bold text-slate-800">{l.date}</td>
-                          <td className="p-4 text-xs text-slate-600">{l.weather}</td>
-                          <td className="p-4 text-xs text-slate-600">{l.workers}</td>
-                          <td className="p-4 text-xs text-slate-600 max-w-[200px] truncate">{l.note}</td>
-                          <td className="p-4 text-right"><span className={`text-xs font-bold ${l.progress > 0 ? 'text-indigo-600' : 'text-slate-400'}`}>{l.progress > 0 ? `+${l.progress}%` : '—'}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <DailyLogView logs={dailyLogs} onAddLog={handleAddDailyLog} canEdit={true} />
+            )}
+            {/* Diary tab — all roles */}
+            {activeTab === 'DIARY' && (
+              <DailyLogView logs={dailyLogs} onAddLog={userRole !== 'HOMEOWNER' ? handleAddDailyLog : undefined} canEdit={userRole !== 'HOMEOWNER'} />
+            )}
+            {/* Payment History */}
+            {activeTab === 'PAYMENTS' && (
+              <div className="space-y-6">
+                <PaymentHistory payments={PAYMENT_RECORDS} />
+                <ContractorProgressChart subcontractors={SUBCONTRACTORS} />
               </div>
             )}
             {/* Subcontractors */}
-            {activeTab === 'SUBS' && <SubcontractorView subcontractors={SUBCONTRACTORS} />}
+            {activeTab === 'SUBS' && (
+              <div className="space-y-6">
+                <ContractorProgressChart subcontractors={SUBCONTRACTORS} />
+                <SubcontractorView subcontractors={SUBCONTRACTORS} />
+              </div>
+            )}
             {/* Attendance */}
             {activeTab === 'ATTENDANCE' && <AttendanceView attendance={ATTENDANCE[selectedProject.id]} />}
             {/* Reports */}

@@ -289,13 +289,15 @@ export function EngineerDailyReport({ tasks, project }: { tasks: CTask[]; projec
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// CLIENT COUNTDOWN VIEW
-// ═══════════════════════════════════════════════════════════
-
-export function ClientCountdown({ project, milestones }: { project: Project; milestones: Milestone[] }) {
+export function ClientCountdown({ project, milestones, dailyLogs, phases }: {
+  project: Project; milestones: Milestone[];
+  dailyLogs?: import('./types').DailyLog[]; phases?: import('./types').ConstructionPhase[];
+}) {
   const daysLeft = Math.ceil((new Date(project.handoverDate).getTime() - Date.now()) / 86400000);
   const totalPaid = milestones.filter(m => m.paymentStatus === 'paid').reduce((s, m) => s + m.paymentAmount, 0);
+  const [expandedMs, setExpandedMs] = React.useState<string | null>(null);
+  const [showPhases, setShowPhases] = React.useState(false);
+  const [showDiary, setShowDiary] = React.useState(false);
 
   return (
     <div className="space-y-6">
@@ -318,30 +320,147 @@ export function ClientCountdown({ project, milestones }: { project: Project; mil
           <div><p className="text-[10px] text-slate-400 font-bold">Giá trị hợp đồng</p><p className="text-lg font-bold text-slate-800">{fmt(project.contractValue)}</p></div>
           <div><p className="text-[10px] text-slate-400 font-bold">Đã thanh toán</p><p className="text-lg font-bold text-emerald-600">{fmt(totalPaid)}</p></div>
         </div>
+        {project.unexpectedCosts > 0 && (
+          <div className="mt-3 p-2 bg-rose-50 rounded-lg border border-rose-200">
+            <p className="text-[10px] text-rose-500 font-bold">Phát sinh ngoài dự kiến</p>
+            <p className="text-sm font-bold text-rose-600">{fmt(project.unexpectedCosts)}</p>
+          </div>
+        )}
         <div className="mt-3">
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.round(totalPaid / project.contractValue * 100)}%` }} /></div>
           <p className="text-[10px] text-slate-400 mt-1">{Math.round(totalPaid / project.contractValue * 100)}% đã thanh toán</p>
         </div>
       </div>
 
-      {/* Milestones */}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
+          <p className="text-[10px] text-emerald-500 font-bold">Nhật ký</p>
+          <p className="text-2xl font-black text-emerald-600">{project.totalDiaryEntries}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
+          <p className="text-[10px] text-amber-500 font-bold">Ngày nghỉ</p>
+          <p className="text-2xl font-black text-amber-600">{project.daysOff}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
+          <p className="text-[10px] text-indigo-500 font-bold">Hồ sơ</p>
+          <p className="text-2xl font-black text-indigo-600">{project.totalDocuments}</p>
+        </div>
+      </div>
+
+      {/* Milestones — EXPANDABLE with sub-tasks */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Mốc nghiệm thu</h3>
         <div className="space-y-2">
           {milestones.map(m => (
-            <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center gap-3">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.status === 'passed' ? 'bg-emerald-500' : m.status === 'pending_internal' ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-100 border-2 border-slate-300'}`}>
-                {m.status === 'passed' && <Check className="w-4 h-4 text-white" />}
+            <div key={m.id}>
+              <div
+                onClick={() => setExpandedMs(expandedMs === m.id ? null : m.id)}
+                className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center gap-3 cursor-pointer hover:border-indigo-300 transition-all"
+              >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.status === 'passed' ? 'bg-emerald-500' : m.status === 'pending_internal' ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-100 border-2 border-slate-300'}`}>
+                  {m.status === 'passed' && <Check className="w-4 h-4 text-white" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-700">{m.name}</p>
+                  <p className="text-[10px] text-slate-400">{m.status === 'passed' ? m.approvedDate : m.status === 'pending_internal' ? 'Đang kiểm tra...' : 'Sắp tới'}</p>
+                  {m.subTasks.length > 0 && <p className="text-[9px] text-indigo-400 mt-0.5">{m.subTasks.filter(s => s.status === 'done').length}/{m.subTasks.length} công việc</p>}
+                </div>
+                <span className={`text-xs font-bold ${m.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-400'}`}>{fmt(m.paymentAmount)}</span>
+                <ChevronRight className={`w-4 h-4 text-slate-300 transition-transform ${expandedMs === m.id ? 'rotate-90' : ''}`} />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-700">{m.name}</p>
-                <p className="text-[10px] text-slate-400">{m.status === 'passed' ? m.approvedDate : m.status === 'pending_internal' ? 'Đang kiểm tra...' : 'Sắp tới'}</p>
-              </div>
-              <span className={`text-xs font-bold ${m.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-400'}`}>{fmt(m.paymentAmount)}</span>
+              {/* Sub-tasks expansion */}
+              {expandedMs === m.id && m.subTasks.length > 0 && (
+                <div className="ml-5 mt-1 space-y-1 border-l-2 border-indigo-100 pl-4 py-2">
+                  {m.subTasks.map(st => (
+                    <div key={st.id} className="flex items-center gap-2 py-1.5">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[8px] ${st.status === 'done' ? 'bg-emerald-500 text-white' : st.status === 'doing' ? 'bg-amber-400 text-white animate-pulse' : 'bg-slate-200'}`}>
+                        {st.status === 'done' && '✓'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[11px] font-medium ${st.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{st.name}</p>
+                        {st.status === 'doing' && (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-amber-400 rounded-full" style={{ width: `${st.progress}%` }} /></div>
+                            <span className="text-[9px] font-bold text-amber-600">{st.progress}%</span>
+                          </div>
+                        )}
+                        {st.note && <p className="text-[9px] text-amber-500 mt-0.5">⚠ {st.note}</p>}
+                      </div>
+                      {st.photos.length > 0 && (
+                        <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-bold">{st.photos.length} 📷</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
+
+      {/* Construction Phases — Mini accordion */}
+      {phases && phases.length > 0 && (
+        <div>
+          <button onClick={() => setShowPhases(!showPhases)} className="w-full flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 hover:text-indigo-600 transition-colors">
+            Hạng mục thi công
+            <ChevronRight className={`w-4 h-4 transition-transform ${showPhases ? 'rotate-90' : ''}`} />
+          </button>
+          {showPhases && (
+            <div className="space-y-1 relative">
+              <div className="absolute left-[13px] top-4 bottom-4 w-0.5 bg-slate-200" />
+              {phases.map(p => (
+                <div key={p.id} className="flex items-center gap-3 py-1.5 pl-1 relative">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] z-10 ${p.status === 'done' ? 'bg-emerald-500 text-white' : p.status === 'doing' ? 'bg-blue-500 text-white animate-pulse' : 'bg-white border-2 border-slate-300'}`}>
+                    {p.status === 'done' ? '✓' : p.status === 'doing' ? '⚡' : p.order}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-[11px] font-medium ${p.status === 'done' ? 'text-slate-400' : p.status === 'doing' ? 'text-blue-600 font-bold' : 'text-slate-500'}`}>{p.name}</p>
+                    {p.note && <p className="text-[9px] text-slate-400">{p.note}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Daily Diary preview */}
+      {dailyLogs && dailyLogs.length > 0 && (
+        <div>
+          <button onClick={() => setShowDiary(!showDiary)} className="w-full flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 hover:text-indigo-600 transition-colors">
+            Nhật ký gần nhất
+            <ChevronRight className={`w-4 h-4 transition-transform ${showDiary ? 'rotate-90' : ''}`} />
+          </button>
+          {showDiary && (
+            <div className="space-y-2">
+              {dailyLogs.slice(0, 5).map(log => (
+                <div key={log.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-slate-700">{new Date(log.date).toLocaleDateString('vi-VN')}</p>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${log.weatherAM === 'sunny' ? 'bg-amber-50 text-amber-600 border-amber-200' : log.weatherAM === 'rainy' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                        {log.weatherAM === 'sunny' ? '☀️' : log.weatherAM === 'rainy' ? '🌧️' : '⛅'}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${log.weatherPM === 'sunny' ? 'bg-amber-50 text-amber-600 border-amber-200' : log.weatherPM === 'rainy' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                        {log.weatherPM === 'sunny' ? '☀️' : log.weatherPM === 'rainy' ? '🌧️' : '⛅'}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-600 mb-1">{log.taskCategory}</p>
+                  <p className="text-[10px] text-slate-400 line-clamp-1">{log.notes}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    {log.sitePhotos.length > 0 && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">📷 {log.sitePhotos.length}</span>}
+                    {log.contractorPhotos.length > 0 && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-bold">🏗️ {log.contractorPhotos.length}</span>}
+                    {log.videos.length > 0 && <span className="text-[9px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded font-bold">🎬 {log.videos.length}</span>}
+                    {log.voiceNotes.length > 0 && <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-bold">🎤 {log.voiceNotes.length}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -475,3 +594,348 @@ export function ReportsView({ tasks, projectName }: { tasks?: any[]; projectName
     </div>
   );
 }
+
+// ═══════════════════════════════════════════════════════════
+// DAILY LOG VIEW — Nhật ký thi công chi tiết
+// ═══════════════════════════════════════════════════════════
+
+export function DailyLogView({ logs, onAddLog, canEdit }: {
+  logs: import('./types').DailyLog[];
+  onAddLog?: (log: import('./types').DailyLog) => void;
+  canEdit: boolean;
+}) {
+  const [search, setSearch] = React.useState('');
+  const [showForm, setShowForm] = React.useState(false);
+  const [expandedLog, setExpandedLog] = React.useState<string | null>(null);
+  const [newLog, setNewLog] = React.useState({
+    taskCategory: '', notes: '', weatherAM: 'sunny' as import('./types').WeatherType, weatherPM: 'sunny' as import('./types').WeatherType,
+    workerMain: 5, workerHelper: 3,
+  });
+  const [photos, setPhotos] = React.useState<string[]>([]);
+  const [isListening, setIsListening] = React.useState(false);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const filtered = logs.filter(l =>
+    !search || l.taskCategory.toLowerCase().includes(search.toLowerCase()) || l.notes.toLowerCase().includes(search.toLowerCase()) || l.date.includes(search)
+  );
+
+  const wtIcon = (w: string) => w === 'sunny' ? '☀️' : w === 'rainy' ? '🌧️' : w === 'storm' ? '⛈️' : '⛅';
+  const wtColor = (w: string) => w === 'sunny' ? 'bg-amber-50 text-amber-600 border-amber-200' : w === 'rainy' ? 'bg-blue-50 text-blue-600 border-blue-200' : w === 'storm' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-slate-50 text-slate-500 border-slate-200';
+
+  const startVoice = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert('Trình duyệt không hỗ trợ Speech API'); return; }
+    const rec = new SR(); rec.lang = 'vi-VN'; rec.continuous = true; rec.interimResults = true;
+    rec.onresult = (e: any) => {
+      let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      setNewLog(prev => ({ ...prev, notes: t }));
+    };
+    rec.onend = () => setIsListening(false);
+    rec.start(); setIsListening(true);
+  };
+
+  const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    Array.from(e.target.files).forEach(f => {
+      const reader = new FileReader();
+      reader.onload = () => setPhotos(prev => [...prev, reader.result as string]);
+      reader.readAsDataURL(f);
+    });
+  };
+
+  const submitLog = () => {
+    if (!newLog.taskCategory) return;
+    const log: import('./types').DailyLog = {
+      id: `dl_${Date.now()}`, date: new Date().toISOString().split('T')[0], projectId: '1',
+      weatherAM: newLog.weatherAM, weatherPM: newLog.weatherPM,
+      taskCategory: newLog.taskCategory, taskProgress: 0,
+      workerCount: { main: newLog.workerMain, helper: newLog.workerHelper },
+      sitePhotos: photos, contractorPhotos: [], videos: [], voiceNotes: newLog.notes ? [newLog.notes] : [],
+      notes: newLog.notes, issues: [], createdBy: 'ENGINEER', editable: true,
+    };
+    onAddLog?.(log); setShowForm(false);
+    setNewLog({ taskCategory: '', notes: '', weatherAM: 'sunny', weatherPM: 'sunny', workerMain: 5, workerHelper: 3 });
+    setPhotos([]);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">📋 Nhật ký thi công <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{logs.length} bản ghi</span></h3>
+        {canEdit && <button onClick={() => setShowForm(!showForm)} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">+ Thêm</button>}
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm kiếm nhật ký..." className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400" />
+        <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+      </div>
+
+      {/* Add Form */}
+      {showForm && (
+        <div className="bg-white rounded-xl border-2 border-indigo-200 p-4 shadow-lg space-y-3">
+          <p className="text-xs font-bold text-indigo-600">📝 Thêm nhật ký mới — {new Date().toLocaleDateString('vi-VN')}</p>
+          <input value={newLog.taskCategory} onChange={e => setNewLog({...newLog, taskCategory: e.target.value})} placeholder="Hạng mục (VD: BTCT tầng lừng)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400" />
+          {/* Weather */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold mb-1">Thời tiết sáng</p>
+              <div className="flex gap-1">
+                {(['sunny', 'cloudy', 'rainy', 'storm'] as const).map(w => (
+                  <button key={w} onClick={() => setNewLog({...newLog, weatherAM: w})}
+                    className={`text-sm px-2 py-1 rounded-lg border transition-all ${newLog.weatherAM === w ? 'border-indigo-400 bg-indigo-50 scale-110' : 'border-slate-200 hover:border-slate-300'}`}>
+                    {wtIcon(w)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold mb-1">Thời tiết chiều</p>
+              <div className="flex gap-1">
+                {(['sunny', 'cloudy', 'rainy', 'storm'] as const).map(w => (
+                  <button key={w} onClick={() => setNewLog({...newLog, weatherPM: w})}
+                    className={`text-sm px-2 py-1 rounded-lg border transition-all ${newLog.weatherPM === w ? 'border-indigo-400 bg-indigo-50 scale-110' : 'border-slate-200 hover:border-slate-300'}`}>
+                    {wtIcon(w)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Workers */}
+          <div className="grid grid-cols-2 gap-3">
+            <div><p className="text-[10px] text-slate-400 font-bold mb-1">Thợ chính</p><input type="number" value={newLog.workerMain} onChange={e => setNewLog({...newLog, workerMain: +e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></div>
+            <div><p className="text-[10px] text-slate-400 font-bold mb-1">Thợ phụ</p><input type="number" value={newLog.workerHelper} onChange={e => setNewLog({...newLog, workerHelper: +e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></div>
+          </div>
+          {/* Notes + Voice */}
+          <div className="relative">
+            <textarea value={newLog.notes} onChange={e => setNewLog({...newLog, notes: e.target.value})} placeholder="Ghi chú công việc..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:border-indigo-400" />
+            <div className="absolute right-2 bottom-2 flex gap-1">
+              <button onClick={() => fileRef.current?.click()} className="p-1.5 hover:bg-slate-100 rounded-lg" title="Chụp/chọn ảnh"><Camera className="w-4 h-4 text-slate-400" /></button>
+              <button onClick={startVoice} className={`p-1.5 rounded-lg transition-all ${isListening ? 'bg-rose-100 animate-pulse' : 'hover:bg-slate-100'}`} title="Nói để nhập">
+                <Mic className={`w-4 h-4 ${isListening ? 'text-rose-500' : 'text-slate-400'}`} />
+              </button>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handlePhotos} />
+          </div>
+          {/* Photo preview */}
+          {photos.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {photos.map((p, i) => (
+                <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group">
+                  <img src={p} className="w-full h-full object-cover" />
+                  <button onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button onClick={submitLog} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">Lưu nhật ký</button>
+            <button onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50">Hủy</button>
+          </div>
+        </div>
+      )}
+
+      {/* Log entries */}
+      <div className="space-y-2">
+        {filtered.map(log => (
+          <div key={log.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)} className="p-3 cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-slate-700">{new Date(log.date).toLocaleDateString('vi-VN')}</p>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${wtColor(log.weatherAM)}`}>{wtIcon(log.weatherAM)}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${wtColor(log.weatherPM)}`}>{wtIcon(log.weatherPM)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {log.sitePhotos.length > 0 && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">📷 +{log.sitePhotos.length}</span>}
+                  {log.contractorPhotos.length > 0 && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-bold">🏗️ +{log.contractorPhotos.length}</span>}
+                  {log.videos.length > 0 && <span className="text-[9px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded font-bold">🎬 {log.videos.length}</span>}
+                  <ChevronRight className={`w-3.5 h-3.5 text-slate-300 transition-transform ${expandedLog === log.id ? 'rotate-90' : ''}`} />
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-600 mt-1 font-medium">{log.taskCategory}</p>
+            </div>
+            {expandedLog === log.id && (
+              <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Tiến độ</p><p className="text-sm font-bold text-indigo-600">{log.taskProgress}%</p></div>
+                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Thợ chính</p><p className="text-sm font-bold text-slate-700">{log.workerCount.main}</p></div>
+                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Thợ phụ</p><p className="text-sm font-bold text-slate-700">{log.workerCount.helper}</p></div>
+                </div>
+                <div><p className="text-[10px] text-slate-400 font-bold mb-1">Ghi chú</p><p className="text-xs text-slate-600 leading-relaxed">{log.notes}</p></div>
+                {log.voiceNotes.length > 0 && (
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold mb-1">🎤 Ghi âm</p>
+                    {log.voiceNotes.map((v, i) => (
+                      <p key={i} className="text-xs text-slate-600 italic bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200 mb-1">"{v}"</p>
+                    ))}
+                  </div>
+                )}
+                {(log.sitePhotos.length > 0 || log.contractorPhotos.length > 0) && (
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold mb-1">Hình ảnh công trường ({log.sitePhotos.length})</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {log.sitePhotos.slice(0, 4).map((_, i) => (
+                        <div key={i} className="w-14 h-14 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center text-lg">📷</div>
+                      ))}
+                      {log.sitePhotos.length > 4 && <div className="w-14 h-14 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-500">+{log.sitePhotos.length - 4}</div>}
+                    </div>
+                    {log.contractorPhotos.length > 0 && (
+                      <>
+                        <p className="text-[10px] text-slate-400 font-bold mt-2 mb-1">Hình ảnh nhà thầu báo cáo ({log.contractorPhotos.length})</p>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {log.contractorPhotos.slice(0, 4).map((_, i) => (
+                            <div key={i} className="w-14 h-14 bg-gradient-to-br from-amber-200 to-amber-300 rounded-lg flex items-center justify-center text-lg">🏗️</div>
+                          ))}
+                          {log.contractorPhotos.length > 4 && <div className="w-14 h-14 bg-amber-50 rounded-lg flex items-center justify-center text-[10px] font-bold text-amber-500">+{log.contractorPhotos.length - 4}</div>}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+                {log.videos.length > 0 && (
+                  <div className="flex gap-1.5">
+                    {log.videos.map((_, i) => (
+                      <div key={i} className="w-14 h-14 bg-gradient-to-br from-indigo-300 to-indigo-400 rounded-lg flex items-center justify-center text-white text-lg">▶</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {filtered.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy nhật ký nào</div>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROJECT OVERVIEW — Tổng quan tài chính dự án
+// ═══════════════════════════════════════════════════════════
+
+export function ProjectOverview({ project, subcontractors, milestones }: {
+  project: Project; subcontractors: import('./types').Subcontractor[]; milestones: import('./types').Milestone[];
+}) {
+  const totalPaid = milestones.filter(m => m.paymentStatus === 'paid').reduce((s, m) => s + m.paymentAmount, 0);
+  const cards = [
+    { label: 'Giá trị HĐ đang quản lý', value: fmt(project.contractValue), color: 'text-slate-800', bg: 'bg-white' },
+    { label: 'Đã thanh toán', value: fmt(totalPaid), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Phát sinh ngoài dự kiến', value: fmt(project.unexpectedCosts), color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Nhà thầu & NCC', value: String(subcontractors.length), color: 'text-slate-700', bg: 'bg-white' },
+    { label: 'Hồ sơ & Tài liệu', value: String(project.totalDocuments), color: 'text-slate-700', bg: 'bg-white' },
+    { label: 'Nhật ký công việc', value: String(project.totalDiaryEntries), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Theo dõi ngày nghỉ', value: String(project.daysOff), color: 'text-amber-600', bg: 'bg-amber-50' },
+  ];
+
+  return (
+    <div className="space-y-3">
+      {cards.map((c, i) => (
+        <div key={i} className={`rounded-xl border border-slate-200 p-4 shadow-sm ${c.bg}`}>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{c.label}</p>
+          <p className={`text-2xl font-black mt-1 ${c.color}`}>{c.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAYMENT HISTORY — Lịch sử thanh toán chi tiết
+// ═══════════════════════════════════════════════════════════
+
+export function PaymentHistory({ payments }: { payments: import('./types').PaymentRecord[] }) {
+  const [search, setSearch] = React.useState('');
+  const filtered = payments.filter(p => !search || p.description.toLowerCase().includes(search.toLowerCase()) || p.date.includes(search));
+  const totalOut = payments.filter(p => p.type === 'payment_out').reduce((s, p) => s + p.amount, 0);
+  const totalIn = payments.filter(p => p.type === 'payment_in').reduce((s, p) => s + p.amount, 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-bold text-slate-700">💰 Lịch sử thanh toán</h3>
+        <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{payments.length} giao dịch</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3"><p className="text-[10px] text-emerald-500 font-bold">Tổng thu</p><p className="text-lg font-bold text-emerald-600">{fmt(totalIn)}</p></div>
+        <div className="bg-rose-50 rounded-xl border border-rose-200 p-3"><p className="text-[10px] text-rose-500 font-bold">Tổng chi</p><p className="text-lg font-bold text-rose-600">{fmt(totalOut)}</p></div>
+      </div>
+      <div className="relative">
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm kiếm..." className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400" />
+        <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+      </div>
+      <div className="space-y-2">
+        {filtered.map(p => (
+          <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-700">{new Date(p.date).toLocaleDateString('vi-VN')}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{p.description}</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{p.category}</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-sm font-bold ${p.type === 'payment_in' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {p.type === 'payment_in' ? '+' : ''}{fmt(p.amount)}
+                </p>
+                <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${p.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                  {p.status === 'confirmed' ? '✓ Xác nhận' : '⏳ Chờ'}
+                </span>
+              </div>
+            </div>
+            {p.billPhotos.length > 0 && (
+              <div className="flex gap-1.5 mt-2">
+                {p.billPhotos.slice(0, 3).map((_, i) => (
+                  <div key={i} className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center text-sm border border-amber-300">📄</div>
+                ))}
+                {p.billPhotos.length > 3 && <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-[9px] font-bold text-amber-500">+{p.billPhotos.length - 3}</div>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONTRACTOR PROGRESS CHART — Biểu đồ tiến độ nhà thầu
+// ═══════════════════════════════════════════════════════════
+
+export function ContractorProgressChart({ subcontractors }: { subcontractors: import('./types').Subcontractor[] }) {
+  const withData = subcontractors.filter(s => s.contractAmount && s.contractAmount > 0);
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">📊 Tiến độ nhà thầu</h3>
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-4">
+        {withData.map(s => {
+          const paymentPct = s.contractAmount ? Math.round((s.paidAmount || 0) / s.contractAmount * 100) : 0;
+          return (
+            <div key={s.id}>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[11px] font-bold text-slate-700 truncate">{s.name}</p>
+                <p className="text-[9px] text-slate-400">{fmt(s.contractAmount || 0)}</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${s.progressPercent || 0}%` }} /></div>
+                  <span className="text-[9px] font-bold text-blue-600 w-8 text-right">{s.progressPercent || 0}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${paymentPct}%` }} /></div>
+                  <span className="text-[9px] font-bold text-emerald-600 w-8 text-right">{paymentPct}%</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 mt-0.5">
+                <span className="text-[8px] text-blue-400 flex items-center gap-1"><span className="w-2 h-2 bg-blue-500 rounded-full inline-block" /> Tiến độ giao</span>
+                <span className="text-[8px] text-emerald-400 flex items-center gap-1"><span className="w-2 h-2 bg-emerald-400 rounded-full inline-block" /> % Thanh toán</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
