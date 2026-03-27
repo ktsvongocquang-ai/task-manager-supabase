@@ -646,7 +646,7 @@ function ImportQuotationModal({ isOpen, onClose }: { isOpen: boolean, onClose: (
   );
 }
 
-function SmartTaskBar({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+function SmartTaskBar({ isOpen, onClose, tasks: _tasks, project: _project }: { isOpen: boolean, onClose: () => void, tasks?: any[], project?: any }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   return (
@@ -700,7 +700,7 @@ function SmartTaskBar({ isOpen, onClose }: { isOpen: boolean, onClose: () => voi
                     placeholder="Hỏi AI về công việc..."
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <button onClick={() => setIsLogModalOpen(true)} className="p-2 bg-indigo-600 rounded-xl text-white">
+                  <button onClick={() => alert('Đang xử lý...')} className="p-2 bg-indigo-600 rounded-xl text-white">
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
