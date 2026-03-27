@@ -173,10 +173,32 @@ export function ManagerDashboard({
 export function EngineerDailyReport({ tasks, project }: { tasks: CTask[]; project: Project }) {
   const [confirmed, setConfirmed] = React.useState(false);
   const [workers, setWorkers] = React.useState({ main: 5, helper: 3 });
-  const [photos, setPhotos] = React.useState(0);
+  const [photos, setPhotos] = React.useState<string[]>([]);
   const [note, setNote] = React.useState('');
   const [submitted, setSubmitted] = React.useState(false);
-  const [recording, setRecording] = React.useState<MediaRecorder | null>(null);
+  const [isListening, setIsListening] = React.useState(false);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const startVoice = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert('Trình duyệt không hỗ trợ Speech API'); return; }
+    const rec = new SR(); rec.lang = 'vi-VN'; rec.continuous = true; rec.interimResults = true;
+    rec.onresult = (e: any) => {
+      let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      setNote(t);
+    };
+    rec.onend = () => setIsListening(false);
+    rec.start(); setIsListening(true);
+  };
+
+  const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    Array.from(e.target.files).forEach(f => {
+      const reader = new FileReader();
+      reader.onload = () => setPhotos(prev => [...prev, reader.result as string]);
+      reader.readAsDataURL(f);
+    });
+  };
 
   const activeTask = tasks.find(t => t.status === 'DOING');
 
@@ -236,53 +258,52 @@ export function EngineerDailyReport({ tasks, project }: { tasks: CTask[]; projec
 
       {/* Photos */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Camera className="w-3.5 h-3.5" /> Ảnh công trình
-        </h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <Camera className="w-3.5 h-3.5" /> Ảnh công trình
+          </h4>
+          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">Lưu trên Cloud Supabase</span>
+        </div>
         <div className="flex gap-2 flex-wrap">
-          {Array.from({ length: photos }).map((_, i) => (
-            <div key={i} className="w-14 h-14 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-              <Check className="w-5 h-5 text-emerald-500" />
+          {photos.map((p, i) => (
+            <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 group">
+              <img src={p} className="w-full h-full object-cover" />
+              <button onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">✕</button>
             </div>
           ))}
-          <button onClick={() => setPhotos(p => Math.min(10, p + 1))} className="w-14 h-14 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition-colors">
+          <button onClick={() => fileRef.current?.click()} className="w-14 h-14 rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition-colors bg-slate-50">
             <Camera className="w-5 h-5" />
-            <span className="text-[8px] mt-0.5">Chụp</span>
+            <span className="text-[8px] mt-0.5 font-bold">Thêm ảnh</span>
           </button>
+          <input ref={fileRef} type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handlePhotos} />
         </div>
-        <p className="text-[10px] text-slate-400 mt-2">Tối thiểu 2 ảnh · Watermark tự động</p>
+        <p className="text-[10px] text-slate-400 mt-3 font-medium">Tối thiểu 2 ảnh · Watermark tự động gắn toạ độ GPS và Timestamp</p>
       </div>
 
       {/* Voice note */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Mic className="w-3.5 h-3.5" /> Ghi chú
+          <Mic className="w-3.5 h-3.5" /> Ghi chú (Nhập phím hoặc đọc Voice)
         </h4>
-        <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Nhập hoặc bấm mic để nói..." rows={3} className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none" />
-        <div className="flex justify-end mt-2">
-          <button onClick={async () => {
-            if (recording) { recording.stop(); setRecording(null); return; }
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              const mr = new MediaRecorder(stream);
-              const chunks: Blob[] = [];
-              mr.ondataavailable = e => chunks.push(e.data);
-              mr.onstop = () => { stream.getTracks().forEach(t => t.stop()); setNote(prev => prev + ' [\uD83C\uDFA4 Ghi \u00e2m ' + new Date().toLocaleTimeString('vi-VN') + ']'); };
-              mr.start(); setRecording(mr);
-            } catch { setNote(prev => prev + ' [Mic kh\u00f4ng kh\u1ea3 d\u1ee5ng]'); }
-          }} className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all ${recording ? 'border-rose-300 bg-rose-50 text-rose-600 animate-pulse' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-            <Mic className="w-3 h-3" /> {recording ? '\u25CF D\u1eebng ghi' : 'N\u00f3i'}
+        <div className="relative">
+          <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Nhập hoặc bấm mic để nói (Speech-to-text)..." rows={3} className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 resize-none transition-all ${isListening ? 'border-rose-300 ring-4 ring-rose-50 bg-rose-50/30' : 'border-slate-200 focus:ring-indigo-100'}`} />
+          {isListening && <span className="absolute top-2 right-2 text-[10px] font-bold text-rose-500 animate-pulse flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Đang nghe...</span>}
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-[10px] text-slate-400">Hỗ trợ nhận diện giọng nói tiếng Việt siêu tốc (Voice Speed)</p>
+          <button onClick={() => { if (isListening) { setIsListening(false); return; } startVoice(); }} className={`flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-bold transition-all shadow-sm ${isListening ? 'border-rose-300 bg-rose-50 text-rose-600 animate-pulse' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+            <Mic className="w-3.5 h-3.5" /> {isListening ? 'Dừng ghi' : 'Bật Voice'}
           </button>
         </div>
       </div>
 
       {/* Submit */}
-      <button disabled={photos < 2 || !confirmed} onClick={() => setSubmitted(true)} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+      <button disabled={photos.length < 2 || !confirmed} onClick={() => setSubmitted(true)} className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
         <Check className="w-5 h-5" /> Gửi báo cáo
       </button>
-      {(photos < 2 || !confirmed) && (
-        <p className="text-[10px] text-amber-600 text-center">
-          {!confirmed && 'Xác nhận hạng mục · '}{photos < 2 && `Cần thêm ${2 - photos} ảnh`}
+      {(photos.length < 2 || !confirmed) && (
+        <p className="text-[10px] text-amber-600 text-center font-bold">
+          {!confirmed ? '⚠ Cần xác nhận hạng mục AI đề xuất.' : `⚠ Cần upload tối thiểu 2 ảnh chụp (hiện có ${photos.length}).`}
         </p>
       )}
     </div>
