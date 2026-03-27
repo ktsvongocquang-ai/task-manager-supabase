@@ -104,6 +104,11 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
   const [showAddIssue, setShowAddIssue] = useState(false);
   const [newIssueTitle, setNewIssueTitle] = useState('');
   const [newIssueDesc, setNewIssueDesc] = useState('');
+  const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
+  const [editingChecklistText, setEditingChecklistText] = useState('');
+  const [issuePhotos, setIssuePhotos] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const photoInputRef = React.useRef<HTMLInputElement>(null);
 
   if (!task) return null;
   const canEdit = userRole !== 'HOMEOWNER';
@@ -121,12 +126,59 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
     onUpdate({ ...task, checklist: [...task.checklist, { id: `cl_${Date.now()}`, label: newChecklistItem.trim(), completed: false, required: false }] });
     setNewChecklistItem('');
   };
+  const deleteChecklistItem = (itemId: string) => {
+    if (!canEdit) return;
+    onUpdate({ ...task, checklist: task.checklist.filter(c => c.id !== itemId) });
+  };
+  const saveChecklistEdit = (itemId: string) => {
+    if (!editingChecklistText.trim()) return;
+    onUpdate({ ...task, checklist: task.checklist.map(c => c.id === itemId ? { ...c, label: editingChecklistText.trim() } : c) });
+    setEditingChecklistId(null); setEditingChecklistText('');
+  };
   const addIssue = () => {
     if (!newIssueTitle.trim()) return;
-    onUpdate({ ...task, issues: [...task.issues, { id: `iss_${Date.now()}`, title: newIssueTitle.trim(), description: newIssueDesc.trim(), status: 'OPEN', severity: 'MEDIUM', createdAt: new Date().toISOString().split('T')[0] }] });
-    setNewIssueTitle(''); setNewIssueDesc(''); setShowAddIssue(false);
+    onUpdate({ ...task, issues: [...task.issues, { id: `iss_${Date.now()}`, title: newIssueTitle.trim(), description: newIssueDesc.trim() + (issuePhotos.length > 0 ? ` [${issuePhotos.length} ảnh đính kèm]` : ''), status: 'OPEN', severity: 'MEDIUM', createdAt: new Date().toISOString().split('T')[0] }] });
+    setNewIssueTitle(''); setNewIssueDesc(''); setShowAddIssue(false); setIssuePhotos([]);
+  };
+  const deleteIssue = (issueId: string) => {
+    if (!canEdit) return;
+    onUpdate({ ...task, issues: task.issues.filter(i => i.id !== issueId) });
+  };
+  const toggleIssueStatus = (issueId: string) => {
+    if (!canEdit) return;
+    onUpdate({ ...task, issues: task.issues.map(i => i.id === issueId ? { ...i, status: (i.status === 'OPEN' ? 'RESOLVED' : 'OPEN') as 'OPEN' | 'FIXING' | 'RESOLVED' } : i) });
   };
   const handleStatusChange = (s: TaskStatus) => { if (canEdit || s === 'REVIEW') onUpdate({ ...task, status: s }); };
+
+  // Photo capture via file input
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => { if (ev.target?.result) setIssuePhotos(prev => [...prev, ev.target!.result as string]); };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  // Speech-to-text via Web Speech API
+  const startSpeechToText = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { setNewIssueDesc(prev => prev + ' [Trình duyệt không hỗ trợ Speech]'); return; }
+    const recognition = new SR();
+    recognition.lang = 'vi-VN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setNewIssueDesc(prev => prev ? prev + ' ' + transcript : transcript);
+    };
+    recognition.onerror = () => { setIsListening(false); setNewIssueDesc(prev => prev + ' [Lỗi mic]'); };
+    recognition.start();
+  };
 
   return (
     <AnimatePresence>
@@ -161,11 +213,23 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
               </div>
               <div className="space-y-1.5">
                 {task.checklist.map(item => (
-                  <button key={item.id} onClick={() => toggleChecklistItem(item.id)} disabled={!canEdit} className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${item.completed ? 'bg-emerald-50/50' : 'bg-slate-50 hover:bg-slate-100'} ${!canEdit ? 'cursor-default' : 'cursor-pointer'}`}>
-                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>{item.completed && <Check className="w-3 h-3 text-white" />}</div>
-                    <span className={`text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{item.label}</span>
-                    {item.required && <span className="text-rose-400 text-xs ml-auto">*</span>}
-                  </button>
+                  <div key={item.id} className={`flex items-center gap-2 p-3 rounded-xl transition-all group ${item.completed ? 'bg-emerald-50/50' : 'bg-slate-50 hover:bg-slate-100'}`}>
+                    <button onClick={() => toggleChecklistItem(item.id)} disabled={!canEdit} className="shrink-0">
+                      <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>{item.completed && <Check className="w-3 h-3 text-white" />}</div>
+                    </button>
+                    {editingChecklistId === item.id ? (
+                      <input type="text" value={editingChecklistText} onChange={e => setEditingChecklistText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveChecklistEdit(item.id); if (e.key === 'Escape') setEditingChecklistId(null); }} onBlur={() => saveChecklistEdit(item.id)} autoFocus className="flex-1 px-2 py-1 text-sm border border-indigo-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-200" />
+                    ) : (
+                      <span onDoubleClick={() => { if (canEdit) { setEditingChecklistId(item.id); setEditingChecklistText(item.label); } }} className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'} ${canEdit ? 'cursor-text' : ''}`}>{item.label}</span>
+                    )}
+                    {item.required && <span className="text-rose-400 text-xs">*</span>}
+                    {canEdit && (
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => { setEditingChecklistId(item.id); setEditingChecklistText(item.label); }} className="p-1 hover:bg-slate-200 rounded-md" title="Sửa"><FileText className="w-3 h-3 text-slate-400" /></button>
+                        <button onClick={() => deleteChecklistItem(item.id)} className="p-1 hover:bg-rose-100 rounded-md" title="Xóa"><X className="w-3 h-3 text-rose-400" /></button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
               {canEdit && (
@@ -178,19 +242,21 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
             {/* Punchlist */}
             <div className="p-5 border-b border-slate-50">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Punchlist</h3>
-                {canEdit && <button onClick={() => setShowAddIssue(true)} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"><Plus className="w-3 h-3" /> Báo lỗi</button>}
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Punchlist (Lỗi)</h3>
+                {canEdit && <button onClick={() => setShowAddIssue(true)} className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"><Plus className="w-3 h-3" /> Báo lỗi mới</button>}
               </div>
               {task.issues.length === 0 && !showAddIssue ? (
                 <div className="text-center py-6"><CheckCircle2 className="w-8 h-8 text-emerald-300 mx-auto mb-2" /><p className="text-sm text-slate-400">Không có lỗi</p></div>
               ) : (
                 <div className="space-y-2">
                   {task.issues.map(issue => (
-                    <div key={issue.id} className={`p-3 rounded-xl border ${issue.severity === 'HIGH' ? 'border-rose-200 bg-rose-50' : issue.severity === 'MEDIUM' ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
+                    <div key={issue.id} className={`p-3 rounded-xl border group ${issue.status === 'RESOLVED' ? 'border-slate-200 bg-slate-50 opacity-60' : issue.severity === 'HIGH' ? 'border-rose-200 bg-rose-50' : issue.severity === 'MEDIUM' ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50'}`}>
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase ${issue.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{issue.severity === 'HIGH' ? 'Nghiêm trọng' : 'Trung bình'}</span>
+                        <button onClick={() => toggleIssueStatus(issue.id)} className={`text-[9px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-colors ${issue.status === 'OPEN' ? 'bg-blue-100 text-blue-700 hover:bg-emerald-100 hover:text-emerald-700' : 'bg-emerald-100 text-emerald-700 hover:bg-blue-100 hover:text-blue-700'}`}>{issue.status === 'OPEN' ? 'Mở' : 'Đã xử lý'}</button>
+                        {canEdit && <button onClick={() => deleteIssue(issue.id)} className="ml-auto p-1 opacity-0 group-hover:opacity-100 hover:bg-rose-100 rounded-md transition-all" title="Xóa lỗi"><X className="w-3 h-3 text-rose-400" /></button>}
                       </div>
-                      <p className="text-sm font-bold text-slate-700">{issue.title}</p>
+                      <p className={`text-sm font-bold ${issue.status === 'RESOLVED' ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{issue.title}</p>
                       {issue.description && <p className="text-xs text-slate-500 mt-1">{issue.description}</p>}
                     </div>
                   ))}
@@ -198,15 +264,29 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
               )}
               {showAddIssue && (
                 <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                  <input type="text" value={newIssueTitle} onChange={e => setNewIssueTitle(e.target.value)} placeholder="Tên lỗi..." className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
-                  <textarea value={newIssueDesc} onChange={e => setNewIssueDesc(e.target.value)} placeholder="Mô tả..." rows={2} className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none" />
-                  <div className="flex gap-2">
-                    <button className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl"><Camera className="w-4 h-4" /> Chụp ảnh</button>
-                    <button className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl"><Mic className="w-4 h-4" /> Ghi âm</button>
+                  <input type="text" value={newIssueTitle} onChange={e => setNewIssueTitle(e.target.value)} placeholder="Tên lỗi (VD: Vách tường bị nứt)" className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                  <div className="relative">
+                    <textarea value={newIssueDesc} onChange={e => setNewIssueDesc(e.target.value)} placeholder="Mô tả chi tiết lỗi..." rows={2} className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none pr-16" />
+                    <div className="absolute right-2 bottom-2 flex gap-1">
+                      <button onClick={() => photoInputRef.current?.click()} className="p-1.5 hover:bg-indigo-100 rounded-lg transition-colors" title="Chụp/chọn ảnh"><Camera className="w-4 h-4 text-indigo-500" /></button>
+                      <button onClick={startSpeechToText} className={`p-1.5 rounded-lg transition-colors ${isListening ? 'bg-rose-100 animate-pulse' : 'hover:bg-indigo-100'}`} title="Nói để nhập"><Mic className={`w-4 h-4 ${isListening ? 'text-rose-500' : 'text-indigo-500'}`} /></button>
+                    </div>
                   </div>
+                  <input ref={photoInputRef} type="file" accept="image/*" capture="environment" multiple onChange={handlePhotoCapture} className="hidden" />
+                  {/* Photo previews */}
+                  {issuePhotos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap">
+                      {issuePhotos.map((photo, i) => (
+                        <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 group">
+                          <img src={photo} alt="" className="w-full h-full object-cover" />
+                          <button onClick={() => setIssuePhotos(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-rose-500 text-white rounded-bl-lg p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex gap-2 pt-1">
-                    <button onClick={addIssue} disabled={!newIssueTitle.trim()} className="flex-1 bg-indigo-600 text-white text-sm font-bold py-2.5 rounded-xl disabled:opacity-40">Lưu lỗi</button>
-                    <button onClick={() => { setShowAddIssue(false); setNewIssueTitle(''); setNewIssueDesc(''); }} className="px-4 text-sm font-bold text-slate-500">Hủy</button>
+                    <button onClick={addIssue} disabled={!newIssueTitle.trim()} className="flex-1 bg-indigo-600 text-white text-sm font-bold py-2.5 rounded-xl disabled:opacity-40 hover:bg-indigo-700 transition-colors">Lưu lỗi</button>
+                    <button onClick={() => { setShowAddIssue(false); setNewIssueTitle(''); setNewIssueDesc(''); setIssuePhotos([]); }} className="px-4 text-sm font-bold text-slate-500 hover:text-slate-700">Hủy</button>
                   </div>
                 </div>
               )}
