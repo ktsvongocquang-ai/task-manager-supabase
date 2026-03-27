@@ -124,6 +124,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Hôm nay xây xong tường phía Đông, cần kiểm tra lại mạch vữa góc phòng khách'],
     notes: 'Tiến độ đúng kế hoạch. Cần nhập thêm gạch block cho tuần sau.',
     issues: ['i1'], createdBy: 'ENGINEER', editable: true,
+    status: 'pending', reporterName: 'Nguyễn Văn Hùng', temperature: 34,
+    machines: 'Máy trộn hồ mini, xe rùa', materials: 'Gạch tuynel 8x8x18 (2000 viên), Xi măng INSEE (15 bao)',
+    comments: [],
   },
   {
     id: 'dl2', date: '2026-03-27', projectId: '1', weatherAM: 'sunny', weatherPM: 'rainy',
@@ -135,6 +138,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Chiều mưa, ngưng thi công từ 3h. Đã che bạt tường mới xây.'],
     notes: 'Mưa chiều, tạm ngưng. Vật tư đủ cho 2 ngày tiếp.',
     issues: [], createdBy: 'ENGINEER', editable: true,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 30,
+    machines: 'Máy trộn hồ mini', materials: 'Cát xây, Đá mi bụi',
+    comments: [{ id: 'cmt1', author: 'Quản lý', text: 'Nhớ trùm nilon kỹ để mai xây tiếp không bị ướt gạch', time: '16:45' }],
   },
   {
     id: 'dl3', date: '2026-03-26', projectId: '1', weatherAM: 'cloudy', weatherPM: 'sunny',
@@ -146,6 +152,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: [],
     notes: 'Thợ chính nghỉ 1 người. Tiến độ giảm nhẹ.',
     issues: [], createdBy: 'ENGINEER', editable: true,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 32,
+    machines: 'Máy cắt gạch', materials: 'Gạch tuynel',
+    comments: [],
   },
   {
     id: 'dl4', date: '2026-03-25', projectId: '1', weatherAM: 'rainy', weatherPM: 'rainy',
@@ -157,6 +166,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Mưa cả ngày, công trường ngập nước. Đã bơm thoát nước.'],
     notes: 'Mưa lớn cả ngày, nghỉ thi công. Kiểm tra chống thấm tạm.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 26,
+    machines: 'Máy bơm chìm', materials: '',
+    comments: [{ id: 'cmt2', author: 'Cô Lan (Chủ nhà)', text: 'Cố gắng bơm nước nhanh để mai làm lại nhé cháu', time: '10:15' }],
   },
   {
     id: 'dl5', date: '2026-03-24', projectId: '1', weatherAM: 'sunny', weatherPM: 'cloudy',
@@ -168,6 +180,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Đã xong tường phía Tây tầng trệt, chất lượng tốt'],
     notes: 'Hoàn thành tường phía Tây. Bắt đầu tường phía Bắc ngày mai.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 35,
+    machines: '', materials: 'Xi măng, Cát',
+    comments: [],
   },
   {
     id: 'dl6', date: '2026-03-23', projectId: '1', weatherAM: 'sunny', weatherPM: 'sunny',
@@ -179,6 +194,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: [],
     notes: 'Đổ bê tông cột trệt xong 100%. Chờ 7 ngày dưỡng hộ.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 36,
+    machines: 'Xe rùa, Đầm dùi', materials: 'Bê tông tươi M250 (12 khối)',
+    comments: [],
   },
   {
     id: 'dl7', date: '2026-03-22', projectId: '1', weatherAM: 'sunny', weatherPM: 'sunny',
@@ -190,6 +208,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Cốt thép cột C3 bị cong, yêu cầu nắn lại trước khi ghép cốp pha'],
     notes: 'Ghép cốp pha cột xong 85%. Phát hiện cốt thép C3 cong.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'rejected', reporterName: 'Nguyễn Văn Hùng', temperature: 35,
+    machines: 'Đầm dùi', materials: 'Ván cốp pha phim, Xà gồ',
+    comments: [{ id: 'cmt3', author: 'Quản lý', text: 'Chụp hình cột C3 gửi anh xem lại độ thẳng', time: '11:20' }],
   },
   {
     id: 'dl8', date: '2026-03-21', projectId: '1', weatherAM: 'rainy', weatherPM: 'cloudy',
@@ -201,6 +222,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: [],
     notes: 'Sáng mưa nhỏ, chiều tạnh. Tiếp tục gia công thép.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 28,
+    machines: 'Máy uốn sắt, Máy cắt sắt', materials: 'Phi 16 Pomina',
+    comments: [],
   },
   {
     id: 'dl9', date: '2026-03-20', projectId: '1', weatherAM: 'sunny', weatherPM: 'sunny',
@@ -212,6 +236,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: ['Nhập thép Pomina D16 về 2.5 tấn, kiểm tra mác thép đúng C300'],
     notes: 'Nhập thép mới. Bắt đầu gia công cốt thép cột tầng trệt.',
     issues: ['i1'], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 34,
+    machines: '', materials: 'Thép D16 (2.5 tấn), Thép D8 (300kg)',
+    comments: [],
   },
   {
     id: 'dl10', date: '2026-03-19', projectId: '1', weatherAM: 'cloudy', weatherPM: 'rainy',
@@ -223,6 +250,9 @@ export const DAILY_LOGS: DailyLog[] = [
     voiceNotes: [],
     notes: 'Hoàn thành đào móng. Chuẩn bị cho đổ đá dăm lót.',
     issues: [], createdBy: 'ENGINEER', editable: false,
+    status: 'approved', reporterName: 'Nguyễn Văn Hùng', temperature: 31,
+    machines: 'Máy cuốc 0.3', materials: '',
+    comments: [],
   },
 ];
 

@@ -617,43 +617,119 @@ export function ReportsView({ tasks, projectName }: { tasks?: any[]; projectName
 }
 
 // ═══════════════════════════════════════════════════════════
-// DAILY LOG VIEW — Nhật ký thi công chi tiết
+// DAILY LOG VIEW & MODALS — Nhật ký thi công chuyên sâu
 // ═══════════════════════════════════════════════════════════
 
-export function DailyLogView({ logs, onAddLog, canEdit }: {
+export function DailyLogView({ logs, onAddLog, canEdit, isManager }: {
   logs: import('./types').DailyLog[];
   onAddLog?: (log: import('./types').DailyLog) => void;
   canEdit: boolean;
+  isManager?: boolean;
 }) {
   const [search, setSearch] = React.useState('');
-  const [showForm, setShowForm] = React.useState(false);
-  const [expandedLog, setExpandedLog] = React.useState<string | null>(null);
-  const [newLog, setNewLog] = React.useState({
-    taskCategory: '', notes: '', weatherAM: 'sunny' as import('./types').WeatherType, weatherPM: 'sunny' as import('./types').WeatherType,
-    workerMain: 5, workerHelper: 3,
-  });
-  const [photos, setPhotos] = React.useState<string[]>([]);
-  const [isListening, setIsListening] = React.useState(false);
-  const fileRef = React.useRef<HTMLInputElement>(null);
+  const [showCreateModal, setShowCreateModal] = React.useState(false);
+  const [selectedLogId, setSelectedLogId] = React.useState<string | null>(null);
 
   const filtered = logs.filter(l =>
     !search || l.taskCategory.toLowerCase().includes(search.toLowerCase()) || l.notes.toLowerCase().includes(search.toLowerCase()) || l.date.includes(search)
   );
 
-  const wtIcon = (w: string) => w === 'sunny' ? '☀️' : w === 'rainy' ? '🌧️' : w === 'storm' ? '⛈️' : '⛅';
-  const wtColor = (w: string) => w === 'sunny' ? 'bg-amber-50 text-amber-600 border-amber-200' : w === 'rainy' ? 'bg-blue-50 text-blue-600 border-blue-200' : w === 'storm' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-slate-50 text-slate-500 border-slate-200';
+  const selectedLog = logs.find(l => l.id === selectedLogId);
 
-  const startVoice = () => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { alert('Trình duyệt không hỗ trợ Speech API'); return; }
-    const rec = new SR(); rec.lang = 'vi-VN'; rec.continuous = true; rec.interimResults = true;
-    rec.onresult = (e: any) => {
-      let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-      setNewLog(prev => ({ ...prev, notes: t }));
-    };
-    rec.onend = () => setIsListening(false);
-    rec.start(); setIsListening(true);
-  };
+  return (
+    <div className="space-y-4">
+      {/* Header & Search */}
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+          📋 Nhật ký công trường <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{logs.length} ngày</span>
+        </h3>
+        <div className="flex items-center gap-3 flex-1 justify-end">
+          <div className="relative w-64">
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm kiếm nhật ký..." className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400" />
+            <span className="absolute left-3 top-2.5 text-[10px]">🔍</span>
+          </div>
+          {canEdit && <button onClick={() => setShowCreateModal(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm">+ Tạo báo cáo</button>}
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-slate-50 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-200">
+            <tr>
+              <th className="py-3 px-4">Ngày / Thời tiết</th>
+              <th className="py-3 px-4">Hạng mục chính</th>
+              <th className="py-3 px-4">Nhân lực</th>
+              <th className="py-3 px-4">Đính kèm</th>
+              <th className="py-3 px-4">Người báo cáo</th>
+              <th className="py-3 px-4 text-center">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filtered.map(log => (
+              <tr key={log.id} onClick={() => setSelectedLogId(log.id)} className="hover:bg-slate-50 cursor-pointer transition-colors group">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-slate-800">{new Date(log.date).toLocaleDateString('vi-VN')}</p>
+                  <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                     Sáng: {log.weatherAM === 'sunny' ? '☀️' : log.weatherAM === 'rainy' ? '🌧️' : '⛅'} · Chiều: {log.weatherPM === 'sunny' ? '☀️' : log.weatherPM === 'rainy' ? '🌧️' : '⛅'}
+                  </p>
+                </td>
+                <td className="py-3 px-4">
+                  <p className="font-medium text-slate-700 truncate max-w-[180px]" title={log.taskCategory}>{log.taskCategory}</p>
+                  {log.temperature && <p className="text-[10px] text-slate-400">Nhiệt độ: {log.temperature}°C</p>}
+                </td>
+                <td className="py-3 px-4">
+                  <p className="text-xs text-slate-600">Thợ chính: <span className="font-bold">{log.workerCount.main}</span></p>
+                  <p className="text-xs text-slate-600">Thợ phụ: <span className="font-bold">{log.workerCount.helper}</span></p>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2">
+                    {log.sitePhotos.length > 0 && <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded font-bold border border-indigo-100 flex items-center gap-1">📷 {log.sitePhotos.length}</span>}
+                    {log.videos.length > 0 && <span className="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded font-bold border border-rose-100 flex items-center gap-1">🎬 {log.videos.length}</span>}
+                    {log.sitePhotos.length === 0 && log.videos.length === 0 && <span className="text-[10px] text-slate-400 italic">Không có</span>}
+                  </div>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">{log.reporterName?.[0] || 'KS'}</div>
+                    <span className="text-xs font-medium text-slate-700">{log.reporterName || 'Kỹ sư HT'}</span>
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold border ${
+                    log.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                    log.status === 'rejected' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                    'bg-amber-50 text-amber-600 border-amber-200'
+                  }`}>
+                    {log.status === 'approved' ? '✓ Đã duyệt' : log.status === 'rejected' ? '✕ Vấn đề' : '⏳ Chờ duyệt'}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={6} className="py-12 text-center text-sm text-slate-400">Không tìm thấy dữ liệu nhật ký</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {showCreateModal && <DailyLogCreateModal onClose={() => setShowCreateModal(false)} onSave={onAddLog} />}
+      {selectedLog && <DailyLogDetailModal log={selectedLog} onClose={() => setSelectedLogId(null)} isManager={isManager} />}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAILY LOG CREATE MODAL (Popup Tạo Báo Cáo)
+// ═══════════════════════════════════════════════════════════
+
+function DailyLogCreateModal({ onClose, onSave }: { onClose: () => void; onSave?: (log: any) => void }) {
+  const [form, setForm] = React.useState({
+    taskCategory: '', weatherAM: 'sunny' as import('./types').WeatherType, weatherPM: 'sunny' as import('./types').WeatherType, temperature: 30, taskProgress: 0,
+    workerMain: 5, workerHelper: 3, machines: '', materials: '', notes: ''
+  });
+  const [photos, setPhotos] = React.useState<string[]>([]);
+  const fileRef = React.useRef<HTMLInputElement>(null);
 
   const handlePhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -664,170 +740,238 @@ export function DailyLogView({ logs, onAddLog, canEdit }: {
     });
   };
 
-  const submitLog = () => {
-    if (!newLog.taskCategory) return;
-    const log: import('./types').DailyLog = {
+  const submit = () => {
+    if (!onSave) return;
+    onSave({
       id: `dl_${Date.now()}`, date: new Date().toISOString().split('T')[0], projectId: '1',
-      weatherAM: newLog.weatherAM, weatherPM: newLog.weatherPM,
-      taskCategory: newLog.taskCategory, taskProgress: 0,
-      workerCount: { main: newLog.workerMain, helper: newLog.workerHelper },
-      sitePhotos: photos, contractorPhotos: [], videos: [], voiceNotes: newLog.notes ? [newLog.notes] : [],
-      notes: newLog.notes, issues: [], createdBy: 'ENGINEER', editable: true,
-    };
-    onAddLog?.(log); setShowForm(false);
-    setNewLog({ taskCategory: '', notes: '', weatherAM: 'sunny', weatherPM: 'sunny', workerMain: 5, workerHelper: 3 });
-    setPhotos([]);
+      weatherAM: form.weatherAM, weatherPM: form.weatherPM, temperature: form.temperature,
+      taskCategory: form.taskCategory, taskProgress: form.taskProgress,
+      workerCount: { main: form.workerMain, helper: form.workerHelper },
+      machines: form.machines, materials: form.materials, notes: form.notes,
+      sitePhotos: photos, contractorPhotos: [], videos: [], voiceNotes: [], issues: [],
+      createdBy: 'ENGINEER', editable: true, status: 'pending', reporterName: 'Kỹ sư HT', comments: []
+    });
+    onClose();
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">📋 Nhật ký thi công <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{logs.length} bản ghi</span></h3>
-        {canEdit && <button onClick={() => setShowForm(!showForm)} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">+ Thêm</button>}
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Tạo báo cáo ngày</h2>
+            <p className="text-xs text-slate-500">Điền thông tin chi tiết các hoạt động tại công trường ngày hôm nay.</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-rose-500 transition-colors">✕</button>
+        </div>
 
-      {/* Search */}
-      <div className="relative">
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tìm kiếm nhật ký..." className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400" />
-        <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
-      </div>
-
-      {/* Add Form */}
-      {showForm && (
-        <div className="bg-white rounded-xl border-2 border-indigo-200 p-4 shadow-lg space-y-3">
-          <p className="text-xs font-bold text-indigo-600">📝 Thêm nhật ký mới — {new Date().toLocaleDateString('vi-VN')}</p>
-          <input value={newLog.taskCategory} onChange={e => setNewLog({...newLog, taskCategory: e.target.value})} placeholder="Hạng mục (VD: BTCT tầng lừng)" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400" />
-          {/* Weather */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[10px] text-slate-400 font-bold mb-1">Thời tiết sáng</p>
-              <div className="flex gap-1">
-                {(['sunny', 'cloudy', 'rainy', 'storm'] as const).map(w => (
-                  <button key={w} onClick={() => setNewLog({...newLog, weatherAM: w})}
-                    className={`text-sm px-2 py-1 rounded-lg border transition-all ${newLog.weatherAM === w ? 'border-indigo-400 bg-indigo-50 scale-110' : 'border-slate-200 hover:border-slate-300'}`}>
-                    {wtIcon(w)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-bold mb-1">Thời tiết chiều</p>
-              <div className="flex gap-1">
-                {(['sunny', 'cloudy', 'rainy', 'storm'] as const).map(w => (
-                  <button key={w} onClick={() => setNewLog({...newLog, weatherPM: w})}
-                    className={`text-sm px-2 py-1 rounded-lg border transition-all ${newLog.weatherPM === w ? 'border-indigo-400 bg-indigo-50 scale-110' : 'border-slate-200 hover:border-slate-300'}`}>
-                    {wtIcon(w)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Workers */}
-          <div className="grid grid-cols-2 gap-3">
-            <div><p className="text-[10px] text-slate-400 font-bold mb-1">Thợ chính</p><input type="number" value={newLog.workerMain} onChange={e => setNewLog({...newLog, workerMain: +e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></div>
-            <div><p className="text-[10px] text-slate-400 font-bold mb-1">Thợ phụ</p><input type="number" value={newLog.workerHelper} onChange={e => setNewLog({...newLog, workerHelper: +e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></div>
-          </div>
-          {/* Notes + Voice */}
-          <div className="relative">
-            <textarea value={newLog.notes} onChange={e => setNewLog({...newLog, notes: e.target.value})} placeholder="Ghi chú công việc..." rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm resize-none focus:outline-none focus:border-indigo-400" />
-            <div className="absolute right-2 bottom-2 flex gap-1">
-              <button onClick={() => fileRef.current?.click()} className="p-1.5 hover:bg-slate-100 rounded-lg" title="Chụp/chọn ảnh"><Camera className="w-4 h-4 text-slate-400" /></button>
-              <button onClick={startVoice} className={`p-1.5 rounded-lg transition-all ${isListening ? 'bg-rose-100 animate-pulse' : 'hover:bg-slate-100'}`} title="Nói để nhập">
-                <Mic className={`w-4 h-4 ${isListening ? 'text-rose-500' : 'text-slate-400'}`} />
-              </button>
-            </div>
-            <input ref={fileRef} type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handlePhotos} />
-          </div>
-          {/* Photo preview */}
-          {photos.length > 0 && (
-            <div className="flex gap-2 flex-wrap">
-              {photos.map((p, i) => (
-                <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group">
-                  <img src={p} className="w-full h-full object-cover" />
-                  <button onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-0 right-0 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+        <div className="flex-1 overflow-y-auto p-6 bg-slate-50 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-wide border-b pb-2">Thông tin chung</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Thời tiết sáng</label>
+                    <select value={form.weatherAM} onChange={e => setForm({...form, weatherAM: e.target.value as any})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50">
+                      <option value="sunny">☀️ Nắng</option><option value="cloudy">⛅ Nhiều mây</option>
+                      <option value="rainy">🌧️ Mưa</option><option value="storm">⛈️ Bão</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 block mb-1">Thời tiết chiều</label>
+                    <select value={form.weatherPM} onChange={e => setForm({...form, weatherPM: e.target.value as any})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50">
+                      <option value="sunny">☀️ Nắng</option><option value="cloudy">⛅ Nhiều mây</option>
+                      <option value="rainy">🌧️ Mưa</option><option value="storm">⛈️ Bão</option>
+                    </select>
+                  </div>
                 </div>
-              ))}
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 block mb-1">Nhiệt độ trung bình (°C)</label>
+                  <input type="number" value={form.temperature} onChange={e => setForm({...form, temperature: +e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" />
+                </div>
+              </section>
+
+              <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wide border-b pb-2">Nhân công & Máy móc</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Thợ chính (người)</label><input type="number" value={form.workerMain} onChange={e => setForm({...form, workerMain: +e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" /></div>
+                  <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Thợ phụ (người)</label><input type="number" value={form.workerHelper} onChange={e => setForm({...form, workerHelper: +e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" /></div>
+                </div>
+                <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Thiết bị / Máy móc sử dụng</label><input placeholder="VD: Máy trộn, xe cuốc..." value={form.machines} onChange={e => setForm({...form, machines: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" /></div>
+              </section>
             </div>
-          )}
-          <div className="flex gap-2">
-            <button onClick={submitLog} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">Lưu nhật ký</button>
-            <button onClick={() => setShowForm(false)} className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50">Hủy</button>
+
+            <div className="space-y-6">
+              <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wide border-b pb-2">Tiến độ & Vật tư</h4>
+                <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Công việc đã thi công</label><input placeholder="VD: Xây tường bao tầng lửng..." value={form.taskCategory} onChange={e => setForm({...form, taskCategory: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 mb-3" /></div>
+                <div><label className="text-[10px] font-bold text-slate-500 block mb-1">% Hoàn thành hạng mục</label><input type="number" min="0" max="100" value={form.taskProgress} onChange={e => setForm({...form, taskProgress: +e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 mb-3" /></div>
+                <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Vật tư xuất/nhập/tiêu hao</label><textarea rows={2} placeholder="VD: Xuất 10 bao xi măng, 2 xe cát..." value={form.materials} onChange={e => setForm({...form, materials: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 resize-none" /></div>
+                <div><label className="text-[10px] font-bold text-slate-500 block mb-1">Ghi chú bổ sung</label><textarea rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 resize-none" /></div>
+              </section>
+
+              <section className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                  <h4 className="text-xs font-bold text-rose-600 uppercase tracking-wide">Media Thực tế</h4>
+                  <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">{photos.length}/10 File</span>
+                </div>
+                <div onClick={() => fileRef.current?.click()} className="group border-2 border-dashed border-slate-300 bg-slate-50 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-indigo-400 hover:bg-white transition-all min-h-[120px]">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 group-hover:bg-indigo-100 flex items-center justify-center mb-2 transition-colors">
+                    <span className="text-slate-500 group-hover:text-indigo-600">📁</span>
+                  </div>
+                  <p className="text-xs font-bold text-slate-600 group-hover:text-indigo-600">Nhấn vào đây để tải ảnh / video</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Hoặc kéo thả file vào khu vực này</p>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotos} />
+                {photos.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
+                    {photos.map((p, i) => (
+                      <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm group">
+                        <img src={p} className="w-full h-full object-cover" />
+                        <button onClick={(e) => { e.stopPropagation(); setPhotos(prev => prev.filter((_, idx) => idx !== i)); }} className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500 hover:scale-110">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Log entries */}
-      <div className="space-y-2">
-        {filtered.map(log => (
-          <div key={log.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)} className="p-3 cursor-pointer hover:bg-slate-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold text-slate-700">{new Date(log.date).toLocaleDateString('vi-VN')}</p>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${wtColor(log.weatherAM)}`}>{wtIcon(log.weatherAM)}</span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded border font-bold ${wtColor(log.weatherPM)}`}>{wtIcon(log.weatherPM)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {log.sitePhotos.length > 0 && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">📷 +{log.sitePhotos.length}</span>}
-                  {log.contractorPhotos.length > 0 && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-bold">🏗️ +{log.contractorPhotos.length}</span>}
-                  {log.videos.length > 0 && <span className="text-[9px] bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded font-bold">🎬 {log.videos.length}</span>}
-                  <ChevronRight className={`w-3.5 h-3.5 text-slate-300 transition-transform ${expandedLog === log.id ? 'rotate-90' : ''}`} />
-                </div>
-              </div>
-              <p className="text-[11px] text-slate-600 mt-1 font-medium">{log.taskCategory}</p>
-            </div>
-            {expandedLog === log.id && (
-              <div className="px-3 pb-3 space-y-3 border-t border-slate-100 pt-3">
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Tiến độ</p><p className="text-sm font-bold text-indigo-600">{log.taskProgress}%</p></div>
-                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Thợ chính</p><p className="text-sm font-bold text-slate-700">{log.workerCount.main}</p></div>
-                  <div className="bg-slate-50 rounded-lg p-2"><p className="text-[9px] text-slate-400 font-bold">Thợ phụ</p><p className="text-sm font-bold text-slate-700">{log.workerCount.helper}</p></div>
-                </div>
-                <div><p className="text-[10px] text-slate-400 font-bold mb-1">Ghi chú</p><p className="text-xs text-slate-600 leading-relaxed">{log.notes}</p></div>
-                {log.voiceNotes.length > 0 && (
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold mb-1">🎤 Ghi âm</p>
-                    {log.voiceNotes.map((v, i) => (
-                      <p key={i} className="text-xs text-slate-600 italic bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200 mb-1">"{v}"</p>
-                    ))}
-                  </div>
-                )}
-                {(log.sitePhotos.length > 0 || log.contractorPhotos.length > 0) && (
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold mb-1">Hình ảnh công trường ({log.sitePhotos.length})</p>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {log.sitePhotos.slice(0, 4).map((_, i) => (
-                        <div key={i} className="w-14 h-14 bg-gradient-to-br from-slate-200 to-slate-300 rounded-lg flex items-center justify-center text-lg">📷</div>
-                      ))}
-                      {log.sitePhotos.length > 4 && <div className="w-14 h-14 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-500">+{log.sitePhotos.length - 4}</div>}
-                    </div>
-                    {log.contractorPhotos.length > 0 && (
-                      <>
-                        <p className="text-[10px] text-slate-400 font-bold mt-2 mb-1">Hình ảnh nhà thầu báo cáo ({log.contractorPhotos.length})</p>
-                        <div className="flex gap-1.5 flex-wrap">
-                          {log.contractorPhotos.slice(0, 4).map((_, i) => (
-                            <div key={i} className="w-14 h-14 bg-gradient-to-br from-amber-200 to-amber-300 rounded-lg flex items-center justify-center text-lg">🏗️</div>
-                          ))}
-                          {log.contractorPhotos.length > 4 && <div className="w-14 h-14 bg-amber-50 rounded-lg flex items-center justify-center text-[10px] font-bold text-amber-500">+{log.contractorPhotos.length - 4}</div>}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-                {log.videos.length > 0 && (
-                  <div className="flex gap-1.5">
-                    {log.videos.map((_, i) => (
-                      <div key={i} className="w-14 h-14 bg-gradient-to-br from-indigo-300 to-indigo-400 rounded-lg flex items-center justify-center text-white text-lg">▶</div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
+        <div className="p-4 border-t border-slate-200 bg-white flex justify-end gap-3 rounded-b-2xl">
+          <button onClick={onClose} className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Hủy thao tác</button>
+          <button onClick={submit} disabled={!form.taskCategory} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2">
+            Gửi báo cáo <span className="text-[10px]">▶</span>
+          </button>
+        </div>
       </div>
-      {filtered.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">Không tìm thấy nhật ký nào</div>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAILY LOG DETAIL MODAL (Popup Xem Chi tiết & Duyệt Báo Cáo)
+// ═══════════════════════════════════════════════════════════
+
+function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: () => void; isManager?: boolean }) {
+  const [comment, setComment] = React.useState('');
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white relative z-10 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                Báo cáo ngày {new Date(log.date).toLocaleDateString('vi-VN')}
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${log.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : log.status === 'rejected' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                   {log.status === 'approved' ? '✓ Đã duyệt' : log.status === 'rejected' ? '✕ Yêu cầu sửa' : '⏳ Chờ duyệt'}
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">Người báo cáo: <span className="font-bold text-slate-600">{log.reporterName || 'Kỹ sư HT'}</span></p>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors">✕</button>
+        </div>
+        <div className="flex flex-1 overflow-hidden bg-slate-50">
+          <div className="w-[45%] flex flex-col border-r border-slate-200 bg-white">
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Thời tiết & Nhiệt độ</p>
+                  <p className="text-sm font-medium text-slate-700 flex items-center gap-2">Sáng: {log.weatherAM === 'sunny' ? '☀️ Nắng' : log.weatherAM === 'rainy' ? '🌧️ Mưa' : '⛅ Mây'}</p>
+                  <p className="text-sm font-medium text-slate-700 flex items-center gap-2 mt-1">Chiều: {log.weatherPM === 'sunny' ? '☀️ Nắng' : log.weatherPM === 'rainy' ? '🌧️ Mưa' : '⛅ Mây'}</p>
+                  {log.temperature && <p className="text-sm font-medium text-slate-700 mt-1">Nhiệt độ: {log.temperature}°C</p>}
+                </div>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Tiến độ thi công</p>
+                  <p className="text-xl font-black text-indigo-600">{log.taskProgress || 0}%</p>
+                  <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full" style={{ width: `${log.taskProgress || 0}%` }} />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Hạng mục chính</p>
+                <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 text-sm font-bold text-indigo-900 border-l-4 border-l-indigo-500">{log.taskCategory}</div>
+              </div>
+              <div>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Nhân công & Máy móc</p>
+                <ul className="space-y-2 text-sm text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <li className="flex justify-between items-center"><span className="text-slate-500">Thợ chính:</span><span className="font-bold">{log.workerCount.main} người</span></li>
+                  <li className="flex justify-between items-center"><span className="text-slate-500">Thợ phụ:</span><span className="font-bold">{log.workerCount.helper} người</span></li>
+                  {log.machines && <li className="pt-2 mt-2 border-t border-slate-200 flex flex-col"><span className="text-slate-500 text-[10px] mb-1">Máy móc sử dụng:</span><span className="font-medium text-slate-800">{log.machines}</span></li>}
+                </ul>
+              </div>
+              {log.materials && (
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Vật tư thi công</p>
+                  <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 text-sm text-emerald-800">{log.materials}</div>
+                </div>
+              )}
+              {log.notes && (
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Ghi chú bổ sung</p>
+                  <p className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100 italic leading-relaxed">{log.notes}</p>
+                </div>
+              )}
+              {log.voiceNotes?.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Ghi âm hiện trường</p>
+                  {log.voiceNotes.map((v: string, i: number) => (
+                    <p key={i} className="text-sm text-slate-600 italic bg-amber-50 px-3 py-2 rounded-xl border border-amber-100 mb-2">"🎤 {v}"</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="w-[55%] flex flex-col bg-slate-100/50 relative">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">📸 Hình ảnh thực tế tại công trường</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {log.sitePhotos?.length > 0 ? log.sitePhotos.map((p: string, i: number) => (
+                    <div key={i} className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group relative">
+                       <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-400 text-xs font-medium group-hover:scale-110 transition-transform duration-300">Ảnh {i + 1}</div>
+                    </div>
+                  )) : (
+                    <div className="col-span-3 text-center py-8 text-sm text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">Không có hình ảnh đính kèm</div>
+                  )}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[300px]">
+                <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">💬 Ý kiến / Nhận xét</h4>
+                  <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-bold">{log.comments?.length || 0}</span>
+                </div>
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                  {log.comments?.length > 0 ? log.comments.map((c: any) => (
+                    <div key={c.id} className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">{c.author[0]}</div>
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-none p-3 relative flex-1">
+                        <p className="text-[10px] font-bold text-slate-500 mb-1 flex items-center justify-between">{c.author} <span className="font-normal text-slate-400">{c.time}</span></p>
+                        <p className="text-xs text-slate-700 leading-relaxed">{c.text}</p>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="text-center py-4 text-xs text-slate-400 italic">Chưa có nhận xét nào cho báo cáo này.</div>
+                  )}
+                </div>
+                <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
+                  <input value={comment} onChange={e => setComment(e.target.value)} placeholder="Nhập ý kiến hoặc phản hồi..." className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-400 bg-white" />
+                  <button onClick={() => setComment('')} disabled={!comment} className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 disabled:opacity-50 transition-colors shrink-0">Gửi</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {(isManager || true) && (
+          <div className="p-4 border-t border-slate-200 bg-white flex justify-end items-center gap-3 rounded-b-2xl shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative z-20">
+            <p className="text-xs text-slate-500 font-medium mr-auto">Báo cáo đang chờ phê duyệt từ quản lý.</p>
+            <button onClick={onClose} className="px-5 py-2.5 border border-rose-200 text-rose-600 bg-rose-50 rounded-xl text-sm font-bold hover:bg-rose-100 hover:border-rose-300 transition-colors">Yêu cầu chỉnh sửa</button>
+            <button onClick={onClose} className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all flex items-center gap-2">✓ Duyệt báo cáo này</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

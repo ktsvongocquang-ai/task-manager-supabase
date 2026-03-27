@@ -84,6 +84,13 @@ export interface DailyLog {
   issues: string[]; // issue IDs linked
   createdBy: 'ENGINEER' | 'MANAGER';
   editable: boolean;
+  // --- New fields for Phase H ---
+  status: 'pending' | 'approved' | 'rejected';
+  reporterName: string;
+  temperature: number;
+  machines: string;
+  materials: string;
+  comments: { id: string; author: string; text: string; time: string }[];
 }
 
 // Payment records with bill/receipt photos
