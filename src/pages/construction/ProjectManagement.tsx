@@ -8,123 +8,154 @@ import type { CTask, TaskStatus } from './types';
 // ═══════════════════════════════════════════════════════════
 // MODULE 2: INTERACTIVE GANTT CHART
 // ═══════════════════════════════════════════════════════════
+function DraggableGanttBar({ t, minDate, totalDays, onMove }: { t: any, minDate: Date, totalDays: number, onMove: (id: string, shiftDays: number) => void }) {
+  const [dragOffset, setDragOffset] = useState<number | null>(null);
+  
+  const startOffset = differenceInDays(parseISO(t.plannedStart!), minDate);
+  const dur = t.duration || 1;
+  const isExtra = t.isExtra;
+  
+  const baseLeft = (startOffset / totalDays) * 100;
+  const currLeft = dragOffset !== null ? baseLeft + dragOffset : baseLeft;
+  const width = (dur / totalDays) * 100;
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const parentWidth = e.currentTarget.parentElement?.parentElement?.offsetWidth || 1; // get width of grid relative container
+    const dayWidthPx = parentWidth / totalDays;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const diffX = moveEvent.clientX - startX;
+      setDragOffset((diffX / parentWidth) * 100);
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      const diffX = upEvent.clientX - startX;
+      const shiftDays = Math.round(diffX / dayWidthPx);
+      setDragOffset(null);
+      if (shiftDays !== 0) onMove(t.id, shiftDays);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  return (
+    <div 
+      className={`absolute top-1/2 -translate-y-1/2 h-8 rounded-full shadow-sm flex items-center px-3 cursor-grab active:cursor-grabbing transition-colors ${
+          isExtra ? 'bg-amber-500 text-white' : 'bg-[#1c3a8e] text-white hover:bg-indigo-900'
+      }`}
+      style={{ left: `${Math.max(0, currLeft)}%`, width: `${width}%`, zIndex: dragOffset !== null ? 50 : 10 }}
+      onMouseDown={handleMouseDown}
+    >
+      <span className="text-xs font-bold truncate select-none drop-shadow-sm">{dur}d</span>
+    </div>
+  );
+}
+
 function InteractiveGantt() {
   const { tasks, updateTask } = useProjectStore();
   const macroTasks = tasks.filter(t => t.taskLevel === 'macro');
-  const [isDragging, setIsDragging] = useState<{ id: string; startOffset: number; startLeft: number } | null>(null);
 
   if (macroTasks.length === 0) return <div className="p-8 text-center text-slate-500 bg-slate-50 border-y border-slate-200">Chưa tải dữ liệu PDF - Vui lòng Bóc tách dữ liệu AI</div>;
 
-  // Find min date and max date across local tasks to render the grid
   const minDate = macroTasks.reduce((min, t) => {
     if (!t.plannedStart) return min;
     const d = parseISO(t.plannedStart);
     return d < min ? d : min;
   }, parseISO(macroTasks[0].plannedStart || new Date().toISOString()));
   
-  const totalDays = 30; // Render 30 days grid
+  const totalDays = 30; // Custom scaling can go here
   const daysGrid = Array.from({ length: totalDays }, (_, i) => addDays(minDate, i));
 
-  // A simple drag implementation without breaking React constraints: 
-  // Normally dragging happens with `onDrag` handlers or pointer events.
-  const handleDragEnd = (id: string, shiftDays: number) => {
-    if (shiftDays === 0) return;
+  const handleMove = (id: string, shiftDays: number) => {
     const t = macroTasks.find(x => x.id === id);
     if (!t || !t.plannedStart || !t.plannedEnd) return;
-    
-    // Naively update start/end
-    const newStart = addDays(parseISO(t.plannedStart), shiftDays);
-    const newEnd = addDays(parseISO(t.plannedEnd), shiftDays);
-    updateTask(id, { plannedStart: format(newStart, 'yyyy-MM-dd'), plannedEnd: format(newEnd, 'yyyy-MM-dd') });
+    updateTask(id, { 
+      plannedStart: format(addDays(parseISO(t.plannedStart), shiftDays), 'yyyy-MM-dd'), 
+      plannedEnd: format(addDays(parseISO(t.plannedEnd), shiftDays), 'yyyy-MM-dd') 
+    });
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mb-6">
-      <div className="bg-slate-50 border-b border-slate-200 p-3 px-4 flex justify-between items-center">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-indigo-500" /> Biểu đồ Tiến độ Tổng (Gantt)
-        </h3>
-        <p className="text-[10px] text-slate-500">* Chỉ hiển thị các mốc Macro. Nắm kéo để đổi ngày</p>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mb-8">
+      {/* Header Popup Bar matching Screenshot 3 */}
+      <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-start pt-5">
+        <div>
+            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Điều Chỉnh Tiến Độ (Gantt)</h3>
+            <p className="text-sm text-slate-500 mt-0.5 tracking-tight">Nhấn giữ 0.5s để di chuyển. Chạm để chỉnh sửa.</p>
+        </div>
+        <div className="bg-slate-100 text-slate-800 font-bold px-4 py-2 rounded-xl text-sm border border-slate-200 shadow-sm">
+            Tổng: {macroTasks.reduce((acc, curr) => acc + (curr.duration || 0), 0)} Ngày
+        </div>
       </div>
       
-      <div className="flex bg-white overflow-x-auto">
-        {/* Left Panel */}
-        <div className="w-80 shrink-0 border-r border-slate-200 flex flex-col">
-          <div className="h-10 border-b border-slate-200 bg-slate-50 flex items-center px-3 text-xs font-bold text-slate-500">
-            <div className="flex-1">Hạng mục</div>
-            <div className="w-16">Ngày bđ</div>
-            <div className="w-8 text-right">SN</div>
+      <div className="flex bg-white overflow-x-auto min-h-[400px]">
+        {/* Left Panel matching Screenshot 2 */}
+        <div className="w-[450px] shrink-0 border-r border-slate-200 flex flex-col bg-white">
+          <div className="h-14 border-b border-slate-100 flex items-center px-5 font-bold text-slate-800 tracking-tight text-sm">
+            <div className="flex-1 uppercase tracking-widest text-xs font-black text-slate-700">Hạng Mục</div>
+            <div className="w-12 text-right text-slate-400 text-xs">30/1</div>
           </div>
           {macroTasks.map(t => (
-            <div key={t.id} className="h-12 border-b border-slate-100 flex items-center px-3 text-xs">
-              <div className="flex-1 truncate font-medium text-slate-800">
-                {t.isExtra && <span className="mr-1 text-[8px] bg-amber-100 text-amber-700 font-bold px-1 rounded uppercase">PS</span>}
-                {t.name}
+            <div key={t.id} className="h-[90px] border-b border-slate-50 flex items-center px-5 relative group">
+              {/* Task info block */}
+              <div className="flex-1 min-w-0 pr-12">
+                <p className="text-[15px] font-bold text-slate-900 truncate mt-1">
+                    {t.isExtra && <span className="mr-2 text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-sm align-middle tracking-wider shadow-sm">Phát sinh</span>}
+                    {t.name}
+                </p>
+                <p className="text-sm text-slate-500 mt-1 truncate">{t.subcontractor || 'Chưa giao phó'}</p>
               </div>
-              <div className="w-16 text-slate-500 text-[10px]">{t.plannedStart ? format(parseISO(t.plannedStart), 'dd/MM') : '--'}</div>
-              <div className="w-8 text-right font-bold text-slate-700">{t.duration || 0}</div>
+              {/* Badge near the edge */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-[#1c3a8e] text-white font-bold rounded-l-full flex items-center justify-center text-sm shadow-md">
+                 {t.duration}d
+              </div>
             </div>
           ))}
         </div>
         
-        {/* Grid Panel */}
+        {/* Interactive Grid Panel matching Screenshot 1 */}
         <div className="flex-1 min-w-[800px] relative flex flex-col">
-          {/* Header */}
-          <div className="h-10 border-b border-slate-200 bg-slate-50 flex">
+          {/* Header Dates */}
+          <div className="h-14 border-b border-slate-100 flex shadow-sm relative z-10 bg-white/80 backdrop-blur-sm">
             {daysGrid.map((d, i) => (
-              <div key={i} className="flex-1 min-w-[40px] border-r border-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                {format(d, 'dd/MM')}
+              <div key={i} className="flex-1 border-r border-slate-100 flex items-center justify-center font-bold text-slate-400 text-[15px] tracking-tight">
+                {i % 5 === 0 ? format(d, 'd/M') : ''}
               </div>
             ))}
           </div>
           
-          {/* Bars */}
-          <div className="relative">
-            {/* Grid Lines Overlay */}
+          {/* Main Grid Area */}
+          <div className="relative flex-1 bg-white">
+            {/* Vertical Lines */}
             <div className="absolute inset-0 flex pointer-events-none">
                 {daysGrid.map((_, i) => (
-                    <div key={i} className="flex-1 min-w-[40px] border-r border-slate-100 h-full" />
+                    <div key={i} className="flex-1 border-r border-slate-100/60 h-full" />
                 ))}
             </div>
 
-            {macroTasks.map((t, index) => {
-              if (!t.plannedStart || !t.plannedEnd) return null;
-              const startOffset = differenceInDays(parseISO(t.plannedStart), minDate);
-              const dur = t.duration || 1;
-              const isExtra = t.isExtra;
-              
-              const left = `${(startOffset / totalDays) * 100}%`;
-              const width = `${(dur / totalDays) * 100}%`;
+            {/* Horizontal Rows */}
+            <div className="absolute inset-0 flex flex-col pointer-events-none">
+                {macroTasks.map((t) => (
+                    <div key={t.id} className="h-[90px] border-b border-slate-50 w-full" />
+                ))}
+            </div>
 
-              return (
-                <div key={t.id} className="h-12 border-b border-slate-50 relative flex items-center group">
-                  <div 
-                    title="Kéo sang trái phải để dời ngày"
-                    draggable
-                    onDragEnd={(e) => {
-                      // Very basic rough drag estimation based on visual distance
-                      const diffX = e.clientX - isDragging?.startLeft!;
-                      const dayWidth = e.currentTarget.parentElement?.offsetWidth! / totalDays;
-                      const shiftDays = Math.round(diffX / dayWidth);
-                      if (!isNaN(shiftDays) && shiftDays !== 0) handleDragEnd(t.id, shiftDays);
-                      setIsDragging(null);
-                    }}
-                    onDragStart={(e) => setIsDragging({ id: t.id, startOffset, startLeft: e.clientX })}
-                    className={`absolute h-8 rounded-md shadow-sm border flex items-center px-2 cursor-col-resize transition-all ${
-                        isExtra 
-                        ? 'bg-amber-100 border-amber-300 text-amber-800' 
-                        : 'bg-indigo-100 border-indigo-300 text-indigo-800 hover:bg-indigo-200'
-                    }`}
-                    style={{ left, width, zIndex: 10 }}
-                  >
-                    <span className="text-[10px] font-bold truncate select-none">{t.name}</span>
-                    
-                    {/* Dependents visual line mock */}
-                    {t.dependencies?.length! > 0 && <div className="absolute top-1/2 -right-4 w-4 border-b border-slate-400" />}
-                  </div>
-                </div>
-              );
-            })}
+            {/* Gantt Bars */}
+            <div className="absolute inset-0 flex flex-col">
+                {macroTasks.map((t, index) => {
+                    if (!t.plannedStart || !t.plannedEnd) return <div key={t.id} className="h-[90px] w-full" />;
+                    return (
+                        <div key={t.id} className="h-[90px] relative w-full px-2">
+                            <DraggableGanttBar t={t} minDate={minDate} totalDays={totalDays} onMove={handleMove} />
+                        </div>
+                    );
+                })}
+            </div>
           </div>
         </div>
       </div>
