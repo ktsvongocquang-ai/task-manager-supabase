@@ -8,11 +8,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('Supabase URL and Key are missing. Please check your .env file.')
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+// Fallback URLs to prevent fatal crashes during build or when env vars are missing
+const safeUrl = supabaseUrl || 'https://placeholder-project.supabase.co'
+const safeKey = supabaseAnonKey || 'placeholder-key'
+const safeServiceKey = supabaseServiceKey || 'placeholder-service-key'
+
+export const supabase = createClient(safeUrl, safeKey)
 
 // Use this client for administrative tasks like creating new users or updating passwords
 // Requires VITE_SUPABASE_SERVICE_ROLE_KEY in .env for full admin access
-export const supabaseAdmin = createClient(supabaseUrl || '', supabaseServiceKey || '', {
+export const supabaseAdmin = createClient(safeUrl, safeServiceKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false
