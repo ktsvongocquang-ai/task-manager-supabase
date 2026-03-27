@@ -1,7 +1,15 @@
 import { GoogleGenAI, Type } from '@google/genai';
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey });
+// Lazy initialization to prevent fatal crash when API key is missing on Vercel
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!apiKey) throw new Error("Missing Gemini API Key. Please set VITE_GEMINI_API_KEY in your environment.");
+    _ai = new GoogleGenAI({ apiKey });
+  }
+  return _ai;
+}
 
 export interface GeneratedTask {
   name: string;
@@ -39,7 +47,7 @@ Trả về MỘT MẢNG JSON hợp quy chuẩn với cấu trúc:
   "checklist": string[]
 }]`;
 
-      const response = await ai.models.generateContent({
+      const response = await getAI().models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -84,7 +92,7 @@ Trả về MỘT MẢNG JSON hợp quy chuẩn với cấu trúc:
         Trả về JSON mảng tối đa 2 phần tử:
         [{ "type": "DELAY|BUDGET|SUGGESTION", "message": "Nội dung ngắn gọn", "priority": "HIGH|MEDIUM|LOW" }]`;
   
-        const response = await ai.models.generateContent({
+        const response = await getAI().models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
           config: {

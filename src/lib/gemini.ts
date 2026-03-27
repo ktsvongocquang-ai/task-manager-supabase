@@ -1,7 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const API_KEY = import.meta.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Lazy initialization to prevent fatal crash when API key is missing on Vercel
+let _genAI: GoogleGenerativeAI | null = null;
+function getGenAI(): GoogleGenerativeAI {
+  if (!_genAI) {
+    _genAI = new GoogleGenerativeAI(API_KEY);
+  }
+  return _genAI;
+}
 
 export interface ParsedBOQItem {
   id: string;
@@ -20,7 +27,7 @@ export const parseConstructionExcel = async (rawData: any[][]): Promise<ParsedBO
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = getGenAI().getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     const prompt = `
       Bạn là một chuyên gia bóc tách khối lượng (BOQ) và lập tiến độ thi công nội thất 20 năm kinh nghiệm.
