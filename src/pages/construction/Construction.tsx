@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle
+  AlertCircle, CheckCheck, XCircle, Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -12,6 +12,7 @@ import type { UserRole, TaskStatus, ViewTab, CTask, Project } from './types';
 import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, APPROVALS, MILESTONES, SUBCONTRACTORS, NOTIFICATIONS, FINANCE, ATTENDANCE, DAILY_LOGS, PAYMENT_RECORDS, CONSTRUCTION_PHASES } from './mockData';
 import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
+import { ProjectManagementAIModule } from './ProjectManagement';
 import type { DailyLog } from './types';
 import { useConstructionData } from '../../hooks/useConstructionData';
 
@@ -622,6 +623,7 @@ export const Construction = () => {
       { id: 'SUBS', label: 'Thầu phụ', icon: <Users className="w-4 h-4" /> },
       { id: 'ATTENDANCE', label: 'Chấm công', icon: <Users className="w-4 h-4" /> },
       { id: 'REPORTS', label: 'Báo cáo', icon: <Download className="w-4 h-4" /> },
+      { id: 'AI_GANTT', label: 'AI Sync', icon: <Bot className="w-4 h-4 text-indigo-500 animate-pulse" /> },
     ];
   };
 
@@ -767,6 +769,8 @@ export const Construction = () => {
             {activeTab === 'ATTENDANCE' && <AttendanceView attendance={ATTENDANCE[selectedProject.id]} />}
             {/* Reports */}
             {activeTab === 'REPORTS' && <ReportsView tasks={tasks} projectName={selectedProject.name} />}
+            {/* AI Master Architect Board */}
+            {activeTab === 'AI_GANTT' && <ProjectManagementAIModule />}
           </motion.div>
         </AnimatePresence>
       </div>

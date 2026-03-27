@@ -4,7 +4,7 @@
 
 export type UserRole = 'HOMEOWNER' | 'ENGINEER' | 'MANAGER';
 export type TaskStatus = 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
-export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS';
+export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS' | 'AI_GANTT';
 
 export interface Project {
   id: string; name: string; startDate: string; handoverDate: string; status: string;
@@ -20,6 +20,16 @@ export interface CTask {
   approved: boolean; dependencies: string[]; tags: string[];
   issues: Issue[]; checklist: ChecklistItem[]; progress: number;
   startDate?: string; endDate?: string;
+  // --- New fields for Interactive Gantt & Real-time Kanban ---
+  plannedStart?: string;
+  plannedEnd?: string;
+  duration?: number;
+  actualStart?: string;
+  actualEnd?: string;
+  requiredWorkers?: number;
+  taskLevel?: 'macro' | 'micro';
+  isExtra?: boolean;
+  isOverdue?: boolean;
 }
 
 export interface ChecklistItem { id: string; label: string; completed: boolean; required: boolean; }
