@@ -390,7 +390,9 @@ function KanbanView({ tasks, onTaskClick, onMoveTask }: { tasks: CTask[]; onTask
 // COST OVERVIEW (with EVA)
 // ═══════════════════════════════════════════════════════════
 
-function CostOverview({ tasks, project }: { tasks: CTask[]; project: Project }) {
+function CostOverview({ tasks, project, milestones: milestonesFromDB }: { tasks: CTask[]; project: Project; milestones?: any[] }) {
+  // Use Supabase milestones if available, otherwise fall back to mock
+  const activeMilestones = (milestonesFromDB && milestonesFromDB.length > 0) ? milestonesFromDB : MILESTONES;
   const categories = useMemo(() => {
     const m: Record<string, { budget: number; spent: number }> = {};
     tasks.forEach(t => { if (!m[t.category]) m[t.category] = { budget: 0, spent: 0 }; m[t.category].budget += t.budget; m[t.category].spent += t.spent; });
@@ -462,11 +464,11 @@ function CostOverview({ tasks, project }: { tasks: CTask[]; project: Project }) 
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2"><FileCheck className="w-4 h-4 text-emerald-500" /> Tiến Độ Thanh Toán</h3>
         <div className="space-y-4">
-          {MILESTONES.map(m => (
+          {activeMilestones.map((m: any) => (
             <div key={m.id} className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${m.paymentStatus === 'paid' ? 'bg-emerald-100 text-emerald-600' : m.status === 'pending_internal' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{m.paymentStatus === 'paid' ? <Check className="w-4 h-4" /> : <Clock className="w-4 h-4" />}</div>
-              <div className="flex-1 min-w-0"><div className="text-xs font-bold text-slate-700 truncate">{m.name}</div><div className="text-[10px] text-slate-400">{m.status === 'passed' ? m.approvedDate : m.status === 'pending_internal' ? 'Đang QC...' : 'Sắp tới'}</div></div>
-              <div className="text-right shrink-0"><div className="text-xs font-bold text-slate-900">{fmt(m.paymentAmount)}</div><div className={`text-[9px] font-bold uppercase ${m.paymentStatus === 'paid' ? 'text-emerald-500' : 'text-slate-400'}`}>{m.paymentStatus === 'paid' ? 'Đã thu' : 'Chưa'}</div></div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${(m.paymentStatus || m.payment_status) === 'paid' ? 'bg-emerald-100 text-emerald-600' : (m.status === 'pending_internal') ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{(m.paymentStatus || m.payment_status) === 'paid' ? <Check className="w-4 h-4" /> : <Clock className="w-4 h-4" />}</div>
+              <div className="flex-1 min-w-0"><div className="text-xs font-bold text-slate-700 truncate">{m.name}</div><div className="text-[10px] text-slate-400">{m.status === 'passed' ? (m.approvedDate || m.approved_date) : m.status === 'pending_internal' ? 'Đang QC...' : 'Sắp tới'}</div></div>
+              <div className="text-right shrink-0"><div className="text-xs font-bold text-slate-900">{fmt(m.paymentAmount || m.payment_amount || 0)}</div><div className={`text-[9px] font-bold uppercase ${(m.paymentStatus || m.payment_status) === 'paid' ? 'text-emerald-500' : 'text-slate-400'}`}>{(m.paymentStatus || m.payment_status) === 'paid' ? 'Đã thu' : 'Chưa'}</div></div>
             </div>
           ))}
         </div>
@@ -592,12 +594,21 @@ export const Construction = () => {
 
   const openTask = (task: CTask) => { setSelectedTask(task); setIsDrawerOpen(true); };
   const handleUpdateTask = async (u: CTask) => {
+    // Optimistic update — always update local state immediately
     setTasks(prev => prev.map(t => t.id === u.id ? u : t));
     setSelectedTask(u);
-    // Persist to Supabase
-    const ok = await db.updateTaskStatusChecklist(u.id, u.status, u.checklist, u.issues);
-    if (ok) showToast('Đã lưu thay đổi');
-    else showToast('Lỗi khi lưu', 'error');
+    // Persist to Supabase (only if task exists in DB — mock IDs like 't1' won't)
+    try {
+      const ok = await db.updateTaskStatusChecklist(u.id, u.status, u.checklist, u.issues);
+      if (ok) showToast('Đã lưu thay đổi');
+      // If fails, don't show error for mock data tasks (IDs starting with 't')
+      else if (!u.id.startsWith('t')) showToast('Lỗi khi lưu vào CSDL', 'error');
+      else showToast('Đã cập nhật (chế độ demo)', 'info');
+    } catch {
+      // Swallow errors for mock data
+      if (!u.id.startsWith('t')) showToast('Lỗi khi lưu', 'error');
+      else showToast('Đã cập nhật (chế độ demo)', 'info');
+    }
   };
 
   // Role-based tabs
@@ -737,7 +748,7 @@ export const Construction = () => {
               }
             }} />}
             {/* Cost */}
-            {activeTab === 'COST' && <CostOverview tasks={tasks} project={selectedProject} />}
+            {activeTab === 'COST' && <CostOverview tasks={tasks} project={selectedProject} milestones={db.milestones} />}
             {/* Progress */}
             {activeTab === 'PROGRESS' && <ProgressTimeline tasks={tasks} />}
             {/* Engineer Daily Report */}
@@ -760,8 +771,8 @@ export const Construction = () => {
             {/* Subcontractors */}
             {activeTab === 'SUBS' && (
               <div className="space-y-6">
-                <ContractorProgressChart subcontractors={SUBCONTRACTORS} />
-                <SubcontractorView subcontractors={SUBCONTRACTORS} />
+                <ContractorProgressChart subcontractors={db.subcontractors.length > 0 ? db.subcontractors.map(s => ({ id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating, projectIds: s.project_ids || [] })) : SUBCONTRACTORS} />
+                <SubcontractorView subcontractors={db.subcontractors.length > 0 ? db.subcontractors.map(s => ({ id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating, projectIds: s.project_ids || [] })) : SUBCONTRACTORS} />
               </div>
             )}
             {/* Attendance */}
