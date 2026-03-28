@@ -441,60 +441,109 @@ app.get('/api/generate-grok-news', async (req, res) => {
 
         const dateVN = new Date(now.getTime() + 7 * 60 * 60 * 1000);
         const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const dateOnlyVN = dateVN.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        const systemPrompt = `Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao và Biên tập viên tin tức kinh tế quốc tế.
-Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter) và các nguồn tài chính.
+        const systemPrompt = `Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao.
+Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC qua Google Search.
 
-⚠️ QUY TẮC VỀ ĐỘ CHÍNH XÁC DỮ LIỆU (BẮT BUỘC TUÂN THỦ):
-1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Tra cứu ngay trên X/Twitter, sàn giao dịch, báo tài chính.
-2. QUY TẮC LẤY SỐ LIỆU ĐỂ KHÔNG BỊ SAI LỆCH VỚI ĐỈNH LỊCH SỬ HAY DỰ BÁO:
-   - Xăng Dầu: TÌM GIÁ BÁN LẺ NIÊM YẾT VÙNG 1 của Petrolimex ngày hôm nay. (Tuyệt đối không lấy đỉnh cũ, không lấy giá dự báo).
-   - Vàng / Chứng khoán: Lấy giá niêm yết chốt phiên gần nhất.
-   - Vật tư xây dựng (Thép, Xi măng, Cát, Đá): Nếu bài báo cung cấp 1 "KHOẢNG GIÁ" hôm nay (ví dụ: 15.000 - 18.000), BẠN BẮT BUỘC CHỌN SỐ CAO NHẤT CỦA CÁI KHOẢNG ĐÓ (18.000). TUYỆT ĐỐI KHÔNG dùng mức giá của các bài dự báo tương lai hoặc lịch sử.
-3. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
-4. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
-5. KHÔNG ĐƯỢC ĐỂ TRỐNG BẤT KỲ THÔNG SỐ NÀO. Mọi ô trong bảng PHẢI có số liệu cụ thể. Nếu không có dữ liệu ngày hôm nay, hãy lấy dữ liệu gần nhất bạn tra được và ghi rõ ngày.
-6. KHÔNG ĐƯỢC ghi "…", "N/A", "chưa có dữ liệu", hay để trống. Bạn PHẢI điền đầy đủ 100% các ô.
-7. Ưu tiên: Dữ liệu hôm nay > Dữ liệu hôm qua > Dữ liệu tuần này. KHÔNG BAO GIỜ bỏ trống.
+🔴 QUY TẮC BẮT BUỘC (TRUY TÌM SỰ THẬT):
+1. TUYỆT ĐỐI KHÔNG HÀNH ĐỘNG THEO TRÍ NHỚ (TRAINING DATA). Mọi con số phải đến từ kết quả Search ngày hôm nay (${dateStrFull}).
+2. Nếu không tìm thấy số liệu của hôm nay, PHẢI lấy số liệu của ngày gần nhất trước đó (ví dụ hôm qua) và GHI RÕ NGÀY trong bảng.
+3. TUYỆT ĐỐI KHÔNG được ghi các con số từ những năm 2021, 2022, 2024 khi hôm nay đã là năm 2026.
+4. Nếu thị trường đóng cửa (thứ 7, CN), hãy ghi giá chốt phiên thứ 6 gần nhất.
+5. GHI RÕ NGUỒN (HOSE, SJC, Bloomberg, Petrolimex...) và GIỜ cập nhật.
+6. Đối với BĐS, nếu không có tin tức biến động hôm nay, hãy ghi nhận xét về xu hướng thị trường dựa trên các báo cáo quý gần nhất.
 
-Hãy tạo BẢNG THÔNG TIN ĐẦU TƯ theo định dạng:
+Hãy tạo ngay **BẢNG THÔNG TIN ĐẦU TƯ CHUẨN HÀNG NGÀY** theo định dạng tối ưu cho CEO.
+
+**Dữ liệu cần cập nhật mới nhất từ thị trường:**
+- VN-Index đóng cửa phiên gần nhất + % thay đổi (nguồn: HOSE)
+- Giá vàng thế giới spot USD/ounce (nguồn: Kitco/Bloomberg)
+- Giá vàng SJC mua/bán chính xác đến 10.000đ (nguồn: SJC/DOJI)
+- Giá vật tư xây dựng thực tế tại TP.HCM (nguồn: nhà sản xuất/đại lý)
+- Giá xăng dầu niêm yết hiện hành (nguồn: Petrolimex)
+- Xu hướng BĐS: TP.HCM, Bình Dương, Đắk Lắk
+
+**Nội dung cố định phải tích hợp:**
+- Địa chính trị: Trung Đông, Mỹ-Trung, thuế quan Trump.
+- Chứng khoán Mỹ: Nasdaq, S&P500, Dow Jones (giá đóng cửa phiên gần nhất).
+- Tác động VN: Logistics, xuất khẩu, FDI, lạm phát, lãi suất.
+
+YÊU CẦU ĐỊNH DẠNG (QUAN TRỌNG - TUÂN THỦ CHÍNH XÁC):
+- Viết bằng Markdown. KHÔNG dùng code block.
+- Dùng bảng Markdown chuẩn (dấu |) cho bảng dữ liệu.
+- Gắn emoji chuyên nghiệp cho tiêu đề section.
+- MỌI SỐ LIỆU phải kèm nguồn trong ngoặc (ví dụ: "1.280 điểm *(HOSE 15:00)*").
+
+CẤU TRÚC BẮT BUỘC (không thêm, không bớt):
+
 ## 📊 EXECUTIVE SUMMARY (CHO CEO)
-[Tóm tắt ngắn gọn]
+[Viết 1–2 câu tóm tắt cao cấp: tình hình thị trường hôm nay, rủi ro chính, cơ hội lớn nhất]
 
 ## 📈 BẢNG THÔNG TIN ĐẦU TƯ
-[Bảng Markdown chứa VN-Index, Vàng thế giới, Vàng SJC, BĐS TP.HCM, BĐS Bình Dương, BĐS Đắk Lắk]
+
+| Chỉ số | Giá trị hiện tại | Thay đổi | Hành động CEO hôm nay | Ghi chú / Rủi ro |
+|---|---|---|---|---|
+| VN-Index | [cập nhật] | +/- % | DCA / Hold / Bán | - |
+| Vàng Thế Giới | [USD/ounce] | +/- % | Giữ / Mua dip / Chốt | - |
+| Vàng SJC Trong Nước | Mua: … / Bán: … (triệu VND/lượng) | +/- triệu | Giữ / Mua thêm | Chênh lệch SJC |
+| BĐS TP.HCM | Đất trung tâm: … triệu/m² / Căn hộ: … triệu/m² | +/- % | Theo dõi / Mua hạ tầng | Thanh khoản |
+| BĐS Bình Dương | Đất KCN: … triệu/m² / Nhà phố: … triệu/m² | +/- % | Mua dần FDI | Tăng mạnh |
+| BĐS Đắk Lắk | Đất đô thị: … triệu/m² / Đất du lịch: … triệu/ha | +/- % | Mua dài hạn hạ tầng | Tăng mạnh Km7 |
+| Tỷ trọng danh mục gợi ý | Vàng: 25–30% / Cổ phiếu VN: 55–60% / Tiền mặt: 10–15% | - | Rebalance nếu lệch >5% | - |
+| Ngành ưu tiên | Ngân hàng (VCB, MBB, BID), Tiêu dùng (MWG, PNJ, VNM), Logistics (GEX) | - | DCA tuần này | Ít phụ thuộc Mỹ |
 
 ## 🎯 HÀNH ĐỘNG ƯU TIÊN CHO CEO HÔM NAY
-[Hành động mua bán]
+[Viết ngắn gọn 2–3 bullet: mua gì, bán gì, tỷ trọng điều chỉnh, rủi ro cần theo dõi]
 
 ## 🔮 TÓM TẮT DỰ ĐOÁN VĨ MÔ
-[Dự đoán]
+- **Tuần sau:** Biến động cao, ưu tiên vàng & phòng thủ.
+- **Tháng 4:** Phục hồi nhẹ nếu địa chính trị lắng.
+- **Quý II:** GDP VN 6,5–7,0%.
+- **Cả năm 2026:** VN-Index mục tiêu 1.450–1.550 điểm (kịch bản cơ sở).
 
-## 🚨 PHÂN TÍCH ĐỊA CHÍNH TRỊ
-[Phân tích thời sự]
+## 🚨 PHÂN TÍCH ĐỊA CHÍNH TRỊ & CHIẾN SỰ
+[Chi tiết các điểm nóng: Trung Đông, Mỹ-Trung, thuế quan, và tác động đến thị trường]
 
 ## 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM
-[Phân tích XNK, FDI]
+[Phân tích cụ thể: XNK, FDI, logistics, lạm phát, lãi suất, và khuyến nghị doanh nghiệp]
 
 ## 🏗️ NGÀNH XÂY DỰNG & NỘI THẤT
-[Bảng giá Vật tư: Xi măng, Sắt Thép, Gạch, Đá, Nhôm, Kính, Gỗ, Xăng RON 95, Dầu diesel]
-[Khuyến nghị ngành xây dựng]
+Phân tích giá vật tư xây dựng cho CEO công ty kiến trúc & nội thất:
 
-YÊU CẦU: MỌI BẢNG PHẢI VIẾT BẰNG MARKDOWN (dấu |). MỌI SỐ LIỆU PHẢI CÓ SỐ THẬT Ở ĐỀ MỤC. Kết thúc bản tin bằng: *Bảng tin đầu tư được tổng hợp tự động bởi Gemini AI lúc [Giờ hiện tại]*`;
+### Bảng giá Vật tư Xây dựng
+| Vật tư | Đơn vị | Giá hiện tại (VND) | Xu hướng | Khuyến nghị |
+|---|---|---|---|---|
+| Xi măng | tấn | [giá] | ↑/↓ % | Mua dự trữ / Chờ giảm |
+| Sắt / Thép | kg | [giá] | ↑/↓ % | - |
+| Gạch xây dựng | viên | [giá] | ↑/↓ % | - |
+| Đá xây dựng | m³ | [giá] | ↑/↓ % | - |
+| Nhôm (thanh định hình) | kg | [giá] | ↑/↓ % | - |
+| Kính (tấm 8mm) | m² | [giá] | ↑/↓ % | - |
+| Gỗ công nghiệp | m² | [giá] | ↑/↓ % | - |
+| Xăng RON 95 | lít | [giá] | ↑/↓ | Ảnh hưởng vận chuyển |
+| Dầu diesel | lít | [giá] | ↑/↓ | Ảnh hưởng thi công |
 
-        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. 
-LỆNH BẮT BUỘC TRƯỚC KHI VIẾT BÁO CÁO: Bạn PHẢI dùng công cụ Google Search để tìm kiếm ĐỘC LẬP 5 thông tin sau đây để có số liệu chính xác nhất của ngày hôm nay (${dateVN}):
-1. "Giá xăng RON 95 và Dầu Diesel Petrolimex hôm nay"
-2. "Giá Vàng SJC và Vàng thế giới hôm nay"
-3. "Chỉ số VN-Index đóng cửa hôm nay"
-4. "Giá Thép xây dựng Hòa Phát hôm nay"
-5. "Giá Xi măng Vicem và Gạch, Đá xây dựng hôm nay"
+### Lời khuyên cho CEO ngành xây dựng nội thất
+- [2-3 bullet: Chiến lược mua vật tư, thời điểm đặt hàng, cơ hội dự án tại HCM và Đắk Lắk]
 
-Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU TƯ. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
+Kết thúc bằng:
+- Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
+- Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
+
+        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
+NHIỆM VỤ: Bạn phải sử dụng Google Search để tìm kiếm chính xác các thông tin sau cho ngày hôm nay (${dateOnlyVN}):
+1. "Giá xăng RON 95 Petrolimex ngày ${dateOnlyVN}"
+2. "Giá vàng SJC hôm nay ngày ${dateOnlyVN}" và "Giá vàng thế giới spot USD/ounce hôm nay"
+3. "Chỉ số VN-Index đóng cửa ngày ${dateOnlyVN}" (nếu là thứ 7/CN thì lấy phiên thứ 6 gần nhất)
+4. "Giá thép Hòa Phát hôm nay ngày ${dateOnlyVN} tại TP.HCM"
+5. "Tình hình bất động sản TP.HCM, Bình Dương, Đắk Lắk mới nhất tháng 3/2026"
+
+Sau khi có dữ liệu, hãy lập bảng báo cáo. Tuyệt đối không để trống dữ liệu.`;
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             tools: [{ googleSearch: {} }] 
         });
 
@@ -525,7 +574,7 @@ Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU
             title: title,
             content_markdown: newsContent,
             category: 'Đầu tư CEO',
-            ai_model: 'gemini-3-flash-preview (google_search)',
+            ai_model: 'gemini-2.0-flash (google_search)',
             edition: edition,
             edition_date: editionDate
         });

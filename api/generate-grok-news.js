@@ -58,23 +58,20 @@ export default async function handler(req, res) {
         // === GỌI API xAI ===
         const dateVN = new Date(now.getTime() + 7 * 60 * 60 * 1000);
         const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const dateOnlyVN = dateVN.toISOString().split('T')[0]; // YYYY-MM-DD
 
-        const systemPrompt = `Bạn là Grok – Trợ lý Đầu tư Cá nhân & Cố vấn Chiến lược cho CEO & Nhà đầu tư.
-Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC trên X (Twitter) và các nguồn tài chính.
+        const systemPrompt = `Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao.
+Bạn CÓ QUYỀN TRUY CẬP VÀO DỮ LIỆU THỜI GIAN THỰC qua Google Search.
 
-⚠️ QUY TẮC VỀ ĐỘ CHÍNH XÁC DỮ LIỆU (BẮT BUỘC TUÂN THỦ):
-1. CHỈ SỬ DỤNG DỮ LIỆU THỜI GIAN THỰC — Tra cứu ngay trên X/Twitter, sàn giao dịch, báo tài chính.
-2. QUY TẮC LẤY SỐ LIỆU ĐỂ KHÔNG BỊ SAI LỆCH VỚI ĐỈNH LỊCH SỬ HAY DỰ BÁO:
-   - Xăng Dầu: TÌM GIÁ BÁN LẺ NIÊM YẾT VÙNG 1 của Petrolimex ngày hôm nay. (Tuyệt đối không lấy đỉnh cũ, không lấy giá dự báo).
-   - Vàng / Chứng khoán: Lấy giá niêm yết chốt phiên gần nhất.
-   - Vật tư xây dựng (Thép, Xi măng, Cát, Đá): Nếu bài báo cung cấp 1 "KHOẢNG GIÁ" hôm nay (ví dụ: 15.000 - 18.000), BẠN BẮT BUỘC CHỌN SỐ CAO NHẤT CỦA CÁI KHOẢNG ĐÓ (18.000). TUYỆT ĐỐI KHÔNG dùng mức giá của các bài dự báo tương lai hoặc lịch sử.
-3. Ghi RÕ NGUỒN DỮ LIỆU cho mỗi số liệu (ví dụ: "theo HOSE", "theo SJC", "theo Hòa Phát", "theo Petrolimex").
-4. Ghi RÕ THỜI ĐIỂM lấy dữ liệu (ví dụ: "phiên chiều 26/3", "giá lúc 15:00").
-5. KHÔNG ĐƯỢC ĐỂ TRỐNG BẤT KỲ THÔNG SỐ NÀO. Mọi ô trong bảng PHẢI có số liệu cụ thể. Nếu không có dữ liệu ngày hôm nay, hãy lấy dữ liệu gần nhất bạn tra được và ghi rõ ngày.
-6. KHÔNG ĐƯỢC ghi "…", "N/A", "chưa có dữ liệu", hay để trống. Bạn PHẢI điền đầy đủ 100% các ô.
-7. Ưu tiên: Dữ liệu hôm nay > Dữ liệu hôm qua > Dữ liệu tuần này. KHÔNG BAO GIỜ bỏ trống.
+🔴 QUY TẮC BẮT BUỘC (TRUY TÌM SỰ THẬT):
+1. TUYỆT ĐỐI KHÔNG HÀNH ĐỘNG THEO TRÍ NHỚ (TRAINING DATA). Mọi con số phải đến từ kết quả Search ngày hôm nay (${dateStrFull}).
+2. Nếu không tìm thấy số liệu của hôm nay, PHẢI lấy số liệu của ngày gần nhất trước đó (ví dụ hôm qua) và GHI RÕ NGÀY trong bảng.
+3. TUYỆT ĐỐI KHÔNG được ghi các con số từ những năm 2021, 2022, 2024 khi hôm nay đã là năm 2026.
+4. Nếu thị trường đóng cửa (thứ 7, CN), hãy ghi giá chốt phiên thứ 6 gần nhất.
+5. GHI RÕ NGUỒN (HOSE, SJC, Bloomberg, Petrolimex...) và GIỜ cập nhật.
+6. Đối với BĐS, nếu không có tin tức biến động hôm nay, hãy ghi nhận xét về xu hướng thị trường dựa trên các báo cáo quý gần nhất.
 
-Hãy tạo ngay **BẢNG THÔNG TIN ĐẦU TƯ CHUẨN HÀNG NGÀY** theo đúng định dạng tối ưu cho CEO.
+Hãy tạo ngay **BẢNG THÔNG TIN ĐẦU TƯ CHUẨN HÀNG NGÀY** theo định dạng tối ưu cho CEO.
 
 **Dữ liệu cần cập nhật mới nhất từ thị trường:**
 - VN-Index đóng cửa phiên gần nhất + % thay đổi (nguồn: HOSE)
@@ -151,19 +148,19 @@ Kết thúc bằng:
 - Dòng: "**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn."
 - Dòng in nghiêng: "*Bảng tin đầu tư được tổng hợp tự động bởi Grok AI lúc [Giờ hiện tại UTC+7]*"`;
 
-        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}. 
-LỆNH BẮT BUỘC TRƯỚC KHI VIẾT BÁO CÁO: Bạn PHẢI dùng công cụ Google Search để tìm kiếm ĐỘC LẬP 5 thông tin sau đây để có số liệu chính xác nhất của ngày hôm nay (${dateVN}):
-1. "Giá xăng RON 95 và Dầu Diesel Petrolimex hôm nay"
-2. "Giá Vàng SJC và Vàng thế giới hôm nay"
-3. "Chỉ số VN-Index đóng cửa hôm nay"
-4. "Giá Thép xây dựng Hòa Phát hôm nay"
-5. "Giá Xi măng Vicem và Gạch, Đá xây dựng hôm nay"
+        const userPrompt = `Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
+NHIỆM VỤ: Bạn phải sử dụng Google Search để tìm kiếm chính xác các thông tin sau cho ngày hôm nay (${dateOnlyVN}):
+1. "Giá xăng RON 95 Petrolimex ngày ${dateOnlyVN}"
+2. "Giá vàng SJC hôm nay ngày ${dateOnlyVN}" và "Giá vàng thế giới spot USD/ounce hôm nay"
+3. "Chỉ số VN-Index đóng cửa ngày ${dateOnlyVN}" (nếu là thứ 7/CN thì lấy phiên thứ 6 gần nhất)
+4. "Giá thép Hòa Phát hôm nay ngày ${dateOnlyVN} tại TP.HCM"
+5. "Tình hình bất động sản TP.HCM, Bình Dương, Đắk Lắk mới nhất tháng 3/2026"
 
-Sau khi đã Search xong 5 thông tin trên, hãy lập BẢNG THÔNG TIN ĐẦU TƯ. Lấy giá CAO NHẤT, KHÔNG lấy giá trung bình.`;
+Sau khi có dữ liệu, hãy lập bảng báo cáo. Tuyệt đối không để trống dữ liệu.`;
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             tools: [{ googleSearch: {} }] 
         });
 
