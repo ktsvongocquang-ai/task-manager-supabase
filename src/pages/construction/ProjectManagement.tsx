@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectStore } from './store';
 import { Bot, Clock, Activity, AlertTriangle, Users, Copy, ArrowRight, CheckCircle2, X } from 'lucide-react';
+import { supabase } from '../../services/supabase';
 import { format, differenceInDays, parseISO, addDays } from 'date-fns';
 import { motion } from 'motion/react';
-import type { CTask, TaskStatus } from './types';
+import type { TaskStatus } from './types';
 
 // ═══════════════════════════════════════════════════════════
 // MODULE 2: INTERACTIVE GANTT CHART
@@ -411,8 +412,58 @@ function DailyBriefing() {
 // ═══════════════════════════════════════════════════════════
 // MAIN CONTAINER
 // ═══════════════════════════════════════════════════════════
-export function ProjectManagementAIModule() {
-  const { uploadPDFMock, tickTime, currentTime, setDailyBriefingMode, tasks } = useProjectStore();
+export function ProjectManagementAIModule({ projectId }: { projectId?: string }) {
+  const { uploadPDFMock, tickTime, currentTime, setDailyBriefingMode, tasks, setTasks } = useProjectStore();
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState('');
+
+  // Load Supabase tasks into store on mount
+  useEffect(() => {
+    if (!projectId) return;
+    supabase.from('construction_tasks').select('*').eq('project_id', projectId)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setTasks(data.map((t: any) => ({
+            id: t.id, name: t.name, category: t.category,
+            status: t.status as TaskStatus,
+            subcontractor: t.subcontractor || '', days: t.days,
+            budget: t.budget, spent: t.spent, approved: t.approved,
+            dependencies: t.dependencies || [], tags: t.tags || [],
+            issues: t.issues || [], checklist: t.checklist || [],
+            progress: t.progress,
+            startDate: t.start_date, endDate: t.end_date,
+            plannedStart: t.planned_start || t.start_date,
+            plannedEnd: t.planned_end || t.end_date,
+            duration: t.duration || t.days || 1,
+            requiredWorkers: t.required_workers || 0,
+            taskLevel: (t.task_level as 'macro' | 'micro') || 'macro',
+            isExtra: t.is_extra || false,
+            isOverdue: false,
+          })));
+        }
+      });
+  }, [projectId]);
+
+  // Save current store tasks back to Supabase
+  const handleSave = async () => {
+    if (!projectId || tasks.length === 0) return;
+    setSaving(true); setSaveMsg('');
+    const updates = tasks.map(t => ({
+      id: t.id, project_id: projectId,
+      name: t.name, category: t.category, status: t.status,
+      subcontractor: t.subcontractor, days: t.days, budget: t.budget,
+      spent: t.spent, approved: t.approved, dependencies: t.dependencies,
+      tags: t.tags, issues: t.issues, checklist: t.checklist,
+      progress: t.progress, start_date: t.startDate, end_date: t.endDate,
+      planned_start: t.plannedStart, planned_end: t.plannedEnd,
+      duration: t.duration, required_workers: t.requiredWorkers,
+      task_level: t.taskLevel, is_extra: t.isExtra,
+    }));
+    const { error } = await supabase.from('construction_tasks').upsert(updates, { onConflict: 'id' });
+    setSaving(false);
+    setSaveMsg(error ? 'Lỗi khi lưu' : `Đã lưu ${tasks.length} tasks`);
+    setTimeout(() => setSaveMsg(''), 3000);
+  };
 
   return (
     <div className="p-6">
@@ -448,6 +499,11 @@ export function ProjectManagementAIModule() {
                 <button onClick={() => tickTime(24)} className="px-4 py-2 bg-rose-100 text-rose-700 hover:bg-rose-200 text-sm font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 shrink-0">
                     <Clock className="w-5 h-5"/> Tua nhanh +24h
                 </button>
+                {tasks.length > 0 && (
+                  <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-emerald-700 transition-all flex items-center gap-2 shrink-0 disabled:opacity-60">
+                    {saving ? '...' : '💾'} {saveMsg || 'Lưu DB'}
+                  </button>
+                )}
             </div>
         </div>
 

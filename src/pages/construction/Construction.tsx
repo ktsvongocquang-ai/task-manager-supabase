@@ -8,13 +8,92 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-import type { UserRole, TaskStatus, ViewTab, CTask, Project } from './types';
+import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, PaymentRecord, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, APPROVALS, MILESTONES, SUBCONTRACTORS, NOTIFICATIONS, FINANCE, ATTENDANCE, DAILY_LOGS, PAYMENT_RECORDS, CONSTRUCTION_PHASES } from './mockData';
 import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
-import type { DailyLog } from './types';
-import { useConstructionData } from '../../hooks/useConstructionData';
+import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabasePaymentRecord, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
+import { aiConstructionService } from '../../services/aiConstructionService';
+
+// ── Mapping helpers: Supabase → local types ──
+const mapProject = (p: SupabaseProject): Project => ({
+  id: p.id, name: p.name, startDate: p.start_date || '',
+  handoverDate: p.handover_date || '', status: p.status,
+  progress: p.progress || 0, budget: p.budget || 0, spent: p.spent || 0,
+  contractValue: p.contract_value || 0, address: p.address || '',
+  ownerName: p.owner_name || '', engineerName: p.engineer_name || '',
+  budgetSpent: p.budget_spent || 0,
+  riskLevel: (p.risk_level as 'green' | 'yellow' | 'red') || 'green',
+  unexpectedCosts: p.unexpected_costs || 0, totalDocuments: p.total_documents || 0,
+  daysOff: p.days_off || 0, totalDiaryEntries: p.total_diary_entries || 0,
+});
+
+const mapMilestone = (m: SupabaseMilestone): Milestone => ({
+  id: m.id, name: m.name,
+  status: (m.status as 'upcoming' | 'pending_internal' | 'passed') || 'upcoming',
+  approvedDate: m.approved_date || null,
+  paymentAmount: m.payment_amount || 0,
+  paymentStatus: (m.payment_status as 'paid' | 'unpaid') || 'unpaid',
+  subTasks: Array.isArray(m.sub_tasks) ? m.sub_tasks : [],
+});
+
+const mapApproval = (a: SupabaseApproval): Approval => ({
+  id: a.id, projectId: a.project_id,
+  type: (a.type as 'qc' | 'material' | 'variation' | 'budget_alert') || 'qc',
+  title: a.title, detail: a.detail || '',
+  date: a.created_at?.split('T')[0] || '',
+  status: (a.status as 'pending' | 'approved' | 'rejected') || 'pending',
+});
+
+const mapNotification = (n: SupabaseNotification): Notification => ({
+  id: n.id,
+  level: (n.level as 'critical' | 'action' | 'good' | 'info') || 'info',
+  msg: n.msg, time: n.created_at || '', read: n.read,
+});
+
+const mapDailyLog = (l: SupabaseDailyLog): DailyLog => {
+  const [am, pm] = (l.weather || 'sunny/sunny').split('/');
+  return {
+    id: l.id, date: l.date, projectId: l.project_id,
+    weatherAM: (am as WeatherType) || 'sunny',
+    weatherPM: (pm as WeatherType) || 'sunny',
+    taskCategory: l.task_category || l.work_item || '',
+    taskProgress: l.task_progress || 0,
+    workerCount: { main: l.main_workers || 0, helper: l.helper_workers || 0 },
+    sitePhotos: Array.isArray(l.photo_urls) ? l.photo_urls : [],
+    contractorPhotos: Array.isArray(l.contractor_photo_urls) ? l.contractor_photo_urls : [],
+    videos: Array.isArray(l.video_urls) ? l.video_urls : [],
+    voiceNotes: Array.isArray(l.voice_notes) ? l.voice_notes : [],
+    notes: l.notes || l.content || '',
+    issues: Array.isArray(l.issue_ids) ? l.issue_ids : [],
+    createdBy: (l.created_by as 'ENGINEER' | 'MANAGER') || 'ENGINEER',
+    editable: l.editable !== false,
+    status: (l.status as 'pending' | 'approved' | 'rejected') || 'pending',
+    reporterName: l.reporter_name || '',
+    temperature: l.temperature || 30,
+    machines: l.machines || '',
+    materials: l.materials || '',
+    comments: Array.isArray(l.comments) ? l.comments : [],
+  };
+};
+
+const mapPayment = (r: SupabasePaymentRecord): PaymentRecord => ({
+  id: r.id, projectId: r.project_id, date: r.date,
+  description: r.description, amount: r.amount || 0,
+  billPhotos: Array.isArray(r.bill_photos) ? r.bill_photos : [],
+  type: (r.type as 'payment_out' | 'payment_in') || 'payment_out',
+  status: (r.status as 'confirmed' | 'pending') || 'pending',
+  category: r.category || 'Vật liệu',
+});
+
+const mapSubcontractor = (s: SupabaseSubcontractor): Subcontractor => ({
+  id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating,
+  projectIds: Array.isArray(s.project_ids) ? s.project_ids : [],
+  contractAmount: s.contract_amount || 0,
+  paidAmount: s.paid_amount || 0,
+  progressPercent: s.progress_percent || 0,
+});
 
 // ═══════════════════════════════════════════════════════════
 // LOADING SKELETON
@@ -514,7 +593,39 @@ function ProgressTimeline({ tasks }: { tasks: CTask[] }) {
 // IMPORT QUOTATION MODAL
 // ═══════════════════════════════════════════════════════════
 
-function ImportQuotationModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function ImportQuotationModal({ isOpen, onClose, onGenerate, projectId }: {
+  isOpen: boolean; onClose: () => void;
+  onGenerate: (tasks: any[]) => Promise<void>;
+  projectId: string;
+}) {
+  const [text, setText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState('');
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleAnalyze = async () => {
+    if (!text.trim()) { setError('Vui lòng nhập nội dung báo giá'); return; }
+    setIsAnalyzing(true); setError('');
+    try {
+      const tasks = await aiConstructionService.generateTimelineFromQuotation(text);
+      await onGenerate(tasks);
+      onClose();
+    } catch (e: any) {
+      setError(e?.message || 'AI phân tích thất bại. Kiểm tra API key.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleFileRead = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => { if (ev.target?.result) setText(ev.target.result as string); };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -524,12 +635,23 @@ function ImportQuotationModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               <h3 className="font-bold text-slate-800 flex items-center gap-2"><FileSpreadsheet className="w-5 h-5 text-indigo-500" /> Nhập Báo Giá → AI Tạo Timeline</h3>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5 text-slate-400" /></button>
             </div>
-            <div className="p-8 space-y-6 text-center">
-              <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto border border-indigo-100"><Upload className="w-10 h-10 text-indigo-500" /></div>
-              <div><h4 className="text-lg font-bold text-slate-800 mb-1">Tải lên Báo Giá (PDF / Excel)</h4><p className="text-xs text-slate-400">AI sẽ tự động bóc tách và tạo Timeline thi công.</p></div>
-              <div className="bg-slate-50 rounded-2xl p-6 border-2 border-dashed border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer"><Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" /><span className="text-xs text-slate-400 font-bold">Kéo thả file hoặc click để chọn</span><p className="text-[10px] text-slate-300 mt-1">PDF, XLSX, XLS • Tối đa 10MB</p></div>
-              <div className="text-left bg-indigo-50 rounded-xl p-3 border border-indigo-100"><p className="text-[11px] text-indigo-700 font-medium">💡 <strong>Hoặc paste timeline:</strong></p><textarea placeholder="Dán nội dung timeline / báo giá ở đây..." rows={3} className="w-full mt-2 px-3 py-2 text-sm border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white resize-none" /></div>
-              <button onClick={() => { alert('Đang phân tích báo giá...'); onClose(); }} className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition-all">🚀 Bắt Đầu Phân Tích AI</button>
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 rounded-2xl p-4 border-2 border-dashed border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer text-center" onClick={() => fileRef.current?.click()}>
+                <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <span className="text-xs text-slate-400 font-bold">Click để chọn file text/CSV</span>
+                <input ref={fileRef} type="file" accept=".txt,.csv" onChange={handleFileRead} className="hidden" />
+              </div>
+              <div className="bg-indigo-50 rounded-xl p-3 border border-indigo-100">
+                <p className="text-[11px] text-indigo-700 font-medium mb-2">💡 Paste nội dung báo giá / hợp đồng:</p>
+                <textarea value={text} onChange={e => setText(e.target.value)} placeholder="VD: Móng cọc ép: 150tr, 5 ngày&#10;Xây tường trệt: 120tr, 7 ngày&#10;MEP: 180tr, 8 ngày..." rows={6} className="w-full px-3 py-2 text-sm border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white resize-none" />
+              </div>
+              {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
+              <div className="flex gap-3">
+                <button onClick={handleAnalyze} disabled={isAnalyzing || !text.trim()} className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isAnalyzing ? <><Bot className="w-4 h-4 animate-pulse" /> Đang phân tích...</> : <><Bot className="w-4 h-4" /> Phân Tích AI</>}
+                </button>
+                <button onClick={onClose} className="px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50">Hủy</button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
@@ -543,13 +665,11 @@ function ImportQuotationModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
 // ═══════════════════════════════════════════════════════════
 
 export const Construction = () => {
-  // Supabase hook (real data)
   const db = useConstructionData();
 
   const [userRole, setUserRole] = useState<UserRole>('MANAGER');
   const [activeTab, setActiveTab] = useState<ViewTab>('DASHBOARD');
   const [selectedProject, setSelectedProject] = useState<Project>(PROJECTS[0]);
-  // Use Supabase data if available, otherwise fall back to mock data
   const [tasks, setTasks] = useState<CTask[]>(TASKS);
   const [selectedTask, setSelectedTask] = useState<CTask | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -561,12 +681,22 @@ export const Construction = () => {
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
 
-  const handleAddDailyLog = useCallback((log: DailyLog) => {
-    setDailyLogs(prev => [log, ...prev]);
-    showToast('Đã thêm nhật ký mới');
-  }, [showToast]);
+  // ── Derived Supabase data (with mock fallback) ──
+  const dbProjects: Project[] = db.projects.length > 0 ? db.projects.map(mapProject) : PROJECTS;
+  const dbMilestones: Milestone[] = db.milestones.length > 0 ? db.milestones.map(mapMilestone) : MILESTONES;
+  const dbApprovals: Approval[] = db.approvals.length > 0 ? db.approvals.map(mapApproval) : APPROVALS;
+  const dbNotifications: Notification[] = db.notifications.length > 0 ? db.notifications.map(mapNotification) : NOTIFICATIONS;
+  const dbPayments: PaymentRecord[] = db.paymentRecords.length > 0 ? db.paymentRecords.map(mapPayment) : PAYMENT_RECORDS;
+  const dbSubs: Subcontractor[] = db.subcontractors.length > 0 ? db.subcontractors.map(mapSubcontractor) : SUBCONTRACTORS;
+  const dbPhases: ConstructionPhase[] = db.phases.length > 0
+    ? db.phases.map(p => ({ id: p.id, name: p.name, status: p.status as 'done' | 'doing' | 'upcoming', order: p.sort_order, startDate: p.start_date || undefined, endDate: p.end_date || undefined, note: p.note }))
+    : CONSTRUCTION_PHASES;
+  const dbAttendance: AttendanceData = db.attendance.length > 0
+    ? db.getAttendanceSummary(selectedProject.id)
+    : (ATTENDANCE[selectedProject.id] || ATTENDANCE['1']);
+  const dbFinance: FinanceData = db.projects.length > 0 ? db.getFinanceData() : FINANCE;
 
-  // Sync Supabase tasks when they load
+  // ── Sync Supabase tasks → local CTask[] ──
   useEffect(() => {
     if (db.tasks.length > 0) {
       setTasks(db.tasks.map(t => ({
@@ -578,6 +708,61 @@ export const Construction = () => {
       })));
     }
   }, [db.tasks]);
+
+  // ── Sync Supabase logs → local DailyLog[] ──
+  useEffect(() => {
+    if (db.logs.length > 0) {
+      setDailyLogs(db.logs.map(mapDailyLog));
+    }
+  }, [db.logs]);
+
+  // ── Load project details when project changes ──
+  useEffect(() => {
+    if (selectedProject?.id && !selectedProject.id.match(/^[1-4]$/)) {
+      db.loadProjectDetails(selectedProject.id);
+    }
+  }, [selectedProject?.id]);
+
+  // ── Sync selected project from db when projects load ──
+  useEffect(() => {
+    if (db.projects.length > 0 && selectedProject.id.match(/^[1-4]$/)) {
+      const first = mapProject(db.projects[0]);
+      setSelectedProject(first);
+      db.loadProjectDetails(db.projects[0].id);
+    }
+  }, [db.projects.length]);
+
+  const handleAddDailyLog = useCallback(async (log: DailyLog) => {
+    // Try to save to Supabase
+    const saved = await db.submitDailyLog({
+      project_id: selectedProject.id,
+      date: log.date,
+      content: log.notes,
+      notes: log.notes,
+      weather: `${log.weatherAM}/${log.weatherPM}`,
+      temperature: log.temperature,
+      main_workers: log.workerCount.main,
+      helper_workers: log.workerCount.helper,
+      task_category: log.taskCategory,
+      task_progress: log.taskProgress,
+      photo_urls: log.sitePhotos,
+      contractor_photo_urls: log.contractorPhotos,
+      video_urls: log.videos,
+      voice_notes: log.voiceNotes,
+      machines: log.machines,
+      materials: log.materials,
+      status: log.status,
+      reporter_name: log.reporterName,
+      comments: log.comments,
+      created_by: log.createdBy,
+      editable: log.editable,
+    });
+    if (!saved) {
+      // Fallback: local state only
+      setDailyLogs(prev => [log, ...prev]);
+    }
+    showToast('Đã thêm nhật ký mới');
+  }, [showToast, selectedProject.id, db]);
 
   const filteredTasks = useMemo(() => {
     if (!searchQuery) return tasks;
@@ -675,8 +860,8 @@ export const Construction = () => {
           )}
           {userRole !== 'HOMEOWNER' && (
             <div className="relative">
-              <select value={selectedProject.id} onChange={e => setSelectedProject(PROJECTS.find(p => p.id === e.target.value) || PROJECTS[0])} className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[38px]">
-                {PROJECTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              <select value={selectedProject.id} onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }} className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[38px]">
+                {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -730,13 +915,13 @@ export const Construction = () => {
             {/* Manager Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'MANAGER' && (
               <div className="space-y-6">
-                <ManagerDashboard projects={PROJECTS} finance={FINANCE} approvals={APPROVALS} notifications={NOTIFICATIONS} onSelectProject={p => { setSelectedProject(p); setActiveTab('KANBAN'); }} />
-                <ProjectOverview project={selectedProject} subcontractors={SUBCONTRACTORS} milestones={MILESTONES} />
+                <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
+                <ProjectOverview project={selectedProject} subcontractors={dbSubs} milestones={dbMilestones} />
               </div>
             )}
             {/* Homeowner Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'HOMEOWNER' && (
-              <ClientCountdown project={selectedProject} milestones={MILESTONES} dailyLogs={dailyLogs} phases={CONSTRUCTION_PHASES} />
+              <ClientCountdown project={selectedProject} milestones={dbMilestones} dailyLogs={dailyLogs} phases={dbPhases} />
             )}
             {/* Kanban */}
             {activeTab === 'KANBAN' && <KanbanView tasks={filteredTasks} onTaskClick={openTask} onMoveTask={(taskId, newStatus) => {
@@ -748,7 +933,7 @@ export const Construction = () => {
               }
             }} />}
             {/* Cost */}
-            {activeTab === 'COST' && <CostOverview tasks={tasks} project={selectedProject} milestones={db.milestones} />}
+            {activeTab === 'COST' && <CostOverview tasks={tasks} project={selectedProject} milestones={dbMilestones} />}
             {/* Progress */}
             {activeTab === 'PROGRESS' && <ProgressTimeline tasks={tasks} />}
             {/* Engineer Daily Report */}
@@ -764,29 +949,38 @@ export const Construction = () => {
             {/* Payment History */}
             {activeTab === 'PAYMENTS' && (
               <div className="space-y-6">
-                <PaymentHistory payments={PAYMENT_RECORDS} />
-                <ContractorProgressChart subcontractors={SUBCONTRACTORS} />
+                <PaymentHistory payments={dbPayments} />
+                <ContractorProgressChart subcontractors={dbSubs} />
               </div>
             )}
             {/* Subcontractors */}
             {activeTab === 'SUBS' && (
               <div className="space-y-6">
-                <ContractorProgressChart subcontractors={db.subcontractors.length > 0 ? db.subcontractors.map(s => ({ id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating, projectIds: s.project_ids || [] })) : SUBCONTRACTORS} />
-                <SubcontractorView subcontractors={db.subcontractors.length > 0 ? db.subcontractors.map(s => ({ id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating, projectIds: s.project_ids || [] })) : SUBCONTRACTORS} />
+                <ContractorProgressChart subcontractors={dbSubs} />
+                <SubcontractorView subcontractors={dbSubs} />
               </div>
             )}
             {/* Attendance */}
-            {activeTab === 'ATTENDANCE' && <AttendanceView attendance={ATTENDANCE[selectedProject.id]} />}
+            {activeTab === 'ATTENDANCE' && <AttendanceView attendance={dbAttendance} />}
             {/* Reports */}
             {activeTab === 'REPORTS' && <ReportsView tasks={tasks} projectName={selectedProject.name} />}
             {/* AI Master Architect Board */}
-            {activeTab === 'AI_GANTT' && <ProjectManagementAIModule />}
+            {activeTab === 'AI_GANTT' && <ProjectManagementAIModule projectId={selectedProject.id} />}
           </motion.div>
         </AnimatePresence>
       </div>
 
       <TaskDetailDrawer task={selectedTask} isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} onUpdate={handleUpdateTask} userRole={userRole} />
-      <ImportQuotationModal isOpen={isQuotationModalOpen} onClose={() => setIsQuotationModalOpen(false)} />
+      <ImportQuotationModal
+        isOpen={isQuotationModalOpen}
+        onClose={() => setIsQuotationModalOpen(false)}
+        projectId={selectedProject.id}
+        onGenerate={async (generatedTasks) => {
+          const ok = await db.createTimelineTasks(selectedProject.id, generatedTasks);
+          if (ok) { showToast(`Đã tạo ${generatedTasks.length} hạng mục từ AI`, 'success'); setActiveTab('KANBAN'); }
+          else showToast('Lỗi khi lưu timeline vào CSDL', 'error');
+        }}
+      />
 
       {/* Toast Notification */}
       <AnimatePresence>
