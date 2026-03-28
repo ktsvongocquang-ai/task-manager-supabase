@@ -554,7 +554,7 @@ BƯỚC 2: SAU KHI PHÂN TÍCH XONG, mới in ra Báo cáo Markdown bắt đầu
 
         const genAI = new GoogleGenerativeAI(geminiApiKey);
         const ai = genAI.getGenerativeModel({ 
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             tools: [{ googleSearch: {} }] 
         });
 
@@ -588,7 +588,7 @@ BƯỚC 2: SAU KHI PHÂN TÍCH XONG, mới in ra Báo cáo Markdown bắt đầu
             title: title,
             content_markdown: newsContent,
             category: 'Đầu tư CEO',
-            ai_model: 'gemini-2.0-flash (google_search)',
+            ai_model: 'gemini-2.5-flash (google_search)',
             edition: edition,
             edition_date: editionDate
         });
