@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../services/supabase';
 import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
 import type { CTask, TaskStatus } from './types';
-import { Save, CheckSquare, AlertCircle, Printer, Share2, FileSpreadsheet, Download } from 'lucide-react';
+import { Save, CheckSquare, AlertCircle, Printer, Share2, FileSpreadsheet, Download, Trash2, Plus } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -45,12 +45,16 @@ function ConstructionGantt({
   selectedId,
   onSelect,
   onUpdateTask,
+  onDeleteTask,
+  onCreateTask,
   readOnly,
 }: {
   tasks: CTask[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onUpdateTask: (id: string, updates: Partial<CTask>) => void;
+  onDeleteTask?: (id: string) => void;
+  onCreateTask?: (category: string) => void;
   readOnly?: boolean;
 }) {
   const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
@@ -109,15 +113,16 @@ function ConstructionGantt({
   let stt = 0;
 
   // Column layout constants (px)
-  const CW = { stt: 32, name: 244, start: 96, dur: 48, prog: 80 };
+  const CW = { stt: 32, name: 244, start: 96, dur: 48, prog: 80, action: readOnly ? 0 : 40 };
   const CL = {
     stt: 0,
     name: CW.stt,
     start: CW.stt + CW.name,
     dur: CW.stt + CW.name + CW.start,
     prog: CW.stt + CW.name + CW.start + CW.dur,
+    action: CW.stt + CW.name + CW.start + CW.dur + CW.prog,
   };
-  const TOTAL_LEFT = CL.prog + CW.prog;
+  const TOTAL_LEFT = CL.action + CW.action;
 
   return (
     <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
@@ -129,7 +134,8 @@ function ConstructionGantt({
             <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
             <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>BẮT ĐẦU</th>
             <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>NGÀY</th>
-            <th rowSpan={2} className="sticky z-50 bg-slate-700 text-center font-bold" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}>TIẾN ĐỘ</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>TIẾN ĐỘ</th>
+            {!readOnly && <th rowSpan={2} className="sticky z-50 bg-slate-700 text-center font-bold print:hidden" style={{ left: CL.action, width: CW.action, minWidth: CW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></th>}
             {weeks.map((w, i) => (
               <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">{w.label}</th>
             ))}
@@ -154,7 +160,16 @@ function ConstructionGantt({
               {/* Category header row */}
               <tr className="h-8 bg-slate-100">
                 <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
-                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide" colSpan={4} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>{cat}</td>
+                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                  <div className="flex justify-between items-center pr-2">
+                    <span>{cat}</span>
+                    {!readOnly && onCreateTask && (
+                      <button onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }} className="print:hidden px-2 py-0.5 w-auto h-auto min-h-0 bg-white border border-slate-200 rounded text-[10px] text-slate-600 hover:bg-slate-50 flex items-center gap-1 shrink-0">
+                        <Plus size={10} /> Thêm việc
+                      </button>
+                    )}
+                  </div>
+                </td>
                 {days.map((_, i) => <td key={i} className="border-r border-slate-200" />)}
               </tr>
               {/* Task rows */}
@@ -178,7 +193,11 @@ function ConstructionGantt({
                     <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2`} style={{ left: CL.name }}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
-                        <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
+                        {readOnly ? (
+                          <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
+                        ) : (
+                          <input type="text" className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
+                        )}
                       </div>
                     </td>
                     {/* Start date */}
@@ -198,14 +217,22 @@ function ConstructionGantt({
                       )}
                     </td>
                     {/* Progress */}
-                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1`} style={{ left: CL.prog, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden ${readOnly ? '' : 'border-r border-slate-100'}`} style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.08)' : 'none' }}>
                       <div className="flex items-center gap-1 justify-center">
                         <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${task.progress || 0}%`, backgroundColor: barColor }} />
                         </div>
-                        <span className="text-slate-400 w-6 text-right">{task.progress || 0}%</span>
+                        <span className="text-slate-400 w-6 text-right text-[9px]">{task.progress || 0}%</span>
                       </div>
                     </td>
+                    {/* Delete Action (only if not readonly) */}
+                    {!readOnly && (
+                       <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden`} style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                          <button onClick={(e) => { e.stopPropagation(); if(onDeleteTask) onDeleteTask(task.id); }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded mx-auto transition-colors" title="Xóa công tác">
+                            <Trash2 size={12} />
+                          </button>
+                       </td>
+                    )}
                     {/* Day columns — Gantt bars */}
                     {days.map((day, i) => {
                       const isSun = day.getDay() === 0;
@@ -425,62 +452,10 @@ function TaskDetailPanel({
 
 // ── PDF Export ────────────────────────────────────────────────────────────────
 
-async function exportGanttToPDF(ganttRef: React.RefObject<HTMLDivElement>, projectName?: string) {
-  const el = ganttRef.current;
-  if (!el) return;
-  try {
-    const html2canvas = (await import('html2canvas')).default;
-    const jsPDF = (await import('jspdf')).default;
-
-    const canvas = await html2canvas(el, {
-      scale: 1.5,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      scrollX: 0,
-      scrollY: 0,
-      width: el.scrollWidth,
-      height: el.scrollHeight,
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-    const pdfW = 297; // A4 landscape mm
-    const pdfH = 210;
-    const imgW = pdfW - 10;
-    const imgH = (canvas.height * imgW) / canvas.width;
-
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    pdf.setFontSize(14);
-    pdf.text(`Tiến Độ Thi Công${projectName ? ` — ${projectName}` : ''}`, 5, 8);
-    pdf.setFontSize(8);
-    pdf.text(`Xuất ngày: ${new Date().toLocaleDateString('vi-VN')}`, 5, 14);
-
-    let yPos = 18;
-    let remaining = imgH;
-    let sourceY = 0;
-
-    while (remaining > 0) {
-      const pageH = pdfH - yPos - 5;
-      const sliceH = Math.min(remaining, pageH);
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = (sliceH / imgW) * canvas.width;
-      const ctx = sliceCanvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(canvas, 0, sourceY, canvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
-        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 5, yPos, imgW, sliceH);
-      }
-      remaining -= sliceH;
-      sourceY += sliceCanvas.height;
-      if (remaining > 0) { pdf.addPage(); yPos = 5; }
-    }
-
-    pdf.save(`tien-do-${projectName || 'cong-trinh'}-${format(new Date(), 'dd-MM-yyyy')}.pdf`);
-  } catch (e) {
-    console.error('PDF export failed:', e);
-    window.print();
-  }
+async function exportGanttToPDF(ganttRef: React.RefObject<HTMLDivElement | null>, projectName?: string) {
+  // Let the browser handle standard PDF print layout using `@media print`.
+  document.title = `Tien-Do-Thi-Cong-${projectName || 'Du-An'}`;
+  window.print();
 }
 
 // ── Main Module ────────────────────────────────────────────────────────────────
@@ -556,6 +531,36 @@ export function ProjectManagementAIModule({
     if (onUpdateTask) onUpdateTask(id, updates);
   };
 
+  const handleDeleteTask = async (id: string) => {
+    if (readOnly || !projectId) return;
+    const isTemp = id.startsWith('temp-');
+    setLocalTasks(prev => prev.filter(t => t.id !== id));
+    if (!isTemp) {
+      // Async database delete for permanent tasks
+      await supabase.from('construction_tasks').delete().eq('id', id);
+    }
+  };
+
+  const handleCreateTask = (category: string) => {
+    if (readOnly || !projectId) return;
+    const newId = `temp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+    const newTask: CTask = {
+      id: newId,
+      name: 'Công việc mới...',
+      category,
+      status: 'TODO',
+      subcontractor: '',
+      days: 1, duration: 1,
+      budget: 0, spent: 0,
+      approved: false, dependencies: [], tags: [], issues: [], checklist: [], progress: 0,
+      startDate: format(new Date(), 'yyyy-MM-dd'),
+      plannedStart: format(new Date(), 'yyyy-MM-dd'),
+    };
+    setLocalTasks(prev => [...prev, newTask]);
+    // Optionally focus or open task right away
+    setSelectedId(newId);
+  };
+
   const handleSaveDates = async () => {
     if (!projectId || !tasks.length || readOnly) return;
     setSaving(true);
@@ -619,12 +624,23 @@ export function ProjectManagementAIModule({
   );
 
   return (
-    <div className="p-3 sm:p-5 space-y-4">
+    <div className="p-3 sm:p-5 space-y-4 print:p-0 print:m-0 print:absolute print:left-0 print:top-0 print:w-[130vw] print:bg-white print:z-[9999]" style={{"-webkit-print-color-adjust": "exact", "print-color-adjust": "exact"} as React.CSSProperties}>
+      <style>{`
+        @media print {
+          @page { size: landscape; margin: 10mm; }
+          body * { visibility: hidden; }
+          .print\\:absolute, .print\\:absolute * { visibility: visible; }
+          /* Hide scrollbars during print */
+          .overflow-auto { overflow: visible !important; }
+          .max-h-[70vh] { max-height: none !important; }
+        }
+      `}</style>
+      
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-start gap-3">
+      <div className="flex flex-wrap justify-between items-start gap-3 print:mb-6">
         <div>
-          <h2 className="text-lg font-bold text-slate-800">📊 Tiến Độ Thi Công</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-lg font-bold text-slate-800 print:text-2xl print:text-center print:w-full">TIẾN ĐỘ THI CÔNG - DỰ ÁN</h2>
+          <p className="text-xs text-slate-500 mt-0.5 print:mt-2 text-center">
             {stats.total} hạng mục · Hoàn thành {stats.done} · Đang làm {stats.doing} · Chờ nghiệm thu {stats.review}
           </p>
         </div>
@@ -675,7 +691,7 @@ export function ProjectManagementAIModule({
       </div>
 
       {/* Overall progress */}
-      <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4 print:hidden">
         <div className="flex-1">
           <div className="flex justify-between text-xs text-slate-600 mb-1.5">
             <span className="font-bold">Tiến độ tổng thể</span>
@@ -693,17 +709,19 @@ export function ProjectManagementAIModule({
       </div>
 
       {/* Gantt */}
-      <div ref={ganttRef} className="overflow-x-auto rounded-xl">
+      <div ref={ganttRef} className="overflow-x-auto rounded-xl print:overflow-visible print:border-none">
         <ConstructionGantt
           tasks={tasks}
           selectedId={selectedId}
           onSelect={id => setSelectedId(prev => prev === id ? null : id)}
           onUpdateTask={handleUpdateTask}
+          onDeleteTask={handleDeleteTask}
+          onCreateTask={handleCreateTask}
           readOnly={readOnly}
         />
       </div>
       {!readOnly && (
-        <p className="text-[10px] text-slate-400 text-center">
+        <p className="text-[10px] text-slate-400 text-center print:hidden">
           Click vào hàng để xem checklist nghiệm thu · Chỉnh trực tiếp ngày bắt đầu và số ngày trên bảng
         </p>
       )}

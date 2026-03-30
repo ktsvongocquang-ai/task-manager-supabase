@@ -311,7 +311,7 @@ export const Layout = () => {
             )}
             
             {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform flex flex-col transition-transform duration-300 ease-in-out ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform flex flex-col transition-transform duration-300 ease-in-out print:hidden ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-6 border-b border-border-main">
                     <button onClick={() => setIsLauncherOpen(true)} className="flex items-center space-x-3 mb-6 w-full text-left group hover:opacity-80 transition-opacity">
                         <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/30 transition-shadow">

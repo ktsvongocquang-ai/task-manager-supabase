@@ -613,7 +613,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
   onGenerate: (tasks: any[]) => Promise<void>;
   onCreateProject: (info: ExtractedProjectInfo, tasks: any[]) => Promise<void>;
 }) {
-  const [mode, setMode] = useState<ImportMode>('add_to_project');
+  const [mode, setMode] = useState<'replace_project' | 'create_project'>('replace_project');
   const [text, setText] = useState('');
   const [fileName, setFileName] = useState('');
   const [fileBase64, setFileBase64] = useState('');
@@ -759,7 +759,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
             {step === 'upload' && (
               <div className="p-5 space-y-4">
                 <div className="flex bg-slate-100 p-1 rounded-xl">
-                  {([['add_to_project', 'Thêm vào dự án hiện tại'], ['create_project', 'Tạo dự án mới']] as [ImportMode, string][]).map(([m, label]) => (
+                  {([['replace_project', 'Cập nhật / Ghi đè Timeline'], ['create_project', 'Tạo dự án mới']] as ['replace_project' | 'create_project', string][]).map(([m, label]) => (
                     <button key={m} onClick={() => setMode(m)}
                       className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === m ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>
                       {label}
@@ -863,17 +863,10 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                                     ngày
                                   </label>
                                   <label className="flex items-center gap-1 text-xs text-slate-500">
-                                    Chi phí:
-                                    <input type="number" min={0} value={task.budget || 0}
-                                      onChange={e => updateTask(idx, 'budget', parseInt(e.target.value) || 0)}
-                                      className="w-24 px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg text-right focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white" />
-                                    đ
-                                  </label>
-                                  <label className="flex items-center gap-1 text-xs text-slate-500">
                                     Bắt đầu:
                                     <input type="date" value={task.startDate || ''}
                                       onChange={e => updateTask(idx, 'startDate', e.target.value)}
-                                      className="px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white" />
+                                      className="px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white cursor-pointer hover:bg-slate-50" />
                                   </label>
                                 </div>
                                 {/* Checklist preview */}
@@ -927,7 +920,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                     return (
                       <div className="flex gap-3 text-xs text-slate-500 justify-between px-1">
                         <span>Tổng thời gian: <strong className="text-slate-700">{hasDates ? diffDays : selectedTasks.reduce((a, t) => a + (t.days || 0), 0)} ngày</strong></span>
-                        <span>Tổng chi phí: <strong className="text-slate-700">{totalCost.toLocaleString('vi-VN')} đ</strong></span>
+                        <span>Đã chọn: <strong className="text-slate-700">{selectedTasks.length} mục</strong></span>
                       </div>
                     );
                   })()}
