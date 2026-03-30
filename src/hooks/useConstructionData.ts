@@ -186,8 +186,8 @@ export const useConstructionData = () => {
         category: t.category,
         budget: t.budget,
         days: t.days,
-        duration: t.days,
         status: 'TODO',
+        subcontractor: t.subcontractor || '',
         checklist: (t.checklist || []).map((c: any) =>
           typeof c === 'string'
             ? { id: crypto.randomUUID(), label: c, completed: false, required: false }
@@ -199,8 +199,6 @@ export const useConstructionData = () => {
         spent: 0,
         progress: 0,
         approved: false,
-        planned_start: fmtDate(startDates[idx]),
-        planned_end: fmtDate(taskEndDates[idx]),
         start_date: fmtDate(startDates[idx]),
         end_date: fmtDate(taskEndDates[idx]),
       }));
