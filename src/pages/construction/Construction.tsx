@@ -1550,11 +1550,25 @@ export const Construction = () => {
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}
             {/* Manager Logs — now uses DailyLogView */}
             {activeTab === 'LOGS' && userRole !== 'ENGINEER' && (
-              <DailyLogView logs={dailyLogs} onAddLog={handleAddDailyLog} canEdit={true} />
+              <DailyLogView
+                logs={dailyLogs}
+                onAddLog={handleAddDailyLog}
+                canEdit={true}
+                isManager={userRole === 'MANAGER'}
+                onApproveLog={logId => db.updateDailyLog(logId, { status: 'approved' })}
+                onRejectLog={logId => db.updateDailyLog(logId, { status: 'rejected' })}
+              />
             )}
             {/* Diary tab — all roles */}
             {activeTab === 'DIARY' && (
-              <DailyLogView logs={dailyLogs} onAddLog={userRole !== 'HOMEOWNER' ? handleAddDailyLog : undefined} canEdit={userRole !== 'HOMEOWNER'} />
+              <DailyLogView
+                logs={dailyLogs}
+                onAddLog={userRole !== 'HOMEOWNER' ? handleAddDailyLog : undefined}
+                canEdit={userRole !== 'HOMEOWNER'}
+                isManager={userRole === 'MANAGER'}
+                onApproveLog={userRole === 'MANAGER' ? logId => db.updateDailyLog(logId, { status: 'approved' }) : undefined}
+                onRejectLog={userRole === 'MANAGER' ? logId => db.updateDailyLog(logId, { status: 'rejected' }) : undefined}
+              />
             )}
             {/* Payment History */}
             {activeTab === 'PAYMENTS' && (

@@ -656,11 +656,13 @@ export function ReportsView({ tasks, projectName }: { tasks?: any[]; projectName
 // DAILY LOG VIEW & MODALS — Nhật ký thi công chuyên sâu
 // ═══════════════════════════════════════════════════════════
 
-export function DailyLogView({ logs, onAddLog, canEdit, isManager }: {
+export function DailyLogView({ logs, onAddLog, canEdit, isManager, onApproveLog, onRejectLog }: {
   logs: import('./types').DailyLog[];
   onAddLog?: (log: import('./types').DailyLog) => void;
   canEdit: boolean;
   isManager?: boolean;
+  onApproveLog?: (logId: string) => void;
+  onRejectLog?: (logId: string) => void;
 }) {
   const [search, setSearch] = React.useState('');
   const [showCreateModal, setShowCreateModal] = React.useState(false);
@@ -750,7 +752,7 @@ export function DailyLogView({ logs, onAddLog, canEdit, isManager }: {
       </div>
 
       {showCreateModal && <DailyLogCreateModal onClose={() => setShowCreateModal(false)} onSave={onAddLog} />}
-      {selectedLog && <DailyLogDetailModal log={selectedLog} onClose={() => setSelectedLogId(null)} isManager={isManager} />}
+      {selectedLog && <DailyLogDetailModal log={selectedLog} onClose={() => setSelectedLogId(null)} isManager={isManager} onApprove={onApproveLog} onReject={onRejectLog} />}
     </div>
   );
 }
@@ -889,7 +891,10 @@ function DailyLogCreateModal({ onClose, onSave }: { onClose: () => void; onSave?
 // DAILY LOG DETAIL MODAL (Popup Xem Chi tiết & Duyệt Báo Cáo)
 // ═══════════════════════════════════════════════════════════
 
-function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: () => void; isManager?: boolean }) {
+function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
+  log: any; onClose: () => void; isManager?: boolean;
+  onApprove?: (logId: string) => void; onReject?: (logId: string) => void;
+}) {
   const [comment, setComment] = React.useState('');
   const [commentImages, setCommentImages] = React.useState<string[]>([]);
   const commentFileRef = React.useRef<HTMLInputElement>(null);
@@ -995,8 +1000,8 @@ function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: (
                 <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">📸 Hình ảnh thực tế tại công trường</h4>
                 <div className="grid grid-cols-3 gap-3">
                   {log.sitePhotos?.length > 0 ? log.sitePhotos.map((p: string, i: number) => (
-                    <div key={i} className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group relative">
-                       <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-400 text-xs font-medium group-hover:scale-110 transition-transform duration-300">Ảnh {i + 1}</div>
+                    <div key={i} className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group">
+                      <img src={p} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
                     </div>
                   )) : (
                     <div className="col-span-3 text-center py-8 text-sm text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">Không có hình ảnh đính kèm</div>
@@ -1055,11 +1060,23 @@ function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: (
             </div>
           </div>
         </div>
-        {(isManager || true) && (
+        {isManager && log.status === 'pending' && (
           <div className="p-4 border-t border-slate-200 bg-white flex justify-end items-center gap-3 rounded-b-2xl shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] relative z-20">
             <p className="text-xs text-slate-500 font-medium mr-auto">Báo cáo đang chờ phê duyệt từ quản lý.</p>
-            <button onClick={onClose} className="px-5 py-2.5 border border-rose-200 text-rose-600 bg-rose-50 rounded-xl text-sm font-bold hover:bg-rose-100 hover:border-rose-300 transition-colors">Yêu cầu chỉnh sửa</button>
-            <button onClick={onClose} className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all flex items-center gap-2">✓ Duyệt báo cáo này</button>
+            <button onClick={() => { onReject?.(log.id); onClose(); }} className="px-5 py-2.5 border border-rose-200 text-rose-600 bg-rose-50 rounded-xl text-sm font-bold hover:bg-rose-100 hover:border-rose-300 transition-colors">Yêu cầu chỉnh sửa</button>
+            <button onClick={() => { onApprove?.(log.id); onClose(); }} className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all flex items-center gap-2">✓ Duyệt báo cáo này</button>
+          </div>
+        )}
+        {log.status === 'approved' && (
+          <div className="p-4 border-t border-emerald-100 bg-emerald-50 flex items-center gap-3 rounded-b-2xl">
+            <span className="text-emerald-600 font-bold text-sm mr-auto">✓ Báo cáo đã được duyệt</span>
+            <button onClick={onClose} className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Đóng</button>
+          </div>
+        )}
+        {log.status === 'rejected' && (
+          <div className="p-4 border-t border-rose-100 bg-rose-50 flex items-center gap-3 rounded-b-2xl">
+            <span className="text-rose-600 font-bold text-sm mr-auto">✕ Đã yêu cầu chỉnh sửa</span>
+            <button onClick={onClose} className="px-5 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Đóng</button>
           </div>
         )}
       </div>
