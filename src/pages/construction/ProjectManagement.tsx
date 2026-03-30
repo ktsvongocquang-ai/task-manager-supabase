@@ -108,191 +108,146 @@ function ConstructionGantt({
 
   let stt = 0;
 
-  return (
-    <div className="flex w-full border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm text-[11px]">
-      {/* LEFT PANE */}
-      <div className="flex-none w-[500px] min-w-[500px] sticky left-0 z-30 bg-white border-r-2 border-slate-200 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.08)]">
-        <table className="w-full border-collapse">
-          <thead className="sticky top-0 z-40 bg-slate-700 text-white">
-            <tr className="h-8">
-              <th rowSpan={2} className="border-r border-slate-600 text-center w-8 font-bold">STT</th>
-              <th rowSpan={2} className="border-r border-slate-600 text-left px-2 font-bold">HẠNG MỤC / CÔNG VIỆC</th>
-              <th rowSpan={2} className="border-r border-slate-600 text-center w-24 font-bold">BẮT ĐẦU</th>
-              <th rowSpan={2} className="border-r border-slate-600 text-center w-12 font-bold">NGÀY</th>
-              <th rowSpan={2} className="text-center w-20 font-bold">TIẾN ĐỘ</th>
-            </tr>
-            <tr className="h-8" />
-          </thead>
-          <tbody>
-            {Object.entries(grouped).map(([cat, catTasks], ci) => (
-              <React.Fragment key={cat}>
-                <tr className="h-8 bg-slate-100">
-                  <td className="border-r border-slate-200 text-center text-slate-600 font-bold">{ci + 1}</td>
-                  <td colSpan={4} className="px-2 text-slate-700 font-bold text-xs uppercase tracking-wide">{cat}</td>
-                </tr>
-                {catTasks.map(task => {
-                  const ts = getTaskStart(task);
-                  const te = getTaskEnd(task);
-                  const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
-                  const sel = selectedId === task.id;
-                  stt++;
-                  return (
-                    <tr
-                      key={task.id}
-                      className={`h-9 border-b border-slate-100 cursor-pointer transition-colors ${sel ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-300' : 'hover:bg-slate-50'}`}
-                      onClick={() => onSelect(task.id)}
-                    >
-                      <td className="border-r border-slate-100 text-center text-slate-400">{stt}</td>
-                      <td className="border-r border-slate-100 px-2">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
-                          <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
-                        </div>
-                      </td>
-                      <td className="border-r border-slate-100 p-0">
-                        {readOnly ? (
-                          <div className="w-full h-9 flex items-center justify-center text-slate-600">
-                            {ts ? format(ts, 'dd/MM/yy') : '--'}
-                          </div>
-                        ) : (
-                          <input
-                            type="date"
-                            className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer"
-                            value={ts ? format(ts, 'yyyy-MM-dd') : ''}
-                            onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value); }}
-                            onClick={e => e.stopPropagation()}
-                          />
-                        )}
-                      </td>
-                      <td className="border-r border-slate-100 p-0">
-                        {readOnly ? (
-                          <div className="w-full h-9 flex items-center justify-center text-slate-600">{dur || '--'}</div>
-                        ) : (
-                          <input
-                            type="number"
-                            className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer"
-                            value={dur || ''}
-                            min={1}
-                            onChange={e => { e.stopPropagation(); handleDurChange(task, e.target.value); }}
-                            onClick={e => e.stopPropagation()}
-                          />
-                        )}
-                      </td>
-                      <td className="text-center px-1">
-                        <div className="flex items-center gap-1 justify-center">
-                          <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full"
-                              style={{ width: `${task.progress || 0}%`, backgroundColor: STATUS_META[task.status]?.bar || '#94a3b8' }}
-                            />
-                          </div>
-                          <span className="text-slate-400 w-6 text-right">{task.progress || 0}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+  // Column layout constants (px)
+  const CW = { stt: 32, name: 244, start: 96, dur: 48, prog: 80 };
+  const CL = {
+    stt: 0,
+    name: CW.stt,
+    start: CW.stt + CW.name,
+    dur: CW.stt + CW.name + CW.start,
+    prog: CW.stt + CW.name + CW.start + CW.dur,
+  };
+  const TOTAL_LEFT = CL.prog + CW.prog;
 
-      {/* RIGHT PANE */}
-      <div className="flex-1 overflow-x-auto">
-        <table className="border-collapse" style={{ minWidth: `${days.length * 30}px`, width: '100%' }}>
-          <thead className="sticky top-0 z-20 bg-slate-700 text-white">
-            <tr className="h-8">
-              {weeks.map((w, i) => (
-                <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">
-                  {w.label}
+  return (
+    <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
+      <table className="border-collapse" style={{ minWidth: `${TOTAL_LEFT + days.length * 30}px` }}>
+        <thead className="sticky top-0 z-40">
+          {/* Row 1: Left headers (rowSpan=2) + Week headers */}
+          <tr className="h-8 bg-slate-700 text-white">
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.stt, width: CW.stt, minWidth: CW.stt }}>STT</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>BẮT ĐẦU</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>NGÀY</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 text-center font-bold" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}>TIẾN ĐỘ</th>
+            {weeks.map((w, i) => (
+              <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">{w.label}</th>
+            ))}
+          </tr>
+          {/* Row 2: Day numbers (left cols filled by rowSpan) */}
+          <tr className="h-8 bg-slate-50 text-slate-600">
+            {days.map((day, i) => {
+              const isSun = day.getDay() === 0;
+              const isSat = day.getDay() === 6;
+              return (
+                <th key={i} className={`border-r border-slate-200 text-center font-normal ${isSun ? 'bg-red-50 text-red-400' : isSat ? 'bg-orange-50 text-orange-400' : ''}`} style={{ width: 30, minWidth: 30 }}>
+                  <div className="text-[10px] font-bold">{day.getDate()}</div>
+                  <div className="text-[8px] opacity-60">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
                 </th>
-              ))}
-            </tr>
-            <tr className="h-8 bg-slate-50 text-slate-600">
-              {days.map((day, i) => {
-                const isSun = day.getDay() === 0;
-                const isSat = day.getDay() === 6;
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(grouped).map(([cat, catTasks], ci) => (
+            <React.Fragment key={cat}>
+              {/* Category header row */}
+              <tr className="h-8 bg-slate-100">
+                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
+                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide" colSpan={4} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>{cat}</td>
+                {days.map((_, i) => <td key={i} className="border-r border-slate-200" />)}
+              </tr>
+              {/* Task rows */}
+              {catTasks.map(task => {
+                const ts = getTaskStart(task);
+                const te = getTaskEnd(task);
+                const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
+                const sel = selectedId === task.id;
+                const barColor = STATUS_META[task.status]?.bar || '#94a3b8';
+                const cellBg = sel ? 'bg-indigo-50' : 'bg-white';
+                stt++;
                 return (
-                  <th
-                    key={i}
-                    className={`w-[30px] min-w-[30px] border-r border-slate-200 text-center font-normal ${isSun ? 'bg-red-50 text-red-400' : isSat ? 'bg-orange-50 text-orange-400' : ''}`}
+                  <tr
+                    key={task.id}
+                    className={`group h-9 border-b border-slate-100 cursor-pointer transition-colors ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                    onClick={() => onSelect(task.id)}
                   >
-                    <div className="text-[10px] font-bold">{day.getDate()}</div>
-                    <div className="text-[8px] opacity-60">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
-                  </th>
+                    {/* STT */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
+                    {/* Name */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2`} style={{ left: CL.name }}>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
+                        <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
+                      </div>
+                    </td>
+                    {/* Start date */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.start }}>
+                      {readOnly ? (
+                        <div className="w-full h-9 flex items-center justify-center text-slate-600">{ts ? format(ts, 'dd/MM/yy') : '--'}</div>
+                      ) : (
+                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={ts ? format(ts, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value); }} onClick={e => e.stopPropagation()} />
+                      )}
+                    </td>
+                    {/* Duration */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.dur }}>
+                      {readOnly ? (
+                        <div className="w-full h-9 flex items-center justify-center text-slate-600">{dur || '--'}</div>
+                      ) : (
+                        <input type="number" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={dur || ''} min={1} onChange={e => { e.stopPropagation(); handleDurChange(task, e.target.value); }} onClick={e => e.stopPropagation()} />
+                      )}
+                    </td>
+                    {/* Progress */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1`} style={{ left: CL.prog, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                      <div className="flex items-center gap-1 justify-center">
+                        <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${task.progress || 0}%`, backgroundColor: barColor }} />
+                        </div>
+                        <span className="text-slate-400 w-6 text-right">{task.progress || 0}%</span>
+                      </div>
+                    </td>
+                    {/* Day columns — Gantt bars */}
+                    {days.map((day, i) => {
+                      const isSun = day.getDay() === 0;
+                      const isSat = day.getDay() === 6;
+                      const dayStart = startOfDay(day);
+                      let inRange = false, isFirst = false, isLast = false;
+                      if (ts && te) {
+                        const s = startOfDay(ts);
+                        const e = startOfDay(te);
+                        inRange = dayStart >= s && dayStart <= e;
+                        isFirst = dayStart.getTime() === s.getTime();
+                        isLast = dayStart.getTime() === e.getTime();
+                      }
+                      return (
+                        <td key={i} className={`border-r border-slate-100 p-0 ${!inRange && (isSun || isSat) ? 'bg-red-50/20' : ''}`}>
+                          {inRange && (
+                            <div className="relative mx-px my-1.5 h-6 overflow-hidden"
+                              style={{
+                                borderRadius: `${isFirst ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isFirst ? '12px' : '0'}`,
+                                backgroundColor: barColor,
+                              }}
+                            >
+                              {(task.progress || 0) > 0 && (
+                                <div className="absolute left-0 top-0 h-full bg-white/25" style={{ width: `${task.progress}%` }} />
+                              )}
+                              {isFirst && task.checklist?.length > 0 && (
+                                <div className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-white/80 font-bold">
+                                  {task.checklist.filter(x => x.completed).length}/{task.checklist.length}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
                 );
               })}
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(grouped).map(([cat, catTasks]) => (
-              <React.Fragment key={`g-${cat}`}>
-                <tr className="h-8 bg-slate-100">
-                  {days.map((_, i) => <td key={i} className="border-r border-slate-200" />)}
-                </tr>
-                {catTasks.map(task => {
-                  const ts = getTaskStart(task);
-                  const te = getTaskEnd(task);
-                  const sel = selectedId === task.id;
-                  const barColor = STATUS_META[task.status]?.bar || '#94a3b8';
-
-                  return (
-                    <tr
-                      key={`g-${task.id}`}
-                      className={`h-9 border-b border-slate-100 cursor-pointer ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
-                      onClick={() => onSelect(task.id)}
-                    >
-                      {days.map((day, i) => {
-                        const isSun = day.getDay() === 0;
-                        const isSat = day.getDay() === 6;
-                        const dayStart = startOfDay(day);
-
-                        let inRange = false;
-                        let isFirst = false;
-                        let isLast = false;
-
-                        if (ts && te) {
-                          const s = startOfDay(ts);
-                          const e = startOfDay(te);
-                          inRange = dayStart >= s && dayStart <= e;
-                          isFirst = dayStart.getTime() === s.getTime();
-                          isLast = dayStart.getTime() === e.getTime();
-                        }
-
-                        return (
-                          <td
-                            key={i}
-                            className={`border-r border-slate-100 p-0 ${!inRange && (isSun || isSat) ? 'bg-red-50/20' : ''}`}
-                          >
-                            {inRange && (
-                              <div className="relative mx-px my-1.5 h-6 overflow-hidden"
-                                style={{
-                                  borderRadius: `${isFirst ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isFirst ? '12px' : '0'}`,
-                                  backgroundColor: barColor,
-                                }}
-                              >
-                                {(task.progress || 0) > 0 && (
-                                  <div className="absolute left-0 top-0 h-full bg-white/25" style={{ width: `${task.progress}%` }} />
-                                )}
-                                {isFirst && task.checklist?.length > 0 && (
-                                  <div className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-white/80 font-bold">
-                                    {task.checklist.filter(x => x.completed).length}/{task.checklist.length}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
