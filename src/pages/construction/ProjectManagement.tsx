@@ -479,6 +479,7 @@ export function ProjectManagementAIModule({
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [isEditingMode, setIsEditingMode] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
 
   // If externalTasks provided, use them (sync from parent)
@@ -572,9 +573,11 @@ export function ProjectManagementAIModule({
       end_date: t.endDate || t.plannedEnd,
       duration: t.duration || t.days,
       days: t.days || t.duration,
+      name: t.name,
     }));
     const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
     setSaving(false);
+    if (!error) setIsEditingMode(false);
     setSaveMsg(error ? '⚠ Lỗi lưu' : `✓ Đã lưu ${tasks.length} hạng mục`);
     setTimeout(() => setSaveMsg(''), 3000);
   };
@@ -671,21 +674,34 @@ export function ProjectManagementAIModule({
             <Share2 className="w-3.5 h-3.5" />
             Chia sẻ
           </button>
-          {/* Save dates — hidden for readOnly */}
-          {!readOnly && (
-            <button onClick={handleSaveDates} disabled={saving}
-              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors">
-              <Save className="w-3.5 h-3.5" />
-              {saving ? 'Đang lưu...' : 'Lưu lịch'}
-            </button>
-          )}
-          {/* Import button for non-readOnly when has tasks */}
+          {/* Import / Create new */}
           {!readOnly && onOpenImport && (
             <button onClick={onOpenImport}
-              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors">
+              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
               <FileSpreadsheet className="w-3.5 h-3.5" />
-              + Nhập thêm
+              + Tạo Mới Từ File
             </button>
+          )}
+          {/* Edit / Save Actions */}
+          {!readOnly && (
+            isEditingMode ? (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setIsEditingMode(false)}
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition-colors">
+                  Hủy Sửa
+                </button>
+                <button onClick={handleSaveDates} disabled={saving}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer">
+                  <Save className="w-3.5 h-3.5" />
+                  {saving ? 'Đang lưu...' : 'Lưu Lịch Hình'}
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setIsEditingMode(true)}
+                className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-colors">
+                Chỉnh sửa
+              </button>
+            )
           )}
         </div>
       </div>
@@ -717,10 +733,10 @@ export function ProjectManagementAIModule({
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}
-          readOnly={readOnly}
+          readOnly={readOnly || !isEditingMode}
         />
       </div>
-      {!readOnly && (
+      {(!readOnly && isEditingMode) && (
         <p className="text-[10px] text-slate-400 text-center print:hidden">
           Click vào hàng để xem checklist nghiệm thu · Chỉnh trực tiếp ngày bắt đầu và số ngày trên bảng
         </p>
