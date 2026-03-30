@@ -115,12 +115,13 @@ function ConstructionGantt({
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-40 bg-slate-700 text-white">
             <tr className="h-8">
-              <th className="border-r border-slate-600 text-center w-8 font-bold">STT</th>
-              <th className="border-r border-slate-600 text-left px-2 font-bold">HẠNG MỤC / CÔNG VIỆC</th>
-              <th className="border-r border-slate-600 text-center w-24 font-bold">BẮT ĐẦU</th>
-              <th className="border-r border-slate-600 text-center w-12 font-bold">NGÀY</th>
-              <th className="text-center w-20 font-bold">TIẾN ĐỘ</th>
+              <th rowSpan={2} className="border-r border-slate-600 text-center w-8 font-bold">STT</th>
+              <th rowSpan={2} className="border-r border-slate-600 text-left px-2 font-bold">HẠNG MỤC / CÔNG VIỆC</th>
+              <th rowSpan={2} className="border-r border-slate-600 text-center w-24 font-bold">BẮT ĐẦU</th>
+              <th rowSpan={2} className="border-r border-slate-600 text-center w-12 font-bold">NGÀY</th>
+              <th rowSpan={2} className="text-center w-20 font-bold">TIẾN ĐỘ</th>
             </tr>
+            <tr className="h-8" />
           </thead>
           <tbody>
             {Object.entries(grouped).map(([cat, catTasks], ci) => (
