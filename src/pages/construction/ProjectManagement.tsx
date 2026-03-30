@@ -1,517 +1,766 @@
-import React, { useState, useEffect } from 'react';
-import { useProjectStore } from './store';
-import { Bot, Clock, Activity, AlertTriangle, Users, Copy, ArrowRight, CheckCircle2, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../services/supabase';
-import { format, differenceInDays, parseISO, addDays } from 'date-fns';
-import { motion } from 'motion/react';
-import type { TaskStatus } from './types';
+import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
+import type { CTask, TaskStatus } from './types';
+import { Save, CheckSquare, AlertCircle, Printer, Share2, FileSpreadsheet, Download } from 'lucide-react';
 
-// ═══════════════════════════════════════════════════════════
-// MODULE 2: INTERACTIVE GANTT CHART
-// ═══════════════════════════════════════════════════════════
-function DraggableGanttBar({ t, minDate, totalDays, onMove }: { t: any, minDate: Date, totalDays: number, onMove: (id: string, shiftDays: number) => void }) {
-  const [dragOffset, setDragOffset] = useState<number | null>(null);
-  
-  const startOffset = differenceInDays(parseISO(t.plannedStart!), minDate);
-  const dur = t.duration || 1;
-  const isExtra = t.isExtra;
-  
-  const baseLeft = (startOffset / totalDays) * 100;
-  const currLeft = dragOffset !== null ? baseLeft + dragOffset : baseLeft;
-  const width = (dur / totalDays) * 100;
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const parentWidth = e.currentTarget.parentElement?.parentElement?.offsetWidth || 1; // get width of grid relative container
-    const dayWidthPx = parentWidth / totalDays;
+const parseDate = (s?: string | null): Date | null => {
+  if (!s) return null;
+  const d = parseISO(s);
+  return isValid(d) ? d : null;
+};
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const diffX = moveEvent.clientX - startX;
-      setDragOffset((diffX / parentWidth) * 100);
-    };
+const getTaskStart = (t: CTask) => parseDate(t.plannedStart || t.startDate);
+const getTaskEnd = (t: CTask) => parseDate(t.plannedEnd || t.endDate);
 
-    const handleMouseUp = (upEvent: MouseEvent) => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      const diffX = upEvent.clientX - startX;
-      const shiftDays = Math.round(diffX / dayWidthPx);
-      setDragOffset(null);
-      if (shiftDays !== 0) onMove(t.id, shiftDays);
-    };
+const getDateRange = (tasks: CTask[]) => {
+  const dates = tasks.flatMap(t => [getTaskStart(t), getTaskEnd(t)]).filter(Boolean) as Date[];
+  if (!dates.length) { const n = new Date(); return { min: addDays(n, -3), max: addDays(n, 60) }; }
+  const min = dates.reduce((a, b) => a < b ? a : b);
+  const max = dates.reduce((a, b) => a > b ? a : b);
+  return { min: addDays(min, -2), max: addDays(max, 10) };
+};
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
+const getDaysBetween = (start: Date, end: Date): Date[] => {
+  const arr: Date[] = [];
+  let cur = startOfDay(start);
+  const endDay = startOfDay(end);
+  while (cur <= endDay) { arr.push(cur); cur = addDays(cur, 1); }
+  return arr;
+};
 
-  return (
-    <div 
-      className={`absolute top-1/2 -translate-y-1/2 h-8 rounded-full shadow-sm flex items-center px-3 cursor-grab active:cursor-grabbing transition-colors ${
-          isExtra ? 'bg-amber-500 text-white' : 'bg-[#1c3a8e] text-white hover:bg-indigo-900'
-      }`}
-      style={{ left: `${Math.max(0, currLeft)}%`, width: `${width}%`, zIndex: dragOffset !== null ? 50 : 10 }}
-      onMouseDown={handleMouseDown}
-    >
-      <span className="text-xs font-bold truncate select-none drop-shadow-sm">{dur}d</span>
-    </div>
-  );
-}
+const STATUS_META: Record<TaskStatus, { label: string; bar: string; dot: string }> = {
+  TODO:   { label: 'Chưa làm',        bar: '#94a3b8', dot: 'bg-slate-400' },
+  DOING:  { label: 'Đang thi công',   bar: '#2563eb', dot: 'bg-blue-600' },
+  REVIEW: { label: 'Chờ nghiệm thu',  bar: '#d97706', dot: 'bg-amber-500' },
+  DONE:   { label: 'Hoàn thành',      bar: '#16a34a', dot: 'bg-green-600' },
+};
 
-function InteractiveGantt() {
-  const { tasks, updateTask } = useProjectStore();
-  const macroTasks = tasks.filter(t => t.taskLevel === 'macro');
+// ── Gantt Chart ────────────────────────────────────────────────────────────────
 
-  if (macroTasks.length === 0) return <div className="p-8 text-center text-slate-500 bg-slate-50 border-y border-slate-200">Chưa tải dữ liệu PDF - Vui lòng Bóc tách dữ liệu AI</div>;
+function ConstructionGantt({
+  tasks,
+  selectedId,
+  onSelect,
+  onUpdateTask,
+  readOnly,
+}: {
+  tasks: CTask[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onUpdateTask: (id: string, updates: Partial<CTask>) => void;
+  readOnly?: boolean;
+}) {
+  const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
+  const days = useMemo(() => getDaysBetween(min, max), [min.toISOString(), max.toISOString()]);
 
-  const minDate = macroTasks.reduce((min, t) => {
-    if (!t.plannedStart) return min;
-    const d = parseISO(t.plannedStart);
-    return d < min ? d : min;
-  }, parseISO(macroTasks[0].plannedStart || new Date().toISOString()));
-  
-  const totalDays = 30; // Custom scaling can go here
-  const daysGrid = Array.from({ length: totalDays }, (_, i) => addDays(minDate, i));
+  const weeks = useMemo(() => {
+    const ws: { label: string; count: number }[] = [];
+    let wStart = days[0];
+    let count = 0;
+    days.forEach((day, i) => {
+      count++;
+      if (day.getDay() === 0 || i === days.length - 1) {
+        ws.push({ label: `Tuần ${format(wStart, 'w')} (${format(wStart, 'dd/MM')})`, count });
+        count = 0;
+        if (i < days.length - 1) wStart = days[i + 1];
+      }
+    });
+    return ws;
+  }, [days]);
 
-  const handleMove = (id: string, shiftDays: number) => {
-    const t = macroTasks.find(x => x.id === id);
-    if (!t || !t.plannedStart || !t.plannedEnd) return;
-    updateTask(id, { 
-      plannedStart: format(addDays(parseISO(t.plannedStart), shiftDays), 'yyyy-MM-dd'), 
-      plannedEnd: format(addDays(parseISO(t.plannedEnd), shiftDays), 'yyyy-MM-dd') 
+  const grouped = useMemo(() =>
+    tasks.reduce((acc, t) => {
+      const cat = t.category || 'KHÁC';
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(t);
+      return acc;
+    }, {} as Record<string, CTask[]>)
+  , [tasks]);
+
+  const handleStartChange = (task: CTask, val: string) => {
+    if (readOnly) return;
+    const ns = parseDate(val);
+    if (!ns) return;
+    const os = getTaskStart(task);
+    const oe = getTaskEnd(task);
+    const dur = os && oe ? differenceInDays(oe, os) : (task.duration || task.days || 7) - 1;
+    const ne = addDays(ns, dur);
+    onUpdateTask(task.id, {
+      plannedStart: format(ns, 'yyyy-MM-dd'), startDate: format(ns, 'yyyy-MM-dd'),
+      plannedEnd: format(ne, 'yyyy-MM-dd'),   endDate: format(ne, 'yyyy-MM-dd'),
     });
   };
 
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mb-8">
-      {/* Header Popup Bar matching Screenshot 3 */}
-      <div className="bg-white border-b border-slate-200 p-4 flex justify-between items-start pt-5">
-        <div>
-            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Điều Chỉnh Tiến Độ (Gantt)</h3>
-            <p className="text-sm text-slate-500 mt-0.5 tracking-tight">Nhấn giữ 0.5s để di chuyển. Chạm để chỉnh sửa.</p>
-        </div>
-        <div className="bg-slate-100 text-slate-800 font-bold px-4 py-2 rounded-xl text-sm border border-slate-200 shadow-sm">
-            Tổng: {macroTasks.reduce((acc, curr) => acc + (curr.duration || 0), 0)} Ngày
-        </div>
-      </div>
-      
-      <div className="flex bg-white overflow-x-auto min-h-[400px]">
-        {/* Left Panel matching Screenshot 2 */}
-        <div className="w-[450px] shrink-0 border-r border-slate-200 flex flex-col bg-white">
-          <div className="h-14 border-b border-slate-100 flex items-center px-5 font-bold text-slate-800 tracking-tight text-sm">
-            <div className="flex-1 uppercase tracking-widest text-xs font-black text-slate-700">Hạng Mục</div>
-            <div className="w-12 text-right text-slate-400 text-xs">30/1</div>
-          </div>
-          {macroTasks.map(t => (
-            <div key={t.id} className="h-[90px] border-b border-slate-50 flex items-center px-5 relative group">
-              {/* Task info block */}
-              <div className="flex-1 min-w-0 pr-12">
-                <p className="text-[15px] font-bold text-slate-900 truncate mt-1">
-                    {t.isExtra && <span className="mr-2 text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-sm align-middle tracking-wider shadow-sm">Phát sinh</span>}
-                    {t.name}
-                </p>
-                <p className="text-sm text-slate-500 mt-1 truncate">{t.subcontractor || 'Chưa giao phó'}</p>
-              </div>
-              {/* Badge near the edge */}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-[#1c3a8e] text-white font-bold rounded-l-full flex items-center justify-center text-sm shadow-md">
-                 {t.duration}d
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {/* Interactive Grid Panel matching Screenshot 1 */}
-        <div className="flex-1 min-w-[800px] relative flex flex-col">
-          {/* Header Dates */}
-          <div className="h-14 border-b border-slate-100 flex shadow-sm relative z-10 bg-white/80 backdrop-blur-sm">
-            {daysGrid.map((d, i) => (
-              <div key={i} className="flex-1 border-r border-slate-100 flex items-center justify-center font-bold text-slate-400 text-[15px] tracking-tight">
-                {i % 5 === 0 ? format(d, 'd/M') : ''}
-              </div>
-            ))}
-          </div>
-          
-          {/* Main Grid Area */}
-          <div className="relative flex-1 bg-white">
-            {/* Vertical Lines */}
-            <div className="absolute inset-0 flex pointer-events-none">
-                {daysGrid.map((_, i) => (
-                    <div key={i} className="flex-1 border-r border-slate-100/60 h-full" />
-                ))}
-            </div>
-
-            {/* Horizontal Rows */}
-            <div className="absolute inset-0 flex flex-col pointer-events-none">
-                {macroTasks.map((t) => (
-                    <div key={t.id} className="h-[90px] border-b border-slate-50 w-full" />
-                ))}
-            </div>
-
-            {/* Gantt Bars */}
-            <div className="absolute inset-0 flex flex-col">
-                {macroTasks.map((t, index) => {
-                    if (!t.plannedStart || !t.plannedEnd) return <div key={t.id} className="h-[90px] w-full" />;
-                    return (
-                        <div key={t.id} className="h-[90px] relative w-full px-2">
-                            <DraggableGanttBar t={t} minDate={minDate} totalDays={totalDays} onMove={handleMove} />
-                        </div>
-                    );
-                })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════
-// MODULE 3: REAL-TIME KANBAN
-// ═══════════════════════════════════════════════════════════
-const KANBAN_COLS: { id: TaskStatus; title: string }[] = [
-  { id: 'TODO', title: 'Cần làm' },
-  { id: 'DOING', title: 'Đang làm' },
-  { id: 'REVIEW', title: 'Chờ duyệt' },
-  { id: 'DONE', title: 'Hoàn thành' },
-];
-
-function RealtimeKanban() {
-  const { tasks, moveTaskStatus, setSelectedTask, addTask } = useProjectStore();
-
-  const mockNewMicroTask = () => {
-    addTask({
-        name: 'Dọn dẹp xà bần tầng 1',
-        category: 'Lặt vặt',
-        status: 'TODO',
-        taskLevel: 'micro',
-        isExtra: false,
-        plannedStart: new Date().toISOString(),
-        plannedEnd: addDays(new Date(), 1).toISOString(),
+  const handleDurChange = (task: CTask, val: string) => {
+    if (readOnly) return;
+    const d = parseInt(val, 10);
+    if (isNaN(d) || d < 1) return;
+    const s = getTaskStart(task) || new Date();
+    const ne = addDays(s, d - 1);
+    onUpdateTask(task.id, {
+      duration: d, days: d,
+      plannedEnd: format(ne, 'yyyy-MM-dd'), endDate: format(ne, 'yyyy-MM-dd'),
     });
   };
 
-  return (
-    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-emerald-500" /> Thực tế Hiện trường (Kanban)
-        </h3>
-        <button onClick={mockNewMicroTask} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg shadow-sm hover:bg-slate-50 transition-colors">+ Thêm việc hàng ngày</button>
-      </div>
+  let stt = 0;
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {KANBAN_COLS.map(col => {
-          const colTasks = tasks.filter(t => t.status === col.id);
-          return (
-            <div key={col.id} className="w-72 shrink-0 flex flex-col bg-slate-100 rounded-xl max-h-[600px] border border-slate-200">
-              <div className="p-3 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-xl">
-                <span className="text-xs font-bold text-slate-700">{col.title}</span>
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{colTasks.length}</span>
-              </div>
-              <div className="p-2 flex-1 overflow-y-auto space-y-2">
-                {colTasks.map(t => {
-                  const isRed = t.isOverdue;
+  return (
+    <div className="flex w-full border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm text-[11px]">
+      {/* LEFT PANE */}
+      <div className="flex-none w-[500px] min-w-[500px] sticky left-0 z-30 bg-white border-r-2 border-slate-200 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.08)]">
+        <table className="w-full border-collapse">
+          <thead className="sticky top-0 z-40 bg-slate-700 text-white">
+            <tr className="h-8">
+              <th className="border-r border-slate-600 text-center w-8 font-bold">STT</th>
+              <th className="border-r border-slate-600 text-left px-2 font-bold">HẠNG MỤC / CÔNG VIỆC</th>
+              <th className="border-r border-slate-600 text-center w-24 font-bold">BẮT ĐẦU</th>
+              <th className="border-r border-slate-600 text-center w-12 font-bold">NGÀY</th>
+              <th className="text-center w-20 font-bold">TIẾN ĐỘ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(grouped).map(([cat, catTasks], ci) => (
+              <React.Fragment key={cat}>
+                <tr className="h-8 bg-slate-100">
+                  <td className="border-r border-slate-200 text-center text-slate-600 font-bold">{ci + 1}</td>
+                  <td colSpan={4} className="px-2 text-slate-700 font-bold text-xs uppercase tracking-wide">{cat}</td>
+                </tr>
+                {catTasks.map(task => {
+                  const ts = getTaskStart(task);
+                  const te = getTaskEnd(task);
+                  const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
+                  const sel = selectedId === task.id;
+                  stt++;
                   return (
-                    <div 
-                        key={t.id} 
-                        onClick={() => isRed ? setSelectedTask(t.id) : null}
-                        className={`p-3 rounded-lg border shadow-sm cursor-grab active:cursor-grabbing bg-white relative transition-all ${
-                            isRed 
-                            ? 'border-rose-400 bg-rose-50 ring-2 ring-rose-100' 
-                            : 'border-slate-200 hover:border-indigo-300'
-                        }`}
-                        draggable
-                        onDragStart={(e) => {
-                            if (isRed && col.id !== 'DONE') {
-                              e.preventDefault(); // Lock dragging if overdue!
-                              setSelectedTask(t.id);
-                            } else {
-                              e.dataTransfer.setData('taskId', t.id);
-                            }
-                        }}
+                    <tr
+                      key={task.id}
+                      className={`h-9 border-b border-slate-100 cursor-pointer transition-colors ${sel ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-300' : 'hover:bg-slate-50'}`}
+                      onClick={() => onSelect(task.id)}
                     >
-                        {isRed && <AlertTriangle className="absolute -top-2 -right-2 text-rose-500 w-5 h-5 bg-white rounded-full p-0.5 animate-pulse" />}
-                        
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-bold text-white ${t.taskLevel === 'macro' ? 'bg-indigo-500' : 'bg-slate-400'}`}>
-                                {t.taskLevel}
-                            </span>
-                            {t.isExtra && <span className="text-[8px] px-1.5 py-0.5 rounded uppercase font-bold bg-amber-500 text-white">Phát sinh</span>}
+                      <td className="border-r border-slate-100 text-center text-slate-400">{stt}</td>
+                      <td className="border-r border-slate-100 px-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
+                          <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
                         </div>
-                        <h4 className={`text-xs font-bold ${isRed ? 'text-rose-900' : 'text-slate-800'}`}>{t.name}</h4>
-                        <div className="flex items-center gap-3 mt-2">
-                           {t.requiredWorkers && (
-                               <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                                   <Users className="w-3 h-3" /> {t.requiredWorkers} thợ
-                               </div>
-                           )}
-                           {t.duration && (
-                               <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500">
-                                   <Clock className="w-3 h-3" /> {t.duration}d
-                               </div>
-                           )}
+                      </td>
+                      <td className="border-r border-slate-100 p-0">
+                        {readOnly ? (
+                          <div className="w-full h-9 flex items-center justify-center text-slate-600">
+                            {ts ? format(ts, 'dd/MM/yy') : '--'}
+                          </div>
+                        ) : (
+                          <input
+                            type="date"
+                            className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer"
+                            value={ts ? format(ts, 'yyyy-MM-dd') : ''}
+                            onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value); }}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        )}
+                      </td>
+                      <td className="border-r border-slate-100 p-0">
+                        {readOnly ? (
+                          <div className="w-full h-9 flex items-center justify-center text-slate-600">{dur || '--'}</div>
+                        ) : (
+                          <input
+                            type="number"
+                            className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer"
+                            value={dur || ''}
+                            min={1}
+                            onChange={e => { e.stopPropagation(); handleDurChange(task, e.target.value); }}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        )}
+                      </td>
+                      <td className="text-center px-1">
+                        <div className="flex items-center gap-1 justify-center">
+                          <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full"
+                              style={{ width: `${task.progress || 0}%`, backgroundColor: STATUS_META[task.status]?.bar || '#94a3b8' }}
+                            />
+                          </div>
+                          <span className="text-slate-400 w-6 text-right">{task.progress || 0}%</span>
                         </div>
-                    </div>
+                      </td>
+                    </tr>
                   );
                 })}
-              </div>
-              {/* Drop Zone */}
-              <div 
-                className="h-8 w-full bg-transparent"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  const id = e.dataTransfer.getData('taskId');
-                  if (id) moveTaskStatus(id, col.id);
-                }}
-              />
-            </div>
-          )
-        })}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* RIGHT PANE */}
+      <div className="flex-1 overflow-x-auto">
+        <table className="border-collapse" style={{ minWidth: `${days.length * 30}px`, width: '100%' }}>
+          <thead className="sticky top-0 z-20 bg-slate-700 text-white">
+            <tr className="h-8">
+              {weeks.map((w, i) => (
+                <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">
+                  {w.label}
+                </th>
+              ))}
+            </tr>
+            <tr className="h-8 bg-slate-50 text-slate-600">
+              {days.map((day, i) => {
+                const isSun = day.getDay() === 0;
+                const isSat = day.getDay() === 6;
+                return (
+                  <th
+                    key={i}
+                    className={`w-[30px] min-w-[30px] border-r border-slate-200 text-center font-normal ${isSun ? 'bg-red-50 text-red-400' : isSat ? 'bg-orange-50 text-orange-400' : ''}`}
+                  >
+                    <div className="text-[10px] font-bold">{day.getDate()}</div>
+                    <div className="text-[8px] opacity-60">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(grouped).map(([cat, catTasks]) => (
+              <React.Fragment key={`g-${cat}`}>
+                <tr className="h-8 bg-slate-100">
+                  {days.map((_, i) => <td key={i} className="border-r border-slate-200" />)}
+                </tr>
+                {catTasks.map(task => {
+                  const ts = getTaskStart(task);
+                  const te = getTaskEnd(task);
+                  const sel = selectedId === task.id;
+                  const barColor = STATUS_META[task.status]?.bar || '#94a3b8';
+
+                  return (
+                    <tr
+                      key={`g-${task.id}`}
+                      className={`h-9 border-b border-slate-100 cursor-pointer ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                      onClick={() => onSelect(task.id)}
+                    >
+                      {days.map((day, i) => {
+                        const isSun = day.getDay() === 0;
+                        const isSat = day.getDay() === 6;
+                        const dayStart = startOfDay(day);
+
+                        let inRange = false;
+                        let isFirst = false;
+                        let isLast = false;
+
+                        if (ts && te) {
+                          const s = startOfDay(ts);
+                          const e = startOfDay(te);
+                          inRange = dayStart >= s && dayStart <= e;
+                          isFirst = dayStart.getTime() === s.getTime();
+                          isLast = dayStart.getTime() === e.getTime();
+                        }
+
+                        return (
+                          <td
+                            key={i}
+                            className={`border-r border-slate-100 p-0 ${!inRange && (isSun || isSat) ? 'bg-red-50/20' : ''}`}
+                          >
+                            {inRange && (
+                              <div className="relative mx-px my-1.5 h-6 overflow-hidden"
+                                style={{
+                                  borderRadius: `${isFirst ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isLast ? '12px' : '0'} ${isFirst ? '12px' : '0'}`,
+                                  backgroundColor: barColor,
+                                }}
+                              >
+                                {(task.progress || 0) > 0 && (
+                                  <div className="absolute left-0 top-0 h-full bg-white/25" style={{ width: `${task.progress}%` }} />
+                                )}
+                                {isFirst && task.checklist?.length > 0 && (
+                                  <div className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-white/80 font-bold">
+                                    {task.checklist.filter(x => x.completed).length}/{task.checklist.length}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// MODULE 4: AI ACTION MODAL
-// ═══════════════════════════════════════════════════════════
-function AiActionModal() {
-  const { selectedTaskId, setSelectedTask, tasks, applyAiAction } = useProjectStore();
-  
-  if (!selectedTaskId) return null;
-  const task = tasks.find(t => t.id === selectedTaskId);
-  if (!task || !task.isOverdue) return null;
+// ── Task Detail Panel ──────────────────────────────────────────────────────────
+
+function TaskDetailPanel({
+  task,
+  onUpdate,
+  onClose,
+  readOnly,
+}: {
+  task: CTask;
+  onUpdate: (updates: Partial<CTask>) => void;
+  onClose: () => void;
+  readOnly?: boolean;
+}) {
+  const [localProgress, setLocalProgress] = useState(task.progress || 0);
+  const [localStatus, setLocalStatus] = useState<TaskStatus>(task.status);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLocalProgress(task.progress || 0);
+    setLocalStatus(task.status);
+  }, [task.id, task.progress, task.status]);
+
+  const toggleChecklist = (itemId: string) => {
+    if (readOnly) return;
+    const updated = task.checklist.map(c => c.id === itemId ? { ...c, completed: !c.completed } : c);
+    const done = updated.filter(x => x.completed).length;
+    const prog = updated.length > 0 ? Math.round((done / updated.length) * 100) : localProgress;
+    setLocalProgress(prog);
+    onUpdate({ checklist: updated, progress: prog });
+  };
+
+  const handleSave = async () => {
+    if (readOnly) return;
+    setSaving(true);
+    try {
+      await supabase.from('construction_tasks').update({
+        status: localStatus,
+        progress: localProgress,
+        checklist: task.checklist,
+      }).eq('id', task.id);
+      onUpdate({ status: localStatus, progress: localProgress });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const ts = getTaskStart(task);
+  const te = getTaskEnd(task);
+  const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
+  const completedCount = task.checklist?.filter(x => x.completed).length || 0;
+  const totalCount = task.checklist?.length || 0;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-6">
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl border border-rose-200 shadow-2xl overflow-hidden max-w-lg w-full relative">
-        <button onClick={() => setSelectedTask(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
-        
-        <div className="p-6 pb-0">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center border-2 border-rose-200">
-                    <AlertTriangle className="w-5 h-5 text-rose-600" />
-                </div>
-                <div>
-                    <h3 className="text-lg font-bold text-rose-700">Can thiệp trễ hạn</h3>
-                    <p className="text-xs text-slate-500">{task.name} • Quá hạn 2 ngày</p>
-                </div>
-            </div>
-
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-                <h4 className="text-xs font-bold text-indigo-700 flex items-center gap-2 mb-2"><Bot className="w-4 h-4"/> AI Đề xuất Giải pháp</h4>
-                <p className="text-sm text-slate-600 mb-4">Vì công việc đang nằm trên đường găng (Critical Path), việc chậm trễ sẽ đẩy lùi toàn bộ dự án. Vui lòng chọn 1 trong 3 hành động bên dưới để AI tự động cấu trúc lại Kanban & Gantt.</p>
-                
-                <div className="flex flex-col gap-2">
-                    <button onClick={() => { applyAiAction(task.id, 'WORKERS'); setSelectedTask(null); }} className="w-full bg-white border border-slate-200 p-3 rounded-lg text-left hover:border-indigo-400 hover:shadow-md transition-all group flex items-start gap-3">
-                        <Users className="w-5 h-5 text-emerald-600 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600">💪 Tăng ca / Bổ sung nhân sự</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Giữ nguyên deadline. X2 số lượng thợ ({task.requiredWorkers} → {Math.ceil((task.requiredWorkers||1)*1.5)} thợ) từ dự phòng.</p>
-                        </div>
-                    </button>
-                    
-                    <button onClick={() => { applyAiAction(task.id, 'SPLIT'); setSelectedTask(null); }} className="w-full bg-white border border-slate-200 p-3 rounded-lg text-left hover:border-indigo-400 hover:shadow-md transition-all group flex items-start gap-3">
-                        <Copy className="w-5 h-5 text-amber-600 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-bold text-slate-800 group-hover:text-amber-600">✂️ Tách việc song song</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Chưa hoàn thành? Tách phần việc thừa ra một thẻ mới để giao cho phân đội khác thi công song song.</p>
-                        </div>
-                    </button>
-
-                    <button onClick={() => { applyAiAction(task.id, 'DELAY'); setSelectedTask(null); }} className="w-full bg-white border border-slate-200 p-3 rounded-lg text-left hover:border-indigo-400 hover:shadow-md transition-all group flex items-start gap-3">
-                        <ArrowRight className="w-5 h-5 text-rose-600 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-bold text-slate-800 group-hover:text-rose-600">⚠️ Dời lịch (Chấp nhận trễ)</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Tự động cộng thêm +3 ngày vào timeline. Toàn bộ các mốc phía sau trên Gantt (Dependencies) sẽ bị đẩy lùi theo.</p>
-                        </div>
-                    </button>
-                </div>
-            </div>
+    <div className="border border-indigo-200 rounded-xl bg-white shadow-md overflow-hidden">
+      <div className="bg-indigo-600 px-4 py-3 flex justify-between items-start">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-white text-sm truncate">{task.name}</h3>
+          <div className="flex items-center gap-4 mt-1 text-indigo-200 text-xs">
+            <span>{ts ? format(ts, 'dd/MM/yyyy') : '--'} → {te ? format(te, 'dd/MM/yyyy') : '--'}</span>
+            <span>{dur} ngày</span>
+            <span>{(task.budget || 0).toLocaleString('vi-VN')}đ</span>
+          </div>
         </div>
-      </motion.div>
+        <button onClick={onClose} className="text-indigo-200 hover:text-white ml-4 text-xl leading-none">✕</button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        {/* Checklist */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <CheckSquare className="w-3.5 h-3.5 text-indigo-500" />
+              CHECKLIST NGHIỆM THU
+            </h4>
+            {totalCount > 0 && (
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${completedCount === totalCount ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                {completedCount}/{totalCount}
+              </span>
+            )}
+          </div>
+          {totalCount > 0 ? (
+            <div className="space-y-2">
+              {task.checklist.map(item => (
+                <label key={item.id} className={`flex items-start gap-2.5 ${readOnly ? '' : 'cursor-pointer'} group`}>
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => toggleChecklist(item.id)}
+                    disabled={readOnly}
+                    className="mt-0.5 w-4 h-4 accent-indigo-600 flex-none"
+                  />
+                  <span className={`text-xs leading-relaxed ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                    {item.label}
+                    {item.required && <span className="text-red-400 ml-1">*</span>}
+                  </span>
+                </label>
+              ))}
+              {totalCount > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                    <span>Nghiệm thu</span>
+                    <span>{Math.round((completedCount / totalCount) * 100)}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-indigo-500 transition-all"
+                      style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-400 italic">Chưa có checklist nghiệm thu.</p>
+          )}
+        </div>
+
+        {/* Progress + Status */}
+        <div className="p-4 space-y-4">
+          <div>
+            <h4 className="text-xs font-bold text-slate-700 mb-2">TIẾN ĐỘ THỰC TẾ</h4>
+            <div className="flex items-center gap-3">
+              <input
+                type="range" min={0} max={100} value={localProgress}
+                onChange={e => !readOnly && setLocalProgress(Number(e.target.value))}
+                disabled={readOnly}
+                className="flex-1 accent-blue-600 h-2"
+              />
+              <span className="text-base font-bold text-blue-600 w-12 text-right">{localProgress}%</span>
+            </div>
+            <div className="mt-1.5 w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all"
+                style={{ width: `${localProgress}%`, backgroundColor: localProgress >= 100 ? '#16a34a' : '#2563eb' }} />
+            </div>
+          </div>
+
+          {!readOnly && (
+            <>
+              <div>
+                <h4 className="text-xs font-bold text-slate-700 mb-2">TRẠNG THÁI</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {(Object.keys(STATUS_META) as TaskStatus[]).map(s => (
+                    <button key={s} onClick={() => setLocalStatus(s)}
+                      className={`py-2 px-2 text-[11px] font-bold rounded-lg border-2 transition-all ${localStatus === s ? 'border-transparent text-white' : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300'}`}
+                      style={localStatus === s ? { backgroundColor: STATUS_META[s].bar } : {}}>
+                      {STATUS_META[s].label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={handleSave} disabled={saving}
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm">
+                <Save className="w-3.5 h-3.5" />
+                {saving ? 'Đang lưu...' : 'Lưu cập nhật'}
+              </button>
+            </>
+          )}
+
+          {readOnly && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-700">TRẠNG THÁI</h4>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white"
+                style={{ backgroundColor: STATUS_META[localStatus]?.bar }}>
+                {STATUS_META[localStatus]?.label}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// MODULE 5: DAILY BRIEFING
-// ═══════════════════════════════════════════════════════════
-function DailyBriefing() {
-  const { dailyBriefingMode, tasks, setDailyBriefingMode, approveAllEveningTasks } = useProjectStore();
-  if (!dailyBriefingMode) return null;
+// ── PDF Export ────────────────────────────────────────────────────────────────
 
-  const isMorning = dailyBriefingMode === 'morning';
-  const reviewTasks = tasks.filter(t => t.status === 'REVIEW');
-  const doingTasks = tasks.filter(t => t.status === 'DOING' || t.status === 'TODO');
+async function exportGanttToPDF(ganttRef: React.RefObject<HTMLDivElement>, projectName?: string) {
+  const el = ganttRef.current;
+  if (!el) return;
+  try {
+    const html2canvas = (await import('html2canvas')).default;
+    const jsPDF = (await import('jspdf')).default;
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-6">
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-w-lg w-full relative">
-        <button onClick={() => setDailyBriefingMode(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><X className="w-5 h-5"/></button>
-        
-        <div className="p-6">
-            <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
-                {isMorning ? <span className="text-amber-500 text-2xl">🌅 Morning Report</span> : <span className="text-indigo-500 text-2xl">🌆 Evening Wrap-up</span>}
-            </h3>
-            <p className="text-sm text-slate-600 mb-6">
-                {isMorning ? 'Tóm tắt tình hình các nhóm tác vụ trong ngày:' : 'Các hạng mục chờ nghiệm thu chốt ngày hôm nay:'}
-            </p>
+    const canvas = await html2canvas(el, {
+      scale: 1.5,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0,
+      width: el.scrollWidth,
+      height: el.scrollHeight,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+    });
 
-            <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto">
-                {isMorning ? (
-                    <>
-                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                            <h4 className="font-bold text-amber-800 text-sm">Giao việc hôm nay ({doingTasks.length} tác vụ)</h4>
-                            <p className="text-xs text-amber-700 mt-1">Tổng nhân công cần thiết: <strong>{doingTasks.reduce((acc, curr) => acc + (curr.requiredWorkers||1), 0)} người</strong></p>
-                        </div>
-                        {tasks.filter(t => t.isOverdue).length > 0 && (
-                            <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 mt-3 flex items-start gap-2">
-                                <AlertTriangle className="w-4 h-4 text-rose-600 mt-0.5 shrink-0" />
-                                <div>
-                                    <h4 className="font-bold text-rose-800 text-sm">Sự cố tồn đọng ({tasks.filter(t => t.isOverdue).length})</h4>
-                                    <p className="text-xs text-rose-700 mt-1">Bạn có thẻ đỏ trên Kanban chưa xử lý xong.</p>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {reviewTasks.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500 text-sm">Chưa có hạng mục nào chờ duyệt chiều nay</div>
-                        ) : (
-                            reviewTasks.map(t => (
-                                <div key={t.id} className="p-3 border border-slate-200 rounded-lg flex justify-between items-center">
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-800">{t.name}</p>
-                                        <p className="text-[10px] text-slate-500 mt-0.5">{t.duration} days • {t.subcontractor}</p>
-                                    </div>
-                                    <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-2 py-1 rounded-full">{t.status}</span>
-                                </div>
-                            ))
-                        )}
-                    </>
-                )}
-            </div>
+    const imgData = canvas.toDataURL('image/png');
+    const pdfW = 297; // A4 landscape mm
+    const pdfH = 210;
+    const imgW = pdfW - 10;
+    const imgH = (canvas.height * imgW) / canvas.width;
 
-            <div className="flex gap-3 mt-6">
-                {isMorning ? (
-                    <button onClick={() => setDailyBriefingMode(null)} className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition">Bắt đầu ngày mới</button>
-                ) : (
-                    <button onClick={() => { approveAllEveningTasks(); }} className="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 transition flex justify-center items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5" /> Nghiệm Thu Toàn Bộ
-                    </button>
-                )}
-            </div>
-        </div>
-      </motion.div>
-    </div>
-  );
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    pdf.setFontSize(14);
+    pdf.text(`Tiến Độ Thi Công${projectName ? ` — ${projectName}` : ''}`, 5, 8);
+    pdf.setFontSize(8);
+    pdf.text(`Xuất ngày: ${new Date().toLocaleDateString('vi-VN')}`, 5, 14);
+
+    let yPos = 18;
+    let remaining = imgH;
+    let sourceY = 0;
+
+    while (remaining > 0) {
+      const pageH = pdfH - yPos - 5;
+      const sliceH = Math.min(remaining, pageH);
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = (sliceH / imgW) * canvas.width;
+      const ctx = sliceCanvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(canvas, 0, sourceY, canvas.width, sliceCanvas.height, 0, 0, sliceCanvas.width, sliceCanvas.height);
+        pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 5, yPos, imgW, sliceH);
+      }
+      remaining -= sliceH;
+      sourceY += sliceCanvas.height;
+      if (remaining > 0) { pdf.addPage(); yPos = 5; }
+    }
+
+    pdf.save(`tien-do-${projectName || 'cong-trinh'}-${format(new Date(), 'dd-MM-yyyy')}.pdf`);
+  } catch (e) {
+    console.error('PDF export failed:', e);
+    window.print();
+  }
 }
 
-// ═══════════════════════════════════════════════════════════
-// MAIN CONTAINER
-// ═══════════════════════════════════════════════════════════
-export function ProjectManagementAIModule({ projectId }: { projectId?: string }) {
-  const { uploadPDFMock, tickTime, currentTime, setDailyBriefingMode, tasks, setTasks } = useProjectStore();
+// ── Main Module ────────────────────────────────────────────────────────────────
+
+export function ProjectManagementAIModule({
+  projectId,
+  externalTasks,
+  readOnly = false,
+  onUpdateTask,
+  onOpenImport,
+}: {
+  projectId?: string;
+  externalTasks?: CTask[];
+  readOnly?: boolean;
+  onUpdateTask?: (id: string, updates: Partial<CTask>) => void;
+  onOpenImport?: () => void;
+}) {
+  const [localTasks, setLocalTasks] = useState<CTask[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const ganttRef = useRef<HTMLDivElement>(null);
 
-  // Load Supabase tasks into store on mount
+  // If externalTasks provided, use them (sync from parent)
+  const tasks: CTask[] = externalTasks && externalTasks.length > 0
+    ? externalTasks.filter(t => t.plannedStart || t.startDate) // only tasks with dates
+    : localTasks;
+
+  // Load from Supabase only when no external tasks provided
   useEffect(() => {
-    if (!projectId) return;
-    supabase.from('construction_tasks').select('*').eq('project_id', projectId)
+    if (externalTasks !== undefined) { setLoading(false); return; }
+    if (!projectId) { setLoading(false); return; }
+    setLoading(true);
+    supabase
+      .from('construction_tasks')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setTasks(data.map((t: any) => ({
-            id: t.id, name: t.name, category: t.category,
-            status: t.status as TaskStatus,
-            subcontractor: t.subcontractor || '', days: t.days,
-            budget: t.budget, spent: t.spent, approved: t.approved,
-            dependencies: t.dependencies || [], tags: t.tags || [],
-            issues: t.issues || [], checklist: t.checklist || [],
-            progress: t.progress,
-            startDate: t.start_date, endDate: t.end_date,
-            plannedStart: t.planned_start || t.start_date,
-            plannedEnd: t.planned_end || t.end_date,
+          setLocalTasks(data.map((t: any): CTask => ({
+            id: t.id, name: t.name, category: t.category || 'KHÁC',
+            status: (t.status as TaskStatus) || 'TODO',
+            subcontractor: t.subcontractor || '',
+            days: t.days || 0, budget: t.budget || 0, spent: t.spent || 0,
+            approved: t.approved || false,
+            dependencies: t.dependencies || [],
+            tags: t.tags || [],
+            issues: t.issues || [],
+            checklist: (t.checklist || []).map((item: any, idx: number) =>
+              typeof item === 'string'
+                ? { id: `c-${t.id}-${idx}`, label: item, completed: false, required: false }
+                : item
+            ),
+            progress: t.progress || 0,
+            startDate: t.start_date || t.planned_start || undefined,
+            endDate: t.end_date || t.planned_end || undefined,
+            plannedStart: t.planned_start || t.start_date || undefined,
+            plannedEnd: t.planned_end || t.end_date || undefined,
             duration: t.duration || t.days || 1,
-            requiredWorkers: t.required_workers || 0,
-            taskLevel: (t.task_level as 'macro' | 'micro') || 'macro',
-            isExtra: t.is_extra || false,
-            isOverdue: false,
           })));
         }
+        setLoading(false);
       });
-  }, [projectId]);
+  }, [projectId, externalTasks]);
 
-  // Save current store tasks back to Supabase
-  const handleSave = async () => {
-    if (!projectId || tasks.length === 0) return;
-    setSaving(true); setSaveMsg('');
-    const updates = tasks.map(t => ({
+  const selectedTask = tasks.find(t => t.id === selectedId) || null;
+
+  const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
+    setLocalTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    if (onUpdateTask) onUpdateTask(id, updates);
+  };
+
+  const handleSaveDates = async () => {
+    if (!projectId || !tasks.length || readOnly) return;
+    setSaving(true);
+    const upserts = tasks.map(t => ({
       id: t.id, project_id: projectId,
-      name: t.name, category: t.category, status: t.status,
-      subcontractor: t.subcontractor, days: t.days, budget: t.budget,
-      spent: t.spent, approved: t.approved, dependencies: t.dependencies,
-      tags: t.tags, issues: t.issues, checklist: t.checklist,
-      progress: t.progress, start_date: t.startDate, end_date: t.endDate,
-      planned_start: t.plannedStart, planned_end: t.plannedEnd,
-      duration: t.duration, required_workers: t.requiredWorkers,
-      task_level: t.taskLevel, is_extra: t.isExtra,
+      planned_start: t.plannedStart || t.startDate,
+      planned_end: t.plannedEnd || t.endDate,
+      start_date: t.startDate || t.plannedStart,
+      end_date: t.endDate || t.plannedEnd,
+      duration: t.duration || t.days,
+      days: t.days || t.duration,
     }));
-    const { error } = await supabase.from('construction_tasks').upsert(updates, { onConflict: 'id' });
+    const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
     setSaving(false);
-    setSaveMsg(error ? 'Lỗi khi lưu' : `Đã lưu ${tasks.length} tasks`);
+    setSaveMsg(error ? '⚠ Lỗi lưu' : `✓ Đã lưu ${tasks.length} hạng mục`);
     setTimeout(() => setSaveMsg(''), 3000);
   };
 
+  const handleExportPDF = async () => {
+    setExporting(true);
+    await exportGanttToPDF(ganttRef, projectId);
+    setExporting(false);
+  };
+
+  const stats = useMemo(() => ({
+    total: tasks.length,
+    done: tasks.filter(t => t.status === 'DONE').length,
+    doing: tasks.filter(t => t.status === 'DOING').length,
+    review: tasks.filter(t => t.status === 'REVIEW').length,
+    avgProgress: tasks.length ? Math.round(tasks.reduce((a, t) => a + (t.progress || 0), 0) / tasks.length) : 0,
+  }), [tasks]);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64 text-slate-500">
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm">Đang tải tiến độ thi công...</p>
+      </div>
+    </div>
+  );
+
+  if (!tasks.length) return (
+    <div className="flex flex-col items-center justify-center h-64 gap-4">
+      <AlertCircle className="w-12 h-12 text-slate-200" />
+      <div className="text-center">
+        <p className="font-bold text-slate-600">Chưa có dữ liệu tiến độ</p>
+        <p className="text-sm text-slate-500 mt-1">
+          {readOnly
+            ? 'Nhà thầu chưa nhập timeline thi công'
+            : 'Nhập báo giá hoặc file PDF timeline để AI tạo tiến độ tự động'}
+        </p>
+      </div>
+      {onOpenImport && !readOnly && (
+        <button onClick={onOpenImport}
+          className="mt-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-md">
+          <FileSpreadsheet className="w-4 h-4" />
+          Nhập Báo Giá / PDF Timeline
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="p-6">
-        <div className="flex justify-between items-end mb-8 border-b border-slate-200 pb-4">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                   🏢 Quản Lý Thi Công AI
-                   <span className="text-[10px] uppercase bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold ml-2">Master Architect</span>
-                </h1>
-                <p className="text-sm text-slate-500 mt-1">Current Game Time: <span className="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded ml-1">{format(currentTime, 'PPpp')}</span></p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setDailyBriefingMode('morning')} 
-                  className="px-3 py-2 bg-gradient-to-br from-amber-400 to-amber-600 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 hover:opacity-90 transition">
-                  🌅 Morning
-                </button>
-                <button 
-                  onClick={() => setDailyBriefingMode('evening')} 
-                  className="px-3 py-2 bg-gradient-to-br from-indigo-500 to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 hover:opacity-90 transition">
-                  🌆 Evening
-                </button>
-
-                {/* MODULE 1: UPLOAD AI */}
-                {tasks.length === 0 && (
-                    <button onClick={uploadPDFMock} className="px-4 py-2 ml-4 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 shrink-0">
-                        <Bot className="w-5 h-5"/> 🤖 Tải PDF Timeline
-                    </button>
-                )}
-
-                {/* Simulated Time Engine Trigger */}
-                <button onClick={() => tickTime(24)} className="px-4 py-2 bg-rose-100 text-rose-700 hover:bg-rose-200 text-sm font-bold rounded-xl shadow-sm transition-all flex items-center gap-2 shrink-0">
-                    <Clock className="w-5 h-5"/> Tua nhanh +24h
-                </button>
-                {tasks.length > 0 && (
-                  <button onClick={handleSave} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-emerald-700 transition-all flex items-center gap-2 shrink-0 disabled:opacity-60">
-                    {saving ? '...' : '💾'} {saveMsg || 'Lưu DB'}
-                  </button>
-                )}
-            </div>
+    <div className="p-3 sm:p-5 space-y-4">
+      {/* Header */}
+      <div className="flex flex-wrap justify-between items-start gap-3">
+        <div>
+          <h2 className="text-lg font-bold text-slate-800">📊 Tiến Độ Thi Công</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {stats.total} hạng mục · Hoàn thành {stats.done} · Đang làm {stats.doing} · Chờ nghiệm thu {stats.review}
+          </p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Legend */}
+          <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-500 mr-1">
+            {(Object.keys(STATUS_META) as TaskStatus[]).map(s => (
+              <div key={s} className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: STATUS_META[s].bar }} />
+                {STATUS_META[s].label}
+              </div>
+            ))}
+          </div>
+          {saveMsg && <span className="text-xs text-emerald-600 font-medium">{saveMsg}</span>}
+          {/* Export PDF */}
+          <button onClick={handleExportPDF} disabled={exporting}
+            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-60">
+            <Download className="w-3.5 h-3.5" />
+            {exporting ? 'Đang xuất...' : 'Xuất PDF'}
+          </button>
+          {/* Share */}
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/construction?project=${projectId}&role=homeowner`;
+              navigator.clipboard.writeText(url).then(() => setSaveMsg('✓ Đã copy link chia sẻ'));
+            }}
+            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors">
+            <Share2 className="w-3.5 h-3.5" />
+            Chia sẻ
+          </button>
+          {/* Save dates — hidden for readOnly */}
+          {!readOnly && (
+            <button onClick={handleSaveDates} disabled={saving}
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors">
+              <Save className="w-3.5 h-3.5" />
+              {saving ? 'Đang lưu...' : 'Lưu lịch'}
+            </button>
+          )}
+          {/* Import button for non-readOnly when has tasks */}
+          {!readOnly && onOpenImport && (
+            <button onClick={onOpenImport}
+              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              + Nhập thêm
+            </button>
+          )}
+        </div>
+      </div>
 
-        <InteractiveGantt />
-        <RealtimeKanban />
-        
-        <AiActionModal />
-        <DailyBriefing />
+      {/* Overall progress */}
+      <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4">
+        <div className="flex-1">
+          <div className="flex justify-between text-xs text-slate-600 mb-1.5">
+            <span className="font-bold">Tiến độ tổng thể</span>
+            <span className="font-bold text-blue-600">{stats.avgProgress}%</span>
+          </div>
+          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full rounded-full transition-all"
+              style={{ width: `${stats.avgProgress}%`, backgroundColor: stats.avgProgress >= 100 ? '#16a34a' : '#2563eb' }} />
+          </div>
+        </div>
+        <div className="text-right text-xs text-slate-500 shrink-0">
+          <div className="text-emerald-600 font-bold text-sm">{stats.done}/{stats.total}</div>
+          <div>hoàn thành</div>
+        </div>
+      </div>
+
+      {/* Gantt */}
+      <div ref={ganttRef} className="overflow-x-auto rounded-xl">
+        <ConstructionGantt
+          tasks={tasks}
+          selectedId={selectedId}
+          onSelect={id => setSelectedId(prev => prev === id ? null : id)}
+          onUpdateTask={handleUpdateTask}
+          readOnly={readOnly}
+        />
+      </div>
+      {!readOnly && (
+        <p className="text-[10px] text-slate-400 text-center">
+          Click vào hàng để xem checklist nghiệm thu · Chỉnh trực tiếp ngày bắt đầu và số ngày trên bảng
+        </p>
+      )}
+
+      {/* Detail panel */}
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
+          onClose={() => setSelectedId(null)}
+          readOnly={readOnly}
+        />
+      )}
     </div>
   );
 }

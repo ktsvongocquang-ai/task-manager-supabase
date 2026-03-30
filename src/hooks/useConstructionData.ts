@@ -20,6 +20,7 @@ export interface SupabaseTask {
   dependencies: string[]; checklist: any[]; issues: any[]; days: number;
   start_date: string; end_date: string; subcontractor: string;
   tags: string[]; approved: boolean;
+  planned_start?: string; planned_end?: string; duration?: number;
 }
 
 export interface SupabaseDailyLog {
@@ -152,30 +153,58 @@ export const useConstructionData = () => {
   }, []);
 
   // ── TASKS ──
-  const createTimelineTasks = async (projectId: string, newTasks: any[]) => {
+  const createTimelineTasks = async (projectId: string, newTasks: any[], projectStartDate?: string) => {
     try {
-      const mapped = newTasks.map(t => ({
-        id: crypto.randomUUID(),
+      // Assign UUIDs first so dependencies can reference them
+      const ids = newTasks.map(() => crypto.randomUUID());
+
+      // Calculate planned dates using dependencies chain (topological — deps always earlier in array)
+      const taskEndDates: Date[] = [];
+      const baseStart = projectStartDate ? new Date(projectStartDate) : new Date();
+
+      const addDaysLocal = (d: Date, n: number) => {
+        const r = new Date(d); r.setDate(r.getDate() + n); return r;
+      };
+      const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
+
+      const startDates: Date[] = [];
+      newTasks.forEach((t, idx) => {
+        const depEndDates = (t.dependencies || [])
+          .map((depIdx: number) => taskEndDates[depIdx])
+          .filter(Boolean);
+        const taskStart = depEndDates.length > 0
+          ? addDaysLocal(depEndDates.reduce((a: Date, b: Date) => a > b ? a : b), 1)
+          : baseStart;
+        startDates[idx] = taskStart;
+        taskEndDates[idx] = addDaysLocal(taskStart, (t.days || 1) - 1);
+      });
+
+      const mapped = newTasks.map((t, idx) => ({
+        id: ids[idx],
         project_id: projectId,
         name: t.name,
         category: t.category,
         budget: t.budget,
         days: t.days,
+        duration: t.days,
         status: 'TODO',
-        checklist: t.checklist.map((c: string) => ({ id: crypto.randomUUID(), label: c, completed: false, required: false })),
-        dependencies: [],
+        checklist: (t.checklist || []).map((c: any) =>
+          typeof c === 'string'
+            ? { id: crypto.randomUUID(), label: c, completed: false, required: false }
+            : c
+        ),
+        dependencies: (t.dependencies || []).map((depIdx: number) => ids[depIdx]).filter(Boolean),
         issues: [],
         tags: [],
         spent: 0,
         progress: 0,
         approved: false,
+        planned_start: fmtDate(startDates[idx]),
+        planned_end: fmtDate(taskEndDates[idx]),
+        start_date: fmtDate(startDates[idx]),
+        end_date: fmtDate(taskEndDates[idx]),
       }));
-      // Wire dependencies by index
-      newTasks.forEach((original, idx) => {
-        mapped[idx].dependencies = original.dependencies
-          .map((depIndex: number) => mapped[depIndex]?.id)
-          .filter(Boolean);
-      });
+
       const { error } = await supabase.from('construction_tasks').insert(mapped);
       if (error) throw error;
       await loadProjectDetails(projectId);
