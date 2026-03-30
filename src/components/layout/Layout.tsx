@@ -301,7 +301,7 @@ export const Layout = () => {
     }
 
     return (
-        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter overflow-hidden">
+        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
             {/* Mobile Sidebar Backdrop */}
             {isMobileSidebarOpen && (
                 <div 
