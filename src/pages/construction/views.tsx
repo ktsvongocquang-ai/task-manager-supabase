@@ -310,9 +310,10 @@ export function EngineerDailyReport({ tasks, project }: { tasks: CTask[]; projec
   );
 }
 
-export function ClientCountdown({ project, milestones, dailyLogs, phases }: {
+export function ClientCountdown({ project, milestones, dailyLogs, phases, tasks }: {
   project: Project; milestones: Milestone[];
   dailyLogs?: import('./types').DailyLog[]; phases?: import('./types').ConstructionPhase[];
+  tasks?: import('./types').CTask[];
 }) {
   const daysLeft = Math.ceil((new Date(project.handoverDate).getTime() - Date.now()) / 86400000);
   const totalPaid = milestones.filter(m => m.paymentStatus === 'paid').reduce((s, m) => s + m.paymentAmount, 0);
@@ -369,55 +370,90 @@ export function ClientCountdown({ project, milestones, dailyLogs, phases }: {
         </div>
       </div>
 
-      {/* Milestones — EXPANDABLE with sub-tasks */}
+      {/* Mốc nghiệm thu — driven by REVIEW tasks from real data */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Mốc nghiệm thu</h3>
-        <div className="space-y-2">
-          {milestones.map(m => (
-            <div key={m.id}>
-              <div
-                onClick={() => setExpandedMs(expandedMs === m.id ? null : m.id)}
-                className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex items-center gap-3 cursor-pointer hover:border-indigo-300 transition-all"
-              >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.status === 'passed' ? 'bg-emerald-500' : m.status === 'pending_internal' ? 'bg-amber-100 border-2 border-amber-400' : 'bg-slate-100 border-2 border-slate-300'}`}>
-                  {m.status === 'passed' && <Check className="w-4 h-4 text-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-slate-700">{m.name}</p>
-                  <p className="text-[10px] text-slate-400">{m.status === 'passed' ? m.approvedDate : m.status === 'pending_internal' ? 'Đang kiểm tra...' : 'Sắp tới'}</p>
-                  {m.subTasks.length > 0 && <p className="text-[9px] text-indigo-400 mt-0.5">{m.subTasks.filter(s => s.status === 'done').length}/{m.subTasks.length} công việc</p>}
-                </div>
-                <span className={`text-xs font-bold ${m.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-400'}`}>{fmt(m.paymentAmount)}</span>
-                <ChevronRight className={`w-4 h-4 text-slate-300 transition-transform ${expandedMs === m.id ? 'rotate-90' : ''}`} />
+        {(() => {
+          // Real REVIEW tasks take priority over mock milestone data
+          const reviewTasks = (tasks || []).filter(t => t.status === 'REVIEW' || t.status === 'DONE');
+          const hasRealData = reviewTasks.length > 0;
+
+          if (!hasRealData && milestones.length === 0) {
+            return (
+              <div className="bg-white rounded-xl border border-dashed border-slate-200 p-6 text-center">
+                <p className="text-xs text-slate-400">Chưa có hạng mục nào chờ nghiệm thu</p>
               </div>
-              {/* Sub-tasks expansion */}
-              {expandedMs === m.id && m.subTasks.length > 0 && (
-                <div className="ml-5 mt-1 space-y-1 border-l-2 border-indigo-100 pl-4 py-2">
-                  {m.subTasks.map(st => (
-                    <div key={st.id} className="flex items-center gap-2 py-1.5">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[8px] ${st.status === 'done' ? 'bg-emerald-500 text-white' : st.status === 'doing' ? 'bg-amber-400 text-white animate-pulse' : 'bg-slate-200'}`}>
-                        {st.status === 'done' && '✓'}
+            );
+          }
+
+          const items = hasRealData ? reviewTasks : milestones.map(m => ({
+            id: m.id, name: m.name,
+            status: m.status === 'passed' ? 'DONE' : 'REVIEW',
+            checklist: m.subTasks.map((st: any) => ({ id: st.id, label: st.name, completed: st.status === 'done', required: false })),
+            budget: m.paymentAmount, progress: 0,
+          }));
+
+          return (
+            <div className="space-y-2">
+              {items.map((item: any) => {
+                const isDone = item.status === 'DONE';
+                const checklist = item.checklist || [];
+                const doneCount = checklist.filter((c: any) => c.completed).length;
+                const isExpanded = expandedMs === item.id;
+                return (
+                  <div key={item.id}>
+                    <div
+                      onClick={() => setExpandedMs(isExpanded ? null : item.id)}
+                      className={`bg-white rounded-xl border p-4 shadow-sm flex items-center gap-3 cursor-pointer transition-all ${isDone ? 'border-emerald-200 hover:border-emerald-300' : 'border-amber-200 hover:border-amber-300'}`}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isDone ? 'bg-emerald-500' : 'bg-amber-100 border-2 border-amber-400'}`}>
+                        {isDone
+                          ? <Check className="w-4 h-4 text-white" />
+                          : <span className="text-amber-500 text-xs font-black">!</span>
+                        }
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[11px] font-medium ${st.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{st.name}</p>
-                        {st.status === 'doing' && (
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-amber-400 rounded-full" style={{ width: `${st.progress}%` }} /></div>
-                            <span className="text-[9px] font-bold text-amber-600">{st.progress}%</span>
-                          </div>
+                        <p className="text-xs font-bold text-slate-700 truncate">{item.name}</p>
+                        <p className={`text-[10px] mt-0.5 font-medium ${isDone ? 'text-emerald-600' : 'text-amber-600'}`}>
+                          {isDone ? 'Đã nghiệm thu' : 'Chờ nghiệm thu'}
+                        </p>
+                        {checklist.length > 0 && (
+                          <p className="text-[9px] text-slate-400 mt-0.5">{doneCount}/{checklist.length} mục đã xác nhận</p>
                         )}
-                        {st.note && <p className="text-[9px] text-amber-500 mt-0.5">⚠ {st.note}</p>}
                       </div>
-                      {st.photos.length > 0 && (
-                        <span className="text-[9px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded font-bold">{st.photos.length} 📷</span>
+                      {checklist.length > 0 && (
+                        <ChevronRight className={`w-4 h-4 text-slate-300 transition-transform flex-none ${isExpanded ? 'rotate-90' : ''}`} />
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
+                    {/* Checklist expansion */}
+                    {isExpanded && checklist.length > 0 && (
+                      <div className="ml-5 mt-1 bg-white border border-slate-100 rounded-xl divide-y divide-slate-50 shadow-sm py-1">
+                        {checklist.map((c: any) => (
+                          <div key={c.id} className="flex items-center gap-3 px-4 py-2.5">
+                            <div className={`w-4 h-4 rounded flex items-center justify-center flex-none ${c.completed ? 'bg-emerald-500' : 'border-2 border-slate-300'}`}>
+                              {c.completed && <Check className="w-2.5 h-2.5 text-white" />}
+                            </div>
+                            <span className={`text-xs ${c.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>{c.label}</span>
+                          </div>
+                        ))}
+                        <div className="px-4 py-2">
+                          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                            <span>Tiến độ nghiệm thu</span>
+                            <span className="font-bold">{checklist.length > 0 ? Math.round(doneCount / checklist.length * 100) : 0}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-500 rounded-full transition-all"
+                              style={{ width: `${checklist.length > 0 ? Math.round(doneCount / checklist.length * 100) : 0}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
 
       {/* Construction Phases — Mini accordion */}

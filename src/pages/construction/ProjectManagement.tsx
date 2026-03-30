@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../services/supabase';
 import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
 import type { CTask, TaskStatus } from './types';
-import { Save, CheckSquare, AlertCircle, Printer, Share2, FileSpreadsheet, Download, Trash2, Plus } from 'lucide-react';
+import { Save, CheckSquare, AlertCircle, Share2, FileSpreadsheet, Download, Trash2, Plus } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -295,6 +295,7 @@ function TaskDetailPanel({
   const [localProgress, setLocalProgress] = useState(task.progress || 0);
   const [localStatus, setLocalStatus] = useState<TaskStatus>(task.status);
   const [saving, setSaving] = useState(false);
+  const [newItem, setNewItem] = useState('');
 
   useEffect(() => {
     setLocalProgress(task.progress || 0);
@@ -304,6 +305,23 @@ function TaskDetailPanel({
   const toggleChecklist = (itemId: string) => {
     if (readOnly) return;
     const updated = task.checklist.map(c => c.id === itemId ? { ...c, completed: !c.completed } : c);
+    const done = updated.filter(x => x.completed).length;
+    const prog = updated.length > 0 ? Math.round((done / updated.length) * 100) : localProgress;
+    setLocalProgress(prog);
+    onUpdate({ checklist: updated, progress: prog });
+  };
+
+  const addChecklistItem = () => {
+    const label = newItem.trim();
+    if (!label || readOnly) return;
+    const updated = [...(task.checklist || []), { id: `c-${Date.now()}`, label, completed: false, required: false }];
+    onUpdate({ checklist: updated });
+    setNewItem('');
+  };
+
+  const removeChecklistItem = (itemId: string) => {
+    if (readOnly) return;
+    const updated = task.checklist.filter(c => c.id !== itemId);
     const done = updated.filter(x => x.completed).length;
     const prog = updated.length > 0 ? Math.round((done / updated.length) * 100) : localProgress;
     setLocalProgress(prog);
@@ -359,24 +377,28 @@ function TaskDetailPanel({
               </span>
             )}
           </div>
-          {totalCount > 0 ? (
-            <div className="space-y-2">
-              {task.checklist.map(item => (
-                <label key={item.id} className={`flex items-start gap-2.5 ${readOnly ? '' : 'cursor-pointer'} group`}>
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => toggleChecklist(item.id)}
-                    disabled={readOnly}
-                    className="mt-0.5 w-4 h-4 accent-indigo-600 flex-none"
-                  />
-                  <span className={`text-xs leading-relaxed ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
-                    {item.label}
-                    {item.required && <span className="text-red-400 ml-1">*</span>}
-                  </span>
-                </label>
-              ))}
-              {totalCount > 0 && (
+          <div className="space-y-2">
+            {totalCount > 0 ? (
+              <>
+                {task.checklist.map(item => (
+                  <div key={item.id} className="flex items-start gap-2 group">
+                    <input
+                      type="checkbox"
+                      checked={item.completed}
+                      onChange={() => toggleChecklist(item.id)}
+                      disabled={readOnly}
+                      className="mt-0.5 w-4 h-4 accent-indigo-600 flex-none cursor-pointer"
+                    />
+                    <span className={`flex-1 text-xs leading-relaxed ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                      {item.label}
+                      {item.required && <span className="text-red-400 ml-1">*</span>}
+                    </span>
+                    {!readOnly && (
+                      <button onClick={() => removeChecklistItem(item.id)}
+                        className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 transition-all text-xs leading-none flex-none">✕</button>
+                    )}
+                  </div>
+                ))}
                 <div className="mt-3 pt-3 border-t border-slate-100">
                   <div className="flex justify-between text-[10px] text-slate-500 mb-1">
                     <span>Nghiệm thu</span>
@@ -387,11 +409,29 @@ function TaskDetailPanel({
                       style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }} />
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-400 italic">Chưa có checklist nghiệm thu.</p>
-          )}
+              </>
+            ) : (
+              <p className="text-xs text-slate-400 italic">Chưa có checklist nghiệm thu.</p>
+            )}
+            {!readOnly && (
+              <div className="flex gap-2 mt-2 pt-2 border-t border-dashed border-slate-200">
+                <input
+                  type="text"
+                  value={newItem}
+                  onChange={e => setNewItem(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addChecklistItem()}
+                  placeholder="+ Thêm mục nghiệm thu..."
+                  className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 placeholder-slate-400"
+                />
+                {newItem.trim() && (
+                  <button onClick={addChecklistItem}
+                    className="px-2.5 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    <Plus size={12} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Progress + Status */}

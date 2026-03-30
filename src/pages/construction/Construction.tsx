@@ -1531,7 +1531,7 @@ export const Construction = () => {
             )}
             {/* Homeowner Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'HOMEOWNER' && (
-              <ClientCountdown project={selectedProject} milestones={dbMilestones} dailyLogs={dailyLogs} phases={dbPhases} />
+              <ClientCountdown project={selectedProject} milestones={dbMilestones} dailyLogs={dailyLogs} phases={dbPhases} tasks={tasks} />
             )}
             {/* Kanban */}
             {activeTab === 'KANBAN' && <KanbanView tasks={filteredTasks} onTaskClick={openTask} onMoveTask={(taskId, newStatus) => {
