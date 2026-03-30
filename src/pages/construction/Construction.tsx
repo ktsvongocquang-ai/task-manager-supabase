@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, PaymentRecord, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
-import { PROJECTS, TASKS, APPROVALS, MILESTONES, SUBCONTRACTORS, NOTIFICATIONS, FINANCE, ATTENDANCE, DAILY_LOGS, PAYMENT_RECORDS, CONSTRUCTION_PHASES } from './mockData';
+import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from './mockData';
 import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabasePaymentRecord, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
@@ -1141,48 +1141,45 @@ export const Construction = () => {
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
 
-  // ── Derived Supabase data (with mock fallback) ──
+  // ── Derived Supabase data (project-specific: no mock fallback) ──
   const dbProjects: Project[] = db.projects.length > 0 ? db.projects.map(mapProject) : PROJECTS;
-  const dbMilestones: Milestone[] = db.milestones.length > 0 ? db.milestones.map(mapMilestone) : MILESTONES;
-  const dbApprovals: Approval[] = db.approvals.length > 0 ? db.approvals.map(mapApproval) : APPROVALS;
+  const dbMilestones: Milestone[] = db.milestones.map(mapMilestone);
+  const dbApprovals: Approval[] = db.approvals.map(mapApproval);
   const dbNotifications: Notification[] = db.notifications.length > 0 ? db.notifications.map(mapNotification) : NOTIFICATIONS;
-  const dbPayments: PaymentRecord[] = db.paymentRecords.length > 0 ? db.paymentRecords.map(mapPayment) : PAYMENT_RECORDS;
-  const dbSubs: Subcontractor[] = db.subcontractors.length > 0 ? db.subcontractors.map(mapSubcontractor) : SUBCONTRACTORS;
-  const dbPhases: ConstructionPhase[] = db.phases.length > 0
-    ? db.phases.map(p => ({ id: p.id, name: p.name, status: p.status as 'done' | 'doing' | 'upcoming', order: p.sort_order, startDate: p.start_date || undefined, endDate: p.end_date || undefined, note: p.note }))
-    : CONSTRUCTION_PHASES;
+  const dbPayments: PaymentRecord[] = db.paymentRecords.map(mapPayment);
+  const dbSubs: Subcontractor[] = db.subcontractors.map(mapSubcontractor);
+  const dbPhases: ConstructionPhase[] = db.phases.map(p => ({ id: p.id, name: p.name, status: p.status as 'done' | 'doing' | 'upcoming', order: p.sort_order, startDate: p.start_date || undefined, endDate: p.end_date || undefined, note: p.note }));
   const dbAttendance: AttendanceData = db.attendance.length > 0
     ? db.getAttendanceSummary(selectedProject.id)
-    : (ATTENDANCE[selectedProject.id] || ATTENDANCE['1']);
+    : { thisWeek: { main: 0, helper: 0 }, thisMonth: { main: 0, helper: 0 }, dailyRate: { main: 0, helper: 0 } };
   const dbFinance: FinanceData = db.projects.length > 0 ? db.getFinanceData() : FINANCE;
 
-  // ── Sync Supabase tasks → local CTask[] ──
+  // ── Sync Supabase tasks → local CTask[] (always sync, even empty) ──
   useEffect(() => {
-    if (db.tasks.length > 0) {
-      setTasks(db.tasks.map(t => ({
-        id: t.id, name: t.name, category: t.category, status: t.status as TaskStatus,
-        subcontractor: t.subcontractor || '', days: t.days, budget: t.budget, spent: t.spent,
-        approved: t.approved, dependencies: t.dependencies || [], tags: t.tags || [],
-        issues: t.issues || [], checklist: t.checklist || [], progress: t.progress,
-        startDate: t.start_date || t.planned_start,
-        endDate: t.end_date || t.planned_end,
-        plannedStart: t.planned_start || t.start_date,
-        plannedEnd: t.planned_end || t.end_date,
-        duration: t.duration || t.days || 1,
-      })));
-    }
+    setTasks(db.tasks.map(t => ({
+      id: t.id, name: t.name, category: t.category, status: t.status as TaskStatus,
+      subcontractor: t.subcontractor || '', days: t.days, budget: t.budget, spent: t.spent,
+      approved: t.approved, dependencies: t.dependencies || [], tags: t.tags || [],
+      issues: t.issues || [], checklist: t.checklist || [], progress: t.progress,
+      startDate: t.start_date || t.planned_start,
+      endDate: t.end_date || t.planned_end,
+      plannedStart: t.planned_start || t.start_date,
+      plannedEnd: t.planned_end || t.end_date,
+      duration: t.duration || t.days || 1,
+    })));
   }, [db.tasks]);
 
-  // ── Sync Supabase logs → local DailyLog[] ──
+  // ── Sync Supabase logs → local DailyLog[] (always sync, even empty) ──
   useEffect(() => {
-    if (db.logs.length > 0) {
-      setDailyLogs(db.logs.map(mapDailyLog));
-    }
+    setDailyLogs(db.logs.map(mapDailyLog));
   }, [db.logs]);
 
   // ── Load project details when project changes ──
   useEffect(() => {
     if (selectedProject?.id && !selectedProject.id.match(/^[1-4]$/)) {
+      // Clear previous project data immediately for clean state
+      setTasks([]);
+      setDailyLogs([]);
       db.loadProjectDetails(selectedProject.id);
     }
   }, [selectedProject?.id]);
