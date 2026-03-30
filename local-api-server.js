@@ -81,9 +81,9 @@ Trả về JSON với cấu trúc:
   "tasks": [{ "name": "", "category": "PHẦN THÔ|ĐIỆN NƯỚC|HOÀN THIỆN|KHÁC", "budget": 0, "days": 0, "startDate": "YYYY-MM-DD", "dependencies": [], "checklist": [""] }]
 }
 Lưu ý quan trọng:
-- Mỗi task PHẢI có "startDate" chính xác (ngày bắt đầu) nếu có trong file.
-- Nếu file hiển thị cột THỜI GIAN bắt đầu, dùng ngày đó.
-- Nếu không tìm thấy, tính dựa theo dependencies và ngày khởi công.
+- Mỗi task PHẢI có "startDate" chính xác (ngày bắt đầu thi công) nếu có trong file. Đặc biệt ở các cột như "THỜI GIAN", "NGÀY BẮT ĐẦU", nơi có định dạng như "dd/MM/yyyy - dd/MM/yyyy", hãy bóc tách ngày đầu tiên và chuyển sang định dạng "YYYY-MM-DD" để lưu vào "startDate".
+- "days" là tổng số ngày thi công (có thể được ghi rõ ở cột NGÀY hoặc THỜI GIAN).
+- Nếu không tìm thấy, tính dựa theo dependencies và ngày khởi công của dự án.
 Nếu không tìm thấy thông tin nào, hãy điền giá trị hợp lý dựa trên ngữ cảnh.`;
 
             const response = await model.generateContent({

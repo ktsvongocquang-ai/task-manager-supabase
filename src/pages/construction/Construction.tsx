@@ -863,6 +863,13 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                                     ngày
                                   </label>
                                   <label className="flex items-center gap-1 text-xs text-slate-500">
+                                    Chi phí:
+                                    <input type="number" min={0} value={task.budget || 0}
+                                      onChange={e => updateTask(idx, 'budget', parseInt(e.target.value) || 0)}
+                                      className="w-24 px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg text-right focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white" />
+                                    đ
+                                  </label>
+                                  <label className="flex items-center gap-1 text-xs text-slate-500">
                                     Bắt đầu:
                                     <input type="date" value={task.startDate || ''}
                                       onChange={e => updateTask(idx, 'startDate', e.target.value)}
@@ -897,12 +904,33 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
 
                 {/* Footer */}
                 <div className="px-4 py-3 border-t border-slate-100 bg-slate-50 space-y-2">
-                  {selectedIdx.size > 0 && (
-                    <div className="flex gap-3 text-xs text-slate-500 justify-between px-1">
-                      <span>Tổng thời gian: <strong className="text-slate-700">{editedTasks.filter((_, i) => selectedIdx.has(i)).reduce((a, t) => a + (t.days || 0), 0)} ngày</strong></span>
-                      <span>Đã chọn: <strong className="text-slate-700">{selectedIdx.size} hạng mục</strong></span>
-                    </div>
-                  )}
+                  {selectedIdx.size > 0 && (() => {
+                    const selectedTasks = editedTasks.filter((_, i) => selectedIdx.has(i));
+                    const totalCost = selectedTasks.reduce((a, t) => a + (t.budget || 0), 0);
+                    // Calculate true project duration
+                    let minDate = new Date(8640000000000000);
+                    let maxDate = new Date(-8640000000000000);
+                    let hasDates = false;
+                    selectedTasks.forEach(t => {
+                      if (t.startDate) {
+                        hasDates = true;
+                        const sd = new Date(t.startDate);
+                        if (!isNaN(sd.getTime())) {
+                          if (sd < minDate) minDate = sd;
+                          const ed = new Date(sd.getTime() + (Math.max(0, t.days - 1)) * 86400000);
+                          if (ed > maxDate) maxDate = ed;
+                        }
+                      }
+                    });
+                    const diffDays = hasDates ? Math.max(1, Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24)) + 1) : 0;
+                    
+                    return (
+                      <div className="flex gap-3 text-xs text-slate-500 justify-between px-1">
+                        <span>Tổng thời gian: <strong className="text-slate-700">{hasDates ? diffDays : selectedTasks.reduce((a, t) => a + (t.days || 0), 0)} ngày</strong></span>
+                        <span>Tổng chi phí: <strong className="text-slate-700">{totalCost.toLocaleString('vi-VN')} đ</strong></span>
+                      </div>
+                    );
+                  })()}
                   {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
                   <div className="flex gap-2">
                     <button onClick={() => setStep('upload')} className="px-4 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-white">
