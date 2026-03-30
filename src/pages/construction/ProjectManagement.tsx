@@ -482,8 +482,15 @@ export function ProjectManagementAIModule({
   const [isEditingMode, setIsEditingMode] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
 
-  // If externalTasks provided, use them (sync from parent)
-  const tasks: CTask[] = externalTasks && externalTasks.length > 0
+  // When entering edit mode, snapshot the external tasks to local state
+  useEffect(() => {
+    if (isEditingMode && externalTasks && externalTasks.length > 0) {
+      setLocalTasks(externalTasks.filter(t => t.plannedStart || t.startDate));
+    }
+  }, [isEditingMode]);
+
+  // If externalTasks provided, use them (sync from parent) ONLY if not editing
+  const tasks: CTask[] = (externalTasks && externalTasks.length > 0 && !isEditingMode)
     ? externalTasks.filter(t => t.plannedStart || t.startDate) // only tasks with dates
     : localTasks;
 
@@ -529,7 +536,9 @@ export function ProjectManagementAIModule({
 
   const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
     setLocalTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-    if (onUpdateTask) onUpdateTask(id, updates);
+    // During Edit Mode, changes are kept purely local to avoid lag/jumping focus.
+    // They are saved in bulk when hitting 'Lưu Lịch Hình'.
+    if (!isEditingMode && onUpdateTask) onUpdateTask(id, updates);
   };
 
   const handleDeleteTask = async (id: string) => {
@@ -577,9 +586,16 @@ export function ProjectManagementAIModule({
     }));
     const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
     setSaving(false);
-    if (!error) setIsEditingMode(false);
-    setSaveMsg(error ? '⚠ Lỗi lưu' : `✓ Đã lưu ${tasks.length} hạng mục`);
-    setTimeout(() => setSaveMsg(''), 3000);
+    
+    if (!error) {
+      setIsEditingMode(false);
+      setSaveMsg(`✓ Đã lưu ${upserts.length} hạng mục`);
+      // Force reload to sync upstream data correctly
+      setTimeout(() => window.location.reload(), 600);
+    } else {
+      setSaveMsg('⚠ Lỗi lưu');
+      setTimeout(() => setSaveMsg(''), 3000);
+    }
   };
 
   const handleExportPDF = async () => {
