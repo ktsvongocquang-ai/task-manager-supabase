@@ -9,19 +9,16 @@ export default async function handler(req, res) {
 
     const { action, payload } = req.body;
 
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+    // Support both VITE_ prefixed (Vercel) and plain env vars
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceKey) {
         return res.status(500).json({ error: 'Missing Supabase Admin credentials on the server.' });
     }
 
-    // Initialize the Supabase client with the Service Role key
     const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
+        auth: { autoRefreshToken: false, persistSession: false }
     });
 
     try {
@@ -45,12 +42,12 @@ export default async function handler(req, res) {
                 return res.status(400).json({ error: 'Missing email or password' });
             }
 
-            const { data, error } = await supabaseAdmin.auth.signUp({
+            // Use admin.createUser to bypass email confirmation
+            const { data, error } = await supabaseAdmin.auth.admin.createUser({
                 email,
                 password,
-                options: {
-                    data: { full_name }
-                }
+                email_confirm: true,
+                user_metadata: { full_name }
             });
 
             if (error) throw error;

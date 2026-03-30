@@ -4,8 +4,9 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Share2, Building2
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, PaymentRecord, WeatherType } from './types';
@@ -590,26 +591,110 @@ function ProgressTimeline({ tasks }: { tasks: CTask[] }) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// IMPORT QUOTATION MODAL
+// IMPORT QUOTATION MODAL — PDF / Excel / Text → AI Timeline
 // ═══════════════════════════════════════════════════════════
 
-function ImportQuotationModal({ isOpen, onClose, onGenerate, projectId }: {
+type ImportMode = 'add_to_project' | 'create_project';
+
+interface ExtractedProjectInfo {
+  name: string; ownerName: string; address: string;
+  contractValue: number; budget: number; startDate: string; handoverDate: string;
+}
+
+function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: {
   isOpen: boolean; onClose: () => void;
   onGenerate: (tasks: any[]) => Promise<void>;
-  projectId: string;
+  onCreateProject: (info: ExtractedProjectInfo, tasks: any[]) => Promise<void>;
 }) {
+  const [mode, setMode] = useState<ImportMode>('add_to_project');
   const [text, setText] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [fileBase64, setFileBase64] = useState('');
+  const [fileMime, setFileMime] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
+  const [step, setStep] = useState<'upload' | 'confirm'>('upload');
+  const [extractedTasks, setExtractedTasks] = useState<any[]>([]);
+  const [extractedInfo, setExtractedInfo] = useState<ExtractedProjectInfo>({ name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '' });
   const fileRef = React.useRef<HTMLInputElement>(null);
 
+  const reset = () => { setText(''); setFileName(''); setFileBase64(''); setFileMime(''); setError(''); setStep('upload'); setExtractedTasks([]); };
+
+  const handleFileRead = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setFileName(file.name);
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+    if (ext === 'pdf') {
+      // Read as base64 for Gemini multimodal
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const result = ev.target?.result as string;
+        const base64 = result.split(',')[1];
+        setFileBase64(base64);
+        setFileMime('application/pdf');
+        setText('');
+      };
+      reader.readAsDataURL(file);
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      // Use SheetJS to extract text
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const { read, utils } = await import('xlsx');
+          const wb = read(ev.target?.result, { type: 'array' });
+          const lines: string[] = [];
+          wb.SheetNames.forEach(name => {
+            const ws = wb.Sheets[name];
+            const csv = utils.sheet_to_csv(ws);
+            if (csv.trim()) lines.push(`[Sheet: ${name}]\n${csv}`);
+          });
+          setText(lines.join('\n\n'));
+          setFileBase64(''); setFileMime('');
+        } catch {
+          setError('Không đọc được file Excel. Thử lưu lại dạng .xlsx');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Plain text / CSV
+      const reader = new FileReader();
+      reader.onload = ev => { setText(ev.target?.result as string || ''); setFileBase64(''); setFileMime(''); };
+      reader.readAsText(file);
+    }
+  };
+
   const handleAnalyze = async () => {
-    if (!text.trim()) { setError('Vui lòng nhập nội dung báo giá'); return; }
+    if (!text.trim() && !fileBase64) { setError('Vui lòng chọn file hoặc nhập nội dung'); return; }
     setIsAnalyzing(true); setError('');
     try {
-      const tasks = await aiConstructionService.generateTimelineFromQuotation(text);
-      await onGenerate(tasks);
-      onClose();
+      let tasks: any[] = [];
+      let info: ExtractedProjectInfo = { name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '' };
+
+      if (fileBase64 && fileMime) {
+        // PDF multimodal via Gemini
+        const result = await aiConstructionService.analyzeFileMultimodal(fileBase64, fileMime);
+        tasks = result.tasks;
+        info = result.projectInfo;
+      } else {
+        // Text-based
+        tasks = await aiConstructionService.generateTimelineFromQuotation(text);
+        if (mode === 'create_project') {
+          info = await aiConstructionService.extractProjectInfo(text);
+        }
+      }
+
+      setExtractedTasks(tasks);
+      setExtractedInfo(info);
+
+      if (mode === 'create_project') {
+        setStep('confirm');
+      } else {
+        await onGenerate(tasks);
+        reset(); onClose();
+      }
     } catch (e: any) {
       setError(e?.message || 'AI phân tích thất bại. Kiểm tra API key.');
     } finally {
@@ -617,38 +702,273 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, projectId }: {
     }
   };
 
-  const handleFileRead = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => { if (ev.target?.result) setText(ev.target.result as string); };
-    reader.readAsText(file);
-    e.target.value = '';
+  const handleConfirmCreate = async () => {
+    setIsAnalyzing(true); setError('');
+    try {
+      await onCreateProject(extractedInfo, extractedTasks);
+      reset(); onClose();
+    } catch (e: any) {
+      setError(e?.message || 'Lỗi khi tạo dự án');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const fileTypeLabel = fileMime === 'application/pdf' ? '📄 PDF' : fileName.includes('.xl') ? '📊 Excel' : fileName ? '📝 Text' : '';
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-lg bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-4 flex justify-between items-center border-b border-slate-100">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <FileSpreadsheet className="w-5 h-5 text-indigo-500" />
+                {step === 'confirm' ? 'Xác nhận tạo dự án' : 'Nhập Báo Giá → AI Timeline'}
+              </h3>
+              <button onClick={() => { reset(); onClose(); }} className="p-2 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+
+            {step === 'upload' ? (
+              <div className="p-5 space-y-4">
+                {/* Mode selector */}
+                <div className="flex bg-slate-100 p-1 rounded-xl">
+                  {([['add_to_project', 'Thêm vào dự án hiện tại'], ['create_project', 'Tạo dự án mới']] as [ImportMode, string][]).map(([m, label]) => (
+                    <button key={m} onClick={() => setMode(m)} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${mode === m ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>{label}</button>
+                  ))}
+                </div>
+
+                {/* File drop zone */}
+                <div className="bg-slate-50 rounded-2xl p-4 border-2 border-dashed border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer text-center" onClick={() => fileRef.current?.click()}>
+                  {fileName ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-sm font-bold text-indigo-600">{fileTypeLabel} {fileName}</span>
+                      <button onClick={e => { e.stopPropagation(); reset(); }} className="text-slate-400 hover:text-rose-500"><X className="w-4 h-4" /></button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-xs text-slate-500 font-bold">Kéo thả hoặc click chọn file</p>
+                      <p className="text-[11px] text-slate-400 mt-1">Hỗ trợ: PDF • Excel (.xlsx) • Text • CSV</p>
+                    </>
+                  )}
+                  <input ref={fileRef} type="file" accept=".txt,.csv,.pdf,.xlsx,.xls" onChange={handleFileRead} className="hidden" />
+                </div>
+
+                {/* Text paste (only when no file) */}
+                {!fileBase64 && (
+                  <div className="bg-indigo-50 rounded-xl p-3 border border-indigo-100">
+                    <p className="text-[11px] text-indigo-700 font-medium mb-2">💡 Hoặc paste nội dung trực tiếp:</p>
+                    <textarea value={text} onChange={e => { setText(e.target.value); setFileName(''); }} placeholder={'VD: Móng cọc ép: 150tr, 5 ngày\nXây tường trệt: 120tr, 7 ngày\nMEP: 180tr, 8 ngày...'} rows={5} className="w-full px-3 py-2 text-sm border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white resize-none" />
+                  </div>
+                )}
+
+                {fileBase64 && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <p className="text-xs text-emerald-700 font-medium">PDF đã tải — Gemini sẽ đọc trực tiếp bằng AI multimodal</p>
+                  </div>
+                )}
+
+                {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
+
+                <div className="flex gap-3">
+                  <button onClick={handleAnalyze} disabled={isAnalyzing || (!text.trim() && !fileBase64)} className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isAnalyzing ? <><Bot className="w-4 h-4 animate-pulse" /> Đang phân tích AI...</> : <><Bot className="w-4 h-4" /> Phân Tích AI</>}
+                  </button>
+                  <button onClick={() => { reset(); onClose(); }} className="px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50">Hủy</button>
+                </div>
+              </div>
+            ) : (
+              /* Confirm step — edit extracted project info */
+              <div className="p-5 space-y-3 max-h-[75vh] overflow-y-auto">
+                <p className="text-xs text-slate-500 font-medium">AI đã trích xuất thông tin dự án. Kiểm tra và chỉnh sửa trước khi tạo:</p>
+                {[
+                  { label: 'Tên dự án', key: 'name', type: 'text' },
+                  { label: 'Chủ nhà', key: 'ownerName', type: 'text' },
+                  { label: 'Địa chỉ', key: 'address', type: 'text' },
+                  { label: 'Giá trị HĐ (đ)', key: 'contractValue', type: 'number' },
+                  { label: 'Ngân sách (đ)', key: 'budget', type: 'number' },
+                  { label: 'Ngày khởi công', key: 'startDate', type: 'date' },
+                  { label: 'Ngày bàn giao', key: 'handoverDate', type: 'date' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="text-[11px] font-bold text-slate-400 uppercase">{f.label}</label>
+                    <input type={f.type} value={(extractedInfo as any)[f.key] || ''}
+                      onChange={e => setExtractedInfo(i => ({ ...i, [f.key]: f.type === 'number' ? parseInt(e.target.value) || 0 : e.target.value }))}
+                      className="mt-0.5 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                  </div>
+                ))}
+                <div className="bg-indigo-50 rounded-xl px-3 py-2 border border-indigo-100">
+                  <p className="text-[11px] text-indigo-700 font-bold">{extractedTasks.length} hạng mục công việc sẽ được tạo tự động</p>
+                </div>
+                {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
+                <div className="flex gap-3 pt-1">
+                  <button onClick={handleConfirmCreate} disabled={isAnalyzing} className="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isAnalyzing ? 'Đang tạo...' : <><Building2 className="w-4 h-4" /> Tạo Dự Án</>}
+                  </button>
+                  <button onClick={() => setStep('upload')} className="px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50">Sửa lại</button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// SHARE QR MODAL — Khách hàng quét để xem giao diện Chủ nhà
+// ═══════════════════════════════════════════════════════════
+
+function ShareQRModal({ isOpen, onClose, project }: { isOpen: boolean; onClose: () => void; project: Project }) {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = `${window.location.origin}/construction?project=${project.id}&role=homeowner`;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm flex items-center justify-center p-6">
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-md bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
-            <div className="p-4 flex justify-between items-center border-b border-slate-100">
-              <h3 className="font-bold text-slate-800 flex items-center gap-2"><FileSpreadsheet className="w-5 h-5 text-indigo-500" /> Nhập Báo Giá → AI Tạo Timeline</h3>
-              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5 text-slate-400" /></button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }} className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <QrCode className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Chia sẻ cho Chủ nhà</p>
+                  <p className="text-[11px] text-slate-400">{project.name}</p>
+                </div>
+              </div>
+              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400">
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="bg-slate-50 rounded-2xl p-4 border-2 border-dashed border-slate-200 hover:border-indigo-300 transition-colors cursor-pointer text-center" onClick={() => fileRef.current?.click()}>
-                <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <span className="text-xs text-slate-400 font-bold">Click để chọn file text/CSV</span>
-                <input ref={fileRef} type="file" accept=".txt,.csv" onChange={handleFileRead} className="hidden" />
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center gap-4 px-5 py-6">
+              <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
+                <QRCodeSVG value={shareUrl} size={200} level="M" includeMargin={false}
+                  imageSettings={{ src: '/pwa-192x192.png', x: undefined, y: undefined, height: 36, width: 36, excavate: true }} />
               </div>
-              <div className="bg-indigo-50 rounded-xl p-3 border border-indigo-100">
-                <p className="text-[11px] text-indigo-700 font-medium mb-2">💡 Paste nội dung báo giá / hợp đồng:</p>
-                <textarea value={text} onChange={e => setText(e.target.value)} placeholder="VD: Móng cọc ép: 150tr, 5 ngày&#10;Xây tường trệt: 120tr, 7 ngày&#10;MEP: 180tr, 8 ngày..." rows={6} className="w-full px-3 py-2 text-sm border border-indigo-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white resize-none" />
+              <div className="text-center space-y-1">
+                <p className="text-xs font-bold text-slate-700">Chủ nhà quét để xem tiến độ công trình</p>
+                <p className="text-[11px] text-slate-400">Giao diện chỉ xem — Nhật ký • Tiến độ • Thanh toán</p>
               </div>
+
+              {/* Owner info */}
+              <div className="w-full bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+                  <Users className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-700 truncate">{project.ownerName || 'Chủ nhà'}</p>
+                  <p className="text-[11px] text-slate-400 truncate">{project.address}</p>
+                </div>
+              </div>
+
+              {/* Link copy */}
+              <div className="w-full flex gap-2">
+                <div className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 truncate font-mono">
+                  {shareUrl.replace('https://', '')}
+                </div>
+                <button onClick={copyLink} className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white hover:bg-slate-700'}`}>
+                  {copied ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                </button>
+              </div>
+
+              <button onClick={() => window.open(shareUrl, '_blank')} className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all">
+                <ExternalLink className="w-3.5 h-3.5" /> Xem thử giao diện Chủ nhà
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// CREATE PROJECT MODAL — Tạo dự án mới
+// ═══════════════════════════════════════════════════════════
+
+function CreateProjectModal({ isOpen, onClose, onCreate }: {
+  isOpen: boolean; onClose: () => void;
+  onCreate: (data: Partial<Project>) => Promise<void>;
+}) {
+  const [form, setForm] = useState({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async () => {
+    if (!form.name.trim() || !form.ownerName.trim()) { setError('Cần điền tên dự án và chủ nhà'); return; }
+    setSaving(true);
+    setError('');
+    try {
+      await onCreate({
+        name: form.name.trim(), address: form.address.trim(),
+        ownerName: form.ownerName.trim(), startDate: form.startDate,
+        handoverDate: form.handoverDate,
+        contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
+        budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
+        status: 'in_progress', progress: 0, spent: 0, budgetSpent: 0,
+        riskLevel: 'green', unexpectedCosts: 0, totalDocuments: 0, daysOff: 0, totalDiaryEntries: 0,
+      });
+      setForm({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '' });
+      onClose();
+    } catch (e: any) { setError(e.message || 'Lỗi khi tạo dự án'); }
+    finally { setSaving(false); }
+  };
+
+  const fields = [
+    { label: 'Tên dự án *', key: 'name', placeholder: 'VD: Nhà cô Lan - Q.7', type: 'text' },
+    { label: 'Địa chỉ', key: 'address', placeholder: '123 Đường số 4, P. Tân Phong, Q7', type: 'text' },
+    { label: 'Chủ nhà *', key: 'ownerName', placeholder: 'Nguyễn Thị Lan', type: 'text' },
+    { label: 'Ngày khởi công', key: 'startDate', placeholder: '', type: 'date' },
+    { label: 'Ngày bàn giao', key: 'handoverDate', placeholder: '', type: 'date' },
+    { label: 'Giá trị hợp đồng (đ)', key: 'contractValue', placeholder: '2800000000', type: 'text' },
+    { label: 'Ngân sách (đ)', key: 'budget', placeholder: '1700000000', type: 'text' },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <Building2 className="w-4 h-4 text-emerald-600" />
+                </div>
+                <p className="text-sm font-bold text-slate-800">Tạo Dự Án Mới</p>
+              </div>
+              <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+              {fields.map(f => (
+                <div key={f.key}>
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{f.label}</label>
+                  <input type={f.type} value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
+                    className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-200" />
+                </div>
+              ))}
               {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
-              <div className="flex gap-3">
-                <button onClick={handleAnalyze} disabled={isAnalyzing || !text.trim()} className="flex-1 bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                  {isAnalyzing ? <><Bot className="w-4 h-4 animate-pulse" /> Đang phân tích...</> : <><Bot className="w-4 h-4" /> Phân Tích AI</>}
+              <div className="flex gap-3 pt-2">
+                <button onClick={handleSubmit} disabled={saving} className="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {saving ? 'Đang tạo...' : <><Plus className="w-4 h-4" /> Tạo Dự Án</>}
                 </button>
                 <button onClick={onClose} className="px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50">Hủy</button>
               </div>
@@ -675,6 +995,8 @@ export const Construction = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
+  const [isShareQROpen, setIsShareQROpen] = useState(false);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
@@ -726,11 +1048,27 @@ export const Construction = () => {
   // ── Sync selected project from db when projects load ──
   useEffect(() => {
     if (db.projects.length > 0 && selectedProject.id.match(/^[1-4]$/)) {
-      const first = mapProject(db.projects[0]);
-      setSelectedProject(first);
-      db.loadProjectDetails(db.projects[0].id);
+      // Check if there's a URL param for a specific project
+      const params = new URLSearchParams(window.location.search);
+      const urlProjectId = params.get('project');
+      const target = urlProjectId
+        ? db.projects.find(p => p.id === urlProjectId) || db.projects[0]
+        : db.projects[0];
+      const mapped = mapProject(target);
+      setSelectedProject(mapped);
+      db.loadProjectDetails(target.id);
     }
   }, [db.projects.length]);
+
+  // ── Read URL params on mount: ?project=UUID&role=homeowner ──
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role');
+    if (role === 'homeowner') {
+      setUserRole('HOMEOWNER');
+      setActiveTab('DASHBOARD');
+    }
+  }, []);
 
   const handleAddDailyLog = useCallback(async (log: DailyLog) => {
     // Try to save to Supabase
@@ -854,8 +1192,9 @@ export const Construction = () => {
         <div className="flex items-center gap-3 flex-wrap">
           {userRole === 'MANAGER' && (
             <div className="flex gap-2">
+              <button onClick={() => setIsShareQROpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all h-[38px]"><QrCode className="w-4 h-4 text-emerald-600" /> Chia sẻ QR</button>
               <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[38px]"><FileSpreadsheet className="w-4 h-4" /> AI Tiến Độ</button>
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all h-[38px]"><Plus className="w-4 h-4" /> Tạo Dự Án</button>
+              <button onClick={() => setIsCreateProjectOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all h-[38px]"><Plus className="w-4 h-4" /> Tạo Dự Án</button>
             </div>
           )}
           {userRole !== 'HOMEOWNER' && (
@@ -971,14 +1310,56 @@ export const Construction = () => {
       </div>
 
       <TaskDetailDrawer task={selectedTask} isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} onUpdate={handleUpdateTask} userRole={userRole} />
+
+      <ShareQRModal isOpen={isShareQROpen} onClose={() => setIsShareQROpen(false)} project={selectedProject} />
+
+      <CreateProjectModal
+        isOpen={isCreateProjectOpen}
+        onClose={() => setIsCreateProjectOpen(false)}
+        onCreate={async (data) => {
+          const newId = await db.createProject({
+            name: data.name, address: data.address,
+            owner_name: data.ownerName, engineer_name: '',
+            start_date: data.startDate, handover_date: data.handoverDate,
+            contract_value: data.contractValue, budget: data.budget,
+            spent: 0, budget_spent: 0, progress: 0, status: 'in_progress',
+            risk_level: 'green', unexpected_costs: 0, total_documents: 0,
+            days_off: 0, total_diary_entries: 0,
+          } as any);
+          if (newId) {
+            showToast(`Đã tạo dự án "${data.name}"`, 'success');
+            db.loadProjects();
+          } else {
+            throw new Error('Lỗi khi tạo dự án vào CSDL');
+          }
+        }}
+      />
+
       <ImportQuotationModal
         isOpen={isQuotationModalOpen}
         onClose={() => setIsQuotationModalOpen(false)}
-        projectId={selectedProject.id}
         onGenerate={async (generatedTasks) => {
           const ok = await db.createTimelineTasks(selectedProject.id, generatedTasks);
           if (ok) { showToast(`Đã tạo ${generatedTasks.length} hạng mục từ AI`, 'success'); setActiveTab('KANBAN'); }
           else showToast('Lỗi khi lưu timeline vào CSDL', 'error');
+        }}
+        onCreateProject={async (info, tasks) => {
+          const newId = await db.createProject({
+            name: info.name, address: info.address,
+            owner_name: info.ownerName, engineer_name: '',
+            start_date: info.startDate, handover_date: info.handoverDate,
+            contract_value: info.contractValue, budget: info.budget,
+            spent: 0, budget_spent: 0, progress: 0, status: 'in_progress',
+            risk_level: 'green', unexpected_costs: 0, total_documents: 0,
+            days_off: 0, total_diary_entries: 0,
+          } as any);
+          if (!newId) throw new Error('Lỗi khi tạo dự án');
+          const ok = await db.createTimelineTasks(newId, tasks);
+          if (ok) {
+            await db.loadProjects();
+            showToast(`Đã tạo dự án "${info.name}" với ${tasks.length} hạng mục`, 'success');
+            setActiveTab('KANBAN');
+          }
         }}
       />
 

@@ -115,5 +115,74 @@ Trả về MỘT MẢNG JSON hợp quy chuẩn với cấu trúc:
         console.error("AI Analysis failed:", e);
         return [];
     }
+  },
+
+  /**
+   * Phân tích file PDF (base64) hoặc ảnh bằng Gemini multimodal
+   * Trả về tasks + thông tin dự án
+   */
+  async analyzeFileMultimodal(base64Data: string, mimeType: string): Promise<{
+    tasks: GeneratedTask[];
+    projectInfo: { name: string; ownerName: string; address: string; contractValue: number; budget: number; startDate: string; handoverDate: string; };
+  }> {
+    const prompt = `Bạn là Kỹ sư trưởng Xây dựng. Đây là file báo giá/hợp đồng xây dựng.
+Hãy phân tích và trích xuất:
+1. Thông tin dự án: Tên công trình, Chủ nhà, Địa chỉ, Giá trị hợp đồng, Ngân sách, Ngày khởi công, Ngày bàn giao.
+2. Danh sách công việc thi công: mỗi hạng mục gồm tên, loại, chi phí, thời gian, checklist nghiệm thu.
+
+Trả về JSON với cấu trúc:
+{
+  "projectInfo": {
+    "name": "Tên công trình",
+    "ownerName": "Tên chủ nhà",
+    "address": "Địa chỉ",
+    "contractValue": 0,
+    "budget": 0,
+    "startDate": "YYYY-MM-DD",
+    "handoverDate": "YYYY-MM-DD"
+  },
+  "tasks": [
+    {
+      "name": "string",
+      "category": "PHẦN THÔ|ĐIỆN NƯỚC|HOÀN THIỆN|KHÁC",
+      "budget": 0,
+      "days": 0,
+      "dependencies": [],
+      "checklist": ["string"]
+    }
+  ]
+}
+Nếu không tìm thấy thông tin nào, hãy điền giá trị hợp lý dựa trên ngữ cảnh.`;
+
+    const response = await getAI().models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        { parts: [
+          { inlineData: { mimeType, data: base64Data } },
+          { text: prompt }
+        ]}
+      ],
+      config: { responseMimeType: 'application/json' }
+    });
+
+    const raw = JSON.parse(response.text || '{}');
+    return {
+      tasks: raw.tasks || [],
+      projectInfo: raw.projectInfo || { name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '' }
+    };
+  },
+
+  /**
+   * Trích xuất thông tin dự án từ text thuần
+   */
+  async extractProjectInfo(text: string): Promise<{
+    name: string; ownerName: string; address: string; contractValue: number; budget: number; startDate: string; handoverDate: string;
+  }> {
+    const response = await getAI().models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Từ nội dung báo giá/hợp đồng này, trích xuất thông tin dự án:\n---\n${text.slice(0, 3000)}\n---\nTrả về JSON: { "name": "", "ownerName": "", "address": "", "contractValue": 0, "budget": 0, "startDate": "YYYY-MM-DD", "handoverDate": "YYYY-MM-DD" }. Nếu không rõ, hãy suy luận hợp lý.`,
+      config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
   }
 };

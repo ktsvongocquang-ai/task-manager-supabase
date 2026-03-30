@@ -17,19 +17,17 @@ interface AddEditUserModalProps {
 
 export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave }: AddEditUserModalProps) => {
     return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200 border border-border-main">
-                <div className="px-6 py-4 border-b border-border-main flex justify-between items-center bg-gray-50/50">
-                    <div>
-                        <h3 className="text-base font-semibold text-text-main">
-                            {isEditing ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên'}
-                        </h3>
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors">
-                        <X size={20} />
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
+            <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200 border border-border-main max-h-[92dvh] flex flex-col">
+                <div className="px-5 py-4 border-b border-border-main flex justify-between items-center bg-gray-50/50 shrink-0">
+                    <h3 className="text-base font-semibold text-text-main">
+                        {isEditing ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên'}
+                    </h3>
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <X size={18} />
                     </button>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-5 space-y-4 overflow-y-auto flex-1">
                     {!isEditing && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">Mã nhân viên</label>
@@ -91,9 +89,9 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave }: 
                         />
                     </div>
                 </div>
-                <div className="px-6 py-4 bg-gray-50/50 border-t border-border-main flex justify-end gap-3">
-                    <button onClick={onClose} className="px-5 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-transparent">Hủy</button>
-                    <button onClick={onSave} className="px-5 py-2 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+                <div className="px-5 py-4 bg-gray-50/50 border-t border-border-main flex gap-3 shrink-0">
+                    <button onClick={onClose} className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">Hủy</button>
+                    <button onClick={onSave} className="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
                         {isEditing ? 'Cập nhật' : 'Thêm nhân viên'}
                     </button>
                 </div>

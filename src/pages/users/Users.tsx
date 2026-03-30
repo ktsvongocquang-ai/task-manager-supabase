@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Profile } from '../../types'
-import { Search, UserPlus } from 'lucide-react'
+import { Search, UserPlus, ShieldCheck, ChevronDown } from 'lucide-react'
 import { PermissionMatrix } from './PermissionMatrix'
 import { UserGrid } from './UserGrid'
 import { AddEditUserModal } from './AddEditUserModal'
@@ -18,6 +18,7 @@ export const Users = () => {
     })
 
     const [search, setSearch] = useState('')
+    const [showMatrix, setShowMatrix] = useState(false)
 
     useEffect(() => {
         fetchProfiles()
@@ -206,9 +207,9 @@ export const Users = () => {
     if (loading) return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
 
     return (
-        <div className="space-y-6 max-w-[1450px] mx-auto pb-10">
+        <div className="space-y-4 max-w-[1450px] mx-auto pb-20 md:pb-10 px-0">
             {/* Header Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div className="relative w-full sm:w-96">
                     <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
@@ -230,16 +231,30 @@ export const Users = () => {
                 )}
             </div>
 
-            {/* Matrix */}
-            <PermissionMatrix />
-
-            {/* Grid */}
+            {/* Grid FIRST on mobile */}
             <UserGrid
                 profiles={filteredProfiles}
                 currentUserRole={_profile?.role}
                 onEdit={openEditModal}
                 onDelete={handleDelete}
             />
+
+            {/* Matrix — collapsible, only for Admin */}
+            {_profile?.role === 'Admin' && (
+                <div className="rounded-xl border border-border-main overflow-hidden shadow-sm">
+                    <button
+                        onClick={() => setShowMatrix(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                            <ShieldCheck size={16} className="text-primary" />
+                            Bảng Phân Quyền
+                        </div>
+                        <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${showMatrix ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showMatrix && <PermissionMatrix />}
+                </div>
+            )}
 
             {/* Modal */}
             {showModal && (
