@@ -241,10 +241,10 @@ export const Users = () => {
 
             {/* Matrix — collapsible, only for Admin */}
             {_profile?.role === 'Admin' && (
-                <div className="rounded-xl border border-border-main overflow-hidden shadow-sm">
+                <div className="rounded-xl border border-border-main shadow-sm">
                     <button
                         onClick={() => setShowMatrix(v => !v)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl"
                     >
                         <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                             <ShieldCheck size={16} className="text-primary" />

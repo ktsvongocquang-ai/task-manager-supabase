@@ -89,37 +89,42 @@ export const PermissionMatrix = () => {
     }
 
     return (
-        <div className="bg-white border border-border-main rounded-xl shadow-sm overflow-hidden flex flex-col h-full max-h-min">
-            <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-gray-50/50 flex-shrink-0">
-                <div className="text-gray-900 font-semibold flex items-center gap-2">
-                    <Info size={18} className="text-primary" />
+        <div className="bg-white border border-border-main rounded-xl shadow-sm flex flex-col">
+            <div className="px-4 py-3 border-b border-border-main flex items-center justify-between bg-gray-50/50 shrink-0 rounded-t-xl">
+                <div className="text-gray-900 font-semibold flex items-center gap-2 text-sm">
+                    <Info size={16} className="text-primary" />
                     Bảng Quản lý Phân Quyền Động
                 </div>
                 {isAdmin && (
-                    <button 
+                    <button
                         onClick={saveChanges}
                         disabled={isSaving || isLoading}
-                        className={`flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all active:scale-95 ${isSaving || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all active:scale-95 ${isSaving || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                        Lưu Cài Đặt
+                        {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Lưu
                     </button>
                 )}
             </div>
-            
-            <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+
+            {/* Scroll hint on mobile */}
+            <div className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-50 border-b border-blue-100 sm:hidden">
+                <span className="text-[11px] text-blue-500 font-medium">← Vuốt ngang để xem tất cả quyền →</span>
+            </div>
+
+            <div className="overflow-x-auto overflow-y-auto max-h-[60vh] rounded-b-xl">
                 {isLoading ? (
                     <div className="p-12 flex justify-center text-gray-400">
                         <Loader2 size={32} className="animate-spin" />
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+                    <table className="text-sm" style={{ minWidth: '700px', width: '100%' }}>
                         <thead className="sticky top-0 z-20 shadow-sm">
                             <tr className="border-b border-border-main bg-gray-50">
-                                <th className="text-left py-4 px-6 font-semibold text-gray-500 min-w-[200px] bg-gray-50/95 backdrop-blur z-30 border-r border-slate-200 sticky left-0">Chức năng / Các Tab</th>
+                                <th className="text-left py-3 px-4 font-semibold text-gray-500 w-[160px] min-w-[140px] bg-gray-50 z-30 border-r border-slate-200 sticky left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">Chức năng</th>
                                 {ROLE_KEYS.map((rk) => (
-                                    <th key={rk.key} className={`text-center py-4 px-4 font-semibold ${rk.color} bg-gray-50/95 backdrop-blur min-w-[120px]`}>
-                                        <div className="flex flex-col items-center justify-center gap-1.5"><rk.icon size={18} /> {rk.key}</div>
+                                    <th key={rk.key} className={`text-center py-3 px-2 font-semibold ${rk.color} bg-gray-50 min-w-[80px] w-[90px]`}>
+                                        <div className="flex flex-col items-center justify-center gap-1"><rk.icon size={16} /><span className="text-[11px]">{rk.key}</span></div>
                                     </th>
                                 ))}
                             </tr>
@@ -128,7 +133,7 @@ export const PermissionMatrix = () => {
                             {Object.entries(DEFAULT_PERMISSIONS).map(([category, perms]) => (
                                 <React.Fragment key={category}>
                                     <tr className="bg-gray-100">
-                                        <td colSpan={7} className="py-2.5 px-6 text-xs font-bold text-gray-600 uppercase tracking-widest bg-gray-200/50 sticky left-0 z-10 border-y border-gray-300">
+                                        <td colSpan={7} className="py-2 px-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-gray-100 z-10 border-y border-gray-200">
                                             <div className="flex items-center gap-2">
                                                 {category.includes('DỰ ÁN') ? <FolderKanban size={16} /> : category.includes('TRUY CẬP') ? <LayoutTemplate size={16} /> : <CheckSquare size={16} />}
                                                 {category}
@@ -137,7 +142,7 @@ export const PermissionMatrix = () => {
                                     </tr>
                                     {perms.map((p, i) => (
                                         <tr key={i} className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors">
-                                            <td className="py-4 px-6 font-semibold text-gray-700 sticky left-0 bg-white border-r border-slate-100 shadow-[1px_0_0_rgba(0,0,0,0.05)] z-10">
+                                            <td className="py-2.5 px-4 text-xs font-semibold text-gray-700 sticky left-0 bg-white border-r border-slate-100 shadow-[2px_0_4px_rgba(0,0,0,0.06)] z-10 leading-snug">
                                                 {p.name}
                                             </td>
                                             {ROLE_KEYS.map((rk, idx) => {
@@ -146,19 +151,19 @@ export const PermissionMatrix = () => {
                                                 const canEditThisCell = isAdmin && rk.key !== 'Admin';
 
                                                 return (
-                                                    <td key={idx} className="py-3 px-4 text-center group">
-                                                        <div className="flex flex-col items-center justify-center h-full">
-                                                            <button 
+                                                    <td key={idx} className="py-2 px-2 text-center">
+                                                        <div className="flex flex-col items-center justify-center">
+                                                            <button
                                                                 onClick={() => canEditThisCell && togglePermission(p.name, rk.key)}
                                                                 disabled={!canEditThisCell}
-                                                                className={`p-1.5 rounded-lg transition-all ${canEditThisCell ? 'hover:bg-slate-100 active:scale-90 cursor-pointer' : 'cursor-default'} ${isAllowed ? 'hover:bg-emerald-50' : 'hover:bg-rose-50'}`}
-                                                                title={canEditThisCell ? "Nhấn để thay đổi quyền" : ""}
+                                                                className={`p-1 rounded-lg transition-all ${canEditThisCell ? 'hover:bg-slate-100 active:scale-90 cursor-pointer' : 'cursor-default'}`}
+                                                                title={canEditThisCell ? 'Nhấn để thay đổi' : ''}
                                                             >
-                                                                {isAllowed 
-                                                                    ? <Check size={22} className="text-emerald-500 drop-shadow-sm" strokeWidth={3} /> 
-                                                                    : <X size={22} className="text-rose-500/60" strokeWidth={2.5} />}
+                                                                {isAllowed
+                                                                    ? <Check size={18} className="text-emerald-500" strokeWidth={3} />
+                                                                    : <X size={18} className="text-rose-400/70" strokeWidth={2.5} />}
                                                             </button>
-                                                            {note && <span className="text-[9px] text-gray-400 font-medium leading-tight max-w-[90px] mt-1">{note}</span>}
+                                                            {note && <span className="text-[9px] text-gray-400 leading-tight max-w-[70px]">{note}</span>}
                                                         </div>
                                                     </td>
                                                 )
