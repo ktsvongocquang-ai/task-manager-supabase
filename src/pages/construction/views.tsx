@@ -855,6 +855,35 @@ function DailyLogCreateModal({ onClose, onSave }: { onClose: () => void; onSave?
 
 function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: () => void; isManager?: boolean }) {
   const [comment, setComment] = React.useState('');
+  const [commentImages, setCommentImages] = React.useState<string[]>([]);
+  const commentFileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleCommentImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    Array.from(e.target.files).forEach(f => {
+      const reader = new FileReader();
+      reader.onload = () => setCommentImages(prev => [...prev, reader.result as string]);
+      reader.readAsDataURL(f);
+    });
+    e.target.value = '';
+  };
+
+  const handleSendComment = () => {
+    if (!comment.trim() && commentImages.length === 0) return;
+    // Add comment to log (in a real app, this would save to DB)
+    const newComment = {
+      id: `c_${Date.now()}`,
+      author: 'Quản lý',
+      text: comment,
+      images: commentImages,
+      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    };
+    if (!log.comments) log.comments = [];
+    log.comments.push(newComment);
+    setComment('');
+    setCommentImages([]);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
@@ -938,7 +967,7 @@ function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: (
                   )}
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[300px]">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden max-h-[400px]">
                 <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
                   <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">💬 Ý kiến / Nhận xét</h4>
                   <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-bold">{log.comments?.length || 0}</span>
@@ -950,15 +979,41 @@ function DailyLogDetailModal({ log, onClose, isManager }: { log: any; onClose: (
                       <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-none p-3 relative flex-1">
                         <p className="text-[10px] font-bold text-slate-500 mb-1 flex items-center justify-between">{c.author} <span className="font-normal text-slate-400">{c.time}</span></p>
                         <p className="text-xs text-slate-700 leading-relaxed">{c.text}</p>
+                        {c.images?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-slate-100">
+                            {c.images.map((img: string, i: number) => (
+                              <div key={i} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all">
+                                <img src={img} className="w-full h-full object-cover" alt={`Ảnh ${i + 1}`} />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )) : (
                     <div className="text-center py-4 text-xs text-slate-400 italic">Chưa có nhận xét nào cho báo cáo này.</div>
                   )}
                 </div>
-                <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2">
-                  <input value={comment} onChange={e => setComment(e.target.value)} placeholder="Nhập ý kiến hoặc phản hồi..." className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-400 bg-white" />
-                  <button onClick={() => setComment('')} disabled={!comment} className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 disabled:opacity-50 transition-colors shrink-0">Gửi</button>
+                {/* Image preview area */}
+                {commentImages.length > 0 && (
+                  <div className="px-4 pt-3 pb-1 border-t border-slate-100 bg-slate-50/80">
+                    <div className="flex flex-wrap gap-2">
+                      {commentImages.map((img, i) => (
+                        <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shadow-sm group">
+                          <img src={img} className="w-full h-full object-cover" alt={`Preview ${i + 1}`} />
+                          <button onClick={() => setCommentImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 text-[8px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500">✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2 items-center">
+                  <input ref={commentFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleCommentImages} />
+                  <button onClick={() => commentFileRef.current?.click()} title="Đính kèm hình ảnh" className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 transition-colors shrink-0">
+                    📎
+                  </button>
+                  <input value={comment} onChange={e => setComment(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendComment(); } }} placeholder="Nhập ý kiến hoặc phản hồi..." className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-400 bg-white" />
+                  <button onClick={handleSendComment} disabled={!comment.trim() && commentImages.length === 0} className="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold hover:bg-slate-900 disabled:opacity-50 transition-colors shrink-0">Gửi</button>
                 </div>
               </div>
             </div>
