@@ -1062,8 +1062,6 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
         handoverDate: form.handoverDate,
         contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
         budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
-        status: 'in_progress', progress: 0, spent: 0, budgetSpent: 0,
-        riskLevel: 'green', unexpectedCosts: 0, totalDocuments: 0, daysOff: 0, totalDiaryEntries: 0,
       });
       setForm({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '' });
       onClose();
@@ -1476,11 +1474,11 @@ export const Construction = () => {
           const newId = await db.createProject({
             name: data.name, address: data.address,
             owner_name: data.ownerName, engineer_name: '',
-            start_date: data.startDate, handover_date: data.handoverDate,
-            contract_value: data.contractValue, budget: data.budget,
-            spent: 0, budget_spent: 0, progress: 0, status: 'in_progress',
-            risk_level: 'green', unexpected_costs: 0, total_documents: 0,
-            days_off: 0, total_diary_entries: 0,
+            start_date: data.startDate || null,
+            handover_date: data.handoverDate || null,
+            contract_value: data.contractValue || 0,
+            budget: data.budget || 0,
+            spent: 0, progress: 0, status: 'in_progress',
           } as any);
           if (newId) {
             showToast(`Đã tạo dự án "${data.name}"`, 'success');
@@ -1503,11 +1501,11 @@ export const Construction = () => {
           const newId = await db.createProject({
             name: info.name, address: info.address,
             owner_name: info.ownerName, engineer_name: '',
-            start_date: info.startDate, handover_date: info.handoverDate,
-            contract_value: info.contractValue, budget: info.budget,
-            spent: 0, budget_spent: 0, progress: 0, status: 'in_progress',
-            risk_level: 'green', unexpected_costs: 0, total_documents: 0,
-            days_off: 0, total_diary_entries: 0,
+            start_date: info.startDate || null,
+            handover_date: info.handoverDate || null,
+            contract_value: info.contractValue || 0,
+            budget: info.budget || 0,
+            spent: 0, progress: 0, status: 'in_progress',
           } as any);
           if (!newId) throw new Error('Lỗi khi tạo dự án');
           const ok = await db.createTimelineTasks(newId, tasks, info.startDate);
