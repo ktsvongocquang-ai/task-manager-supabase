@@ -33,12 +33,14 @@ Tự động ước tính thời gian thi công hợp lý (days) và chi phí (b
 Mỗi task phải có checklist nghiệm thu cụ thể (2-3 items).
 Thiết lập dependencies: Hạng mục sau phụ thuộc vào hạng mục trước (bằng chỉ số mảng 0-indexed).
 
+Trích xuất cẩn thận 'startDate' (ngày bắt đầu của task). NẾU text có khoảng thời gian như '10/04/2026 - 15/04/2026', ngày bắt đầu là '2026-04-10'. Định dạng BẮT BUỘC là YYYY-MM-DD. NẾU không có ngày bắt đầu, để rỗng "".
 Trả về MỘT MẢNG JSON với cấu trúc:
 [{
   "name": "string",
   "category": "PHẦN THÔ" | "ĐIỆN NƯỚC" | "HOÀN THIỆN" | "KHÁC",
   "budget": number,
   "days": number,
+  "startDate": "YYYY-MM-DD",
   "dependencies": number[],
   "checklist": string[]
 }]`;
@@ -79,12 +81,13 @@ Trả về JSON với cấu trúc:
       "category": "PHẦN THÔ|ĐIỆN NƯỚC|HOÀN THIỆN|KHÁC",
       "budget": 0,
       "days": 0,
+      "startDate": "YYYY-MM-DD",
       "dependencies": [],
       "checklist": ["string"]
     }
   ]
 }
-Nếu không tìm thấy thông tin nào, hãy điền giá trị hợp lý dựa trên ngữ cảnh.`;
+Chú ý: startDate bắt buộc convert sang chuẩn YYYY-MM-DD (vidu: 2026-04-15). Nếu không rõ hoặc không có, để rỗng "". Đoán số 'days' nếu không có nhưng có ngày kết thúc. Nếu không tìm thấy thông tin nào, hãy để rỗng hoặc ước tính tỷ lệ chuẩn.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -110,7 +113,7 @@ Nếu không tìm thấy thông tin nào, hãy điền giá trị hợp lý dự
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `Từ nội dung báo giá/hợp đồng này, trích xuất thông tin dự án:\n---\n${text.slice(0, 3000)}\n---\nTrả về JSON: { "name": "", "ownerName": "", "address": "", "contractValue": 0, "budget": 0, "startDate": "YYYY-MM-DD", "handoverDate": "YYYY-MM-DD" }. Nếu không rõ, hãy suy luận hợp lý.`,
+        contents: `Từ nội dung báo giá/hợp đồng này, trích xuất thông tin dự án:\n---\n${text.slice(0, 3000)}\n---\nTrả về JSON: { "name": "", "ownerName": "", "address": "", "contractValue": 0, "budget": 0, "startDate": "YYYY-MM-DD", "handoverDate": "YYYY-MM-DD" }. NHỚ: startDate và handoverDate phải format dạng YYYY-MM-DD. Nếu không rỗ, để rỗng "".`,
         config: { responseMimeType: 'application/json' }
       });
 
