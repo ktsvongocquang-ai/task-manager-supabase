@@ -481,32 +481,27 @@ export function ProjectManagementAIModule({
   const [saveMsg, setSaveMsg] = useState('');
   const [exporting, setExporting] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
+  // Ref tracks pending local edits per task ID — always current, no stale closure issues
+  const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
+  const tempTasksRef = useRef<CTask[]>([]);
 
-  // Sync from externalTasks: merge so external status/progress flows in,
-  // but local date/name edits are preserved while hasUnsaved is true.
+  // Sync from externalTasks: merge external status/progress with local pending edits.
+  // Using refs avoids stale closure bugs when externalTasks changes mid-edit.
   useEffect(() => {
     if (externalTasks === undefined) return;
     setDisplayTasks(prev => {
-      if (prev.length === 0) return externalTasks;
-      // Merge: keep local date/name edits, accept external status/progress/checklist
+      if (prev.length === 0) {
+        // Initial load
+        return externalTasks;
+      }
+      // Merge: apply pending local edits on top of fresh external data
       const merged = externalTasks.map(ext => {
-        const local = prev.find(l => l.id === ext.id);
-        if (!local) return ext;
-        if (!hasUnsaved) return ext; // no local edits — take external as-is
-        return {
-          ...ext,
-          name: local.name,
-          plannedStart: local.plannedStart,
-          plannedEnd: local.plannedEnd,
-          startDate: local.startDate,
-          endDate: local.endDate,
-          duration: local.duration,
-          days: local.days,
-        };
+        const pending = pendingEditsRef.current[ext.id];
+        if (!pending) return ext;
+        return { ...ext, ...pending };
       });
-      // Keep any temp (new) tasks that aren't in externalTasks yet
-      const tempTasks = prev.filter(l => l.id.startsWith('temp-'));
-      return [...merged, ...tempTasks];
+      // Keep temp (new) tasks that haven't been saved yet
+      return [...merged, ...tempTasksRef.current];
     });
     setLoading(false);
   }, [externalTasks]);
@@ -553,9 +548,19 @@ export function ProjectManagementAIModule({
   const selectedTask = tasks.find(t => t.id === selectedId) || null;
 
   const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
+    // Record in ref first (ref is always current in closures/effects)
+    if (!id.startsWith('temp-')) {
+      pendingEditsRef.current[id] = { ...pendingEditsRef.current[id], ...updates };
+    } else {
+      // Update temp task in tempTasksRef
+      tempTasksRef.current = tempTasksRef.current.map(t =>
+        t.id === id ? { ...t, ...updates } : t
+      );
+    }
     setDisplayTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
     setHasUnsaved(true);
-    // Always propagate status/progress/checklist to parent immediately (for Kanban sync)
+    // Propagate status/progress/checklist to parent immediately (Kanban sync)
+    // but NOT schedule/name edits (those save in bulk via Lưu Lịch Hình)
     const isScheduleEdit = 'plannedStart' in updates || 'plannedEnd' in updates ||
       'startDate' in updates || 'endDate' in updates || 'duration' in updates ||
       'days' in updates || 'name' in updates;
@@ -565,10 +570,11 @@ export function ProjectManagementAIModule({
   const handleDeleteTask = async (id: string) => {
     if (readOnly || !projectId) return;
     const isTemp = id.startsWith('temp-');
+    delete pendingEditsRef.current[id];
+    tempTasksRef.current = tempTasksRef.current.filter(t => t.id !== id);
     setDisplayTasks(prev => prev.filter(t => t.id !== id));
     setHasUnsaved(true);
     if (!isTemp) {
-      // Async database delete for permanent tasks
       await supabase.from('construction_tasks').delete().eq('id', id);
     }
   };
@@ -588,6 +594,7 @@ export function ProjectManagementAIModule({
       startDate: format(new Date(), 'yyyy-MM-dd'),
       plannedStart: format(new Date(), 'yyyy-MM-dd'),
     };
+    tempTasksRef.current = [...tempTasksRef.current, newTask];
     setDisplayTasks(prev => [...prev, newTask]);
     setHasUnsaved(true);
     setSelectedId(newId);
@@ -641,6 +648,9 @@ export function ProjectManagementAIModule({
     setSaving(false);
 
     if (!saveError) {
+      // Clear pending edit refs
+      pendingEditsRef.current = {};
+      tempTasksRef.current = [];
       // Sync all changes back to parent (for Kanban, Dashboard to reflect)
       if (onUpdateTask) {
         tasks.filter(t => !t.id.startsWith('temp-')).forEach(t => onUpdateTask(t.id, t));
