@@ -473,30 +473,47 @@ export function ProjectManagementAIModule({
   onUpdateTask?: (id: string, updates: Partial<CTask>) => void;
   onOpenImport?: () => void;
 }) {
-  const [localTasks, setLocalTasks] = useState<CTask[]>([]);
+  const [displayTasks, setDisplayTasks] = useState<CTask[]>([]);
+  const [hasUnsaved, setHasUnsaved] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [exporting, setExporting] = useState(false);
-  const [isEditingMode, setIsEditingMode] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
 
-  // When entering edit mode, snapshot the external tasks to local state
+  // Sync from externalTasks: merge so external status/progress flows in,
+  // but local date/name edits are preserved while hasUnsaved is true.
   useEffect(() => {
-    if (isEditingMode && externalTasks && externalTasks.length > 0) {
-      setLocalTasks(externalTasks.filter(t => t.plannedStart || t.startDate));
-    }
-  }, [isEditingMode]);
-
-  // If externalTasks provided, use them (sync from parent) ONLY if not editing
-  const tasks: CTask[] = (externalTasks && externalTasks.length > 0 && !isEditingMode)
-    ? externalTasks.filter(t => t.plannedStart || t.startDate) // only tasks with dates
-    : localTasks;
+    if (externalTasks === undefined) return;
+    setDisplayTasks(prev => {
+      if (prev.length === 0) return externalTasks;
+      // Merge: keep local date/name edits, accept external status/progress/checklist
+      const merged = externalTasks.map(ext => {
+        const local = prev.find(l => l.id === ext.id);
+        if (!local) return ext;
+        if (!hasUnsaved) return ext; // no local edits — take external as-is
+        return {
+          ...ext,
+          name: local.name,
+          plannedStart: local.plannedStart,
+          plannedEnd: local.plannedEnd,
+          startDate: local.startDate,
+          endDate: local.endDate,
+          duration: local.duration,
+          days: local.days,
+        };
+      });
+      // Keep any temp (new) tasks that aren't in externalTasks yet
+      const tempTasks = prev.filter(l => l.id.startsWith('temp-'));
+      return [...merged, ...tempTasks];
+    });
+    setLoading(false);
+  }, [externalTasks]);
 
   // Load from Supabase only when no external tasks provided
   useEffect(() => {
-    if (externalTasks !== undefined) { setLoading(false); return; }
+    if (externalTasks !== undefined) return;
     if (!projectId) { setLoading(false); return; }
     setLoading(true);
     supabase
@@ -506,7 +523,7 @@ export function ProjectManagementAIModule({
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setLocalTasks(data.map((t: any): CTask => ({
+          setDisplayTasks(data.map((t: any): CTask => ({
             id: t.id, name: t.name, category: t.category || 'KHÁC',
             status: (t.status as TaskStatus) || 'TODO',
             subcontractor: t.subcontractor || '',
@@ -530,21 +547,26 @@ export function ProjectManagementAIModule({
         }
         setLoading(false);
       });
-  }, [projectId, externalTasks]);
+  }, [projectId]);
 
+  const tasks = displayTasks;
   const selectedTask = tasks.find(t => t.id === selectedId) || null;
 
   const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
-    setLocalTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-    // During Edit Mode, changes are kept purely local to avoid lag/jumping focus.
-    // They are saved in bulk when hitting 'Lưu Lịch Hình'.
-    if (!isEditingMode && onUpdateTask) onUpdateTask(id, updates);
+    setDisplayTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+    setHasUnsaved(true);
+    // Always propagate status/progress/checklist to parent immediately (for Kanban sync)
+    const isScheduleEdit = 'plannedStart' in updates || 'plannedEnd' in updates ||
+      'startDate' in updates || 'endDate' in updates || 'duration' in updates ||
+      'days' in updates || 'name' in updates;
+    if (!isScheduleEdit && onUpdateTask) onUpdateTask(id, updates);
   };
 
   const handleDeleteTask = async (id: string) => {
     if (readOnly || !projectId) return;
     const isTemp = id.startsWith('temp-');
-    setLocalTasks(prev => prev.filter(t => t.id !== id));
+    setDisplayTasks(prev => prev.filter(t => t.id !== id));
+    setHasUnsaved(true);
     if (!isTemp) {
       // Async database delete for permanent tasks
       await supabase.from('construction_tasks').delete().eq('id', id);
@@ -566,35 +588,69 @@ export function ProjectManagementAIModule({
       startDate: format(new Date(), 'yyyy-MM-dd'),
       plannedStart: format(new Date(), 'yyyy-MM-dd'),
     };
-    setLocalTasks(prev => [...prev, newTask]);
-    // Optionally focus or open task right away
+    setDisplayTasks(prev => [...prev, newTask]);
+    setHasUnsaved(true);
     setSelectedId(newId);
   };
 
   const handleSaveDates = async () => {
     if (!projectId || !tasks.length || readOnly) return;
     setSaving(true);
-    const upserts = tasks.map(t => ({
-      id: t.id, project_id: projectId,
-      planned_start: t.plannedStart || t.startDate,
-      planned_end: t.plannedEnd || t.endDate,
-      start_date: t.startDate || t.plannedStart,
-      end_date: t.endDate || t.plannedEnd,
-      duration: t.duration || t.days,
-      days: t.days || t.duration,
-      name: t.name,
-    }));
-    const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
+    // Separate new temp tasks from existing ones
+    const existingTasks = tasks.filter(t => !t.id.startsWith('temp-'));
+    const newTasks = tasks.filter(t => t.id.startsWith('temp-'));
+
+    let saveError: string | null = null;
+
+    // Upsert existing tasks
+    if (existingTasks.length > 0) {
+      const upserts = existingTasks.map(t => ({
+        id: t.id, project_id: projectId,
+        planned_start: t.plannedStart || t.startDate,
+        planned_end: t.plannedEnd || t.endDate,
+        start_date: t.startDate || t.plannedStart,
+        end_date: t.endDate || t.plannedEnd,
+        duration: t.duration || t.days,
+        days: t.days || t.duration,
+        name: t.name,
+      }));
+      const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
+      if (error) saveError = error.message;
+    }
+
+    // Insert new temp tasks
+    for (const t of newTasks) {
+      const { data, error } = await supabase.from('construction_tasks').insert({
+        project_id: projectId,
+        name: t.name, category: t.category, status: t.status,
+        planned_start: t.plannedStart || t.startDate,
+        planned_end: t.plannedEnd || t.endDate,
+        start_date: t.startDate || t.plannedStart,
+        end_date: t.endDate || t.plannedEnd,
+        duration: t.duration || t.days,
+        days: t.days || t.duration,
+        budget: t.budget, checklist: t.checklist, progress: t.progress,
+      }).select().single();
+      if (error) { saveError = error.message; continue; }
+      // Replace temp ID with real DB ID
+      if (data) {
+        setDisplayTasks(prev => prev.map(lt => lt.id === t.id ? { ...lt, id: data.id } : lt));
+      }
+    }
+
     setSaving(false);
-    
-    if (!error) {
-      setIsEditingMode(false);
-      setSaveMsg(`✓ Đã lưu ${upserts.length} hạng mục`);
-      // Force reload to sync upstream data correctly
-      setTimeout(() => window.location.reload(), 600);
-    } else {
-      setSaveMsg('⚠ Lỗi lưu');
+
+    if (!saveError) {
+      // Sync all changes back to parent (for Kanban, Dashboard to reflect)
+      if (onUpdateTask) {
+        tasks.filter(t => !t.id.startsWith('temp-')).forEach(t => onUpdateTask(t.id, t));
+      }
+      setHasUnsaved(false);
+      setSaveMsg(`✓ Đã lưu ${tasks.length} hạng mục`);
       setTimeout(() => setSaveMsg(''), 3000);
+    } else {
+      setSaveMsg('⚠ Lỗi lưu: ' + saveError);
+      setTimeout(() => setSaveMsg(''), 4000);
     }
   };
 
@@ -698,26 +754,13 @@ export function ProjectManagementAIModule({
               + Tạo Mới Từ File
             </button>
           )}
-          {/* Edit / Save Actions */}
-          {!readOnly && (
-            isEditingMode ? (
-              <div className="flex items-center gap-2">
-                <button onClick={() => setIsEditingMode(false)}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition-colors">
-                  Hủy Sửa
-                </button>
-                <button onClick={handleSaveDates} disabled={saving}
-                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer">
-                  <Save className="w-3.5 h-3.5" />
-                  {saving ? 'Đang lưu...' : 'Lưu Lịch Hình'}
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setIsEditingMode(true)}
-                className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition-colors">
-                Chỉnh sửa
-              </button>
-            )
+          {/* Save button — shown whenever there are unsaved changes */}
+          {!readOnly && hasUnsaved && (
+            <button onClick={handleSaveDates} disabled={saving}
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
+              <Save className="w-3.5 h-3.5" />
+              {saving ? 'Đang lưu...' : 'Lưu Lịch Hình'}
+            </button>
           )}
         </div>
       </div>
@@ -749,10 +792,10 @@ export function ProjectManagementAIModule({
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}
-          readOnly={readOnly || !isEditingMode}
+          readOnly={readOnly}
         />
       </div>
-      {(!readOnly && isEditingMode) && (
+      {!readOnly && (
         <p className="text-[10px] text-slate-400 text-center print:hidden">
           Click vào hàng để xem checklist nghiệm thu · Chỉnh trực tiếp ngày bắt đầu và số ngày trên bảng
         </p>
