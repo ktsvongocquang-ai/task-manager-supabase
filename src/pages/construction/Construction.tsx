@@ -863,11 +863,10 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                                     ngày
                                   </label>
                                   <label className="flex items-center gap-1 text-xs text-slate-500">
-                                    Chi phí:
-                                    <input type="number" min={0} value={task.budget}
-                                      onChange={e => updateTask(idx, 'budget', parseInt(e.target.value) || 0)}
-                                      className="w-28 px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg text-center focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white" />
-                                    đ
+                                    Bắt đầu:
+                                    <input type="date" value={task.startDate || ''}
+                                      onChange={e => updateTask(idx, 'startDate', e.target.value)}
+                                      className="px-1.5 py-0.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-300 bg-white" />
                                   </label>
                                 </div>
                                 {/* Checklist preview */}
@@ -886,7 +885,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                               {/* Duration badge */}
                               <div className="shrink-0 text-right">
                                 <div className="text-xs font-bold text-slate-600">{task.days}d</div>
-                                <div className="text-[10px] text-slate-400">{(task.budget || 0).toLocaleString('vi-VN').slice(0, 7)}đ</div>
+                                <div className="text-[10px] text-slate-400">{task.startDate || '—'}</div>
                               </div>
                             </div>
                           );
@@ -901,7 +900,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                   {selectedIdx.size > 0 && (
                     <div className="flex gap-3 text-xs text-slate-500 justify-between px-1">
                       <span>Tổng thời gian: <strong className="text-slate-700">{editedTasks.filter((_, i) => selectedIdx.has(i)).reduce((a, t) => a + (t.days || 0), 0)} ngày</strong></span>
-                      <span>Tổng chi phí: <strong className="text-slate-700">{editedTasks.filter((_, i) => selectedIdx.has(i)).reduce((a, t) => a + (t.budget || 0), 0).toLocaleString('vi-VN')}đ</strong></span>
+                      <span>Đã chọn: <strong className="text-slate-700">{selectedIdx.size} hạng mục</strong></span>
                     </div>
                   )}
                   {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}

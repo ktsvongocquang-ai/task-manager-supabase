@@ -169,6 +169,16 @@ export const useConstructionData = () => {
 
       const startDates: Date[] = [];
       newTasks.forEach((t, idx) => {
+        // If task has its own startDate from AI extraction, use it
+        if (t.startDate) {
+          const parsedStart = new Date(t.startDate);
+          if (!isNaN(parsedStart.getTime())) {
+            startDates[idx] = parsedStart;
+            taskEndDates[idx] = addDaysLocal(parsedStart, (t.days || 1) - 1);
+            return;
+          }
+        }
+        // Otherwise, calculate from dependencies
         const depEndDates = (t.dependencies || [])
           .map((depIdx: number) => taskEndDates[depIdx])
           .filter(Boolean);

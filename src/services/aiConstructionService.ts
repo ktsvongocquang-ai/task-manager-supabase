@@ -3,6 +3,7 @@ export interface GeneratedTask {
   category: 'PHẦN THÔ' | 'ĐIỆN NƯỚC' | 'HOÀN THIỆN' | 'KHÁC';
   budget: number;
   days: number;
+  startDate?: string; // YYYY-MM-DD — extracted from PDF/Excel
   dependencies: number[]; // Index of dependencies in this returned list
   checklist: string[];
 }

@@ -51,9 +51,11 @@ Trả về MỘT MẢNG JSON với cấu trúc:
   "category": "PHẦN THÔ" | "ĐIỆN NƯỚC" | "HOÀN THIỆN" | "KHÁC",
   "budget": number,
   "days": number,
+  "startDate": "YYYY-MM-DD",
   "dependencies": number[],
   "checklist": string[]
-}]`;
+}]
+Lưu ý: "startDate" là ngày bắt đầu thực tế của mỗi hạng mục. Nếu file có THỜI GIAN bắt đầu, dùng ngày đó. Nếu không có, tính dựa theo dependencies.`;
 
             const response = await model.generateContent({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -76,8 +78,12 @@ Hãy phân tích và trích xuất:
 Trả về JSON với cấu trúc:
 {
   "projectInfo": { "name": "", "ownerName": "", "address": "", "contractValue": 0, "budget": 0, "startDate": "YYYY-MM-DD", "handoverDate": "YYYY-MM-DD" },
-  "tasks": [{ "name": "", "category": "PHẦN THÔ|ĐIỆN NƯỚC|HOÀN THIỆN|KHÁC", "budget": 0, "days": 0, "dependencies": [], "checklist": [""] }]
+  "tasks": [{ "name": "", "category": "PHẦN THÔ|ĐIỆN NƯỚC|HOÀN THIỆN|KHÁC", "budget": 0, "days": 0, "startDate": "YYYY-MM-DD", "dependencies": [], "checklist": [""] }]
 }
+Lưu ý quan trọng:
+- Mỗi task PHẢI có "startDate" chính xác (ngày bắt đầu) nếu có trong file.
+- Nếu file hiển thị cột THỜI GIAN bắt đầu, dùng ngày đó.
+- Nếu không tìm thấy, tính dựa theo dependencies và ngày khởi công.
 Nếu không tìm thấy thông tin nào, hãy điền giá trị hợp lý dựa trên ngữ cảnh.`;
 
             const response = await model.generateContent({
