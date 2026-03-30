@@ -624,7 +624,7 @@ export const Layout = () => {
                 />
 
                 {/* Page View */}
-                <div className={`flex-1 overflow-y-scroll overflow-x-hidden w-full max-w-full flex flex-col relative min-w-0 ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
+                <div className={`flex-1 overflow-y-scroll w-full max-w-full flex flex-col relative min-w-0 ${location.pathname.startsWith('/customers') ? '' : 'p-3 sm:p-6'}`}>
                     <Outlet />
                 </div>
             </main>
