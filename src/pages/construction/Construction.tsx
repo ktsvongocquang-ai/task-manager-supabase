@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Share2, Building2
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -1042,6 +1042,78 @@ function ShareQRModal({ isOpen, onClose, project }: { isOpen: boolean; onClose: 
 // CREATE PROJECT MODAL — Tạo dự án mới
 // ═══════════════════════════════════════════════════════════
 
+function EditProjectModal({ project, onClose, onSave }: {
+  project: Project; onClose: () => void;
+  onSave: (data: Partial<Project>) => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    name: project.name, address: project.address, ownerName: project.ownerName,
+    startDate: project.startDate || '', handoverDate: project.handoverDate || '',
+    contractValue: String(project.contractValue || ''), budget: String(project.budget || ''),
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async () => {
+    if (!form.name.trim()) { setError('Cần điền tên dự án'); return; }
+    setSaving(true); setError('');
+    try {
+      await onSave({
+        name: form.name.trim(), address: form.address.trim(),
+        ownerName: form.ownerName.trim(), startDate: form.startDate,
+        handoverDate: form.handoverDate,
+        contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
+        budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
+      });
+      onClose();
+    } catch (e: any) { setError(e.message || 'Lỗi khi cập nhật'); }
+    finally { setSaving(false); }
+  };
+
+  const fields = [
+    { label: 'Tên dự án *', key: 'name', type: 'text' },
+    { label: 'Địa chỉ', key: 'address', type: 'text' },
+    { label: 'Chủ nhà', key: 'ownerName', type: 'text' },
+    { label: 'Ngày khởi công', key: 'startDate', type: 'date' },
+    { label: 'Ngày bàn giao', key: 'handoverDate', type: 'date' },
+    { label: 'Giá trị hợp đồng (đ)', key: 'contractValue', type: 'text' },
+    { label: 'Ngân sách (đ)', key: 'budget', type: 'text' },
+  ];
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-indigo-600" />
+            </div>
+            <p className="text-sm font-bold text-slate-800">Chỉnh sửa Dự Án</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          {fields.map(f => (
+            <div key={f.key}>
+              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{f.label}</label>
+              <input type={f.type} value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)}
+                className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            </div>
+          ))}
+          {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
+          <div className="flex gap-3 pt-2">
+            <button onClick={handleSubmit} disabled={saving} className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+              {saving ? 'Đang lưu...' : <><Save className="w-4 h-4" /> Lưu thay đổi</>}
+            </button>
+            <button onClick={onClose} className="px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50">Hủy</button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function CreateProjectModal({ isOpen, onClose, onCreate }: {
   isOpen: boolean; onClose: () => void;
   onCreate: (data: Partial<Project>) => Promise<void>;
@@ -1138,6 +1210,7 @@ export const Construction = () => {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
 
@@ -1261,13 +1334,23 @@ export const Construction = () => {
     setSelectedTask(u);
     // Persist to Supabase (only if task exists in DB — mock IDs like 't1' won't)
     try {
+      // Check if date/duration fields changed — persist them separately
+      const hasDateFields = u.plannedStart || u.plannedEnd || u.startDate || u.endDate || u.duration || u.days;
+      if (hasDateFields) {
+        await db.updateTaskDates(u.id, {
+          planned_start: u.plannedStart || u.startDate,
+          planned_end: u.plannedEnd || u.endDate,
+          start_date: u.startDate || u.plannedStart,
+          end_date: u.endDate || u.plannedEnd,
+          duration: u.duration || u.days,
+          days: u.days || u.duration,
+        });
+      }
       const ok = await db.updateTaskStatusChecklist(u.id, u.status, u.checklist, u.issues);
       if (ok) showToast('Đã lưu thay đổi');
-      // If fails, don't show error for mock data tasks (IDs starting with 't')
       else if (!u.id.startsWith('t')) showToast('Lỗi khi lưu vào CSDL', 'error');
       else showToast('Đã cập nhật (chế độ demo)', 'info');
     } catch {
-      // Swallow errors for mock data
       if (!u.id.startsWith('t')) showToast('Lỗi khi lưu', 'error');
       else showToast('Đã cập nhật (chế độ demo)', 'info');
     }
@@ -1338,11 +1421,39 @@ export const Construction = () => {
             </div>
           )}
           {userRole !== 'HOMEOWNER' && (
-            <div className="relative">
+            <div className="relative flex items-center gap-1">
               <select value={selectedProject.id} onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }} className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[38px]">
                 {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-16 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button onClick={() => setIsEditProjectOpen(true)} title="Sửa dự án" className="w-[38px] h-[38px] flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500 hover:text-indigo-600">
+                <FileText className="w-4 h-4" />
+              </button>
+              <button onClick={() => setConfirmDialog({
+                title: 'Xóa dự án?',
+                message: `Bạn có chắc muốn xóa dự án "${selectedProject.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
+                confirmLabel: 'Xóa vĩnh viễn',
+                confirmColor: 'bg-rose-600 hover:bg-rose-700',
+                onConfirm: async () => {
+                  const ok = await db.deleteProject(selectedProject.id);
+                  if (ok) {
+                    showToast(`Đã xóa dự án "${selectedProject.name}"`, 'success');
+                    await db.loadProjects();
+                    const remaining = db.projects.filter(p => p.id !== selectedProject.id);
+                    if (remaining.length > 0) {
+                      const next = mapProject(remaining[0]);
+                      setSelectedProject(next);
+                      db.loadProjectDetails(next.id);
+                    } else {
+                      setSelectedProject(PROJECTS[0]);
+                    }
+                  } else {
+                    showToast('Lỗi khi xóa dự án', 'error');
+                  }
+                },
+              })} title="Xóa dự án" className="w-[38px] h-[38px] flex items-center justify-center border border-rose-200 rounded-xl hover:bg-rose-50 active:scale-95 transition-all text-rose-400 hover:text-rose-600">
+                <X className="w-4 h-4" />
+              </button>
             </div>
           )}
           {userRole !== 'HOMEOWNER' && (
@@ -1490,9 +1601,14 @@ export const Construction = () => {
         isOpen={isQuotationModalOpen}
         onClose={() => setIsQuotationModalOpen(false)}
         onGenerate={async (generatedTasks) => {
-          const ok = await db.createTimelineTasks(selectedProject.id, generatedTasks, selectedProject.startDate);
-          if (ok) { showToast(`Đã tạo ${generatedTasks.length} hạng mục từ AI`, 'success'); setActiveTab('AI_GANTT'); }
-          else showToast('Lỗi khi lưu timeline vào CSDL', 'error');
+          // For existing projects: replace timeline (delete old tasks, keep logs)
+          const ok = await db.replaceTimelineTasks(selectedProject.id, generatedTasks, selectedProject.startDate);
+          if (ok) {
+            showToast(`Đã cập nhật ${generatedTasks.length} hạng mục (nhật ký thi công không bị xóa)`, 'success');
+            setActiveTab('AI_GANTT');
+          } else {
+            showToast('Lỗi khi lưu timeline vào CSDL', 'error');
+          }
         }}
         onCreateProject={async (info, tasks) => {
           const newId = await db.createProject({
@@ -1513,6 +1629,32 @@ export const Construction = () => {
           }
         }}
       />
+
+      {/* Edit Project Modal */}
+      {isEditProjectOpen && (
+        <EditProjectModal
+          project={selectedProject}
+          onClose={() => setIsEditProjectOpen(false)}
+          onSave={async (updates) => {
+            const ok = await db.updateProject(selectedProject.id, {
+              name: updates.name,
+              address: updates.address,
+              owner_name: updates.ownerName,
+              contract_value: updates.contractValue,
+              budget: updates.budget,
+              start_date: updates.startDate || null,
+              handover_date: updates.handoverDate || null,
+            } as any);
+            if (ok) {
+              setSelectedProject(prev => ({ ...prev, ...updates }));
+              await db.loadProjects();
+              showToast('Đã cập nhật dự án', 'success');
+            } else {
+              showToast('Lỗi khi cập nhật dự án', 'error');
+            }
+          }}
+        />
+      )}
 
       {/* Toast Notification */}
       <AnimatePresence>

@@ -248,6 +248,66 @@ export const useConstructionData = () => {
     return !error;
   };
 
+  // ── UPDATE TASK DATES (for Gantt inline editing) ──
+  const updateTaskDates = async (taskId: string, dateUpdates: {
+    planned_start?: string; planned_end?: string;
+    start_date?: string; end_date?: string;
+    duration?: number; days?: number;
+  }) => {
+    const { error } = await supabase
+      .from('construction_tasks')
+      .update(dateUpdates)
+      .eq('id', taskId);
+    if (!error) {
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...dateUpdates } : t));
+    }
+    return !error;
+  };
+
+  // ── DELETE PROJECT (cascade delete all children) ──
+  const deleteProject = async (projectId: string) => {
+    try {
+      // Delete children first (tasks, logs, milestones, approvals, attendance, payments, phases)
+      await Promise.all([
+        supabase.from('construction_tasks').delete().eq('project_id', projectId),
+        supabase.from('daily_logs').delete().eq('project_id', projectId),
+        supabase.from('construction_milestones').delete().eq('project_id', projectId),
+        supabase.from('construction_approvals').delete().eq('project_id', projectId),
+        supabase.from('construction_attendance').delete().eq('project_id', projectId),
+        supabase.from('construction_payment_records').delete().eq('project_id', projectId),
+        supabase.from('construction_phases').delete().eq('project_id', projectId),
+      ]);
+      // Then delete the project itself
+      const { error } = await supabase.from('construction_projects').delete().eq('id', projectId);
+      if (!error) {
+        setProjects(prev => prev.filter(p => p.id !== projectId));
+        // Clear current data if it was the active project
+        if (currentProjectId === projectId) {
+          setTasks([]); setLogs([]); setApprovals([]); setMilestones([]);
+          setAttendance([]); setPaymentRecords([]); setPhases([]);
+        }
+      }
+      return !error;
+    } catch (e) {
+      console.error('Delete Project Error:', e);
+      return false;
+    }
+  };
+
+  // ── REPLACE TIMELINE TASKS (delete old tasks, insert new, preserve daily logs) ──
+  const replaceTimelineTasks = async (projectId: string, newTasks: any[], projectStartDate?: string) => {
+    try {
+      // Step 1: Delete all existing tasks for this project
+      await supabase.from('construction_tasks').delete().eq('project_id', projectId);
+      // Step 2: Create new timeline tasks (reuse existing logic)
+      const result = await createTimelineTasks(projectId, newTasks, projectStartDate);
+      return result;
+    } catch (e) {
+      console.error('Replace Timeline Error:', e);
+      return false;
+    }
+  };
+
   // ── DAILY LOGS ──
   const submitDailyLog = async (logData: Partial<SupabaseDailyLog>) => {
     const { data, error } = await supabase
@@ -517,8 +577,10 @@ export const useConstructionData = () => {
     // Projects
     loadProjects, createProject, updateProject,
     // Tasks
-    loadProjectDetails, createTimelineTasks, updateTaskStatusChecklist,
-    updateTaskProgress, deleteTask,
+    loadProjectDetails, createTimelineTasks, replaceTimelineTasks, updateTaskStatusChecklist,
+    updateTaskProgress, updateTaskDates, deleteTask,
+    // Projects
+    deleteProject,
     // Daily Logs
     submitDailyLog, updateDailyLog,
     // Approvals
