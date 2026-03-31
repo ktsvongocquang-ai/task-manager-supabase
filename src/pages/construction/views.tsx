@@ -1120,7 +1120,7 @@ export function ProjectOverview({ project, subcontractors, milestones }: {
 
 export function PaymentHistory({ payments }: { payments: import('./types').PaymentRecord[] }) {
   const [search, setSearch] = React.useState('');
-  const filtered = payments.filter(p => !search || p.description.toLowerCase().includes(search.toLowerCase()) || p.date.includes(search));
+  const filtered = payments.filter(p => !search || (p.description || '').toLowerCase().includes(search.toLowerCase()) || (p.date || '').includes(search));
   const totalOut = payments.filter(p => p.type === 'payment_out').reduce((s, p) => s + p.amount, 0);
   const totalIn = payments.filter(p => p.type === 'payment_in').reduce((s, p) => s + p.amount, 0);
 
