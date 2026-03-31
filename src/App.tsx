@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
+import { RoleGuard } from './components/RoleGuard'
 import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/dashboard/Dashboard'
@@ -28,7 +29,7 @@ function App() {
         <Route path="/login" element={<Login />} />
 
         {/* Protected Routes */}
-        <Route path="/" element={<AuthGuard><Layout /></AuthGuard>}>
+        <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
           <Route index element={<Navigate to="/kanban" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="gantt" element={<Gantt />} />

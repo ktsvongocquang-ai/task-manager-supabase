@@ -15,6 +15,7 @@ import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from 
 import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabasePaymentRecord, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
+import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
 
 // ── Mapping helpers: Supabase → local types ──
@@ -1214,11 +1215,33 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
 // MAIN CONSTRUCTION COMPONENT
 // ═══════════════════════════════════════════════════════════
 
+const profileRoleToUserRole = (role?: string): UserRole => {
+  if (role === 'Kỹ sư') return 'ENGINEER';
+  if (role === 'Khách hàng') return 'HOMEOWNER';
+  return 'MANAGER';
+};
+
 export const Construction = () => {
   const db = useConstructionData();
+  const { profile } = useAuthStore();
 
-  const [userRole, setUserRole] = useState<UserRole>('MANAGER');
-  const [activeTab, setActiveTab] = useState<ViewTab>('DASHBOARD');
+  // Derive initial role from URL param (QR share) or authenticated profile role
+  const getInitialRole = (): UserRole => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('role') === 'homeowner') return 'HOMEOWNER';
+    return profileRoleToUserRole(profile?.role);
+  };
+
+  const [userRole, setUserRole] = useState<UserRole>(getInitialRole);
+  const [activeTab, setActiveTab] = useState<ViewTab>(() => {
+    const initial = getInitialRole();
+    if (initial === 'ENGINEER') return 'KANBAN';
+    return 'DASHBOARD';
+  });
+  // isSharedLink: true when accessed via QR link OR when user is a Khách hàng role
+  const [isSharedLink, setIsSharedLink] = useState(
+    () => new URLSearchParams(window.location.search).get('role') === 'homeowner' || profile?.role === 'Khách hàng'
+  );
   const [selectedProject, setSelectedProject] = useState<Project>(PROJECTS[0]);
   const [tasks, setTasks] = useState<CTask[]>(TASKS);
   const [selectedTask, setSelectedTask] = useState<CTask | null>(null);
@@ -1293,12 +1316,13 @@ export const Construction = () => {
   }, [db.projects.length]);
 
   // ── Read URL params on mount: ?project=UUID&role=homeowner ──
+  // Note: initial state already handles this, but we keep the effect for late-loading edge cases
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const role = params.get('role');
-    if (role === 'homeowner') {
+    if (params.get('role') === 'homeowner') {
       setUserRole('HOMEOWNER');
       setActiveTab('DASHBOARD');
+      setIsSharedLink(true);
     }
   }, []);
 
@@ -1429,8 +1453,17 @@ export const Construction = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Quản lý Thi công</h1>
-          <p className="text-sm text-slate-400 mt-0.5">{selectedProject.name} • {selectedProject.address}</p>
+          {isSharedLink ? (
+            <>
+              <h1 className="text-xl font-bold text-slate-800">{selectedProject.name}</h1>
+              <p className="text-sm text-slate-400 mt-0.5">{selectedProject.address}</p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-slate-800">Quản lý Thi công</h1>
+              <p className="text-sm text-slate-400 mt-0.5">{selectedProject.name} • {selectedProject.address}</p>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           {userRole === 'MANAGER' && (
@@ -1482,13 +1515,15 @@ export const Construction = () => {
               <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Tìm hạng mục..." className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 h-[38px] w-48" />
             </div>
           )}
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-            {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
-              <button key={role} onClick={() => handleRoleChange(role)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Kỹ sư' : 'Quản lý'}
-              </button>
-            ))}
-          </div>
+          {!isSharedLink && profile?.role === 'Admin' && (
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
+                <button key={role} onClick={() => handleRoleChange(role)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Kỹ sư' : 'Quản lý'}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1510,13 +1545,22 @@ export const Construction = () => {
       )}
 
       {/* View Tabs */}
-      <div className="flex bg-slate-100 p-1 rounded-xl w-fit overflow-x-auto">
-        {VIEW_TABS.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-            {tab.icon} {tab.label}
-          </button>
-        ))}
-      </div>
+      {(() => {
+        const fullWidth = userRole === 'HOMEOWNER' || userRole === 'ENGINEER';
+        return (
+          <div className={`flex bg-slate-100 p-1 rounded-xl overflow-x-auto ${fullWidth ? 'w-full' : 'w-fit'}`}>
+            {VIEW_TABS.map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${fullWidth ? 'flex-1' : ''} ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                {tab.icon}
+                {fullWidth
+                  ? <span>{tab.label}</span>
+                  : <span className="hidden sm:inline">{tab.label}</span>
+                }
+              </button>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Main Content */}
       <div className="flex-1 min-h-0">

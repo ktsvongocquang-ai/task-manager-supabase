@@ -4,7 +4,7 @@ export interface Profile {
     full_name: string
     email: string
     position: string | null
-    role: string | 'Nhân viên' | 'Admin'
+    role: 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Kỹ sư' | 'Khách hàng' | 'Nhân viên'
     telegram_chat_id?: string | null
     created_at: string
 }

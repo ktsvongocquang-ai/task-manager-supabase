@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (!role || !actionKey) return false;
         
         // Admins can do everything
-        if (role === 'Admin' || role === 'Giám đốc') return true;
+        if (role === 'Admin') return true;
 
         const { systemPermissions } = get();
         const fallbackPermissions = generateFlatPermissions();

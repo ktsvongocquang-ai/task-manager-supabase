@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { canAccessRoute, isAdminRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -226,26 +227,25 @@ export const Layout = () => {
     }
 
     const getNavItemsByRole = (userRole?: string): any[] => {
-        const roleStr = userRole?.trim() || 'Nhân viên';
-        const adminRole = roleStr === 'Admin' || roleStr === 'Giám đốc';
-        const { hasPermission } = useAuthStore.getState();
-
+        const role = userRole?.trim() || 'Nhân viên';
         const items: any[] = [];
 
-        // Tab Việc Cá Nhân (New)
-        items.push({ 
-            name: 'Việc cá nhân', 
-            path: '/mytasks',
-            icon: UserCircle, 
-            matchPrefix: ['/mytasks'],
-        });
+        // Việc cá nhân - all roles except Khách hàng
+        if (canAccessRoute(role, '/mytasks')) {
+            items.push({
+                name: 'Việc cá nhân',
+                path: '/mytasks',
+                icon: UserCircle,
+                matchPrefix: ['/mytasks'],
+            });
+        }
 
-        // 1. Tab Công Việc
-        if (hasPermission(roleStr, 'Tab Công Việc (Xem)')) {
-            items.push({ 
-                name: 'Công việc', 
+        // Tab Công Việc
+        if (canAccessRoute(role, '/kanban')) {
+            items.push({
+                name: 'Công việc',
                 path: '/kanban',
-                icon: KanbanIcon, 
+                icon: KanbanIcon,
                 matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'],
                 mobileChildren: [
                     { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
@@ -258,29 +258,28 @@ export const Layout = () => {
             });
         }
 
-        // 2. Tab Marketing
-        if (hasPermission(roleStr, 'Tab Marketing (Xem)')) {
+        // Tab Marketing
+        if (canAccessRoute(role, '/marketing')) {
             items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
         }
 
-        // 3. Tab Thi Công
-        if (hasPermission(roleStr, 'Tab Thi Công (Xem)')) {
+        // Tab Thi Công
+        if (canAccessRoute(role, '/construction')) {
             items.push({ name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] });
         }
 
-        // 4. Tab CRM / Chăm sóc KH
-        if (hasPermission(roleStr, 'Tab Chăm Sóc KH (Xem)')) {
+        // Tab CRM
+        if (canAccessRoute(role, '/customers')) {
             items.push({ name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] });
         }
 
-        // Lịch sử (Dành cho Manager/Admin/Các cấp leader)
-        const isManagerGroup = ['Admin', 'Giám đốc', 'Quản lý', 'Sale', 'Marketing', 'Giám Sát'].includes(roleStr);
-        if (isManagerGroup) {
+        // Lịch sử
+        if (canAccessRoute(role, '/history')) {
             items.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon });
         }
 
         // Người dùng (Admin only)
-        if (adminRole) {
+        if (isAdminRole(role)) {
             items.push({ name: 'Người dùng', path: '/users', icon: Users });
         }
 
@@ -291,7 +290,7 @@ export const Layout = () => {
 
     const getRoleBrand = (role?: string) => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
-        if (role === 'Quản lý') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager' }
+        if (role === 'Quản lý thiết kế' || role === 'Quản lý thi công') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager' }
         return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee' }
     }
 
@@ -347,7 +346,7 @@ export const Layout = () => {
                             </button>
                         </div>
                         
-                        {(profile?.role === 'Admin' || profile?.role === 'Giám đốc') && (
+                        {isAdminRole(profile?.role) && (
                             <button 
                                 onClick={handleBackup} 
                                 disabled={isBackingUp}

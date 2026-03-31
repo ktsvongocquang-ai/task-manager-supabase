@@ -355,7 +355,7 @@ export function ClientCountdown({ project, milestones, dailyLogs, phases, tasks 
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2 min-w-0">
         <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
           <p className="text-[10px] text-emerald-500 font-bold">Nhật ký</p>
           <p className="text-2xl font-black text-emerald-600">{project.totalDiaryEntries}</p>
@@ -927,7 +927,7 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-5xl h-[95vh] md:h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-white relative z-10 shadow-sm">
           <div className="flex items-center gap-4">
             <div>
@@ -942,8 +942,8 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors">✕</button>
         </div>
-        <div className="flex flex-1 overflow-hidden bg-slate-50">
-          <div className="w-[45%] flex flex-col border-r border-slate-200 bg-white">
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden bg-slate-50">
+          <div className="w-full md:w-[45%] flex flex-col border-b md:border-b-0 md:border-r border-slate-200 bg-white max-h-[50%] md:max-h-none">
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -994,7 +994,7 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
               )}
             </div>
           </div>
-          <div className="w-[55%] flex flex-col bg-slate-100/50 relative">
+          <div className="w-full md:w-[55%] flex flex-col bg-slate-100/50 relative">
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">📸 Hình ảnh thực tế tại công trường</h4>
