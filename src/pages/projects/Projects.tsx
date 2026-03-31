@@ -20,7 +20,8 @@ export const Projects = () => {
     const [allTasks, setAllTasks] = useState<Task[]>([])
     const [form, setForm] = useState({
         name: '', project_code: '', description: '', status: 'Mới',
-        start_date: '', end_date: '', manager_id: '', budget: 0
+        start_date: '', end_date: '', manager_id: '', budget: 0,
+        link_hien_trang: '', link_du_an: '', link_presentation: '',
     })
 
     const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<Project | null>(null)
@@ -146,7 +147,8 @@ export const Projects = () => {
         setForm({
             name: '', project_code: generateNextProjectCode(),
             description: '', status: 'Chưa bắt đầu', start_date: '', end_date: '',
-            manager_id: profile?.id || '', budget: 0
+            manager_id: profile?.id || '', budget: 0,
+            link_hien_trang: '', link_du_an: '', link_presentation: '',
         })
         setShowModal(true)
     }
@@ -156,7 +158,10 @@ export const Projects = () => {
         setForm({
             name: p.name, project_code: p.project_code, description: p.description || '',
             status: p.status, start_date: p.start_date || '', end_date: p.end_date || '',
-            manager_id: p.manager_id || '', budget: p.budget || 0
+            manager_id: p.manager_id || '', budget: p.budget || 0,
+            link_hien_trang: (p as any).link_hien_trang || '',
+            link_du_an: (p as any).link_du_an || '',
+            link_presentation: (p as any).link_presentation || '',
         })
         setShowModal(true)
     }
@@ -171,7 +176,10 @@ export const Projects = () => {
                 manager_id: formData.manager_id || null,
                 description: formData.description || null,
                 start_date: formData.start_date || null,
-                end_date: formData.end_date || null
+                end_date: formData.end_date || null,
+                link_hien_trang: formData.link_hien_trang || null,
+                link_du_an: formData.link_du_an || null,
+                link_presentation: formData.link_presentation || null,
             }
 
             let result;

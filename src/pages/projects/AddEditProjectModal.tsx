@@ -1,6 +1,6 @@
 import React from 'react';
 import { type Project } from '../../types';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, Link } from 'lucide-react';
 import { GenerateAIProjectModal } from './GenerateAIProjectModal';
 
 interface AddEditProjectModalProps {
@@ -16,6 +16,9 @@ interface AddEditProjectModalProps {
         start_date: string;
         end_date: string;
         manager_id: string;
+        link_hien_trang?: string;
+        link_du_an?: string;
+        link_presentation?: string;
     };
     setForm: (form: any) => void;
     profiles: any[];
@@ -166,6 +169,45 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
                             placeholder="Mô tả tóm tắt dự án..."
                         />
+                    </div>
+
+                    {/* Link fields */}
+                    <div className="pt-1 border-t border-slate-100">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <Link size={11} /> Liên kết dự án
+                        </p>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Link hiện trạng / Mirror</label>
+                                <input
+                                    type="url"
+                                    value={form.link_hien_trang || ''}
+                                    onChange={(e) => setForm({ ...form, link_hien_trang: e.target.value })}
+                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
+                                    placeholder="https://..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Link dự án làm việc</label>
+                                <input
+                                    type="url"
+                                    value={form.link_du_an || ''}
+                                    onChange={(e) => setForm({ ...form, link_du_an: e.target.value })}
+                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
+                                    placeholder="https://..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Link Present PDF / Canvas</label>
+                                <input
+                                    type="url"
+                                    value={form.link_presentation || ''}
+                                    onChange={(e) => setForm({ ...form, link_presentation: e.target.value })}
+                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
+                                    placeholder="https://..."
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
