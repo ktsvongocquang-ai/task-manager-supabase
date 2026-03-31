@@ -130,8 +130,8 @@ function ConstructionGantt({
         <thead className="sticky top-0 z-40">
           {/* Row 1: Left headers (rowSpan=2) + Week headers */}
           <tr className="h-8 bg-slate-700 text-white">
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.stt, width: CW.stt, minWidth: CW.stt }}>STT</th>
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.stt, width: CW.stt, minWidth: CW.stt }}>STT</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold max-md:text-[10px] max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>BẮT ĐẦU</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>NGÀY</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>TIẾN ĐỘ</th>
@@ -159,8 +159,8 @@ function ConstructionGantt({
             <React.Fragment key={cat}>
               {/* Category header row */}
               <tr className="h-8 bg-slate-100">
-                <td className="sticky max-md:!static z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
-                <td className="sticky max-md:!static z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
+                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
                   <div className="flex justify-between items-center pr-2">
                     <span>{cat}</span>
                     {!readOnly && onCreateTask && (
@@ -188,9 +188,9 @@ function ConstructionGantt({
                     onClick={() => onSelect(task.id)}
                   >
                     {/* STT */}
-                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
                     {/* Name */}
-                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2`} style={{ left: CL.name }}>
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
                         {readOnly ? (
