@@ -29,6 +29,9 @@ function App() {
         {/* Public Route */}
         <Route path="/login" element={<Login />} />
 
+        {/* Public client landing page — NO auth required */}
+        <Route path="/c/:token" element={<ClientView />} />
+
         {/* Protected Routes */}
         <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
           <Route index element={<Navigate to="/kanban" replace />} />
@@ -49,8 +52,6 @@ function App() {
           <Route path="mytasks" element={<MyTasks />} />
         </Route>
 
-        {/* Public client landing page — NO auth required */}
-        <Route path="/c/:token" element={<ClientView />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
