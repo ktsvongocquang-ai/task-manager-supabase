@@ -13,11 +13,11 @@ export const Profile = () => {
 
     const getRoleBrand = (role?: string) => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin font-bold' }
-        if (role === 'Quản lý') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager font-bold' }
-        if (role === 'Thiết Kế') return { color: 'bg-emerald-500', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-600 font-bold' }
-        if (role === 'Marketing') return { color: 'bg-pink-500', text: 'text-pink-600', badge: 'bg-pink-50 text-pink-600 font-bold' }
-        if (role === 'Sale') return { color: 'bg-cyan-500', text: 'text-cyan-600', badge: 'bg-cyan-50 text-cyan-600 font-bold' }
-        if (role === 'Giám Sát') return { color: 'bg-amber-500', text: 'text-amber-600', badge: 'bg-amber-50 text-amber-600 font-bold' }
+        if (role === 'Quản lý thiết kế') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager font-bold' }
+        if (role === 'Quản lý thi công') return { color: 'bg-indigo-600', text: 'text-indigo-600', badge: 'bg-indigo-50 text-indigo-600 font-bold' }
+        if (role === 'Kỹ sư') return { color: 'bg-amber-500', text: 'text-amber-600', badge: 'bg-amber-50 text-amber-600 font-bold' }
+        if (role === 'Khách hàng') return { color: 'bg-emerald-500', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-600 font-bold' }
+        if (role === 'Nhân viên') return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
         return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
     }
 
@@ -136,52 +136,52 @@ export const Profile = () => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Dynamically render permissions based on role just to show the user */}
-                                    {(profile?.role === 'Admin' || profile?.role === 'Quản lý') && (
+                                    {profile?.role === 'Admin' && (
                                         <>
                                             <PermissionItem title="Công việc & Dự án" desc="Toàn quyền truy cập tất cả Kanban, Gantt, Lịch trình và Dự án." type="full" />
-                                            <PermissionItem title="Tài chính & CRM" desc="Kiểm soát toàn bộ Module Sale và Báo giá." type="full" />
                                             <PermissionItem title="Thi công & Thiết kế" desc="Giám sát mọi công trình và ý tưởng." type="full" />
+                                            <PermissionItem title="CRM & Marketing" desc="Kiểm soát toàn bộ module khách hàng." type="full" />
                                             <PermissionItem title="Người dùng" desc="Thêm/sửa/xoá và phân quyền nhân sự." type="full" />
                                         </>
                                     )}
 
-                                    {profile?.role === 'Marketing' && (
+                                    {profile?.role === 'Quản lý thiết kế' && (
                                         <>
-                                            <PermissionItem title="Quản lý Công việc" desc="Sử dụng Kanban Marketing, đăng bài, lên lịch." type="full" />
-                                            <PermissionItem title="Thi Công" desc="Chỉ xem tiến độ để viết bài PR truyền thông." type="read" />
-                                            <PermissionItem title="Dự án chung" desc="Bị giới hạn, không truy cập bảng tổng công ty." type="denied" />
-                                            <PermissionItem title="Khách hàng (CRM)" desc="Chỉ Sale và Admin được phép truy cập." type="denied" />
+                                            <PermissionItem title="Công việc & Dự án" desc="Toàn quyền Kanban, Gantt, Lịch trình và Dự án." type="full" />
+                                            <PermissionItem title="Marketing" desc="Quản lý nội dung và chiến dịch marketing." type="full" />
+                                            <PermissionItem title="Thi công" desc="Xem và theo dõi tiến độ công trình." type="full" />
+                                            <PermissionItem title="CRM & Người dùng" desc="Không có quyền quản lý nhân sự hay báo giá." type="denied" />
                                         </>
                                     )}
 
-                                    {profile?.role === 'Thiết Kế' && (
+                                    {profile?.role === 'Quản lý thi công' && (
                                         <>
-                                            <PermissionItem title="Công việc Thiết kế" desc="Sử dụng Kanban 2D/3D." type="full" />
-                                            <PermissionItem title="Thi Công" desc="Truy cập xem hồ sơ kỹ thuật hiện trường." type="read" />
-                                            <PermissionItem title="Quản trị" desc="Không có quyền quản lý nhân sự hay tài chính." type="denied" />
+                                            <PermissionItem title="Công việc & Dự án" desc="Truy cập Kanban, Gantt và quản lý dự án thi công." type="full" />
+                                            <PermissionItem title="Thi công" desc="Toàn quyền quản lý công trình, tiến độ, nhật ký." type="full" />
+                                            <PermissionItem title="Marketing & CRM" desc="Không có quyền truy cập." type="denied" />
                                         </>
                                     )}
 
-                                    {profile?.role === 'Sale' && (
+                                    {profile?.role === 'Kỹ sư' && (
                                         <>
-                                            <PermissionItem title="Chăm sóc Khách hàng" desc="Sử dụng toàn bộ tính năng CRM và Báo giá." type="full" />
-                                            <PermissionItem title="Thi Công" desc="Theo dõi để báo cáo tiến độ cho khách." type="read" />
-                                            <PermissionItem title="Marketing" desc="Không thể lên lịch bài đăng." type="denied" />
+                                            <PermissionItem title="Thi công" desc="Cập nhật tiến độ, hạng mục, nhật ký công trường." type="full" />
+                                            <PermissionItem title="Việc cá nhân" desc="Quản lý danh sách việc được giao." type="full" />
+                                            <PermissionItem title="Công việc chung & CRM" desc="Không có quyền truy cập." type="denied" />
                                         </>
                                     )}
 
-                                    {profile?.role === 'Giám Sát' && (
+                                    {profile?.role === 'Khách hàng' && (
                                         <>
-                                            <PermissionItem title="Quản lý Thi công" desc="Cập nhật tiến độ dự án, báo cáo hiện trường." type="full" />
-                                            <PermissionItem title="Khách hàng & Báo giá" desc="Chỉ dành cho Sale và Kế toán." type="denied" />
+                                            <PermissionItem title="Tiến độ công trình" desc="Xem tiến độ, nhật ký và thanh toán dự án của mình." type="read" />
+                                            <PermissionItem title="Thi công (sửa)" desc="Chỉ xem, không thể chỉnh sửa." type="denied" />
                                         </>
                                     )}
 
-                                    {/* Default Fallback */}
-                                    {['Nhân viên'].includes(profile?.role || '') && (
+                                    {profile?.role === 'Nhân viên' && (
                                         <>
                                             <PermissionItem title="Công việc cá nhân" desc="Truy cập danh sách việc và Kanban cá nhân." type="full" />
                                             <PermissionItem title="Dự án tổng" desc="Chỉ xem các dự án được chỉ định." type="read" />
+                                            <PermissionItem title="Thi công & CRM" desc="Không có quyền truy cập." type="denied" />
                                         </>
                                     )}
                                 </div>

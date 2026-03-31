@@ -1,5 +1,11 @@
 import { X } from 'lucide-react'
 
+interface ConstructionProjectOption {
+    id: string
+    name: string
+    owner_name?: string | null
+}
+
 interface AddEditUserModalProps {
     isEditing: boolean
     form: {
@@ -9,13 +15,15 @@ interface AddEditUserModalProps {
         position: string
         role: string
         password?: string
+        construction_project_id?: string
     }
     setForm: (form: any) => void
     onClose: () => void
     onSave: () => void
+    constructionProjects?: ConstructionProjectOption[]
 }
 
-export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave }: AddEditUserModalProps) => {
+export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, constructionProjects = [] }: AddEditUserModalProps) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
             <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200 border border-border-main max-h-[92dvh] flex flex-col">
@@ -71,13 +79,32 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave }: 
                             className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         >
                             <option value="Admin">Admin</option>
-                            <option value="Quản lý">Quản lý</option>
-                            <option value="Thiết Kế">Thiết Kế</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Sale">Sale</option>
-                            <option value="Giám Sát">Giám Sát</option>
+                            <option value="Quản lý thiết kế">Quản lý thiết kế</option>
+                            <option value="Quản lý thi công">Quản lý thi công</option>
+                            <option value="Kỹ sư">Kỹ sư</option>
+                            <option value="Khách hàng">Khách hàng</option>
+                            <option value="Nhân viên">Nhân viên</option>
                         </select>
                     </div>
+                    {form.role === 'Khách hàng' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Công trình phụ trách <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={form.construction_project_id || ''}
+                                onChange={e => setForm({ ...form, construction_project_id: e.target.value || null })}
+                                className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            >
+                                <option value="">-- Chọn công trình --</option>
+                                {constructionProjects.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name}{p.owner_name ? ` (${p.owner_name})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Mật khẩu {!isEditing && <span className="text-red-500">*</span>}</label>
                         <input
