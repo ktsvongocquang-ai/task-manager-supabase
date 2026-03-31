@@ -13,6 +13,7 @@ export interface Project {
   budgetSpent: number; riskLevel: 'green' | 'yellow' | 'red';
   unexpectedCosts: number; totalDocuments: number; daysOff: number; totalDiaryEntries: number;
   client_password?: string | null;
+  client_token?: string | null;
 }
 
 export interface CTask {

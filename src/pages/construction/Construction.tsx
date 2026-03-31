@@ -30,6 +30,7 @@ const mapProject = (p: SupabaseProject): Project => ({
   unexpectedCosts: p.unexpected_costs || 0, totalDocuments: p.total_documents || 0,
   daysOff: p.days_off || 0, totalDiaryEntries: p.total_diary_entries || 0,
   client_password: p.client_password || null,
+  client_token: (p as any).client_token || null,
 });
 
 const mapMilestone = (m: SupabaseMilestone): Milestone => ({
@@ -987,7 +988,9 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
 
 function ShareQRModal({ isOpen, onClose, project }: { isOpen: boolean; onClose: () => void; project: Project }) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = `${window.location.origin}/construction?project=${project.id}&role=homeowner`;
+  const shareUrl = project.client_token 
+      ? `${window.location.origin}/c/${project.client_token}${project.client_password ? `?p=${encodeURIComponent(project.client_password)}` : ''}`
+      : `${window.location.origin}/construction?project=${project.id}&role=homeowner`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
