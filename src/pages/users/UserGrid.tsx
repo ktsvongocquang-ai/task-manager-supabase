@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { type Profile } from '../../types'
-import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink } from 'lucide-react'
+import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
+import { supabase } from '../../services/supabase'
 
 interface UserGridProps {
     profiles: Profile[]
@@ -12,12 +13,35 @@ interface UserGridProps {
 
 function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () => void }) {
     const [copied, setCopied] = useState(false)
-    // URL dẫn thẳng vào trang login, sau khi login → RoleGuard tự redirect về /construction
-    const loginUrl = `${window.location.origin}/login`
+    const [clientToken, setClientToken] = useState<string | null>(null)
+    const [currentPassword, setCurrentPassword] = useState<string>('')
+    const [loadingToken, setLoadingToken] = useState(true)
+
     const projectId = (profile as any).construction_project_id
 
+    useEffect(() => {
+        if (!projectId) { setLoadingToken(false); return }
+        supabase
+            .from('construction_projects')
+            .select('client_token, client_password')
+            .eq('id', projectId)
+            .single()
+            .then(({ data }) => {
+                setClientToken(data?.client_token || null)
+                setCurrentPassword(data?.client_password || '')
+                setLoadingToken(false)
+            })
+    }, [projectId])
+
+    const clientUrl = clientToken
+        ? `${window.location.origin}/c/${clientToken}`
+        : null
+
+
+
     const copyLink = () => {
-        navigator.clipboard.writeText(loginUrl).then(() => {
+        if (!clientUrl) return
+        navigator.clipboard.writeText(clientUrl).then(() => {
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
         })
@@ -45,17 +69,23 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                 {/* QR Code */}
                 <div className="flex flex-col items-center gap-4 px-5 py-6">
                     <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
-                        <QRCodeSVG
-                            value={loginUrl}
-                            size={180}
-                            level="M"
-                            includeMargin={false}
-                            imageSettings={{
-                                src: '/pwa-192x192.png',
-                                x: undefined, y: undefined,
-                                height: 32, width: 32, excavate: true
-                            }}
-                        />
+                        {loadingToken ? (
+                            <div className="w-[180px] h-[180px] flex items-center justify-center">
+                                <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+                            </div>
+                        ) : clientUrl ? (
+                            <QRCodeSVG
+                                value={clientUrl}
+                                size={180}
+                                level="M"
+                                includeMargin={false}
+                            />
+                        ) : (
+                            <div className="w-[180px] h-[180px] flex flex-col items-center justify-center gap-2 text-center">
+                                <AlertTriangle size={32} className="text-amber-400" />
+                                <p className="text-[11px] text-slate-500">Chưa gắn công trình</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Info card */}
@@ -77,32 +107,42 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                     <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-100">
                         <p className="text-[11px] font-bold text-slate-600 mb-1.5">Hướng dẫn khách hàng:</p>
                         <ol className="text-[11px] text-slate-500 space-y-1 list-decimal list-inside">
-                            <li>Quét QR Code hoặc truy cập link</li>
-                            <li>Đăng nhập bằng email: <strong className="text-slate-700">{profile.email}</strong></li>
-                            <li>Nhập mật khẩu đã được cấp</li>
-                            <li>Sẽ tự vào giao diện Thi công của công trình</li>
+                            <li>Quét QR Code hoặc truy cập link bên dưới</li>
+                            <li>Nhập mã truy cập được cấp</li>
+                            <li>Xem tiến độ công trình của mình</li>
                         </ol>
+                        {currentPassword && (
+                            <div className="mt-2 pt-2 border-t border-slate-200">
+                                <p className="text-[10px] text-slate-400">Mã hiện tại: <span className="font-bold text-slate-600">{currentPassword}</span></p>
+                            </div>
+                        )}
+                        {!currentPassword && projectId && (
+                            <p className="text-[10px] text-amber-600 font-medium mt-2">⚠️ Chưa đặt mã — vào Construction để cài</p>
+                        )}
                     </div>
 
                     {/* Link + actions */}
                     <div className="w-full flex gap-2">
                         <div className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 truncate font-mono">
-                            {loginUrl.replace('https://', '')}
+                            {clientUrl ? clientUrl.replace(/^https?:\/\//, '') : '— chưa có công trình —'}
                         </div>
                         <button
                             onClick={copyLink}
-                            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all ${copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white hover:bg-slate-700'}`}
+                            disabled={!clientUrl}
+                            className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all disabled:opacity-40 ${copied ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-white hover:bg-slate-700'}`}
                         >
                             {copied ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy</>}
                         </button>
                     </div>
 
-                    <button
-                        onClick={() => window.open(loginUrl, '_blank')}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all"
-                    >
-                        <ExternalLink size={13} /> Mở thử trang đăng nhập
-                    </button>
+                    {clientUrl && (
+                        <button
+                            onClick={() => window.open(clientUrl, '_blank')}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all"
+                        >
+                            <ExternalLink size={13} /> Mở thử trang khách hàng
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

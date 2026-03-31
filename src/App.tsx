@@ -19,6 +19,7 @@ import MyTasks from './pages/mytasks/MyTasks'
 import MarketingApp from './pages/marketing/MarketingApp'
 import QuoteGenerator from './pages/customers/QuoteGenerator'
 import { ConstructionProvider } from './contexts/ConstructionContext'
+import { ClientView } from './pages/client/ClientView'
 
 function App() {
   return (
@@ -47,6 +48,9 @@ function App() {
           <Route path="marketing" element={<MarketingApp />} />
           <Route path="mytasks" element={<MyTasks />} />
         </Route>
+
+        {/* Public client landing page — NO auth required */}
+        <Route path="/c/:token" element={<ClientView />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
