@@ -132,7 +132,8 @@ export interface ConstructionPhase {
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════
 
-export const fmt = (n: number) => {
+export const fmt = (n?: number | null) => {
+  if (n == null) return '0 đ';
   if (n >= 1e9) return `${(n / 1e9).toFixed(1)} Tỷ`;
   if (n >= 1e6) return `${Math.round(n / 1e6)} Tr`;
   return n.toLocaleString('vi-VN') + ' đ';

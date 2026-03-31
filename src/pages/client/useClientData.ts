@@ -47,7 +47,7 @@ export const useClientData = (token: string) => {
 
         // Fetch related data in parallel
         const [t, l, m, p] = await Promise.all([
-          supabase.from('construction_tasks').select('*').eq('project_id', proj.id).order('sort_order').order('created_at'),
+          supabase.from('construction_tasks').select('*').eq('project_id', proj.id).order('created_at'),
           supabase.from('construction_daily_logs').select('*').eq('project_id', proj.id).order('date', { ascending: false }),
           supabase.from('construction_milestones').select('*').eq('project_id', proj.id).order('sort_order'),
           supabase.from('construction_payment_records').select('*').eq('project_id', proj.id).order('date', { ascending: false }),
