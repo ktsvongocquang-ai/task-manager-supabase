@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ProjectDetailsModal } from './ProjectDetailsModal'
 import { AddEditProjectModal } from './AddEditProjectModal'
@@ -502,6 +502,36 @@ export const Projects = () => {
                                 <span>Quản lý: {getManagerName(project.manager_id || '')}</span>
                             </div>
                         </div>
+
+                        {/* Project links */}
+                        {((project as any).link_hien_trang || (project as any).link_du_an || (project as any).link_presentation) && (
+                            <div className="flex items-center gap-2 mt-1 mb-2">
+                                {(project as any).link_hien_trang && (
+                                    <a href={(project as any).link_hien_trang} target="_blank" rel="noopener noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        title="Hiện trạng / Mirror"
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-100 text-[10px] font-bold transition-colors">
+                                        <ExternalLink size={10} /> Hiện trạng
+                                    </a>
+                                )}
+                                {(project as any).link_du_an && (
+                                    <a href={(project as any).link_du_an} target="_blank" rel="noopener noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        title="Dự án làm việc"
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold transition-colors">
+                                        <Link size={10} /> Dự án
+                                    </a>
+                                )}
+                                {(project as any).link_presentation && (
+                                    <a href={(project as any).link_presentation} target="_blank" rel="noopener noreferrer"
+                                        onClick={e => e.stopPropagation()}
+                                        title="Present PDF / Canvas"
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors">
+                                        <FileText size={10} /> Present
+                                    </a>
+                                )}
+                            </div>
+                        )}
 
                         {/* Progress */}
                         <div className="pt-3 border-t border-slate-100 mt-2">
