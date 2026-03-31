@@ -1304,17 +1304,24 @@ export const Construction = () => {
   // ── Sync selected project from db when projects load ──
   useEffect(() => {
     if (db.projects.length > 0 && selectedProject.id.match(/^[1-4]$/)) {
-      // Check if there's a URL param for a specific project
       const params = new URLSearchParams(window.location.search);
       const urlProjectId = params.get('project');
-      const target = urlProjectId
-        ? db.projects.find(p => p.id === urlProjectId) || db.projects[0]
+
+      // Priority: Khách hàng gets their linked project first
+      const profileProjectId = profile?.role === 'Khách hàng'
+        ? (profile as any).construction_project_id
+        : null;
+
+      const resolvedId = profileProjectId || urlProjectId;
+      const target = resolvedId
+        ? db.projects.find(p => p.id === resolvedId) || db.projects[0]
         : db.projects[0];
       const mapped = mapProject(target);
       setSelectedProject(mapped);
       db.loadProjectDetails(target.id);
     }
   }, [db.projects.length]);
+
 
   // ── Read URL params on mount: ?project=UUID&role=homeowner ──
   // Note: initial state already handles this, but we keep the effect for late-loading edge cases
