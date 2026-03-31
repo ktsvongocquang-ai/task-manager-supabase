@@ -1216,9 +1216,10 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
 // ═══════════════════════════════════════════════════════════
 
 const profileRoleToUserRole = (role?: string): UserRole => {
+  if (role === 'Quản lý thi công') return 'MANAGER';
   if (role === 'Kỹ sư') return 'ENGINEER';
   if (role === 'Khách hàng') return 'HOMEOWNER';
-  return 'MANAGER';
+  return 'MANAGER'; // Admin, Quản lý thiết kế
 };
 
 export const Construction = () => {

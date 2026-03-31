@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import { canAccessRoute, isAdminRole } from '../../utils/permissions'
+import { canAccessRoute, isAdminRole, isConstructionOnlyRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import {
@@ -34,6 +34,7 @@ import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
 import { BottomTabBar } from './BottomTabBar'
 import { FullscreenLauncher } from './FullscreenLauncher'
+import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -297,6 +298,11 @@ export const Layout = () => {
     const getInitials = (name?: string) => {
         if (!name) return 'U'
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    }
+
+    // ── Construction-only roles get a dedicated mobile layout ──
+    if (isConstructionOnlyRole(profile?.role)) {
+        return <ConstructionOnlyLayout />
     }
 
     return (
