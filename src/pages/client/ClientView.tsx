@@ -32,6 +32,17 @@ export const ClientView = () => {
       setViewState('authed'); return
     }
 
+    // Check URL argument for automatic login
+    const searchParams = new URLSearchParams(window.location.search)
+    const urlPass = searchParams.get('p')
+    if (urlPass && urlPass === project.client_password) {
+      sessionStorage.setItem(SESSION_KEY, urlPass)
+      // Hide password from URL for better UX
+      window.history.replaceState({}, document.title, window.location.pathname)
+      setViewState('authed')
+      return
+    }
+
     // Check session
     const saved = sessionStorage.getItem(SESSION_KEY)
     if (saved === project.client_password) {
@@ -150,7 +161,21 @@ export const ClientView = () => {
              <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                {/* Homeowner Dashboard */}
                {activeTab === 'DASHBOARD' && (
-                 <ClientCountdown project={project} milestones={milestones} dailyLogs={logs} phases={[]} tasks={tasks} />
+                 <ClientCountdown
+                   project={{
+                     ...project,
+                     startDate: project.start_date || '',
+                     handoverDate: project.handover_date || '',
+                     contractValue: project.contract_value || 0,
+                     ownerName: project.owner_name || '',
+                     riskLevel: (project.risk_level || 'green') as any,
+                     budgetSpent: project.spent || 0,
+                   } as any}
+                   milestones={milestones}
+                   dailyLogs={logs}
+                   phases={[]}
+                   tasks={tasks}
+                 />
                )}
                
                {/* Gantt Timeline */}

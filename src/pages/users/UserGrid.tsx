@@ -34,7 +34,7 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
     }, [projectId])
 
     const clientUrl = clientToken
-        ? `${window.location.origin}/c/${clientToken}`
+        ? `${window.location.origin}/c/${clientToken}${currentPassword ? `?p=${encodeURIComponent(currentPassword)}` : ''}`
         : null
 
 
