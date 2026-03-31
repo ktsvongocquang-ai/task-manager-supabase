@@ -1476,6 +1476,15 @@ export const Construction = () => {
         <div className="flex items-center gap-3 flex-wrap">
           {userRole === 'MANAGER' && (
             <div className="flex gap-2">
+              <button onClick={() => {
+                const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
+                if (pass !== null) {
+                  db.updateProject(selectedProject.id, { client_password: pass }).then(() => {
+                    setSelectedProject({ ...selectedProject, client_password: pass });
+                    showToast('Đã cập nhật mã Khách Hàng', 'success');
+                  });
+                }
+              }} className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-amber-600 active:scale-95 transition-all h-[38px]" title="Cài mã xem tiến độ cho Khách hàng"><Key className="w-4 h-4" /> Mã KH</button>
               <button onClick={() => setIsShareQROpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all h-[38px]"><QrCode className="w-4 h-4 text-emerald-600" /> Chia sẻ QR</button>
               <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[38px]"><FileSpreadsheet className="w-4 h-4" /> AI Tiến Độ</button>
               <button onClick={() => setIsCreateProjectOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all h-[38px]"><Plus className="w-4 h-4" /> Tạo Dự Án</button>

@@ -12,6 +12,7 @@ export interface Project {
   address: string; ownerName: string; engineerName: string;
   budgetSpent: number; riskLevel: 'green' | 'yellow' | 'red';
   unexpectedCosts: number; totalDocuments: number; daysOff: number; totalDiaryEntries: number;
+  client_password?: string | null;
 }
 
 export interface CTask {
