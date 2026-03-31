@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +29,7 @@ const mapProject = (p: SupabaseProject): Project => ({
   riskLevel: (p.risk_level as 'green' | 'yellow' | 'red') || 'green',
   unexpectedCosts: p.unexpected_costs || 0, totalDocuments: p.total_documents || 0,
   daysOff: p.days_off || 0, totalDiaryEntries: p.total_diary_entries || 0,
+  client_password: p.client_password || null,
 });
 
 const mapMilestone = (m: SupabaseMilestone): Milestone => ({

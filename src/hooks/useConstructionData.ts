@@ -12,6 +12,7 @@ export interface SupabaseProject {
   owner_name: string; engineer_name: string; handover_date: string;
   unexpected_costs: number; total_documents: number; days_off: number;
   total_diary_entries: number; created_at: string;
+  client_password?: string | null;
 }
 
 export interface SupabaseTask {
