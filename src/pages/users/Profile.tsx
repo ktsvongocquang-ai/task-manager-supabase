@@ -15,7 +15,9 @@ export const Profile = () => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin font-bold' }
         if (role === 'Quản lý thiết kế') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager font-bold' }
         if (role === 'Quản lý thi công') return { color: 'bg-indigo-600', text: 'text-indigo-600', badge: 'bg-indigo-50 text-indigo-600 font-bold' }
-        if (role === 'Kỹ sư') return { color: 'bg-amber-500', text: 'text-amber-600', badge: 'bg-amber-50 text-amber-600 font-bold' }
+        if (role === 'Giám Sát') return { color: 'bg-amber-500', text: 'text-amber-600', badge: 'bg-amber-50 text-amber-600 font-bold' }
+        if (role === 'Sale') return { color: 'bg-pink-500', text: 'text-pink-600', badge: 'bg-pink-50 text-pink-600 font-bold' }
+        if (role === 'Marketing') return { color: 'bg-violet-500', text: 'text-violet-600', badge: 'bg-violet-50 text-violet-600 font-bold' }
         if (role === 'Khách hàng') return { color: 'bg-emerald-500', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-600 font-bold' }
         if (role === 'Nhân viên') return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
         return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
@@ -162,11 +164,27 @@ export const Profile = () => {
                                         </>
                                     )}
 
-                                    {profile?.role === 'Kỹ sư' && (
+                                    {profile?.role === 'Giám Sát' && (
                                         <>
                                             <PermissionItem title="Thi công" desc="Cập nhật tiến độ, hạng mục, nhật ký công trường." type="full" />
                                             <PermissionItem title="Việc cá nhân" desc="Quản lý danh sách việc được giao." type="full" />
                                             <PermissionItem title="Công việc chung & CRM" desc="Không có quyền truy cập." type="denied" />
+                                        </>
+                                    )}
+
+                                    {profile?.role === 'Sale' && (
+                                        <>
+                                            <PermissionItem title="Công việc & Kanban" desc="Truy cập Kanban, danh sách việc, lịch trình." type="full" />
+                                            <PermissionItem title="CRM & Khách hàng" desc="Quản lý khách hàng, đơn hàng." type="full" />
+                                            <PermissionItem title="Thi công & Dự án" desc="Không có quyền truy cập." type="denied" />
+                                        </>
+                                    )}
+
+                                    {profile?.role === 'Marketing' && (
+                                        <>
+                                            <PermissionItem title="Công việc & Kanban" desc="Truy cập Kanban, danh sách việc, lịch trình." type="full" />
+                                            <PermissionItem title="Marketing" desc="Quản lý nội dung, chiến dịch marketing." type="full" />
+                                            <PermissionItem title="Thi công & CRM" desc="Không có quyền truy cập." type="denied" />
                                         </>
                                     )}
 

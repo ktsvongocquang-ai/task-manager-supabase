@@ -1221,7 +1221,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
 
 const profileRoleToUserRole = (role?: string): UserRole => {
   if (role === 'Quản lý thi công') return 'MANAGER';
-  if (role === 'Kỹ sư') return 'ENGINEER';
+  if (role === 'Giám Sát') return 'ENGINEER';
   if (role === 'Khách hàng') return 'HOMEOWNER';
   return 'MANAGER'; // Admin, Quản lý thiết kế
 };
@@ -1540,7 +1540,7 @@ export const Construction = () => {
             <div className="flex bg-slate-100 p-1 rounded-xl">
               {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
                 <button key={role} onClick={() => handleRoleChange(role)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                  {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Kỹ sư' : 'Quản lý'}
+                  {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Giám Sát' : 'Quản lý'}
                 </button>
               ))}
             </div>

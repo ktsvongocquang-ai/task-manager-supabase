@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore'
 import { supabase } from '../../services/supabase'
 
 /**
- * Layout gọn cho Quản lý thi công, Kỹ sư, Khách hàng.
+ * Layout gọn cho Quản lý thi công, Giám Sát, Khách hàng.
  * Không sidebar, không bottom bar, tối ưu mobile.
  */
 export const ConstructionOnlyLayout = () => {
@@ -55,7 +55,7 @@ export const ConstructionOnlyLayout = () => {
 
     const getRoleBadgeColor = (role?: string) => {
         if (role === 'Quản lý thi công') return 'bg-blue-600 text-white'
-        if (role === 'Kỹ sư')           return 'bg-emerald-600 text-white'
+        if (role === 'Giám Sát')        return 'bg-emerald-600 text-white'
         if (role === 'Khách hàng')      return 'bg-amber-500 text-white'
         return 'bg-slate-600 text-white'
     }

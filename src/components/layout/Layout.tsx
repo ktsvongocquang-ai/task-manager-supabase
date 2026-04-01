@@ -292,6 +292,8 @@ export const Layout = () => {
     const getRoleBrand = (role?: string) => {
         if (role === 'Admin') return { color: 'bg-admin', text: 'text-admin', badge: 'bg-orange-50 text-admin' }
         if (role === 'Quản lý thiết kế' || role === 'Quản lý thi công') return { color: 'bg-manager', text: 'text-manager', badge: 'bg-blue-50 text-manager' }
+        if (role === 'Sale') return { color: 'bg-pink-500', text: 'text-pink-600', badge: 'bg-pink-50 text-pink-600' }
+        if (role === 'Marketing') return { color: 'bg-violet-500', text: 'text-violet-600', badge: 'bg-violet-50 text-violet-600' }
         return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee' }
     }
 

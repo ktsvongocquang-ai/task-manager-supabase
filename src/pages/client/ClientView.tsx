@@ -140,7 +140,7 @@ export const ClientView = () => {
              <button className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all pointer-events-none">
                 Chủ nhà
              </button>
-             <button className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 transition-all pointer-events-none opacity-50">Kỹ sư</button>
+             <button className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 transition-all pointer-events-none opacity-50">Giám Sát</button>
              <button className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 transition-all pointer-events-none opacity-50">Quản lý</button>
           </div>
         </div>
