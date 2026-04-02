@@ -16,6 +16,37 @@ app.get('/', (req, res) => {
     res.json({ status: "DQH AI Local Server is running!", time: new Date().toISOString() });
 });
 
+// ── GEMINI CHAT PROXY (SECURE) ──
+app.post('/api/gemini-chat', async (req, res) => {
+    try {
+        const API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+        if (!API_KEY) {
+            return res.status(500).json({ error: 'GEMINI_API_KEY not configured on server.' });
+        }
+
+        const { system_instruction, contents, generationConfig } = req.body;
+        
+        const ai = new GoogleGenerativeAI(API_KEY);
+        const model = ai.getGenerativeModel({ 
+            model: 'gemini-2.5-flash',
+            systemInstruction: system_instruction?.parts?.[0]?.text 
+        });
+
+        const response = await model.generateContent({ contents, generationConfig });
+        
+        return res.status(200).json({
+            candidates: [{
+                content: {
+                    parts: [{ text: response.response.text() }]
+                }
+            }]
+        });
+    } catch (err) {
+        console.error("Gemini Proxy Error:", err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // ── ANALYZE QUOTATION (Construction AI Timeline) ──
 app.post('/api/analyze-quotation', async (req, res) => {
     try {

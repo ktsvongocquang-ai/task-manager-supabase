@@ -148,11 +148,6 @@ export const processHRQuestion = async (
         ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'}, Quy đổi: ${(t.taskValue).toLocaleString('vi-VN')}đ)`).join('\n')}
         `;
 
-        const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ''
-        if (!API_KEY) {
-            return `Hệ thống chưa kết nối AI. Số liệu cơ bản của bạn:\nLương ước tính: ${salaryData.finalSalary.toLocaleString('vi-VN')} VNĐ (KPI: ${salaryData.kpiPercent.toFixed(1)}%).`;
-        }
-
         const systemPrompt = `BẠN LÀ TRỢ LÝ QUẢN LÝ NHÂN SỰ (HR ASSISTANT) THÔNG MINH CHO NHÂN VIÊN.
         
         # VAI TRÒ CHÍNH:
@@ -188,7 +183,7 @@ export const processHRQuestion = async (
         };
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+            '/api/gemini-chat',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -196,10 +191,16 @@ export const processHRQuestion = async (
             }
         );
 
-        if (!response.ok) throw new Error('API Error');
+        if (!response.ok) {
+            console.error("Fetch Proxy Error:", await response.text());
+            return `Hệ thống tính AI HR đang gián đoạn. Số liệu cơ bản của bạn:\nLương ước tính: ${salaryData.finalSalary.toLocaleString('vi-VN')} VNĐ (KPI: ${salaryData.kpiPercent.toFixed(1)}%).`;
+        }
+        
         const result = await response.json();
         return result.candidates?.[0]?.content?.parts?.[0]?.text || 'Không có phản hồi.';
     } catch (e: any) {
-        return 'Lỗi khi xử lý: ' + e.message;
+        console.error("Fetch Proxy Error:", e);
+        // Fallback for UI if network fails
+        return `Kết nối bị lỗi. Bạn hãy thử lại sau.`;
     }
 };

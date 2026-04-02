@@ -391,14 +391,9 @@ const callGeminiWithContext = async (
     contextData: string,
     history: ChatMessage[]
 ): Promise<string> => {
-    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || ''
-    if (!API_KEY) {
-        return generateFallbackResponse(question, contextData)
-    }
-
     const today = new Date().toLocaleDateString('vi-VN', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    })
+    });
 
     const systemPrompt = `Bạn là "DQH Assistant" - Trợ lý AI quản trị thông minh của công ty DQH Architects. 
 Hôm nay là ${today}.
@@ -411,12 +406,12 @@ QUY TẮC:
 5. Nếu data trống hoặc không có, nói thẳng "Hiện chưa có dữ liệu" thay vì bịa
 6. Khi báo cáo tổng quan, chia theo team rõ ràng
 7. Đề xuất hành động cụ thể nếu phát hiện vấn đề (task quá hạn, team chậm tiến độ...)
-8. KHÔNG giải thích dài dòng về AI hay hệ thống, chỉ tập trung trả lời câu hỏi`
+8. KHÔNG giải thích dài dòng về AI hay hệ thống, chỉ tập trung trả lời câu hỏi`;
 
     const recentHistory = history.slice(-6).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
         parts: [{ text: m.content }]
-    }))
+    }));
 
     const body = {
         system_instruction: { parts: [{ text: systemPrompt }] },
@@ -431,27 +426,37 @@ QUY TẮC:
             temperature: 0.3,
             maxOutputTokens: 1500,
         }
-    }
+    };
 
-    const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+    let text = '';
+    try {
+        const response = await fetch(
+            '/api/gemini-chat',
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            }
+        );
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            console.error(`Gemini Proxy Error: ${response.status}`, errData);
+            return generateFallbackResponse(question, contextData);
         }
-    )
 
-    if (!response.ok) {
-        const errData = await response.json().catch(() => ({}))
-        throw new Error(`Gemini API Error: ${response.status} - ${JSON.stringify(errData)}`)
+        const result = await response.json();
+        text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } catch(err) {
+        console.error("Fetch Proxy Error:", err);
+        return generateFallbackResponse(question, contextData);
     }
 
-    const result = await response.json()
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) throw new Error('Gemini trả về kết quả rỗng')
+    if (!text) {
+        return generateFallbackResponse(question, contextData);
+    }
 
-    return text
+    return text;
 }
 
 /**
