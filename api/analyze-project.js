@@ -84,11 +84,24 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào (gồm Hội thoại 
    - Nêu một nhận định CHUYÊN MÔN về cái mặt bằng (VD: "Mặt bằng 3 ngủ này khá vuông vức nhưng layout bếp đang hơi hẹp...").
    - Đưa ra 1 gợi ý về TIMELINE dựa trên dữ kiện, hoặc DỰA TRÊN YÊU CẦU ÉP TIẾN ĐỘ của user (VD: user bảo làm 15 ngày thì bạn phải báo: "...tôi nhất trí lộ trình làm việc gói gọn trong 15 ngày như bạn mong muốn...").
    - QUAN TRỌNG: Con số ngày bạn vừa nói trong chat BẮT BUỘC phải được trích xuất thành SỐ NGUYÊN và gán vào trường "estimatedDays"!
-4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.`;
+4. Tất cả mọi "chỉ đạo" của user (như "yêu cầu vẽ nhanh", "vẽ thật kỹ phòng master", v.v) BẮT BUỘC nhét hết vào trường 'contextNote' để truyền xuống con AI sinh WBS.
+
+[HƯỚNG DẪN GIẢI QUYẾT BÀI TOÁN QUẢN TRỊ (PROMPT BẮT BUỘC)]
+Nếu người dùng cung cấp thông tin "Doanh thu" (hoặc ngân sách thiết kế, ví dụ: 20tr) và "Diện tích" (ví dụ: 150m2), BẠN TỰ ĐỘNG GIẢI QUYẾT BÀI TOÁN QUẢN TRỊ như mẫu sau và đưa TOÀN BỘ chi tiết diễn giải vào 'aiMessage':
+1. Quỹ lương tối đa (50%): Lấy [Doanh thu x 50%]. Ví dụ: 20.000.000 x 50% = 10.000.000 VNĐ.
+2. Số ngày làm việc tối đa: Lấy [Quỹ lương tối đa / 600.000 VNĐ]. Ví dụ: 10.000.000 / 600.000 = ~16.6 ngày (Làm tròn thành 16 ngày). 
+   --> LUÔN GÁN ĐÚNG Số ngày này vào trường "estimatedDays".
+3. KPI Năng suất (Quan trọng): Lấy [Diện tích / Số ngày]. Ví dụ: 150m2 / 16 ngày = ~9.3 m2/ngày. Ghép nguyên văn câu sau vào lời khuyên: "Nghĩa là anh/chị giao việc thẳng cho nhân sự: 'Với dự án này, mỗi ngày em phải chốt xong khối lượng tương đương [X]m2 sàn. Chậm hơn mức này là đang lố thời gian của công ty'".
+4. Phân bổ Timeline: Chia thời lượng ra theo chuẩn sau (trên tổng số ngày, VD 16 ngày):
+   - Concept: ~18.75% (Ví dụ: ~3 ngày)
+   - 3D: ~40.625% (Ví dụ: ~6.5 ngày)
+   - Tender: ~31.25% (Ví dụ: ~5 ngày)
+   - Construction: ~9.375% (Ví dụ: ~1.5 ngày)
+   --> YÊU CẦU: Nhét số liệu Phân bổ Timeline chính xác này vào 'contextNote' để làm base tính toán cho AI sinh WBS phía sau.`;
 
         const model = genAI.getGenerativeModel({ 
             model: 'gemini-3-flash-preview',
-            systemInstruction: 'Bạn là Chuyên gia Quản lý Dự án cao cấp...'
+            systemInstruction: systemInstruction
         });
 
         const result = await model.generateContent({

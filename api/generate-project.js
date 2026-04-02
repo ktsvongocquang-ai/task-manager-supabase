@@ -34,7 +34,8 @@ export default async function handler(req, res) {
             investment,
             area,
             phasesWd,
-            bufferKh
+            bufferKh,
+            note
         } = req.body;
 
         if (!projectName || !startDate) {
@@ -115,6 +116,10 @@ Nhiệm vụ của bạn là nhận thông tin đầu vào của dự án và si
    - Xong 3D phải có ngay task Báo giá.
 
 3. TỐI ƯU TỐC ĐỘ: KHÔNG sinh quá 25 Tasks. Gộp các việc nhỏ lẻ.
+
+[CHỈ ĐẠO ĐẶC BIỆT TỪ BỘ PHẬN PHÂN TÍCH (NẾU CÓ)]
+${note || 'Không có chỉ đạo thêm'}
+(Chú ý: Nếu có phân bổ cụ thể của Concept, 3D, Tender, Construction, phải ép cứng số ngày của 5 Phases và Tasks tuân theo đúng chỉ đạo này, thay cho quy tắc mặt định)
 
 [LỊCH LÀM VIỆC (Calendar - Bỏ qua T7, CN)]
 ${JSON.stringify(workingDaysCalendar)}
