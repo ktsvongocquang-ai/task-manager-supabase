@@ -722,11 +722,13 @@ export const Layout = () => {
             )}
 
             {/* Global Modals Wrapper */}
-            {/* Admin AI Chatbot - Floating */}
-            <AdminChatBot
-                userRole={profile?.role}
-                userName={profile?.full_name}
-            />
+            {/* Admin AI Chatbot - Floating (Admin only) */}
+            {profile?.role?.trim() === 'Admin' && (
+                <AdminChatBot
+                    userRole={profile?.role}
+                    userName={profile?.full_name}
+                />
+            )}
 
             {/* HR AI Chatbot - Floating for Employees */}
             <HRAssistantChat
