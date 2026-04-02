@@ -7,6 +7,7 @@ import { format, parseISO } from 'date-fns'
 import { ProjectDetailsModal } from './ProjectDetailsModal'
 import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { ProjectKPIOverlay } from './ProjectKPIOverlay'
 
 export const Projects = () => {
     const { profile } = useAuthStore()
@@ -21,6 +22,7 @@ export const Projects = () => {
     const [form, setForm] = useState({
         name: '', project_code: '', description: '', status: 'Mới',
         start_date: '', end_date: '', manager_id: '', budget: 0,
+        scale: '', project_type: '',
         link_hien_trang: '', link_du_an: '', link_presentation: '',
     })
 
@@ -28,6 +30,7 @@ export const Projects = () => {
     const [showTaskModal, setShowTaskModal] = useState(false)
     const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
+    const [kpiProject, setKpiProject] = useState<Project | null>(null)
 
     useEffect(() => {
         fetchProjects()
@@ -148,6 +151,7 @@ export const Projects = () => {
             name: '', project_code: generateNextProjectCode(),
             description: '', status: 'Chưa bắt đầu', start_date: '', end_date: '',
             manager_id: profile?.id || '', budget: 0,
+            scale: '', project_type: '',
             link_hien_trang: '', link_du_an: '', link_presentation: '',
         })
         setShowModal(true)
@@ -155,10 +159,21 @@ export const Projects = () => {
 
     const openEditModal = (p: Project) => {
         setEditingProject(p)
+        // Parse KPI fields from other_info
+        let kpiBudget = 0, kpiScale = '', kpiProjectType = '';
+        if (p.other_info) {
+            try {
+                const parsed = JSON.parse(p.other_info);
+                kpiBudget = parsed.budget || 0;
+                kpiScale = parsed.scale || '';
+                kpiProjectType = parsed.project_type || '';
+            } catch(e) {}
+        }
         setForm({
             name: p.name, project_code: p.project_code, description: p.description || '',
             status: p.status, start_date: p.start_date || '', end_date: p.end_date || '',
-            manager_id: p.manager_id || '', budget: p.budget || 0,
+            manager_id: p.manager_id || '', budget: kpiBudget,
+            scale: kpiScale, project_type: kpiProjectType,
             link_hien_trang: (p as any).link_hien_trang || '',
             link_du_an: (p as any).link_du_an || '',
             link_presentation: (p as any).link_presentation || '',
@@ -168,18 +183,32 @@ export const Projects = () => {
 
     const handleSave = async () => {
         try {
-            // Remove budget if it's potentially causing a "column does not exist" error
-            // Also ensure we don't send empty strings for optional relation fields
-            const { budget: _budget, ...formData } = form;
+            // budget, scale, project_type may not exist as DB columns
+            // Store them inside other_info JSON to avoid schema errors
+            const { budget: _b, scale: _s, project_type: _pt, ...cleanForm } = form;
+
+            // Merge KPI fields into other_info
+            let existingOtherInfo: any = {};
+            if (editingProject?.other_info) {
+                try { existingOtherInfo = JSON.parse(editingProject.other_info); } catch(e) {}
+            }
+            const mergedOtherInfo = {
+                ...existingOtherInfo,
+                budget: form.budget || 0,
+                scale: form.scale || '',
+                project_type: form.project_type || '',
+            };
+
             const payload = {
-                ...formData,
-                manager_id: formData.manager_id || null,
-                description: formData.description || null,
-                start_date: formData.start_date || null,
-                end_date: formData.end_date || null,
-                link_hien_trang: formData.link_hien_trang || null,
-                link_du_an: formData.link_du_an || null,
-                link_presentation: formData.link_presentation || null,
+                ...cleanForm,
+                manager_id: cleanForm.manager_id || null,
+                description: cleanForm.description || null,
+                start_date: cleanForm.start_date || null,
+                end_date: cleanForm.end_date || null,
+                other_info: JSON.stringify(mergedOtherInfo),
+                link_hien_trang: cleanForm.link_hien_trang || null,
+                link_du_an: cleanForm.link_du_an || null,
+                link_presentation: cleanForm.link_presentation || null,
             }
 
             let result;
@@ -436,7 +465,7 @@ export const Projects = () => {
                                 <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">
                                     <Plus size={14} />
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Xem chi tiết">
+                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100 pointer-events-auto" title="KPI dự án">
                                     <Eye size={14} />
                                 </button>
                                 <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto" title="Sao chép dự án">
@@ -597,6 +626,16 @@ export const Projects = () => {
                 onCopyTask={handleCopyTask}
                 onEditTask={openEditTaskModal}
                 onAddTask={openAddTaskModal}
+            />
+
+            {/* KPI Overlay */}
+            <ProjectKPIOverlay
+                isOpen={!!kpiProject}
+                onClose={() => setKpiProject(null)}
+                project={kpiProject}
+                tasks={allTasks}
+                managerName={kpiProject?.manager_id ? profiles.find(p => p.id === kpiProject.manager_id)?.full_name : undefined}
+                onUpdateProject={fetchProjects}
             />
 
             {/* Add/Edit Task Modal */}

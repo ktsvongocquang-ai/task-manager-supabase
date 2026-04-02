@@ -147,109 +147,162 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Task List Section */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4">Danh sách nhiệm vụ ({stats.total})</h3>
+                    {/* Task List Grouped by Phase */}
+                    <div className="space-y-6">
+                        <h3 className="text-lg font-bold text-slate-800">Danh sách nhiệm vụ ({stats.total})</h3>
 
-                        <div className="space-y-4 pr-2">
-                            {tasksWithProgress.map(task => {
-                                const statusStyle = getStatusStyle(task);
-                                return (
-                                    <div
-                                        key={task.id}
-                                        onClick={() => onEditTask(task)}
-                                        className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
-                                    >
+                        {[
+                            { key: 'concept', name: 'Concept', icon: '💡', color: 'indigo' },
+                            { key: '3d', name: '3D / Phối cảnh', icon: '🎨', color: 'violet' },
+                            { key: '2d', name: '2D / Triển khai', icon: '📐', color: 'blue' },
+                            { key: 'construction', name: 'Construction / Hồ sơ TC', icon: '🏗️', color: 'emerald' },
+                        ].map(phase => {
+                            const phaseTasks = tasksWithProgress.filter(t => (t.target || '').toLowerCase() === phase.key);
+                            const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
+                            const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
 
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={task.status?.includes('Hoàn thành')}
-                                                    onChange={(e) => {
-                                                        e.stopPropagation();
-                                                        onToggleComplete(task);
-                                                    }}
-                                                    className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                                    disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)}
-                                                />
-                                                <div>
-                                                    <h4 className="text-base font-bold text-slate-800 mb-2">
-                                                        {task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span>
-                                                    </h4>
-                                                    <div className="flex gap-2">
-                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
-                                                            {task.status}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Right side actions and info */}
-                                            <div className="flex flex-col items-end justify-between self-stretch gap-2 shrink-0">
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                    {task.totalSub > 0 && (
-                                                        <div className="text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
-                                                            {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
-                                                        </div>
-                                                    )}
-                                                    <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
-                                                        <div className="flex items-center gap-1 font-bold text-slate-700">
-                                                            <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
-                                                                {getAssigneeName(task.assignee_id).charAt(0)}
-                                                            </div>
-                                                            <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
-                                                        </div>
-                                                        <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
-                                                            🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto pb-1">
-                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); onCopyTask(task); }}
-                                                            className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50"
-                                                        >
-                                                            <Copy size={14} />
-                                                        </button>
-                                                    )}
-                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) && (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); onEditTask(task); }}
-                                                            className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-50"
-                                                        >
-                                                            <Edit3 size={14} />
-                                                        </button>
-                                                    )}
-                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
-                                                            className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 shadow-sm border border-red-50"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
+                            return (
+                                <div key={phase.key}>
+                                    {/* Phase Header */}
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">{phase.icon}</span>
+                                            <span className="text-sm font-black text-slate-700 uppercase tracking-wider">{phase.name}</span>
+                                            <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{phaseTasks.length} task</span>
                                         </div>
-
-                                        {/* Task Progress Bar */}
-                                        <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
-                                            <span className="text-xs font-bold text-slate-400">Tiến độ</span>
-                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
-                                                <div
-                                                    className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`}
-                                                    style={{ width: `${task.displayPct}%` }}
-                                                ></div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full transition-all duration-300 ${phasePct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${phasePct}%` }}></div>
                                             </div>
-                                            <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                            <span className="text-xs font-bold text-slate-500">{phaseCompleted}/{phaseTasks.length}</span>
                                         </div>
                                     </div>
-                                )
-                            })}
-                        </div>
+
+                                    {phaseTasks.length === 0 ? (
+                                        <div className="text-xs text-slate-400 italic bg-white/50 rounded-xl py-3 px-4 border border-dashed border-slate-200 mb-2">Chưa có nhiệm vụ nào trong giai đoạn này</div>
+                                    ) : (
+                                        <div className="space-y-3 mb-2">
+                                            {phaseTasks.map(task => {
+                                                const statusStyle = getStatusStyle(task);
+                                                return (
+                                                    <div
+                                                        key={task.id}
+                                                        onClick={() => onEditTask(task)}
+                                                        className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                                    >
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="flex gap-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={task.status?.includes('Hoàn thành')}
+                                                                    onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }}
+                                                                    className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                                    disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)}
+                                                                />
+                                                                <div>
+                                                                    <h4 className="text-base font-bold text-slate-800 mb-2">
+                                                                        {task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span>
+                                                                    </h4>
+                                                                    <div className="flex gap-2">
+                                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
+                                                                            {task.status}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex flex-col items-end justify-between self-stretch gap-2 shrink-0">
+                                                                <div className="flex flex-col items-end gap-1.5">
+                                                                    {task.totalSub > 0 && (
+                                                                        <div className="text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
+                                                                            {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
+                                                                        <div className="flex items-center gap-1 font-bold text-slate-700">
+                                                                            <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
+                                                                                {getAssigneeName(task.assignee_id).charAt(0)}
+                                                                            </div>
+                                                                            <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
+                                                                        </div>
+                                                                        <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                                                                            🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto pb-1">
+                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
+                                                                        <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50"><Copy size={14} /></button>
+                                                                    )}
+                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) && (
+                                                                        <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-50"><Edit3 size={14} /></button>
+                                                                    )}
+                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
+                                                                        <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 shadow-sm border border-red-50"><Trash2 size={14} /></button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
+                                                            <span className="text-xs font-bold text-slate-400">Tiến độ</span>
+                                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
+                                                                <div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div>
+                                                            </div>
+                                                            <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+
+                        {/* Unassigned tasks */}
+                        {(() => {
+                            const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
+                            if (unassigned.length === 0) return null;
+                            return (
+                                <div>
+                                    <div className="flex items-center gap-2 mb-3 px-1">
+                                        <span className="text-lg">📋</span>
+                                        <span className="text-sm font-black text-amber-700 uppercase tracking-wider">Chưa gán giai đoạn</span>
+                                        <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{unassigned.length} task</span>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {unassigned.map(task => {
+                                            const statusStyle = getStatusStyle(task);
+                                            return (
+                                                <div
+                                                    key={task.id}
+                                                    onClick={() => onEditTask(task)}
+                                                    className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex gap-3">
+                                                            <input type="checkbox" checked={task.status?.includes('Hoàn thành')} onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }} className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)} />
+                                                            <div>
+                                                                <h4 className="text-base font-bold text-slate-800 mb-2">{task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span></h4>
+                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>{task.status}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
+                                                            <div className="flex items-center gap-1 font-bold text-slate-700"><div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">{getAssigneeName(task.assignee_id).charAt(0)}</div><span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span></div>
+                                                            <div className="text-[10px] font-semibold text-slate-500 mt-0.5">🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
+                                                        <span className="text-xs font-bold text-slate-400">Tiến độ</span>
+                                                        <div className="flex-1 bg-slate-100 rounded-full h-2"><div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div></div>
+                                                        <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Chat & Comment Section */}

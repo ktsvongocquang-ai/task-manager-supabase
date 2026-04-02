@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { BottomSheet } from '../../components/layout/BottomSheet'
 import { SmartCard } from '../../components/layout/SmartCard'
+import { StaffKPIBoard } from './StaffKPIBoard'
 
 type PopupType = 'projectList' | 'projectDetail' | 'createTask' | 'taskList' | 'editTask' | null
 type TaskFilterType = 'all' | 'ongoing' | 'overdue'
@@ -715,6 +716,15 @@ export const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
             </div>
+
+            {/* Staff KPI Evaluation Board */}
+            <StaffKPIBoard
+                allTasks={allTasks}
+                allProjects={allProjects}
+                allProfiles={allProfiles}
+                monthFilter={monthFilter}
+                currentProfile={profile}
+            />
 
             {/* ========== POPUP 1: Danh sách dự án ========== */}
             <BottomSheet 

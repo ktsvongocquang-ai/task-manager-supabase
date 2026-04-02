@@ -37,10 +37,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
         supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
-        result_links: '', notes: '', parent_id: ''
+        result_links: '', notes: '', parent_id: '', target: ''
     });
-
-    const [phases, setPhases] = useState<Task[]>([]);
 
     const [subTasks, setSubTasks] = useState<Task[]>([]);
     const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
@@ -237,7 +235,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: editingTask.due_date || today, 
                     result_links: editingTask.result_links || '', 
                     notes: editingTask.notes || '',
-                    parent_id: editingTask.parent_id || ''
+                    parent_id: editingTask.parent_id || '',
+                    target: editingTask.target || ''
                 });
 
                 // Fetch actual subtasks from Supabase
@@ -277,7 +276,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_date: today,
                     result_links: '',
                     notes: '',
-                    parent_id: ''
+                    parent_id: '',
+                    target: ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
@@ -293,35 +293,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 project_id: projectId,
                 task_code: nextCode,
                 assignee_id: currentUserProfile?.id || prev.assignee_id,
-                parent_id: '' // reset phase when project changes
+                parent_id: '',
+                target: prev.target // keep phase when changing project
             }
         });
     }
 
-    useEffect(() => {
-        if (!isOpen || !form.project_id) {
-            setPhases([]);
-            return;
-        }
-
-        const fetchPhases = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('tasks')
-                    .select('id, name')
-                    .eq('project_id', form.project_id)
-                    .is('parent_id', null)
-                    .order('created_at', { ascending: true });
-                if (!error && data) {
-                    setPhases(data as Task[]);
-                }
-            } catch (e) {
-                console.error('Error fetching phases:', e);
-            }
-        };
-
-        fetchPhases();
-    }, [isOpen, form.project_id]);
+    // phases are now fixed KPI phases (concept, 3d, 2d, construction)
 
     useEffect(() => {
         if (!isOpen) return;
@@ -356,7 +334,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 due_date: form.due_date || null,
                 result_links: form.result_links || null,
                 notes: form.notes || null,
-                parent_id: form.parent_id || null
+                parent_id: form.parent_id || null,
+                target: form.target || null
             }
 
             let result;
@@ -916,20 +895,23 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Phase / Giai đoạn */}
+                            {/* Phase / Giai đoạn KPI */}
                             <div className="flex items-center min-h-[40px]">
                                 <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
                                     <ListTodo size={16} /> Giai đoạn
                                 </div>
                                 <div className="flex-1">
                                     <select
-                                        value={form.parent_id}
-                                        onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+                                        value={form.target || ''}
+                                        onChange={(e) => setForm({ ...form, target: e.target.value })}
                                         className={`px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium cursor-pointer hover:bg-slate-100 transition-colors w-full max-w-[250px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields() || !form.project_id}
+                                        disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="">Chọn giai đoạn (tùy chọn)...</option>
-                                        {phases.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        <option value="">Chọn giai đoạn...</option>
+                                        <option value="concept">Concept</option>
+                                        <option value="3d">3D / Phối cảnh</option>
+                                        <option value="2d">2D / Triển khai</option>
+                                        <option value="construction">Construction / Hồ sơ TC</option>
                                     </select>
                                 </div>
                             </div>
