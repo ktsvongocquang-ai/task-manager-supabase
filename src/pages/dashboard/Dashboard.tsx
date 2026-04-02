@@ -62,6 +62,7 @@ export const Dashboard = () => {
     const [taskForm, setTaskForm] = useState(emptyTaskForm)
     const [assigneeFilter, setAssigneeFilter] = useState('')
     const [monthFilter, setMonthFilter] = useState('') // YYYY-MM
+    const [previousPopup, setPreviousPopup] = useState<PopupType>(null)
 
     useEffect(() => { 
         fetchDashboardData();
@@ -273,6 +274,9 @@ export const Dashboard = () => {
     const openProjectDetail = (p: Project) => { setSelectedProject(p); setActivePopup('projectDetail') }
     const openTaskList = (filter: TaskFilterType) => { setTaskFilter(filter); setSearchTasks(''); setActivePopup('taskList') }
     const openCreateTask = (projectId: string) => {
+        if (activePopup && activePopup !== 'createTask') {
+            setPreviousPopup(activePopup);
+        }
         const projTasks = allTasks.filter(t => t.project_id === projectId)
         const proj = allProjects.find(p => p.id === projectId)
         const nextCode = proj ? `${proj.project_code}-${String(projTasks.length + 1).padStart(2, '0')}` : ''
@@ -280,6 +284,9 @@ export const Dashboard = () => {
         setActivePopup('createTask')
     }
     const openEditTask = (t: Task) => {
+        if (activePopup && activePopup !== 'editTask') {
+            setPreviousPopup(activePopup);
+        }
         setSelectedTask(t)
         setTaskForm({
             task_code: t.task_code, project_id: t.project_id, name: t.name,
@@ -291,7 +298,7 @@ export const Dashboard = () => {
         })
         setActivePopup('editTask')
     }
-    const closePopup = () => { setActivePopup(null); setSelectedProject(null); setSelectedTask(null) }
+    const closePopup = () => { setActivePopup(null); setSelectedProject(null); setSelectedTask(null); setPreviousPopup(null); }
 
     const getAssigneeName = (id: string | string[] | null) => {
         if (!id || (Array.isArray(id) && id.length === 0)) return 'Chưa gán'
@@ -881,7 +888,10 @@ export const Dashboard = () => {
             <AddEditTaskModal
                 isOpen={activePopup === 'createTask' || activePopup === 'editTask'}
                 onClose={() => {
-                    if (activePopup === 'createTask' && selectedProject) {
+                    if (previousPopup) {
+                        setActivePopup(previousPopup);
+                        setPreviousPopup(null);
+                    } else if (activePopup === 'createTask' && selectedProject) {
                         setActivePopup('projectDetail')
                     } else {
                         closePopup()
@@ -889,7 +899,10 @@ export const Dashboard = () => {
                 }}
                 onSaved={() => {
                     fetchDashboardData();
-                    if (activePopup === 'createTask' && selectedProject) {
+                    if (previousPopup) {
+                        setActivePopup(previousPopup);
+                        setPreviousPopup(null);
+                    } else if (activePopup === 'createTask' && selectedProject) {
                         setActivePopup('projectDetail')
                     } else {
                         closePopup()
