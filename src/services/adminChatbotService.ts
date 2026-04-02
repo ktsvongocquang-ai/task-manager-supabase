@@ -19,8 +19,8 @@ export const fetchTeamTasks = async (options?: {
 
     const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
-    // Build tasks query
-    let query = supabase
+    // Build tasks query (Core)
+    const { data: coreTasks, error } = await supabase
         .from('tasks')
         .select('id, name, status, priority, assignee_id, due_date, start_date, completion_pct, project_id')
         .or(`due_date.eq.${targetDate},start_date.lte.${targetDate}`)
@@ -28,8 +28,26 @@ export const fetchTeamTasks = async (options?: {
         .order('priority', { ascending: false })
         .limit(100)
 
-    const { data: tasks, error } = await query
     if (error) throw error
+
+    // Build tasks query (Marketing)
+    const { data: mkTasks } = await supabase
+        .from('marketing_tasks')
+        .select('id, name, status, priority, assignee_id, due_date, start_date, project_id')
+        .not('status', 'eq', 'Hủy bỏ')
+        .not('status', 'eq', 'REJECTED')
+        .limit(100)
+
+    // filter marketing tasks by date logic similar to core (or just get all active if no date field matches perfectly)
+    // marketing tasks usually use due_date or start_date
+    const activeMkTasks = (mkTasks || []).filter(t => {
+         if (!t.due_date && !t.start_date) return true;
+         if (t.due_date === targetDate || t.start_date === targetDate) return true;
+         if (t.start_date && t.start_date <= targetDate && (!t.due_date || t.due_date >= targetDate)) return true;
+         return false; // keep it simple, or just return all active for Marketing
+    });
+
+    const allTasks = [...(coreTasks || []), ...(activeMkTasks || [])]
 
     // Map roles to teams
     const roleTeamMap: Record<string, string> = {
@@ -43,10 +61,16 @@ export const fetchTeamTasks = async (options?: {
     }
 
     // Enrich tasks with assignee info
-    const enrichedTasks = (tasks || []).map(task => {
+    const enrichedTasks = allTasks.map(task => {
         const assigneeId = Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id
         const assignee = assigneeId ? profileMap.get(assigneeId) : null
-        const team = assignee?.role ? roleTeamMap[assignee.role] || 'Khác' : 'Chưa gán'
+        
+        let team = assignee?.role ? roleTeamMap[assignee.role] || 'Khác' : 'Chưa gán'
+        // Hardcode assign team marking if its from marketing_tasks
+        if (!("completion_pct" in task)) {
+            team = 'Marketing'
+        }
+
         return {
             ...task,
             assignee_name: assignee?.full_name || 'Chưa gán',
@@ -70,34 +94,58 @@ export const fetchTeamTasks = async (options?: {
 export const fetchTaskStats = async (date?: string) => {
     const targetDate = date || new Date().toISOString().split('T')[0]
 
-    const { data: allTasks } = await supabase
+    const { data: coreTasks } = await supabase
         .from('tasks')
         .select('id, status, priority, due_date, completion_pct')
 
-    const tasks = allTasks || []
+    const { data: mkTasks } = await supabase
+        .from('marketing_tasks')
+        .select('id, status, priority, due_date')
+
+    const tasks = coreTasks || []
+    const marketingTasks = mkTasks || []
+    
+    // Normalize Marketing Statuses
+    const isCompleted = (st: string) => st === 'Hoàn thành' || st === 'PUBLISHED'
+    const isNotStarted = (st: string) => st === 'Chưa bắt đầu' || st === 'IDEA'
+    const isCancelled = (st: string) => st === 'Hủy bỏ' || st === 'REJECTED'
+
     const today = new Date(targetDate)
 
-    const overdue = tasks.filter(t =>
+    const overdueCore = tasks.filter(t =>
         t.due_date && new Date(t.due_date) < today &&
-        t.status !== 'Hoàn thành' && t.status !== 'Hủy bỏ'
+        !isCompleted(t.status) && !isCancelled(t.status)
+    )
+    const overdueMk = marketingTasks.filter(t => 
+        t.due_date && new Date(t.due_date) < today &&
+        !isCompleted(t.status) && !isCancelled(t.status)
     )
 
-    const dueToday = tasks.filter(t => t.due_date === targetDate)
-    const inProgress = tasks.filter(t => t.status === 'Đang thực hiện')
-    const completed = tasks.filter(t => t.status === 'Hoàn thành')
-    const notStarted = tasks.filter(t => t.status === 'Chưa bắt đầu')
-    const urgent = tasks.filter(t => t.priority === 'Khẩn cấp' && t.status !== 'Hoàn thành')
+    const overdue = [...overdueCore, ...overdueMk]
+
+    const dueToday = [...tasks.filter(t => t.due_date === targetDate), ...marketingTasks.filter(t => t.due_date === targetDate)]
+    
+    const allActiveTasks = [...tasks, ...marketingTasks]
+    let inProgress = 0; let completed = 0; let notStarted = 0; let urgent = 0;
+
+    allActiveTasks.forEach(t => {
+        if (isCompleted(t.status)) completed++;
+        else if (isNotStarted(t.status)) notStarted++;
+        else if (!isCancelled(t.status)) inProgress++;
+        
+        if (t.priority === 'Khẩn cấp' && !isCompleted(t.status) && !isCancelled(t.status)) urgent++;
+    });
 
     return {
-        total: tasks.length,
+        total: allActiveTasks.length,
         overdue: overdue.length,
         dueToday: dueToday.length,
-        inProgress: inProgress.length,
-        completed: completed.length,
-        notStarted: notStarted.length,
-        urgent: urgent.length,
-        completionRate: tasks.length > 0
-            ? Math.round((completed.length / tasks.length) * 100)
+        inProgress,
+        completed,
+        notStarted,
+        urgent,
+        completionRate: allActiveTasks.length > 0
+            ? Math.round((completed / allActiveTasks.length) * 100)
             : 0,
         overdueDetails: overdue.slice(0, 10).map(t => ({
             name: t.id,
