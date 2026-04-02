@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { canAccessRoute, isAdminRole, isConstructionOnlyRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
+import { trackPageView } from '../../services/userTracking'
 import { useAuthStore } from '../../store/authStore'
 import {
     Users,
@@ -32,6 +33,8 @@ import { getUnreadNotificationCount, checkScheduledNotifications } from '../../s
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
+import { AdminChatBot } from '../chat/AdminChatBot'
+import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
 import { FullscreenLauncher } from './FullscreenLauncher'
 import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
@@ -66,6 +69,15 @@ export const Layout = () => {
     
     // Accordion sidebar state
     const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Công việc': true })
+
+    // Track page views for usage analytics
+    const lastTrackedPath = useRef('')
+    useEffect(() => {
+        if (profile?.id && location.pathname !== lastTrackedPath.current) {
+            lastTrackedPath.current = location.pathname
+            trackPageView(profile.id, location.pathname)
+        }
+    }, [location.pathname, profile?.id])
 
     const toggleNav = (name: string) => {
         setExpandedNavs(prev => ({ ...prev, [name]: !prev[name] }))
@@ -710,6 +722,19 @@ export const Layout = () => {
             )}
 
             {/* Global Modals Wrapper */}
+            {/* Admin AI Chatbot - Floating */}
+            <AdminChatBot
+                userRole={profile?.role}
+                userName={profile?.full_name}
+            />
+
+            {/* HR AI Chatbot - Floating for Employees */}
+            <HRAssistantChat
+                userId={profile?.id}
+                userRole={profile?.role}
+                userName={profile?.full_name}
+            />
+
             <GlobalModals
                 isProjectModalOpen={isGlobalAddProjectOpen}
                 isTaskModalOpen={isGlobalAddTaskOpen}

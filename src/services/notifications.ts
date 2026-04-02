@@ -104,60 +104,126 @@ export const createNotification = async (
     }
 }
 
-// Check and generate overdue/due today notifications
+import { fetchHRDataAndCalculate } from './hrAssistantService'
+
+// Check and generate overdue/due today and HR auto-notifications
 export const checkScheduledNotifications = async (userId: string) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        
+        // Fetch user profile to get role and name
+        const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, role')
+            .eq('id', userId)
+            .single();
 
-        // 1. Get tasks where user is assignee
-        const { data: tasks, error } = await supabase
-            .from('tasks')
-            .select('*')
-            .in('status', ['Chưa bắt đầu', 'Đang thực hiện', 'Đang làm'])
-            .eq('assignee_id', userId);
+        if (!profileData) return;
+        const userName = profileData.full_name || 'Nhân sự';
+        const userRole = profileData.role || 'Nhân viên';
 
-        if (error) throw error;
+        // Fetch tasks and HR calculations
+        const hrData = await fetchHRDataAndCalculate(userId, userRole);
+        const evaluatedTasks = hrData.evaluatedTasks;
 
-        // Fetch today's notifications to prevent spam
+        // Fetch today's notifications to prevent spam (max 2 per task/day)
         const { data: todayNotifs } = await supabase
             .from('notifications')
-            .select('related_task_id, type')
+            .select('related_task_id, type, content')
             .eq('user_id', userId)
             .gte('created_at', today.toISOString());
 
-        const existingOverdue = new Set(todayNotifs?.filter(n => n.type === 'overdue').map(n => n.related_task_id));
-        const existingDueToday = new Set(todayNotifs?.filter(n => n.type === 'due_today').map(n => n.related_task_id));
+        const notifTracker: Record<string, number> = {};
+        todayNotifs?.forEach(n => {
+            const id = n.related_task_id;
+            if (id) {
+                notifTracker[id] = (notifTracker[id] || 0) + 1;
+            }
+        });
 
-        for (const task of tasks || []) {
-            if (!task.due_date) continue;
+        // Also fetch managers for admin warnings
+        const { data: managers } = await supabase
+            .from('profiles')
+            .select('id')
+            .in('role', ['Admin', 'Quản lý thiết kế', 'Quản lý thi công']);
+
+
+        for (const task of evaluatedTasks) {
+            if (task.status === 'Hoàn thành' || task.status === 'Hủy bỏ' || !task.due_date) continue;
+
             const dueDate = new Date(task.due_date);
             dueDate.setHours(0, 0, 0, 0);
 
-            const diffTime = today.getTime() - dueDate.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const diffTime = dueDate.getTime() - today.getTime();
+            const daysUntilDue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            const expectedValueStr = (task.taskValue / task.onTimeMulti).toLocaleString('vi-VN');
 
-            if (diffDays > 0 && !existingOverdue.has(task.id)) {
-                // Tiếng Việt warning
+            // 1. Nhắc deadline 24h
+            if (daysUntilDue === 1 && (notifTracker[task.id] || 0) < 1) {
                 await createNotification(
                     userId,
-                    `Nhiệm vụ "${task.name}" đã TRỄ HẠN ${diffDays} ngày!`,
-                    'overdue',
-                    null,
-                    task.id,
-                    task.project_id
-                );
-            } else if (diffDays === 0 && !existingDueToday.has(task.id)) {
-                await createNotification(
-                    userId,
-                    `Nhiệm vụ "${task.name}" cần hoàn thành TRONG HÔM NAY.`,
+                    `${userName} — Task "${task.name}" sẽ đến hạn vào ngày mai. Nếu hoàn thành đúng hạn: +${expectedValueStr}đ vào lương hiệu quả.`,
                     'due_today',
                     null,
                     task.id,
                     task.project_id
                 );
             }
+            
+            // 2. Báo task trễ
+            if (task.daysLate > 0 && (notifTracker[task.id] || 0) < 1) {
+                const baseValue = task.taskValue / task.onTimeMulti;
+                const lostAmount = baseValue - task.taskValue;
+                
+                await createNotification(
+                    userId,
+                    `${userName} — Task "${task.name}" đã quá hạn ${task.daysLate} ngày. Hệ số on-time hiện tại: ${task.onTimeMulti}x. Ảnh hưởng lương: -${lostAmount.toLocaleString('vi-VN')}đ. Vui lòng cập nhật trạng thái!`,
+                    'overdue',
+                    null,
+                    task.id,
+                    task.project_id
+                );
+
+                // Admin cảnh báo:
+                if (task.daysLate > 1 && task.isHardDeadline) {
+                    if (managers) {
+                        for (const m of managers) {
+                            await createNotification(
+                                m.id,
+                                `[CẢNH BÁO] ${userName} có task cứng "${task.name}" trễ > 1 ngày. Gợi ý: 1-on-1 hoặc điều chỉnh khối lượng.`,
+                                'system',
+                                userId,
+                                task.id,
+                                task.project_id
+                            );
+                        }
+                    }
+                }
+            }
         }
+
+        // CẢNH BÁO KPI CHO QUẢN LÝ
+        if (today.getDate() >= 21 && hrData.kpiPercent < 60) {
+            // only check once per week or month maybe? 
+            // We can just rely on notifTracker to not spam if we use a specific task id, but we don't have one here.
+            // Simplified: just warn if we haven't warned them today about this global fact.
+            const hasWarnedKPI = !todayNotifs || todayNotifs.some(n => n.type === 'system' && n.content?.includes('KPI tháng < 60%'));
+            if (!hasWarnedKPI && managers) {
+                for (const m of managers) {
+                    await createNotification(
+                        m.id,
+                        `[CẢNH BÁO] ${userName} hiện có KPI tháng rất thấp (${hrData.kpiPercent.toFixed(1)}%). Đề nghị rà soát năng suất.`,
+                        'system',
+                        userId,
+                        null,
+                        null
+                    );
+                }
+            }
+        }
+
     } catch (err) {
         console.error('Error checking scheduled notifications:', err);
     }
