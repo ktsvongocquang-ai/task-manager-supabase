@@ -451,7 +451,7 @@ export const Projects = () => {
             {/* Project Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project) => (
-                    <div key={project.id} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1">
+                    <div key={project.id} onClick={() => setKpiProject(project)} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
                         {/* Status badge in top left */}
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
