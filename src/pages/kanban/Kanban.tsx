@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Calendar, GripVertical, Users } from 'lucide-react'
+import { Plus, Search, Calendar, Users } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
@@ -310,23 +310,18 @@ export const Kanban = () => {
                                                             <div
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
+                                                                {...provided.dragHandleProps}
                                                                 onClick={() => {
                                                                     if (!snapshot.isDragging) {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
-                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-pointer group flex flex-col
-                                                                    ${snapshot.isDragging ? 'shadow-xl border-[#5B5FC7] rotate-1 scale-[1.02] z-50' : 'border-slate-200 hover:border-[#5B5FC7]/30 hover:shadow-md'}
+                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-grab group flex flex-col
+                                                                    ${snapshot.isDragging ? 'shadow-xl border-[#5B5FC7] rotate-1 scale-[1.02] z-50 cursor-grabbing' : 'border-slate-200 hover:border-[#5B5FC7]/30 hover:shadow-md'}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
                                                                 <div className="flex justify-between items-start mb-1.5 gap-2">
-                                                                    <div 
-                                                                        {...provided.dragHandleProps} 
-                                                                        className="mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-slate-100 p-0.5 rounded-md text-slate-400 shrink-0"
-                                                                    >
-                                                                        <GripVertical className="w-4 h-4" />
-                                                                    </div>
                                                                     <h4 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
                                                                         {task.name}
                                                                     </h4>
