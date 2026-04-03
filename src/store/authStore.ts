@@ -118,14 +118,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     hasPermission: (role?: string, actionKey?: string) => {
         if (!role || !actionKey) return false;
-        
+
         // Admins can do everything
         if (role === 'Admin') return true;
 
         const { systemPermissions } = get();
-        const fallbackPermissions = generateFlatPermissions();
-        const permsToUse = systemPermissions && Object.keys(systemPermissions).length > 0 ? systemPermissions : fallbackPermissions;
+        const fallback = generateFlatPermissions();
 
-        return !!permsToUse[actionKey]?.[role];
+        // Try DB permissions first — but they may use old role name keys.
+        // If the role is not found in the DB entry (undefined), fall back to generated map.
+        if (systemPermissions && Object.keys(systemPermissions).length > 0) {
+            const dbResult = systemPermissions[actionKey]?.[role];
+            if (dbResult !== undefined) return !!dbResult;
+            // Role key missing in DB (old role names) → use generated fallback
+        }
+
+        return !!fallback[actionKey]?.[role];
     }
 }))
