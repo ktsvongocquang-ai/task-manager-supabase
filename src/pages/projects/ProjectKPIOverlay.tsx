@@ -188,7 +188,7 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     <div className="text-right pr-10">
                         <div className={`text-5xl font-black leading-none ${remainingDays >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{kpiBreakEven > 0 ? Math.abs(remainingDays) : '—'}</div>
                         <div className="text-xs uppercase font-bold text-slate-400 mt-1">ngày KPI {remainingDays >= 0 ? 'còn lại' : 'vượt lố'}</div>
-                        <div className="text-[10px] text-slate-400">đến mốc hòa vốn</div>
+                        <div className="text-[10px] text-slate-400">đến mốc cần hoàn thành tiêu chuẩn</div>
                     </div>
                     <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-200 rounded-full"><X size={24} /></button>
                 </div>
