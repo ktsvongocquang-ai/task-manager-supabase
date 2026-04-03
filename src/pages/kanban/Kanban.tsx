@@ -299,7 +299,9 @@ export const Kanban = () => {
                                                 const isTaskAssigned = Array.isArray(task.assignee_id)
                                                     ? task.assignee_id.includes(profile?.id || '')
                                                     : task.assignee_id === profile?.id;
-                                                const isDraggable = canEdit && Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý thiết kế' || project?.manager_id === profile?.id || isTaskAssigned);
+                                                const isManagerOrAdminUser = profile?.role === 'Admin' || profile?.role === 'Quản lý thiết kế' || project?.manager_id === profile?.id;
+                                                // Assigned users can always drag their own tasks; managers/admins need canEdit
+                                                const isDraggable = isTaskAssigned || (canEdit && isManagerOrAdminUser);
                                                 const overdue = isOverdue(task);
 
                                                 return (
