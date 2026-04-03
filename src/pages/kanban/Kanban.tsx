@@ -193,61 +193,62 @@ export const Kanban = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0">
                 <h1 className="text-xl font-bold text-slate-800 hidden md:block">Kanban Board</h1>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                    <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    {/* Date toggle */}
+                    <div className="flex bg-slate-100 p-1 rounded-xl shrink-0">
                         <button
                             onClick={() => setDateFilter('today')}
-                            className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Hôm nay
                         </button>
                         <button
                             onClick={() => setDateFilter('all')}
-                            className={`flex-1 sm:flex-none px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Tất cả
                         </button>
                     </div>
 
-                    <div className="flex gap-2 w-full sm:w-auto">
-                        {/* Assignee filter */}
-                        <div className="relative flex-1 sm:w-44">
-                            <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                            <select
-                                value={selectedAssignee}
-                                onChange={(e) => setSelectedAssignee(e.target.value)}
-                                className="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
-                            >
-                                <option value="all">Tất cả nhân sự</option>
-                                {profiles.map(p => (
-                                    <option key={p.id} value={p.id}>{p.full_name}</option>
-                                ))}
-                            </select>
-                        </div>
+                    {/* Assignee filter */}
+                    <div className="relative shrink-0">
+                        <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <select
+                            value={selectedAssignee}
+                            onChange={(e) => setSelectedAssignee(e.target.value)}
+                            className="pl-8 pr-8 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px] w-44"
+                        >
+                            <option value="all">Tất cả nhân sự</option>
+                            {profiles.map(p => (
+                                <option key={p.id} value={p.id}>{p.full_name}</option>
+                            ))}
+                        </select>
+                    </div>
 
-                        <div className="relative flex-1 sm:w-44">
-                            <select
-                                value={selectedProject}
-                                onChange={(e) => setSelectedProject(e.target.value)}
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
-                            >
-                                <option value="all">Tất cả dự án</option>
-                                {projects.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                    {/* Project filter */}
+                    <div className="relative shrink-0">
+                        <select
+                            value={selectedProject}
+                            onChange={(e) => setSelectedProject(e.target.value)}
+                            className="px-4 pr-8 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px] w-44"
+                        >
+                            <option value="all">Tất cả dự án</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                    </div>
 
-                        <div className="relative flex-1 sm:w-56">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Tìm kiếm nhiệm vụ..."
-                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-[38px]"
-                            />
-                        </div>
+                    {/* Search */}
+                    <div className="relative shrink-0">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Tìm kiếm nhiệm vụ..."
+                            className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-[38px] w-52"
+                        />
                     </div>
                 </div>
             </div>
