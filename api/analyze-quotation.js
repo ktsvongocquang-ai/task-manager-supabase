@@ -48,7 +48,7 @@ Trả về MỘT MẢNG JSON với cấu trúc:
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
-        config: { responseMimeType: 'application/json' }
+        config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }
       });
 
       const tasks = JSON.parse(response.text || '[]');
@@ -97,7 +97,7 @@ Chú ý: startDate bắt buộc convert sang chuẩn YYYY-MM-DD (vidu: 2026-04-1
             { text: prompt }
           ]}
         ],
-        config: { responseMimeType: 'application/json' }
+        config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }
       });
 
       const raw = JSON.parse(response.text || '{}');
@@ -114,7 +114,7 @@ Chú ý: startDate bắt buộc convert sang chuẩn YYYY-MM-DD (vidu: 2026-04-1
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Từ nội dung báo giá/hợp đồng này, trích xuất thông tin dự án:\n---\n${text.slice(0, 3000)}\n---\nTrả về JSON: { "name": "", "ownerName": "", "address": "", "contractValue": 0, "budget": 0, "startDate": "YYYY-MM-DD", "handoverDate": "YYYY-MM-DD" }. NHỚ: startDate và handoverDate phải format dạng YYYY-MM-DD. Nếu không rỗ, để rỗng "".`,
-        config: { responseMimeType: 'application/json' }
+        config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } }
       });
 
       const projectInfo = JSON.parse(response.text || '{}');

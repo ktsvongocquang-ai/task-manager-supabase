@@ -21,12 +21,30 @@ interface GlobalChatProps {
     currentUserProfile: any;
 }
 
-const AI_QUICK_QUESTIONS = [
-    { icon: '📋', text: 'Hôm nay tôi có task nào?' },
-    { icon: '🚨', text: 'Task nào đang trễ deadline?' },
-    { icon: '💰', text: 'KPI & lương tháng này?' },
-    { icon: '📈', text: 'Cách tăng KPI của tôi?' },
-];
+const getQuickQuestions = (role?: string) => {
+    if (['Giám Sát', 'Quản lý thi công', 'Kỹ sư'].includes(role || '')) {
+        return [
+            { icon: '🏗️', text: 'Hôm nay tôi có hạng mục nào?' },
+            { icon: '⚠️', text: 'Hạng mục nào đang trễ tiến độ?' },
+            { icon: '📋', text: 'Nhật ký công trường gần nhất?' },
+            { icon: '🔧', text: 'Tôi đang thi công công trình nào?' },
+        ];
+    }
+    if (['Marketing', 'Sale'].includes(role || '')) {
+        return [
+            { icon: '📢', text: 'Hôm nay tôi có task marketing nào?' },
+            { icon: '📊', text: 'Báo cáo Facebook Ads gần nhất?' },
+            { icon: '🚨', text: 'Task nào đang trễ deadline?' },
+            { icon: '🎯', text: 'Tôi cần làm gì để đạt KPI?' },
+        ];
+    }
+    return [
+        { icon: '📋', text: 'Hôm nay tôi có task nào?' },
+        { icon: '🚨', text: 'Task nào đang trễ deadline?' },
+        { icon: '💰', text: 'KPI & lương tháng này?' },
+        { icon: '📈', text: 'Cách tăng KPI của tôi?' },
+    ];
+};
 
 export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, currentUserProfile }) => {
     const [activeTab, setActiveTab] = useState<'chat' | 'ai'>('chat');
@@ -271,7 +289,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                         </div>
                         <div className="p-3 bg-white border-t border-slate-100 shrink-0">
                             <div className="flex flex-wrap gap-1.5 mb-2.5">
-                                {AI_QUICK_QUESTIONS.map((q, i) => (
+                                {getQuickQuestions(currentUserProfile?.role).map((q, i) => (
                                     <button key={i} onClick={() => handleSendAI(q.text)}
                                         className="text-[11px] bg-slate-50 text-slate-600 hover:bg-teal-50 hover:text-teal-700 px-2.5 py-1.5 rounded-full border border-slate-200 transition-colors">
                                         {q.icon} {q.text}

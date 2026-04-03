@@ -24,32 +24,71 @@ const PROJECT_TYPE_MULTIPLIERS: Record<string, number> = {
 };
 
 export const fetchHRDataAndCalculate = async (userId: string, role: string) => {
-    // 1. Fetch user tasks for current month
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    const startDateStr = startOfMonth.toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('sv-SE');
 
-    const { data: tasks } = await supabase
+    // Current month boundaries
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfThisMonthStr = startOfThisMonth.toISOString().split('T')[0];
+
+    // Last month boundaries
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const startOfLastMonthStr = startOfLastMonth.toISOString().split('T')[0];
+
+    // Fetch this month's tasks (for KPI/salary)
+    const { data: thisMonthTasks } = await supabase
         .from('tasks')
         .select(`
             id, name, status, priority, due_date, completion_date, project_id,
             projects ( name, project_type )
         `)
         .eq('assignee_id', userId)
-        .gte('created_at', startDateStr);
+        .gte('created_at', startOfThisMonthStr);
+
+    // Fetch ALL incomplete/overdue tasks (no created_at filter) for accurate overdue count
+    const { data: allIncompleteTasks } = await supabase
+        .from('tasks')
+        .select('id, name, status, due_date, project_id, projects:project_id(name)')
+        .eq('assignee_id', userId)
+        .not('status', 'eq', 'Hoàn thành');
+
+    // Fetch last month's tasks to count how many were late
+    const { data: lastMonthTasks } = await supabase
+        .from('tasks')
+        .select('id, name, status, due_date, completion_date')
+        .eq('assignee_id', userId)
+        .gte('created_at', startOfLastMonthStr)
+        .lt('created_at', startOfThisMonthStr);
+
+    // Count overdue by period
+    const allIncomplete = (allIncompleteTasks || []) as any[];
+    const overdueThisMonth = allIncomplete.filter(t =>
+        t.due_date && t.due_date >= startOfThisMonthStr && t.due_date < todayStr
+    ).length;
+    const overdueCarriedOver = allIncomplete.filter(t =>
+        t.due_date && t.due_date < startOfThisMonthStr
+    ).length;
+
+    // Last month: tasks that were completed late OR still not done with last-month due_date
+    const lastMonthDelayed = (lastMonthTasks || []).filter((t: any) => {
+        if (!t.due_date) return false;
+        const due = t.due_date;
+        if (t.status !== 'Hoàn thành') return due < todayStr;
+        if (t.completion_date) return t.completion_date > due;
+        return false;
+    }).length;
 
     let totalM2 = 0;
     let actualSalary = 0;
     let delayedTaskCount = 0;
 
     const basePrice = ROLE_PRICES[role] || 4000;
-    
-    // Evaluate tasks
-    const evaluatedTasks = (tasks || []).map((t: any) => {
-        // Parse m2 from task name or description (e.g., "[50m2]")
+
+    // Evaluate this month's tasks for KPI/salary
+    const evaluatedTasks = (thisMonthTasks || []).map((t: any) => {
         const m2Match = t.name.match(/(\d+)\s*m2/i);
         let m2 = m2Match ? parseInt(m2Match[1], 10) : 0;
-        
+
         let typeMulti = 1.0;
         const pt = t.projects?.project_type || '';
         for (const key in PROJECT_TYPE_MULTIPLIERS) {
@@ -66,7 +105,6 @@ export const fetchHRDataAndCalculate = async (userId: string, role: string) => {
         if (t.due_date) {
             const dueDate = new Date(t.due_date);
             const finishDate = t.completion_date ? new Date(t.completion_date) : new Date();
-            
             const diffTime = finishDate.getTime() - dueDate.getTime();
             daysLate = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
@@ -117,7 +155,10 @@ export const fetchHRDataAndCalculate = async (userId: string, role: string) => {
         kpiPercent,
         kpiMulti,
         finalSalary,
-        delayedTaskCount
+        delayedTaskCount,
+        overdueThisMonth,
+        overdueCarriedOver,
+        lastMonthDelayed,
     };
 };
 
@@ -127,6 +168,147 @@ export interface ChatMessage {
     timestamp: Date
 }
 
+const isConstructionRole = (role: string) =>
+    ['Giám Sát', 'Quản lý thi công', 'Kỹ sư'].includes(role)
+
+const isMarketingRole = (role: string) =>
+    ['Marketing', 'Sale'].includes(role)
+
+const buildConstructionContext = async (userId: string, userName: string, userRole: string, todayStr: string) => {
+    // Fetch construction tasks for this user
+    const { data: ctasks } = await supabase
+        .from('construction_tasks')
+        .select('id, title, status, due_date, construction_project_id, construction_projects:construction_project_id(name)')
+        .eq('assignee_id', userId)
+        .not('status', 'eq', 'done')
+
+    const allTasks = (ctasks || []) as any[]
+    const overdue = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+    const dueToday = allTasks.filter(t => t.due_date === todayStr)
+    const inProgress = allTasks.filter(t => t.status === 'in_progress')
+
+    // Fetch recent daily logs
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const { data: logs } = await supabase
+        .from('construction_daily_logs')
+        .select('date, note, project_id, construction_projects:project_id(name)')
+        .gte('date', sevenDaysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: false })
+        .limit(3)
+
+    const overdueLines = overdue.slice(0, 5).map((t: any) => {
+        const daysLate = Math.ceil((new Date(todayStr).getTime() - new Date(t.due_date).getTime()) / 86400000)
+        return `- "${t.title}" (trễ ${daysLate} ngày, công trình: ${t.construction_projects?.name || 'N/A'})`
+    }).join('\n') || 'Không có'
+
+    const logLines = (logs || []).map((l: any) => `- [${l.date}] ${l.construction_projects?.name || ''}: ${(l.note || '').slice(0, 80)}`).join('\n') || 'Không có'
+
+    return `
+NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
+
+HẠNG MỤC ĐẾN HẠN HÔM NAY (${dueToday.length}):
+${dueToday.map((t: any) => `- "${t.title}"`).join('\n') || 'Không có'}
+
+HẠNG MỤC QUÁ HẠN (${overdue.length}):
+${overdueLines}
+
+ĐANG THI CÔNG (${inProgress.length} hạng mục đang chạy)
+
+NHẬT KÝ CÔNG TRƯỜNG GẦN ĐÂY:
+${logLines}
+`
+}
+
+const buildMarketingContext = async (userId: string, userName: string, userRole: string, todayStr: string) => {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    // Fetch marketing tasks assigned to user
+    const { data: tasks } = await supabase
+        .from('tasks')
+        .select('id, name, status, due_date, project_id, projects:project_id(name)')
+        .or(`assignee_id.eq.${userId},supporter_id.eq.${userId}`)
+        .not('status', 'eq', 'Hoàn thành')
+
+    const allTasks = (tasks || []) as any[]
+    const overdue = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+    const dueToday = allTasks.filter(t => t.due_date === todayStr)
+
+    // Fetch recent AI marketing reports
+    const { data: reports } = await supabase
+        .from('marketing_ai_reports')
+        .select('report_type, created_at, date_range')
+        .order('created_at', { ascending: false })
+        .limit(2)
+
+    const reportLines = (reports || []).map((r: any) => `- Báo cáo "${r.report_type}" (${new Date(r.created_at).toLocaleDateString('vi-VN')})`).join('\n') || 'Chưa có báo cáo gần đây'
+
+    return `
+NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
+
+TASK ĐẾN HẠN HÔM NAY (${dueToday.length}):
+${dueToday.map((t: any) => `- "${t.name}"`).join('\n') || 'Không có'}
+
+TASK QUÁ HẠN (${overdue.length}):
+${overdue.slice(0, 5).map((t: any) => {
+        const daysLate = Math.ceil((new Date(todayStr).getTime() - new Date(t.due_date).getTime()) / 86400000)
+        return `- "${t.name}" (trễ ${daysLate} ngày)`
+    }).join('\n') || 'Không có'}
+
+BÁO CÁO FB ADS GẦN ĐÂY:
+${reportLines}
+`
+}
+
+const buildGeneralContext = async (userId: string, userName: string, userRole: string, todayStr: string) => {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const startOfThisMonth = new Date(todayStr.slice(0, 7) + '-01')
+    const startOfThisMonthStr = startOfThisMonth.toISOString().split('T')[0]
+
+    const { data: tasks } = await supabase
+        .from('tasks')
+        .select('id, name, status, due_date, project_id, projects:project_id(name)')
+        .or(`assignee_id.eq.${userId},supporter_id.eq.${userId}`)
+        .not('status', 'eq', 'Hoàn thành')
+
+    const allTasks = (tasks || []) as any[]
+    const overdueThisMonth = allTasks.filter(t => t.due_date && t.due_date >= startOfThisMonthStr && t.due_date < todayStr)
+    const overdueCarriedOver = allTasks.filter(t => t.due_date && t.due_date < startOfThisMonthStr)
+    const dueTodayTasks = allTasks.filter(t => t.due_date === todayStr)
+    const inProgressTasks = allTasks.filter(t => t.status === 'Đang thực hiện')
+    const activeProjectIds = [...new Set(inProgressTasks.map((t: any) => t.project_id).filter(Boolean))]
+
+    const { data: newProjects } = await supabase
+        .from('projects')
+        .select('name, created_at')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3)
+
+    const allOverdue = [...overdueCarriedOver, ...overdueThisMonth]
+    const overdueLines = allOverdue.slice(0, 5).map((t: any) => {
+        const daysLate = Math.ceil((new Date(todayStr).getTime() - new Date(t.due_date).getTime()) / 86400000)
+        return `- "${t.name}" (trễ ${daysLate} ngày, dự án: ${(t.projects as any)?.name || 'N/A'})`
+    }).join('\n') || 'Không có'
+
+    return `
+NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
+
+TASK ĐẾN HẠN HÔM NAY (${dueTodayTasks.length}):
+${dueTodayTasks.map((t: any) => `- "${t.name}"`).join('\n') || 'Không có'}
+
+TASK QUÁ HẠN THÁNG NÀY (${overdueThisMonth.length}) + TỒN TỪ THÁNG TRƯỚC (${overdueCarriedOver.length}):
+${overdueLines}
+
+ĐANG LÀM ${activeProjectIds.length} DỰ ÁN SONG SONG (${inProgressTasks.length} task đang chạy)
+
+DỰ ÁN MỚI TRONG 7 NGÀY (${newProjects?.length || 0}):
+${(newProjects || []).map(p => `- "${p.name}"`).join('\n') || 'Không có'}
+`
+}
+
 export const getDailyBriefing = async (
     userId: string,
     userName: string,
@@ -134,53 +316,33 @@ export const getDailyBriefing = async (
 ): Promise<string> => {
     try {
         const todayStr = new Date().toLocaleDateString('sv-SE')
-        const sevenDaysAgo = new Date()
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-        // Fetch all incomplete tasks assigned to user
-        const { data: tasks } = await supabase
-            .from('tasks')
-            .select('id, name, status, due_date, project_id, projects:project_id(name)')
-            .or(`assignee_id.eq.${userId},supporter_id.eq.${userId}`)
-            .not('status', 'eq', 'Hoàn thành')
+        let context: string
+        let systemPrompt: string
 
-        const allTasks = (tasks || []) as any[]
-        const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
-        const dueTodayTasks = allTasks.filter(t => t.due_date === todayStr)
-        const inProgressTasks = allTasks.filter(t => t.status === 'Đang thực hiện')
-        const activeProjectIds = [...new Set(inProgressTasks.map(t => t.project_id).filter(Boolean))]
+        if (isConstructionRole(userRole)) {
+            context = await buildConstructionContext(userId, userName, userRole, todayStr)
+            systemPrompt = `Bạn là trợ lý công trường thân thiện của công ty DQH. Nhiệm vụ: tóm tắt tình hình thi công buổi sáng cho ${userRole}.
 
-        // Fetch new projects in last 7 days
-        const { data: newProjects } = await supabase
-            .from('projects')
-            .select('name, created_at')
-            .gte('created_at', sevenDaysAgo.toISOString())
-            .order('created_at', { ascending: false })
-            .limit(3)
+QUY TẮC:
+- Tập trung vào: hạng mục trễ, tiến độ hôm nay, nhật ký công trường nổi bật
+- Giọng điệu: thực tế, rõ ràng, có emoji phù hợp (🏗️ ⚠️ ✅)
+- Nếu có hạng mục trễ: cảnh báo ngay đầu
+- Kết thúc bằng 1 lời nhắc an toàn lao động ngắn
+- KHÔNG dài quá 150 từ`
+        } else if (isMarketingRole(userRole)) {
+            context = await buildMarketingContext(userId, userName, userRole, todayStr)
+            systemPrompt = `Bạn là trợ lý Marketing thân thiện của công ty DQH. Nhiệm vụ: tóm tắt tình hình marketing/sales buổi sáng cho ${userRole}.
 
-        const overdueLines = overdueTasks.slice(0, 5).map(t => {
-            const daysLate = Math.ceil((new Date(todayStr).getTime() - new Date(t.due_date).getTime()) / 86400000)
-            return `- "${t.name}" (trễ ${daysLate} ngày, dự án: ${t.projects?.name || 'N/A'})`
-        }).join('\n') || 'Không có'
-
-        const todayLines = dueTodayTasks.map(t => `- "${t.name}"`).join('\n') || 'Không có'
-        const newProjLines = (newProjects || []).map(p => `- "${p.name}"`).join('\n') || 'Không có'
-
-        const context = `
-NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
-
-TASK ĐẾN HẠN HÔM NAY (${dueTodayTasks.length}):
-${todayLines}
-
-TASK QUÁ HẠN (${overdueTasks.length}):
-${overdueLines}
-
-ĐANG LÀM ${activeProjectIds.length} DỰ ÁN SONG SONG (${inProgressTasks.length} task đang chạy)
-
-DỰ ÁN MỚI TRONG 7 NGÀY (${newProjects?.length || 0}):
-${newProjLines}
-`
-        const systemPrompt = `Bạn là trợ lý HR thân thiện của công ty DQH. Nhiệm vụ: tạo bản tóm tắt công việc buổi sáng cho nhân viên.
+QUY TẮC:
+- Tập trung vào: task marketing hôm nay, báo cáo ads gần nhất, deadline
+- Giọng điệu: năng động, có emoji phù hợp (📢 📊 🎯)
+- Nếu có task trễ: nhắc nhẹ nhàng nhưng rõ ràng
+- Kết thúc bằng 1 lời khuyến khích về mục tiêu doanh số
+- KHÔNG dài quá 150 từ`
+        } else {
+            context = await buildGeneralContext(userId, userName, userRole, todayStr)
+            systemPrompt = `Bạn là trợ lý HR thân thiện của công ty DQH. Nhiệm vụ: tạo bản tóm tắt công việc buổi sáng cho nhân viên.
 
 QUY TẮC:
 - Giọng điệu: thân thiện, ngắn gọn, có emoji phù hợp
@@ -189,6 +351,7 @@ QUY TẮC:
 - Nếu có dự án mới: chúc mừng
 - Kết thúc bằng 1 lời động viên ngắn
 - KHÔNG dài quá 150 từ`
+        }
 
         const body = {
             system_instruction: { parts: [{ text: systemPrompt }] },
@@ -223,15 +386,23 @@ export const processHRQuestion = async (
     try {
         const salaryData = await fetchHRDataAndCalculate(userId, userRole);
         
+        const now = new Date();
+        const thisMonthLabel = now.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthLabel = lastMonthDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
+
         const contextData = `
         DỮ LIỆU HIỆN TẠI (NHÂN SỰ: ${userName} - VAI TRÒ: ${userRole}):
         - Lương hiệu quả tháng này ước tính: ${salaryData.finalSalary.toLocaleString('vi-VN')} VNĐ
         - Nhịp KPI tháng: ${salaryData.kpiPercent.toFixed(1)}% (Mục tiêu 150m2 quy đổi - Đã làm được ${salaryData.totalM2.toFixed(1)}m2)
         - Hệ số KPI đang áp dụng: ${salaryData.kpiMulti}x
-        - Số task quá hạn: ${salaryData.delayedTaskCount}
-        
-        DANH SÁCH TASK TRONG THÁNG (Max 10):
-        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'}, Quy đổi: ${(t.taskValue).toLocaleString('vi-VN')}đ)`).join('\n')}
+
+        THỐNG KÊ TASK TRỄ:
+        - ${lastMonthLabel}: ${salaryData.lastMonthDelayed} task trễ
+        - ${thisMonthLabel}: ${salaryData.overdueThisMonth} task trễ hạn trong tháng + ${salaryData.overdueCarriedOver} task từ tháng trước chưa xong (tổng tồn đọng: ${salaryData.overdueCarriedOver + salaryData.overdueThisMonth})
+
+        DANH SÁCH TASK THÁNG NÀY (Max 10):
+        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'}, Quy đổi: ${(t.taskValue).toLocaleString('vi-VN')}đ)`).join('\n') || '(Chưa có task nào tháng này)'}
         `;
 
         const systemPrompt = `BẠN LÀ TRỢ LÝ QUẢN LÝ NHÂN SỰ (HR ASSISTANT) THÔNG MINH CHO NHÂN VIÊN.

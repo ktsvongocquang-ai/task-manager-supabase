@@ -40,7 +40,7 @@ Tinh chỉnh nội dung công việc (nhiệm vụ) từ bản nháp thành văn
 `;
 
         const model = genAI.getGenerativeModel({ 
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             systemInstruction: systemInstruction 
         });
 

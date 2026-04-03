@@ -23,7 +23,10 @@ export default async function handler(req, res) {
         
         const response = await model.generateContent({
             contents,
-            generationConfig
+            generationConfig: {
+                ...generationConfig,
+                thinkingConfig: { thinkingBudget: 0 }
+            }
         });
 
         return res.status(200).json({
