@@ -127,6 +127,92 @@ export interface ChatMessage {
     timestamp: Date
 }
 
+export const getDailyBriefing = async (
+    userId: string,
+    userName: string,
+    userRole: string
+): Promise<string> => {
+    try {
+        const todayStr = new Date().toLocaleDateString('sv-SE')
+        const sevenDaysAgo = new Date()
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+        // Fetch all incomplete tasks assigned to user
+        const { data: tasks } = await supabase
+            .from('tasks')
+            .select('id, name, status, due_date, project_id, projects:project_id(name)')
+            .or(`assignee_id.eq.${userId},supporter_id.eq.${userId}`)
+            .not('status', 'eq', 'Hoàn thành')
+
+        const allTasks = (tasks || []) as any[]
+        const overdueTasks = allTasks.filter(t => t.due_date && t.due_date < todayStr)
+        const dueTodayTasks = allTasks.filter(t => t.due_date === todayStr)
+        const inProgressTasks = allTasks.filter(t => t.status === 'Đang thực hiện')
+        const activeProjectIds = [...new Set(inProgressTasks.map(t => t.project_id).filter(Boolean))]
+
+        // Fetch new projects in last 7 days
+        const { data: newProjects } = await supabase
+            .from('projects')
+            .select('name, created_at')
+            .gte('created_at', sevenDaysAgo.toISOString())
+            .order('created_at', { ascending: false })
+            .limit(3)
+
+        const overdueLines = overdueTasks.slice(0, 5).map(t => {
+            const daysLate = Math.ceil((new Date(todayStr).getTime() - new Date(t.due_date).getTime()) / 86400000)
+            return `- "${t.name}" (trễ ${daysLate} ngày, dự án: ${t.projects?.name || 'N/A'})`
+        }).join('\n') || 'Không có'
+
+        const todayLines = dueTodayTasks.map(t => `- "${t.name}"`).join('\n') || 'Không có'
+        const newProjLines = (newProjects || []).map(p => `- "${p.name}"`).join('\n') || 'Không có'
+
+        const context = `
+NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
+
+TASK ĐẾN HẠN HÔM NAY (${dueTodayTasks.length}):
+${todayLines}
+
+TASK QUÁ HẠN (${overdueTasks.length}):
+${overdueLines}
+
+ĐANG LÀM ${activeProjectIds.length} DỰ ÁN SONG SONG (${inProgressTasks.length} task đang chạy)
+
+DỰ ÁN MỚI TRONG 7 NGÀY (${newProjects?.length || 0}):
+${newProjLines}
+`
+        const systemPrompt = `Bạn là trợ lý HR thân thiện của công ty DQH. Nhiệm vụ: tạo bản tóm tắt công việc buổi sáng cho nhân viên.
+
+QUY TẮC:
+- Giọng điệu: thân thiện, ngắn gọn, có emoji phù hợp
+- Nếu có task trễ: cảnh báo rõ ràng nhưng không phán xét
+- Nếu đang chạy >1 dự án cùng lúc: nhắc nhở pending task ít ưu tiên hơn
+- Nếu có dự án mới: chúc mừng
+- Kết thúc bằng 1 lời động viên ngắn
+- KHÔNG dài quá 150 từ`
+
+        const body = {
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{
+                role: 'user',
+                parts: [{ text: `DỮ LIỆU CÔNG VIỆC HÔM NAY:\n${context}\n\nHãy tạo bản tóm tắt buổi sáng.` }]
+            }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 400 }
+        }
+
+        const response = await fetch('/api/gemini-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
+
+        if (!response.ok) throw new Error('API error')
+        const result = await response.json()
+        return result.candidates?.[0]?.content?.parts?.[0]?.text || 'Không thể tải dữ liệu hôm nay.'
+    } catch {
+        return `Xin chào ${userName}! 👋\nKhông thể tải dữ liệu lúc này. Hãy kiểm tra kết nối và thử lại.`
+    }
+}
+
 export const processHRQuestion = async (
     question: string,
     history: ChatMessage[],
