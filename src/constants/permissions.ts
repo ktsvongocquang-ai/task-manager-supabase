@@ -148,12 +148,18 @@ export const generateFlatPermissions = () => {
     Object.entries(DEFAULT_PERMISSIONS).forEach(([_cat, rows]) => {
         rows.forEach(row => {
             flat[row.name] = {
+                // New role names (current system)
                 'Admin': row.admin.value,
-                'Quản lý': row.manager.value,
-                'Thiết Kế': row.design.value,
+                'Quản lý thiết kế': row.manager.value,
+                'Quản lý thi công': row.manager.value,
+                'Nhân viên': row.design.value,
                 'Marketing': row.marketing.value,
                 'Sale': row.sale.value,
                 'Giám Sát': row.supervisor.value,
+                'Khách hàng': false,
+                // Legacy role names (backward compat for DB-stored permissions)
+                'Quản lý': row.manager.value,
+                'Thiết Kế': row.design.value,
             }
         })
     });

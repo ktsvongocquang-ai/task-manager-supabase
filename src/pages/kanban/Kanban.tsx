@@ -296,7 +296,10 @@ export const Kanban = () => {
                                                 const totalSub = childTasks.length;
                                                 const completedSub = childTasks.filter(ct => ct.status === 'Hoàn thành').length;
                                                 const project = projects.find(p => p.id === task.project_id);
-                                                const isDraggable = canEdit && Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý thiết kế' || project?.manager_id === profile?.id || task.assignee_id === profile?.id);
+                                                const isTaskAssigned = Array.isArray(task.assignee_id)
+                                                    ? task.assignee_id.includes(profile?.id || '')
+                                                    : task.assignee_id === profile?.id;
+                                                const isDraggable = canEdit && Boolean(profile?.role === 'Admin' || profile?.role === 'Quản lý thiết kế' || project?.manager_id === profile?.id || isTaskAssigned);
                                                 const overdue = isOverdue(task);
 
                                                 return (
@@ -306,7 +309,7 @@ export const Kanban = () => {
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
                                                                 onClick={() => {
-                                                                    if (!snapshot.isDragging && canEdit) {
+                                                                    if (!snapshot.isDragging) {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
