@@ -1,18 +1,23 @@
-import { createClient } from '@supabase/supabase-js'
+﻿import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!import.meta.env.VITE_SUPABASE_URL) {
-    console.warn('VITE_SUPABASE_URL is missing. Check your Vercel Environment Variables.')
+if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('AI_AGENT_ERROR: MISSING_SUPABASE_ENV_VARS');
+    console.error('URL:', supabaseUrl);
+    console.error('KEY:', supabaseAnonKey);
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-        autoRefreshToken: false,
-        persistSession: false
+export const supabaseAdmin = createClient(
+    supabaseUrl || '', 
+    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey || '',
+    {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
     }
-})
+)
