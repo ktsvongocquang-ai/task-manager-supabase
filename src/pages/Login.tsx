@@ -24,22 +24,25 @@ export const Login = () => {
         setLoading(true)
         setErrorMsg('')
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
 
-        if (error) {
-            if (error.message.includes('Invalid login credentials')) {
-                setErrorMsg('Sai email hoặc mật khẩu. Vui lòng thử lại.')
+            if (error) {
+                console.error('Login Error:', error);
+                setErrorMsg('Lỗi đăng nhập: ' + error.message)
+                setLoading(false)
             } else {
-                setErrorMsg("Chi ti?t l?i: " + error.message)
+                // Wait for global auth state to sync with Supabase session BEFORE routing
+                await checkSession()
+                navigate('/dashboard', { replace: true })
             }
+        } catch (err: any) {
+            console.error('Fatal Login Error:', err);
+            setErrorMsg('Lỗi mạng không xác định: ' + (err.message || 'Network Error'))
             setLoading(false)
-        } else {
-            // Wait for global auth state to sync with Supabase session BEFORE routing
-            await checkSession()
-            navigate('/dashboard', { replace: true })
         }
     }
 
@@ -59,7 +62,7 @@ export const Login = () => {
         });
 
         if (error) {
-            setErrorMsg("Chi ti?t l?i: " + error.message);
+            setErrorMsg(error.message);
             setLoading(false);
         }
         // If successful, Supabase handles the OAuth redirection away from this page.
@@ -98,7 +101,7 @@ export const Login = () => {
                     </div>
 
                     {errorMsg && (
-                        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100">
+                        <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 break-words">
                             {errorMsg}
                         </div>
                     )}
@@ -156,4 +159,3 @@ export const Login = () => {
         </div>
     )
 }
-
