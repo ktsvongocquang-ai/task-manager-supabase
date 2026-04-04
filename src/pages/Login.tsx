@@ -33,7 +33,7 @@ export const Login = () => {
             if (error.message.includes('Invalid login credentials')) {
                 setErrorMsg('Sai email hoặc mật khẩu. Vui lòng thử lại.')
             } else {
-                setErrorMsg(error.message)
+                setErrorMsg("Chi ti?t l?i: " + error.message)
             }
             setLoading(false)
         } else {
@@ -59,7 +59,7 @@ export const Login = () => {
         });
 
         if (error) {
-            setErrorMsg(error.message);
+            setErrorMsg("Chi ti?t l?i: " + error.message);
             setLoading(false);
         }
         // If successful, Supabase handles the OAuth redirection away from this page.
