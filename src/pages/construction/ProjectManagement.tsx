@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '../../services/supabase';
 import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
 import type { CTask, TaskStatus } from './types';
-import { Save, CheckSquare, AlertCircle, Share2, FileSpreadsheet, Download, Trash2, Plus } from 'lucide-react';
+import { Save, CheckSquare, AlertCircle, Share2, FileSpreadsheet, Download, Trash2, Plus, GripVertical } from 'lucide-react';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -47,6 +47,7 @@ function ConstructionGantt({
   onUpdateTask,
   onDeleteTask,
   onCreateTask,
+  onReorderTasks,
   readOnly,
 }: {
   tasks: CTask[];
@@ -55,6 +56,7 @@ function ConstructionGantt({
   onUpdateTask: (id: string, updates: Partial<CTask>) => void;
   onDeleteTask?: (id: string) => void;
   onCreateTask?: (category: string) => void;
+  onReorderTasks?: (reordered: CTask[]) => void;
   readOnly?: boolean;
 }) {
   const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
@@ -110,6 +112,24 @@ function ConstructionGantt({
     });
   };
 
+  const todayDate = startOfDay(new Date());
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const handleDrop = (targetTaskId: string) => {
+    if (!dragId || dragId === targetTaskId || !onReorderTasks) return;
+    const flatTasks = Object.values(grouped).flat();
+    const from = flatTasks.findIndex(t => t.id === dragId);
+    const to = flatTasks.findIndex(t => t.id === targetTaskId);
+    if (from === -1 || to === -1) return;
+    const reordered = [...flatTasks];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    onReorderTasks(reordered);
+    setDragId(null);
+    setDragOverId(null);
+  };
+
   let stt = 0;
 
   // Column layout constants (px)
@@ -145,10 +165,13 @@ function ConstructionGantt({
             {days.map((day, i) => {
               const isSun = day.getDay() === 0;
               const isSat = day.getDay() === 6;
+              const isToday = startOfDay(day).getTime() === todayDate.getTime();
               return (
-                <th key={i} className={`border-r border-slate-200 text-center font-normal ${isSun ? 'bg-red-50 text-red-400' : isSat ? 'bg-orange-50 text-orange-400' : ''}`} style={{ width: 30, minWidth: 30 }}>
+                <th key={i} className={`border-r text-center font-normal relative
+                  ${isToday ? 'bg-red-500 text-white border-red-500' : isSun ? 'bg-red-50 text-red-400 border-slate-200' : isSat ? 'bg-orange-50 text-orange-400 border-slate-200' : 'border-slate-200'}`}
+                  style={{ width: 30, minWidth: 30 }}>
                   <div className="text-[10px] font-bold">{day.getDate()}</div>
-                  <div className="text-[8px] opacity-60">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
+                  <div className="text-[8px] opacity-80">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
                 </th>
               );
             })}
@@ -170,7 +193,12 @@ function ConstructionGantt({
                     )}
                   </div>
                 </td>
-                {days.map((_, i) => <td key={i} className="border-r border-slate-200" />)}
+                {days.map((day, i) => {
+                  const isToday = startOfDay(day).getTime() === todayDate.getTime();
+                  return <td key={i} className={`border-r relative ${isToday ? 'border-red-400 bg-red-100/40' : 'border-slate-200'}`}>
+                    {isToday && <div className="absolute inset-0 border-x-2 border-red-400/60 pointer-events-none" />}
+                  </td>;
+                })}
               </tr>
               {/* Task rows */}
               {catTasks.map(task => {
@@ -178,13 +206,23 @@ function ConstructionGantt({
                 const te = getTaskEnd(task);
                 const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
                 const sel = selectedId === task.id;
-                const barColor = STATUS_META[task.status]?.bar || '#94a3b8';
+                const isOverdue = task.status !== 'DONE' && te && startOfDay(te) < todayDate;
+                const barColor = isOverdue ? '#ef4444' : (STATUS_META[task.status]?.bar || '#94a3b8');
                 const cellBg = sel ? 'bg-indigo-50' : 'bg-white';
                 stt++;
                 return (
                   <tr
                     key={task.id}
-                    className={`group h-9 border-b border-slate-100 cursor-pointer transition-colors ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                    draggable={!readOnly}
+                    onDragStart={() => setDragId(task.id)}
+                    onDragOver={e => { e.preventDefault(); setDragOverId(task.id); }}
+                    onDragLeave={() => setDragOverId(null)}
+                    onDrop={() => handleDrop(task.id)}
+                    onDragEnd={() => { setDragId(null); setDragOverId(null); }}
+                    className={`group h-9 border-b border-slate-100 cursor-pointer transition-colors
+                      ${dragOverId === task.id ? 'border-t-2 border-t-indigo-400 bg-indigo-50/60' : ''}
+                      ${dragId === task.id ? 'opacity-40' : ''}
+                      ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
                     onClick={() => onSelect(task.id)}
                   >
                     {/* STT */}
@@ -192,6 +230,7 @@ function ConstructionGantt({
                     {/* Name */}
                     <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
                       <div className="flex items-center gap-1.5 min-w-0">
+                        {!readOnly && <GripVertical size={12} className="text-slate-300 flex-none cursor-grab active:cursor-grabbing" />}
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
                         {readOnly ? (
                           <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
@@ -238,6 +277,7 @@ function ConstructionGantt({
                       const isSun = day.getDay() === 0;
                       const isSat = day.getDay() === 6;
                       const dayStart = startOfDay(day);
+                      const isToday = dayStart.getTime() === todayDate.getTime();
                       let inRange = false, isFirst = false, isLast = false;
                       if (ts && te) {
                         const s = startOfDay(ts);
@@ -247,7 +287,12 @@ function ConstructionGantt({
                         isLast = dayStart.getTime() === e.getTime();
                       }
                       return (
-                        <td key={i} className={`border-r border-slate-100 p-0 ${!inRange && (isSun || isSat) ? 'bg-red-50/20' : ''}`}>
+                        <td key={i} className={`border-r p-0 relative
+                          ${isToday ? 'border-red-400 bg-red-50/40' : 'border-slate-100'}
+                          ${!inRange && !isToday && (isSun || isSat) ? 'bg-red-50/20' : ''}`}>
+                          {isToday && (
+                            <div className="absolute inset-0 border-x-2 border-red-400/60 pointer-events-none z-10" />
+                          )}
                           {inRange && (
                             <div className="relative mx-px my-1.5 h-6 overflow-hidden"
                               style={{
@@ -842,6 +887,7 @@ export function ProjectManagementAIModule({
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}
+          onReorderTasks={reordered => setDisplayTasks(reordered)}
           readOnly={readOnly}
         />
       </div>
