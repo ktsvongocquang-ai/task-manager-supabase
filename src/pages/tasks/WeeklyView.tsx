@@ -101,13 +101,19 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
         return `${DAY_LABELS[d.getDay()]} ${fmtShort(d)}`
     }).join('  ·  ')
 
-    // Filter to tasks with due_date in this week
+    // Tasks relevant to this week:
+    // 1. due_date falls in this week
+    // 2. span across this week (start_date <= sun AND due_date >= mon)
+    // 3. overdue + not done (carried into this week)
     const weekTasks = useMemo(() => {
         const monStr = mon.toISOString().split('T')[0]
         const sunStr = sun.toISOString().split('T')[0]
         return tasks.filter(t => {
             if (!t.due_date) return false
-            if (t.due_date < monStr || t.due_date > sunStr) return false
+            const startStr = (t as any).start_date || t.due_date
+            const spansWeek = startStr <= sunStr && t.due_date >= monStr
+            const isOverdue = t.due_date < monStr && t.status !== 'Hoàn thành' && t.status !== 'Lưu trữ'
+            if (!spansWeek && !isOverdue) return false
             if (filterPerson  && t.assignee_id !== filterPerson)  return false
             if (filterProject && t.project_id  !== filterProject) return false
             return true
