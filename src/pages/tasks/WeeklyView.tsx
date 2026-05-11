@@ -10,7 +10,10 @@ interface Props {
     profiles: any[]
     onRefresh: () => void
     onAddTask?: (defaultValues: any) => void
+    onEditTask?: (task: Task) => void
 }
+
+const ALL_STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ duyệt', 'Tạm dừng', 'Hoàn thành']
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,6 +68,19 @@ function getPctColor(p: number) {
     return 'bg-slate-300'
 }
 
+const PHASE_MAP: Record<string, { label: string; color: string }> = {
+    'concept':      { label: 'Concept',       color: 'bg-purple-100 text-purple-700' },
+    'Concept':      { label: 'Concept',       color: 'bg-purple-100 text-purple-700' },
+    '3d':           { label: '3D',            color: 'bg-sky-100 text-sky-700' },
+    '2d':           { label: '2D',            color: 'bg-teal-100 text-teal-700' },
+    'construction': { label: 'Thi công',      color: 'bg-orange-100 text-orange-700' },
+}
+
+function getPhaseLabel(target: string | null | undefined) {
+    if (!target) return null
+    return PHASE_MAP[target] || null
+}
+
 const AVATAR_COLORS = [
     'bg-violet-100 text-violet-700', 'bg-blue-100 text-blue-700',
     'bg-teal-100 text-teal-700',     'bg-orange-100 text-orange-700',
@@ -88,7 +104,7 @@ function Avatar({ name }: { name: string }) {
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: Props) => {
+export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, onEditTask }: Props) => {
     const [weekOffset, setWeekOffset] = useState(0)
     const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
@@ -212,6 +228,23 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
         const newStatus = newPct === 100 ? 'Hoàn thành' : newPct === 0 ? 'Chưa bắt đầu' : 'Đang thực hiện'
         setSaving(s => ({ ...s, [taskId]: true }))
         await supabase.from('tasks').update({ completion_pct: newPct, status: newStatus }).eq('id', taskId)
+        setSaving(s => ({ ...s, [taskId]: false }))
+        onRefresh()
+    }
+
+    const updateStatus = async (taskId: string, newStatus: string) => {
+        const newPct = newStatus === 'Hoàn thành' ? 100 : undefined
+        const updates: any = { status: newStatus }
+        if (newPct !== undefined) updates.completion_pct = newPct
+        setSaving(s => ({ ...s, [taskId]: true }))
+        await supabase.from('tasks').update(updates).eq('id', taskId)
+        setSaving(s => ({ ...s, [taskId]: false }))
+        onRefresh()
+    }
+
+    const updateAssignee = async (taskId: string, newAssigneeId: string) => {
+        setSaving(s => ({ ...s, [taskId]: true }))
+        await supabase.from('tasks').update({ assignee_id: newAssigneeId || null }).eq('id', taskId)
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()
     }
@@ -343,7 +376,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
                                             onClick={() => onAddTask(group.defaultValues)}
                                             className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded transition-colors flex items-center gap-1 border border-emerald-200 shrink-0"
                                         >
-                                            + thêm task nhanh
+                                            + task
                                         </button>
                                     )}
                                 </div>
@@ -368,11 +401,23 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
                                                         <div className="md:hidden flex items-start gap-3 px-4 py-2">
                                                             <div className="w-6 h-6 shrink-0 mt-0.5"><Avatar name={assigneeName} /></div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>{t.name || t.task_code || 'Chưa có tên'}</div>
+                                                                <div 
+                                                                    className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'} truncate cursor-pointer`}
+                                                                    onClick={() => onEditTask?.(t)}
+                                                                >{t.name || t.task_code || 'Chưa có tên'}</div>
                                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                                    {getPhaseLabel((t as any).target) && (
+                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>
+                                                                    )}
                                                                     <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{getProjectCode(t.project_id)}</span>
                                                                     <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
-                                                                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                                                                    <select
+                                                                        value={t.status}
+                                                                        onChange={e => updateStatus(t.id, e.target.value)}
+                                                                        className={`text-[9px] font-medium px-1.5 py-0.5 rounded border-0 ${badge.bg} ${badge.text} cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-300`}
+                                                                    >
+                                                                        {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                                    </select>
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-1.5">
                                                                     <button onClick={() => updateProgress(t.id, -10)}
@@ -390,8 +435,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
                                                         {/* Desktop row */}
                                                         <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
-                                                                <div className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                                                                    {t.name || t.task_code || 'Chưa có tên'}
+                                                                <div className="flex items-center gap-1.5">
+                                                                    {getPhaseLabel((t as any).target) && (
+                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>
+                                                                    )}
+                                                                    <div 
+                                                                        className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`}
+                                                                        onClick={() => onEditTask?.(t)}
+                                                                    >
+                                                                        {t.name || t.task_code || 'Chưa có tên'}
+                                                                    </div>
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wide">{getProjectCode(t.project_id)}</div>
                                                             </div>
@@ -415,14 +468,22 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                <div className="w-5 h-5 shrink-0"><Avatar name={assigneeName} /></div>
-                                                                <span className="text-[11px] font-medium text-slate-600 truncate">{assigneeName}</span>
-                                                            </div>
+                                                            <select
+                                                                value={getAssigneeId(t.assignee_id)}
+                                                                onChange={e => updateAssignee(t.id, e.target.value)}
+                                                                className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-300 truncate min-w-0"
+                                                            >
+                                                                <option value="">Chưa gán</option>
+                                                                {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                            </select>
 
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center`}>
-                                                                {badge.label}
-                                                            </span>
+                                                            <select
+                                                                value={t.status}
+                                                                onChange={e => updateStatus(t.id, e.target.value)}
+                                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none focus:ring-1 focus:ring-indigo-300`}
+                                                            >
+                                                                {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                            </select>
                                                         </div>
                                                     </div>
                                                 )

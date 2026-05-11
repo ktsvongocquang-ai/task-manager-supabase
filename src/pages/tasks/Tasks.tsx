@@ -451,6 +451,7 @@ export const Tasks = () => {
                     profiles={profiles}
                     onRefresh={() => fetchAll(true)}
                     onAddTask={openQuickAddModal}
+                    onEditTask={openEditModal}
                 />
             )}
 
