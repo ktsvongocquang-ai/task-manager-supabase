@@ -3,7 +3,7 @@ import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
-import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { QuickTaskModal } from './QuickTaskModal'
 import { Plus, Trash2 } from 'lucide-react'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
@@ -952,7 +952,7 @@ export const Gantt = () => {
             }
 
             {/* Edit Task Modal */}
-            <AddEditTaskModal
+            <QuickTaskModal
                 isOpen={isEditModalOpen}
                 onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }}
                 onSaved={() => {
@@ -961,7 +961,6 @@ export const Gantt = () => {
                     fetchData();
                 }}
                 editingTask={editingTask}
-                initialData={{ task_code: '', project_id: '' }}
                 profiles={profiles}
                 currentUserProfile={currentUserProfile}
                 projects={projects}

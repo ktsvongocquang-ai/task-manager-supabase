@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical, List, CheckCircle2, Calendar } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalLink, GripVertical, List, CheckCircle2, Calendar, CalendarDays } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
 import { logActivity } from '../../services/activity'
+import { WeeklyView } from './WeeklyView'
 
 export const Tasks = () => {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ export const Tasks = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [initialTaskData, setInitialTaskData] = useState({ task_code: '', project_id: '' })
     const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['Chưa bắt đầu', 'Đang thực hiện']))
+    const [viewMode, setViewMode] = useState<'list' | 'weekly'>('list')
 
     useEffect(() => {
         fetchAll()
@@ -72,7 +74,7 @@ export const Tasks = () => {
         const isAssigned = t.assignee_id === profile?.id;
         const isSupporter = t.supporter_id === profile?.id;
 
-        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
+        const isManagerOrAdmin = ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
 
         let isVisible = true;
         if (!isManagerOrAdmin) {
@@ -379,9 +381,26 @@ export const Tasks = () => {
 
             {/* Desktop Header */}
             <div className="hidden md:flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-xl font-bold text-slate-800 shrink-0">Quản lý nhiệm vụ</h1>
+                <div className="flex items-center gap-3 shrink-0">
+                    <h1 className="text-xl font-bold text-slate-800">Quản lý nhiệm vụ</h1>
+                    {/* View Toggle */}
+                    <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <List size={14} /> Danh sách
+                        </button>
+                        <button
+                            onClick={() => setViewMode('weekly')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === 'weekly' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <CalendarDays size={14} /> Tuần làm việc
+                        </button>
+                    </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    {['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '') && (
+                    {viewMode === 'list' && ['Admin', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '') && (
                         <select
                             value={assigneeFilter}
                             onChange={(e) => setAssigneeFilter(e.target.value)}
@@ -393,16 +412,18 @@ export const Tasks = () => {
                             ))}
                         </select>
                     )}
-                    <div className="relative flex-1 sm:w-64">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Tìm kiếm nhiệm vụ..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
-                    </div>
+                    {viewMode === 'list' && (
+                        <div className="relative flex-1 sm:w-64">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Tìm kiếm nhiệm vụ..."
+                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            />
+                        </div>
+                    )}
                     {canEdit && (
                         <button
                             onClick={() => openAddModal()}
@@ -414,8 +435,18 @@ export const Tasks = () => {
                 </div>
             </div>
 
+            {/* Weekly View */}
+            {viewMode === 'weekly' && (
+                <WeeklyView
+                    tasks={tasks}
+                    projects={projects}
+                    profiles={profiles}
+                    onRefresh={fetchAll}
+                />
+            )}
+
             {/* Status Tabs - Desktop Only */}
-            <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <div className={`hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 ${viewMode === 'weekly' ? 'md:hidden' : ''}`}>
                 {Object.entries(statusCounts).map(([status, count]) => (
                     <button
                         key={status}
@@ -436,7 +467,7 @@ export const Tasks = () => {
             </div>
 
             {/* Grouped Tasks Table - Desktop Only */}
-            <div className="hidden md:block space-y-4">
+            <div className={`hidden space-y-4 ${viewMode === 'list' ? 'md:block' : ''}`}>
                 {Object.entries(groupedTasks).map(([projectId, projectTasks]) => {
                     const project = projects.find(p => p.id === projectId)
                     const isExpanded = expandedProjects.has(projectId)
