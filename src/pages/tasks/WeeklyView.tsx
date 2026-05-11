@@ -259,7 +259,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const uniqueProjects  = [...new Set(weekTasks.map(t => t.project_id).filter(Boolean))]
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
 
             {/* ── Header ── */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -347,9 +347,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 </div>
             </div>
 
-            {/* ── Table Header ── */}
-            <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
-                {['Nhiệm vụ', 'Hạn chót', 'Tiến độ', 'Phụ trách', 'Trạng thái'].map(h => (
+            <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
+                {['Nhiệm vụ', 'Mô tả', 'Hạn chót', 'Tiến độ', 'Phụ trách', 'Trạng thái'].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{h}</span>
                 ))}
             </div>
@@ -445,7 +444,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         </div>
 
                                                         {/* Desktop row */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-2 items-center">
+                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5">
                                                                     {getPhaseLabel((t as any).target) && (
@@ -459,6 +458,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wide">{getProjectCode(t.project_id)}</div>
+                                                            </div>
+
+                                                            <div className="text-[11px] text-slate-500 truncate" title={(t as any).description || ''}>
+                                                                {(t as any).description || <span className="text-slate-300 italic">—</span>}
                                                             </div>
 
                                                             <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>
