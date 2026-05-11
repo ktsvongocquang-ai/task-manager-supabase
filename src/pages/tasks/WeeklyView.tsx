@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
@@ -110,17 +110,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [filterPerson, setFilterPerson]   = useState('')
     const [filterProject, setFilterProject] = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
-    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const scrollRef = useRef<HTMLDivElement>(null)
-
-    const toggleGroup = (key: string) => {
-        setCollapsedGroups(prev => {
-            const next = new Set(prev)
-            if (next.has(key)) next.delete(key)
-            else next.add(key)
-            return next
-        })
-    }
 
     const { mon, sun } = getWeekRange(weekOffset)
     const wn = getWeekNum(mon)
@@ -332,7 +322,6 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         return (
                             <button key={key} onClick={() => {
                                 setSortMode(key as any)
-                                setCollapsedGroups(new Set())
                                 scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
                             }}
                                 className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
@@ -363,16 +352,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             ) : (
                 <div className="pb-4 min-h-[300px]" ref={scrollRef}>
                     {groupedTasks.map(group => {
-                        const isCollapsed = collapsedGroups.has(group.key);
                         return (
                             <div key={group.key} className="mb-1">
                                 {/* Group Header */}
                                 <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-100 border-slate-200 text-slate-800'} border-y sticky top-0 z-10 shadow-sm`}>
-                                    <div 
-                                        className="flex items-center gap-2 cursor-pointer flex-1"
-                                        onClick={() => toggleGroup(group.key)}
-                                    >
-                                        {isCollapsed ? <ChevronRight size={16} className={group.isLateGroup ? 'text-red-400' : 'text-slate-400'} /> : <ChevronDown size={16} className={group.isLateGroup ? 'text-red-400' : 'text-slate-400'} />}
+                                    <div className="flex items-center gap-2 flex-1">
                                         <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : 'text-slate-700'}`}>
                                             {group.label}
                                         </span>
@@ -391,9 +375,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                     )}
                                 </div>
 
-                                {/* Group Tasks */}
-                                {!isCollapsed && (
-                                    <div className="bg-white">
+                                {/* Group Tasks - Always visible */}
+                                <div className="bg-white">
                                         {group.tasks.length === 0 ? (
                                             <div className="px-5 py-3 text-xs text-slate-400 italic">Không có nhiệm vụ</div>
                                         ) : (
@@ -499,8 +482,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                 )
                                             })
                                         )}
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         )
                     })}
