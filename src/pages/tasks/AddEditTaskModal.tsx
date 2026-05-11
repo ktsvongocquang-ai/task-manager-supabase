@@ -768,168 +768,131 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                         )}
 
-                        {/* Form Grid Layout - SaaS Style */}
-                        <div className="space-y-4 ml-14">
+                        {/* Form Grid Layout - Compact 3-column */}
+                        <div className="ml-14 space-y-3">
 
-                            {/* Status and Start Date row */}
-                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center min-h-[40px]">
-                                <div className="flex items-center min-h-[40px] flex-1">
-                                    <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                        <CheckCircle2 size={16} /> Trạng thái
-                                    </div>
-                                    <div className="flex-1">
-                                        <select
-                                            value={form.status}
-                                            onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px]"
-                                        >
-                                            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                            <option value="Cần làm">Cần làm</option>
-                                            <option value="Đang thực hiện">Đang thực hiện</option>
-                                            <option value="Chờ duyệt">Chờ duyệt</option>
-                                            <option value="Hoàn thành">Hoàn thành</option>
-                                            <option value="Tạm dừng">Tạm dừng</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 flex-1 w-full sm:w-auto mt-2 sm:mt-0">
-                                    <div className="text-sm font-medium text-slate-500 whitespace-nowrap sr-only sm:not-sr-only sm:w-auto">Bắt đầu</div>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium flex-1`}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Total Days and Due Date row */}
-                            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center min-h-[40px]">
-                                <div className="flex items-center min-h-[40px] flex-1">
-                                    <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                        <Calendar size={16} /> Thời gian
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 w-full max-w-[200px]">
-                                            <span className="text-sm font-medium text-slate-600">Tổng số ngày:</span>
-                                            <span className="text-sm font-bold text-indigo-600">
-                                                {form.start_date && form.due_date
-                                                    ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
-                                                    : 0}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2 flex-1 w-full sm:w-auto mt-2 sm:mt-0">
-                                    <div className="text-sm font-medium text-slate-500 whitespace-nowrap sr-only sm:not-sr-only sm:w-auto">Hạn chót</div>
-                                    <input
-                                        type="date"
-                                        value={form.due_date}
-                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium flex-1`}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Assignee Row */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <User size={16} /> Chủ trì
-                                </div>
-                                <div className="flex-1 flex gap-2 items-center">
-                                    <select
-                                        value={form.assignee_id}
-                                        onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                        className={`px-3 py-1.5 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors w-full max-w-[300px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="" className="text-slate-400 font-normal">Chọn chủ trì...</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                    </select>
-                                    
-                                    {form.assignee_id && (
-                                        <button 
-                                            onClick={handleSendEmail}
-                                            disabled={isSendingEmail}
-                                            className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50"
-                                            title="Gửi Email Thông Báo Bằng AI"
-                                        >
-                                            {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Supporter Row */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <User size={16} className="text-emerald-500" /> Thực hiện
-                                </div>
-                                <div className="flex-1">
-                                    <select
-                                        value={form.supporter_id}
-                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`px-3 py-1.5 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors w-full max-w-[300px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="" className="text-slate-400 font-normal">Chọn người thực hiện...</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Project / Tags */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <Folder size={16} /> Dự án (Tags)
-                                </div>
-                                <div className="flex-1">
+                            {/* Row 1: Dự án | Giai đoạn | Trạng thái */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
                                     <select
                                         value={form.project_id}
                                         onChange={(e) => handleProjectChange(e.target.value)}
-                                        className={`px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium cursor-pointer hover:bg-slate-100 transition-colors w-full max-w-[250px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn dự án...</option>
                                         {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
-                            </div>
-
-                            {/* Phase / Giai đoạn KPI */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <ListTodo size={16} /> Giai đoạn
-                                </div>
-                                <div className="flex-1">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium cursor-pointer hover:bg-slate-100 transition-colors w-full max-w-[250px] ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="">Chọn giai đoạn...</option>
+                                        <option value="">Chọn...</option>
                                         <option value="concept">Concept</option>
                                         <option value="3d">3D / Phối cảnh</option>
                                         <option value="2d">2D / Triển khai</option>
                                         <option value="construction">Construction / Hồ sơ TC</option>
                                     </select>
                                 </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
+                                    <select
+                                        value={form.status}
+                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors"
+                                    >
+                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                        <option value="Cần làm">Cần làm</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                        <option value="Chờ duyệt">Chờ duyệt</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                        <option value="Tạm dừng">Tạm dừng</option>
+                                    </select>
+                                </div>
                             </div>
 
-
-                            {/* Priority */}
-                            <div className="flex items-center min-h-[40px]">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0">
-                                    <Flag size={16} /> Ưu tiên
+                            {/* Row 2: Bắt đầu | Hạn chót | Số ngày */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
+                                    <input
+                                        type="date"
+                                        value={form.start_date}
+                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                    />
                                 </div>
-                                <div className="flex-1">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
+                                    <input
+                                        type="date"
+                                        value={form.due_date}
+                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày</label>
+                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px]">
+                                        <span className="text-sm font-bold text-indigo-600">
+                                            {form.start_date && form.due_date
+                                                ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
+                                                : 0}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 3: Chủ trì | Thực hiện | Ưu tiên */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
+                                    <div className="flex gap-1.5 items-center">
+                                        <select
+                                            value={form.assignee_id}
+                                            onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                                            className={`flex-1 px-3 py-2 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            disabled={shouldDisableTopFields()}
+                                        >
+                                            <option value="" className="text-slate-400 font-normal">Chọn...</option>
+                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        </select>
+                                        {form.assignee_id && (
+                                            <button 
+                                                onClick={handleSendEmail}
+                                                disabled={isSendingEmail}
+                                                className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50 shrink-0"
+                                                title="Gửi Email Thông Báo Bằng AI"
+                                            >
+                                                {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Thực hiện</label>
+                                    <select
+                                        value={form.supporter_id}
+                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
+                                        className={`w-full px-3 py-2 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="" className="text-slate-400 font-normal">Chọn người...</option>
+                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Ưu tiên</label>
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className={`px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors w-full max-w-[200px] focus:outline-none ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
                                             form.priority === 'Cao' ? 'text-orange-600' :
                                                 form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
                                             } ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
