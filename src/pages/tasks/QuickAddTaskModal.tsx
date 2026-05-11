@@ -96,9 +96,10 @@ export const QuickAddTaskModal = ({
         
         setLoading(true)
         try {
+            let finalTaskCode = form.task_code
             const taskData = {
                 name: form.name.trim(),
-                task_code: form.task_code,
+                task_code: finalTaskCode,
                 project_id: form.project_id,
                 target: form.target || null,
                 status: form.status,
@@ -110,8 +111,21 @@ export const QuickAddTaskModal = ({
                 priority: 'Trung bình',
                 completion_pct: 0
             }
-            const { error } = await supabase.from('tasks').insert([taskData])
-            if (error) throw error
+
+            let result = await supabase.from('tasks').insert([taskData])
+            
+            // Retry with unique suffix if duplicate task_code
+            if (result.error?.message?.includes('duplicate key') && result.error.message?.includes('tasks_task_code_key')) {
+                for (let retry = 1; retry <= 5; retry++) {
+                    const suffix = String(Date.now()).slice(-4)
+                    taskData.task_code = `${form.task_code}-${suffix}`
+                    result = await supabase.from('tasks').insert([taskData])
+                    if (!result.error) break
+                    if (!result.error.message?.includes('tasks_task_code_key')) break
+                }
+            }
+
+            if (result.error) throw result.error
             onSaved()
             onClose()
         } catch (error: any) {
