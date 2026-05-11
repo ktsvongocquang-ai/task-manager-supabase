@@ -7,6 +7,7 @@ import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalL
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
+import { QuickAddTaskModal } from './QuickAddTaskModal'
 import { logActivity } from '../../services/activity'
 import { WeeklyView } from './WeeklyView'
 
@@ -23,6 +24,7 @@ export const Tasks = () => {
     const [assigneeFilter, setAssigneeFilter] = useState('')
     const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
     const [showModal, setShowModal] = useState(false)
+    const [showQuickAdd, setShowQuickAdd] = useState(false)
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [initialTaskData, setInitialTaskData] = useState({ task_code: '', project_id: '' })
     const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['Chưa bắt đầu', 'Đang thực hiện']))
@@ -193,6 +195,12 @@ export const Tasks = () => {
         const nextCode = projectId ? generateNextTaskCode(projectId) : ''
         setInitialTaskData({ task_code: nextCode, project_id: projectId || '', ...defaultValues })
         setShowModal(true)
+    }
+
+    const openQuickAddModal = (defaultValues?: any) => {
+        const nextCode = defaultValues?.project_id ? generateNextTaskCode(defaultValues.project_id) : ''
+        setInitialTaskData({ task_code: nextCode, project_id: defaultValues?.project_id || '', ...defaultValues })
+        setShowQuickAdd(true)
     }
 
     const openEditModal = (t: Task) => {
@@ -442,7 +450,7 @@ export const Tasks = () => {
                     projects={projects}
                     profiles={profiles}
                     onRefresh={() => fetchAll(true)}
-                    onAddTask={(defaultValues) => openAddModal(undefined, defaultValues)}
+                    onAddTask={openQuickAddModal}
                 />
             )}
 
@@ -1060,6 +1068,19 @@ export const Tasks = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 generateNextTaskCode={generateNextTaskCode}
+            />
+
+            <QuickAddTaskModal
+                isOpen={showQuickAdd}
+                onClose={() => setShowQuickAdd(false)}
+                onSaved={() => {
+                    setShowQuickAdd(false)
+                    fetchAll()
+                }}
+                initialData={initialTaskData as any}
+                projects={projects}
+                profiles={profiles}
+                currentUserProfile={profile}
             />
         </div>
     )
