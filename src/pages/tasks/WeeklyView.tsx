@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
@@ -111,6 +111,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [filterProject, setFilterProject] = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+    const scrollRef = useRef<HTMLDivElement>(null)
 
     const { mon, sun } = getWeekRange(weekOffset)
     const wn = getWeekNum(mon)
@@ -324,7 +325,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     {([['time', 'Ngày'], ['project', 'Dự án'], ['person', 'Nhân sự'], ['alert', `Cần xử lý (${alerts.length})`]] as const).map(([key, label]) => {
                         const isAlert = key === 'alert';
                         return (
-                            <button key={key} onClick={() => setSortMode(key as any)}
+                            <button key={key} onClick={() => {
+                                setSortMode(key as any)
+                                setCollapsedGroups({})
+                                scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+                            }}
                                 className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
                                     sortMode === key
                                         ? (isAlert ? 'bg-red-50 border-red-300 text-red-700' : 'bg-indigo-50 border-indigo-300 text-indigo-700')
@@ -351,7 +356,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     <div className="text-sm">Không có task trong tuần này</div>
                 </div>
             ) : (
-                <div className="pb-4">
+                <div className="pb-4 min-h-[300px]" ref={scrollRef}>
                     {groupedTasks.map(group => {
                         const isCollapsed = collapsedGroups[group.key];
                         return (
