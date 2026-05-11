@@ -9,6 +9,7 @@ interface Props {
     projects: Project[]
     profiles: any[]
     onRefresh: () => void
+    onAddTask?: (defaultValues: any) => void
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ function Avatar({ name }: { name: string }) {
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
+export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: Props) => {
     const [weekOffset, setWeekOffset] = useState(0)
     const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
@@ -162,11 +163,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
     const sorted = useMemo(() => {
         const sourceList = sortMode === 'alert' ? alerts : weekTasks;
         return [...sourceList].sort((a, b) => {
-            if (sortMode === 'time' || sortMode === 'alert')    return (a.due_date || '').localeCompare(b.due_date || '')
-            if (sortMode === 'project') return (a.project_id || '').localeCompare(b.project_id || '') || (a.due_date || '').localeCompare(b.due_date || '')
-            return getAssigneeName(a.assignee_id).localeCompare(getAssigneeName(b.assignee_id)) || (a.due_date || '').localeCompare(b.due_date || '')
+            const aDate = new Date(a.due_date!); const aDisplay = aDate < mon ? mon : aDate;
+            const bDate = new Date(b.due_date!); const bDisplay = bDate < mon ? mon : bDate;
+            if (sortMode === 'time' || sortMode === 'alert')    return aDisplay.getTime() - bDisplay.getTime();
+            if (sortMode === 'project') return (a.project_id || '').localeCompare(b.project_id || '') || aDisplay.getTime() - bDisplay.getTime();
+            return getAssigneeName(a.assignee_id).localeCompare(getAssigneeName(b.assignee_id)) || aDisplay.getTime() - bDisplay.getTime();
         })
-    }, [weekTasks, alerts, sortMode])
+    }, [weekTasks, alerts, sortMode, mon])
 
     const updateProgress = async (taskId: string, delta: number) => {
         const task = tasks.find(t => t.id === taskId)
@@ -290,9 +293,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                         const isDone = t.status === 'Hoàn thành'
                         const pct = t.completion_pct || 0
 
+                        let displayDate = new Date(t.due_date!);
+                        if (displayDate < mon) displayDate = mon;
+
                         let groupKey = ''
                         if (sortMode === 'time' || sortMode === 'alert') {
-                            groupKey = `${DAY_FULL[d.getDay()]} ${fmtShort(d)}`
+                            groupKey = `${DAY_FULL[displayDate.getDay()]} ${fmtShort(displayDate)}`
                         } else if (sortMode === 'project') {
                             groupKey = `${getProjectCode(t.project_id)} – ${getProjectName(t.project_id)}`
                         } else {
@@ -308,14 +314,36 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                         return (
                             <div key={t.id}>
                                 {showGroup && (
-                                    <div className="flex items-center gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
-                                        {sortMode === 'project' && (
-                                            <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                                                {getProjectCode(t.project_id)}
-                                            </span>
+                                    <div className="flex items-center justify-between px-5 py-2 bg-slate-50 border-b border-slate-100">
+                                        <div className="flex items-center gap-2">
+                                            {sortMode === 'project' && (
+                                                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                                                    {getProjectCode(t.project_id)}
+                                                </span>
+                                            )}
+                                            {sortMode === 'person' && <Avatar name={assigneeName} />}
+                                            <span className="text-xs font-semibold text-slate-600">{groupKey}</span>
+                                        </div>
+                                        {onAddTask && (
+                                            <button 
+                                                onClick={() => {
+                                                    const defaultValues: any = {};
+                                                    if (sortMode === 'time' || sortMode === 'alert') {
+                                                        const dateStr = format(displayDate, 'yyyy-MM-dd');
+                                                        defaultValues.start_date = dateStr;
+                                                        defaultValues.due_date = dateStr;
+                                                    } else if (sortMode === 'project') {
+                                                        defaultValues.project_id = t.project_id;
+                                                    } else if (sortMode === 'person') {
+                                                        defaultValues.assignee_id = getAssigneeId(t.assignee_id);
+                                                    }
+                                                    onAddTask(defaultValues);
+                                                }}
+                                                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"
+                                            >
+                                                + thêm task nhanh
+                                            </button>
                                         )}
-                                        {sortMode === 'person' && <Avatar name={assigneeName} />}
-                                        <span className="text-xs font-semibold text-slate-600">{groupKey}</span>
                                     </div>
                                 )}
 

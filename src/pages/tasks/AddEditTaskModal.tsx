@@ -16,6 +16,9 @@ interface AddEditTaskModalProps {
     initialData: {
         task_code: string;
         project_id: string;
+        start_date?: string;
+        due_date?: string;
+        assignee_id?: string;
     };
     projects: Project[];
     profiles: any[];
@@ -268,12 +271,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     project_id: initialData.project_id,
                     name: '',
                     description: '',
-                    assignee_id: currentUserProfile?.id || '',
+                    assignee_id: initialData.assignee_id || currentUserProfile?.id || '',
                     supporter_id: '',
                     status: 'Chưa bắt đầu',
                     priority: 'Trung bình',
-                    start_date: today,
-                    due_date: today,
+                    start_date: initialData.start_date || today,
+                    due_date: initialData.due_date || today,
                     result_links: '',
                     notes: '',
                     parent_id: '',

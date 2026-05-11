@@ -188,10 +188,10 @@ export const Tasks = () => {
         return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : '';
     }
 
-    const openAddModal = (projectId?: string) => {
+    const openAddModal = (projectId?: string, defaultValues?: any) => {
         setEditingTask(null)
         const nextCode = projectId ? generateNextTaskCode(projectId) : ''
-        setInitialTaskData({ task_code: nextCode, project_id: projectId || '' })
+        setInitialTaskData({ task_code: nextCode, project_id: projectId || '', ...defaultValues })
         setShowModal(true)
     }
 
@@ -442,6 +442,7 @@ export const Tasks = () => {
                     projects={projects}
                     profiles={profiles}
                     onRefresh={() => fetchAll(true)}
+                    onAddTask={(defaultValues) => openAddModal(undefined, defaultValues)}
                 />
             )}
 
