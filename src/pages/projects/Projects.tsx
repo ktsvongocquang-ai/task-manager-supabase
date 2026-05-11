@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ProjectDetailsModal } from './ProjectDetailsModal'
 import { AddEditProjectModal } from './AddEditProjectModal'
@@ -31,6 +31,7 @@ export const Projects = () => {
     const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [kpiProject, setKpiProject] = useState<Project | null>(null)
+    const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list'>('cards')
 
     useEffect(() => {
         fetchProjects()
@@ -406,7 +407,23 @@ export const Projects = () => {
         <div className="space-y-6 max-w-[1400px] mx-auto">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-xl font-bold text-slate-800">Quản lý dự án</h1>
+                <div className="flex items-center gap-3 shrink-0">
+                    <h1 className="text-xl font-bold text-slate-800">Quản lý dự án</h1>
+                    <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+                        <button
+                            onClick={() => setProjectViewMode('cards')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'cards' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <LayoutGrid size={14} /> Dự án
+                        </button>
+                        <button
+                            onClick={() => setProjectViewMode('list')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <List size={14} /> Danh sách
+                        </button>
+                    </div>
+                </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -449,10 +466,10 @@ export const Projects = () => {
             </div>
 
             {/* Project Cards */}
+            {projectViewMode === 'cards' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project) => (
                     <div key={project.id} onClick={() => setKpiProject(project)} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
-                        {/* Status badge in top left */}
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
@@ -460,146 +477,89 @@ export const Projects = () => {
                                 </span>
                                 {renderTrafficLight(project)}
                             </div>
-                            {/* Action overlap buttons - colored circles like screenshot */}
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Tạo nhiệm vụ">
-                                    <Plus size={14} />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100 pointer-events-auto" title="KPI dự án">
-                                    <Eye size={14} />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100 pointer-events-auto" title="Sao chép dự án">
-                                    <Copy size={14} />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100 pointer-events-auto" title="Sửa dự án">
-                                    <Edit3 size={14} />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100 pointer-events-auto" title="Xóa dự án">
-                                    <Trash2 size={14} />
-                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100" title="KPI"><Eye size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
                             </div>
                         </div>
-
                         <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
                         <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
                         <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
-
                         <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
-                            {(() => {
-                                let totalDays = 0;
-                                let remainingDays = 0;
-                                if (project.start_date && project.end_date) {
-                                    const start = new Date(project.start_date);
-                                    start.setHours(0, 0, 0, 0);
-                                    const end = new Date(project.end_date);
-                                    end.setHours(0, 0, 0, 0);
-                                    totalDays = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    remainingDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                                }
-
-                                return (
-                                    <>
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
-                                                <Calendar size={14} className="text-emerald-500" />
-                                                <span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600">
-                                                <Calendar size={14} className="text-rose-500" />
-                                                <span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span>
-                                            </div>
-                                        </div>
-
-                                        {project.start_date && project.end_date && (
-                                            <div className="flex items-center justify-between border-t border-slate-200/50 pt-2 mt-2">
-                                                <div className="text-[10px] font-bold text-slate-500 bg-white px-2 py-1 rounded shadow-sm border border-slate-100">
-                                                    Tổng: <span className="text-slate-700">{totalDays} ngày</span>
-                                                </div>
-                                                <div className={`text-[10px] font-bold px-2 py-1 rounded shadow-sm border ${remainingDays < 0 ? 'bg-red-50 text-red-600 border-red-100' : 'bg-white text-emerald-600 border-emerald-100'}`}>
-                                                    Còn lại: {remainingDays < 0 ? `${Math.abs(remainingDays)} ngày trễ` : `${remainingDays} ngày`}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )
-                            })()}
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1">
-                                <Users size={14} className="text-indigo-500" />
-                                <span>Quản lý: {getManagerName(project.manager_id || '')}</span>
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-emerald-500" /><span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
+                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-rose-500" /><span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
                             </div>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
                         </div>
-
-                        {/* Project links */}
-                        {((project as any).link_hien_trang || (project as any).link_du_an || (project as any).link_presentation) && (
-                            <div className="flex items-center gap-2 mt-1 mb-2">
-                                {(project as any).link_hien_trang && (
-                                    <a href={(project as any).link_hien_trang} target="_blank" rel="noopener noreferrer"
-                                        onClick={e => e.stopPropagation()}
-                                        title="Hiện trạng / Mirror"
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-100 text-[10px] font-bold transition-colors">
-                                        <ExternalLink size={10} /> Hiện trạng
-                                    </a>
-                                )}
-                                {(project as any).link_du_an && (
-                                    <a href={(project as any).link_du_an} target="_blank" rel="noopener noreferrer"
-                                        onClick={e => e.stopPropagation()}
-                                        title="Dự án làm việc"
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold transition-colors">
-                                        <Link size={10} /> Dự án
-                                    </a>
-                                )}
-                                {(project as any).link_presentation && (
-                                    <a href={(project as any).link_presentation} target="_blank" rel="noopener noreferrer"
-                                        onClick={e => e.stopPropagation()}
-                                        title="Present PDF / Canvas"
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-100 text-[10px] font-bold transition-colors">
-                                        <FileText size={10} /> Present
-                                    </a>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Progress */}
                         <div className="pt-3 border-t border-slate-100 mt-2">
                             <div className="flex justify-between items-center bg-slate-50 border border-slate-100 py-2 px-3 rounded-2xl">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Tiến độ</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ</span>
                                 <div className="flex-1 mx-3 bg-white rounded-full h-2 ring-1 ring-slate-200 overflow-hidden shadow-inner">
-                                    <div
-                                        className={`h-full rounded-full transition-all duration-700 w-full shadow-sm ${getProjectProgress(project.id) >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`}
-                                        style={{ width: `${getProjectProgress(project.id)}%` }}
-                                    ></div>
+                                    <div className={`h-full rounded-full transition-all duration-700 ${getProjectProgress(project.id) >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`} style={{ width: `${getProjectProgress(project.id)}%` }}></div>
                                 </div>
-                                <span className="text-xs font-black text-slate-700 leading-none">{getProjectProgress(project.id)}%</span>
+                                <span className="text-xs font-black text-slate-700">{getProjectProgress(project.id)}%</span>
                             </div>
-
                             <div className="flex justify-end mt-3">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:shadow-md hover:shadow-indigo-50 transition-all text-xs font-bold w-auto"
-                                >
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
                                     <List size={14} className="text-indigo-400" />
-                                    {(() => {
-                                        const parentTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
-                                        const allSubtasks = allTasks.filter(t => t.project_id === project.id && t.parent_id);
-                                        const completedSubs = allSubtasks.filter(t => t.status?.includes('Hoàn thành')).length;
-                                        return (
-                                            <>
-                                                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-black">
-                                                    {completedSubs}/{allSubtasks.length}
-                                                </span>
-                                                {parentTasks.length} nhiệm vụ
-                                            </>
-                                        );
-                                    })()}
+                                    {allTasks.filter(t => t.project_id === project.id && !t.parent_id).length} nhiệm vụ
                                 </button>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+            )}
+
+            {/* List View - Tasks grouped by project */}
+            {projectViewMode === 'list' && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                {filteredProjects.map(project => {
+                    const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
+                    return (
+                        <div key={project.id} className="border-b border-slate-100 last:border-0">
+                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
+                                    <span className="text-sm font-bold text-slate-800">{project.name}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
+                                    <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{projTasks.length}</span>
+                                </div>
+                                <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
+                            </div>
+                            {projTasks.length === 0 ? (
+                                <div className="px-5 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
+                            ) : (
+                                <div>
+                                    <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-1.5 bg-slate-50/50 border-b border-slate-100">
+                                        {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
+                                    </div>
+                                    {projTasks.map(t => {
+                                        const isDone = t.status === 'Hoàn thành';
+                                        const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone;
+                                        const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán';
+                                        return (
+                                            <div key={t.id} className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center border-b border-slate-50 hover:bg-slate-50/50">
+                                                <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                                <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
+                                                <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                                <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
+                                                <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            )}
 
             {/* Modal */}
             <AddEditProjectModal
