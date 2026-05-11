@@ -89,7 +89,7 @@ function Avatar({ name }: { name: string }) {
 
 export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
     const [weekOffset, setWeekOffset] = useState(0)
-    const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person'>('time')
+    const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
     const [filterProject, setFilterProject] = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
@@ -152,20 +152,21 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
         overdue: weekTasks.filter(t => t.due_date && new Date(t.due_date) < TODAY && t.status !== 'Hoàn thành').length,
     }
 
-    const alerts = weekTasks.filter(t => {
+    const alerts = useMemo(() => weekTasks.filter(t => {
         if (!t.due_date) return false
         const d = new Date(t.due_date)
         return (d < TODAY && t.status !== 'Hoàn thành') ||
                (diffDays(TODAY, d) <= 1 && t.status !== 'Hoàn thành')
-    })
+    }), [weekTasks])
 
     const sorted = useMemo(() => {
-        return [...weekTasks].sort((a, b) => {
-            if (sortMode === 'time')    return (a.due_date || '').localeCompare(b.due_date || '')
+        const sourceList = sortMode === 'alert' ? alerts : weekTasks;
+        return [...sourceList].sort((a, b) => {
+            if (sortMode === 'time' || sortMode === 'alert')    return (a.due_date || '').localeCompare(b.due_date || '')
             if (sortMode === 'project') return (a.project_id || '').localeCompare(b.project_id || '') || (a.due_date || '').localeCompare(b.due_date || '')
             return getAssigneeName(a.assignee_id).localeCompare(getAssigneeName(b.assignee_id)) || (a.due_date || '').localeCompare(b.due_date || '')
         })
-    }, [weekTasks, sortMode])
+    }, [weekTasks, alerts, sortMode])
 
     const updateProgress = async (taskId: string, delta: number) => {
         const task = tasks.find(t => t.id === taskId)
@@ -252,60 +253,21 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                 </select>
 
                 <div className="flex items-center gap-1 ml-auto">
-                    {([['time', 'Ngày'], ['project', 'Dự án'], ['person', 'Nhân sự']] as const).map(([key, label]) => (
-                        <button key={key} onClick={() => setSortMode(key)}
-                            className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
-                                sortMode === key
-                                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
-                            }`}>
-                            {label}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* ── Alert Zone ── */}
-            {alerts.length > 0 && (
-                <div className="border-b border-red-100">
-                    <div className="flex items-center gap-2 px-5 py-2.5 bg-red-50">
-                        <AlertTriangle size={14} className="text-red-500 shrink-0" />
-                        <span className="text-xs font-semibold text-red-700">Cần xử lý ngay ({alerts.length})</span>
-                    </div>
-                    {alerts.map(t => {
-                        const d = new Date(t.due_date!)
-                        const isLate = d < TODAY
-                        const dStr = isLate
-                            ? `Trễ ${Math.abs(diffDays(TODAY, d))} ngày`
-                            : 'Hôm nay hết hạn'
-                        const assigneeName = getAssigneeName(t.assignee_id)
-                        const pct = t.completion_pct || 0
+                    {([['time', 'Ngày'], ['project', 'Dự án'], ['person', 'Nhân sự'], ['alert', `Cần xử lý (${alerts.length})`]] as const).map(([key, label]) => {
+                        const isAlert = key === 'alert';
                         return (
-                            <div key={t.id} className="flex items-center gap-3 px-5 py-3 border-b border-red-50 last:border-0">
-                                <Avatar name={assigneeName} />
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-slate-800 truncate">{t.name || t.task_code || 'Chưa có tên'}</div>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                                            {getProjectCode(t.project_id)}
-                                        </span>
-                                        <span className="text-[11px] text-red-600 font-medium">{dStr}</span>
-                                        <span className="text-[11px] text-slate-400">{assigneeName}</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    <button onClick={() => updateProgress(t.id, -10)}
-                                        className="w-6 h-6 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">−</button>
-                                    <span className="text-xs font-semibold w-8 text-center">{pct}%</span>
-                                    <button onClick={() => updateProgress(t.id, 10)}
-                                        className="w-6 h-6 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">+</button>
-                                    {saving[t.id] && <span className="text-[10px] text-slate-400 ml-1">Lưu...</span>}
-                                </div>
-                            </div>
+                            <button key={key} onClick={() => setSortMode(key as any)}
+                                className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
+                                    sortMode === key
+                                        ? (isAlert ? 'bg-red-50 border-red-300 text-red-700' : 'bg-indigo-50 border-indigo-300 text-indigo-700')
+                                        : (isAlert ? 'bg-white border-red-200 text-red-500 hover:border-red-300 hover:bg-red-50' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300')
+                                }`}>
+                                {label}
+                            </button>
                         )
                     })}
                 </div>
-            )}
+            </div>
 
             {/* ── Table Header ── */}
             <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
@@ -329,7 +291,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                         const pct = t.completion_pct || 0
 
                         let groupKey = ''
-                        if (sortMode === 'time') {
+                        if (sortMode === 'time' || sortMode === 'alert') {
                             groupKey = `${DAY_FULL[d.getDay()]} ${fmtShort(d)}`
                         } else if (sortMode === 'project') {
                             groupKey = `${getProjectCode(t.project_id)} – ${getProjectName(t.project_id)}`
