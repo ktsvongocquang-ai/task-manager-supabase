@@ -216,8 +216,6 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
         onRefresh()
     }
 
-    // Grouping
-    let lastGroup = ''
     const uniquePersonIds = [...new Set(weekTasks.map(t => getAssigneeId(t.assignee_id)).filter(Boolean))]
     const uniqueProjects  = [...new Set(weekTasks.map(t => t.project_id).filter(Boolean))]
 
@@ -320,127 +318,118 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask }: 
                     <div className="text-sm">Không có task trong tuần này</div>
                 </div>
             ) : (
-                <div>
-                    {sorted.map(t => {
-                        const d = new Date(t.due_date!)
-                        const isLate = d < TODAY && t.status !== 'Hoàn thành'
-                        const isDone = t.status === 'Hoàn thành'
-                        const pct = t.completion_pct || 0
-
-                        let displayDate = new Date(t.due_date!);
-                        if (displayDate < mon) displayDate = mon;
-
-                        let groupKey = ''
-                        if (sortMode === 'time' || sortMode === 'alert') {
-                            groupKey = `${DAY_FULL[displayDate.getDay()]} ${fmtShort(displayDate)}`
-                        } else if (sortMode === 'project') {
-                            groupKey = `${getProjectCode(t.project_id)} – ${getProjectName(t.project_id)}`
-                        } else {
-                            groupKey = getAssigneeName(t.assignee_id)
-                        }
-
-                        const showGroup = groupKey !== lastGroup
-                        lastGroup = groupKey
-
-                        const assigneeName = getAssigneeName(t.assignee_id)
-                        const badge = getStatusBadge(t.status)
-
+                <div className="pb-4">
+                    {groupedTasks.map(group => {
+                        const isCollapsed = collapsedGroups[group.key];
                         return (
-                            <div key={t.id}>
-                                {showGroup && (
-                                    <div className="flex items-center justify-between px-5 py-2 bg-slate-50 border-b border-slate-100">
-                                        <div className="flex items-center gap-2">
-                                            {sortMode === 'project' && (
-                                                <span className="text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-                                                    {getProjectCode(t.project_id)}
-                                                </span>
-                                            )}
-                                            {sortMode === 'person' && <Avatar name={assigneeName} />}
-                                            <span className="text-xs font-semibold text-slate-600">{groupKey}</span>
-                                        </div>
-                                        {onAddTask && (
-                                            <button 
-                                                onClick={() => {
-                                                    const defaultValues: any = {};
-                                                    if (sortMode === 'time' || sortMode === 'alert') {
-                                                        const dateStr = format(displayDate, 'yyyy-MM-dd');
-                                                        defaultValues.start_date = dateStr;
-                                                        defaultValues.due_date = dateStr;
-                                                    } else if (sortMode === 'project') {
-                                                        defaultValues.project_id = t.project_id;
-                                                    } else if (sortMode === 'person') {
-                                                        defaultValues.assignee_id = getAssigneeId(t.assignee_id);
-                                                    }
-                                                    onAddTask(defaultValues);
-                                                }}
-                                                className="text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"
-                                            >
-                                                + thêm task nhanh
-                                            </button>
+                            <div key={group.key} className="mb-1">
+                                {/* Group Header */}
+                                <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-100 border-slate-200 text-slate-800'} border-y sticky top-0 z-10 shadow-sm`}>
+                                    <div 
+                                        className="flex items-center gap-2 cursor-pointer flex-1"
+                                        onClick={() => toggleGroup(group.key)}
+                                    >
+                                        {isCollapsed ? <ChevronRight size={16} className={group.isLateGroup ? 'text-red-400' : 'text-slate-400'} /> : <ChevronDown size={16} className={group.isLateGroup ? 'text-red-400' : 'text-slate-400'} />}
+                                        <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : 'text-slate-700'}`}>
+                                            {group.label}
+                                        </span>
+                                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500">
+                                            {group.tasks.length}
+                                        </span>
+                                    </div>
+                                    
+                                    {onAddTask && (
+                                        <button 
+                                            onClick={() => onAddTask(group.defaultValues)}
+                                            className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded transition-colors flex items-center gap-1 border border-emerald-200 shrink-0"
+                                        >
+                                            + thêm task nhanh
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Group Tasks */}
+                                {!isCollapsed && (
+                                    <div className="bg-white">
+                                        {group.tasks.length === 0 ? (
+                                            <div className="px-5 py-3 text-xs text-slate-400 italic">Không có nhiệm vụ</div>
+                                        ) : (
+                                            group.tasks.map(t => {
+                                                const d = new Date(t.due_date!)
+                                                const isLate = d < TODAY && t.status !== 'Hoàn thành'
+                                                const isDone = t.status === 'Hoàn thành'
+                                                const pct = t.completion_pct || 0
+                                                const assigneeName = getAssigneeName(t.assignee_id)
+                                                const badge = getStatusBadge(t.status)
+
+                                                return (
+                                                    <div key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                                        {/* Mobile row */}
+                                                        <div className="md:hidden flex items-start gap-3 px-4 py-2">
+                                                            <div className="w-6 h-6 shrink-0 mt-0.5"><Avatar name={assigneeName} /></div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>{t.name || t.task_code || 'Chưa có tên'}</div>
+                                                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                                    <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{getProjectCode(t.project_id)}</span>
+                                                                    <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
+                                                                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1 mt-1.5">
+                                                                    <button onClick={() => updateProgress(t.id, -10)}
+                                                                        className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 leading-none">−</button>
+                                                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                                        <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-medium text-slate-500 w-6 text-right">{pct}%</span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)}
+                                                                        className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 leading-none">+</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Desktop row */}
+                                                        <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-2 items-center">
+                                                            <div className="min-w-0">
+                                                                <div className={`text-xs font-semibold truncate ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                                                                    {t.name || t.task_code || 'Chưa có tên'}
+                                                                </div>
+                                                                <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wide">{getProjectCode(t.project_id)}</div>
+                                                            </div>
+
+                                                            <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>
+                                                                {fmtShort(d)}
+                                                            </span>
+
+                                                            <div>
+                                                                <div className="flex items-center gap-1 mb-1">
+                                                                    <button onClick={() => updateProgress(t.id, -10)}
+                                                                        className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">−</button>
+                                                                    <span className="text-[10px] font-semibold text-slate-700 w-6 text-center">
+                                                                        {saving[t.id] ? '...' : `${pct}%`}
+                                                                    </span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)}
+                                                                        className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">+</button>
+                                                                </div>
+                                                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                                    <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                                <div className="w-5 h-5 shrink-0"><Avatar name={assigneeName} /></div>
+                                                                <span className="text-[11px] font-medium text-slate-600 truncate">{assigneeName}</span>
+                                                            </div>
+
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center`}>
+                                                                {badge.label}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })
                                         )}
                                     </div>
                                 )}
-
-                                {/* Mobile row */}
-                                <div className="md:hidden flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0">
-                                    <Avatar name={assigneeName} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>{t.name || t.task_code || 'Chưa có tên'}</div>
-                                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                            <span className="text-[10px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{getProjectCode(t.project_id)}</span>
-                                            <span className={`text-[11px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
-                                            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badge.bg} ${badge.text}`}>{badge.label}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 mt-2">
-                                            <button onClick={() => updateProgress(t.id, -10)}
-                                                className="w-6 h-6 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">−</button>
-                                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
-                                            </div>
-                                            <span className="text-[11px] text-slate-500 w-7 text-right">{pct}%</span>
-                                            <button onClick={() => updateProgress(t.id, 10)}
-                                                className="w-6 h-6 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">+</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Desktop row */}
-                                <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-3 border-b border-slate-50 last:border-0 items-center hover:bg-slate-50/50 transition-colors">
-                                    <div className="min-w-0">
-                                        <div className={`text-sm font-medium truncate ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                                            {t.name || t.task_code || 'Chưa có tên'}
-                                        </div>
-                                        <div className="text-[10px] text-slate-400 mt-0.5">{t.task_code}</div>
-                                    </div>
-
-                                    <span className={`text-xs font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>
-                                        {fmtShort(d)}
-                                    </span>
-
-                                    <div>
-                                        <div className="flex items-center gap-1 mb-1">
-                                            <button onClick={() => updateProgress(t.id, -10)}
-                                                className="w-5 h-5 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">−</button>
-                                            <span className="text-[11px] font-semibold text-slate-700 w-7 text-center">
-                                                {saving[t.id] ? '...' : `${pct}%`}
-                                            </span>
-                                            <button onClick={() => updateProgress(t.id, 10)}
-                                                className="w-5 h-5 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">+</button>
-                                        </div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                        <Avatar name={assigneeName} />
-                                        <span className="text-xs text-slate-600 truncate">{assigneeName}</span>
-                                    </div>
-
-                                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${badge.bg} ${badge.text} whitespace-nowrap text-center`}>
-                                        {badge.label}
-                                    </span>
-                                </div>
                             </div>
                         )
                     })}
