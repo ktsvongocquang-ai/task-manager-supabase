@@ -176,29 +176,32 @@ export const Tasks = () => {
         return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
-    const generateNextTaskCode = (projectId: string) => {
-        const projTasks = tasks.filter(t => t.project_id === projectId);
+    const generateNextTaskCode = async (projectId: string) => {
+        const { data: projTasks } = await supabase
+            .from('tasks')
+            .select('task_code')
+            .eq('project_id', projectId);
         let maxId = 0;
-        projTasks.forEach(t => {
-            const match = t.task_code.match(/-(\d+)$/);
+        (projTasks || []).forEach((t: any) => {
+            const match = (t.task_code || '').match(/-(\d+)$/);
             if (match) {
                 const num = parseInt(match[1], 10);
                 if (num > maxId) maxId = num;
             }
         });
         const projCode = getProjectCode(projectId);
-        return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : '';
+        return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : `TASK-${Date.now().toString(36)}`;
     }
 
-    const openAddModal = (projectId?: string, defaultValues?: any) => {
+    const openAddModal = async (projectId?: string, defaultValues?: any) => {
         setEditingTask(null)
-        const nextCode = projectId ? generateNextTaskCode(projectId) : ''
+        const nextCode = projectId ? await generateNextTaskCode(projectId) : ''
         setInitialTaskData({ task_code: nextCode, project_id: projectId || '', ...defaultValues })
         setShowModal(true)
     }
 
-    const openQuickAddModal = (defaultValues?: any) => {
-        const nextCode = defaultValues?.project_id ? generateNextTaskCode(defaultValues.project_id) : ''
+    const openQuickAddModal = async (defaultValues?: any) => {
+        const nextCode = defaultValues?.project_id ? await generateNextTaskCode(defaultValues.project_id) : ''
         setInitialTaskData({ task_code: nextCode, project_id: defaultValues?.project_id || '', ...defaultValues })
         setShowQuickAdd(true)
     }
@@ -263,7 +266,7 @@ export const Tasks = () => {
 
     const handleCopy = async (t: Task) => {
         try {
-            const nextCode = generateNextTaskCode(t.project_id)
+            const nextCode = await generateNextTaskCode(t.project_id)
             const { id, created_at, ...rest } = t as any
             const payload = {
                 ...rest,

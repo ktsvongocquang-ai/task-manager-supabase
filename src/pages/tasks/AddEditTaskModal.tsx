@@ -23,7 +23,7 @@ interface AddEditTaskModalProps {
     projects: Project[];
     profiles: any[];
     currentUserProfile: any;
-    generateNextTaskCode?: (projectId: string) => string;
+    generateNextTaskCode?: (projectId: string) => Promise<string> | string;
 }
 
 export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
@@ -288,18 +288,16 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         }
     }, [isOpen, editingTask, initialData]);
 
-    const handleProjectChange = (projectId: string) => {
-        setForm(prev => {
-            const nextCode = generateNextTaskCode ? generateNextTaskCode(projectId) : prev.task_code;
-            return {
-                ...prev,
-                project_id: projectId,
-                task_code: nextCode,
-                assignee_id: currentUserProfile?.id || prev.assignee_id,
-                parent_id: '',
-                target: prev.target // keep phase when changing project
-            }
-        });
+    const handleProjectChange = async (projectId: string) => {
+        const nextCode = generateNextTaskCode ? await generateNextTaskCode(projectId) : form.task_code;
+        setForm(prev => ({
+            ...prev,
+            project_id: projectId,
+            task_code: nextCode,
+            assignee_id: currentUserProfile?.id || prev.assignee_id,
+            parent_id: '',
+            target: prev.target // keep phase when changing project
+        }));
     }
 
     // phases are now fixed KPI phases (concept, 3d, 2d, construction)
