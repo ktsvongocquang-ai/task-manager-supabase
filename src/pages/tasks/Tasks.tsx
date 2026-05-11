@@ -28,7 +28,7 @@ export const Tasks = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [initialTaskData, setInitialTaskData] = useState({ task_code: '', project_id: '' })
     const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['Chưa bắt đầu', 'Đang thực hiện']))
-    const [viewMode, setViewMode] = useState<'list' | 'weekly'>('list')
+    const [viewMode, setViewMode] = useState<'list' | 'weekly'>('weekly')
 
     useEffect(() => {
         fetchAll()
@@ -397,16 +397,16 @@ export const Tasks = () => {
                     {/* View Toggle */}
                     <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
                         <button
+                            onClick={() => setViewMode('weekly')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === 'weekly' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <CalendarDays size={14} /> Mục tiêu tuần
+                        </button>
+                        <button
                             onClick={() => setViewMode('list')}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             <List size={14} /> Danh sách
-                        </button>
-                        <button
-                            onClick={() => setViewMode('weekly')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${viewMode === 'weekly' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            <CalendarDays size={14} /> Tuần làm việc
                         </button>
                     </div>
                 </div>
