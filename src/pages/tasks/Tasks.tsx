@@ -32,9 +32,9 @@ export const Tasks = () => {
         fetchAll()
     }, [profile])
 
-    const fetchAll = async () => {
+    const fetchAll = async (silent = false) => {
         try {
-            setLoading(true)
+            if (!silent) setLoading(true)
             const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
@@ -438,10 +438,10 @@ export const Tasks = () => {
             {/* Weekly View */}
             {viewMode === 'weekly' && (
                 <WeeklyView
-                    tasks={tasks}
+                    tasks={baseFilteredTasks}
                     projects={projects}
                     profiles={profiles}
-                    onRefresh={fetchAll}
+                    onRefresh={() => fetchAll(true)}
                 />
             )}
 

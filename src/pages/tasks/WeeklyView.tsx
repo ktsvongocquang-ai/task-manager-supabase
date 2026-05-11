@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
+import { format } from 'date-fns'
 
 interface Props {
     tasks: Task[]
@@ -101,34 +102,15 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
         return `${DAY_LABELS[d.getDay()]} ${fmtShort(d)}`
     }).join('  ·  ')
 
-    // Tasks relevant to this week:
-    // 1. due_date falls in this week
-    // 2. span across this week (start_date <= sun AND due_date >= mon)
-    // 3. overdue + not done (carried into this week)
-    const weekTasks = useMemo(() => {
-        const monStr = mon.toISOString().split('T')[0]
-        const sunStr = sun.toISOString().split('T')[0]
-        return tasks.filter(t => {
-            if (!t.due_date) return false
-            const startStr = (t as any).start_date || t.due_date
-            const spansWeek = startStr <= sunStr && t.due_date >= monStr
-            const isOverdue = t.due_date < monStr && t.status !== 'Hoàn thành' && t.status !== 'Lưu trữ'
-            if (!spansWeek && !isOverdue) return false
-            if (filterPerson  && t.assignee_id !== filterPerson)  return false
-            if (filterProject && t.project_id  !== filterProject) return false
-            return true
-        })
-    }, [tasks, weekOffset, filterPerson, filterProject])
+    const getAssigneeId = (id: string | string[] | null): string => {
+        if (!id) return ''
+        return Array.isArray(id) ? id[0] : id
+    }
 
     const getAssigneeName = (id: string | string[] | null) => {
         if (!id) return 'Chưa gán'
         const resolvedId = Array.isArray(id) ? id[0] : id
         return profiles.find(p => p.id === resolvedId)?.full_name || 'N/A'
-    }
-
-    const getAssigneeId = (id: string | string[] | null): string => {
-        if (!id) return ''
-        return Array.isArray(id) ? id[0] : id
     }
 
     const getProjectName = (id: string) => {
@@ -137,6 +119,30 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
     const getProjectCode = (id: string) => {
         return (projects.find(p => p.id === id) as any)?.project_code || ''
     }
+
+    // Tasks relevant to this week:
+    // 1. due_date falls in this week
+    // 2. span across this week (start_date <= sun AND due_date >= mon)
+    // 3. overdue + not done (carried into this week)
+    const weekTasks = useMemo(() => {
+        const monStr = format(mon, 'yyyy-MM-dd')
+        const sunStr = format(sun, 'yyyy-MM-dd')
+        return tasks.filter(t => {
+            if (!t.due_date) return false
+            const startRaw = ((t as any).start_date || t.due_date) as string
+            const startStr = startRaw.substring(0, 10)
+            const dueStr = t.due_date.substring(0, 10)
+            
+            const spansWeek = startStr <= sunStr && dueStr >= monStr
+            const isOverdue = dueStr < monStr && t.status !== 'Hoàn thành' && t.status !== 'Lưu trữ'
+            if (!spansWeek && !isOverdue) return false
+            
+            const assigneeId = getAssigneeId(t.assignee_id)
+            if (filterPerson  && assigneeId !== filterPerson)  return false
+            if (filterProject && t.project_id  !== filterProject) return false
+            return true
+        })
+    }, [tasks, weekOffset, filterPerson, filterProject, mon, sun])
 
     const stats = {
         total:   weekTasks.length,
@@ -278,7 +284,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                             <div key={t.id} className="flex items-center gap-3 px-5 py-3 border-b border-red-50 last:border-0">
                                 <Avatar name={assigneeName} />
                                 <div className="flex-1 min-w-0">
-                                    <div className="text-sm font-medium text-slate-800 truncate">{t.name}</div>
+                                    <div className="text-sm font-medium text-slate-800 truncate">{t.name || t.task_code || 'Chưa có tên'}</div>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                                             {getProjectCode(t.project_id)}
@@ -355,7 +361,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                                 <div className="md:hidden flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0">
                                     <Avatar name={assigneeName} />
                                     <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>{t.name}</div>
+                                        <div className={`text-sm font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>{t.name || t.task_code || 'Chưa có tên'}</div>
                                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                                             <span className="text-[10px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">{getProjectCode(t.project_id)}</span>
                                             <span className={`text-[11px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
@@ -378,7 +384,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh }: Props) => {
                                 <div className="hidden md:grid grid-cols-[1fr_64px_100px_120px_110px] gap-2 px-5 py-3 border-b border-slate-50 last:border-0 items-center hover:bg-slate-50/50 transition-colors">
                                     <div className="min-w-0">
                                         <div className={`text-sm font-medium truncate ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                                            {t.name}
+                                            {t.name || t.task_code || 'Chưa có tên'}
                                         </div>
                                         <div className="text-[10px] text-slate-400 mt-0.5">{t.task_code}</div>
                                     </div>
