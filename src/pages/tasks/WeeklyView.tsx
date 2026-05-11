@@ -110,15 +110,20 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [filterPerson, setFilterPerson]   = useState('')
     const [filterProject, setFilterProject] = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
-    const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const scrollRef = useRef<HTMLDivElement>(null)
+
+    const toggleGroup = (key: string) => {
+        setCollapsedGroups(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+        })
+    }
 
     const { mon, sun } = getWeekRange(weekOffset)
     const wn = getWeekNum(mon)
-
-    const toggleGroup = (key: string) => {
-        setCollapsedGroups(prev => ({ ...prev, [key]: !prev[key] }))
-    }
 
     const weekDayRow = Array.from({ length: 7 }, (_, i) => {
         const d = new Date(mon); d.setDate(mon.getDate() + i)
@@ -327,7 +332,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         return (
                             <button key={key} onClick={() => {
                                 setSortMode(key as any)
-                                setCollapsedGroups({})
+                                setCollapsedGroups(new Set())
                                 scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
                             }}
                                 className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
@@ -358,7 +363,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             ) : (
                 <div className="pb-4 min-h-[300px]" ref={scrollRef}>
                     {groupedTasks.map(group => {
-                        const isCollapsed = collapsedGroups[group.key];
+                        const isCollapsed = collapsedGroups.has(group.key);
                         return (
                             <div key={group.key} className="mb-1">
                                 {/* Group Header */}
