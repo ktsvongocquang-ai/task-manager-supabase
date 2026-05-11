@@ -173,10 +173,10 @@ export const QuickAddTaskModal = ({
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                             >
                                 <option value="">Chọn...</option>
-                                <option value="Concept">Concept</option>
-                                <option value="3D">3D</option>
-                                <option value="2D">2D</option>
-                                <option value="Construction">Construction</option>
+                                <option value="concept">Concept</option>
+                                <option value="3d">3D / Phối cảnh</option>
+                                <option value="2d">2D / Triển khai</option>
+                                <option value="construction">Construction / Hồ sơ TC</option>
                             </select>
                         </div>
                         <div>
@@ -187,9 +187,11 @@ export const QuickAddTaskModal = ({
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                             >
                                 <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                <option value="Cần làm">Cần làm</option>
                                 <option value="Đang thực hiện">Đang thực hiện</option>
-                                <option value="Tạm dừng">Tạm dừng</option>
+                                <option value="Chờ duyệt">Chờ duyệt</option>
                                 <option value="Hoàn thành">Hoàn thành</option>
+                                <option value="Tạm dừng">Tạm dừng</option>
                             </select>
                         </div>
 

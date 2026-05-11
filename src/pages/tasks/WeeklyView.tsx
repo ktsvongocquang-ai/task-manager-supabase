@@ -420,7 +420,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                     {getPhaseLabel((t as any).target) && (
                                                                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>
                                                                     )}
-                                                                    <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{getProjectCode(t.project_id)}</span>
+                                                                    <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded truncate max-w-[120px]">{getProjectName(t.project_id)}</span>
                                                                     <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
                                                                     <select
                                                                         value={t.status}
@@ -457,7 +457,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                         {t.name || t.task_code || 'Chưa có tên'}
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-[9px] text-slate-400 mt-0.5 uppercase tracking-wide">{getProjectCode(t.project_id)}</div>
+                                                                <div className="text-[9px] text-slate-400 mt-0.5 truncate" title={getProjectName(t.project_id)}>{getProjectName(t.project_id)}</div>
                                                             </div>
 
                                                             <div className="text-[11px] text-slate-500 truncate" title={(t as any).description || ''}>
