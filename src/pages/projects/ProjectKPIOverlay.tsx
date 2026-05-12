@@ -172,30 +172,30 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
             <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
                 {/* Header */}
-                <div className="px-8 py-6 pb-2 relative flex justify-between items-start">
-                    <div>
-                        <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">{project.name}</h2>
+                <div className="px-4 sm:px-8 py-5 sm:py-6 pb-2 relative flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
                         <p className="text-sm text-slate-500 font-medium mt-1">
                             {project.project_code} • Quản lý: {managerName || 'Chưa gán'} • Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}
                         </p>
-                        <div className="flex items-center gap-4 mt-2 text-[13px] font-bold text-slate-600">
+                        <div className="flex items-center gap-2 sm:gap-4 mt-2 text-[11px] sm:text-[13px] font-bold text-slate-600 flex-wrap">
                             <span>Diện tích: <strong className="text-slate-800">{area > 0 ? `${area} m²` : 'N/A'}</strong></span>
                             <span>Đơn giá: <strong className="text-slate-800">{pricePerM2 > 0 ? `${(pricePerM2/1000).toLocaleString('vi-VN')}k/m²` : 'N/A'}</strong></span>
                             <span>Doanh thu: <strong className="text-indigo-600">{revenue > 0 ? `${(revenue/1000000).toLocaleString('vi-VN')}tr` : 'N/A'}</strong></span>
-                            <span className="bg-slate-200 px-2 py-0.5 rounded-full text-[10px] uppercase text-slate-500">HỆ SỐ {coefficient}</span>
+                            <span className="bg-slate-200 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] uppercase text-slate-500">HỆ SỐ {coefficient}</span>
                         </div>
                     </div>
-                    <div className="text-right pr-10">
-                        <div className={`text-5xl font-black leading-none ${remainingDays >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{kpiBreakEven > 0 ? Math.abs(remainingDays) : '—'}</div>
-                        <div className="text-xs uppercase font-bold text-slate-400 mt-1">ngày KPI {remainingDays >= 0 ? 'còn lại' : 'vượt lố'}</div>
-                        <div className="text-[10px] text-slate-400">đến mốc cần hoàn thành tiêu chuẩn</div>
+                    <div className="text-right pr-6 sm:pr-10 shrink-0">
+                        <div className={`text-3xl sm:text-5xl font-black leading-none ${remainingDays >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{kpiBreakEven > 0 ? Math.abs(remainingDays) : '—'}</div>
+                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">ngày KPI {remainingDays >= 0 ? 'còn lại' : 'vượt lố'}</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">đến mốc cần hoàn thành tiêu chuẩn</div>
                     </div>
-                    <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-200 rounded-full"><X size={24} /></button>
+                    <button onClick={onClose} className="absolute top-4 sm:top-6 right-2 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-200 rounded-full"><X size={20} className="sm:w-6 sm:h-6" /></button>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="px-8 pb-4">
-                    <div className={`${totalDaysUsed > kpiBreakEven && kpiBreakEven > 0 ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'} border rounded-2xl p-4 mt-4 shadow-sm`}>
+                <div className="px-4 sm:px-8 pb-4">
+                    <div className={`${totalDaysUsed > kpiBreakEven && kpiBreakEven > 0 ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'} border rounded-2xl p-3 sm:p-4 mt-2 sm:mt-4 shadow-sm`}>
                         <h3 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
                             <span className="w-2.5 h-2.5 animate-pulse bg-emerald-500 rounded-full inline-block"></span>
                             {kpiBreakEven > 0 ? `${totalPhaseDays} ngày làm + ${kpiState.paused_days} ngày dừng = ${totalDaysUsed}/${kpiBreakEven} ngày KPI.` : 'Chưa nhập thông tin KPI (Doanh thu, Diện tích). Hãy sửa dự án để bắt đầu.'}
@@ -206,7 +206,7 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                     <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${Math.min(100, (totalPhaseDays / kpiBreakEven) * 100)}%` }}></div>
                                     <div className="h-full bg-amber-400 opacity-60 flex-none" style={{ width: `${Math.min(100, (kpiState.paused_days / kpiBreakEven) * 100)}%` }}></div>
                                 </div>
-                                <div className="flex gap-4 mt-2 text-[10px] font-bold text-slate-500 uppercase">
+                                <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">
                                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-emerald-500"></div> Ngày làm: {totalPhaseDays}</span>
                                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-amber-400"></div> Tạm dừng: {kpiState.paused_days}</span>
                                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-slate-300"></div> Còn lại: {remainingDays}</span>
@@ -216,10 +216,10 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-4 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-6 sm:pb-8 space-y-4 custom-scrollbar">
                     {/* Value Metrics Grid */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm col-span-2 sm:col-span-1">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">KPI hòa vốn</div>
                             <div className="text-3xl font-black text-indigo-600">{kpiBreakEven > 0 ? `${kpiBreakEven} ng` : '—'}</div>
                         </div>
@@ -227,20 +227,20 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Đã dùng (làm+dừng)</div>
                             <div className="text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm relative overflow-hidden">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 relative z-10">Ngày làm thực tế</div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm relative overflow-hidden">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 relative z-10 line-clamp-1">Ngày làm thực tế</div>
                             <div className={`text-3xl font-black relative z-10 ${totalPhaseDays > kpiBreakEven && kpiBreakEven > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{totalPhaseDays} ng</div>
                         </div>
                     </div>
 
                     {/* Paused Config */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex justify-between items-center">
+                    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
                         <div className="flex-1">
-                            <h4 className="text-base font-bold text-slate-800 mb-0.5">Tạm dừng / Chờ khách phản hồi</h4>
-                            <p className="text-xs text-slate-500">Gộp cả chờ khách + chuyển dự án — thời gian dự án không thể tiếp tục.</p>
+                            <h4 className="text-sm sm:text-base font-bold text-slate-800 mb-0.5">Tạm dừng / Chờ khách phản hồi</h4>
+                            <p className="text-[11px] sm:text-xs text-slate-500">Gộp cả chờ khách + chuyển dự án — thời gian dự án không thể tiếp tục.</p>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                            <div className="flex items-center gap-3">
+                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
+                            <div className="flex items-center gap-2 sm:gap-3">
                                 <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:text-rose-500 transition-colors text-slate-400"><Minus size={14} /></button>
                                 <span className="font-bold text-lg text-slate-700 w-6 text-center">{kpiState.paused_days}</span>
                                 <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:text-emerald-500 transition-colors text-slate-400"><Plus size={14} /></button>
@@ -268,18 +268,19 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
 
                             return (
                                 <div key={phase.key} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="p-4 flex justify-between items-center cursor-pointer select-none" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-3 h-3 rounded ${isActive ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-800">{phase.name}</h4>
-                                                <div className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">
+                                    <div className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center cursor-pointer select-none gap-2 sm:gap-0" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
+                                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                                            <div className={`w-3 h-3 rounded shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-slate-800 text-sm sm:text-base truncate">{phase.name}</h4>
+                                                <div className="text-[9px] sm:text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">
                                                     KPI: {phaseKpiDays} ngày • Task: {phaseTasks.length}
                                                 </div>
                                             </div>
+                                            {/* Expand arrow on mobile logic: show here if flex-col is active and taking space, but actually it's easier to put at the very end of the row */}
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pl-5 sm:pl-0">
+                                            <div className="w-16 sm:w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0 hidden sm:block">
                                                 <div className={`h-full rounded-full transition-all duration-300 ${isOver ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${phaseKpiDays > 0 ? Math.min(100, (pState.days_used / phaseKpiDays) * 100) : 0}%` }}></div>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -293,10 +294,10 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                     </div>
 
                                     {isExpanded && (
-                                        <div className="bg-slate-50 border-t border-slate-100 p-4 space-y-3">
+                                        <div className="bg-slate-50 border-t border-slate-100 p-3 sm:p-4 space-y-3">
                                             {/* Days +/- */}
-                                            <div className="flex justify-between items-center border-b border-slate-200/60 pb-3">
-                                                <span className="text-xs font-bold text-slate-600">Ngày đã dùng cho giai đoạn này</span>
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/60 pb-3 gap-2 sm:gap-0">
+                                                <span className="text-[11px] sm:text-xs font-bold text-slate-600">Ngày đã dùng cho giai đoạn này</span>
                                                 <div className="flex items-center gap-2">
                                                     <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 text-slate-500 bg-white transition-colors"><Minus size={14}/></button>
                                                     <span className="font-bold text-slate-800 w-6 text-center">{pState.days_used}</span>
