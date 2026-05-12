@@ -339,6 +339,31 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 target: form.target || null
             }
 
+            if (form.project_id === 'personal') {
+                const personalPayload = {
+                    title: form.name,
+                    description: form.description || null,
+                    status: form.status === 'Hoàn thành' ? 'done' : (form.status === 'Đang làm' ? 'in-progress' : 'pending'),
+                    due_date: form.due_date || null,
+                    priority: form.priority,
+                    user_id: currentUserProfile?.id
+                };
+                
+                let result;
+                if (editingTask && editingTask.id) {
+                    result = await supabase.from('personal_tasks').update(personalPayload).eq('id', editingTask.id);
+                } else {
+                    result = await supabase.from('personal_tasks').insert(personalPayload).select();
+                }
+                
+                if (result?.error) {
+                    alert(`Lỗi Supabase (Việc cá nhân): ${result.error.message}`);
+                    return;
+                }
+                onSaved();
+                return;
+            }
+
             let result;
             let finalTaskCode = form.task_code;
 
@@ -730,7 +755,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <button onClick={async () => {
                                     if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.')) {
                                         try {
-                                            const { error } = await supabase.from('tasks').delete().eq('id', editingTask.id);
+                                            const table = form.project_id === 'personal' ? 'personal_tasks' : 'tasks';
+                                            const { error } = await supabase.from(table).delete().eq('id', editingTask.id);
                                             if (error) throw error;
                                             onSaved();
                                             onClose();
@@ -780,6 +806,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn dự án...</option>
+                                        <option value="personal">Việc cá nhân</option>
                                         {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>

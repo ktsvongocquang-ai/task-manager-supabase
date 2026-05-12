@@ -106,10 +106,7 @@ export const Schedule = () => {
     }
 
     const openEditModal = (t: Task) => {
-        if (t.task_code === 'CÁ NHÂN') {
-            alert('Đây là Việc cá nhân. Vui lòng mở tab "Việc cá nhân" trên thanh điều hướng để xem và chỉnh sửa chi tiết!');
-            return;
-        }
+
         setEditingTask(t)
         setInitialTaskData({ task_code: t.task_code, project_id: t.project_id })
         setShowModal(true)
