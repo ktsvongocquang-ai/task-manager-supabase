@@ -44,7 +44,7 @@ const viewTitles: Record<string, string> = {
     '/kanban': 'Kanban',
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
-    '/tasks': 'Danh sách',
+    '/tasks': 'Mục tiêu tuần',
     '/schedule': 'Lịch Trình',
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
@@ -261,8 +261,8 @@ export const Layout = () => {
                 icon: KanbanIcon,
                 matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'],
                 mobileChildren: [
+                    { name: 'Mục tiêu tuần', path: '/tasks', icon: Calendar },
                     { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
-                    { name: 'Danh sách', path: '/tasks', icon: List },
                     { name: 'Lịch trình', path: '/schedule', icon: Calendar },
                     { name: 'Sơ đồ Gantt', path: '/gantt', icon: BarChart2 },
                     { name: 'Dự án', path: '/projects', icon: Folder },
@@ -576,11 +576,11 @@ export const Layout = () => {
                         <div className="hidden lg:block">
                             {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
                                 <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
+                                        Mục tiêu tuần
+                                    </NavLink>
                                     <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
-                                    </NavLink>
-                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Danh sách
                                     </NavLink>
                                     <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Lịch trình
