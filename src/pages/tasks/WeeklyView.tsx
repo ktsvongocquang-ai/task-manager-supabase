@@ -125,11 +125,6 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const { mon, sun } = getWeekRange(weekOffset)
     const wn = getWeekNum(mon)
 
-    const weekDayRow = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(mon); d.setDate(mon.getDate() + i)
-        return `${DAY_LABELS[d.getDay()]} ${fmtShort(d)}`
-    }).join('  ·  ')
-
     const getAssigneeId = (id: string | string[] | null): string => {
         if (!id) return ''
         return Array.isArray(id) ? id[0] : id
@@ -262,32 +257,29 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
 
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <div>
-                    <div className="font-semibold text-slate-800 text-sm">
-                        Tuần {wn} — {fmtShort(mon)} đến {fmtShort(sun)}/{sun.getFullYear()}
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{weekDayRow}</div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 md:px-5 py-3 md:py-4 border-b border-slate-100">
+                <div className="font-semibold text-slate-800 text-sm">
+                    Tuần {wn} — {fmtShort(mon)} đến {fmtShort(sun)}/{sun.getFullYear()}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar-hide">
                     {onAddTask && (
                         <button
                             onClick={() => onAddTask({})}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 h-7 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm mr-2"
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 h-7 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm mr-auto md:mr-2 shrink-0"
                         >
                             <span className="text-[14px] leading-none mb-[2px]">+</span> Tạo mới nhiệm vụ
                         </button>
                     )}
                     <button onClick={() => setWeekOffset(o => o - 1)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0">
                         <ChevronLeft size={15} />
                     </button>
                     <button onClick={() => setWeekOffset(0)}
-                        className="px-3 h-7 text-xs font-medium rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors whitespace-nowrap">
+                        className="px-3 h-7 text-xs font-medium rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors whitespace-nowrap shrink-0">
                         Tuần này
                     </button>
                     <button onClick={() => setWeekOffset(o => o + 1)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0">
                         <ChevronRight size={15} />
                     </button>
                 </div>
