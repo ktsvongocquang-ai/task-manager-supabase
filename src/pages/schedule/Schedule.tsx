@@ -421,7 +421,12 @@ export const Schedule = () => {
                             const isToday = isSameDay(day, new Date())
                             const isCurrentMonth = isSameMonth(day, currentDate)
                             const dateStr = format(day, 'yyyy-MM-dd')
-                            const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
+                            const dayTasks = filteredTasks.filter(t => {
+                                if (!t.due_date) return false;
+                                const startD = (t.start_date || t.due_date).substring(0, 10);
+                                const endD = t.due_date.substring(0, 10);
+                                return startD <= dateStr && endD >= dateStr;
+                            })
                             const hasTasks = dayTasks.length > 0;
 
                             return (
@@ -458,7 +463,12 @@ export const Schedule = () => {
                 <div className="flex-1 space-y-3 overflow-y-auto pb-20 custom-scrollbar px-1">
                     {(() => {
                         const dateStr = format(selectedDate, 'yyyy-MM-dd')
-                        const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr)).sort((a,b) => (a.status || '').localeCompare(b.status || ''));
+                        const dayTasks = filteredTasks.filter(t => {
+                            if (!t.due_date) return false;
+                            const startD = (t.start_date || t.due_date).substring(0, 10);
+                            const endD = t.due_date.substring(0, 10);
+                            return startD <= dateStr && endD >= dateStr;
+                        }).sort((a,b) => (a.status || '').localeCompare(b.status || ''));
                         
                         if (dayTasks.length === 0) {
                             return (

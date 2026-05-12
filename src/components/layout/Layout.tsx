@@ -737,11 +737,13 @@ export const Layout = () => {
             )}
 
             {/* HR AI Chatbot - Floating for Employees */}
-            <HRAssistantChat
-                userId={profile?.id}
-                userRole={profile?.role}
-                userName={profile?.full_name}
-            />
+            {profile?.role?.trim() !== 'Admin' && (
+                <HRAssistantChat
+                    userId={profile?.id}
+                    userRole={profile?.role}
+                    userName={profile?.full_name}
+                />
+            )}
 
             <GlobalModals
                 isProjectModalOpen={isGlobalAddProjectOpen}
