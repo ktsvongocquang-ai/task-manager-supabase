@@ -697,7 +697,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
 
                     {/* Header */}
-                    <div className="px-8 py-6 flex justify-between items-start bg-white shrink-0">
+                    <div className="px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white shrink-0">
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 {/* Nút delete nhỏ ở góc thay vì nằm cạnh title */}
@@ -746,7 +746,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 )}
                             </div>
                             {editingTask && form.task_code && (
-                                <div className="mt-1 ml-14 flex items-center">
+                                <div className="mt-1 ml-0 sm:ml-14 flex items-center">
                                     <input
                                         type="text"
                                         value={form.task_code}
@@ -784,10 +784,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Body scrollable */}
-                    <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-6 sm:pb-8 custom-scrollbar">
 
                         {!editingTask && (
-                            <div className="mb-6 ml-14">
+                            <div className="mb-5 sm:mb-6 ml-0 sm:ml-14">
                                 <input
                                     type="text"
                                     value={form.name}
@@ -800,11 +800,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                         )}
 
-                        {/* Form Grid Layout - Compact 3-column */}
-                        <div className="ml-14 space-y-3">
+                        {/* Form Grid Layout - Compact */}
+                        <div className="ml-0 sm:ml-14 space-y-3">
 
-                            {/* Row 1: Dự án | Giai đoạn | Trạng thái */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {/* Row 1: Dự án | Giai đoạn */}
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
                                     <select
@@ -833,6 +833,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="construction">Construction / Hồ sơ TC</option>
                                     </select>
                                 </div>
+                            </div>
+
+                            {/* Row 2: Trạng thái | Ưu tiên */}
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
                                     <select
@@ -846,94 +850,6 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                         <option value="Hoàn thành">Hoàn thành</option>
                                         <option value="Tạm dừng">Tạm dừng</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Row 2: Bắt đầu | Hạn chót | Số ngày */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="date"
-                                            value={form.start_date}
-                                            onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                            className="w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
-                                        />
-                                        <input
-                                            type="time"
-                                            value={form.start_time}
-                                            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                                            className="w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-center"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="date"
-                                            value={form.due_date}
-                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
-                                        />
-                                        <input
-                                            type="time"
-                                            value={form.due_time}
-                                            onChange={(e) => setForm({ ...form, due_time: e.target.value })}
-                                            className="w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-center"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày</label>
-                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px]">
-                                        <span className="text-sm font-bold text-indigo-600">
-                                            {form.start_date && form.due_date
-                                                ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
-                                                : 0}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Row 3: Chủ trì | Thực hiện | Ưu tiên */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
-                                    <div className="flex gap-1.5 items-center">
-                                        <select
-                                            value={form.assignee_id}
-                                            onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className={`flex-1 px-3 py-2 bg-indigo-50/50 border border-indigo-100 rounded-lg text-sm text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                            disabled={shouldDisableTopFields()}
-                                        >
-                                            <option value="" className="text-slate-400 font-normal">Chọn...</option>
-                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                                        </select>
-                                        {form.assignee_id && (
-                                            <button 
-                                                onClick={handleSendEmail}
-                                                disabled={isSendingEmail}
-                                                className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50 shrink-0"
-                                                title="Gửi Email Thông Báo Bằng AI"
-                                            >
-                                                {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Thực hiện</label>
-                                    <select
-                                        value={form.supporter_id}
-                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-emerald-50/50 border border-emerald-100 rounded-lg text-sm text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="" className="text-slate-400 font-normal">Chọn người...</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -951,6 +867,98 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="Trung bình">Trung bình</option>
                                         <option value="Cao">Cao</option>
                                         <option value="Khẩn cấp">Khẩn cấp</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Row 3: Bắt đầu | Hạn chót */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
+                                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                        <input
+                                            type="date"
+                                            value={form.start_date}
+                                            onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                            className="w-full sm:w-2/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                        />
+                                        <input
+                                            type="time"
+                                            value={form.start_time}
+                                            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
+                                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                        <input
+                                            type="date"
+                                            value={form.due_date}
+                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                            className="w-full sm:w-2/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                        />
+                                        <input
+                                            type="time"
+                                            value={form.due_time}
+                                            onChange={(e) => setForm({ ...form, due_time: e.target.value })}
+                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Row 4: Số ngày */}
+                            <div className="grid grid-cols-1">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày thực hiện</label>
+                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px] max-w-[150px]">
+                                        <span className="text-sm font-bold text-indigo-600">
+                                            {form.start_date && form.due_date
+                                                ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
+                                                : 0}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 5: Chủ trì | Thực hiện */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
+                                    <div className="flex gap-1.5 items-center">
+                                        <select
+                                            value={form.assignee_id}
+                                            onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                                            className={`flex-1 px-2 py-2 bg-indigo-50/50 border border-indigo-100 rounded-lg text-[13px] text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold cursor-pointer hover:bg-indigo-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            disabled={shouldDisableTopFields()}
+                                        >
+                                            <option value="" className="text-slate-400 font-normal">Chọn...</option>
+                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        </select>
+                                        {form.assignee_id && (
+                                            <button 
+                                                onClick={handleSendEmail}
+                                                disabled={isSendingEmail}
+                                                className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50 shrink-0 h-[34px] w-[34px]"
+                                                title="Gửi Email Thông Báo Bằng AI"
+                                            >
+                                                {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Thực hiện</label>
+                                    <select
+                                        value={form.supporter_id}
+                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
+                                        className={`w-full px-2 py-2 bg-emerald-50/50 border border-emerald-100 rounded-lg text-[13px] text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-bold cursor-pointer hover:bg-emerald-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="" className="text-slate-400 font-normal">Thêm người...</option>
+                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -1175,7 +1183,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="px-8 py-5 bg-white border-t border-slate-100 flex justify-end gap-3 shrink-0 rounded-b-3xl">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 bg-white border-t border-slate-100 flex justify-end gap-2 sm:gap-3 shrink-0 rounded-b-3xl">
                         <button
                             onClick={onClose}
                             className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
