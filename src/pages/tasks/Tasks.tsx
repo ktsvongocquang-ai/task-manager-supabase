@@ -361,7 +361,7 @@ export const Tasks = () => {
     }
 
     return (
-        <div className="space-y-6 max-w-[1400px] mx-auto">
+        <div className="space-y-4 w-full">
             {/* Mobile Header (Lark style) */}
             <div className="md:hidden flex items-center justify-between mt-[-10px] mb-2 px-1 gap-2">
                 <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-colors shrink-0">
@@ -390,17 +390,7 @@ export const Tasks = () => {
                 </button>
             </div>
 
-            {/* Desktop Header — title removed (shown in top tab bar) */}
-            <div className="hidden md:flex justify-end items-center">
-                {canEdit && (
-                    <button
-                        onClick={() => openAddModal()}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                    >
-                        <Plus size={18} /> Tạo mới nhiệm vụ
-                    </button>
-                )}
-            </div>
+            {/* Desktop Header removed, button moved into WeeklyView */}
 
             {/* Weekly View */}
             <WeeklyView

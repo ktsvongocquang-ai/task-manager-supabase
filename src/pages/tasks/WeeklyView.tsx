@@ -270,6 +270,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     <div className="text-[11px] text-slate-400 mt-0.5">{weekDayRow}</div>
                 </div>
                 <div className="flex items-center gap-1.5">
+                    {onAddTask && (
+                        <button
+                            onClick={() => onAddTask({})}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 h-7 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-sm mr-2"
+                        >
+                            <span className="text-[14px] leading-none mb-[2px]">+</span> Tạo mới nhiệm vụ
+                        </button>
+                    )}
                     <button onClick={() => setWeekOffset(o => o - 1)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors">
                         <ChevronLeft size={15} />
