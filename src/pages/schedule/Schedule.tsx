@@ -116,7 +116,7 @@ export const Schedule = () => {
 
     const openAddModal = (dateStr: string) => {
         setEditingTask(null)
-        setInitialTaskData({ task_code: '', project_id: '', due_date: dateStr, start_date: dateStr } as any)
+        setInitialTaskData({ task_code: '', project_id: selectedProject === 'personal' ? 'personal' : '', due_date: dateStr, start_date: dateStr } as any)
         setShowModal(true)
     }
 
@@ -257,7 +257,7 @@ export const Schedule = () => {
                             onTaskClick={openEditModal} 
                             onEmptyClick={(dateStr, timeStr) => {
                                 setEditingTask(null)
-                                setInitialTaskData({ task_code: '', project_id: '', due_date: dateStr, start_date: dateStr, start_time: timeStr, due_time: '' } as any)
+                                setInitialTaskData({ task_code: '', project_id: selectedProject === 'personal' ? 'personal' : '', due_date: dateStr, start_date: dateStr, start_time: timeStr, due_time: '' } as any)
                                 setShowModal(true)
                             }}
                         />

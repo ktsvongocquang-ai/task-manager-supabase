@@ -693,11 +693,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 bg-white sm:bg-slate-900/60 sm:backdrop-blur-sm z-[9999] sm:flex sm:items-center sm:justify-center sm:p-6">
-                <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl sm:shadow-2xl sm:max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+        <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
+                    <div className="relative transform bg-white sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-3xl">
 
                     {/* Header */}
-                    <div className="px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white shrink-0">
+                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white/90 backdrop-blur-md sm:rounded-t-3xl border-b border-slate-100/50">
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 {/* Nút delete nhỏ ở góc thay vì nằm cạnh title */}
@@ -783,8 +786,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Body scrollable */}
-                    <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-6 sm:pb-8 custom-scrollbar">
+                    {/* Body scrollable natively by parent */}
+                    <div className="px-4 sm:px-8 py-6 sm:py-8">
 
                         {!editingTask && (
                             <div className="mb-5 sm:mb-6 ml-0 sm:ml-14">
@@ -1183,7 +1186,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 bg-white border-t border-slate-100 flex justify-end gap-2 sm:gap-3 shrink-0 rounded-b-3xl">
+                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
                         <button
                             onClick={onClose}
                             className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
@@ -1230,6 +1233,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
                 </div>
             </div>
+        </div>
+        </div>
 
             {/* Recursively render another AddEditTaskModal for deep-linking into subtasks */}
             {drilledSubtask && (

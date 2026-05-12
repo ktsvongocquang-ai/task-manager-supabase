@@ -60,9 +60,12 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     }
 
     return (
-        <div className="fixed inset-0 bg-white sm:bg-slate-900/40 sm:backdrop-blur-sm z-[9999] sm:flex sm:items-center sm:justify-center sm:p-4">
-            <div className="bg-white sm:rounded-3xl sm:shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-lg flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+        <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
+                    <div className="relative transform bg-white sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-lg">
+                <div className="sticky top-0 z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.03)]">
                     <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                         {editingProject ? 'Sửa dự án' : 'Tạo dự án mới'}
                         {!editingProject && (
@@ -87,7 +90,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                         <X size={20} />
                     </button>
                 </div>
-                <div className="p-4 sm:p-6 space-y-4 flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-4 sm:p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mã dự án</label>
@@ -255,7 +258,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                         </div>
                     </div>
                 </div>
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+                <div className="sticky bottom-0 z-20 px-6 py-4 bg-slate-50/90 backdrop-blur-md border-t border-slate-100 flex justify-end gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
                     <button
                         type="button"
                         onClick={onClose}
@@ -272,6 +275,8 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     </button>
                 </div>
             </div>
+        </div>
+        </div>
         </div>
     );
 };

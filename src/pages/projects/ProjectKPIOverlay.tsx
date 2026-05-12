@@ -169,10 +169,13 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
     const getPhaseKpiDays = (pct: number) => kpiBreakEven > 0 ? Math.round(kpiBreakEven * pct / 100) : 0;
 
     return (
-        <div className="fixed inset-0 bg-slate-50 sm:bg-slate-900/40 sm:backdrop-blur-sm z-[9999] sm:flex sm:items-center sm:justify-center sm:p-4">
-            <div className="bg-slate-50 sm:border border-slate-200 sm:rounded-3xl sm:shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
+                    <div className="relative transform bg-slate-50 sm:border border-slate-200 sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-4xl">
                 {/* Header */}
-                <div className="px-4 sm:px-8 py-5 sm:py-6 pb-2 relative flex justify-between items-start gap-2">
+                <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 pb-2 relative flex justify-between items-start gap-2 bg-slate-50/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
                     <div className="flex-1 min-w-0">
                         <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
                         <p className="text-sm text-slate-500 font-medium mt-1">
@@ -216,7 +219,7 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 sm:px-8 pb-6 sm:pb-8 space-y-4 custom-scrollbar">
+                <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-4">
                     {/* Value Metrics Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                         <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm col-span-2 sm:col-span-1">
@@ -377,6 +380,8 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     </div>
                 )}
             </div>
+        </div>
+        </div>
         </div>
     );
 }

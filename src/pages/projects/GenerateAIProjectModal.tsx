@@ -524,11 +524,14 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-            <div className="bg-[#0f172a] border border-slate-700/50 rounded-2xl shadow-2xl shadow-slate-900/50 w-full max-w-5xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
+                    <div className="relative transform bg-[#0f172a] sm:border border-slate-700/50 sm:rounded-2xl sm:shadow-2xl sm:shadow-slate-900/50 transition-all w-full sm:max-w-5xl">
 
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-[#0f172a] shrink-0">
+                <div className="sticky top-0 z-20 px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-[#0f172a]/90 backdrop-blur-md sm:rounded-t-2xl shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
                     <div className="flex items-center gap-3">
                         <div className="bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20 text-indigo-400">
                             <Sparkles size={20} strokeWidth={2.5} />
@@ -541,7 +544,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-8 bg-[#151c2f] custom-scrollbar">
+                <div className="p-8 bg-[#151c2f]">
                     {!showPreview ? (
                         <div className="max-w-4xl mx-auto space-y-8 flex gap-8">
 
@@ -957,7 +960,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-slate-900 border-t border-slate-800 flex justify-between items-center shrink-0">
+                <div className="sticky bottom-0 z-20 px-6 py-4 bg-[#0f172a]/90 backdrop-blur-md border-t border-slate-800 flex justify-between items-center shrink-0 sm:rounded-b-2xl shadow-[0_-10px_20px_rgba(0,0,0,0.2)]">
                     {showPreview ? (
                         <button
                             type="button"
@@ -1023,6 +1026,8 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                     )}
                 </div>
             </div>
+        </div>
+        </div>
         </div>
     );
 };

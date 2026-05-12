@@ -97,11 +97,14 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     }
 
     return (
-        <div className="fixed inset-0 bg-[#EAEAEA] sm:bg-slate-900/40 sm:backdrop-blur-sm z-[9998] sm:flex sm:items-center sm:justify-center sm:p-4">
-            <div className="bg-[#EAEAEA] sm:rounded-3xl sm:shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[9998]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
+                    <div className="relative transform bg-[#EAEAEA] sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-4xl">
 
                 {/* Header */}
-                <div className="px-4 sm:px-8 py-5 sm:py-6 relative">
+                <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 relative bg-[#EAEAEA]/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
                     <h2 className="text-xl sm:text-2xl font-bold text-slate-800 pr-8">
                         Chi tiết dự án: {project.name} <span className="text-sm sm:text-base text-slate-500 font-normal">({project.project_code})</span>
                     </h2>
@@ -111,7 +114,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                 </div>
 
                 {/* Content */}
-                <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex-1 overflow-y-auto space-y-6 sm:space-y-8 custom-scrollbar">
+                <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -319,7 +322,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                 </div>
 
                 {/* Footer Add Task Button */}
-                <div className="p-4 sm:p-6 bg-[#EAEAEA] flex justify-between items-center px-4 sm:px-8 border-t border-slate-300 gap-3">
+                <div className="sticky bottom-0 z-20 p-4 sm:p-6 bg-[#EAEAEA]/90 backdrop-blur-md flex justify-between items-center px-4 sm:px-8 border-t border-slate-300 gap-3 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
                     <button
                         onClick={() => onAddTask(project.id)}
                         className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center"
@@ -334,6 +337,8 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                     </button>
                 </div>
             </div>
+        </div>
+        </div>
         </div>
     )
 }
