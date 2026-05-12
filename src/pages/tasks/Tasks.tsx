@@ -390,21 +390,16 @@ export const Tasks = () => {
                 </button>
             </div>
 
-            {/* Desktop Header */}
-            <div className="hidden md:flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-3 shrink-0">
-                    <h1 className="text-xl font-bold text-slate-800">Mục tiêu tuần</h1>
-                </div>
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    {canEdit && (
-                        <button
-                            onClick={() => openAddModal()}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
-                        >
-                            <Plus size={18} /> Tạo mới nhiệm vụ
-                        </button>
-                    )}
-                </div>
+            {/* Desktop Header — title removed (shown in top tab bar) */}
+            <div className="hidden md:flex justify-end items-center">
+                {canEdit && (
+                    <button
+                        onClick={() => openAddModal()}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                    >
+                        <Plus size={18} /> Tạo mới nhiệm vụ
+                    </button>
+                )}
             </div>
 
             {/* Weekly View */}
