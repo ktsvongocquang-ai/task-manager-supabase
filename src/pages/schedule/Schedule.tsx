@@ -115,6 +115,12 @@ export const Schedule = () => {
         setShowModal(true)
     }
 
+    const openAddModal = (dateStr: string) => {
+        setEditingTask(null)
+        setInitialTaskData({ task_code: '', project_id: '', due_date: dateStr, start_date: dateStr } as any)
+        setShowModal(true)
+    }
+
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
@@ -191,9 +197,9 @@ export const Schedule = () => {
     }
 
     return (
-        <div className="min-h-0 flex flex-col h-full">
+        <div className="min-h-0 flex flex-col h-full overflow-hidden">
             {/* Desktop Calendar Grid — full frame with inline header */}
-            <div className="hidden md:flex flex-1 bg-white overflow-hidden flex-col">
+            <div className="hidden md:flex flex-1 bg-white overflow-hidden flex-col min-h-0">
                 {/* Inline Header Bar */}
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 shrink-0">
                     <div className="flex items-center gap-3">
@@ -237,7 +243,7 @@ export const Schedule = () => {
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 grid-rows-6 flex-1 h-0">
+                <div className="grid grid-cols-7 flex-1 min-h-0" style={{ gridTemplateRows: 'repeat(6, 1fr)' }}>
                     {calendarDays.map((day, idx) => {
                         const dateStr = format(day, 'yyyy-MM-dd')
                         const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
@@ -254,7 +260,8 @@ export const Schedule = () => {
                         return (
                             <div
                                 key={day.toString()}
-                                className={`border-b border-r border-slate-100 flex flex-col relative group
+                                onDoubleClick={() => openAddModal(dateStr)}
+                                className={`border-b border-r border-slate-100 flex flex-col relative group overflow-hidden cursor-cell
                                     ${!isCurrentMonth ? 'bg-slate-50/30' : isWeekend ? 'bg-slate-50/50' : 'bg-white'} 
                                     ${idx % 7 === 6 ? 'border-r-0' : ''}
                                     ${idx >= 35 ? 'border-b-0' : ''}
