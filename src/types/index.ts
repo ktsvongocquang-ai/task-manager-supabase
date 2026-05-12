@@ -82,7 +82,9 @@ export interface Task {
     status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Hoàn thành' | 'Tạm dừng' | 'Hủy bỏ'
     priority: string | 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'
     start_date: string | null
+    start_time?: string | null
     due_date: string | null
+    due_time?: string | null
     completion_pct: number
     report_date: string | null
     target: string | null

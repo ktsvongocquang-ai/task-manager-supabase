@@ -3,6 +3,7 @@ import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { DayView } from './DayView'
 import {
     format,
     addMonths,
@@ -40,8 +41,9 @@ export const Schedule = () => {
     const [overflowDay, setOverflowDay] = useState<string | null>(null)
     const overflowRef = useRef<HTMLDivElement>(null)
 
-    // Filter
+    // Filter and View
     const [selectedProject, setSelectedProject] = useState('all')
+    const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month')
 
     useEffect(() => {
         fetchAll()
@@ -218,19 +220,46 @@ export const Schedule = () => {
                             Tháng {format(currentDate, 'M, yyyy', { locale: vi })}
                         </h2>
                     </div>
-                    <select
-                        value={selectedProject}
-                        onChange={(e) => setSelectedProject(e.target.value)}
-                        className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px]"
-                    >
-                        <option value="all">Tất cả dự án</option>
-                        <option value="personal">Việc cá nhân</option>
-                        {projects.map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                    </select>
+                    <div className="flex gap-2">
+                        <select
+                            value={viewMode}
+                            onChange={(e) => setViewMode(e.target.value as any)}
+                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer"
+                        >
+                            <option value="month">Tháng</option>
+                            <option value="day">Ngày</option>
+                        </select>
+                        <select
+                            value={selectedProject}
+                            onChange={(e) => setSelectedProject(e.target.value)}
+                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px]"
+                        >
+                            <option value="all">Tất cả dự án</option>
+                            <option value="personal">Việc cá nhân</option>
+                            {projects.map(p => (
+                                <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-                {/* Weekdays Header */}
+                {/* Views */}
+                {viewMode === 'day' && (
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                        <DayView 
+                            currentDate={currentDate} 
+                            tasks={filteredTasks} 
+                            onTaskClick={openEditModal} 
+                            onEmptyClick={(dateStr, timeStr) => {
+                                setEditingTask(null)
+                                setInitialTaskData({ task_code: '', project_id: '', due_date: dateStr, start_date: dateStr, start_time: timeStr, due_time: '' } as any)
+                                setShowModal(true)
+                            }}
+                        />
+                    </div>
+                )}
+                {viewMode === 'month' && (
+                    <>
+                        {/* Weekdays Header */}
                 <div className="grid grid-cols-7 border-b border-slate-200 shrink-0">
                     {WEEKDAYS.map((day, i) => (
                         <div key={day} className={`py-2.5 text-center text-xs font-semibold tracking-wide uppercase ${i === 0 || i === 6 ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -338,6 +367,7 @@ export const Schedule = () => {
                         )
                     })}
                 </div>
+                </>)}
             </div>
 
             {/* Mobile View */}

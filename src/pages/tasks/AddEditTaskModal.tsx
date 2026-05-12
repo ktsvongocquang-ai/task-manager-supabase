@@ -39,7 +39,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
-        supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', due_date: '',
+        supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', start_time: '', due_date: '', due_time: '',
         result_links: '', notes: '', parent_id: '', target: ''
     });
 
@@ -235,7 +235,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     status: editingTask.status || 'Chưa bắt đầu', 
                     priority: editingTask.priority || 'Trung bình',
                     start_date: editingTask.start_date || today, 
+                    start_time: editingTask.start_time || '',
                     due_date: editingTask.due_date || today, 
+                    due_time: editingTask.due_time || '',
                     result_links: editingTask.result_links || '', 
                     notes: editingTask.notes || '',
                     parent_id: editingTask.parent_id || '',
@@ -276,7 +278,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     status: 'Chưa bắt đầu',
                     priority: 'Trung bình',
                     start_date: initialData.start_date || today,
+                    start_time: '',
                     due_date: initialData.due_date || today,
+                    due_time: '',
                     result_links: '',
                     notes: '',
                     parent_id: '',
@@ -332,7 +336,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 status: form.status,
                 priority: form.priority,
                 start_date: form.start_date || null,
+                start_time: form.start_time || null,
                 due_date: form.due_date || null,
+                due_time: form.due_time || null,
                 result_links: form.result_links || null,
                 notes: form.notes || null,
                 parent_id: form.parent_id || null,
@@ -345,6 +351,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     description: form.description || null,
                     status: form.status === 'Hoàn thành' ? 'done' : (form.status === 'Đang làm' ? 'in-progress' : 'pending'),
                     due_date: form.due_date || null,
+                    due_time: form.due_time || null,
+                    start_time: form.start_time || null,
                     priority: form.priority,
                     user_id: currentUserProfile?.id
                 };
@@ -846,21 +854,37 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
-                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="date"
+                                            value={form.start_date}
+                                            onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                            className="w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                        />
+                                        <input
+                                            type="time"
+                                            value={form.start_time}
+                                            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                                            className="w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-center"
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
-                                    <input
-                                        type="date"
-                                        value={form.due_date}
-                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
-                                    />
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="date"
+                                            value={form.due_date}
+                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                            className="w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                                        />
+                                        <input
+                                            type="time"
+                                            value={form.due_time}
+                                            onChange={(e) => setForm({ ...form, due_time: e.target.value })}
+                                            className="w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium text-center"
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày</label>
