@@ -97,8 +97,8 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     }
 
     return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9998] flex items-center justify-center p-4">
-            <div className="bg-[#EAEAEA] rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-[#EAEAEA] sm:bg-slate-900/40 sm:backdrop-blur-sm z-[9998] sm:flex sm:items-center sm:justify-center sm:p-4">
+            <div className="bg-[#EAEAEA] sm:rounded-3xl sm:shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
 
                 {/* Header */}
                 <div className="px-4 sm:px-8 py-5 sm:py-6 relative">

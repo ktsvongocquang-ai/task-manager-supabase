@@ -169,8 +169,8 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
     const getPhaseKpiDays = (pct: number) => kpiBreakEven > 0 ? Math.round(kpiBreakEven * pct / 100) : 0;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-slate-50 sm:bg-slate-900/40 sm:backdrop-blur-sm z-[9999] sm:flex sm:items-center sm:justify-center sm:p-4">
+            <div className="bg-slate-50 sm:border border-slate-200 sm:rounded-3xl sm:shadow-2xl w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
                 {/* Header */}
                 <div className="px-4 sm:px-8 py-5 sm:py-6 pb-2 relative flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">

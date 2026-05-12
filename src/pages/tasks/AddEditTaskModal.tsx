@@ -693,8 +693,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     return (
         <>
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 sm:p-6">
-                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="fixed inset-0 bg-white sm:bg-slate-900/60 sm:backdrop-blur-sm z-[9999] sm:flex sm:items-center sm:justify-center sm:p-6">
+                <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl sm:shadow-2xl sm:max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
 
                     {/* Header */}
                     <div className="px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white shrink-0">
