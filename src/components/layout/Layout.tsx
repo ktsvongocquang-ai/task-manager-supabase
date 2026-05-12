@@ -243,6 +243,16 @@ export const Layout = () => {
         const role = userRole?.trim() || 'Nhân viên';
         const items: any[] = [];
 
+        // Lịch - standalone top-level item
+        if (canAccessRoute(role, '/schedule')) {
+            items.push({
+                name: 'Lịch',
+                path: '/schedule',
+                icon: Calendar,
+                matchPrefix: ['/schedule'],
+            });
+        }
+
         // Việc cá nhân - all roles except Khách hàng
         if (canAccessRoute(role, '/mytasks')) {
             items.push({
@@ -259,11 +269,10 @@ export const Layout = () => {
                 name: 'Công việc',
                 path: '/kanban',
                 icon: KanbanIcon,
-                matchPrefix: ['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'],
+                matchPrefix: ['/kanban', '/tasks', '/gantt', '/projects', '/dashboard'],
                 mobileChildren: [
                     { name: 'Mục tiêu tuần', path: '/tasks', icon: Calendar },
                     { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
-                    { name: 'Lịch trình', path: '/schedule', icon: Calendar },
                     { name: 'Sơ đồ Gantt', path: '/gantt', icon: BarChart2 },
                     { name: 'Dự án', path: '/projects', icon: Folder },
                     { name: 'Dashboard', path: '/dashboard', icon: PieChart },
@@ -574,16 +583,13 @@ export const Layout = () => {
 
                         {/* Bottom Row: Horizontal Tabs for Task Views (removed and moved to sidebar, hidden on mobile) */}
                         <div className="hidden lg:block">
-                            {['/kanban', '/tasks', '/schedule', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
+                            {['/kanban', '/tasks', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
                                 <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
                                     <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Mục tiêu tuần
                                     </NavLink>
                                     <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
-                                    </NavLink>
-                                    <NavLink to="/schedule" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
-                                        Lịch trình
                                     </NavLink>
                                     <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Sơ đồ Gantt
