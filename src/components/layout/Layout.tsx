@@ -45,7 +45,7 @@ const viewTitles: Record<string, string> = {
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
     '/tasks': 'Mục tiêu tuần',
-    '/schedule': 'Lịch Trình',
+    '/schedule': 'Lịch',
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Nhân viên',
     '/construction': 'Quản lý Thi công',
