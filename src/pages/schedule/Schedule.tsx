@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
@@ -16,7 +16,7 @@ import {
     eachDayOfInterval
 } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Search, Folder } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Folder } from 'lucide-react'
 
 const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
@@ -36,13 +36,27 @@ export const Schedule = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [initialTaskData, setInitialTaskData] = useState({ task_code: '', project_id: '' })
 
-    // Filters
-    const [search, setSearch] = useState('')
+    // Overflow popover
+    const [overflowDay, setOverflowDay] = useState<string | null>(null)
+    const overflowRef = useRef<HTMLDivElement>(null)
+
+    // Filter
     const [selectedProject, setSelectedProject] = useState('all')
 
     useEffect(() => {
         fetchAll()
     }, [profile])
+
+    // Close overflow on click outside
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (overflowRef.current && !overflowRef.current.contains(e.target as Node)) {
+                setOverflowDay(null)
+            }
+        }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [])
 
     const fetchAll = async () => {
         try {
@@ -57,11 +71,11 @@ export const Schedule = () => {
             const companyTasks = (t || []) as Task[];
             const personalTasksMapped = (pt || []).map((t: any) => ({
                 id: t.id,
-                name: t.title, // Map title -> name
-                task_code: 'CÁ NHÂN', // Special code for Personal tasks
+                name: t.title,
+                task_code: 'CÁ NHÂN',
                 status: t.status === 'done' ? 'Hoàn thành' : (t.status === 'in-progress' ? 'Đang làm' : 'Cần làm'),
                 due_date: t.due_date,
-                project_id: 'personal', // Use a mocked project_id so type matching is slightly better, but doesn't map to real db project
+                project_id: 'personal',
                 assignee_id: profile?.id,
                 created_at: t.created_at,
             })) as unknown as Task[];
@@ -80,7 +94,7 @@ export const Schedule = () => {
         const projTasks = tasks.filter(t => t.project_id === projectId);
         let maxId = 0;
         projTasks.forEach(t => {
-            const match = t.task_code?.match(/-(\d+)$/);
+            const match = t.task_code?.match(/(\d+)$/);
             if (match) {
                 const num = parseInt(match[1], 10);
                 if (num > maxId) maxId = num;
@@ -106,7 +120,7 @@ export const Schedule = () => {
         const isAssigned = t.assignee_id === profile?.id;
         const isSupporter = t.supporter_id === profile?.id;
 
-        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
+        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(userRole?.trim() || '');
 
         let isVisible = true;
         if (!isManagerOrAdmin) {
@@ -117,12 +131,8 @@ export const Schedule = () => {
 
         if (selectedProject !== 'all' && t.project_id !== selectedProject) return false;
 
-        const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
-            (t.task_code || '').toLowerCase().includes(search.toLowerCase())
-
-        return matchSearch
+        return true;
     }).sort((a, b) => {
-        // Stable sorting by task_code to prevent jumping
         const codeA = a.task_code || '';
         const codeB = b.task_code || '';
         if (!codeA && !codeB) return (a.created_at || '').localeCompare(b.created_at || '');
@@ -133,20 +143,24 @@ export const Schedule = () => {
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
+    const goToToday = () => { setCurrentDate(new Date()); setSelectedDate(new Date()); }
 
     const monthStart = startOfMonth(currentDate)
     const monthEnd = endOfMonth(monthStart)
     const startDate = startOfWeek(monthStart)
     const endDate = endOfWeek(monthEnd)
 
-    let calendarDays = eachDayOfInterval({
-        start: startDate,
-        end: endDate
-    })
-
-    // Pad to exactly 42 days (6 weeks) to prevent calendar jumping between 5 and 6 row months
+    let calendarDays = eachDayOfInterval({ start: startDate, end: endDate })
     while (calendarDays.length < 42) {
         calendarDays.push(new Date(calendarDays[calendarDays.length - 1].getTime() + 24 * 60 * 60 * 1000))
+    }
+
+    const getDotColor = (status: string) => {
+        if (status?.includes('Hoàn thành')) return 'bg-emerald-500'
+        if (status?.includes('Đang')) return 'bg-blue-500'
+        if (status?.includes('Tạm dừng')) return 'bg-amber-500'
+        if (status?.includes('Hủy')) return 'bg-red-400'
+        return 'bg-slate-400'
     }
 
     const getStatusColor = (status: string) => {
@@ -155,6 +169,14 @@ export const Schedule = () => {
         if (status?.includes('Tạm dừng')) return 'bg-amber-100 text-amber-700 border-amber-200'
         if (status?.includes('Hủy')) return 'bg-red-100 text-red-700 border-red-200'
         return 'bg-slate-100 text-slate-700 border-slate-200'
+    }
+
+    const getEventBg = (status: string) => {
+        if (status?.includes('Hoàn thành')) return 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
+        if (status?.includes('Đang')) return 'bg-blue-50 hover:bg-blue-100 text-blue-800'
+        if (status?.includes('Tạm dừng')) return 'bg-amber-50 hover:bg-amber-100 text-amber-800'
+        if (status?.includes('Hủy')) return 'bg-red-50 hover:bg-red-100 text-red-800'
+        return 'bg-slate-50 hover:bg-slate-100 text-slate-700'
     }
 
     // Auto scroll mobile calendar to selected date
@@ -169,64 +191,51 @@ export const Schedule = () => {
     }
 
     return (
-        <div className="space-y-6 max-w-[1600px] mx-auto min-h-0 flex flex-col h-full">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                <h1 className="text-xl font-bold text-slate-800">Lịch Biểu</h1>
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    {/* Project Filter */}
-                    <div className="relative w-full sm:w-48">
-                        <select
-                            value={selectedProject}
-                            onChange={(e) => setSelectedProject(e.target.value)}
-                            className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px]"
-                        >
-                            <option value="all">Tất cả dự án</option>
-                            {projects.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-
-                    {/* Search */}
-                    <div className="relative flex-1 sm:w-64">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Tìm kiếm nhiệm vụ..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Calendar Controls */}
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
-                <div className="flex items-center gap-2">
-                    <button onClick={prevMonth} className="p-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 hover:text-indigo-600 transition-colors border border-slate-200">
-                        <ChevronLeft size={20} />
+        <div className="space-y-4 max-w-[1600px] mx-auto min-h-0 flex flex-col h-full">
+            {/* Google Calendar-style Header */}
+            <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={goToToday}
+                        className="px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+                    >
+                        Hôm nay
                     </button>
-                    <button onClick={nextMonth} className="p-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 hover:text-indigo-600 transition-colors border border-slate-200">
-                        <ChevronRight size={20} />
-                    </button>
-                    <h2 className="text-lg font-bold text-slate-800 ml-4 capitalize">
-                        Tháng {format(currentDate, 'M yyyy', { locale: vi })}
+                    <div className="flex items-center">
+                        <button onClick={prevMonth} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button onClick={nextMonth} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
+                    <h2 className="text-xl font-semibold text-slate-800 capitalize">
+                        Tháng {format(currentDate, 'M, yyyy', { locale: vi })}
                     </h2>
                 </div>
-                {/* Stats matching Kanban top, optional */}
+
+                <div className="flex items-center gap-2">
+                    {/* Project Filter - compact */}
+                    <select
+                        value={selectedProject}
+                        onChange={(e) => setSelectedProject(e.target.value)}
+                        className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px]"
+                    >
+                        <option value="all">Tất cả dự án</option>
+                        <option value="personal">Việc cá nhân</option>
+                        {projects.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            {/* Desktop Calendar Grid */}
-            <div className="hidden md:flex flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex-col min-h-[600px]">
+            {/* Desktop Calendar Grid — Google Calendar style */}
+            <div className="hidden md:flex flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden flex-col min-h-[600px]">
                 {/* Weekdays Header */}
-                <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50/50 shrink-0">
-                    {WEEKDAYS.map(day => (
-                        <div key={day} className="py-3 text-center text-xs font-bold text-slate-500">
+                <div className="grid grid-cols-7 border-b border-slate-200 shrink-0">
+                    {WEEKDAYS.map((day, i) => (
+                        <div key={day} className={`py-2.5 text-center text-xs font-semibold tracking-wide uppercase ${i === 0 || i === 6 ? 'text-slate-400' : 'text-slate-500'}`}>
                             {day}
                         </div>
                     ))}
@@ -239,38 +248,92 @@ export const Schedule = () => {
                         const dayTasks = filteredTasks.filter(t => t.due_date && t.due_date.startsWith(dateStr))
                         const isCurrentMonth = isSameMonth(day, currentDate)
                         const isToday = isSameDay(day, new Date())
+                        const isWeekend = idx % 7 === 0 || idx % 7 === 6
+
+                        // Show max tasks based on available space - compact mode
+                        const maxVisible = 4
+                        const visibleTasks = dayTasks.slice(0, maxVisible)
+                        const overflowCount = dayTasks.length - maxVisible
+                        const showOverflow = overflowDay === dateStr
 
                         return (
                             <div
                                 key={day.toString()}
-                                className={`border-b border-r border-slate-100 p-2 transition-colors flex flex-col gap-1 overflow-hidden
-                                    ${!isCurrentMonth ? 'bg-slate-50/50' : 'bg-white'} 
+                                className={`border-b border-r border-slate-100 flex flex-col relative group
+                                    ${!isCurrentMonth ? 'bg-slate-50/30' : isWeekend ? 'bg-slate-50/50' : 'bg-white'} 
                                     ${idx % 7 === 6 ? 'border-r-0' : ''}
                                     ${idx >= 35 ? 'border-b-0' : ''}
                                 `}
                             >
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full
-                                        ${isToday ? 'bg-indigo-600 text-white' : !isCurrentMonth ? 'text-slate-400' : 'text-slate-700'}`
+                                {/* Day Number */}
+                                <div className="px-2 pt-1.5 pb-0.5 flex items-center justify-between shrink-0">
+                                    <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full leading-none
+                                        ${isToday ? 'bg-blue-600 text-white font-bold' : !isCurrentMonth ? 'text-slate-300' : isWeekend ? 'text-slate-400' : 'text-slate-600'}`
                                     }>
                                         {format(day, 'd')}
                                     </span>
                                 </div>
 
-                                <div className="space-y-1 overflow-y-auto flex-1 pr-1 custom-scrollbar">
-                                    {dayTasks.map(task => (
-                                        <div
-                                            key={task.id}
-                                            onClick={() => openEditModal(task)}
-                                            className={`text-[10px] px-2 py-1.5 rounded cursor-pointer truncate border shadow-sm hover:shadow transition-shadow font-medium
-                                                ${getStatusColor(task.status || '')}
-                                            `}
-                                            title={task.name}
+                                {/* Tasks - compact single-line items */}
+                                <div className="flex-1 px-1 pb-1 space-y-px overflow-hidden min-h-0">
+                                    {visibleTasks.map(task => {
+                                        const isPersonal = task.task_code === 'CÁ NHÂN'
+                                        const isDone = task.status?.includes('Hoàn thành')
+                                        return (
+                                            <div
+                                                key={task.id}
+                                                onClick={(e) => { e.stopPropagation(); openEditModal(task); }}
+                                                className={`flex items-center gap-1 px-1.5 py-[3px] rounded cursor-pointer transition-colors text-[11px] leading-tight group/item ${getEventBg(task.status || '')}`}
+                                                title={`${task.task_code} — ${task.name}\n${task.status}${isPersonal ? '' : '\nDự án: ' + (projects.find(p => p.id === task.project_id)?.name || '')}`}
+                                            >
+                                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${getDotColor(task.status || '')}`}></span>
+                                                <span className={`truncate font-medium ${isDone ? 'line-through opacity-60' : ''}`}>
+                                                    {isPersonal ? '' : <span className="font-semibold opacity-70">{task.task_code} </span>}
+                                                    {task.name}
+                                                </span>
+                                            </div>
+                                        )
+                                    })}
+
+                                    {/* +N more button */}
+                                    {overflowCount > 0 && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setOverflowDay(showOverflow ? null : dateStr); }}
+                                            className="w-full text-left px-1.5 py-[2px] text-[10px] font-bold text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                         >
-                                            <span className="font-bold mr-1">{task.task_code}</span>
-                                            {task.name}
+                                            +{overflowCount} nhiệm vụ khác
+                                        </button>
+                                    )}
+
+                                    {/* Overflow Popover */}
+                                    {showOverflow && (
+                                        <div
+                                            ref={overflowRef}
+                                            className="absolute left-1 right-1 top-8 z-50 bg-white border border-slate-200 rounded-lg shadow-xl p-2 max-h-[240px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
+                                        >
+                                            <div className="text-xs font-bold text-slate-500 mb-2 px-1">
+                                                {format(day, 'EEEE, dd/MM', { locale: vi })} — {dayTasks.length} nhiệm vụ
+                                            </div>
+                                            <div className="space-y-1">
+                                                {dayTasks.map(task => {
+                                                    const isDone = task.status?.includes('Hoàn thành')
+                                                    return (
+                                                        <div
+                                                            key={task.id}
+                                                            onClick={(e) => { e.stopPropagation(); openEditModal(task); setOverflowDay(null); }}
+                                                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded cursor-pointer transition-colors text-[11px] ${getEventBg(task.status || '')}`}
+                                                        >
+                                                            <span className={`w-2 h-2 rounded-full shrink-0 ${getDotColor(task.status || '')}`}></span>
+                                                            <span className={`truncate font-medium ${isDone ? 'line-through opacity-60' : ''}`}>
+                                                                <span className="font-semibold opacity-70">{task.task_code} </span>
+                                                                {task.name}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         )
@@ -318,9 +381,7 @@ export const Schedule = () => {
                                     {hasTasks && (
                                         <div className="flex gap-0.5 absolute bottom-1 w-full justify-center">
                                             {dayTasks.slice(0, 3).map((t, i) => (
-                                                <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-200' : 
-                                                    t.status?.includes('Hoàn thành') ? 'bg-emerald-400' : 
-                                                    t.status?.includes('Tạm dừng') ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                                                <div key={i} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-200' : getDotColor(t.status || '')}`} />
                                             ))}
                                             {dayTasks.length > 3 && (
                                                 <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-200' : 'bg-slate-300'}`} />
@@ -357,7 +418,7 @@ export const Schedule = () => {
                                 onClick={() => openEditModal(task)}
                                 className={`p-4 rounded-2xl cursor-pointer transition-all flex flex-col gap-3 hover:bg-slate-50 active:scale-[0.98] group bg-white border border-slate-200 shadow-sm relative overflow-hidden`}
                             >
-                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${task.status?.includes('Hoàn thành') ? 'bg-emerald-500' : task.status?.includes('Đang') ? 'bg-blue-500' : task.status?.includes('Tạm dừng') ? 'bg-amber-500' : 'bg-slate-300'}`}></div>
+                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${getDotColor(task.status || '')}`}></div>
                                 <div className="flex items-center justify-between pl-3">
                                     <div className="flex items-center gap-2">
                                         <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
@@ -375,7 +436,7 @@ export const Schedule = () => {
                                     <h4 className={`text-[15px] font-bold line-clamp-2 leading-snug transition-colors pr-2 ${task.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-indigo-600'}`}>
                                         {task.name}
                                     </h4>
-                                    {task.project_id && (
+                                    {task.project_id && task.project_id !== 'personal' && (
                                         <p className="text-[11px] font-semibold text-slate-500 mt-2 flex items-center gap-1.5 uppercase tracking-wide">
                                             <Folder size={12} className="text-slate-400" />
                                             <span className="truncate">{projects.find(p => p.id === task.project_id)?.name}</span>
