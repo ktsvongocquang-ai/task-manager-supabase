@@ -118,23 +118,22 @@ export const FullscreenLauncher: React.FC<FullscreenLauncherProps> = ({ isOpen, 
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Tất Cả Phân Hệ">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 pb-2">
+        <div className="flex flex-col gap-2.5 pb-2">
           {filteredModules.map((mod) => (
             <button
               key={mod.id}
               onClick={() => handleNavigate(mod.path)}
-              className="group flex flex-col text-left bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-300 transition-all duration-300"
+              className="group flex items-center text-left bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 w-full"
             >
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border mb-4 transition-transform group-hover:scale-110 duration-300 ${mod.color}`}>
-                <mod.icon size={22} strokeWidth={2.5} />
+              <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-110 duration-300 shrink-0 ${mod.color}`}>
+                <mod.icon size={20} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
               </div>
-              <h3 className="font-bold text-slate-800 text-base sm:text-lg mb-1 leading-tight group-hover:text-indigo-600 transition-colors">{mod.name}</h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed opacity-80">{mod.desc}</p>
-              
-              <div className="mt-auto pt-4 flex justify-end">
-                 <div className="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                    <ChevronRight size={16} strokeWidth={3} />
-                 </div>
+              <div className="ml-3 sm:ml-4 flex-1 min-w-0">
+                <h3 className="font-bold text-slate-800 text-[14px] sm:text-base leading-tight group-hover:text-indigo-600 transition-colors truncate">{mod.name}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 truncate opacity-80">{mod.desc}</p>
+              </div>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0 ml-2">
+                <ChevronRight size={16} strokeWidth={3} />
               </div>
             </button>
           ))}
