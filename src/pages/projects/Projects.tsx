@@ -542,16 +542,31 @@ export const Projects = () => {
                                         const isDone = t.status === 'Hoàn thành';
                                         const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone;
                                         const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán';
-                                        return (
-                                            <div key={t.id} className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center border-b border-slate-50 hover:bg-slate-50/50">
-                                                <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
-                                                <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
-                                                <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
-                                                <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
-                                                <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                            <div key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                                {/* Desktop Row */}
+                                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center">
+                                                    <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                                    <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
+                                                    <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                                    <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
+                                                    <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                                </div>
+                                                {/* Mobile Row */}
+                                                <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-[11px] text-slate-500">
+                                                        <span className="truncate max-w-[150px]">👤 {assignee}</span>
+                                                        <div className="flex items-center gap-3 font-semibold">
+                                                            <span className={isLate ? 'text-red-600' : ''}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                                            <span className="text-indigo-600 bg-indigo-50 px-1.5 rounded">{t.completion_pct || 0}%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        );
                                     })}
                                 </div>
                             )}

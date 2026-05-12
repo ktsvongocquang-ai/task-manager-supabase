@@ -101,35 +101,35 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
             <div className="bg-[#EAEAEA] rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
 
                 {/* Header */}
-                <div className="px-8 py-6 relative">
-                    <h2 className="text-2xl font-bold text-slate-800">
-                        Chi tiết dự án: {project.name} ({project.project_code})
+                <div className="px-4 sm:px-8 py-5 sm:py-6 relative">
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800 pr-8">
+                        Chi tiết dự án: {project.name} <span className="text-sm sm:text-base text-slate-500 font-normal">({project.project_code})</span>
                     </h2>
-                    <button onClick={onClose} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-200 rounded-full">
+                    <button onClick={onClose} className="absolute top-4 sm:top-6 right-3 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-200 rounded-full">
                         <X size={24} />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="px-8 pb-8 flex-1 overflow-y-auto space-y-8">
+                <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex-1 overflow-y-auto space-y-6 sm:space-y-8 custom-scrollbar">
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className="bg-white rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-3xl font-black text-slate-700 mb-1">{stats.total}</span>
-                            <span className="text-sm font-medium text-slate-500">Tổng nhiệm vụ</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-2xl sm:text-3xl font-black text-slate-700 mb-1">{stats.total}</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Tổng nhiệm vụ</span>
                         </div>
-                        <div className="bg-emerald-50 rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-3xl font-black text-emerald-600 mb-1">{stats.completed}</span>
-                            <span className="text-sm font-medium text-slate-500">Hoàn thành</span>
+                        <div className="bg-emerald-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-2xl sm:text-3xl font-black text-emerald-600 mb-1">{stats.completed}</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Hoàn thành</span>
                         </div>
-                        <div className="bg-blue-50 rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-3xl font-black text-blue-600 mb-1">{stats.inProgress}</span>
-                            <span className="text-sm font-medium text-slate-500">Đang thực hiện</span>
+                        <div className="bg-blue-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-2xl sm:text-3xl font-black text-blue-600 mb-1">{stats.inProgress}</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Đang thực hiện</span>
                         </div>
-                        <div className="bg-red-50 rounded-2xl p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-3xl font-black text-red-600 mb-1">{stats.overdue}</span>
-                            <span className="text-sm font-medium text-slate-500">Quá hạn</span>
+                        <div className="bg-red-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-2xl sm:text-3xl font-black text-red-600 mb-1">{stats.overdue}</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Quá hạn</span>
                         </div>
                     </div>
 
@@ -164,17 +164,17 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                             return (
                                 <div key={phase.key}>
                                     {/* Phase Header */}
-                                    <div className="flex items-center justify-between mb-3 px-1">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 px-1 gap-2 sm:gap-0">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-lg">{phase.icon}</span>
-                                            <span className="text-sm font-black text-slate-700 uppercase tracking-wider">{phase.name}</span>
-                                            <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{phaseTasks.length} task</span>
+                                            <span className="text-base sm:text-lg">{phase.icon}</span>
+                                            <span className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider">{phase.name}</span>
+                                            <span className="bg-slate-200 text-slate-600 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">{phaseTasks.length} task</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                            <div className="flex-1 sm:w-20 sm:flex-none h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[80px]">
                                                 <div className={`h-full rounded-full transition-all duration-300 ${phasePct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${phasePct}%` }}></div>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-500">{phaseCompleted}/{phaseTasks.length}</span>
+                                            <span className="text-[11px] sm:text-xs font-bold text-slate-500 w-8 text-right">{phaseCompleted}/{phaseTasks.length}</span>
                                         </div>
                                     </div>
 
@@ -190,18 +190,18 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         onClick={() => onEditTask(task)}
                                                         className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
                                                     >
-                                                        <div className="flex justify-between items-start mb-4">
-                                                            <div className="flex gap-3">
+                                                        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
+                                                            <div className="flex gap-3 w-full sm:w-auto">
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={task.status?.includes('Hoàn thành')}
                                                                     onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }}
-                                                                    className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                                    className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
                                                                     disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)}
                                                                 />
-                                                                <div>
-                                                                    <h4 className="text-base font-bold text-slate-800 mb-2">
-                                                                        {task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="text-sm sm:text-base font-bold text-slate-800 mb-1.5">
+                                                                        {task.name} <span className="text-slate-400 font-medium text-xs sm:text-sm">({task.task_code})</span>
                                                                     </h4>
                                                                     <div className="flex gap-2">
                                                                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
@@ -210,21 +210,21 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex flex-col items-end justify-between self-stretch gap-2 shrink-0">
-                                                                <div className="flex flex-col items-end gap-1.5">
+                                                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between w-full sm:w-auto gap-2 shrink-0">
+                                                                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1.5">
                                                                     {task.totalSub > 0 && (
-                                                                        <div className="text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
-                                                                            {task.completedSub}<span className="text-lg text-slate-400">/{task.totalSub}</span>
+                                                                        <div className="text-xl sm:text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
+                                                                            {task.completedSub}<span className="text-base sm:text-lg text-slate-400">/{task.totalSub}</span>
                                                                         </div>
                                                                     )}
-                                                                    <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
+                                                                    <div className="flex flex-row sm:flex-col items-center border border-blue-600 rounded text-xs bg-white px-2 py-1 sm:px-1.5 sm:py-1 shadow-sm shrink-0 min-w-[90px] gap-2 sm:gap-0">
                                                                         <div className="flex items-center gap-1 font-bold text-slate-700">
                                                                             <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
                                                                                 {getAssigneeName(task.assignee_id).charAt(0)}
                                                                             </div>
                                                                             <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
                                                                         </div>
-                                                                        <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                                                                        <div className="text-[9px] sm:text-[10px] font-semibold text-slate-500 sm:mt-0.5">
                                                                             🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
                                                                         </div>
                                                                     </div>
@@ -319,16 +319,16 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                 </div>
 
                 {/* Footer Add Task Button */}
-                <div className="p-6 bg-[#EAEAEA] flex justify-between items-center px-8 border-t border-slate-300">
+                <div className="p-4 sm:p-6 bg-[#EAEAEA] flex justify-between items-center px-4 sm:px-8 border-t border-slate-300 gap-3">
                     <button
                         onClick={() => onAddTask(project.id)}
-                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all flex items-center gap-2"
+                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center"
                     >
                         <Plus size={18} /> Thêm nhiệm vụ
                     </button>
                     <button
                         onClick={onClose}
-                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all"
+                        className="bg-slate-300 hover:bg-slate-400 text-slate-700 px-6 sm:px-8 py-2.5 rounded-xl text-sm font-bold transition-all"
                     >
                         Đóng
                     </button>
