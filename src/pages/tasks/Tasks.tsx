@@ -169,6 +169,24 @@ export const Tasks = () => {
         return 'text-slate-500';
     };
 
+    const openGoogleCalendar = (task: Task) => {
+        const title = encodeURIComponent(task.name || '')
+        const details = encodeURIComponent(
+            [task.task_code, task.description].filter(Boolean).join('\n')
+        )
+        const startDate = (task.start_date || task.due_date || '')
+            .substring(0, 10).replace(/-/g, '')
+        const endDate = task.due_date
+            ? (() => {
+                const d = new Date(task.due_date)
+                d.setDate(d.getDate() + 1)
+                return d.toISOString().substring(0, 10).replace(/-/g, '')
+              })()
+            : startDate
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`
+        window.open(url, '_blank')
+    }
+
     const getPriorityBadge = (priority: string) => {
         if (priority === 'Khẩn cấp') return 'bg-red-50 text-red-600 border-red-100'
         if (priority === 'Cao') return 'bg-orange-50 text-orange-600 border-orange-100'
@@ -651,6 +669,13 @@ export const Tasks = () => {
                                                                                     className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
                                                                                 >
                                                                                     <Copy size={13} />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); openGoogleCalendar(t); }}
+                                                                                    className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center border border-blue-100 hover:bg-blue-100 transition-opacity"
+                                                                                    title="Thêm vào Google Calendar"
+                                                                                >
+                                                                                    <Calendar size={13} />
                                                                                 </button>
                                                                                 <button
                                                                                     onClick={(e) => { e.stopPropagation(); openEditModal(t); }}

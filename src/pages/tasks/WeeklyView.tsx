@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
@@ -221,6 +221,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
 
         return groups;
     }, [weekTasks, alerts, sortMode, mon])
+
+    const openGoogleCalendar = (task: Task) => {
+        const title = encodeURIComponent(task.name || '')
+        const details = encodeURIComponent([task.task_code, (task as any).description].filter(Boolean).join('\n'))
+        const startDate = ((task as any).start_date || task.due_date || '').substring(0, 10).replace(/-/g, '')
+        const endDate = task.due_date
+            ? (() => { const d = new Date(task.due_date); d.setDate(d.getDate() + 1); return d.toISOString().substring(0, 10).replace(/-/g, '') })()
+            : startDate
+        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}`, '_blank')
+    }
 
     const updateProgress = async (taskId: string, delta: number) => {
         const task = tasks.find(t => t.id === taskId)
@@ -444,7 +454,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         </div>
 
                                                         {/* Desktop row */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 items-center">
+                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_32px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5">
                                                                     {getPhaseLabel((t as any).target) && (
@@ -499,6 +509,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             >
                                                                 {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
+
+                                                            <button
+                                                                onClick={() => openGoogleCalendar(t)}
+                                                                className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors"
+                                                                title="Thêm vào Google Calendar"
+                                                            >
+                                                                <Calendar size={13} />
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 )
