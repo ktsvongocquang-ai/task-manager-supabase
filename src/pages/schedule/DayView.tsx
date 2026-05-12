@@ -51,11 +51,13 @@ export const DayView = ({ currentDate, tasks, onTaskClick, onEmptyClick }: Props
         const startMinutes = sH * 60 + (sM || 0)
         let endMinutes = eH * 60 + (eM || 0)
         
-        // Ensure at least 30 mins height for visibility
-        if (endMinutes <= startMinutes) endMinutes = startMinutes + 30
+        if (endMinutes < startMinutes) endMinutes = startMinutes
 
         const top = startMinutes
-        const height = endMinutes - startMinutes
+        let height = endMinutes - startMinutes
+        
+        // Ensure at least 45 mins height for visibility of the content
+        if (height < 45) height = 45
 
         return { top: `${top}px`, height: `${height}px` }
     }
@@ -131,14 +133,14 @@ export const DayView = ({ currentDate, tasks, onTaskClick, onEmptyClick }: Props
                                 <div
                                     key={t.id}
                                     onClick={() => onTaskClick(t)}
-                                    className="absolute left-1 right-2 rounded border shadow-sm p-1.5 overflow-hidden cursor-pointer hover:shadow-md transition-shadow group z-0 hover:z-20 border-blue-300 bg-blue-100 text-blue-800"
+                                    className="absolute left-1 right-2 rounded border shadow-sm px-2 py-1 overflow-hidden cursor-pointer hover:shadow-md transition-shadow group z-0 hover:z-20 border-blue-300 bg-blue-100 text-blue-800 flex flex-col justify-start"
                                     style={style}
                                     title={t.name || t.task_code || 'Chưa có tên'}
                                 >
-                                    <div className="text-[10px] font-bold truncate">
-                                        {t.start_time} - {t.name || t.task_code || 'Chưa có tên'}
+                                    <div className="text-[11px] font-bold truncate leading-tight">
+                                        {t.start_time ? t.start_time.substring(0, 5) : ''} - {t.name || t.task_code || 'Chưa có tên'}
                                     </div>
-                                    <div className="text-[9px] mt-0.5 truncate opacity-80">
+                                    <div className="text-[9px] truncate opacity-80 leading-none mt-0.5">
                                         {t.status}
                                     </div>
                                 </div>

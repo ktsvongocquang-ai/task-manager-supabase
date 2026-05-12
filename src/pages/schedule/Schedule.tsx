@@ -146,8 +146,14 @@ export const Schedule = () => {
         return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
     })
 
-    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1))
-    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
+    const prevPeriod = () => {
+        if (viewMode === 'day') setCurrentDate(prev => new Date(prev.getTime() - 86400000))
+        else setCurrentDate(prev => subMonths(prev, 1))
+    }
+    const nextPeriod = () => {
+        if (viewMode === 'day') setCurrentDate(prev => new Date(prev.getTime() + 86400000))
+        else setCurrentDate(prev => addMonths(prev, 1))
+    }
     const goToToday = () => { setCurrentDate(new Date()); setSelectedDate(new Date()); }
 
     const monthStart = startOfMonth(currentDate)
@@ -209,15 +215,15 @@ export const Schedule = () => {
                             Hôm nay
                         </button>
                         <div className="flex items-center">
-                            <button onClick={prevMonth} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <button onClick={prevPeriod} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
                                 <ChevronLeft size={20} />
                             </button>
-                            <button onClick={nextMonth} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <button onClick={nextPeriod} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
                                 <ChevronRight size={20} />
                             </button>
                         </div>
                         <h2 className="text-lg font-semibold text-slate-800 capitalize">
-                            Tháng {format(currentDate, 'M, yyyy', { locale: vi })}
+                            {viewMode === 'day' ? format(currentDate, 'EEEE, dd/MM/yyyy', { locale: vi }) : `Tháng ${format(currentDate, 'M, yyyy', { locale: vi })}`}
                         </h2>
                     </div>
                     <div className="flex gap-2">
@@ -378,10 +384,10 @@ export const Schedule = () => {
                         <button onClick={goToToday} className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md">
                             Hôm nay
                         </button>
-                        <button onClick={prevMonth} className="p-1 text-slate-500"><ChevronLeft size={18} /></button>
-                        <button onClick={nextMonth} className="p-1 text-slate-500"><ChevronRight size={18} /></button>
-                        <h2 className="text-sm font-semibold text-slate-800 capitalize">
-                            Tháng {format(currentDate, 'M, yyyy', { locale: vi })}
+                        <button onClick={prevPeriod} className="p-1 text-slate-500"><ChevronLeft size={18} /></button>
+                        <button onClick={nextPeriod} className="p-1 text-slate-500"><ChevronRight size={18} /></button>
+                        <h2 className="text-sm font-semibold text-slate-800 capitalize truncate max-w-[120px]">
+                            {viewMode === 'day' ? format(currentDate, 'dd/MM/yyyy', { locale: vi }) : `Tháng ${format(currentDate, 'M, yyyy', { locale: vi })}`}
                         </h2>
                     </div>
                     <select
