@@ -215,7 +215,7 @@ export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
-  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'calendar' | 'dashboard' | 'notes' | 'news'>(() => {
+  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'dashboard' | 'notes' | 'news'>(() => {
     const saved = localStorage.getItem('dqh_mytasks_view');
     return (saved as any) || 'focus';
   });
@@ -1452,13 +1452,7 @@ export default function MyTasks() {
                 <span className="hidden sm:inline">Bảng Kanban</span>
               </span>
             </button>
-            <button 
-              onClick={() => setViewMode('calendar')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              <CalendarIcon className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">Lịch</span>
-            </button>
+
             <button 
               onClick={() => setViewMode('dashboard')}
               className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -1568,8 +1562,6 @@ export default function MyTasks() {
           renderNotesView()
         ) : viewMode === 'dashboard' ? (
           renderDashboardView()
-        ) : viewMode === 'calendar' ? (
-          renderCalendarView()
         ) : viewMode === 'focus' ? (
           <div className="space-y-8 pb-12">
             {/* Today's Focus */}
