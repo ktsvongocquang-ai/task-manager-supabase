@@ -377,7 +377,7 @@ export const Schedule = () => {
             </div>
 
             {/* Mobile View */}
-            <div className="md:hidden flex flex-col space-y-3 flex-1">
+            <div className="md:hidden flex-1 min-h-0 flex flex-col space-y-3 relative">
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-2">
@@ -460,7 +460,7 @@ export const Schedule = () => {
                 </div>
 
                 {/* Selected Day Tasks */}
-                <div className="flex-1 space-y-3 overflow-y-auto pb-20 custom-scrollbar px-1">
+                <div className="flex-1 min-h-0 space-y-3 overflow-y-auto pb-20 custom-scrollbar px-1">
                     {(() => {
                         const dateStr = format(selectedDate, 'yyyy-MM-dd')
                         const dayTasks = filteredTasks.filter(t => {
@@ -489,29 +489,29 @@ export const Schedule = () => {
                                 className={`p-4 rounded-2xl cursor-pointer transition-all flex flex-col gap-3 hover:bg-slate-50 active:scale-[0.98] group bg-white border border-slate-200 shadow-sm relative overflow-hidden`}
                             >
                                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${getDotColor(task.status || '')}`}></div>
-                                <div className="flex items-center justify-between pl-3">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
-                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
-                                            {task.status}
-                                        </span>
-                                    </div>
-                                    {task.assignee_id && (
-                                        <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0 shadow-sm">
-                                            {profiles.find(p => p.id === task.assignee_id)?.full_name?.charAt(0) || 'U'}
+                                <div className="flex flex-col gap-2 pl-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
+                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
+                                                {task.status}
+                                            </span>
+                                            {task.project_id && task.project_id !== 'personal' && (
+                                                <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1 uppercase tracking-wide px-2 py-1 bg-slate-50 rounded-lg border border-slate-100 max-w-[140px]">
+                                                    <Folder size={10} className="text-slate-400 shrink-0" />
+                                                    <span className="truncate">{projects.find(p => p.id === task.project_id)?.name}</span>
+                                                </span>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                <div className="pl-3">
+                                        {task.assignee_id && (
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0 shadow-sm ml-2">
+                                                {profiles.find(p => p.id === task.assignee_id)?.full_name?.charAt(0) || 'U'}
+                                            </div>
+                                        )}
+                                    </div>
                                     <h4 className={`text-[15px] font-bold line-clamp-2 leading-snug transition-colors pr-2 ${task.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-indigo-600'}`}>
                                         {task.name}
                                     </h4>
-                                    {task.project_id && task.project_id !== 'personal' && (
-                                        <p className="text-[11px] font-semibold text-slate-500 mt-2 flex items-center gap-1.5 uppercase tracking-wide">
-                                            <Folder size={12} className="text-slate-400" />
-                                            <span className="truncate">{projects.find(p => p.id === task.project_id)?.name}</span>
-                                        </p>
-                                    )}
                                 </div>
                             </div>
                         ))
