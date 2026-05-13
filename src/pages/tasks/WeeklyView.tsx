@@ -406,7 +406,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                             {group.label}
                                         </span>
                                         <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500">
-                                            {group.tasks.length}
+                                            {group.tasks.filter(t => t.status !== 'Hoàn thành').length}
                                         </span>
                                     </div>
                                     

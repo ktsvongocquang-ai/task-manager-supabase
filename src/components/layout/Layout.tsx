@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import { canAccessRoute, isAdminRole, isConstructionOnlyRole } from '../../utils/permissions'
+import { canAccessRoute, isAdminRole, isConstructionOnlyRole, isManagerRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
 import { trackPageView } from '../../services/userTracking'
 import { useAuthStore } from '../../store/authStore'
@@ -273,7 +273,7 @@ export const Layout = () => {
                 mobileChildren: [
                     { name: 'Mục tiêu tuần', path: '/tasks', icon: Calendar },
                     { name: 'Kanban', path: '/kanban', icon: KanbanIcon },
-                    { name: 'Sơ đồ Gantt', path: '/gantt', icon: BarChart2 },
+                    ...(isManagerRole(role) ? [{ name: 'Sơ đồ Gantt', path: '/gantt', icon: BarChart2 }] : []),
                     { name: 'Dự án', path: '/projects', icon: Folder },
                     { name: 'Dashboard', path: '/dashboard', icon: PieChart },
                 ]
@@ -591,9 +591,11 @@ export const Layout = () => {
                                     <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
                                     </NavLink>
+                                    {isManagerRole(profile?.role) && (
                                     <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Sơ đồ Gantt
                                     </NavLink>
+                                    )}
                                     <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Dự án
                                     </NavLink>
