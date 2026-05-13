@@ -14,7 +14,7 @@ interface Props {
 }
 
 const STATUS_OPTIONS = ['Chưa bắt đầu', 'Cần làm', 'Đang thực hiện', 'Chờ duyệt', 'Hoàn thành', 'Tạm dừng']
-const PRIORITY_OPTIONS = ['Thấp', 'Trung bình', 'Cao', 'Khẩn cấp']
+const PRIORITY_OPTIONS = ['JUX', 'DQH']
 const PHASE_OPTIONS = ['Concept', '3D / Phối cảnh', 'Triển khai 2D', 'Hoàn thiện hồ sơ', 'Khác']
 
 export const QuickTaskModal: React.FC<Props> = ({
@@ -23,7 +23,7 @@ export const QuickTaskModal: React.FC<Props> = ({
     const today = new Date().toISOString().split('T')[0]
 
     const [form, setForm] = useState({
-        name: '', project_id: '', target: '', status: 'Cần làm', priority: 'Trung bình',
+        name: '', project_id: '', target: '', status: 'Cần làm', priority: 'DQH',
         start_date: today, due_date: today, assignee_id: '', supporter_id: '', description: ''
     })
     const [saving, setSaving] = useState(false)
@@ -45,7 +45,7 @@ export const QuickTaskModal: React.FC<Props> = ({
             })
         } else {
             setForm({
-                name: '', project_id: '', target: '', status: 'Cần làm', priority: 'Trung bình',
+                name: '', project_id: '', target: '', status: 'Cần làm', priority: 'DQH',
                 start_date: today, due_date: today,
                 assignee_id: currentUserProfile?.id || '', supporter_id: '', description: ''
             })
@@ -100,10 +100,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             value={form.priority}
                             onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
                             className={`text-[11px] font-bold px-2 py-0.5 rounded-full border-0 focus:ring-0 cursor-pointer
-                                ${form.priority === 'Khẩn cấp' ? 'bg-red-100 text-red-600' :
-                                  form.priority === 'Cao' ? 'bg-orange-100 text-orange-600' :
-                                  form.priority === 'Trung bình' ? 'bg-blue-100 text-blue-600' :
-                                  'bg-slate-100 text-slate-500'}`}
+                                ${form.priority === 'JUX' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}
                         >
                             {PRIORITY_OPTIONS.map(p => <option key={p}>{p}</option>)}
                         </select>

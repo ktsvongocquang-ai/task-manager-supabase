@@ -188,9 +188,8 @@ export const Tasks = () => {
     }
 
     const getPriorityBadge = (priority: string) => {
-        if (priority === 'Khẩn cấp') return 'bg-red-50 text-red-600 border-red-100'
-        if (priority === 'Cao') return 'bg-orange-50 text-orange-600 border-orange-100'
-        if (priority === 'Trung bình') return 'bg-yellow-50 text-yellow-600 border-yellow-100'
+        if (priority === 'JUX') return 'bg-red-50 text-red-600 border-red-100'
+        if (priority === 'DQH') return 'bg-blue-50 text-blue-600 border-blue-100'
         return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
@@ -626,10 +625,8 @@ export const Tasks = () => {
                                                                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(t.priority)}`}
                                                                         disabled={!canEdit}
                                                                     >
-                                                                        <option value="Thấp">Thấp</option>
-                                                                        <option value="Trung bình">Trung bình</option>
-                                                                        <option value="Cao">Cao</option>
-                                                                        <option value="Khẩn cấp">Khẩn cấp</option>
+                                                                        <option value="JUX">JUX</option>
+                                                                        <option value="DQH">DQH</option>
                                                                     </select>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[140px] min-w-[140px]">
@@ -988,9 +985,8 @@ export const Tasks = () => {
                                                             <div className="flex items-center justify-between mt-2.5">
                                                                 <span className="text-[10px] font-medium text-slate-400 tracking-tight">{task.task_code}</span>
                                                                 {task.priority && (
-                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'Khẩn cấp' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
-                                                                    task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                                    task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
+                                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'JUX' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                                    task.priority === 'DQH' ? 'bg-blue-50 text-blue-600 border-blue-100' :
                                                                     'bg-slate-50 text-slate-500 border-slate-100'
                                                                     }`}>
                                                                         {task.priority}

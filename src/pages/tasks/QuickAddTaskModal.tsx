@@ -108,7 +108,7 @@ export const QuickAddTaskModal = ({
                 assignee_id: form.assignee_id || null,
                 supporter_id: form.supporter_id || null,
                 description: form.description || null,
-                priority: 'Trung bình',
+                priority: 'DQH',
                 completion_pct: 0
             }
 

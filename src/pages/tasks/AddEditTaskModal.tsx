@@ -39,7 +39,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
-        supporter_id: '', status: 'Chưa bắt đầu', priority: 'Trung bình', start_date: '', start_time: '', due_date: '', due_time: '',
+        supporter_id: '', status: 'Chưa bắt đầu', priority: 'DQH', start_date: '', start_time: '', due_date: '', due_time: '',
         result_links: '', notes: '', parent_id: '', target: ''
     });
 
@@ -276,7 +276,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     assignee_id: initialData.assignee_id || currentUserProfile?.id || '',
                     supporter_id: '',
                     status: 'Chưa bắt đầu',
-                    priority: 'Trung bình',
+                    priority: 'DQH',
                     start_date: initialData.start_date || today,
                     start_time: '',
                     due_date: initialData.due_date || today,
@@ -565,7 +565,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         parent_id: editingTask.id,
                         task_code: finalSubCode,
                         status: 'Chưa bắt đầu',
-                        priority: 'Trung bình',
+                        priority: 'DQH',
                         completion_pct: 0
                     }).select().single();
 
@@ -740,9 +740,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </h2>
                                 )}
                                 {editingTask && (
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 shrink-0 ${form.priority === 'Khẩn cấp' ? 'bg-red-50 text-red-600' :
-                                        form.priority === 'Cao' ? 'bg-orange-50 text-orange-600' :
-                                            form.priority === 'Trung bình' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600'
+                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide ml-2 shrink-0 ${form.priority === 'JUX' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
                                         }`}>
                                         {form.priority}
                                     </span>
@@ -860,16 +858,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'Khẩn cấp' ? 'text-red-600' :
-                                            form.priority === 'Cao' ? 'text-orange-600' :
-                                                form.priority === 'Trung bình' ? 'text-blue-600' : 'text-slate-600'
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'JUX' ? 'text-red-600' : 'text-blue-600'
                                             } ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
-                                        <option value="Thấp">Thấp</option>
-                                        <option value="Trung bình">Trung bình</option>
-                                        <option value="Cao">Cao</option>
-                                        <option value="Khẩn cấp">Khẩn cấp</option>
+                                        <option value="JUX">JUX</option>
+                                        <option value="DQH">DQH</option>
                                     </select>
                                 </div>
                             </div>
