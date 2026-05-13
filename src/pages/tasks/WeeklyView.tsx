@@ -443,12 +443,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         <div className="md:hidden flex items-start gap-3 px-4 py-2">
                                                             <div className="w-6 h-6 shrink-0 mt-0.5"><Avatar name={assigneeName} /></div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate cursor-pointer`} onClick={() => onEditTask?.(t)}>
+                                                                {(() => { const { cls } = getPriority(t.priority); const prioTextColor = cls.includes('blue') ? 'text-blue-700' : 'text-red-600'; return (
+                                                                <div className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : prioTextColor} truncate cursor-pointer`} onClick={() => onEditTask?.(t)}>
                                                                     {t.name || t.task_code || 'Chưa có tên'}
                                                                 </div>
+                                                                ) })()}
                                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                                                    {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${cls}`}>{label}</span> })()}
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
+                                                                    {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${cls}`}>{label}</span> })()}
                                                                     <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded truncate max-w-[120px]">{getProjectName(t.project_id)}</span>
                                                                     <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
                                                                     <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[9px] font-medium px-1.5 py-0.5 rounded border-0 ${badge.bg} ${badge.text} cursor-pointer focus:outline-none`}>
@@ -467,11 +469,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_32px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${cls}`}>{label}</span> })()}
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
-                                                                    <div className={`text-xs font-semibold truncate min-w-0 flex-1 cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`} onClick={() => onEditTask?.(t)}>
+                                                                    {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${cls}`}>{label}</span> })()}
+                                                                    {(() => { const { cls } = getPriority(t.priority); const prioTextColor = cls.includes('blue') ? 'text-blue-700' : 'text-red-600'; return (
+                                                                    <div className={`text-xs font-bold truncate min-w-0 flex-1 cursor-pointer ${isDone ? 'line-through text-slate-400' : `${prioTextColor} hover:underline`}`} onClick={() => onEditTask?.(t)}>
                                                                         {t.name || t.task_code || 'Chưa có tên'}
                                                                     </div>
+                                                                    ) })()}
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getProjectName(t.project_id)}</div>
                                                             </div>
