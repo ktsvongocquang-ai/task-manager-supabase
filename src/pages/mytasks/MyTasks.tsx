@@ -44,6 +44,7 @@ interface Note {
   items: NoteItem[];
   color: string;
   isPinned: boolean;
+  sortOrder: number;
 }
 
 const NOTE_COLORS = [
@@ -92,7 +93,13 @@ const NoteCard = ({
   deleteNote, 
   toggleNoteItem, 
   updateNoteItem, 
-  addNoteItem 
+  addNoteItem,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragging,
+  isDragOver,
 }: {
   note: Note;
   updateNoteTitle: (id: string, title: string) => void;
@@ -102,6 +109,12 @@ const NoteCard = ({
   toggleNoteItem: (noteId: string, itemId: string) => void;
   updateNoteItem: (noteId: string, itemId: string, text: string) => void;
   addNoteItem: (noteId: string) => Promise<string | undefined>;
+  onDragStart: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
+  isDragOver: boolean;
 }) => {
   const activeItems = note.items.filter(i => !i.isCompleted);
   const completedItems = note.items.filter(i => i.isCompleted);
@@ -121,8 +134,26 @@ const NoteCard = ({
   }, [newlyAddedId, note.items]);
 
   return (
-    <div className={`rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col ${note.color}`}>
+    <div 
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`rounded-xl border shadow-sm overflow-hidden flex flex-col transition-all duration-200 ${note.color} ${
+        isDragging ? 'opacity-40 scale-95 border-dashed border-indigo-300 rotate-1' : ''
+      } ${
+        isDragOver ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02] shadow-lg' : 'border-gray-200'
+      }`}
+      style={{ cursor: isDragging ? 'grabbing' : 'default' }}
+    >
       <div className="p-4 flex items-start justify-between group">
+        <div 
+          className="mt-1 mr-2 cursor-grab active:cursor-grabbing p-1 rounded-md text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+          onMouseDown={(e) => { /* Allow drag from grip */ }}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
         <input 
           type="text" 
           value={note.title}
@@ -273,14 +304,15 @@ export default function MyTasks() {
       const { data: noteData } = await supabase.from('personal_notes')
         .select('*, personal_note_items(*)')
         .eq('user_id', profile.id)
-        .order('created_at', { ascending: false });
+        .order('sort_order', { ascending: true });
         
       if (noteData) {
-        setNotes(noteData.map(n => ({
+        setNotes(noteData.map((n, idx) => ({
           id: n.id,
           title: n.title || 'Ghi chú',
           color: n.color,
           isPinned: n.is_pinned,
+          sortOrder: n.sort_order ?? idx,
           items: (n.personal_note_items || []).map((i: any) => ({
             id: i.id,
             text: i.text,
@@ -634,16 +666,86 @@ export default function MyTasks() {
   // --- NOTES LOGIC ---
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteColor, setNewNoteColor] = useState(NOTE_COLORS[0]);
+  const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
+  const [dragOverNoteId, setDragOverNoteId] = useState<string | null>(null);
+
+  const handleNoteDragStart = (e: React.DragEvent, noteId: string) => {
+    e.dataTransfer.setData('noteId', noteId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingNoteId(noteId);
+    // Use setTimeout so the dragging style applies after the ghost image is captured
+    setTimeout(() => {
+      setDraggingNoteId(noteId);
+    }, 0);
+  };
+
+  const handleNoteDragOver = (e: React.DragEvent, noteId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (noteId !== draggingNoteId) {
+      setDragOverNoteId(noteId);
+    }
+  };
+
+  const handleNoteDrop = async (e: React.DragEvent, targetNoteId: string, notesList: Note[]) => {
+    e.preventDefault();
+    const sourceNoteId = e.dataTransfer.getData('noteId');
+    if (!sourceNoteId || sourceNoteId === targetNoteId) {
+      setDraggingNoteId(null);
+      setDragOverNoteId(null);
+      return;
+    }
+
+    const sourceIdx = notesList.findIndex(n => n.id === sourceNoteId);
+    const targetIdx = notesList.findIndex(n => n.id === targetNoteId);
+    if (sourceIdx === -1 || targetIdx === -1) return;
+
+    // Reorder the array
+    const reordered = [...notesList];
+    const [moved] = reordered.splice(sourceIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    // Build full notes list with updated sort orders
+    const isPinnedSection = reordered[0]?.isPinned;
+    const otherNotes = notes.filter(n => n.isPinned !== isPinnedSection);
+    
+    // Assign new sort orders
+    const updatedReordered = reordered.map((n, i) => ({ ...n, sortOrder: i }));
+    const updatedOther = otherNotes.map((n, i) => ({ ...n, sortOrder: reordered.length + i }));
+    const allUpdated = [...updatedReordered, ...updatedOther];
+    
+    setNotes(allUpdated);
+    setDraggingNoteId(null);
+    setDragOverNoteId(null);
+
+    // Persist to DB
+    try {
+      await Promise.all(
+        updatedReordered.map((n, i) => 
+          supabase.from('personal_notes').update({ sort_order: i }).eq('id', n.id)
+        )
+      );
+    } catch (err) {
+      console.error('Error persisting note order:', err);
+    }
+  };
+
+  const handleNoteDragEnd = () => {
+    setDraggingNoteId(null);
+    setDragOverNoteId(null);
+  };
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.id) return;
     try {
+      const maxSortOrder = notes.length > 0 ? Math.max(...notes.map(n => n.sortOrder)) + 1 : 0;
       const { data, error } = await supabase.from('personal_notes').insert([{
         user_id: profile.id,
         title: newNoteTitle.trim() || 'Ghi chú mới',
         color: newNoteColor,
-        is_pinned: false
+        is_pinned: false,
+        sort_order: maxSortOrder
       }]).select().single();
 
       if (error) throw error;
@@ -662,7 +764,8 @@ export default function MyTasks() {
           title: data.title,
           items: itemData ? [{ id: itemData.id, text: itemData.text, isCompleted: itemData.is_completed }] : [],
           color: data.color,
-          isPinned: data.is_pinned
+          isPinned: data.is_pinned,
+          sortOrder: data.sort_order ?? maxSortOrder
         };
         setNotes([newNote, ...notes]);
       }
@@ -943,8 +1046,8 @@ export default function MyTasks() {
   };
 
   const renderNotesView = () => {
-    const pinnedNotes = notes.filter(n => n.isPinned);
-    const unpinnedNotes = notes.filter(n => !n.isPinned);
+    const pinnedNotes = notes.filter(n => n.isPinned).sort((a, b) => a.sortOrder - b.sortOrder);
+    const unpinnedNotes = notes.filter(n => !n.isPinned).sort((a, b) => a.sortOrder - b.sortOrder);
 
     return (
       <div className="space-y-8 pb-12">
@@ -991,6 +1094,12 @@ export default function MyTasks() {
                   toggleNoteItem={toggleNoteItem}
                   updateNoteItem={updateNoteItem}
                   addNoteItem={addNoteItem}
+                  onDragStart={(e) => handleNoteDragStart(e, note.id)}
+                  onDragOver={(e) => handleNoteDragOver(e, note.id)}
+                  onDrop={(e) => handleNoteDrop(e, note.id, pinnedNotes)}
+                  onDragEnd={handleNoteDragEnd}
+                  isDragging={draggingNoteId === note.id}
+                  isDragOver={dragOverNoteId === note.id}
                 />
               ))}
             </div>
@@ -1013,6 +1122,12 @@ export default function MyTasks() {
                   toggleNoteItem={toggleNoteItem}
                   updateNoteItem={updateNoteItem}
                   addNoteItem={addNoteItem}
+                  onDragStart={(e) => handleNoteDragStart(e, note.id)}
+                  onDragOver={(e) => handleNoteDragOver(e, note.id)}
+                  onDrop={(e) => handleNoteDrop(e, note.id, unpinnedNotes)}
+                  onDragEnd={handleNoteDragEnd}
+                  isDragging={draggingNoteId === note.id}
+                  isDragOver={dragOverNoteId === note.id}
                 />
               ))}
             </div>
