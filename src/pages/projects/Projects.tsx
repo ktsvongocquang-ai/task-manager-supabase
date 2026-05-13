@@ -542,6 +542,7 @@ export const Projects = () => {
                                         const isDone = t.status === 'Hoàn thành';
                                         const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone;
                                         const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán';
+                                        return (
                                             <div key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50">
                                                 {/* Desktop Row */}
                                                 <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center">
@@ -567,6 +568,7 @@ export const Projects = () => {
                                                     </div>
                                                 </div>
                                             </div>
+                                        );
                                     })}
                                 </div>
                             )}
