@@ -158,38 +158,46 @@ export const Layout = () => {
     }
 
     useEffect(() => {
-        const fetchUnreadCount = async () => {
-            if (profile?.id) {
-                try {
-                    // Check scheduled tasks first
-                    await checkScheduledNotifications(profile.id)
+        if (!profile?.id) return
 
-                    const count = await getUnreadNotificationCount(profile.id)
-                    setUnreadNotifCount(count)
-                } catch (error) {
-                    console.error('Error fetching unread notification count:', error)
-                }
+        const refreshCount = async () => {
+            try {
+                const count = await getUnreadNotificationCount(profile.id!)
+                setUnreadNotifCount(count)
+            } catch (error) {
+                console.error('Error fetching unread notification count:', error)
             }
         }
 
-        fetchUnreadCount()
+        // Initial load: check scheduled notifications + fetch count
+        const init = async () => {
+            try {
+                await checkScheduledNotifications(profile.id!)
+            } catch (_) {}
+            await refreshCount()
+        }
+        init()
 
-        // Subscribe to notification changes to update badge in real-time
-        if (profile?.id) {
-            const channel = supabase.channel('notif_badge_updates')
-                .on(
-                    'postgres_changes',
-                    { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
-                    async () => {
-                        const count = await getUnreadNotificationCount(profile.id!)
-                        setUnreadNotifCount(count)
-                    }
-                )
-                .subscribe()
+        // Real-time subscription for badge update
+        const channel = supabase.channel(`notif_badge_${profile.id}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+                () => refreshCount()
+            )
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+                () => refreshCount()
+            )
+            .subscribe()
 
-            return () => {
-                supabase.removeChannel(channel)
-            }
+        // Polling fallback every 45 seconds (in case real-time filter misses)
+        const pollInterval = setInterval(refreshCount, 45000)
+
+        return () => {
+            supabase.removeChannel(channel)
+            clearInterval(pollInterval)
         }
     }, [profile?.id])
 

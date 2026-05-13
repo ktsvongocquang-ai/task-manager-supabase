@@ -31,14 +31,16 @@ export const createComment = async (
     taskId?: string | null,
     projectId?: string | null,
     parentId?: string | null,
-    moduleType: 'core' | 'marketing' = 'core'
+    moduleType: 'core' | 'marketing' = 'core',
+    imageUrl?: string | null
 ) => {
     try {
         const payload: any = {
             user_id: userId,
             content: content,
             mentions: mentions,
-            parent_id: parentId || null
+            parent_id: parentId || null,
+            ...(imageUrl ? { image_url: imageUrl } : {})
         };
         
         if (moduleType === 'marketing') {

@@ -5,6 +5,7 @@ import type { AppNotification } from '../../types'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../../services/supabase'
 
 interface NotificationsDropdownProps {
     userId?: string;
@@ -19,9 +20,19 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (userId) {
-            fetchNotifications()
-        }
+        if (!userId) return
+        fetchNotifications()
+
+        // Real-time subscription: auto-refresh list when new notification arrives
+        const channel = supabase.channel(`notif_list_${userId}`)
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+                () => fetchNotifications()
+            )
+            .subscribe()
+
+        return () => { supabase.removeChannel(channel) }
     }, [userId])
 
     const fetchNotifications = async () => {
