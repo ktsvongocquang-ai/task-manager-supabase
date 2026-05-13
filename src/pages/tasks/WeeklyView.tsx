@@ -111,7 +111,17 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [filterProject, setFilterProject] = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+    const [expandedDone, setExpandedDone] = useState<Set<string>>(new Set())
     const scrollRef = useRef<HTMLDivElement>(null)
+
+    const toggleDone = (key: string) => {
+        setExpandedDone(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+        })
+    }
 
     const toggleGroup = (key: string) => {
         setCollapsedGroups(prev => {
@@ -401,127 +411,104 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                 </div>
 
                                 {/* Group Tasks - smooth collapse */}
-                                <div 
+                                <div
                                     className="bg-white overflow-hidden transition-all duration-200 ease-in-out"
-                                    style={{ maxHeight: isCollapsed ? '0px' : '2000px', opacity: isCollapsed ? 0 : 1 }}
+                                    style={{ maxHeight: isCollapsed ? '0px' : '9999px', opacity: isCollapsed ? 0 : 1 }}
                                 >
-                                        {group.tasks.length === 0 ? (
-                                            <div className="px-5 py-3 text-xs text-slate-400 italic">Không có nhiệm vụ</div>
-                                        ) : (
-                                            group.tasks.map(t => {
+                                        {(() => {
+                                            const activeTasks = group.tasks.filter(t => t.status !== 'Hoàn thành')
+                                            const doneTasks   = group.tasks.filter(t => t.status === 'Hoàn thành')
+                                            const isDoneOpen  = expandedDone.has(group.key)
+
+                                            const TaskRow = ({ t }: { t: Task }) => {
                                                 const d = new Date(t.due_date!)
                                                 const isLate = d < TODAY && t.status !== 'Hoàn thành'
                                                 const isDone = t.status === 'Hoàn thành'
                                                 const pct = t.completion_pct || 0
                                                 const assigneeName = getAssigneeName(t.assignee_id)
                                                 const badge = getStatusBadge(t.status)
-
                                                 return (
-                                                    <div key={t.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                                                        {/* Mobile row */}
+                                                    <div className={`border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors ${isDone ? 'opacity-60' : ''}`}>
+                                                        {/* Mobile */}
                                                         <div className="md:hidden flex items-start gap-3 px-4 py-2">
                                                             <div className="w-6 h-6 shrink-0 mt-0.5"><Avatar name={assigneeName} /></div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div 
-                                                                    className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'} truncate cursor-pointer`}
-                                                                    onClick={() => onEditTask?.(t)}
-                                                                >{t.name || t.task_code || 'Chưa có tên'}</div>
+                                                                <div className={`text-xs font-semibold ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate cursor-pointer`} onClick={() => onEditTask?.(t)}>
+                                                                    {t.name || t.task_code || 'Chưa có tên'}
+                                                                </div>
                                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                                                    {getPhaseLabel((t as any).target) && (
-                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>
-                                                                    )}
+                                                                    {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
                                                                     <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded truncate max-w-[120px]">{getProjectName(t.project_id)}</span>
                                                                     <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
-                                                                    <select
-                                                                        value={t.status}
-                                                                        onChange={e => updateStatus(t.id, e.target.value)}
-                                                                        className={`text-[9px] font-medium px-1.5 py-0.5 rounded border-0 ${badge.bg} ${badge.text} cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-300`}
-                                                                    >
+                                                                    <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[9px] font-medium px-1.5 py-0.5 rounded border-0 ${badge.bg} ${badge.text} cursor-pointer focus:outline-none`}>
                                                                         {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                                     </select>
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-1.5">
-                                                                    <button onClick={() => updateProgress(t.id, -10)}
-                                                                        className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 leading-none">−</button>
-                                                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                                        <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
-                                                                    </div>
-                                                                    <span className="text-[10px] font-medium text-slate-500 w-6 text-right">{pct}%</span>
-                                                                    <button onClick={() => updateProgress(t.id, 10)}
-                                                                        className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 leading-none">+</button>
+                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">−</button>
+                                                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
+                                                                    <span className="text-[10px] text-slate-500 w-6 text-right">{pct}%</span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">+</button>
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        {/* Desktop row */}
+                                                        {/* Desktop */}
                                                         <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_32px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    {getPhaseLabel((t as any).target) && (
-                                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>
-                                                                    )}
-                                                                    <div 
-                                                                        className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`}
-                                                                        onClick={() => onEditTask?.(t)}
-                                                                    >
+                                                                    {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
+                                                                    <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`} onClick={() => onEditTask?.(t)}>
                                                                         {t.name || t.task_code || 'Chưa có tên'}
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-[9px] text-slate-400 mt-0.5 truncate" title={getProjectName(t.project_id)}>{getProjectName(t.project_id)}</div>
+                                                                <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getProjectName(t.project_id)}</div>
                                                             </div>
-
-                                                            <div className="text-[11px] text-slate-500 truncate" title={(t as any).description || ''}>
-                                                                {(t as any).description || <span className="text-slate-300 italic">—</span>}
-                                                            </div>
-
-                                                            <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>
-                                                                {fmtShort(d)}
-                                                            </span>
-
+                                                            <div className="text-[11px] text-slate-500 truncate">{(t as any).description || <span className="text-slate-300 italic">—</span>}</div>
+                                                            <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{fmtShort(d)}</span>
                                                             <div>
                                                                 <div className="flex items-center gap-1 mb-1">
-                                                                    <button onClick={() => updateProgress(t.id, -10)}
-                                                                        className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">−</button>
-                                                                    <span className="text-[10px] font-semibold text-slate-700 w-6 text-center">
-                                                                        {saving[t.id] ? '...' : `${pct}%`}
-                                                                    </span>
-                                                                    <button onClick={() => updateProgress(t.id, 10)}
-                                                                        className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600 leading-none">+</button>
+                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">−</button>
+                                                                    <span className="text-[10px] font-semibold text-slate-700 w-6 text-center">{saving[t.id] ? '...' : `${pct}%`}</span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">+</button>
                                                                 </div>
-                                                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                                                    <div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} />
-                                                                </div>
+                                                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                             </div>
-
-                                                            <select
-                                                                value={getAssigneeId(t.assignee_id)}
-                                                                onChange={e => updateAssignee(t.id, e.target.value)}
-                                                                className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-300 truncate min-w-0"
-                                                            >
+                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
                                                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
-
-                                                            <select
-                                                                value={t.status}
-                                                                onChange={e => updateStatus(t.id, e.target.value)}
-                                                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none focus:ring-1 focus:ring-indigo-300`}
-                                                            >
+                                                            <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none`}>
                                                                 {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
-
-                                                            <button
-                                                                onClick={() => openGoogleCalendar(t)}
-                                                                className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors"
-                                                                title="Thêm vào Google Calendar"
-                                                            >
+                                                            <button onClick={() => openGoogleCalendar(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors" title="Thêm vào Google Calendar">
                                                                 <Calendar size={13} />
                                                             </button>
                                                         </div>
                                                     </div>
                                                 )
-                                            })
-                                        )}
+                                            }
+
+                                            return (
+                                                <>
+                                                    {activeTasks.length === 0 && doneTasks.length === 0 && (
+                                                        <div className="px-5 py-3 text-xs text-slate-400 italic">Không có nhiệm vụ</div>
+                                                    )}
+                                                    {activeTasks.map(t => <TaskRow key={t.id} t={t} />)}
+                                                    {doneTasks.length > 0 && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => toggleDone(group.key)}
+                                                                className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-100"
+                                                            >
+                                                                <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${isDoneOpen ? '' : '-rotate-90'}`} />
+                                                                <span className="text-xs text-slate-500">Đã hoàn tất {doneTasks.length} mục</span>
+                                                            </button>
+                                                            {isDoneOpen && doneTasks.map(t => <TaskRow key={t.id} t={t} />)}
+                                                        </>
+                                                    )}
+                                                </>
+                                            )
+                                        })()}
                                 </div>
                             </div>
                         )
