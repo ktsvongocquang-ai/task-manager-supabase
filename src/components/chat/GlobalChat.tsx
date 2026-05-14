@@ -211,7 +211,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                 const isMine = msg.sender_id === currentUserProfile.id && msg.receiver_id === dmPartner.id;
                 const isFromPartner = msg.sender_id === dmPartner.id && msg.receiver_id === currentUserProfile.id;
                 if (isMine || isFromPartner) {
-                    setDmMessages(prev => [...prev, msg]);
+                    setDmMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg]);
                     if (isFromPartner) {
                         await supabase.from('direct_messages').update({ is_read: true }).eq('id', msg.id);
                     }
@@ -363,7 +363,6 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
         if (!currentUserProfile?.id || !dmPartner) return;
 
         const textToSend = dmNewMsg.trim();
-        setDmNewMsg('');
 
         let imageUrl: string | null = null;
         if (dmPendingImage) {
@@ -373,14 +372,24 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
             setDmUploading(false);
         }
 
-        const { error } = await supabase.from('direct_messages').insert([{
+        const { data, error } = await supabase.from('direct_messages').insert([{
             content: textToSend,
             sender_id: currentUserProfile.id,
             receiver_id: dmPartner.id,
             image_url: imageUrl || null,
             is_read: false,
-        }]);
-        if (error) console.error('DM send error:', error);
+        }]).select().single();
+
+        if (error) {
+            console.error('DM send error:', error);
+            return;
+        }
+
+        setDmNewMsg('');
+        if (data) {
+            setDmMessages(prev => prev.some(m => m.id === (data as DirectMessage).id) ? prev : [...prev, data as DirectMessage]);
+            setTimeout(() => dmEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        }
     };
 
     // ── AI ──

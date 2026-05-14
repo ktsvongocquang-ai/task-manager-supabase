@@ -124,30 +124,26 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                             <div
                                 key={notif.id}
                                 className={`p-4 transition-colors cursor-pointer group ${getBgColor(notif.type, notif.is_read)}`}
-                                onClick={async (e) => {
-                                    if (!notif.is_read) {
-                                        await handleMarkAsRead(notif.id, e);
-                                    }
-            if (notif.marketing_task_id || notif.marketing_project_id) {
-                navigate('/marketing', {
-                    state: {
-                        openTaskId: notif.marketing_task_id,
-                        openProjectId: notif.marketing_project_id,
-                        _ts: Date.now()
-                    },
-                    replace: true
-                });
-            } else {
-                navigate('/dashboard', {
-                    state: {
-                        openTaskId: notif.related_task_id,
-                        openProjectId: notif.related_project_id,
-                        _ts: Date.now()
-                    },
-                    replace: true
-                });
-            }
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     onClose();
+                                    if (notif.marketing_task_id || notif.marketing_project_id) {
+                                        navigate('/marketing', {
+                                            state: {
+                                                openTaskId: notif.marketing_task_id,
+                                                openProjectId: notif.marketing_project_id,
+                                                _ts: Date.now()
+                                            }
+                                        });
+                                    } else if (notif.related_task_id || notif.related_project_id) {
+                                        navigate('/dashboard', {
+                                            state: {
+                                                openTaskId: notif.related_task_id,
+                                                openProjectId: notif.related_project_id,
+                                                _ts: Date.now()
+                                            }
+                                        });
+                                    }
                                 }}
                             >
                                 <div className="flex gap-3">

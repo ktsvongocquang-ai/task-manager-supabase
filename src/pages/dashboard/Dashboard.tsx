@@ -97,8 +97,6 @@ export const Dashboard = () => {
                 taskId: state.openTaskId,
                 projectId: state.openProjectId
             }
-            // Clear location state immediately to prevent re-captures
-            window.history.replaceState({}, '')
         }
     }, [location.key])
 
