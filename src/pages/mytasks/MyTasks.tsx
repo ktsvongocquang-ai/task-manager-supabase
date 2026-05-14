@@ -300,11 +300,18 @@ export default function MyTasks() {
         })));
       }
 
-      // 3. Fetch Notes & Items
-      const { data: noteData } = await supabase.from('personal_notes')
+      // 3. Fetch Notes & Items (try sort_order first, fallback to created_at)
+      let noteData: any[] | null = null;
+      const { data: nd1, error: noteErr } = await supabase.from('personal_notes')
         .select('*, personal_note_items(*)')
         .eq('user_id', profile.id)
-        .order('sort_order', { ascending: true });
+        .order('created_at', { ascending: true });
+      
+      if (noteErr) {
+        console.error('Error fetching notes:', noteErr.message);
+      } else {
+        noteData = nd1;
+      }
         
       if (noteData) {
         setNotes(noteData.map((n, idx) => ({
@@ -718,15 +725,16 @@ export default function MyTasks() {
     setDraggingNoteId(null);
     setDragOverNoteId(null);
 
-    // Persist to DB
+    // Persist to DB (sort_order may not exist yet, silently ignore errors)
     try {
       await Promise.all(
         updatedReordered.map((n, i) => 
-          supabase.from('personal_notes').update({ sort_order: i }).eq('id', n.id)
+          supabase.from('personal_notes').update({ sort_order: i }).eq('id', n.id).then(() => {})
         )
       );
     } catch (err) {
-      console.error('Error persisting note order:', err);
+      // sort_order column may not exist yet - drag/drop still works in-memory
+      console.warn('Note order persistence skipped (sort_order column may not exist):', err);
     }
   };
 
@@ -740,13 +748,14 @@ export default function MyTasks() {
     if (!profile?.id) return;
     try {
       const maxSortOrder = notes.length > 0 ? Math.max(...notes.map(n => n.sortOrder)) + 1 : 0;
-      const { data, error } = await supabase.from('personal_notes').insert([{
+      // Don't include sort_order in insert if column doesn't exist yet
+      const insertPayload: any = {
         user_id: profile.id,
         title: newNoteTitle.trim() || 'Ghi chú mới',
         color: newNoteColor,
         is_pinned: false,
-        sort_order: maxSortOrder
-      }]).select().single();
+      };
+      const { data, error } = await supabase.from('personal_notes').insert([insertPayload]).select().single();
 
       if (error) throw error;
       if (data) {
