@@ -120,6 +120,7 @@ const NoteCard = ({
   const completedItems = note.items.filter(i => i.isCompleted);
   const [showCompleted, setShowCompleted] = useState(false);
   const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null);
+  const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
 
   useEffect(() => {
     if (newlyAddedId) {
@@ -179,7 +180,7 @@ const NoteCard = ({
               <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600">
                 <Square className="w-4 h-4" />
               </button>
-              <textarea 
+              <textarea
                 id={`note-item-${item.id}`}
                 value={item.text}
                 onChange={(e) => {
@@ -198,11 +199,18 @@ const NoteCard = ({
                 rows={1}
                 placeholder="Mục danh sách..."
                 className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm resize-none overflow-hidden leading-snug outline-none py-1"
-                style={{ height: 'auto', minHeight: '24px' }}
-                onFocus={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
+                style={{ minHeight: '24px', maxHeight: focusedItemId === item.id ? 'none' : '44px', overflow: 'hidden' }}
+                ref={(el) => {
+                  if (!el) return;
+                  if (focusedItemId === item.id) {
+                    el.style.height = 'auto';
+                    el.style.height = `${el.scrollHeight}px`;
+                  } else {
+                    el.style.height = 'auto';
+                  }
                 }}
+                onFocus={() => setFocusedItemId(item.id)}
+                onBlur={() => setFocusedItemId(null)}
               />
             </div>
           ))}
