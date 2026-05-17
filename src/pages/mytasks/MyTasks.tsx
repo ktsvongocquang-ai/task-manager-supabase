@@ -3,7 +3,7 @@ import {
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, Mic, MicOff, Sparkles, Loader2,
   Sun, Moon, Coffee, Star, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, GripVertical, MoreVertical,
+  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, ChevronDown, GripVertical, MoreVertical,
   Globe
 } from 'lucide-react';
 import { NewsDashboard } from '../news/NewsDashboard';
@@ -120,7 +120,15 @@ const NoteCard = ({
   const completedItems = note.items.filter(i => i.isCompleted);
   const [showCompleted, setShowCompleted] = useState(false);
   const [newlyAddedId, setNewlyAddedId] = useState<string | null>(null);
-  const [focusedItemId, setFocusedItemId] = useState<string | null>(null);
+  const [expandedItemIds, setExpandedItemIds] = useState<Set<string>>(new Set());
+
+  const toggleItemExpand = (itemId: string) => {
+    setExpandedItemIds(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId); else next.add(itemId);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (newlyAddedId) {
@@ -175,45 +183,58 @@ const NoteCard = ({
 
       <div className="px-4 pb-4 flex-1">
         <div className="space-y-2">
-          {activeItems.map(item => (
-            <div key={item.id} className="flex items-start gap-2 group/item">
-              <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600">
-                <Square className="w-4 h-4" />
-              </button>
-              <textarea
-                id={`note-item-${item.id}`}
-                value={item.text}
-                onChange={(e) => {
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${e.target.scrollHeight}px`;
-                  updateNoteItem(note.id, item.id, e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    addNoteItem(note.id).then(id => {
+          {activeItems.map(item => {
+            const isExpanded = expandedItemIds.has(item.id);
+            return (
+            <div key={item.id} className="group/item">
+              <div className="flex items-start gap-2">
+                <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-400 hover:text-gray-600 shrink-0">
+                  <Square className="w-4 h-4" />
+                </button>
+                <textarea
+                  id={`note-item-${item.id}`}
+                  value={item.text}
+                  onChange={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                    updateNoteItem(note.id, item.id, e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      addNoteItem(note.id).then(id => {
                         if (id) setNewlyAddedId(id);
-                    });
-                  }
-                }}
-                rows={1}
-                placeholder="Mục danh sách..."
-                className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm resize-none overflow-hidden leading-snug outline-none py-1"
-                style={{ minHeight: '24px', maxHeight: focusedItemId === item.id ? 'none' : '44px', overflow: 'hidden' }}
-                ref={(el) => {
-                  if (!el) return;
-                  if (focusedItemId === item.id) {
-                    el.style.height = 'auto';
-                    el.style.height = `${el.scrollHeight}px`;
-                  } else {
-                    el.style.height = 'auto';
-                  }
-                }}
-                onFocus={() => setFocusedItemId(item.id)}
-                onBlur={() => setFocusedItemId(null)}
-              />
+                      });
+                    }
+                  }}
+                  onFocus={() => {
+                    if (!expandedItemIds.has(item.id)) toggleItemExpand(item.id);
+                  }}
+                  rows={1}
+                  placeholder="Mục danh sách..."
+                  className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm resize-none overflow-hidden leading-snug outline-none py-1 min-w-0"
+                  style={{ minHeight: '24px', maxHeight: isExpanded ? 'none' : '44px', overflow: 'hidden' }}
+                  ref={(el) => {
+                    if (!el) return;
+                    if (isExpanded) {
+                      el.style.height = 'auto';
+                      el.style.height = `${el.scrollHeight}px`;
+                    } else {
+                      el.style.height = 'auto';
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => toggleItemExpand(item.id)}
+                  className="mt-1 shrink-0 text-gray-300 hover:text-gray-500 transition-colors"
+                  title={isExpanded ? 'Thu gọn' : 'Mở rộng'}
+                >
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             </div>
-          ))}
+            );
+          })}
           <div className="flex items-center gap-2 pt-2">
             <button onClick={() => addNoteItem(note.id)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
               <Plus className="w-4 h-4" /> Thêm mục
