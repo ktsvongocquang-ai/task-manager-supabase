@@ -4,12 +4,12 @@ import { supabase } from './supabase';
 
 export interface TrainingModule {
   id: string;
-  module_number: number;
+  slug: string;
   title: string;
   description: string | null;
   icon: string | null;
   color: string | null;
-  order_index: number | null;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -17,10 +17,13 @@ export interface TrainingModule {
 export interface Section {
   id: string;
   module_id: string;
-  section_number: string;
+  slug: string | null;
+  number: string;
   title: string;
+  description: string | null;
+  icon: string | null;
   content: string | null;
-  order_index: number | null;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
   subsections?: Subsection[];
@@ -29,11 +32,12 @@ export interface Section {
 export interface Subsection {
   id: string;
   section_id: string;
-  title: string;
+  slug: string | null;
+  heading: string;
   content: string | null;
-  content_type: 'text' | 'list' | 'table' | 'code' | 'mistakes';
+  content_type: 'text' | 'items' | 'table' | 'mistakes';
   metadata: Record<string, unknown> | null;
-  order_index: number | null;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,15 +45,14 @@ export interface Subsection {
 export interface Workflow {
   id: string;
   module_id: string;
-  workflow_number: number;
+  slug: string | null;
+  number: string;
   title: string;
   description: string | null;
   icon: string | null;
-  owner: string | null;
-  duration: string | null;
   lead_quote: string | null;
   checklist: string[] | null;
-  order_index: number | null;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
   steps?: WorkflowStep[];
@@ -58,23 +61,11 @@ export interface Workflow {
 export interface WorkflowStep {
   id: string;
   workflow_id: string;
-  step_number: number;
   phase: string;
   owner: string | null;
   actions: string[] | null;
-  order_index: number | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface LearningResource {
-  id: string;
-  module_id: string | null;
-  section_id: string | null;
-  title: string;
-  resource_type: string | null;
-  url: string | null;
-  description: string | null;
+  metadata: Record<string, unknown> | null;
+  sort_order: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -82,13 +73,13 @@ export interface LearningResource {
 // ─── FETCH FUNCTIONS ─────────────────────────────────────────
 
 /**
- * Get all training modules ordered by order_index
+ * Get all training modules ordered by sort_order
  */
 export async function fetchModules(): Promise<TrainingModule[]> {
   const { data, error } = await supabase
     .from('training_modules')
     .select('*')
-    .order('order_index', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) {
     console.error('Error fetching training modules:', error);
@@ -102,10 +93,10 @@ export async function fetchModules(): Promise<TrainingModule[]> {
  */
 export async function fetchSectionsForModule(moduleId: string): Promise<Section[]> {
   const { data: sections, error: sError } = await supabase
-    .from('sections')
+    .from('training_sections')
     .select('*')
     .eq('module_id', moduleId)
-    .order('order_index', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (sError) {
     console.error('Error fetching sections:', sError);
@@ -116,10 +107,10 @@ export async function fetchSectionsForModule(moduleId: string): Promise<Section[
   // Fetch all subsections for these sections in one query
   const sectionIds = sections.map(s => s.id);
   const { data: allSubsections, error: subError } = await supabase
-    .from('subsections')
+    .from('training_subsections')
     .select('*')
     .in('section_id', sectionIds)
-    .order('order_index', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (subError) {
     console.error('Error fetching subsections:', subError);
@@ -140,40 +131,14 @@ export async function fetchSectionsForModule(moduleId: string): Promise<Section[
 }
 
 /**
- * Get a single section with its subsections
- */
-export async function fetchSectionWithSubsections(sectionId: string): Promise<Section | null> {
-  const { data: section, error: sError } = await supabase
-    .from('sections')
-    .select('*')
-    .eq('id', sectionId)
-    .single();
-
-  if (sError || !section) {
-    console.error('Error fetching section:', sError);
-    return null;
-  }
-
-  const { data: subsections, error: subError } = await supabase
-    .from('subsections')
-    .select('*')
-    .eq('section_id', sectionId)
-    .order('order_index', { ascending: true });
-
-  if (subError) console.error('Error fetching subsections:', subError);
-
-  return { ...section, subsections: subsections || [] };
-}
-
-/**
  * Get all workflows for a given module
  */
 export async function fetchWorkflows(moduleId: string): Promise<Workflow[]> {
   const { data, error } = await supabase
-    .from('workflows')
+    .from('training_workflows')
     .select('*')
     .eq('module_id', moduleId)
-    .order('order_index', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (error) {
     console.error('Error fetching workflows:', error);
@@ -187,7 +152,7 @@ export async function fetchWorkflows(moduleId: string): Promise<Workflow[]> {
  */
 export async function fetchWorkflowWithSteps(workflowId: string): Promise<Workflow | null> {
   const { data: workflow, error: wError } = await supabase
-    .from('workflows')
+    .from('training_workflows')
     .select('*')
     .eq('id', workflowId)
     .single();
@@ -198,10 +163,10 @@ export async function fetchWorkflowWithSteps(workflowId: string): Promise<Workfl
   }
 
   const { data: steps, error: stepsError } = await supabase
-    .from('workflow_steps')
+    .from('training_workflow_steps')
     .select('*')
     .eq('workflow_id', workflowId)
-    .order('step_number', { ascending: true });
+    .order('sort_order', { ascending: true });
 
   if (stepsError) console.error('Error fetching workflow steps:', stepsError);
 
@@ -212,8 +177,8 @@ export async function fetchWorkflowWithSteps(workflowId: string): Promise<Workfl
  * Search across sections and subsections
  */
 export async function searchTrainingContent(query: string): Promise<{
-  sections: Pick<Section, 'id' | 'module_id' | 'section_number' | 'title'>[];
-  subsections: Pick<Subsection, 'id' | 'section_id' | 'title'>[];
+  sections: Pick<Section, 'id' | 'module_id' | 'number' | 'title'>[];
+  subsections: Pick<Subsection, 'id' | 'section_id' | 'heading'>[];
 }> {
   if (!query.trim()) return { sections: [], subsections: [] };
 
@@ -221,13 +186,13 @@ export async function searchTrainingContent(query: string): Promise<{
 
   const [sectionsRes, subsectionsRes] = await Promise.all([
     supabase
-      .from('sections')
-      .select('id, module_id, section_number, title')
+      .from('training_sections')
+      .select('id, module_id, number, title')
       .ilike('title', searchTerm),
     supabase
-      .from('subsections')
-      .select('id, section_id, title')
-      .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`),
+      .from('training_subsections')
+      .select('id, section_id, heading')
+      .or(`heading.ilike.${searchTerm},content.ilike.${searchTerm}`),
   ]);
 
   return {

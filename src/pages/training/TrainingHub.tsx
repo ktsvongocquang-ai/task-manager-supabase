@@ -40,33 +40,24 @@ const getIcon = (name: string | null) => ICON_MAP[name || ""] || BookOpen;
 // These are used when Supabase tables don't exist yet
 
 const FALLBACK_MODULES: TrainingModule[] = [
-  { id: "m1", module_number: 1, title: "Foundation", description: "Nền tảng DQH — Vision, Mission, Values, Brand DNA", icon: "BookOpen", color: "#7C3AED", order_index: 1, created_at: "", updated_at: "" },
-  { id: "m2", module_number: 2, title: "Design Knowledge", description: "Kiến thức thiết kế — Quiet Luxury, Materials, Styles", icon: "Layers", color: "#059669", order_index: 2, created_at: "", updated_at: "" },
-  { id: "m3", module_number: 3, title: "Workflow Execution", description: "Quy trình thực chiến — 9 workflows chi tiết", icon: "Zap", color: "#D97706", order_index: 3, created_at: "", updated_at: "" },
-  { id: "m4", module_number: 4, title: "Technical Infrastructure", description: "Kỹ thuật hạ tầng — MEP, Construction, As-Built", icon: "Settings", color: "#6B7280", order_index: 4, created_at: "", updated_at: "" },
-  { id: "m5", module_number: 5, title: "Estimation Tool", description: "Công cụ dự toán — Rates, Calculations", icon: "Calculator", color: "#0891B2", order_index: 5, created_at: "", updated_at: "" },
-  { id: "m6", module_number: 6, title: "Sales & Marketing", description: "Bộ chuẩn marketing — Scripts, Messaging", icon: "Megaphone", color: "#DC2626", order_index: 6, created_at: "", updated_at: "" },
+  { id: "m1", slug: "foundation", title: "Foundation", description: "Nền tảng DQH — Vision, Mission, Values, Brand DNA", icon: "BookOpen", color: "#7C3AED", sort_order: 1, created_at: "", updated_at: "" },
+  { id: "m2", slug: "design-knowledge", title: "Design Knowledge", description: "Kiến thức thiết kế — Quiet Luxury, Materials, Styles", icon: "Layers", color: "#059669", sort_order: 2, created_at: "", updated_at: "" },
+  { id: "m3", slug: "workflow", title: "Workflow Execution", description: "Quy trình thực chiến — 9 workflows chi tiết", icon: "Zap", color: "#D97706", sort_order: 3, created_at: "", updated_at: "" },
+  { id: "m4", slug: "tools-templates", title: "Technical Infrastructure", description: "Kỹ thuật hạ tầng — MEP, Construction, As-Built", icon: "Settings", color: "#6B7280", sort_order: 4, created_at: "", updated_at: "" },
+  { id: "m5", slug: "estimation", title: "Estimation Tool", description: "Công cụ dự toán — Rates, Calculations", icon: "Calculator", color: "#0891B2", sort_order: 5, created_at: "", updated_at: "" },
+  { id: "m6", slug: "sales-marketing", title: "Sales & Marketing", description: "Bộ chuẩn marketing — Scripts, Messaging", icon: "Megaphone", color: "#DC2626", sort_order: 6, created_at: "", updated_at: "" },
 ];
 
 const FALLBACK_DESIGN_SECTIONS: Section[] = [
-  { id: "fs1", module_id: "m2", section_number: "2.1", title: "Triết lý thiết kế DQH", content: "Quiet Luxury không phải là sự thiếu vắng — đó là sự hiện diện được kiểm soát.", order_index: 1, created_at: "", updated_at: "", subsections: [] },
-  { id: "fs2", module_id: "m2", section_number: "2.2", title: "Kiến thức nền", content: "Kích thước chuẩn không phải để giới hạn sáng tạo — đó là sàn an toàn cho mọi quyết định.", order_index: 2, created_at: "", updated_at: "", subsections: [] },
-  { id: "fs3", module_id: "m2", section_number: "2.3", title: "Style Library", content: "Mỗi style có DNA riêng. Hiểu sâu một style trước khi pha trộn.", order_index: 3, created_at: "", updated_at: "", subsections: [] },
-  { id: "fs4", module_id: "m2", section_number: "2.4", title: "Case Study nội bộ", content: "Mỗi dự án là một bài học. Đây là thư viện DQH dùng để dạy lẫn nhau.", order_index: 4, created_at: "", updated_at: "", subsections: [] },
-  { id: "fs5", module_id: "m2", section_number: "2.5", title: "Common Mistakes", content: "Lỗi sai không phải để xấu hổ — để cả team không lặp lại.", order_index: 5, created_at: "", updated_at: "", subsections: [] },
+  { id: "fs1", module_id: "m2", slug: "philosophy", number: "2.1", title: "Triết lý thiết kế DQH", description: null, icon: "Sparkles", content: "Quiet Luxury không phải là sự thiếu vắng — đó là sự hiện diện được kiểm soát.", sort_order: 1, created_at: "", updated_at: "", subsections: [] },
+  { id: "fs2", module_id: "m2", slug: "fundamentals", number: "2.2", title: "Kiến thức nền", description: null, icon: "Ruler", content: "Kích thước chuẩn không phải để giới hạn sáng tạo — đó là sàn an toàn cho mọi quyết định.", sort_order: 2, created_at: "", updated_at: "", subsections: [] },
+  { id: "fs3", module_id: "m2", slug: "styles", number: "2.3", title: "Style Library", description: null, icon: "Palette", content: "Mỗi style có DNA riêng. Hiểu sâu một style trước khi pha trộn.", sort_order: 3, created_at: "", updated_at: "", subsections: [] },
+  { id: "fs4", module_id: "m2", slug: "cases", number: "2.4", title: "Case Study nội bộ", description: null, icon: "Layers", content: "Mỗi dự án là một bài học. Đây là thư viện DQH dùng để dạy lẫn nhau.", sort_order: 4, created_at: "", updated_at: "", subsections: [] },
+  { id: "fs5", module_id: "m2", slug: "mistakes", number: "2.5", title: "Common Mistakes", description: null, icon: "TriangleAlert", content: "Lỗi sai không phải để xấu hổ — để cả team không lặp lại.", sort_order: 5, created_at: "", updated_at: "", subsections: [] },
 ];
 
-const FALLBACK_DESIGN_ICONS: Record<string, string> = {
-  "2.1": "Sparkles", "2.2": "Ruler", "2.3": "Palette", "2.4": "Layers", "2.5": "TriangleAlert",
-};
+// Icons now come from section.icon field directly
 
-const FALLBACK_DESIGN_DESCS: Record<string, string> = {
-  "2.1": "5 nguyên tắc Quiet Luxury — tỷ lệ, ánh sáng, vật liệu",
-  "2.2": "Công thái học, kích thước chuẩn (mm), chiều cao trần",
-  "2.3": "Quiet Luxury, Modern Luxury, Indochine — DNA từng style",
-  "2.4": "Dự án đã làm — phân tích hay/dở, bài học",
-  "2.5": "Lỗi sai thường gặp trong TK, Triển khai, Khách hàng",
-};
 
 // ─── HARDCODED DESIGN CONTENT (full, for fallback) ───────────
 
@@ -218,51 +209,51 @@ const FALLBACK_DESIGN_CONTENT: Record<string, { title: string; number: string; l
 // ─── HARDCODED WORKFLOW FALLBACK DATA ────────────────────────
 
 const FALLBACK_WORKFLOWS: Workflow[] = [
-  { id: "w1", module_id: "m3", workflow_number: 1, title: "Gặp khách & Tư vấn", description: "Tiếp khách lần đầu đến ký hợp đồng", icon: "Users", owner: null, duration: null, lead_quote: "Lần gặp đầu tiên quyết định 70% khả năng ký HĐ.", checklist: ["Brochure & bảng giá phân khúc đã in", "3–5 case study chuẩn bị (in hoặc iPad)", "Sample vật liệu signature (gỗ, đá, vải) mang theo", "Intake questionnaire sẵn sàng"], order_index: 1, created_at: "", updated_at: "" },
-  { id: "w2", module_id: "m3", workflow_number: 2, title: "Quy trình thiết kế", description: "Concept → 3D → Bản vẽ kỹ thuật", icon: "Sparkles", owner: null, duration: null, lead_quote: "Mỗi giai đoạn có deliverable cụ thể — không bỏ qua bước nào.", checklist: ["Mỗi giai đoạn có biên bản xác nhận của khách", "Không bắt đầu giai đoạn sau khi chưa duyệt giai đoạn trước", "Mọi thay đổi sau khi duyệt = change order"], order_index: 2, created_at: "", updated_at: "" },
-  { id: "w3", module_id: "m3", workflow_number: 3, title: "Bàn giao TK → TC", description: "Chuyển giao giữa các bộ phận", icon: "RefreshCw", owner: null, duration: null, lead_quote: "Điểm dễ rớt thông tin nhất. Quy trình chặt = ít rework.", checklist: null, order_index: 3, created_at: "", updated_at: "" },
-  { id: "w4", module_id: "m3", workflow_number: 4, title: "Lưu file & Naming", description: "Quy chuẩn đặt tên, version control", icon: "FileText", owner: null, duration: null, lead_quote: "Một file sai tên = 30 phút tìm kiếm của cả team.", checklist: null, order_index: 4, created_at: "", updated_at: "" },
-  { id: "w5", module_id: "m3", workflow_number: 5, title: "Thư viện & Block", description: "CAD blocks, 3D models, material", icon: "Package", owner: null, duration: null, lead_quote: "Thư viện chung tiết kiệm thời gian + đảm bảo nhất quán.", checklist: null, order_index: 5, created_at: "", updated_at: "" },
-  { id: "w6", module_id: "m3", workflow_number: 6, title: "Lưu trữ dự án", description: "Cấu trúc folder chuẩn DQH", icon: "FolderOpen", owner: null, duration: null, lead_quote: "Một cấu trúc folder duy nhất cho mọi dự án — không sáng tạo riêng.", checklist: null, order_index: 6, created_at: "", updated_at: "" },
-  { id: "w7", module_id: "m3", workflow_number: 7, title: "Tiêu chuẩn đầu ra", description: "Deliverable theo từng tier", icon: "ClipboardList", owner: null, duration: null, lead_quote: "Khách trả ngân sách khác nhau — kỳ vọng đầu ra cũng phải khác.", checklist: null, order_index: 7, created_at: "", updated_at: "" },
-  { id: "w8", module_id: "m3", workflow_number: 8, title: "Phát sinh & Thay đổi", description: "Change request, change order", icon: "GitBranch", owner: null, duration: null, lead_quote: "Không có thay đổi miễn phí. Mọi thay đổi đều có giấy tờ — dù 0đ.", checklist: null, order_index: 8, created_at: "", updated_at: "" },
-  { id: "w9", module_id: "m3", workflow_number: 9, title: "Nghiệm thu & Hậu mãi", description: "Bàn giao khách, bảo hành", icon: "CheckCircle2", owner: null, duration: null, lead_quote: "Bàn giao tốt = giới thiệu khách mới. Hậu mãi tốt = thương hiệu bền.", checklist: null, order_index: 9, created_at: "", updated_at: "" },
+  { id: "w1", module_id: "m3", slug: "client-meeting", number: "3.1", title: "Gặp khách & Tư vấn", description: "Tiếp khách lần đầu đến ký hợp đồng", icon: "Users", lead_quote: "Lần gặp đầu tiên quyết định 70% khả năng ký HĐ.", checklist: ["Brochure & bảng giá phân khúc đã in", "3–5 case study chuẩn bị (in hoặc iPad)", "Sample vật liệu signature (gỗ, đá, vải) mang theo", "Intake questionnaire sẵn sàng"], sort_order: 1, created_at: "", updated_at: "" },
+  { id: "w2", module_id: "m3", slug: "design-process", number: "3.2", title: "Quy trình thiết kế", description: "Concept → 3D → Bản vẽ kỹ thuật", icon: "Sparkles", lead_quote: "Mỗi giai đoạn có deliverable cụ thể — không bỏ qua bước nào.", checklist: ["Mỗi giai đoạn có biên bản xác nhận của khách", "Không bắt đầu giai đoạn sau khi chưa duyệt giai đoạn trước", "Mọi thay đổi sau khi duyệt = change order"], sort_order: 2, created_at: "", updated_at: "" },
+  { id: "w3", module_id: "m3", slug: "handover", number: "3.3", title: "Bàn giao TK → TC", description: "Chuyển giao giữa các bộ phận", icon: "RefreshCw", lead_quote: "Điểm dễ rớt thông tin nhất. Quy trình chặt = ít rework.", checklist: null, sort_order: 3, created_at: "", updated_at: "" },
+  { id: "w4", module_id: "m3", slug: "file-naming", number: "3.4", title: "Lưu file & Naming", description: "Quy chuẩn đặt tên, version control", icon: "FileText", lead_quote: "Một file sai tên = 30 phút tìm kiếm của cả team.", checklist: null, sort_order: 4, created_at: "", updated_at: "" },
+  { id: "w5", module_id: "m3", slug: "library", number: "3.5", title: "Thư viện & Block", description: "CAD blocks, 3D models, material", icon: "Package", lead_quote: "Thư viện chung tiết kiệm thời gian + đảm bảo nhất quán.", checklist: null, sort_order: 5, created_at: "", updated_at: "" },
+  { id: "w6", module_id: "m3", slug: "storage", number: "3.6", title: "Lưu trữ dự án", description: "Cấu trúc folder chuẩn DQH", icon: "FolderOpen", lead_quote: "Một cấu trúc folder duy nhất cho mọi dự án — không sáng tạo riêng.", checklist: null, sort_order: 6, created_at: "", updated_at: "" },
+  { id: "w7", module_id: "m3", slug: "standards", number: "3.7", title: "Tiêu chuẩn đầu ra", description: "Deliverable theo từng tier", icon: "ClipboardList", lead_quote: "Khách trả ngân sách khác nhau — kỳ vọng đầu ra cũng phải khác.", checklist: null, sort_order: 7, created_at: "", updated_at: "" },
+  { id: "w8", module_id: "m3", slug: "change-order", number: "3.8", title: "Phát sinh & Thay đổi", description: "Change request, change order", icon: "GitBranch", lead_quote: "Không có thay đổi miễn phí. Mọi thay đổi đều có giấy tờ — dù 0đ.", checklist: null, sort_order: 8, created_at: "", updated_at: "" },
+  { id: "w9", module_id: "m3", slug: "handover-client", number: "3.9", title: "Nghiệm thu & Hậu mãi", description: "Bàn giao khách, bảo hành", icon: "CheckCircle2", lead_quote: "Bàn giao tốt = giới thiệu khách mới. Hậu mãi tốt = thương hiệu bền.", checklist: null, sort_order: 9, created_at: "", updated_at: "" },
 ];
 
 const FALLBACK_WORKFLOW_STEPS: Record<string, WorkflowStep[]> = {
   w1: [
-    { id: "ws1", workflow_id: "w1", step_number: 1, phase: "Trước cuộc gặp", owner: "Sales / Leader", actions: ["Nghiên cứu khách: FB, Zalo, profile — nghề nghiệp, gia đình, taste", "Chuẩn bị 3–5 case study DQH match taste khách", "In brochure + bảng giá phân khúc", "Xác nhận thời gian, địa điểm trước 1 ngày"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws2", workflow_id: "w1", step_number: 2, phase: "Tại cuộc gặp (60–90 phút)", owner: "Sales + Designer Lead", actions: ["10p: Phá băng, hiểu khách (gia đình, lối sống, sở thích)", "20p: Khách trình bày nhu cầu, mặt bằng, mong muốn", "20p: DQH trình bày triết lý, case study tương đồng", "20p: Thảo luận sơ bộ budget, timeline, scope", "10p: Chốt next step, lịch khảo sát"], order_index: 2, created_at: "", updated_at: "" },
-    { id: "ws3", workflow_id: "w1", step_number: 3, phase: "Sau cuộc gặp (trong 24h)", owner: "Sales", actions: ["Gửi follow-up qua Zalo cảm ơn", "Gửi proposal sơ bộ nếu đủ thông tin", "Tạo client folder trên Drive, log vào CRM", "Báo cáo Leader: khả năng chốt, hướng tiếp cận"], order_index: 3, created_at: "", updated_at: "" },
+    { id: "ws1", workflow_id: "w1", phase: "Trước cuộc gặp", owner: "Sales / Leader", actions: ["Nghiên cứu khách: FB, Zalo, profile — nghề nghiệp, gia đình, taste", "Chuẩn bị 3–5 case study DQH match taste khách", "In brochure + bảng giá phân khúc", "Xác nhận thời gian, địa điểm trước 1 ngày"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws2", workflow_id: "w1", phase: "Tại cuộc gặp (60–90 phút)", owner: "Sales + Designer Lead", actions: ["10p: Phá băng, hiểu khách (gia đình, lối sống, sở thích)", "20p: Khách trình bày nhu cầu, mặt bằng, mong muốn", "20p: DQH trình bày triết lý, case study tương đồng", "20p: Thảo luận sơ bộ budget, timeline, scope", "10p: Chốt next step, lịch khảo sát"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws3", workflow_id: "w1", phase: "Sau cuộc gặp (trong 24h)", owner: "Sales", actions: ["Gửi follow-up qua Zalo cảm ơn", "Gửi proposal sơ bộ nếu đủ thông tin", "Tạo client folder trên Drive, log vào CRM", "Báo cáo Leader: khả năng chốt, hướng tiếp cận"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w2: [
-    { id: "ws4", workflow_id: "w2", step_number: 1, phase: "Concept (5–7 ngày)", owner: "Lead Designer", actions: ["Mood board + concept statement", "Phương án bố cục 2D (2–3 option)", "Material direction sơ bộ", "Trình khách duyệt concept"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws5", workflow_id: "w2", step_number: 2, phase: "3D Visualization (7–10 ngày)", owner: "Designer + Diễn họa", actions: ["Phát triển 3D theo concept đã duyệt", "Render 3–5 góc chính mỗi không gian", "Material schedule sơ bộ", "Trình khách duyệt 3D"], order_index: 2, created_at: "", updated_at: "" },
-    { id: "ws6", workflow_id: "w2", step_number: 3, phase: "Technical Drawing (10–14 ngày)", owner: "Designer + Triển khai", actions: ["Mặt bằng bố trí, mặt bằng cao độ", "Mặt đứng từng mặt tường", "Chi tiết tủ kệ, đồ rời", "Bảng vật liệu hoàn thiện", "Phối hợp cơ điện"], order_index: 3, created_at: "", updated_at: "" },
-    { id: "ws7", workflow_id: "w2", step_number: 4, phase: "Bàn giao thi công", owner: "Triển khai + Leader", actions: ["Full set bản vẽ in & file", "Material schedule final", "Họp brief đội thi công", "Setup kênh báo cáo (Zalo + App QLDA)"], order_index: 4, created_at: "", updated_at: "" },
+    { id: "ws4", workflow_id: "w2", phase: "Concept (5–7 ngày)", owner: "Lead Designer", actions: ["Mood board + concept statement", "Phương án bố cục 2D (2–3 option)", "Material direction sơ bộ", "Trình khách duyệt concept"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws5", workflow_id: "w2", phase: "3D Visualization (7–10 ngày)", owner: "Designer + Diễn họa", actions: ["Phát triển 3D theo concept đã duyệt", "Render 3–5 góc chính mỗi không gian", "Material schedule sơ bộ", "Trình khách duyệt 3D"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws6", workflow_id: "w2", phase: "Technical Drawing (10–14 ngày)", owner: "Designer + Triển khai", actions: ["Mặt bằng bố trí, mặt bằng cao độ", "Mặt đứng từng mặt tường", "Chi tiết tủ kệ, đồ rời", "Bảng vật liệu hoàn thiện", "Phối hợp cơ điện"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws7", workflow_id: "w2", phase: "Bàn giao thi công", owner: "Triển khai + Leader", actions: ["Full set bản vẽ in & file", "Material schedule final", "Họp brief đội thi công", "Setup kênh báo cáo (Zalo + App QLDA)"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w3: [
-    { id: "ws8", workflow_id: "w3", step_number: 1, phase: "TK → Triển khai", owner: "Designer → Drafter", actions: ["Họp bàn giao 60p: walkthrough toàn bộ file", "Designer giải thích ý đồ, key details", "Drafter list điểm chưa rõ, deadline phản hồi 2 ngày", "Designer ký xác nhận handover sheet"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws9", workflow_id: "w3", step_number: 2, phase: "Triển khai → Thi công", owner: "Drafter + Leader → Site team", actions: ["Họp brief 90p: walkthrough full set", "Material schedule + nhà cung cấp", "Timeline thi công chi tiết", "Kênh báo cáo: Zalo group + App QLDA", "Designer/Drafter cam kết on-call"], order_index: 2, created_at: "", updated_at: "" },
+    { id: "ws8", workflow_id: "w3", phase: "TK → Triển khai", owner: "Designer → Drafter", actions: ["Họp bàn giao 60p: walkthrough toàn bộ file", "Designer giải thích ý đồ, key details", "Drafter list điểm chưa rõ, deadline phản hồi 2 ngày", "Designer ký xác nhận handover sheet"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws9", workflow_id: "w3", phase: "Triển khai → Thi công", owner: "Drafter + Leader → Site team", actions: ["Họp brief 90p: walkthrough full set", "Material schedule + nhà cung cấp", "Timeline thi công chi tiết", "Kênh báo cáo: Zalo group + App QLDA", "Designer/Drafter cam kết on-call"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w4: [
-    { id: "ws10", workflow_id: "w4", step_number: 1, phase: "Format tên file", owner: "Toàn team", actions: ["Format: [DỰ_ÁN]_[HẠNG_MỤC]_[VERSION]_[NGÀY]_[INITIALS]", "VD: VEROSA_F11_MB-T1_V03_20260518_QH.dwg", "Hạng mục: MB (mặt bằng), MD (mặt đứng), CT (chi tiết), 3D, REND", "Version: V01, V02... mỗi lần khách duyệt +1"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws11", workflow_id: "w4", step_number: 2, phase: "Quy tắc bất di bất dịch", owner: "Toàn team", actions: ["Không dùng tiếng Việt có dấu trong tên file", "Không khoảng trắng — dùng dấu _ hoặc -", "Không 'FINAL', 'FINAL_FINAL' — dùng V03_APPROVED", "File khách duyệt: thêm hậu tố _APPROVED"], order_index: 2, created_at: "", updated_at: "" },
+    { id: "ws10", workflow_id: "w4", phase: "Format tên file", owner: "Toàn team", actions: ["Format: [DỰ_ÁN]_[HẠNG_MỤC]_[VERSION]_[NGÀY]_[INITIALS]", "VD: VEROSA_F11_MB-T1_V03_20260518_QH.dwg", "Hạng mục: MB (mặt bằng), MD (mặt đứng), CT (chi tiết), 3D, REND", "Version: V01, V02... mỗi lần khách duyệt +1"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws11", workflow_id: "w4", phase: "Quy tắc bất di bất dịch", owner: "Toàn team", actions: ["Không dùng tiếng Việt có dấu trong tên file", "Không khoảng trắng — dùng dấu _ hoặc -", "Không 'FINAL', 'FINAL_FINAL' — dùng V03_APPROVED", "File khách duyệt: thêm hậu tố _APPROVED"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w5: [
-    { id: "ws12", workflow_id: "w5", step_number: 1, phase: "CAD Block Library", owner: "Lead + Drafter", actions: ["Đồ nội thất chuẩn theo kích thước công thái học", "Layer theo chuẩn DQH", "Lưu tại Drive/DQH_LIBRARY/CAD_BLOCKS/"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws13", workflow_id: "w5", step_number: 2, phase: "3D Model Library", owner: "Lead + Diễn họa", actions: ["Model FF&E phân loại theo style", "Lưu tại Drive/DQH_LIBRARY/3D_MODELS/"], order_index: 2, created_at: "", updated_at: "" },
-    { id: "ws14", workflow_id: "w5", step_number: 3, phase: "Material Sample (vật lý)", owner: "Office Manager", actions: ["Tủ mẫu tại văn phòng, code trùng với file", "Update khi có vật liệu mới"], order_index: 3, created_at: "", updated_at: "" },
+    { id: "ws12", workflow_id: "w5", phase: "CAD Block Library", owner: "Lead + Drafter", actions: ["Đồ nội thất chuẩn theo kích thước công thái học", "Layer theo chuẩn DQH", "Lưu tại Drive/DQH_LIBRARY/CAD_BLOCKS/"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws13", workflow_id: "w5", phase: "3D Model Library", owner: "Lead + Diễn họa", actions: ["Model FF&E phân loại theo style", "Lưu tại Drive/DQH_LIBRARY/3D_MODELS/"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws14", workflow_id: "w5", phase: "Material Sample (vật lý)", owner: "Office Manager", actions: ["Tủ mẫu tại văn phòng, code trùng với file", "Update khi có vật liệu mới"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w6: [], // Special: tree view (handled separately)
   w7: [], // Special: tiers (handled separately)
   w8: [
-    { id: "ws15", workflow_id: "w8", step_number: 1, phase: "Khi khách yêu cầu thay đổi", owner: "Sales / PM", actions: ["Tiếp nhận qua văn bản (Zalo, email — KHÔNG miệng)", "Đánh giá impact: chi phí, thời gian, kỹ thuật", "Lập Change Order Sheet trong 24–48h", "Khách ký xác nhận TRƯỚC khi thực hiện"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws16", workflow_id: "w8", step_number: 2, phase: "Change Order Sheet gồm", owner: "—", actions: ["Mô tả thay đổi (trước & sau)", "Chi phí phát sinh (+/– VND)", "Thay đổi timeline (+/– ngày)", "Tác động đến hạng mục khác", "Chữ ký khách + DQH"], order_index: 2, created_at: "", updated_at: "" },
+    { id: "ws15", workflow_id: "w8", phase: "Khi khách yêu cầu thay đổi", owner: "Sales / PM", actions: ["Tiếp nhận qua văn bản (Zalo, email — KHÔNG miệng)", "Đánh giá impact: chi phí, thời gian, kỹ thuật", "Lập Change Order Sheet trong 24–48h", "Khách ký xác nhận TRƯỚC khi thực hiện"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws16", workflow_id: "w8", phase: "Change Order Sheet gồm", owner: "—", actions: ["Mô tả thay đổi (trước & sau)", "Chi phí phát sinh (+/– VND)", "Thay đổi timeline (+/– ngày)", "Tác động đến hạng mục khác", "Chữ ký khách + DQH"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
   w9: [
-    { id: "ws17", workflow_id: "w9", step_number: 1, phase: "Nghiệm thu", owner: "PM + Leader", actions: ["Punch list trước nghiệm thu chính thức", "Vệ sinh tổng thể, styling đồ trang trí", "Bàn giao key + tài liệu (bảo hành, hướng dẫn)", "Biên bản nghiệm thu ký xác nhận"], order_index: 1, created_at: "", updated_at: "" },
-    { id: "ws18", workflow_id: "w9", step_number: 2, phase: "Hậu mãi", owner: "PM", actions: ["Tuần 1: gọi check feedback ban đầu", "Tháng 1: visit check chất lượng", "Tháng 6: visit + maintenance miễn phí", "Năm 1: thư cảm ơn + lời mời giới thiệu"], order_index: 2, created_at: "", updated_at: "" },
+    { id: "ws17", workflow_id: "w9", phase: "Nghiệm thu", owner: "PM + Leader", actions: ["Punch list trước nghiệm thu chính thức", "Vệ sinh tổng thể, styling đồ trang trí", "Bàn giao key + tài liệu (bảo hành, hướng dẫn)", "Biên bản nghiệm thu ký xác nhận"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
+    { id: "ws18", workflow_id: "w9", phase: "Hậu mãi", owner: "PM", actions: ["Tuần 1: gọi check feedback ban đầu", "Tháng 1: visit check chất lượng", "Tháng 6: visit + maintenance miễn phí", "Năm 1: thư cảm ơn + lời mời giới thiệu"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
 };
 
@@ -487,9 +478,8 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {sections.map((s) => {
-        const iconName = useDB ? null : FALLBACK_DESIGN_ICONS[s.section_number];
-        const Icon = iconName ? getIcon(iconName) : BookOpen;
-        const desc = useDB ? (s.content?.substring(0, 80) || "") : (FALLBACK_DESIGN_DESCS[s.section_number] || "");
+        const Icon = getIcon(s.icon);
+        const desc = s.description || s.content?.substring(0, 80) || "";
         return (
           <button
             key={s.id}
@@ -500,7 +490,7 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
               <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
                 <Icon size={18} className="text-purple-600" />
               </div>
-              <span className="text-xs text-gray-400 font-mono">{s.section_number}</span>
+              <span className="text-xs text-gray-400 font-mono">{s.number}</span>
             </div>
             <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{s.title}</h3>
             <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
@@ -525,7 +515,7 @@ const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: bo
       setLoading(false);
     } else if (!useDB) {
       // Fallback: use hardcoded content
-      const content = FALLBACK_DESIGN_CONTENT[section.section_number];
+      const content = FALLBACK_DESIGN_CONTENT[section.number];
       if (content) {
         setSubsections(content.blocks);
       }
@@ -535,7 +525,7 @@ const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: bo
     }
   }, [section, useDB]);
 
-  const lead = useDB ? section.content : FALLBACK_DESIGN_CONTENT[section.section_number]?.lead;
+  const lead = useDB ? section.content : FALLBACK_DESIGN_CONTENT[section.number]?.lead;
 
   if (loading) return <LoadingSpinner />;
 
@@ -543,7 +533,7 @@ const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: bo
     <div>
       <BackBtn onClick={onBack} />
       <div className="mb-6 flex items-center gap-3">
-        <SectionBadge label={section.section_number} />
+        <SectionBadge label={section.number} />
         <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
       </div>
       {lead && (
@@ -615,7 +605,7 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-gray-900 text-sm group-hover:text-purple-700">{w.title}</span>
-                  <span className="text-[10px] font-mono text-gray-400">3.{w.workflow_number}</span>
+                  <span className="text-[10px] font-mono text-gray-400">{w.number}</span>
                 </div>
                 <p className="text-xs text-gray-500 mt-0.5">{w.description}</p>
               </div>
@@ -655,14 +645,14 @@ const WorkflowDetail = ({ workflowId, useDB, onBack }: { workflowId: string; use
   if (loading) return <LoadingSpinner />;
   if (!workflow) return <EmptyState text="Không tìm thấy workflow." />;
 
-  const isStorage = workflow.workflow_number === 6;
-  const isStandards = workflow.workflow_number === 7;
+  const isStorage = workflow.number === '3.6';
+  const isStandards = workflow.number === '3.7';
 
   return (
     <div>
       <BackBtn onClick={onBack} label="Workflow" />
       <div className="mb-6 flex items-center gap-3">
-        <SectionBadge label={`3.${workflow.workflow_number}`} />
+        <SectionBadge label={workflow.number} />
         <h2 className="text-xl font-bold text-gray-900">{workflow.title}</h2>
       </div>
       {workflow.lead_quote && (
@@ -944,7 +934,7 @@ const EstimationModule = () => {
 
 export default function TrainingHub() {
   const [modules, setModules] = useState<TrainingModule[]>([]);
-  const [activeModuleNum, setActiveModuleNum] = useState<number>(2); // Default to Design Knowledge
+  const [activeModuleSlug, setActiveModuleSlug] = useState<string>("design-knowledge");
   const [useDB, setUseDB] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -966,16 +956,16 @@ export default function TrainingHub() {
     });
   }, []);
 
-  const activeModule = modules.find(m => m.module_number === activeModuleNum);
+  const activeModule = modules.find(m => m.slug === activeModuleSlug);
 
   const renderModuleContent = () => {
     if (!activeModule) return <EmptyState />;
 
-    // Module 5: Estimation Tool (always client-side)
-    if (activeModule.module_number === 5) return <EstimationModule />;
+    // Estimation: always client-side
+    if (activeModule.slug === 'estimation') return <EstimationModule />;
 
-    // Module 3: Workflow
-    if (activeModule.module_number === 3) return <WorkflowModule moduleId={activeModule.id} useDB={useDB} />;
+    // Workflow module
+    if (activeModule.slug === 'workflow') return <WorkflowModule moduleId={activeModule.id} useDB={useDB} />;
 
     // Modules 1, 2, 4, 6: Section-based content
     return <SectionModule moduleId={activeModule.id} moduleColor={activeModule.color || "#7C3AED"} useDB={useDB} />;
@@ -1013,10 +1003,10 @@ export default function TrainingHub() {
             const Icon = getIcon(m.icon);
             return (
               <button
-                key={m.module_number}
-                onClick={() => setActiveModuleNum(m.module_number)}
+                key={m.slug}
+                onClick={() => setActiveModuleSlug(m.slug)}
                 className={`inline-flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  activeModuleNum === m.module_number
+                  activeModuleSlug === m.slug
                     ? "border-purple-600 text-purple-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}

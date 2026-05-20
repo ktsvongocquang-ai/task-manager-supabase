@@ -1,86 +1,88 @@
 -- ============================================================
--- TRAINING HUB — DATABASE SCHEMA
+-- TRAINING HUB — DATABASE SCHEMA (v2)
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
--- TABLE 1: training_modules (6 modules)
+-- TABLE 1: training_modules
 CREATE TABLE IF NOT EXISTS training_modules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  module_number INT UNIQUE NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
   title VARCHAR(255) NOT NULL,
   description TEXT,
   icon VARCHAR(50),
   color VARCHAR(7),
-  order_index INT,
+  sort_order INT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- TABLE 2: sections (subsections within modules)
-CREATE TABLE IF NOT EXISTS sections (
+-- TABLE 2: training_sections (subsections within modules)
+CREATE TABLE IF NOT EXISTS training_sections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   module_id UUID NOT NULL REFERENCES training_modules(id) ON DELETE CASCADE,
-  section_number VARCHAR(20) NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  content TEXT,
-  order_index INT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(module_id, section_number)
-);
-
--- TABLE 3: subsections (detailed content blocks)
-CREATE TABLE IF NOT EXISTS subsections (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  section_id UUID NOT NULL REFERENCES sections(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  content TEXT,
-  content_type VARCHAR(50) DEFAULT 'text', -- 'text', 'list', 'table', 'code', 'mistakes'
-  metadata JSONB, -- flexible storage for tables, mistake pairs, etc.
-  order_index INT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- TABLE 4: workflows (for Module 3)
-CREATE TABLE IF NOT EXISTS workflows (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  module_id UUID NOT NULL REFERENCES training_modules(id) ON DELETE CASCADE,
-  workflow_number INT NOT NULL,
+  slug VARCHAR(100),
+  number VARCHAR(20) NOT NULL,
   title VARCHAR(255) NOT NULL,
   description TEXT,
   icon VARCHAR(50),
-  owner VARCHAR(255),
-  duration VARCHAR(50),
-  lead_quote TEXT, -- The italic quote at the top of each workflow detail
-  checklist JSONB, -- Array of checklist strings
-  order_index INT,
+  content TEXT,
+  sort_order INT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(module_id, workflow_number)
+  UNIQUE(module_id, number)
 );
 
--- TABLE 5: workflow_steps
-CREATE TABLE IF NOT EXISTS workflow_steps (
+-- TABLE 3: training_subsections (detailed content blocks)
+CREATE TABLE IF NOT EXISTS training_subsections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
-  step_number INT NOT NULL,
+  section_id UUID NOT NULL REFERENCES training_sections(id) ON DELETE CASCADE,
+  slug VARCHAR(100),
+  heading VARCHAR(255) NOT NULL,
+  content TEXT,
+  content_type VARCHAR(50) DEFAULT 'text', -- 'text', 'items', 'table', 'mistakes'
+  metadata JSONB,
+  sort_order INT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- TABLE 4: training_workflows (for Module 3)
+CREATE TABLE IF NOT EXISTS training_workflows (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  module_id UUID NOT NULL REFERENCES training_modules(id) ON DELETE CASCADE,
+  slug VARCHAR(100),
+  number VARCHAR(20) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  icon VARCHAR(50),
+  lead_quote TEXT,
+  checklist JSONB,
+  sort_order INT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(module_id, number)
+);
+
+-- TABLE 5: training_workflow_steps
+CREATE TABLE IF NOT EXISTS training_workflow_steps (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workflow_id UUID NOT NULL REFERENCES training_workflows(id) ON DELETE CASCADE,
   phase VARCHAR(255) NOT NULL,
   owner VARCHAR(255),
-  actions JSONB, -- Array of action strings
-  order_index INT,
+  actions JSONB,
+  metadata JSONB,
+  sort_order INT,
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(workflow_id, step_number)
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- TABLE 6: learning_resources (optional — for references, links, files)
-CREATE TABLE IF NOT EXISTS learning_resources (
+-- TABLE 6: training_resources (optional — for references, links, files)
+CREATE TABLE IF NOT EXISTS training_resources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   module_id UUID REFERENCES training_modules(id) ON DELETE CASCADE,
-  section_id UUID REFERENCES sections(id) ON DELETE CASCADE,
+  section_id UUID REFERENCES training_sections(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
-  resource_type VARCHAR(50), -- 'pdf', 'video', 'link', 'image'
+  resource_type VARCHAR(50),
   url TEXT,
   description TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
@@ -88,73 +90,45 @@ CREATE TABLE IF NOT EXISTS learning_resources (
 );
 
 -- ============================================================
--- INDEXES for performance
+-- INDEXES
 -- ============================================================
-CREATE INDEX IF NOT EXISTS idx_sections_module_id ON sections(module_id);
-CREATE INDEX IF NOT EXISTS idx_sections_order ON sections(order_index);
-CREATE INDEX IF NOT EXISTS idx_subsections_section_id ON subsections(section_id);
-CREATE INDEX IF NOT EXISTS idx_subsections_order ON subsections(order_index);
-CREATE INDEX IF NOT EXISTS idx_workflows_module_id ON workflows(module_id);
-CREATE INDEX IF NOT EXISTS idx_workflows_order ON workflows(order_index);
-CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow_id ON workflow_steps(workflow_id);
-CREATE INDEX IF NOT EXISTS idx_workflow_steps_order ON workflow_steps(order_index);
-CREATE INDEX IF NOT EXISTS idx_learning_resources_module ON learning_resources(module_id);
-CREATE INDEX IF NOT EXISTS idx_learning_resources_section ON learning_resources(section_id);
+CREATE INDEX IF NOT EXISTS idx_tsections_module ON training_sections(module_id);
+CREATE INDEX IF NOT EXISTS idx_tsections_sort ON training_sections(sort_order);
+CREATE INDEX IF NOT EXISTS idx_tsubsections_section ON training_subsections(section_id);
+CREATE INDEX IF NOT EXISTS idx_tsubsections_sort ON training_subsections(sort_order);
+CREATE INDEX IF NOT EXISTS idx_tworkflows_module ON training_workflows(module_id);
+CREATE INDEX IF NOT EXISTS idx_tworkflows_sort ON training_workflows(sort_order);
+CREATE INDEX IF NOT EXISTS idx_twf_steps_workflow ON training_workflow_steps(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_twf_steps_sort ON training_workflow_steps(sort_order);
+CREATE INDEX IF NOT EXISTS idx_tresources_module ON training_resources(module_id);
+CREATE INDEX IF NOT EXISTS idx_tresources_section ON training_resources(section_id);
 
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================
 ALTER TABLE training_modules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE subsections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workflow_steps ENABLE ROW LEVEL SECURITY;
-ALTER TABLE learning_resources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_sections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_subsections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_workflows ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_workflow_steps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE training_resources ENABLE ROW LEVEL SECURITY;
 
--- Public read for all tables
-CREATE POLICY "public_read_modules" ON training_modules
-  FOR SELECT USING (true);
+-- Public read
+CREATE POLICY "public_read" ON training_modules FOR SELECT USING (true);
+CREATE POLICY "public_read" ON training_sections FOR SELECT USING (true);
+CREATE POLICY "public_read" ON training_subsections FOR SELECT USING (true);
+CREATE POLICY "public_read" ON training_workflows FOR SELECT USING (true);
+CREATE POLICY "public_read" ON training_workflow_steps FOR SELECT USING (true);
+CREATE POLICY "public_read" ON training_resources FOR SELECT USING (true);
 
-CREATE POLICY "public_read_sections" ON sections
-  FOR SELECT USING (true);
-
-CREATE POLICY "public_read_subsections" ON subsections
-  FOR SELECT USING (true);
-
-CREATE POLICY "public_read_workflows" ON workflows
-  FOR SELECT USING (true);
-
-CREATE POLICY "public_read_workflow_steps" ON workflow_steps
-  FOR SELECT USING (true);
-
-CREATE POLICY "public_read_resources" ON learning_resources
-  FOR SELECT USING (true);
-
--- Authenticated write (insert/update/delete) for all tables
-CREATE POLICY "auth_write_modules" ON training_modules
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "auth_write_sections" ON sections
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "auth_write_subsections" ON subsections
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "auth_write_workflows" ON workflows
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "auth_write_workflow_steps" ON workflow_steps
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "auth_write_resources" ON learning_resources
-  FOR ALL USING (auth.role() = 'authenticated')
-  WITH CHECK (auth.role() = 'authenticated');
+-- Authenticated write
+CREATE POLICY "auth_write" ON training_modules FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "auth_write" ON training_sections FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "auth_write" ON training_subsections FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "auth_write" ON training_workflows FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "auth_write" ON training_workflow_steps FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "auth_write" ON training_resources FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================================
--- DONE! Now run seed_training_hub.mjs to populate data.
+-- DONE! Now run: node seed_training_hub.mjs
 -- ============================================================
