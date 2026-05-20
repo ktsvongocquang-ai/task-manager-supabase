@@ -1,0 +1,229 @@
+{
+  "_meta": {
+    "version": "0.1",
+    "description": "Bổ sung tier LUXURY cho chung_cu — load khi user yêu cầu báo giá cao cấp / có spec rõ. Merge ưu tiên file này cho hạng mục trùng.",
+    "currency": "VND",
+    "vat_included": false,
+    "updated": "2026-05-12",
+    "sources": [
+      {"id": "CHI_XUAN",    "type": "chung_cu", "tier": "luxury", "scope": "tron_goi", "file": "DỰ TOÁN NỘI THẤT CHỊ XUÂN-ANH VĨNH INFINITY Q7.pdf", "note": "TTD Designs — căn ~110m2 Infinity Q7. Tổng 1.42 tỷ. An Cường + Vicostone + Hafele + Adream + Edenki"},
+      {"id": "DECOX_BICH",  "type": "chung_cu", "tier": "luxury", "scope": "tron_goi", "file": "Copy BG Decox Anh Ngọc Bích.xlsx", "note": "DQH Designs — Metropole Thủ Thiêm. Tổng 790M (cải tạo tận dụng nhiều). An Cường + Formica + Hafele + Aqara smarthome"}
+    ]
+  },
+
+  "chung_cu_luxury_addon": {
+
+    "vat_lieu_da_op_lat": {
+      "da_vicostone_nhom_a_2cm":       {"don_vi": "md", "scope": "VT", "luxury": 4500000, "source": "CHI_XUAN", "ghi_chu": "Vicostone nhóm A dày 2cm, bảo hành điện tử 15 năm. Dùng cho mặt bếp / ốp tường bếp / mặt bàn ăn / mặt lavabo"},
+      "da_volakas_nhap_khau":          {"don_vi": "m2", "scope": "VT", "luxury_estimate": null, "source": "DECOX_BICH", "ghi_chu": "Volakas nhập khẩu — CDT cung cấp trong dự án Decox. Cần liên hệ NCC để báo giá theo mẫu"},
+      "da_lamar_nung_ket":             {"don_vi": "m2", "scope": "VT", "luxury_estimate": 4500000, "source": "LANDMARK_3", "ghi_chu": "Đá nung kết Lamar — ước 4-5tr/m2 tùy nhà cung cấp"},
+      "laminate_travertine_lk_pf4421d":{"don_vi": "m2", "scope": "VT", "luxury": 1500000, "source": "CHI_XUAN", "ghi_chu": "Tham khảo. Tấm Travertine giả đá An Cường LK PF 4421D dán lên MDF — cộng phần MDF + công riêng"},
+      "kinh_thuy_indo_5mm":            {"don_vi": "m2", "scope": "VT", "luxury": 900000, "source": "CHI_XUAN", "ghi_chu": "Gương thủy nhập Indo 5mm"},
+      "kinh_cuong_luc_5li":            {"don_vi": "m2", "scope": "VT", "luxury_estimate": 1200000, "source": "CHI_XUAN", "ghi_chu": "Kính cường lực 5mm, thường dùng cho cánh tủ"},
+      "kinh_cuong_luc_10li":           {"don_vi": "m2", "scope": "VT", "luxury_estimate": 1800000, "source": "CHI_XUAN", "ghi_chu": "Cường lực 10mm cho vách WC"},
+      "inox_304_ma_pvd":               {"don_vi": "kg", "scope": "VT", "luxury_estimate": null, "source": "CHI_XUAN+DECOX_BICH", "ghi_chu": "Inox 304 mạ PVD — báo giá theo bản vẽ + cân nặng + độ phức tạp"},
+      "formica_nhap_thai":             {"don_vi": "tam", "scope": "VT", "luxury_estimate": 4000000, "source": "CHI_XUAN", "ghi_chu": "Formica nhập Thái — vd vách nhấn 0.45x1.2m: 4M/tấm"}
+    },
+
+    "thi_cong_tho_chi_tiet": {
+      "dap_tuong_chuyen_xa_ban":     {"don_vi": "m2",  "scope": "NC_VT", "luxury": 250000,  "source": "CHI_XUAN+LANDMARK_3"},
+      "xay_tuong_moi_cai_tao_nhe":   {"don_vi": "m2",  "scope": "NC_VT", "luxury": 340000,  "source": "CHI_XUAN", "ghi_chu": "Cải tạo nhẹ chung cư. Landmark báo 520k cho tường 100mm full"},
+      "to_tuong_moi":                {"don_vi": "m2",  "scope": "NC_VT", "luxury": 250000,  "source": "CHI_XUAN"},
+      "bat_canh_cua":                {"don_vi": "bo",  "scope": "NC_VT", "luxury": 550000,  "source": "CHI_XUAN"},
+      "xay_bon_tam":                 {"don_vi": "goi", "scope": "NC_VT", "luxury": 1500000, "source": "CHI_XUAN"},
+      "chong_tham_sika_kova_2_lop":  {"don_vi": "m2",  "scope": "NC_VT", "luxury": 350000,  "source": "CHI_XUAN", "ghi_chu": "Rẻ hơn Sika Top Seal 107 (Landmark 4.5M/hệ). Dùng cho nền + tường WC 1m"},
+      "can_nen_moi_toan_nha":        {"don_vi": "m2",  "scope": "NC_VT", "luxury": 240000,  "source": "CHI_XUAN"},
+      "san_go_an_cuong_12li_thang":  {"don_vi": "m2",  "scope": "NC_VT", "luxury": 550000,  "source": "CHI_XUAN", "ghi_chu": "Sàn gỗ An Cường 12li (135x1192x12) — thẳng. Luxury+ xương cá Lamton: 860k (Landmark)"},
+      "len_nep_nhom_san_go":         {"don_vi": "md",  "scope": "NC_VT", "luxury": 125000,  "source": "CHI_XUAN", "ghi_chu": "Nẹp nhôm 2cm"},
+      "cat_gach_600x1200_thanh_600": {"don_vi": "goi", "scope": "NC",    "luxury": 1000000, "source": "CHI_XUAN"},
+      "lat_gach_nen_wc_600x600":     {"don_vi": "m2",  "scope": "NC",    "luxury": 250000,  "source": "CHI_XUAN"},
+      "lat_gach_tuong_wc_600x1200":  {"don_vi": "m2",  "scope": "NC",    "luxury": 320000,  "source": "CHI_XUAN"},
+      "lat_gach_nen_bep_800x800":    {"don_vi": "m2",  "scope": "NC",    "luxury": 250000,  "source": "CHI_XUAN"},
+      "keo_dan_gach_sikaceram_75":   {"don_vi": "m2",  "scope": "VT",    "luxury": 95000,   "source": "CHI_XUAN", "ghi_chu": "Sikaceram 75 Easy Fix + bột ron Hicem. Gạch dán 100% keo, không pha xi măng"},
+      "ngach_da_wc":                 {"don_vi": "bo",  "scope": "NC_VT", "luxury": 800000,  "source": "CHI_XUAN", "ghi_chu": "Rẻ hơn ngạch logia/ban công (Landmark 1.2M)"},
+      "thoat_san_inox_zento":        {"don_vi": "bo",  "scope": "VT",    "luxury": 1019000, "source": "CHI_XUAN", "ghi_chu": "Zento ZT758-80 (75x800mm) inox 304"},
+      "pheu_thoat_san_tron":         {"don_vi": "bo",  "scope": "VT",    "luxury": 350000,  "source": "CHI_XUAN"},
+      "nap_tham_tran_wc_bep":        {"don_vi": "bo",  "scope": "VT",    "luxury": 800000,  "source": "CHI_XUAN"},
+      "tran_thach_cao_bo_cong":      {"don_vi": "m2",  "scope": "NC_VT", "luxury": 390000,  "source": "CHI_XUAN", "ghi_chu": "Basi Uα tấm Vĩnh Tường 9li (không chống ẩm), ti treo 6, có bo cong + hạ viền"},
+      "tran_thach_cao_chong_am":     {"don_vi": "m2",  "scope": "NC_VT", "luxury": 400000,  "source": "CHI_XUAN", "ghi_chu": "Basi Uα Vĩnh Tường chống ẩm 9li — WC"},
+      "nep_u_5li_den_master":        {"don_vi": "goi", "scope": "VT",    "luxury": 2000000, "source": "CHI_XUAN"},
+      "giay_dan_tuong_han_quoc":     {"don_vi": "cuon","scope": "VT",    "luxury": 1500000, "source": "CHI_XUAN"},
+      "son_nuoc_jotun_jotaplast":    {"don_vi": "m2",  "scope": "NC_VT", "luxury": 145000,  "source": "CHI_XUAN", "ghi_chu": "Trần hoặc tường. Thay thế Jotun-Dulux của Infinity (140-160k) — chất Jotaplast lau chùi hiệu quả"},
+      "son_pu_mat_trong_cua_chinh":  {"don_vi": "bo",  "scope": "NC_VT", "luxury": 1800000, "source": "CHI_XUAN"},
+      "bao_che_thi_cong":            {"don_vi": "goi", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN", "ghi_chu": "Bao che sàn / sau thi công / che cửa / lót hành lang"},
+      "van_chuyen_rac_cong_nghiep":  {"don_vi": "goi", "scope": "NC",    "luxury": 4500000, "source": "CHI_XUAN"},
+      "ve_sinh_cong_nghiep":         {"don_vi": "m2",  "scope": "NC",    "luxury": 45000,   "source": "CHI_XUAN"}
+    },
+
+    "me_dien_chi_tiet": {
+      "cong_dien_di_doi_them_moi":   {"don_vi": "goi", "scope": "NC_VT", "luxury": 38000000, "source": "CHI_XUAN", "ghi_chu": "Trọn gói: di dời ổ cắm/công tắc + thêm mới + đi nguồn led tủ. Chưa gồm kéo Camera, lắp thiết bị rời"},
+      "cong_nuoc_lap_3_wc":          {"don_vi": "goi", "scope": "NC",    "luxury": 10000000, "source": "CHI_XUAN", "ghi_chu": "Chưa gồm thiết bị thông minh"},
+      "vat_tu_phu_dien_nuoc":        {"don_vi": "goi", "scope": "VT",    "luxury": 6500000,  "source": "CHI_XUAN", "ghi_chu": "Ống cứng/mềm, đế, băng keo, silicon, vít, tắcke, ống bạc hút mùi, PPR..."},
+      "tram_tret_duong_dien":        {"don_vi": "goi", "scope": "NC_VT", "luxury": 3000000,  "source": "CHI_XUAN"},
+      "ong_nuoc_ngung_bao_on":       {"don_vi": "goi", "scope": "VT",    "luxury": 3000000,  "source": "CHI_XUAN"},
+      "_day_cadivi_chiet_khau": {
+        "_note": "Dây Cadivi 3 màu nóng-lạnh-tiếp địa. Dư thu về công ty. Giá theo cuộn",
+        "cadivi_1_5_cuon_3_mau":     {"don_vi": "cuon", "scope": "VT", "luxury": 708500,   "source": "CHI_XUAN", "ghi_chu": "Cho đèn"},
+        "cadivi_2_5_cuon_3_mau":     {"don_vi": "cuon", "scope": "VT", "luxury": 1155000,  "source": "CHI_XUAN", "ghi_chu": "Cho ổ cắm"},
+        "cadivi_4_0_cuon_3_mau":     {"don_vi": "cuon", "scope": "VT", "luxury": 1726000,  "source": "CHI_XUAN", "ghi_chu": "Cho ổ cắm bếp"},
+        "day_led_12v":               {"don_vi": "cuon", "scope": "VT", "luxury": 380000,   "source": "CHI_XUAN"}
+      },
+      "_o_cam_cong_tac_edenki_ck20": {
+        "_note": "Edenki chiết khấu 20%. Số lượng tạm tính theo bản vẽ kỹ thuật",
+        "o_cam_them_moi":            {"don_vi": "bo", "scope": "VT", "luxury": 121000, "source": "CHI_XUAN"},
+        "cong_tac_don":              {"don_vi": "bo", "scope": "VT", "luxury": 105000, "source": "CHI_XUAN"},
+        "cong_tac_doi":              {"don_vi": "bo", "scope": "VT", "luxury": 143000, "source": "CHI_XUAN"},
+        "cong_tac_ba":               {"don_vi": "bo", "scope": "VT", "luxury": 171000, "source": "CHI_XUAN"},
+        "cong_tac_doi_dao_chieu":    {"don_vi": "bo", "scope": "VT", "luxury": 165000, "source": "CHI_XUAN"},
+        "cong_tac_ba_dao_chieu":     {"don_vi": "bo", "scope": "VT", "luxury": 198000, "source": "CHI_XUAN"}
+      },
+      "_o_cam_cong_tac_legrand": {
+        "_note": "Legrand nhập Pháp — không có giá cụ thể trong source. Khi user yêu cầu, báo cao hơn Edenki khoảng 50-80%, hỏi NCC",
+        "source": "DECOX_BICH"
+      }
+    },
+
+    "den_chieu_sang_chi_tiet": {
+      "_note": "Tier luxury — Adream/Anfaco/Zen. CRI > 95 cho dự án cao cấp (Decox)",
+      "den_am_tran_adream_ck20":     {"don_vi": "bo", "scope": "VT", "luxury": 328000,  "source": "CHI_XUAN"},
+      "den_spotlight_adream_ck20":   {"don_vi": "bo", "scope": "VT", "luxury": 418000,  "source": "CHI_XUAN"},
+      "den_chieu_sang_anfaco":       {"don_vi": "cai", "scope": "VT", "luxury": 480000, "source": "LANDMARK_3"},
+      "den_chieu_diem_anfaco":       {"don_vi": "cai", "scope": "VT", "luxury": 445000, "source": "LANDMARK_3"},
+      "den_roi_anfaco":              {"don_vi": "cai", "scope": "VT", "luxury": 820000, "source": "LANDMARK_3"},
+      "_he_ray_nam_cham_anfaco": {
+        "thanh_ray":                 {"don_vi": "md", "scope": "VT", "luxury": 720000,  "source": "LANDMARK_3"},
+        "noi_ray":                   {"don_vi": "cai","scope": "VT", "luxury": 580000,  "source": "LANDMARK_3"},
+        "nguon_ray":                 {"don_vi": "cai","scope": "VT", "luxury": 2080000, "source": "LANDMARK_3"},
+        "den_nam_cham":              {"don_vi": "cai","scope": "VT", "luxury": 920000,  "source": "LANDMARK_3"}
+      },
+      "led_day_profile_cam_bien_5nam":{"don_vi": "md", "scope": "NC_VT", "luxury": 250000, "source": "CHI_XUAN+DECOX_BICH+LANDMARK_3", "ghi_chu": "Combo full: led 150D/m vàng ấm + thanh nhôm định hình + cảm biến chạm + nguồn lớn bền 5 năm + silicon dẻo uốn cong. CHUẨN tier luxury"},
+      "nguon_adapter_led":           {"don_vi": "bo", "scope": "VT", "luxury": 350000, "source": "CHI_XUAN+DECOX_BICH"},
+      "cong_tac_cam_bien_cham_led":  {"don_vi": "cai","scope": "VT", "luxury": 100000, "source": "DECOX_BICH", "ghi_chu": "Decox 100k. Landmark 150k. Chọn theo NCC"}
+    },
+
+    "noi_that_co_dinh_luxury_chi_tiet": {
+      "_phong_khach_bep": {
+        "tu_tv_bo_cong_full_dung_tran": {"don_vi": "m2", "scope": "NC_VT", "luxury": 3400000, "luxury_travertine": 4800000, "source": "CHI_XUAN", "ghi_chu": "An Cường Melamin + vị trí bo cong Laminate đồng màu. Phiên bản travertine: Laminate Travertine LK PF 4421D"},
+        "tu_tv_voi_loi_suoi_hoi_nuoc": {"don_vi": "md", "scope": "NC_VT", "luxury": 3200000, "source": "CHI_XUAN", "ghi_chu": "Chưa gồm lò sưởi hơi nước"},
+        "bục_tu_tivi_thap_4_ray_am":  {"don_vi": "cai", "scope": "NC_VT", "luxury": 9835000, "source": "DECOX_BICH"},
+        "tu_tho_go_soi_my":           {"don_vi": "bo", "scope": "NC_VT", "luxury": 12500000, "source": "CHI_XUAN"},
+        "tu_tho_trang_tri_veneer_cnc":{"don_vi": "m2", "scope": "NC_VT", "luxury": 5200000, "source": "CHI_XUAN", "ghi_chu": "Khung ôm + cánh bao + vách ốp sau + chữ gỗ cắt CNC + tấm kính chắn khói. MDF An Cường phủ Veneer gỗ sồi"},
+        "ray_ke_tho_chiu_luc_40kg":   {"don_vi": "bo", "scope": "VT", "luxury": 1600000, "source": "CHI_XUAN"},
+        "he_ray_dong_canh":           {"don_vi": "bo", "scope": "VT", "luxury": 2200000, "source": "CHI_XUAN"},
+        "vach_op_sau_sofa_melamin":   {"don_vi": "m2", "scope": "NC_VT", "luxury": 1450000, "source": "DECOX_BICH", "ghi_chu": "MDF An Cường Melamin 203S"},
+        "vach_op_sau_sofa_formica":   {"don_vi": "m2", "scope": "NC_VT", "luxury": 2200000, "source": "DECOX_BICH", "ghi_chu": "Laminate Formica AM 0925 UN"},
+        "vach_op_than_tre_eco":       {"don_vi": "m2", "scope": "NC_VT", "luxury": 1950000, "source": "DECOX_BICH", "ghi_chu": "MDF chống ẩm hoàn thiện tấm than tre"},
+        "tu_trang_tri_sau_sofa_bo_cong":{"don_vi": "m2", "scope": "NC_VT", "luxury": 3800000, "source": "CHI_XUAN", "ghi_chu": "An Cường Melamin + bo cong Laminate đồng màu"},
+        "tu_trang_tri_tu_rượu_travertine":{"don_vi": "m2","scope":"NC_VT","luxury": 4300000, "source": "CHI_XUAN", "ghi_chu": "Thùng MDF An Cường MS230 + hậu Laminate Travertine LK PF 4421D"},
+        "vach_lam_giua_2_tu_tt":      {"don_vi": "bo", "scope": "NC_VT", "luxury": 2300000, "source": "CHI_XUAN"},
+        "dot_ke_treo_am_vach_lam":    {"don_vi": "md", "scope": "NC_VT", "luxury": 1100000, "source": "CHI_XUAN"},
+        "vach_nhan_thuy_indo":        {"don_vi": "goi","scope": "NC_VT", "luxury": 1200000, "source": "CHI_XUAN"},
+        "vach_nhan_inox_bong":        {"don_vi": "goi","scope": "VT", "luxury": 3000000, "source": "CHI_XUAN"},
+        "tu_giay_dung_tran_an_cuong": {"don_vi": "m2", "scope": "NC_VT", "luxury": 3700000, "source": "CHI_XUAN"},
+        "buc_decor_travertine":       {"don_vi": "bo", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN"},
+        "hau_kinh_thuy_indo":         {"don_vi": "bo", "scope": "VT", "luxury": 1000000, "source": "CHI_XUAN"},
+        "don_ngoi_mang_giay_travertine":{"don_vi": "bo","scope":"NC_VT","luxury": 5800000, "source": "CHI_XUAN", "ghi_chu": "Gỗ tự nhiên phủ Laminate Travertine"},
+        "vach_op_hanh_lang_melamin":  {"don_vi": "m2", "scope": "NC_VT", "luxury": 1700000, "source": "CHI_XUAN"},
+        "tu_rượu_hafele":             {"don_vi": "cai","scope": "NC_VT", "luxury": 4500000, "source": "DECOX_BICH", "ghi_chu": "An Cường Melamin 230PL + 3 ray âm giảm chấn Hafele"},
+        "khung_treo_inox_kinh":       {"don_vi": "cai","scope": "NC_VT", "luxury": 7500000, "source": "DECOX_BICH", "ghi_chu": "Khung inox mạ PVD + kính cường lực 5mm trong"},
+        "tu_tui_xach_canh_kinh_khoi": {"don_vi": "m2", "scope": "NC_VT", "luxury": 5000000, "source": "DECOX_BICH", "ghi_chu": "An Cường 230PL + cánh Profile kính cường lực màu xám khói 5mm + 2 ray âm Hafele"},
+        "ghe_treo_thay_giay":         {"don_vi": "cai","scope": "NC_VT", "luxury": 2500000, "source": "DECOX_BICH"},
+        "nep_inox_ma_pvd_trang_tri":  {"don_vi": "md", "scope": "VT",    "luxury": 350000,  "source": "DECOX_BICH", "ghi_chu": "Nẹp T20/V/L mạ màu"}
+      },
+      "_phong_bep": {
+        "tu_bep_duoi_an_cuong_nhua_pvc":{"don_vi": "md","scope":"NC_VT","luxury": 4200000, "source": "CHI_XUAN", "ghi_chu": "An Cường kháng ẩm + thùng bồn rửa gỗ nhựa PVC"},
+        "tu_bep_tren_chua_canh_kinh": {"don_vi": "md", "scope": "NC_VT", "luxury": 3100000, "source": "CHI_XUAN"},
+        "canh_kinh_tu_bep_tren":      {"don_vi": "m2", "scope": "NC_VT", "luxury": 1700000, "source": "CHI_XUAN", "ghi_chu": "Kính cường lực 5li + khung nhôm sơn đen tĩnh điện"},
+        "tu_om_tu_lanh":              {"don_vi": "m2", "scope": "NC_VT", "luxury": 3500000, "source": "CHI_XUAN"},
+        "tu_do_kho":                  {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN+DECOX_BICH"},
+        "tu_lo_vi_song":              {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "DECOX_BICH", "ghi_chu": "Thùng MDF An Cường nhóm 4 + cánh Laminate Formica + Tipon"},
+        "dao_bep_4_mat_travertine":   {"don_vi": "md", "scope": "NC_VT", "luxury": 8000000, "source": "CHI_XUAN", "ghi_chu": "An Cường + Laminate Travertine + mặt vát cạnh theo 3D"},
+        "tu_bep_cai_tao_thay_canh_tren":{"don_vi":"md","scope":"NC_VT","luxury_cai_tao": 2200000, "source": "DECOX_BICH", "ghi_chu": "Tận dụng thùng, cánh thay mới — MDF chống ẩm sơn theo Laminate Formica AM0925"},
+        "tu_bep_cai_tao_thay_canh_duoi":{"don_vi":"md","scope":"NC_VT","luxury_cai_tao": 1800000, "source": "DECOX_BICH", "ghi_chu": "Tận dụng thùng + đổi 3 ray cũ → ray âm Hafele"},
+        "chan_ban_an_inox_pvd_khung_sat":{"don_vi":"bo","scope":"NC_VT","luxury": 12500000, "source": "CHI_XUAN", "ghi_chu": "Chân inox PVD + khung đỡ mặt bàn sắt 30x30 sơn"},
+        "ban_an_inox_mat_da":         {"don_vi": "cai","scope": "NC_VT", "luxury": 14500000, "source": "DECOX_BICH", "ghi_chu": "Khung MDF bọc la inox 304 PVD + mặt đá nhân tạo + chân tăng M6. Không gồm mặt đá"},
+        "mat_da_ban_an_vicostone":    {"don_vi": "md", "scope": "VT",    "luxury": 4500000, "source": "CHI_XUAN"},
+        "ghe_an_go_soi_my_simili":    {"don_vi": "ghe","scope": "NC_VT", "luxury": 5700000, "source": "CHI_XUAN"},
+        "ghe_an_go_thong_co_may":     {"don_vi": "ghe","scope": "NC_VT", "luxury": 3800000, "source": "DECOX_BICH", "ghi_chu": "Khung gỗ thông xử lý + vải Cỏ May"}
+      },
+      "_phong_ngu_master": {
+        "giuong_boc_nem_simili_1800": {"don_vi": "bo", "scope": "NC_VT", "luxury": 19500000, "source": "CHI_XUAN", "ghi_chu": "Khung gỗ tự nhiên + mút D40 + bọc simili. Nệm 1800x2000 chưa gồm nệm nằm"},
+        "giuong_boc_nem_vai_co_may_1600":{"don_vi":"bo","scope":"NC_VT","luxury": 18000000, "source": "CHI_XUAN", "ghi_chu": "Khung gỗ tự nhiên + mút D40 + bọc vải Cỏ May + vách nệm đầu giường theo 3D"},
+        "tab_dau_giuong_1_hoc_keo":   {"don_vi": "cai","scope": "NC_VT", "luxury": 2000000, "source": "CHI_XUAN"},
+        "tab_dau_giuong_bo_cong_son_2k":{"don_vi":"cai","scope":"NC_VT", "luxury": 3800000, "source": "CHI_XUAN"},
+        "vach_op_lam_dau_giuong":     {"don_vi": "m2", "scope": "NC_VT", "luxury": 2300000, "source": "CHI_XUAN"},
+        "vach_op_phang_dau_giuong":   {"don_vi": "m2", "scope": "NC_VT", "luxury": 1700000, "source": "CHI_XUAN"},
+        "vach_van_da_nhan_formica":   {"don_vi": "goi","scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN", "ghi_chu": "MDF + Formica nhập Thái nhấn đầu giường"},
+        "tu_quan_ao_dung_tran_chua_canh_kinh":{"don_vi":"m2","scope":"NC_VT","luxury": 3500000, "source": "CHI_XUAN", "ghi_chu": "An Cường Melamin. Cộng thêm cánh kính nếu cần"},
+        "canh_kinh_tu_quan_ao":       {"don_vi": "m2", "scope": "NC_VT", "luxury": 1700000, "source": "CHI_XUAN", "ghi_chu": "Cường lực 5li + khung nhôm sơn đen"},
+        "ban_trang_diem_treo_bo_cong":{"don_vi": "md", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN"},
+        "don_ngoi_trang_diem":        {"don_vi": "bo", "scope": "NC_VT", "luxury": 3500000, "source": "CHI_XUAN"},
+        "guong_trang_diem_mai_canh":  {"don_vi": "m2", "scope": "VT",    "luxury": 900000, "source": "CHI_XUAN"},
+        "tu_treo_tivi_bo_cong":       {"don_vi": "md", "scope": "NC_VT", "luxury": 3500000, "source": "CHI_XUAN"},
+        "tu_treo_duoi_tivi":          {"don_vi": "m2", "scope": "NC_VT", "luxury": 3400000, "source": "CHI_XUAN"}
+      },
+      "_phong_ngu_be": {
+        "tu_quan_ao_canh_pano_son_2k":{"don_vi": "m2", "scope": "NC_VT", "luxury": 4800000, "source": "CHI_XUAN", "ghi_chu": "Phòng bé gái — An Cường + cánh pano sơn 2K"},
+        "tu_quan_ao_son_2k_mau_xanh": {"don_vi": "m2", "scope": "NC_VT", "luxury": 4600000, "source": "CHI_XUAN", "ghi_chu": "Phòng bé trai — sơn 2K màu xanh"},
+        "ban_hoc_treo_pano_son_2k":   {"don_vi": "md", "scope": "NC_VT", "luxury": 4500000, "source": "CHI_XUAN"},
+        "ban_hoc_treo_melamin":       {"don_vi": "md", "scope": "NC_VT", "luxury": 3500000, "source": "CHI_XUAN", "ghi_chu": "Bé trai — đơn giản hơn"},
+        "dot_ke_treo_2_mat_son_2k":   {"don_vi": "md", "scope": "NC_VT", "luxury": 2500000, "source": "CHI_XUAN"},
+        "giuong_phan_dat_nem_son_2k": {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN", "ghi_chu": "MDF An Cường sơn 2K bo cong, có hộc kéo"},
+        "he_giuong_tang_khung_sat_mica":{"don_vi":"bo","scope":"NC_VT","luxury": 28000000, "source": "CHI_XUAN", "ghi_chu": "Bậc thang + ngăn kéo + giường tầng trên + khung sắt treo + lỗ khoét Mica"}
+      },
+      "_phong_lam_viec_kho": {
+        "tu_do_canh_mo":              {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "CHI_XUAN"},
+        "khung_bao_giuong_gap_gon":   {"don_vi": "m2", "scope": "NC_VT", "luxury": 2900000, "source": "CHI_XUAN"},
+        "giuong_gap_gon_1m2x2m":      {"don_vi": "bo", "scope": "NC_VT", "luxury": 19500000, "source": "CHI_XUAN", "ghi_chu": "MDF An Cường + phụ kiện. Chưa gồm nệm"},
+        "ban_lam_viec_co_hoc_keo":    {"don_vi": "md", "scope": "NC_VT", "luxury": 3700000, "source": "CHI_XUAN"},
+        "tu_ke_sach_chu_L":           {"don_vi": "md", "scope": "NC_VT", "luxury": 2900000, "source": "CHI_XUAN"},
+        "tu_kho_logia_pvc":           {"don_vi": "m2", "scope": "NC_VT", "luxury": 5800000, "source": "CHI_XUAN"},
+        "tu_om_may_giat_say_pvc":     {"don_vi": "m2", "scope": "NC_VT", "luxury": 5000000, "source": "CHI_XUAN"}
+      },
+      "_logia_ban_cong": {
+        "lot_san_go_composite":       {"don_vi": "m2", "scope": "NC_VT", "luxury": 1400000, "source": "CHI_XUAN"}
+      },
+      "_wc_phong_ngu": {
+        "tu_duoi_lavabo_pvc":         {"don_vi": "bo", "scope": "NC_VT", "luxury": 5000000, "source": "CHI_XUAN", "ghi_chu": "Gỗ nhựa PVC chống nước. ~0.85-0.9 dài"},
+        "khung_sat_do_mat_da_lavabo": {"don_vi": "bo", "scope": "NC_VT", "luxury": 1000000, "source": "CHI_XUAN"},
+        "mat_da_lavabo_vicostone":    {"don_vi": "bo", "scope": "VT",    "luxury": 4500000, "source": "CHI_XUAN", "ghi_chu": "0.85-0.9 x 0.6"},
+        "khoet_lo_chau_lavabo_am":    {"don_vi": "goi","scope": "NC",    "luxury": 350000, "source": "CHI_XUAN"},
+        "tu_guong_wc_pvc":            {"don_vi": "bo", "scope": "NC_VT", "luxury": 5000000, "source": "CHI_XUAN", "ghi_chu": "~1.64-1.70m dài x 0.8 cao"},
+        "vach_kinh_canh_mo_wc_chung": {"don_vi": "m2", "scope": "NC_VT", "luxury": 6200000, "source": "CHI_XUAN", "ghi_chu": "Cường lực 10li + bản lề inox"},
+        "vach_kinh_canh_mo_wc_master":{"don_vi": "m2", "scope": "NC_VT", "luxury": 5800000, "source": "CHI_XUAN"}
+      }
+    },
+
+    "noi_that_roi_va_thiet_bi": {
+      "_note": "Đồ rời chỉ ước giá luxury từ Chị Xuân (TTD Designs). Khách yêu cầu spec khác cần báo lại NCC",
+      "sofa_chu_L_da_bo_mut_d40":      {"don_vi": "bo", "scope": "VT", "luxury": 74000000, "source": "CHI_XUAN", "ghi_chu": "Khung gỗ tự nhiên + mút D40 + nệm bọc da bò. ~3.6m"},
+      "ghe_armchair":                  {"don_vi": "bo", "scope": "VT", "luxury": 10500000, "source": "CHI_XUAN"},
+      "ban_tra_veneer_chan_inox_pvd":  {"don_vi": "bo", "scope": "VT", "luxury": 11000000, "source": "CHI_XUAN", "ghi_chu": "Khung gỗ tự nhiên dán Veneer + chân bo cong inox xước mạ PVD"},
+      "may_tao_do_am_tu_tivi_d800":    {"don_vi": "bo", "scope": "VT", "luxury": 11500000, "source": "CHI_XUAN"},
+      "sofa_da_vai_acacia_european":   {"don_vi": "bo", "scope": "VT", "luxury_estimate": null, "source": "DECOX_BICH", "ghi_chu": "Vải ACACIA AMBIANT 07-ANGORA nhập khẩu. Khung gỗ thông xử lý + mút D40 chống cháy. Báo giá theo mẫu duyệt"}
+    },
+
+    "rem_man_luxury": {
+      "rem_2_lop_vai_ngoai_voan_hap_song":{"don_vi": "md", "scope": "NC_VT", "luxury_chi_xuan": 1500000, "luxury_landmark": 1380000, "source": "CHI_XUAN+LANDMARK_3", "ghi_chu": "Rèm 2 lớp cản sáng. Vải nhập khẩu European (Decox/Chị Xuân) hoặc tương đương"},
+      "rem_cau_vong_han_quoc":          {"don_vi": "m2", "scope": "NC_VT", "luxury": 1050000, "source": "CHI_XUAN", "ghi_chu": "Rèm cầu vồng Hàn Quốc"}
+    },
+
+    "cua_luxury": {
+      "cua_giau_khuon_phong_an_cuong_hafele":{"don_vi": "bo", "scope": "NC_VT", "luxury": 14500000, "source": "CHI_XUAN", "ghi_chu": "MDF An Cường kháng ẩm Melamin + bản lề âm Hafele + khóa tay gạt Hafele 903.92.559 + ruột khóa"},
+      "cua_giau_khuon_wc_pvc_hafele":   {"don_vi": "bo", "scope": "NC_VT", "luxury": 15200000, "source": "CHI_XUAN", "ghi_chu": "Gỗ nhựa PVC + Hafele 903.92.559"},
+      "cua_slim_wc_master_kinh_soc_5li":{"don_vi": "bo", "scope": "NC_VT", "luxury": 13000000, "source": "CHI_XUAN", "ghi_chu": "Khung nhôm đen mờ + kính sọc 5li"},
+      "dan_film_laminate_cua_hien_trang":{"don_vi":"m2", "scope": "NC_VT", "luxury_estimate": 800000, "source": "DECOX_BICH", "ghi_chu": "Dán Laminate nhóm A An Cường lên cửa cũ. Báo giá sau khi khảo sát"}
+    },
+
+    "phu_kien_hafele_ma_san_pham": {
+      "_note": "Mã sản phẩm Hafele chính thức, chiết khấu 20% từ NCC. Số lượng tạm tính theo bản vẽ.",
+      "ray_am_epc_plus_giam_chan_500mm":{"don_vi": "bo", "scope": "VT", "ma": "433.03.106", "luxury_ck20": 409000,  "source": "CHI_XUAN"},
+      "ray_am_mo_toan_phan_nhan_mo_khoa_cai":{"don_vi":"bo","scope":"VT","ma":"433.32.154","luxury_ck20": 1005000, "source": "CHI_XUAN"},
+      "ban_le_metalla_sm_diy_110":      {"don_vi": "bo", "scope": "VT", "ma": "315.07.115", "luxury_ck20": 76450,   "source": "CHI_XUAN"},
+      "ban_le_metalla_sm_110_trum_ngoai":{"don_vi": "bo", "scope": "VT", "ma": "315.26.710", "luxury_ck20": 69300,  "source": "CHI_XUAN"},
+      "nem_nhan_dau_cao_su":            {"don_vi": "bo", "scope": "VT", "ma": "356.12.713", "luxury_ck20": 108000,  "source": "CHI_XUAN"},
+      "khoa_tay_gat":                   {"don_vi": "bo", "scope": "VT", "ma": "903.92.559", "luxury_estimate": 1500000, "source": "CHI_XUAN+LANDMARK_3"},
+      "ban_le_am":                      {"don_vi": "cai","scope": "VT", "luxury": 650000, "source": "LANDMARK_3"}
+    }
+  }
+}

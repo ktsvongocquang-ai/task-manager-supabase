@@ -97,8 +97,10 @@ export const Dashboard = () => {
                 taskId: state.openTaskId,
                 projectId: state.openProjectId
             }
+            // Clear navigation state to prevent stale re-triggers
+            window.history.replaceState({}, '')
         }
-    }, [location.key])
+    }, [location.state])
 
     // Act on pending navigation once data is loaded
     useEffect(() => {

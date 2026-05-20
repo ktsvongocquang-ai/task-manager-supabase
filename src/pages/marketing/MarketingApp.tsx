@@ -614,7 +614,7 @@ const MarketingApp = () => {
       };
       window.history.replaceState({}, '');
     }
-  }, [location.key]);
+  }, [location.state]);
 
   // Act on pending navigation once data is loaded
   useEffect(() => {

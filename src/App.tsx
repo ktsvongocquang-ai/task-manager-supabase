@@ -18,6 +18,8 @@ import MyTasks from './pages/mytasks/MyTasks'
 
 import MarketingApp from './pages/marketing/MarketingApp'
 import QuoteGenerator from './pages/customers/QuoteGenerator'
+import InteriorQuote from './pages/baogia/InteriorQuote'
+import TrainingHub from './pages/training/TrainingHub'
 import { ConstructionProvider } from './contexts/ConstructionContext'
 import { ClientView } from './pages/client/ClientView'
 
@@ -50,6 +52,8 @@ function App() {
           <Route path="customers/quotes/new" element={<QuoteGenerator />} />
           <Route path="marketing" element={<MarketingApp />} />
           <Route path="mytasks" element={<MyTasks />} />
+          <Route path="bao-gia" element={<InteriorQuote />} />
+          <Route path="training" element={<TrainingHub />} />
         </Route>
 
 

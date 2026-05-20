@@ -1,0 +1,316 @@
+{
+  "_meta": {
+    "version": "0.2",
+    "currency": "VND",
+    "vat_included": false,
+    "updated": "2026-05-12",
+    "region": "TP.HCM + vùng phụ cận",
+    "sources": [
+      {"id": "INFINITY_1PN", "type": "chung_cu", "tier": "basic-premium", "scope": "thi_cong+noi_that", "file": "KHÁI TOÁN DỰ ÁN - INFINITY - 1PN.xlsx"},
+      {"id": "ANH_MINH",     "type": "chung_cu", "tier": "premium",       "scope": "noi_that_roi",     "file": "BAO GIA ANH MINH (2).xlsx"},
+      {"id": "POLI",         "type": "chung_cu", "tier": "basic-premium", "scope": "go_cong_nghiep",   "file": "BÁO-GIÁ-CỘNG-TÁC-NỘI-THẤT-POLI-BẢN-06.xlsx", "note": "Bảng giá đối tác đa tier"},
+      {"id": "LANDMARK_3",   "type": "chung_cu", "tier": "luxury",        "scope": "tron_goi",         "file": "Bản sao BÁO GIÁ MR HAN-MS NA-LANDMARK 3.xlsx", "note": "An Cường + Hafele + keo PUR + sơn 2K + đá nung kết. Căn ~95m2 tổng 1.03 tỷ"},
+      {"id": "CELESTA",      "type": "chung_cu", "tier": "luxury",        "scope": "noi_that+cua",     "file": "Copy of DTTC-NOITHAT-CELESTA-A NGỌC.xlsx",       "note": "TTP Concept - An Cường + Hafele giảm chấn + sơn 2K + WPB"},
+      {"id": "DQH_VTS",      "type": "nha_o",    "tier": "premium",       "scope": "tong_hop",         "file": "Bản sao _DQH-QS_Vo Thi Sau.xlsx"},
+      {"id": "DQH_BONY",     "type": "nha_o",    "tier": "premium",       "scope": "tong_hop",         "file": "_DQH-QS_BonyHouse.xlsx"}
+    ],
+    "tiers": {
+      "basic":       "Ba Thanh / Thanh Thùy chống ẩm + bản lề Ivan + Melamin thường",
+      "premium":     "MDF An Cường chống ẩm + bản lề Hafele + dán cạnh keo PUR",
+      "luxury":      "MDF An Cường + Hafele giảm chấn + keo PUR + sơn 2K + cánh CNC/pano/laminate/travertine + đá nung kết Lamar/Vicostone"
+    },
+    "scope_codes": {
+      "NC_VT": "Trọn gói nhân công + vật tư",
+      "NC": "Chỉ nhân công",
+      "VT": "Chỉ vật tư",
+      "tron_goi": "Bao gồm hết, không tách"
+    },
+    "rules": [
+      "Hệ số hao hụt: sàn/trần ×1.05, sơn ×0.85 (trừ cửa), TB ×1.00",
+      "Sàn gỗ và lát gạch: hao hụt 10% (đã ghi rõ trong source)",
+      "Ngoại tỉnh: cộng 4% đơn hàng (di chuyển, ăn ở, tăng ca)",
+      "VAT chưa bao gồm trong mọi đơn giá",
+      "Phụ kiện Hafele tính riêng nếu vượt mức tay nắm 70k/cái",
+      "Khi cùng 1 hạng mục có giá ở nhiều source, ưu tiên: LANDMARK_3/CELESTA cho luxury, POLI/INFINITY cho basic-premium"
+    ]
+  },
+
+  "chung_cu": {
+    "thao_do": {
+      "thao_do_do_go_cu":      {"don_vi": "he",  "scope": "NC",    "basic": 4500000, "premium": 5000000, "source": "LANDMARK_3"},
+      "thao_do_tuong":         {"don_vi": "m2",  "scope": "NC_VT", "basic": 220000,  "premium": 250000,  "source": "LANDMARK_3"},
+      "thao_do_cua_ra_vao":    {"don_vi": "he",  "scope": "NC",    "basic": 220000,  "premium": 250000,  "source": "LANDMARK_3"},
+      "thao_do_cua_nhom":      {"don_vi": "he",  "scope": "NC",    "basic": 450000,  "premium": 500000,  "source": "LANDMARK_3"},
+      "thao_do_tran_dien":     {"don_vi": "m2",  "scope": "NC",    "basic": 80000,   "premium": 90000,   "source": "LANDMARK_3"},
+      "thao_lap_he_lam_nhom":  {"don_vi": "he",  "scope": "NC",    "basic": 2200000, "premium": 2500000, "source": "LANDMARK_3"},
+      "van_chuyen_xa_ban":     {"don_vi": "he",  "scope": "NC",    "basic": 6500000, "premium": 7500000, "source": "LANDMARK_3", "ghi_chu": "Bao gồm trạc thải, nội thất cũ, thiết bị cũ"}
+    },
+
+    "phan_tho_hoan_thien": {
+      "san": {
+        "can_nen_xi_mang":           {"don_vi": "m2",  "scope": "NC_VT", "basic": 280000, "premium": 320000, "source": "INFINITY_1PN", "ghi_chu": "Vữa 5-7cm Hà Tiên"},
+        "thi_cong_san_go":           {"don_vi": "m2",  "scope": "NC_VT", "basic": 550000, "premium": 650000, "luxury": 860000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Basic/Premium: sàn gỗ CN 12mm. Luxury: Lamton Chervon xương cá. Hao hụt 10%"},
+        "len_san_go":                {"don_vi": "md",  "scope": "NC_VT", "basic": 90000,  "premium": 110000, "luxury": 160000, "source": "INFINITY_1PN+LANDMARK_3"},
+        "nep_nhua_ket_thuc":         {"don_vi": "cay", "scope": "NC_VT", "basic": 180000, "premium": 220000, "luxury": 350000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Cây dài 2.7m"},
+        "lat_gach_300x600_600x600":  {"don_vi": "m2",  "scope": "NC",    "basic": 500000, "premium": 550000, "source": "INFINITY_1PN", "ghi_chu": "Hao hụt 10%"},
+        "ngach_da_cua":              {"don_vi": "cai", "scope": "NC_VT", "basic": 500000, "premium": 600000, "luxury": 1200000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Đá đen kim sa. Luxury: ngạch lớn khu logia"},
+        "dam_va_chong_tham_canh_san":{"don_vi": "he",  "scope": "NC_VT", "luxury": 3200000, "source": "LANDMARK_3"},
+        "cai_tao_san_bep_noi_rong":  {"don_vi": "he",  "scope": "NC_VT", "luxury": 18000000, "source": "LANDMARK_3", "ghi_chu": "Fill sàn + lộp tole + XPE nâng sàn + vỉ bê tông đá mi"},
+        "chong_tham_sika_top_seal":  {"don_vi": "he",  "scope": "NC_VT", "luxury": 4500000, "source": "LANDMARK_3", "ghi_chu": "Sika Top Seal 107, 3 lớp chuyên dụng"},
+        "can_san_hoan_thien_5_7cm":  {"don_vi": "m2",  "scope": "NC_VT", "luxury": 320000, "source": "LANDMARK_3"}
+      },
+      "tuong": {
+        "xay_tuong_100mm":           {"don_vi": "m2",  "scope": "NC_VT", "basic": 470000, "premium": 520000, "source": "LANDMARK_3"},
+        "to_tuong_1_mat":            {"don_vi": "m2",  "scope": "NC_VT", "basic": 250000, "premium": 280000, "source": "LANDMARK_3"},
+        "dam_va_canh_tuong":         {"don_vi": "m",   "scope": "NC_VT", "basic": 270000, "premium": 300000, "source": "LANDMARK_3"},
+        "da_lanh_to":                {"don_vi": "he",  "scope": "NC_VT", "premium": 600000, "source": "LANDMARK_3"},
+        "da_gac_cua_ban_cong":       {"don_vi": "he",  "scope": "NC_VT", "premium": 2200000, "source": "LANDMARK_3"},
+        "he_khung_chi_thach_cao":    {"don_vi": "m2",  "scope": "NC_VT", "basic": 550000, "premium": 650000, "source": "INFINITY_1PN", "ghi_chu": "Khung M29 + Gyroc chống ẩm trang trí"},
+        "op_gach_tuong_wc":          {"don_vi": "m2",  "scope": "NC",    "basic": 500000, "premium": 550000, "source": "INFINITY_1PN"},
+        "nc_tuong_gach_kinh":        {"don_vi": "m2",  "scope": "NC",    "luxury": 1750000, "source": "LANDMARK_3"},
+        "chi_thach_cao_duc_vom_cong":{"don_vi": "m",   "scope": "NC_VT", "luxury": 600000, "source": "LANDMARK_3"}
+      },
+      "tran": {
+        "tran_thach_cao_phang":         {"don_vi": "m2", "scope": "NC_VT", "basic": 200000, "premium": 220000, "luxury": 250000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Khung M29 + tấm Gyroc"},
+        "tran_thach_cao_wc_chong_am":   {"don_vi": "m2", "scope": "NC_VT", "basic": 230000, "premium": 250000, "source": "INFINITY_1PN"},
+        "nap_tham_tran_thuong":         {"don_vi": "cai","scope": "NC_VT", "basic": 400000, "premium": 500000, "source": "INFINITY_1PN", "ghi_chu": "Vĩnh Tường"},
+        "nap_tham_tran_he_am":          {"don_vi": "cai","scope": "NC_VT", "luxury": 950000, "source": "LANDMARK_3"},
+        "cai_tao_tran_lop_tole":        {"don_vi": "goi","scope": "NC_VT", "luxury": 8200000, "source": "LANDMARK_3", "ghi_chu": "Sắt 40x80x1.4mm + tole 8zem + cemboard 15mm chống rơi vớt"},
+        "nep_nhua_ps_tran":             {"don_vi": "goi","scope": "NC_VT", "luxury": 6800000, "source": "LANDMARK_3"}
+      },
+      "son_ba": {
+        "son_ba_tran_tuong_hoan_thien": {"don_vi": "m2", "scope": "NC_VT", "basic": 140000, "premium": 160000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Bã 2 lớp + lót 1 lớp + hoàn thiện 2 lớp. Bột Jotun + sơn Dulux. Hệ số 0.85 (trừ cửa)"}
+      },
+      "kinh_vach": {
+        "vach_kinh_cuong_luc_10mm":  {"don_vi": "he", "scope": "NC_VT", "basic": 6500000, "premium": 7200000, "source": "INFINITY_1PN", "ghi_chu": "WC cửa mở, kính 10mm + VPP"}
+      }
+    },
+
+    "gach_op_lat": {
+      "gach_san_loi_vao":   {"don_vi": "m2",   "scope": "VT", "premium": 720000, "source": "LANDMARK_3", "ghi_chu": "800x800 hoặc 600x600 nhập khẩu"},
+      "gach_san_bep":       {"don_vi": "m2",   "scope": "VT", "premium": 720000, "source": "LANDMARK_3"},
+      "gach_op_tuong_wc":   {"don_vi": "m2",   "scope": "VT", "basic": 450000, "premium": 600000, "source": "INFINITY_1PN"},
+      "gach_kinh_dac":      {"don_vi": "vien", "scope": "VT", "premium": 178000, "source": "LANDMARK_3", "ghi_chu": "Gạch kính đặc nhập khẩu + vật tư nêm"}
+    },
+
+    "me_dien_nuoc_dieu_hoa": {
+      "nc_cai_tao_dien":            {"don_vi": "m2",  "scope": "NC",    "basic": 220000, "premium": 250000, "luxury": 320000, "source": "INFINITY_1PN+LANDMARK_3"},
+      "vt_thi_cong_dien_du_kien":   {"don_vi": "he",  "scope": "VT",    "basic": 18000000, "premium": 25000000, "luxury": 26800000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Tạm tính. Nghiệm thu thực tế. Luxury: căn ~95m2"},
+      "nc_cai_tao_cap_thoat_bep":   {"don_vi": "goi", "scope": "NC_VT", "luxury": 12000000, "source": "LANDMARK_3", "ghi_chu": "Bếp + logia"},
+      "he_chieu_sang_basic_premium":{"don_vi": "he",  "scope": "NC_VT", "basic": 12000000, "premium": 15000000, "source": "INFINITY_1PN", "ghi_chu": "Anfaco trọn gói. Hoặc tính theo cái cho luxury"},
+      "den_chieu_sang_anfaco":      {"don_vi": "cai", "scope": "VT",    "luxury": 480000, "source": "LANDMARK_3"},
+      "den_chieu_diem_anfaco":      {"don_vi": "cai", "scope": "VT",    "luxury": 445000, "source": "LANDMARK_3"},
+      "den_roi_anfaco":             {"don_vi": "cai", "scope": "VT",    "luxury": 820000, "source": "LANDMARK_3"},
+      "thanh_ray_nam_cham":         {"don_vi": "md",  "scope": "VT",    "luxury": 720000, "source": "LANDMARK_3"},
+      "noi_ray_nam_cham":           {"don_vi": "cai", "scope": "VT",    "luxury": 580000, "source": "LANDMARK_3"},
+      "nguon_ray_nam_cham":         {"don_vi": "cai", "scope": "VT",    "luxury": 2080000,"source": "LANDMARK_3"},
+      "den_nam_cham":               {"don_vi": "cai", "scope": "VT",    "luxury": 920000, "source": "LANDMARK_3"},
+      "quat_hut_am_tran":           {"don_vi": "cai", "scope": "NC_VT", "basic": 450000, "premium": 500000, "source": "INFINITY_1PN", "ghi_chu": "MPE"},
+      "ong_dong_6_12_may_lanh":     {"don_vi": "m",   "scope": "NC_VT", "basic": 380000, "premium": 420000, "source": "INFINITY_1PN", "ghi_chu": "Ống đồng Thailand 8zem + Cadivi 2.5 + PVC thoát"},
+      "ong_dong_6_10_may_lanh":     {"don_vi": "m",   "scope": "NC_VT", "basic": 340000, "premium": 380000, "source": "INFINITY_1PN"},
+      "lap_may_lanh_treo_tuong":    {"don_vi": "cai", "scope": "NC",    "basic": 700000, "premium": 800000, "source": "INFINITY_1PN"},
+      "vat_tu_phu_ke_do_may_lanh":  {"don_vi": "may", "scope": "VT",    "basic": 450000, "premium": 500000, "source": "INFINITY_1PN"},
+      "lap_thiet_bi_ve_sinh":       {"don_vi": "wc",  "scope": "NC",    "basic": 2000000,"premium": 2200000, "source": "INFINITY_1PN", "ghi_chu": "Combo TBVS/wc"},
+      "vat_tu_phu_lap_tbvs":        {"don_vi": "goi", "scope": "VT",    "basic": 700000, "premium": 800000, "source": "INFINITY_1PN"},
+      "di_doi_dau_bao_chay":        {"don_vi": "he",  "scope": "NC_VT", "luxury": 3000000, "source": "LANDMARK_3", "ghi_chu": "Theo quy định BQL tòa nhà"}
+    },
+
+    "cua_va_vach_op": {
+      "cua_giau_khuon_tan_dung":        {"don_vi": "bo", "scope": "NC_VT", "luxury": 7500000, "source": "LANDMARK_3", "ghi_chu": "Tận dụng cửa cũ, sửa thành hệ giấu khuôn. MDF An Cường + Laminate + sơn lại. 900x2200"},
+      "cua_giau_khuon_moi_khung_go":    {"don_vi": "bo", "scope": "NC_VT", "luxury": 12000000, "source": "LANDMARK_3", "ghi_chu": "Khung gỗ tự nhiên + MDF An Cường Melamin + Laminate + Hafele"},
+      "cua_di_thuong_son_2k":           {"don_vi": "bo", "scope": "NC_VT", "luxury": 10500000, "source": "CELESTA", "ghi_chu": "MDF chống ẩm An Cường sơn 2K hoàn thiện. 900x36x2200. Không gồm khóa+bản lề"},
+      "cua_wc_go_nhua_son_2k":          {"don_vi": "bo", "scope": "NC_VT", "luxury": 12500000, "source": "CELESTA", "ghi_chu": "Gỗ nhựa chống nước sơn 2K hoàn thiện. 800x36x2200"},
+      "he_cua_slim_lua":                {"don_vi": "m2", "scope": "VT",    "luxury": 7200000, "source": "LANDMARK_3", "ghi_chu": "Slim lùa đen không chia nan, không ray dưới, dày 1.8mm + phụ kiện + giảm chấn + khóa + kính họa tiết. CĐT cung cấp"},
+      "he_cua_lua_ban_cong_xinfa93":    {"don_vi": "m2", "scope": "VT",    "luxury": 4220000, "source": "LANDMARK_3", "ghi_chu": "Khung Xinfa 93 nhập khẩu + kính hộp cách âm + sơn theo BQL"},
+      "ban_le_am_hafele":               {"don_vi": "cai","scope": "VT",    "luxury": 650000, "source": "LANDMARK_3"},
+      "tay_nam_khoa_cua_hafele":        {"don_vi": "bo", "scope": "VT",    "luxury": 1500000, "source": "LANDMARK_3"},
+      "son_cua_wc_5_lop":               {"don_vi": "bo", "scope": "NC_VT", "luxury": 3200000, "source": "LANDMARK_3", "ghi_chu": "NC sơn + sơn 2K 5 lớp"},
+      "vach_op_cua_giau_khuon_son_2k":  {"don_vi": "m2", "scope": "NC_VT", "luxury": 2050000, "source": "LANDMARK_3", "ghi_chu": "MDF chống ẩm chạy ron âm + nẹp ron âm + sơn 2K theo màu"},
+      "vach_op_cua_giau_khuon_melamin": {"don_vi": "m2", "scope": "NC_VT", "luxury": 1550000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường Melamin + keo PUR"},
+      "gia_co_tran_khung_sat":          {"don_vi": "he", "scope": "NC_VT", "luxury": 3800000, "source": "LANDMARK_3", "ghi_chu": "Khung sắt 40x80mm gia cố trần đỡ cửa slim"}
+    },
+
+    "noi_that_go_cong_nghiep": {
+      "tu_bep": {
+        "bep_duoi_cao800_sau600": {
+          "don_vi": "md", "scope": "NC_VT",
+          "basic": 2700000, "premium": 3100000, "premium_plus_nhua": 4500000, "luxury": 4800000,
+          "source": "POLI+LANDMARK_3+CELESTA",
+          "ghi_chu": "Basic: Ba Thanh/Thanh Thùy chống ẩm. Premium: An Cường chống ẩm. Premium+: Nhựa Thanh Thùy phủ Film/HDF An Cường. Luxury: An Cường+Hafele+keo PUR+móc âm"
+        },
+        "bep_tren_cao800_sau350": {
+          "don_vi": "md", "scope": "NC_VT",
+          "basic": 2200000, "premium": 2600000, "premium_plus_nhua": 4000000, "luxury": 4550000,
+          "source": "POLI+LANDMARK_3", "ghi_chu": "Luxury có thể cánh kính cường lực 8mm + tay nâng Pittong"
+        },
+        "tu_bep_tu_lanh_sau600":      {"don_vi": "m2", "scope": "NC_VT", "basic": 2400000, "premium": 2900000, "source": "POLI"},
+        "he_tu_lanh_combo_900x2500":  {"don_vi": "he", "scope": "NC_VT", "luxury_small": 6500000, "luxury_large": 11400000, "source": "CELESTA+LANDMARK_3", "ghi_chu": "Tủ áp tủ lạnh trọn gói. Small: ~600 sâu. Large: 2500 cao + Pittong"},
+        "quay_dao_bep_cao1000_sau600":{"don_vi": "md", "scope": "NC_VT", "basic": 4000000, "premium": 4600000, "luxury": 8500000, "source": "POLI+LANDMARK_3", "ghi_chu": "Luxury: đảo + bar inox mạ PVD"},
+        "mat_da_nung_ket_lamar":      {"don_vi": "m2", "scope": "VT",    "luxury_estimate": 4500000, "source": "LANDMARK_3", "ghi_chu": "Đá Lamar nhân tạo. Giá tham khảo ~4-5tr/m2 tùy nhà cung cấp"},
+        "mat_da_vicostone_qquartz":   {"don_vi": "m2", "scope": "VT",    "luxury_estimate": 5000000, "source": "CELESTA", "ghi_chu": "Đá Vicostone Qquartz nhân tạo. Liên hệ NCC để xác nhận"},
+        "tu_do_kho_pha":              {"don_vi": "m2", "scope": "NC_VT", "luxury": 4500000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường + Hafele + PUR. KHÔNG gồm phụ kiện trong tủ"},
+        "tu_bar_ke_top":              {"don_vi": "m2", "scope": "NC_VT", "luxury": 4200000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường + tay nắm chữ F"},
+        "tu_bar_tren_canh_kinh":      {"don_vi": "md", "scope": "NC_VT", "luxury": 4500000, "source": "CELESTA"},
+        "tu_bar_duoi":                {"don_vi": "md", "scope": "NC_VT", "luxury": 4000000, "source": "CELESTA"},
+        "_phu_kien_them": {
+          "mdf_chong_am_ba_thanh_extra":   150000,
+          "mdf_chong_am_an_cuong_extra":   200000,
+          "canh_son_2k_mo_extra":          600000,
+          "canh_huynh_pano_co_dien_extra": 700000,
+          "canh_acrylic_livas_extra":     1500000,
+          "canh_acrylic_an_cuong_extra":  1800000,
+          "canh_nhom_kinh_extra":         1900000,
+          "canh_luoi_may_extra":           700000,
+          "led_extra":                     350000,
+          "o_kinh_extra_per_o":            600000,
+          "bo_goc_cong_extra_per_goc":     300000,
+          "lap_phu_kien_bep_nho":          200000,
+          "lap_phu_kien_bep_lon":          350000,
+          "lap_thiet_bi_bep_lo_nuong_hut": 1200000,
+          "_don_vi": "VND, cộng dồn vào đơn giá hạng mục gốc"
+        }
+      },
+
+      "tu_ao_trang_tri": {
+        "tu_ao_sau_duoi_600": {
+          "don_vi": "m2", "scope": "NC_VT",
+          "basic": 2100000, "premium": 2600000, "luxury_son_2k": 3650000, "luxury_pano_cnc": 4550000, "luxury_master_pano": 4750000,
+          "source": "POLI+CELESTA+LANDMARK_3",
+          "ghi_chu": "Luxury: MDF An Cường + Hafele + sơn 2K + Tip-on. Master pano: cánh CNC sơn 2K cao cấp"
+        },
+        "tu_trang_tri_ruou_giay_sau_duoi_350": {"don_vi": "m2", "scope": "NC_VT", "basic": 1800000, "premium": 2300000, "luxury": 4000000, "source": "POLI+CELESTA"},
+        "tu_quan_ao_canh_nhom_kinh_master":    {"don_vi": "m2", "scope": "NC_VT", "premium": 3200000, "luxury": 3600000, "source": "ANH_MINH"},
+        "he_tu_den_canh_kinh_thuy":            {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "ANH_MINH", "ghi_chu": "Khung An Cường sơn + cánh nhôm kính hệ 20x40"},
+        "tu_trang_tri_travertine_gia_da":      {"don_vi": "m2", "scope": "NC_VT", "luxury": 5460000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường phủ Travertine giả đá + hậu kính cường lực màu khói + Hafele"},
+        "tu_console":                          {"don_vi": "m2", "scope": "NC_VT", "luxury": 4000000, "source": "CELESTA"},
+        "tu_sach_lua_canh_kinh":               {"don_vi": "m2", "scope": "NC_VT", "luxury": 3650000, "source": "CELESTA", "ghi_chu": "Cánh kính cường lực 8mm + khung MDF + lùa 1 ray"},
+        "tu_sach_thuong":                      {"don_vi": "m2", "scope": "NC_VT", "luxury": 2800000, "source": "CELESTA", "ghi_chu": "Đơn giá đã có hậu"},
+        "tu_luu_tru_phong_khach":              {"don_vi": "m2", "scope": "NC_VT", "luxury_small": 3500000, "luxury_large": 4000000, "source": "CELESTA+LANDMARK_3"},
+        "tu_giay_canh_pano_son_2k":            {"don_vi": "m2", "scope": "NC_VT", "luxury_celesta": 3500000, "luxury_landmark": 4350000, "source": "CELESTA+LANDMARK_3", "ghi_chu": "MDF An Cường + cánh pano sơn 2K + Hafele + dán cạnh PUR"},
+        "ngan_keo_tu_giay_travertine":         {"don_vi": "cai","scope": "NC_VT", "luxury": 3200000, "source": "LANDMARK_3"}
+      },
+
+      "ban_ke_tv_trang_diem_lam_viec": {
+        "ban_lam_viec_ke_tv_duoi_1400": {"don_vi": "cai", "scope": "NC_VT", "basic": 2800000, "premium": 3500000, "luxury": 4500000, "source": "POLI+CELESTA"},
+        "ban_lam_viec_ke_tv_tren_1400": {"don_vi": "md",  "scope": "NC_VT", "basic": 1800000, "premium": 2300000, "source": "POLI"},
+        "ban_lam_viec_mat_da_trang_su":  {"don_vi": "bo",  "scope": "VT",    "luxury": 3500000, "source": "CELESTA", "ghi_chu": "Mặt đá trắng sứ riêng, cộng thêm vào bàn làm việc"},
+        "ban_trang_diem_co_kinh_ghe":   {"don_vi": "bo",  "scope": "NC_VT", "premium": 2500000, "luxury": 6500000, "source": "ANH_MINH"},
+        "dao_trang_diem_pano_son_2k":   {"don_vi": "he",  "scope": "NC_VT", "luxury": 9800000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường + cánh pano sơn 2K + kính cường lực màu trà + tay núm tròn"},
+        "ke_tv_dai_son_2k":             {"don_vi": "md",  "scope": "NC_VT", "luxury": 3800000, "source": "LANDMARK_3"},
+        "tu_tivi_son_2k":               {"don_vi": "md",  "scope": "NC_VT", "luxury": 3650000, "source": "CELESTA", "ghi_chu": "MDF An Cường + mặt cánh sơn 2K + Hafele"}
+      },
+
+      "guong_tab_giuong": {
+        "guong_1400":              {"don_vi": "cai", "scope": "NC_VT", "basic": 5100000, "premium": 6500000, "source": "POLI"},
+        "guong_1600":              {"don_vi": "cai", "scope": "NC_VT", "basic": 6100000, "premium": 7500000, "source": "POLI"},
+        "guong_1800":              {"don_vi": "cai", "scope": "NC_VT", "basic": 6600000, "premium": 8000000, "source": "POLI"},
+        "guong_qua_kho_bac_go":    {"don_vi": "m2",  "scope": "NC_VT", "basic": 1950000, "premium": 2350000, "source": "POLI"},
+        "guong_soi_toan_than":     {"don_vi": "tam", "scope": "VT",    "luxury": 5200000, "source": "LANDMARK_3", "ghi_chu": "Nền MDF chống ẩm + gương mài vát cạnh (950x2600)"},
+        "guong_soi_nho":           {"don_vi": "cai", "scope": "NC_VT", "luxury": 3800000, "source": "CELESTA", "ghi_chu": "Khung MDF + gương mài vát cạnh (~584x2583)"},
+        "tab_dau_guong":           {"don_vi": "cai", "scope": "NC_VT", "basic": 1400000, "premium": 1900000, "luxury_celesta": 3850000, "luxury_landmark": 4200000, "source": "POLI+CELESTA+LANDMARK_3"},
+        "giuong_boc_nem_master":   {"don_vi": "cai", "scope": "NC_VT", "luxury": 22560000, "source": "LANDMARK_3", "ghi_chu": "Khung MDF An Cường + nệm Cỏ May 1800x2000"},
+        "giuong_bay_nho":          {"don_vi": "m2",  "scope": "NC_VT", "luxury": 3000000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường, không nệm"},
+        "giuong_co_hoc_keo":       {"don_vi": "cai", "scope": "NC_VT", "luxury": 8000000, "source": "CELESTA", "ghi_chu": "3 hộc kéo, MDF An Cường"},
+        "tu_thap_dau_giuong":      {"don_vi": "md",  "scope": "NC_VT", "luxury": 3800000, "source": "LANDMARK_3"},
+        "vach_op_dau_giuong_go":   {"don_vi": "m2",  "scope": "NC_VT", "luxury": 1450000, "source": "CELESTA", "ghi_chu": "MDF An Cường + sơn 2K + PUR"},
+        "vach_op_dau_giuong_travertine":{"don_vi": "m2", "scope": "NC_VT", "luxury": 3500000, "source": "CELESTA", "ghi_chu": "Tấm giả đá 3D nổi"},
+        "vach_op_nem_dau_giuong":  {"don_vi": "cai", "scope": "NC_VT", "luxury": 6800000, "source": "LANDMARK_3", "ghi_chu": "Tấm nền MDF + nệm bọc vải Cỏ May"},
+        "tran_op_go_phong_ngu":    {"don_vi": "m2",  "scope": "NC_VT", "luxury": 1450000, "source": "CELESTA"}
+      },
+
+      "vach_op_va_ke": {
+        "vach_phang_op_tuong":         {"don_vi": "m2","scope": "NC_VT", "basic": 950000, "premium": 1300000, "luxury_son_2k": 1500000, "source": "POLI+CELESTA"},
+        "vach_lam_op_tuong":           {"don_vi": "m2","scope": "NC_VT", "basic": 1580000, "premium": 2150000, "source": "POLI"},
+        "vach_lam_ngan_phong":         {"don_vi": "m2","scope": "NC_VT", "luxury": 2000000, "source": "CELESTA"},
+        "vach_cnc_son_dam_canh":       {"don_vi": "m2","scope": "NC_VT", "basic": 1950000, "premium": 2550000, "source": "POLI"},
+        "vach_op_tivi_cnc_son_2k":     {"don_vi": "m2","scope": "NC_VT", "luxury": 1500000, "source": "CELESTA"},
+        "vach_op_tivi_gia_da_3d":      {"don_vi": "m2","scope": "VT",    "luxury": 3500000, "source": "CELESTA"},
+        "vach_op_ke_ron_son_2k":       {"don_vi": "m2","scope": "NC_VT", "luxury": 1850000, "source": "LANDMARK_3", "ghi_chu": "MDF An Cường + kẻ ron + nẹp nhôm đen"},
+        "vach_op_che_cot":             {"don_vi": "md","scope": "NC_VT", "luxury": 1550000, "source": "LANDMARK_3"},
+        "duong_nhom_bo_cong_r100":     {"don_vi": "md","scope": "VT",    "luxury": 350000, "source": "LANDMARK_3"},
+        "ke_ngang_day_34":             {"don_vi": "md","scope": "NC_VT", "basic": 600000, "premium": 800000, "source": "POLI", "ghi_chu": "Đợt kệ dày 34 bắt ti"},
+        "ke_sach_khong_canh":          {"don_vi": "cai","scope":"NC_VT", "luxury": 4000000, "source": "CELESTA"}
+      },
+
+      "tu_lavabo_guong_wc": {
+        "tu_lavabo_duoi_1000_thuong":   {"don_vi": "cai", "scope": "NC_VT", "basic": 2500000, "premium": 3100000, "premium_plus_nhua": 3600000, "source": "POLI+ANH_MINH"},
+        "tu_lavabo_duoi_1000_luxury":   {"don_vi": "cai", "scope": "NC_VT", "luxury": 4500000, "source": "CELESTA", "ghi_chu": "WPB nhựa An Cường vân gỗ + CNC lam sóng + sơn 2K + Hafele + PUR"},
+        "tu_lavabo_tren_1000":          {"don_vi": "md",  "scope": "NC_VT", "basic": 2600000, "premium": 3100000, "premium_plus_nhua": 3600000, "source": "POLI"},
+        "da_mat_lavabo_trang_su":       {"don_vi": "bo",  "scope": "VT",    "luxury": 3900000, "source": "CELESTA", "ghi_chu": "Đá trắng sứ nhân tạo vân mây + chỉ đá"},
+        "tu_guong_kinh_thuy_duoi_1000": {"don_vi": "cai", "scope": "NC_VT", "basic": 3200000, "premium": 3900000, "premium_plus_nhua": 4500000, "luxury_wpb": 5000000, "source": "POLI+CELESTA"},
+        "tu_guong_kinh_thuy_tren_1000": {"don_vi": "md",  "scope": "NC_VT", "basic": 3200000, "premium": 3900000, "premium_plus_nhua": 4500000, "source": "POLI"},
+        "tu_trang_tri_wc_wpb":          {"don_vi": "cai", "scope": "NC_VT", "luxury": 3000000, "source": "CELESTA"}
+      },
+
+      "tu_may_giat_rua_chen": {
+        "tu_may_giat":                {"don_vi": "m2", "scope": "NC_VT", "premium": 3000000, "source": "ANH_MINH", "ghi_chu": "Nhựa sơn xám"},
+        "tu_may_rua_chen_nhua_lam":   {"don_vi": "m2", "scope": "NC_VT", "luxury": 5500000, "source": "CELESTA", "ghi_chu": "Ván nhựa An Cường + dán laminate đồng màu + Hafele + PUR"}
+      },
+
+      "phu_kien_hafele": {
+        "ban_le_hafele":      {"don_vi": "cai", "scope": "VT", "luxury": 49000,  "source": "LANDMARK_3"},
+        "ray_keo_hafele":     {"don_vi": "bo",  "scope": "VT", "luxury": 179000, "source": "LANDMARK_3"},
+        "ban_le_am_hafele":   {"don_vi": "cai", "scope": "VT", "luxury": 650000, "source": "LANDMARK_3", "ghi_chu": "Trùng với cua_va_vach_op.ban_le_am_hafele"}
+      },
+
+      "den_led_trang_tri": {
+        "led_day_thanh_nhom_am":   {"don_vi": "md",  "scope": "NC_VT", "basic": 220000, "premium": 250000, "luxury": 300000, "source": "ANH_MINH+LANDMARK_3", "ghi_chu": "Led siêu sáng + thanh nhôm âm + nguồn + công tắc"},
+        "led_day_khong_u_nhom":    {"don_vi": "md",  "scope": "NC_VT", "basic": 150000, "premium": 180000, "source": "ANH_MINH"},
+        "led_hat_thanh_nhom_combo":{"don_vi": "goi", "scope": "NC_VT", "luxury_small": 1200000, "luxury_large": 2000000, "source": "CELESTA+LANDMARK_3", "ghi_chu": "Combo led thanh nhôm định hình + nguồn cho 1 vị trí (vd: hậu tủ, ke kệ)"},
+        "nguon_to_ong":            {"don_vi": "bo",  "scope": "VT",    "luxury": 350000, "source": "LANDMARK_3"},
+        "cam_bien_cham_dong_mo":   {"don_vi": "cai", "scope": "VT",    "luxury": 150000, "source": "LANDMARK_3"}
+      },
+
+      "khac": {
+        "van_chuyen_lap_dat":             {"don_vi": "goi","scope": "NC", "basic": 4500000, "premium": 5000000, "source": "ANH_MINH"},
+        "cong_trinh_ngoai_tinh_percent":  {"don_vi": "%",  "value": 4,    "source": "POLI", "ghi_chu": "Cộng 4% đơn hàng cho ngoại tỉnh"},
+        "giay_dan_tuong":                 {"don_vi": "cuon","scope": "NC_VT", "luxury": 3000000, "source": "LANDMARK_3", "ghi_chu": "Giấy Hàn Quốc trọn gói"}
+      }
+    },
+
+    "rem_man": {
+      "rem_2_lop_can_sang_100": {
+        "don_vi": "m_dai", "scope": "NC_VT",
+        "basic": 950000, "premium": 1150000, "luxury": 1380000,
+        "source": "LANDMARK_3",
+        "ghi_chu": "Rèm 2 lớp cản sáng 100%: 1 lớp voan + 1 lớp vải. Luxury: vải nhập khẩu. Tính theo m dài thanh treo, cao ~2.95m"
+      }
+    },
+
+    "ve_sinh_trac_thai": {
+      "boc_xep_trac_thai":      {"don_vi": "goi", "scope": "NC", "basic": 1800000, "premium": 2000000, "luxury": 10000000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Luxury: căn lớn, nhiều xà bần + rác sinh hoạt"},
+      "don_ve_sinh_du_an":      {"don_vi": "goi", "scope": "NC", "basic": 4500000, "premium": 5000000, "luxury": 8800000, "source": "INFINITY_1PN+LANDMARK_3", "ghi_chu": "Vệ sinh sau cải tạo + sau hoàn thiện + vệ sinh công nghiệp"}
+    }
+  },
+
+  "nha_o": {
+    "nhan_cong_xay_dung": {
+      "nhan_cong_tron_goi_per_m2_san": {
+        "don_vi": "m2_san", "scope": "NC",
+        "basic": 1800000, "premium": 2000000,
+        "source": "DQH_BONY",
+        "ghi_chu": "Nhân công xây thô + hoàn thiện. Móng/mái 50%, các tầng 100%."
+      }
+    },
+    "cost_breakdown_reference": {
+      "_note": "Tỉ trọng tham khảo từ DQH Vo Thi Sau (~4 tỷ trước thuế)",
+      "vat_tu_phan_tho_percent": 28.0,
+      "vat_tu_hoan_thien_percent": 23.8,
+      "tbvs_dieu_hoa_smarthome_percent": 7.5,
+      "noi_that_percent": 23.1,
+      "nhan_cong_percent": 17.6,
+      "source": "DQH_VTS"
+    },
+    "_note": "Đơn giá chi tiết nhà phố (sàn/trần/sơn/M&E/nội thất) phần lớn dùng chung với chung_cu. Khác biệt: thêm phần móng/cột/dầm/sàn xây thô, nhân công cao hơn 10-15%."
+  },
+
+  "shop": {
+    "_placeholder": "Chưa có dữ liệu báo giá shop. Khi user yêu cầu: dùng chung_cu làm baseline + hỏi user spec (mặt tiền, hệ cửa nhôm kính, đèn show hàng, sàn epoxy/granite, decal/mockup) để bổ sung."
+  },
+
+  "_margin_strategy": {
+    "aggressive":     {"min": 0.08, "max": 0.12, "ghi_chu": "Cạnh tranh giá, deal hot"},
+    "target":         {"min": 0.18, "max": 0.22, "default": true, "ghi_chu": "Mức chuẩn công ty"},
+    "premium_margin": {"min": 0.28, "max": 0.35, "ghi_chu": "Dự án cao cấp, spec rõ"}
+  }
+}

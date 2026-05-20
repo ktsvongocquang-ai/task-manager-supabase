@@ -127,22 +127,35 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onClose();
+                                    const navState = { _ts: Date.now() };
                                     if (notif.marketing_task_id || notif.marketing_project_id) {
-                                        navigate('/marketing', {
-                                            state: {
-                                                openTaskId: notif.marketing_task_id,
-                                                openProjectId: notif.marketing_project_id,
-                                                _ts: Date.now()
-                                            }
-                                        });
+                                        const target = '/marketing';
+                                        const state = {
+                                            ...navState,
+                                            openTaskId: notif.marketing_task_id,
+                                            openProjectId: notif.marketing_project_id,
+                                        };
+                                        // Force navigation even if already on same page
+                                        if (window.location.pathname === target) {
+                                            window.history.replaceState({}, '');
+                                            setTimeout(() => navigate(target, { state, replace: false }), 0);
+                                        } else {
+                                            navigate(target, { state });
+                                        }
                                     } else if (notif.related_task_id || notif.related_project_id) {
-                                        navigate('/dashboard', {
-                                            state: {
-                                                openTaskId: notif.related_task_id,
-                                                openProjectId: notif.related_project_id,
-                                                _ts: Date.now()
-                                            }
-                                        });
+                                        const target = '/dashboard';
+                                        const state = {
+                                            ...navState,
+                                            openTaskId: notif.related_task_id,
+                                            openProjectId: notif.related_project_id,
+                                        };
+                                        // Force navigation even if already on same page
+                                        if (window.location.pathname === target) {
+                                            window.history.replaceState({}, '');
+                                            setTimeout(() => navigate(target, { state, replace: false }), 0);
+                                        } else {
+                                            navigate(target, { state });
+                                        }
                                     }
                                 }}
                             >

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
-import { LogOut, HardHat, KeyRound, RefreshCw } from 'lucide-react'
+import { LogOut, HardHat, KeyRound, RefreshCw, BookOpen } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { supabase } from '../../services/supabase'
 
@@ -81,6 +81,15 @@ export const ConstructionOnlyLayout = () => {
 
                     {/* Right: User + actions */}
                     <div className="flex items-center gap-2 shrink-0">
+                        {/* Training Hub */}
+                        <button
+                            onClick={() => navigate('/training')}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-100 active:scale-95 transition-all"
+                            title="Đào tạo & Thư viện"
+                        >
+                            <BookOpen size={16} />
+                        </button>
+
                         {/* Refresh */}
                         <button
                             onClick={handleRefresh}

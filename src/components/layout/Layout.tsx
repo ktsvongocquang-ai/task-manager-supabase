@@ -27,7 +27,9 @@ import {
     Folder,
     PieChart,
     Menu,
-    Database
+    Database,
+    Calculator,
+    BookOpen
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -51,6 +53,8 @@ const viewTitles: Record<string, string> = {
     '/construction': 'Quản lý Thi công',
     '/customers': 'CRM',
     '/marketing': 'Marketing',
+    '/bao-gia': 'Báo giá Nội thất',
+    '/training': 'Đào tạo & Thư viện',
 }
 
 export const Layout = () => {
@@ -301,6 +305,14 @@ export const Layout = () => {
         // Tab CRM
         if (canAccessRoute(role, '/customers')) {
             items.push({ name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] });
+        }
+
+        // Tab Báo giá Nội thất
+        items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
+
+        // Đào tạo & Thư viện
+        if (canAccessRoute(role, '/training')) {
+            items.push({ name: 'Đào tạo', path: '/training', icon: BookOpen, matchPrefix: ['/training'] });
         }
 
         // Lịch sử
