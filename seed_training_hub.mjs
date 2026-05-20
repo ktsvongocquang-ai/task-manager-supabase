@@ -232,7 +232,7 @@ async function seed() {
     section_id: cvId,
     slug: "core-values-list",
     heading: "5 Giá trị cốt lõi",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -277,7 +277,7 @@ async function seed() {
     section_id: bdId,
     slug: "brand-dna-5-elements",
     heading: "5 Yếu tố Cốt lõi",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -313,7 +313,7 @@ async function seed() {
     section_id: dtId,
     slug: "nhom-1-ban-khong-gian",
     heading: "NHÓM 1: BÁN KHÔNG GIAN, KHÔNG BÁN VẬT LIỆU",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -338,7 +338,7 @@ async function seed() {
     section_id: dtId,
     slug: "nhom-2-phan-lop-doi-luu",
     heading: "NHÓM 2: PHÂN LỚP KHÔNG GIAN & ĐỐI LƯU TỰ NHIÊN",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -363,7 +363,7 @@ async function seed() {
     section_id: dtId,
     slug: "nhom-3-cong-nang-ergonomics",
     heading: "NHÓM 3: CÔNG NĂNG & ERGONOMICS (TIỆN THÁI HỌC)",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -400,7 +400,7 @@ async function seed() {
     section_id: dtId,
     slug: "nhom-4-giao-thong-che-giau",
     heading: "NHÓM 4: GIAO THÔNG MẠCH LẠC & CHE GIẤU",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -429,7 +429,7 @@ async function seed() {
     section_id: dtId,
     slug: "nhom-5-ngon-ngu-kien-truc",
     heading: "NHÓM 5: NGÔN NGỮ KIẾN TRÚC & NỘI THẤT",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -464,7 +464,7 @@ async function seed() {
     section_id: msId,
     slug: "master-suite-details",
     heading: "Master Suite — Khách sạn 5 sao tại gia",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -810,7 +810,7 @@ async function seed() {
     section_id: philId,
     slug: "ql-5-nguyen-tac",
     heading: "5 Nguyên tắc Cốt lõi",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -845,7 +845,7 @@ async function seed() {
     section_id: layoutId,
     slug: "layout-principles-list",
     heading: "Nguyên tắc bố cục Quiet Luxury",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -872,7 +872,7 @@ async function seed() {
     section_id: ergoId,
     slug: "ergonomics-dimensions",
     heading: "Kích thước chuẩn theo phòng",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -903,7 +903,7 @@ async function seed() {
     section_id: matId,
     slug: "materials-list",
     heading: "Vật liệu chuẩn DQH",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -1718,7 +1718,7 @@ async function seed() {
     section_id: tsId,
     slug: "technical-systems-list",
     heading: "Hệ thống kỹ thuật \"ngầm\" nhưng sống còn",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         {
@@ -1745,7 +1745,7 @@ async function seed() {
     section_id: cpId,
     slug: "construction-11-steps",
     heading: "11 Bước thi công chuẩn",
-    content_type: "items",
+    content_type: "list",
     metadata: {
       items: [
         { title: "① Xây tường", body: "" },
