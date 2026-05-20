@@ -1052,14 +1052,88 @@ async function seed() {
   // ── 2.6 Case Study nội bộ ─────────────────────────────────
   const caseId = sec2BySlug["case-studies"].id;
 
-  mod2Subsections.push({
-    section_id: caseId,
-    slug: "case-studies-placeholder",
-    heading: "Dự án case study",
-    content: "[Placeholder — cần update với dự án thực tế]",
-    content_type: "text",
-    metadata: null,
-    sort_order: 1,
+  const m2Case = [
+  {
+    "slug": "case-study-framework",
+    "heading": "Framework Xây Dựng Case Study",
+    "content": null,
+    "content_type": "items",
+    "metadata": {
+      "items": [
+        {
+          "title": "Mục đích",
+          "body": "Mỗi dự án hoàn thành là một bài học đắt giá cho toàn team. Case study giúp lưu trữ tri thức, kinh nghiệm xử lý tình huống thực tế và lan tỏa tinh thần thiết kế của DQH."
+        },
+        {
+          "title": "Cấu trúc chuẩn",
+          "body": "1. Client Brief (Yêu cầu đầu bài từ khách hàng)\n2. Design Response (Giải pháp thiết kế của DQH - Tại sao lại chọn giải pháp đó?)\n3. Challenges (Những khó khăn trong quá trình TK/TC)\n4. Lessons Learned (Bài học rút ra - Làm tốt điều gì, cần tránh điều gì)\n5. Photos (Hình ảnh thực tế trước và sau)"
+        },
+        {
+          "title": "Template sử dụng",
+          "body": "Team sử dụng template chuẩn trên Notion để tạo Case Study mới sau mỗi dự án bàn giao và trình bày trong buổi Weekly Knowledge Sharing."
+        }
+      ]
+    },
+    "sort_order": 1
+  },
+  {
+    "slug": "case-study-1-q2",
+    "heading": "Case Study 1: Căn hộ Quiet Luxury 120m² — Q2",
+    "content": null,
+    "content_type": "items",
+    "metadata": {
+      "items": [
+        {
+          "title": "Client Brief",
+          "body": "Khách hàng: Gia đình 4 người (2 vợ chồng, 2 con nhỏ). Budget: 2.8 tỷ VND. Yêu cầu: Không gian ấm cúng, tối giản nhưng phải hiện đại, dễ dàng dọn dẹp và an toàn cho trẻ em."
+        },
+        {
+          "title": "Design Response",
+          "body": "Áp dụng triệt để Quiet Luxury. Lựa chọn gỗ Oak tự nhiên kết hợp đá Limestone tạo sự ấm áp. Sử dụng 100% ánh sáng gián tiếp (hắt trần, hắt khe tường) tại khu vực sinh hoạt chung để tạo cảm giác thư giãn. Thiết kế hệ tủ âm tường liền mạch che giấu toàn bộ đồ đạc."
+        },
+        {
+          "title": "Challenges",
+          "body": "Budget 2.8 tỷ khá thách thức cho diện tích 120m² nếu sử dụng toàn bộ vật liệu tự nhiên cao cấp theo chuẩn DQH."
+        },
+        {
+          "title": "Lessons Learned",
+          "body": "Việc 'educate' khách hàng về triết lý Quiet Luxury từ sớm giúp giải quyết bài toán ngân sách: Team đã thuyết phục khách hàng đầu tư vào chất lượng không gian (hệ thống đèn, sàn gỗ tự nhiên, phụ kiện bếp cao cấp) thay vì các chi tiết trang trí thừa thãi. Khách hàng cực kỳ hài lòng với kết quả."
+        }
+      ]
+    },
+    "sort_order": 2
+  },
+  {
+    "slug": "case-study-2-thaodien",
+    "heading": "Case Study 2: Villa 350m² — Thảo Điền",
+    "content": null,
+    "content_type": "items",
+    "metadata": {
+      "items": [
+        {
+          "title": "Client Brief",
+          "body": "Khách hàng: Cặp vợ chồng nghỉ hưu, thích du lịch và văn hóa Việt Nam. Budget: 8 tỷ VND. Yêu cầu: Không gian thông thoáng, gần gũi thiên nhiên, mang đậm dấu ấn Á Đông nhưng vẫn tiện nghi."
+        },
+        {
+          "title": "Design Response",
+          "body": "Style: Indochine Đương đại pha trộn yếu tố Quiet Luxury. Tạo khoảng sân trong (courtyard) lớn ở trung tâm nhà, mọi phòng đều hướng về khoảng xanh này. Tối ưu hóa đối lưu gió tự nhiên thông qua hệ cửa lá sách."
+        },
+        {
+          "title": "Challenges",
+          "body": "Bài toán khó nhất là cân bằng giữa nét hoài cổ của Indochine mà không làm không gian trở nên nặng nề, cũ kỹ hay giống như một resort/nhà hàng."
+        },
+        {
+          "title": "Lessons Learned",
+          "body": "Việc khảo sát hiện trạng kỹ lưỡng (Site visit) đã tiết lộ hướng gió chính và góc nhìn đẹp nhất mà bản vẽ kỹ thuật ban đầu không thể hiện. Nhờ đó, team đã thay đổi layout phòng khách để tận dụng tối đa điều kiện tự nhiên. Bài học: Không bao giờ tin 100% vào bản vẽ giấy mà không đo đạc thực tế."
+        }
+      ]
+    },
+    "sort_order": 3
+  }
+];
+  m2Case.forEach(c => {
+    c.section_id = caseId;
+    mod2Subsections.push(c);
   });
 
   // ── 2.7 Common Mistakes ───────────────────────────────────
@@ -1422,13 +1496,71 @@ async function seed() {
 
   // ── 3.3 Handover ──────────────────────────────────────────
   const hoId = wfBySlug["handover"].id;
-  stepsData.push({
-    workflow_id: hoId,
-    phase: "Placeholder",
-    owner: "—",
-    actions: ["[Sẽ build chi tiết]"],
-    sort_order: 1,
-    metadata: null,
+  const handoverData = [
+  {
+    "phase": "1. Chuẩn bị hồ sơ bàn giao (Designer → Drafter)",
+    "owner": "Senior Designer",
+    "actions": [
+      "Tổng hợp toàn bộ hồ sơ thiết kế: Bản vẽ concept 2D, hình ảnh 3D đã được khách hàng duyệt, danh sách vật liệu (material selections).",
+      "Tạo Design Intent Document (DID) — tài liệu vô cùng quan trọng để giải thích 'TẠI SAO' cho mỗi quyết định thiết kế, giúp team Drafter hiểu rõ ý đồ.",
+      "Checklist bàn giao nội bộ: Mặt bằng ✓, mặt đứng cơ bản ✓, 3D ✓, vật liệu ✓, MEP coordination cơ bản ✓.",
+      "Lấy chữ ký (Sign-off) xác nhận từ Design Leader trước khi tiến hành bàn giao chính thức."
+    ],
+    "metadata": null,
+    "sort_order": 1
+  },
+  {
+    "phase": "2. Handover Meeting (30-45 phút)",
+    "owner": "Design Leader + Drafter Lead",
+    "actions": [
+      "Walk-through toàn bộ Design Intent: Trình bày ý tưởng, nguồn cảm hứng và những điểm nhấn quan trọng của dự án.",
+      "Highlight các chi tiết kỹ thuật phức tạp (critical details): Các điểm giao (joints), sự phối hợp với hệ thống MEP (điện, nước, điều hòa âm trần), và các vật liệu đặc biệt (special finishes).",
+      "Q&A Session: Drafter đặt câu hỏi cho mọi thắc mắc, không để lại bất kỳ điểm mù nào trước khi bắt tay vào vẽ.",
+      "Ghi chép Meeting Minutes rõ ràng và cả hai bên (Design & Drafter) ký xác nhận đã bàn giao thành công."
+    ],
+    "metadata": null,
+    "sort_order": 2
+  },
+  {
+    "phase": "3. Triển khai bản vẽ kỹ thuật (Shop Drawing)",
+    "owner": "Drafter",
+    "actions": [
+      "Phát triển bản vẽ kỹ thuật thi công (shop drawing) chi tiết từ hồ sơ concept đã nhận.",
+      "Thực hiện Coordination MEP: Đảm bảo vị trí đèn, công tắc, ổ cắm, miệng gió điều hòa khớp hoàn toàn với thiết kế trần/tường.",
+      "Lập Material Schedule chi tiết: Lên danh sách mã vật liệu, nhà cung cấp (NCC), mã mẫu thực tế, giá cả dự kiến.",
+      "Self-check (Tự kiểm tra) bản vẽ trước khi nộp, bám sát các tiêu chuẩn kỹ thuật (Drawing Standards) của DQH."
+    ],
+    "metadata": null,
+    "sort_order": 3
+  },
+  {
+    "phase": "4. Design Review (Kiểm tra chéo)",
+    "owner": "Senior Designer",
+    "actions": [
+      "Review bản vẽ kỹ thuật triển khai so với Design Intent ban đầu — đảm bảo không bị sai lệch ý tưởng.",
+      "Thực hiện Mark-up corrections (Red pen) trực tiếp lên bản vẽ (PDF/Bản in) để Drafter chỉnh sửa.",
+      "Xác nhận các thông số kỹ thuật vật liệu (Material specifications) trên bản vẽ khớp 100% với mẫu vật liệu thực tế đã duyệt.",
+      "Sign-off phê duyệt bản vẽ kỹ thuật cuối cùng (Final technical drawings)."
+    ],
+    "metadata": null,
+    "sort_order": 4
+  },
+  {
+    "phase": "5. Bàn giao cho team Thi Công",
+    "owner": "Project Manager (PM) + Design Leader",
+    "actions": [
+      "Tổ chức Pre-construction meeting (Họp tiền thi công) với nhà thầu chính và các nhà thầu phụ quan trọng.",
+      "Walk-through bản vẽ kỹ thuật và Material Schedule thực tế tại công trường hoặc văn phòng.",
+      "Xác nhận lại Timeline thi công, các cột mốc quan trọng (Milestones) và lịch thanh toán (Payment schedule).",
+      "Phát hành chính thức hồ sơ thi công (Construction package) đóng dấu 'Issued for Construction' cho tất cả các bên liên quan."
+    ],
+    "metadata": null,
+    "sort_order": 5
+  }
+];
+  handoverData.forEach(step => {
+    step.workflow_id = hoId;
+    stepsData.push(step);
   });
 
   // ── 3.4 File Naming & Storage ─────────────────────────────
