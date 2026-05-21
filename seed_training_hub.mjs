@@ -1589,74 +1589,180 @@ async function seed() {
 
   // ── 3.5 Library Management ────────────────────────────────
   const libId = wfBySlug["library"].id;
-  stepsData.push({
-    workflow_id: libId,
-    phase: "Thư viện DQH",
-    owner: "Toàn team",
-    actions: [
-      "Material samples (physical cabinet)",
-      "CAD blocks (standard furniture — chính xác scale)",
-      "3D models (pre-setup materials + lights)",
-      "Reference photos (DQH projects only)",
+  const libIdData = [
+  {
+    "phase": "1. Tiêu chuẩn hóa Model 3D",
+    "owner": "3D Visualizer Lead",
+    "actions": [
+      "Quản lý chất xám (Intellectual Property): Mọi model 3D đồ rời (loose furniture) phải được đưa vào thư viện nội bộ với đầy đủ texture và vật liệu V-Ray/Corona được tinh chỉnh chuẩn.",
+      "Tuyệt đối không sử dụng thư viện rác từ Internet chưa qua xử lý, gây nặng file và sai lệch màu sắc khi render.",
+      "Phân loại thư viện theo style: Quiet Luxury, Modern Luxury, Indochine. Định kỳ hàng tháng lọc và xóa bỏ các asset lỗi thời."
     ],
-    sort_order: 1,
-    metadata: null,
+    "metadata": null,
+    "sort_order": 1
+  },
+  {
+    "phase": "2. Chuẩn hóa CAD Blocks",
+    "owner": "Drafter Lead",
+    "actions": [
+      "Tất cả block 2D nội thất phải đúng 100% kích thước thực tế (công thái học). Không dùng block scale bóp méo hình.",
+      "Dynamic Blocks: Các hệ tủ, cánh cửa phải sử dụng dynamic block để tăng tốc độ triển khai.",
+      "Gắn liền với Material Schedule: Các ký hiệu vật liệu (hatch) trong CAD phải thống nhất 1-1 với mã vật liệu thực tế của NCC."
+    ],
+    "metadata": null,
+    "sort_order": 2
+  },
+  {
+    "phase": "3. Quản lý mẫu vật liệu vật lý (Physical Library)",
+    "owner": "Office Manager / Designer",
+    "actions": [
+      "Phân loại và dán nhãn toàn bộ mẫu gỗ, đá, vải, laminate tại văn phòng. Mã dán trên mẫu phải khớp chính xác với mã trong Material Schedule trên phần mềm.",
+      "Định kỳ update mẫu mới từ NCC (Vicostone, An Cường, Acacia...) mỗi quý. Mẫu hết sản xuất phải loại bỏ ngay để tránh đưa vào thiết kế.",
+      "Setup không gian trình bày mẫu (Material Board) chuyên nghiệp phục vụ khách hàng ghé văn phòng."
+    ],
+    "metadata": null,
+    "sort_order": 3
+  }
+];
+  libIdData.forEach(step => {
+    step.workflow_id = libId;
+    stepsData.push(step);
   });
 
   // ── 3.6 Storage & Archive ─────────────────────────────────
   const stId = wfBySlug["storage"].id;
-  stepsData.push({
-    workflow_id: stId,
-    phase: "Lưu trữ & Archive",
-    owner: "Toàn team",
-    actions: [
-      "As-Built bản vẽ (bản đồ sinh mệnh)",
-      "Backup hàng tuần",
-      "Archive folder = read-only",
+  const stIdData = [
+  {
+    "phase": "1. Cấu trúc Folder Dự án chuẩn DQH",
+    "owner": "Project Manager",
+    "actions": [
+      "01.ADMIN (Hợp đồng, báo giá, pháp lý)",
+      "02.CONCEPT (Moodboard, references, file trình bày)",
+      "03.3D_RENDER (File Max/Sketchup, texture, final render)",
+      "04.DRAWING (File CAD, PDF bản vẽ kỹ thuật, Material schedule)",
+      "05.CONSTRUCTION (Tiến độ, hình ảnh công trường, nhật ký thi công)",
+      "06.HANDOVER (Biên bản nghiệm thu, hóa đơn, bảo hành)"
     ],
-    sort_order: 1,
-    metadata: null,
+    "metadata": null,
+    "sort_order": 1
+  },
+  {
+    "phase": "2. Quy định Lưu trữ & Backup",
+    "owner": "IT / Leader",
+    "actions": [
+      "Dự án đang chạy: Làm việc trực tiếp trên ổ cứng nội bộ (NAS) hoặc Google Drive (Sync) để đảm bảo cập nhật real-time giữa các team.",
+      "Dự án đóng: Clean file rác, nén lại và chuyển sang Archive Drive. Quyền truy cập chuyển thành Read-only để tránh sửa nhầm.",
+      "Backup 3 lớp: NAS (Local) -> Cloud (Drive) -> Ổ cứng ngoài (Hàng tháng) để đảm bảo không bao giờ mất dữ liệu dù nhân sự nghỉ việc."
+    ],
+    "metadata": null,
+    "sort_order": 2
+  }
+];
+  stIdData.forEach(step => {
+    step.workflow_id = stId;
+    stepsData.push(step);
   });
 
   // ── 3.7 Design Standards ──────────────────────────────────
   const stdId = wfBySlug["standards"].id;
-  stepsData.push({
-    workflow_id: stdId,
-    phase: "Tiêu chuẩn đầu ra",
-    owner: "Lead Designer",
-    actions: [
-      "Visual: Font Helvetica 3.5mm, Line weight 0.35-0.5mm, Layer naming chuẩn",
-      "Rendering: Min 3000x2000px, Lighting balanced, Color accurate",
-      "Material Schedule: Code, Supplier, Price, Sample, Notes",
+  const stdIdData = [
+  {
+    "phase": "1. Tiêu chuẩn Bản vẽ & Visuals",
+    "owner": "Design Leader",
+    "actions": [
+      "Quy cách in ấn: Bản in trình khách phải luôn là giấy mờ (matte paper), đóng cuốn gáy keo/lò xo đen cao cấp, bìa in logo DQH ép kim/dập nổi (Tạo ấn tượng Premium ngay lần chạm đầu tiên).",
+      "Tiêu chuẩn Render: Ánh sáng phải êm dịu, không cháy sáng. Texture gỗ và đá phải thấy rõ độ nhám/bóng thực tế. Min resolution 3000px.",
+      "Tiêu chuẩn Bản vẽ kỹ thuật: Sạch sẽ, không dính nét, font Helvetica chuẩn, title block có chữ ký người duyệt (Thể hiện sự trách nhiệm)."
     ],
-    sort_order: 1,
-    metadata: null,
+    "metadata": null,
+    "sort_order": 1
+  }
+];
+  stdIdData.forEach(step => {
+    step.workflow_id = stdId;
+    stepsData.push(step);
   });
 
   // ── 3.8 Change Order ──────────────────────────────────────
   const coId = wfBySlug["change-order"].id;
-  stepsData.push({
-    workflow_id: coId,
-    phase: "Quy trình phát sinh",
-    owner: "PM / Sales",
-    actions: [
-      "Evaluate → Estimate → Present options → Client approval → Execute → Archive",
+  const coIdData = [
+  {
+    "phase": "1. Tiếp nhận và Đánh giá (Evaluate)",
+    "owner": "Project Manager",
+    "actions": [
+      "Mọi yêu cầu thay đổi từ khách hàng (dù nhỏ nhất) đều phải được ghi nhận bằng tin nhắn/email nhóm chung.",
+      "PM đánh giá ảnh hưởng của thay đổi này đến: (1) Tổng tiến độ, (2) Chi phí thi công, (3) Tính thẩm mỹ và kết cấu."
     ],
-    sort_order: 1,
-    metadata: null,
+    "metadata": null,
+    "sort_order": 1
+  },
+  {
+    "phase": "2. Báo giá & Trình bày (Present)",
+    "owner": "Sales / Designer",
+    "actions": [
+      "Tuyệt đối KHÔNG làm trước báo giá sau. Mọi chi phí phát sinh phải được thông báo rõ ràng: 'Phương án này làm đẹp hơn, tuy nhiên sẽ phát sinh thêm X triệu và thêm Y ngày thi công'.",
+      "Luôn đưa ra 2 lựa chọn: (A) Giữ nguyên hợp đồng ban đầu (An toàn, đúng budget), (B) Làm theo thay đổi (Premium hơn, tốn chi phí)."
+    ],
+    "metadata": null,
+    "sort_order": 2
+  },
+  {
+    "phase": "3. Ký duyệt & Thi công (Execute)",
+    "owner": "Khách hàng & PM",
+    "actions": [
+      "Khách hàng xác nhận Change Order qua email hoặc ký giấy tờ.",
+      "Team thi công chỉ được phép thực hiện các hạng mục phát sinh SAU KHI có xác nhận từ PM.",
+      "Cập nhật phụ lục hợp đồng và lịch thanh toán tương ứng."
+    ],
+    "metadata": null,
+    "sort_order": 3
+  }
+];
+  coIdData.forEach(step => {
+    step.workflow_id = coId;
+    stepsData.push(step);
   });
 
   // ── 3.9 Client Handover ───────────────────────────────────
   const hcId = wfBySlug["handover-client"].id;
-  stepsData.push({
-    workflow_id: hcId,
-    phase: "Quy trình bàn giao khách",
-    owner: "PM + Leader",
-    actions: [
-      "Defect inspection → Rectification → Final approval → Handover package → Post-handover support (3 months)",
+  const hcIdData = [
+  {
+    "phase": "1. Nghiệm thu nội bộ (Pre-handover)",
+    "owner": "Project Manager + Design Leader",
+    "actions": [
+      "Kiểm tra chéo (Defect Inspection): PM và Designer kiểm tra lại toàn bộ công trình trước khi mời khách hàng.",
+      "Dán tick kê lỗi: Mọi vết xước nhỏ, đường keo silicon chưa đẹp, gioăng cửa lỏng đều phải được đánh dấu và xử lý dứt điểm.",
+      "Vệ sinh công nghiệp: Nhà phải sạch bụi hoàn toàn, khử mùi sơn/gỗ mới, bật sẵn điều hòa và xông tinh dầu (Tạo trải nghiệm 'Về Nhà')."
     ],
-    sort_order: 1,
-    metadata: null,
+    "metadata": null,
+    "sort_order": 1
+  },
+  {
+    "phase": "2. Lễ bàn giao nhà",
+    "owner": "CEO / Sales Director",
+    "actions": [
+      "Setup không gian: Hoa tươi trên bàn ăn, một chai rượu vang hoặc một món quà decor (bình gốm, tranh) phù hợp với gu nhà, thư tay cảm ơn.",
+      "Walkthrough: Dẫn khách hàng đi từng phòng, giải thích lại cách sử dụng các thiết bị thông minh, cách bảo quản mặt đá tự nhiên, gỗ tự nhiên.",
+      "Ký Biên bản bàn giao và kích hoạt thời gian bảo hành."
+    ],
+    "metadata": null,
+    "sort_order": 2
+  },
+  {
+    "phase": "3. Chăm sóc hậu mãi & Xin Referral",
+    "owner": "Customer Service / Sales",
+    "actions": [
+      "Tuần 1: Gọi điện hỏi thăm giấc ngủ đầu tiên trong nhà mới, xem có thiết bị nào khó sử dụng không.",
+      "Tháng thứ 3: Cử nhân sự kỹ thuật đến bảo trì định kỳ (Chỉnh bản lề, kiểm tra rò rỉ nước).",
+      "Xin Referral khéo léo: 'Anh/chị ở thấy thoải mái, nếu có bạn bè thích gu thiết kế này, hy vọng anh/chị giới thiệu DQH nhé'."
+    ],
+    "metadata": null,
+    "sort_order": 3
+  }
+];
+  hcIdData.forEach(step => {
+    step.workflow_id = hcId;
+    stepsData.push(step);
   });
 
   const steps = await upsertAndReturn("training_workflow_steps", stepsData);
@@ -1713,54 +1819,81 @@ async function seed() {
 
   // ── 4.1 Hệ thống kỹ thuật ngầm ───────────────────────────
   const tsId = sec4BySlug["technical-systems"].id;
-
   mod4Subsections.push({
     section_id: tsId,
     slug: "technical-systems-list",
     heading: "Hệ thống kỹ thuật \"ngầm\" nhưng sống còn",
     content_type: "list",
-    metadata: {
-      items: [
-        {
-          title: "Kiểm soát mùi",
-          body: "Con Thỏ (P-Trap) ở mọi phễu thu sàn WC",
-        },
-        {
-          title: "Phân ranh hố ga",
-          body: "Sinh hoạt/mưa → hố tự thấm. Bếp → bẫy mỡ → hố ga riêng.",
-        },
-        {
-          title: "Ống thở chống trào ngược",
-          body: "Nhà cao → áp lực khí/nước không trào lên.",
-        },
-      ],
-    },
+    metadata: { items: [
+  {
+    "title": "1. Kiểm soát mùi (Odor Control)",
+    "body": "Điểm khác biệt của chuẩn thi công cao cấp là nhà không bao giờ có mùi cống rãnh. Tất cả phễu thu sàn, lavabo đều bắt buộc phải dùng Con Thỏ (P-Trap) chống hôi đúng chuẩn. Đường ống thoát hơi hầm cầu phải đi độc lập lên tận mái nhà. Đây là điểm chốt sale cực mạnh khi khách quan tâm đến sức khỏe."
+  },
+  {
+    "title": "2. Phân ranh hố ga thông minh",
+    "body": "Tuyệt đối không gộp chung đường nước thải bếp và nước mưa. Đường nước bếp nhiều dầu mỡ phải đi qua Bẫy mỡ (Grease Trap) trước khi ra hố ga. Việc phân ranh từ đầu giúp giảm 90% rủi ro nghẹt cống sau 3 năm sử dụng."
+  },
+  {
+    "title": "3. Ống thở chống trào ngược",
+    "body": "Đối với nhà phố/villa nhiều tầng, hệ thống thoát nước phải có ống thông hơi (vent pipe) riêng biệt. Nếu không, khi xả nước từ tầng cao, áp lực khí sẽ làm trào ngược hố xí tầng thấp hoặc rút cạn nước ở các P-Trap gây hôi. Giải thích điều này cho khách hàng sẽ chứng minh sự am hiểu kỹ thuật sâu sắc của DQH."
+  }
+] },
     sort_order: 1,
   });
 
   // ── 4.2 Quy trình thi công 11 bước ───────────────────────
   const cpId = sec4BySlug["construction-process"].id;
-
   mod4Subsections.push({
     section_id: cpId,
     slug: "construction-11-steps",
     heading: "11 Bước thi công chuẩn",
     content_type: "list",
-    metadata: {
-      items: [
-        { title: "① Xây tường", body: "" },
-        { title: "② Xịt sơn định vị nội thất lên thực tế", body: "KTS + Chủ nhà check" },
-        { title: "③ Đi MEP", body: "Điện, nước, điều hòa, báo cháy" },
-        { title: "④ Tô trát", body: "" },
-        { title: "⑤ Chống thấm", body: "" },
-        { title: "⑥ Cán nền", body: "" },
-        { title: "⑦ Sơn nước", body: "" },
-        { title: "⑧ Ốp lát", body: "" },
-        { title: "⑨ Lắp nội thất & Thiết bị", body: "" },
-        { title: "⑩ Vệ sinh công nghiệp", body: "" },
-        { title: "⑪ Dặm vá (Defect)", body: "" },
-      ],
-    },
+    metadata: { items: [
+  {
+    "title": "① Xây tường & Phân chia không gian",
+    "body": "Tuân thủ nghiêm ngặt bản vẽ bố trí mặt bằng. Mọi sai số lúc này sẽ làm sai lệch kích thước đồ gỗ sau này. Đo đạc bằng máy laser."
+  },
+  {
+    "title": "② Xịt sơn định vị (Real-scale Mockup)",
+    "body": "Xịt sơn các vị trí ổ cắm, tủ bếp, giường lên sàn/tường thực tế. Mời khách hàng đến công trường để tự mình cảm nhận kích thước thật. Đây là 'Wow moment' giúp khách thấy DQH làm việc cực kỳ cẩn thận."
+  },
+  {
+    "title": "③ Đi MEP (Điện, nước, điều hòa âm)",
+    "body": "Hệ thống mạch máu của ngôi nhà. Bắt buộc test áp lực nước (Pressure test) 24h và chụp hình lưu hồ sơ hoàn công trước khi trát lấp. Nếu bỏ qua, bảo hành rò rỉ nước sẽ là cơn ác mộng chi phí."
+  },
+  {
+    "title": "④ Tô trát & Cán nền",
+    "body": "Sử dụng ghém tường, đảm bảo tường phẳng tuyệt đối. Tường cong vẹo sẽ làm các hệ tủ âm tường (built-in) bị hở khe, phá vỡ sự tinh tế của phong cách Quiet Luxury."
+  },
+  {
+    "title": "⑤ Chống thấm",
+    "body": "Quét ít nhất 3 lớp chống thấm cho sàn WC, ban công. Ngâm nước test 48h. Lỗi chống thấm là lỗi tốn tiền khắc phục nhất trong ngành."
+  },
+  {
+    "title": "⑥ Sơn bả (Lớp nền)",
+    "body": "Bả matit 2 lớp, xả phẳng, sơn lót. Chỉ khi tường thật phẳng thì ánh sáng hắt khe (indirect lighting) chiếu vào mới không bị lộ gợn sóng."
+  },
+  {
+    "title": "⑦ Ốp lát & Trần thạch cao",
+    "body": "Ron gạch phải thẳng tắp, chia ron từ tâm cửa bước vào. Khe bóng đổ của trần thạch cao phải sắc nét. Đây là lúc hình hài thiết kế bắt đầu hiện diện."
+  },
+  {
+    "title": "⑧ Lắp đặt nội thất liền tường (Fit-out)",
+    "body": "Giao hàng mộc đến công trình bọc bảo vệ kỹ càng. Thi công lắp ráp tủ bếp, tủ áo, vách ốp. Yêu cầu thợ mộc mang bao tay sạch để không làm bẩn vải và gỗ."
+  },
+  {
+    "title": "⑨ Lắp đồ rời, Thiết bị & Đèn",
+    "body": "Đưa sofa, giường, bàn ăn vào. Đấu nối đèn trang trí, thiết bị bếp. Chỉnh góc chiếu của đèn spotlight rọi đúng vào vật điểm nhấn (tranh, bình hoa)."
+  },
+  {
+    "title": "⑩ Vệ sinh công nghiệp",
+    "body": "Vệ sinh 2 lần: Thô và Tinh. Bóc keo, lau kính, hút bụi các khe góc. DQH giao nhà là khách chỉ xách vali vào ở, không cần đụng tay lau chùi."
+  },
+  {
+    "title": "⑪ Dặm vá (Touch-up & Defect)",
+    "body": "Xử lý các vết xước nhỏ do vận chuyển, dặm lại sơn. Càng làm kỹ bước này, lễ bàn giao nhà càng suôn sẻ và ít bị khách hàng phàn nàn."
+  }
+] },
     sort_order: 1,
   });
 
@@ -2151,7 +2284,7 @@ async function seed() {
   // ── DONE ──────────────────────────────────────────────────
 
   const totalSections = mod1Sections.length + mod2Sections.length + mod4Sections.length + mod6Sections.length;
-  const totalSubsections = mod1SubsResult.length + mod2SubsResult.length + mod4SubsResult.length + mod6SubsResult.length;
+  const totalSubsections = mod1SubsResult.length + mod2SubsResult.length + mod4SubsResult.length + mod5SubsResult.length + mod6SubsResult.length;
 
   console.log("\n🎉 Training Hub seeded successfully! (v3.0 Full Content)");
   console.log(`   Modules:      ${modules.length}`);
