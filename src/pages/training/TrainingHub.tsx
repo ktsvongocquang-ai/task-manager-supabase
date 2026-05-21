@@ -435,10 +435,12 @@ const ContentBlock = ({ block }: { block: any }) => {
   // DB subsection format: content_type + metadata
   if (block.content_type) {
     const meta = block.metadata || {};
-    if (block.content_type === "list" && meta.items) return <ItemsBlock items={meta.items} />;
+    if ((block.content_type === "list" || block.content_type === "items") && meta.items) return <ItemsBlock items={meta.items} />;
     if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} />;
     if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} />;
-    if (block.content_type === "text" && block.content) return <p className="text-sm text-gray-600 leading-relaxed">{block.content}</p>;
+    if (block.content_type === "text" && block.content) return <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{block.content}</p>;
+    // Fallback: if metadata has items but content_type doesn't match, still render
+    if (meta.items) return <ItemsBlock items={meta.items} />;
     return null;
   }
   // Fallback format: items / table / mistakes arrays directly on block

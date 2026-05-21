@@ -4,19 +4,17 @@ dotenv.config();
 
 const sb = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
 
-async function addJobDescriptions() {
-  console.log('=== THÊM MÔ TẢ VỊ TRÍ NHÂN SỰ (9 vị trí) ===\n');
+async function mergeAndFix() {
+  console.log('=== GỘP DESIGNER + 3D VÀ CẬP NHẬT ===\n');
 
-  // Tìm section 1.6
   const { data: sec } = await sb.from('training_sections').select('id').eq('number', '1.6').single();
-  if (!sec) { console.log('❌ Không tìm thấy section 1.6'); return; }
+  if (!sec) { console.log('❌ Không tìm thấy 1.6'); return; }
+
+  // Xóa hết subsections cũ
+  await sb.from('training_subsections').delete().eq('section_id', sec.id);
 
   // Cập nhật title
-  await sb.from('training_sections').update({ title: 'Mô tả công việc (9 Vị trí)' }).eq('id', sec.id);
-
-  // Xóa subsections cũ
-  await sb.from('training_subsections').delete().eq('section_id', sec.id);
-  console.log('✅ Đã xóa subsections cũ của 1.6');
+  await sb.from('training_sections').update({ title: 'Mô tả công việc (8 Vị trí)' }).eq('id', sec.id);
 
   const positions = [
     {
@@ -35,28 +33,18 @@ async function addJobDescriptions() {
       items: [
         { title: 'A. Tiền Thiết Kế', body: '• A1. Gặp trực tiếp khách hàng thu thập brief: nhu cầu, gu thẩm mỹ, ngân sách, timeline\n• A2. Phân tích hiện trạng mặt bằng: kích thước, ánh sáng, hệ thống kỹ thuật có sẵn\n• A3. Lên layout mặt bằng sơ bộ, tối ưu công năng và bố trí nội thất\n• A4. Dự trù ngân sách thiết kế – thi công sơ bộ phù hợp concept định hướng' },
         { title: 'B. Concept', body: '• B1. Xây dựng concept tổng thể: phong cách, vật liệu, bảng màu chủ đạo\n• B2. Thiết kế và trình bày brochure concept cho khách hàng duyệt\n• B3. Thuyết trình, chốt concept với khách trước khi chuyển bước triển khai' },
-        { title: 'C. Triển Khai', body: '• C1. Giao brief đầy đủ bằng văn bản cho Designer và 3D Visualizer — không truyền miệng\n• C2. Theo sát và duyệt phối cảnh 3D trước khi trình khách\n• C3. Xác nhận tính khả thi thi công dựa trên concept và bản vẽ\n• C4. Họp điều phối định kỳ với Sale, Giám sát, 3D, Kỹ thuật' },
+        { title: 'C. Triển Khai', body: '• C1. Giao brief đầy đủ bằng văn bản cho Designer — không truyền miệng\n• C2. Theo sát và duyệt phối cảnh 3D trước khi trình khách\n• C3. Xác nhận tính khả thi thi công dựa trên concept và bản vẽ\n• C4. Họp điều phối định kỳ với Sale, Giám sát, Kỹ thuật' },
         { title: 'D. Phát Triển Đội Ngũ', body: '• D1. Đào tạo và định hướng phong cách thiết kế chung cho toàn team\n• D2. Cập nhật xu hướng thiết kế, vật liệu mới và đưa vào ứng dụng thực tế' },
       ],
     },
     {
-      slug: 'designer',
-      heading: 'Designer',
+      slug: 'designer-3d',
+      heading: 'Designer & Diễn Họa 3D',
       items: [
-        { title: 'A. Tiếp Nhận', body: '• A1. Tiếp nhận và phân tích brief từ Leader — đặt câu hỏi ngay nếu thiếu thông tin\n• A2. Nghiên cứu tham khảo phong cách, vật liệu phù hợp concept được giao' },
-        { title: 'B. Thiết Kế', body: '• B1. Dựng phối cảnh 3D bám sát concept đã được Leader phê duyệt\n• B2. Lên bản vẽ kỹ thuật 2D thi công: mặt bằng, mặt đứng, mặt cắt\n• B3. Vẽ chi tiết cấu tạo nội thất: tủ, kệ, đồ gắn tường, trần thạch cao\n• B4. Lập bảng vật liệu và phụ kiện kèm ghi chú khả năng thi công\n• B5. Đảm bảo đồng bộ giữa hình ảnh 3D và bản vẽ kỹ thuật 2D' },
-        { title: 'C. Phối Hợp Thi Công', body: '• C1. Phối hợp với Giám sát và xưởng giải thích bản vẽ khi cần\n• C2. Hỗ trợ chỉnh sửa bản vẽ khi có phát sinh trong quá trình thi công\n• C3. Tham gia nghiệm thu, kiểm tra kết quả thi công so với thiết kế' },
-        { title: 'D. Lưu Trữ & Bàn Giao', body: '• D1. Cập nhật hồ sơ khi có thay đổi, version hóa file rõ ràng trên Drive\n• D2. Bàn giao hồ sơ thiết kế hoàn chỉnh (CAD, render, bảng vật liệu) khi kết thúc dự án' },
-      ],
-    },
-    {
-      slug: '3d-visualizer',
-      heading: '3D Visualizer / Diễn Họa',
-      items: [
-        { title: 'A. Tiếp Nhận & Chuẩn Bị', body: '• A1. Tiếp nhận file SketchUp và brief đầy đủ từ Designer — không nhận thông tin miệng\n• A2. Dựng mô hình 3D đúng tỉ lệ, đúng layout theo bản vẽ được cung cấp' },
-        { title: 'B. Sản Xuất Hình Ảnh', body: '• B1. Áp vật liệu, texture, màu sắc đúng theo bảng vật liệu và concept đã duyệt\n• B2. Thiết lập ánh sáng thực tế (tự nhiên + nhân tạo) phù hợp từng không gian\n• B3. Render phối cảnh các góc nhìn chính theo yêu cầu dự án\n• B4. Chỉnh sửa hậu kỳ bằng Photoshop để đạt chuẩn thẩm mỹ DQH' },
-        { title: 'C. Duyệt & Xuất Bản', body: '• C1. Trình Leader duyệt trước khi xuất file cho khách hoặc marketing\n• C2. Chỉnh sửa theo góp ý — không tự thay đổi phong cách ngoài yêu cầu\n• C3. Sản xuất hình ảnh phiên bản marketing đúng tỉ lệ và độ phân giải từng kênh' },
-        { title: 'D. Lưu Trữ & Phối Hợp', body: '• D1. Lưu file nguồn (SKP, MAX) và file xuất theo cấu trúc thư mục dự án trên Drive\n• D2. Cập nhật thư viện 3D nội bộ (model, vật liệu) để tái sử dụng cho dự án sau\n• D3. Phối hợp với Designer đảm bảo hình ảnh render đồng bộ với bản vẽ kỹ thuật' },
+        { title: 'A. Tiếp Nhận & Nghiên Cứu', body: '• A1. Tiếp nhận và phân tích brief từ Leader — đặt câu hỏi ngay nếu thiếu thông tin\n• A2. Nghiên cứu tham khảo phong cách, vật liệu phù hợp concept được giao' },
+        { title: 'B. Thiết Kế 2D & 3D', body: '• B1. Dựng phối cảnh 3D bám sát concept đã được Leader phê duyệt\n• B2. Áp vật liệu, texture, màu sắc đúng theo bảng vật liệu và concept đã duyệt\n• B3. Thiết lập ánh sáng thực tế (tự nhiên + nhân tạo) phù hợp từng không gian\n• B4. Render phối cảnh các góc nhìn chính, chỉnh hậu kỳ Photoshop đạt chuẩn DQH\n• B5. Lên bản vẽ kỹ thuật 2D thi công: mặt bằng, mặt đứng, mặt cắt\n• B6. Vẽ chi tiết cấu tạo nội thất: tủ, kệ, đồ gắn tường, trần thạch cao\n• B7. Lập bảng vật liệu và phụ kiện kèm ghi chú khả năng thi công\n• B8. Đảm bảo đồng bộ giữa hình ảnh 3D và bản vẽ kỹ thuật 2D' },
+        { title: 'C. Duyệt & Phối Hợp Thi Công', body: '• C1. Trình Leader duyệt 3D trước khi xuất file cho khách hoặc marketing\n• C2. Phối hợp với Giám sát và xưởng giải thích bản vẽ khi cần\n• C3. Hỗ trợ chỉnh sửa bản vẽ khi có phát sinh trong quá trình thi công\n• C4. Tham gia nghiệm thu, kiểm tra kết quả thi công so với thiết kế\n• C5. Sản xuất hình ảnh marketing đúng tỉ lệ và độ phân giải từng kênh' },
+        { title: 'D. Lưu Trữ & Bàn Giao', body: '• D1. Lưu file nguồn (SKP, MAX, DWG) theo cấu trúc thư mục dự án trên Drive\n• D2. Cập nhật thư viện 3D nội bộ (model, vật liệu) để tái sử dụng\n• D3. Version hóa file rõ ràng, bàn giao hồ sơ hoàn chỉnh khi kết thúc dự án' },
       ],
     },
     {
@@ -66,7 +54,7 @@ async function addJobDescriptions() {
         { title: 'A. Tiếp Nhận', body: '• A1. Tiếp nhận nhiệm vụ từ Designer bằng checklist cụ thể — xác nhận rõ trước khi làm' },
         { title: 'B. Triển Khai Bản Vẽ', body: '• B1. Vẽ mặt bằng tổng thể: bố trí nội thất, phân vùng không gian, ghi kích thước đầy đủ\n• B2. Vẽ mặt đứng các phòng: cao độ, vật liệu ốp tường, nội thất gắn tường\n• B3. Vẽ mặt cắt chi tiết các khu vực phức tạp: bếp, phòng tắm, tủ âm tường\n• B4. Vẽ chi tiết cấu tạo: tủ bếp, tủ quần áo, kệ trang trí, trần thạch cao\n• B5. Ghi chú vật liệu, mã màu, phụ kiện đầy đủ trên từng bản vẽ\n• B6. Đảm bảo bản vẽ đúng tỉ lệ in ấn, có khung tên, đánh số trang thống nhất' },
         { title: 'C. Kiểm Tra & Phối Hợp', body: '• C1. Phát hiện mâu thuẫn giữa 3D và bản vẽ kỹ thuật → báo ngay Designer, không tự xử lý\n• C2. Hỗ trợ Designer cập nhật bản vẽ khi có phát sinh thay đổi trong thi công' },
-        { title: 'D. Đóng Gói & Bàn Giao', body: '• D1. Tổng hợp và đóng gói hồ sơ bản vẽ theo từng giai đoạn dự án\n• D2. Xuất file PDF (in ấn) và DWG (kỹ thuật) riêng biệt trước khi bàn giao\n• D3. Lưu file theo cấu trúc thư mục dự án, version hóa rõ ràng sau mỗi lần chỉnh sửa' },
+        { title: 'D. Đóng Gói & Bàn Giao', body: '• D1. Tổng hợp và đóng gói hồ sơ bản vẽ theo từng giai đoạn dự án\n• D2. Xuất file PDF (in ấn) và DWG (kỹ thuật) riêng biệt trước khi bàn giao\n• D3. Lưu file theo cấu trúc thư mục dự án, version hóa rõ ràng' },
       ],
     },
     {
@@ -123,10 +111,10 @@ async function addJobDescriptions() {
 
   const { error } = await sb.from('training_subsections').insert(subsections);
   if (error) console.log('❌ Lỗi:', error.message);
-  else console.log(`✅ Đã thêm ${positions.length} vị trí vào section 1.6`);
+  else console.log(`✅ Đã cập nhật ${positions.length} vị trí (gộp Designer + 3D)`);
 
-  positions.forEach((p, i) => console.log(`  ${i+1}. ${p.heading} (${p.items.length} nhóm nhiệm vụ)`));
+  positions.forEach((p, i) => console.log(`  ${i+1}. ${p.heading}`));
   console.log('\n=== HOÀN TẤT ===');
 }
 
-addJobDescriptions();
+mergeAndFix();
