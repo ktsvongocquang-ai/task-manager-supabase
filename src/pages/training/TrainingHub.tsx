@@ -530,26 +530,68 @@ const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: bo
 };
 
 /** Render mistakes (wrong/right pairs) from DB metadata or fallback */
-const MistakesBlock = ({ mistakes }: { mistakes: { wrong: string; right: string }[] }) => (
-  <div className="space-y-3">
-    {mistakes.map((m, j) => (
-      <div key={j} className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden border border-gray-200">
-        <div className="bg-red-50 p-4">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">
-            <AlertTriangle size={13} /> Lỗi sai
+const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: string; right: string }[], isEditing?: boolean, onChange?: (m: any[]) => void }) => {
+  if (isEditing) {
+    const handleWrongChange = (idx: number, val: string) => {
+      const newM = [...mistakes];
+      newM[idx] = { ...newM[idx], wrong: val };
+      onChange?.(newM);
+    };
+    const handleRightChange = (idx: number, val: string) => {
+      const newM = [...mistakes];
+      newM[idx] = { ...newM[idx], right: val };
+      onChange?.(newM);
+    };
+    const addMistake = () => onChange?.([...mistakes, { wrong: '', right: '' }]);
+    const removeMistake = (idx: number) => onChange?.(mistakes.filter((_, i) => i !== idx));
+
+    return (
+      <div className="space-y-3 border-2 border-purple-200 rounded-lg p-3">
+        {mistakes.map((m, j) => (
+          <div key={j} className="relative grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg overflow-hidden border border-gray-200 p-2">
+            <div className="bg-red-50 p-2 rounded">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">
+                <AlertTriangle size={13} /> Lỗi sai
+              </div>
+              <textarea value={m.wrong} onChange={e => handleWrongChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-800 border border-red-200 rounded px-2 py-1 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-y" />
+            </div>
+            <div className="bg-green-50 p-2 rounded">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">
+                <CheckCircle2 size={13} /> Chuẩn DQH
+              </div>
+              <textarea value={m.right} onChange={e => handleRightChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-800 border border-green-200 rounded px-2 py-1 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none resize-y" />
+            </div>
+            <button onClick={() => removeMistake(j)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm"><Trash2 size={14}/></button>
           </div>
-          <p className="text-sm text-gray-700">{m.wrong}</p>
-        </div>
-        <div className="bg-green-50 p-4">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">
-            <CheckCircle2 size={13} /> Chuẩn DQH
-          </div>
-          <p className="text-sm text-gray-700">{m.right}</p>
-        </div>
+        ))}
+        <button onClick={addMistake} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
+          <Plus size={16} /> Thêm lỗi
+        </button>
       </div>
-    ))}
-  </div>
-);
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {mistakes.map((m, j) => (
+        <div key={j} className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden border border-gray-200">
+          <div className="bg-red-50 p-4">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">
+              <AlertTriangle size={13} /> Lỗi sai
+            </div>
+            <p className="text-sm text-gray-700">{m.wrong}</p>
+          </div>
+          <div className="bg-green-50 p-4">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">
+              <CheckCircle2 size={13} /> Chuẩn DQH
+            </div>
+            <p className="text-sm text-gray-700">{m.right}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 /** Render a content block based on type (from DB subsection or fallback block) */
 const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: boolean, onUpdate?: (id: string, metadata: any) => void }) => {
@@ -562,7 +604,7 @@ const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: 
 
     if ((block.content_type === "list" || block.content_type === "items") && meta.items) return <ItemsBlock items={meta.items} isEditing={isEditing} onChange={(d) => handleUpdate("items", d)} />;
     if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} isEditing={isEditing} onChange={(d) => handleUpdate("table", d)} />;
-    if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} />;
+    if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} isEditing={isEditing} onChange={(d) => handleUpdate("mistakes", d)} />;
     if (block.content_type === "text" && block.content) {
       if (isEditing) {
         return <textarea value={block.content} onChange={e => onUpdate?.(block.id, { ...meta, content: e.target.value })} rows={4} className="w-full text-sm text-gray-800 border-2 border-purple-200 rounded px-3 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />;
