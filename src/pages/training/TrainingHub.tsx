@@ -41,11 +41,11 @@ const getIcon = (name: string | null) => ICON_MAP[name || ""] || BookOpen;
 // These are used when Supabase tables don't exist yet
 
 const FALLBACK_MODULES: TrainingModule[] = [
-  { id: "m1", slug: "foundation", title: "Foundation", description: "Nền tảng DQH — Vision, Mission, Values, Brand DNA", icon: "BookOpen", color: "#7C3AED", sort_order: 1, created_at: "", updated_at: "" },
-  { id: "m2", slug: "design-knowledge", title: "Design Knowledge", description: "Kiến thức thiết kế — Quiet Luxury, Materials, Styles", icon: "Layers", color: "#059669", sort_order: 2, created_at: "", updated_at: "" },
-  { id: "m3", slug: "workflow", title: "Workflow Execution", description: "Quy trình thực chiến — 9 workflows chi tiết", icon: "Zap", color: "#D97706", sort_order: 3, created_at: "", updated_at: "" },
-  { id: "m4", slug: "tools-templates", title: "Technical Infrastructure", description: "Kỹ thuật hạ tầng — MEP, Construction, As-Built", icon: "Settings", color: "#6B7280", sort_order: 4, created_at: "", updated_at: "" },
-  { id: "m5", slug: "estimation", title: "Estimation Tool", description: "Công cụ dự toán — Rates, Calculations", icon: "Calculator", color: "#0891B2", sort_order: 5, created_at: "", updated_at: "" },
+  { id: "m1", slug: "foundation", title: "Nền tảng DQH", description: "Nền tảng DQH — Vision, Mission, Values, Brand DNA", icon: "BookOpen", color: "#7C3AED", sort_order: 1, created_at: "", updated_at: "" },
+  { id: "m2", slug: "design-knowledge", title: "Kiến thức Thiết kế", description: "Kiến thức thiết kế — Quiet Luxury, Materials, Styles", icon: "Layers", color: "#059669", sort_order: 2, created_at: "", updated_at: "" },
+  { id: "m3", slug: "workflow", title: "Quy trình (Workflow)", description: "Quy trình thực chiến — 9 workflows chi tiết", icon: "Zap", color: "#D97706", sort_order: 3, created_at: "", updated_at: "" },
+  { id: "m4", slug: "tools-templates", title: "Hạ tầng & Kỹ thuật", description: "Kỹ thuật hạ tầng — MEP, Construction, As-Built", icon: "Settings", color: "#6B7280", sort_order: 4, created_at: "", updated_at: "" },
+  { id: "m5", slug: "estimation", title: "Dự toán", description: "Công cụ dự toán — Rates, Calculations", icon: "Calculator", color: "#0891B2", sort_order: 5, created_at: "", updated_at: "" },
   { id: "m6", slug: "sales-marketing", title: "Sales & Marketing", description: "Bộ chuẩn marketing — Scripts, Messaging", icon: "Megaphone", color: "#DC2626", sort_order: 6, created_at: "", updated_at: "" },
 ];
 
@@ -366,16 +366,23 @@ const Checklist = ({ items }: { items: string[] }) => (
 
 /** Render a block of items (title + body pairs) from DB metadata or fallback */
 const ItemsBlock = ({ items }: { items: { title: string; body: string }[] }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    {items.map((item, j) => (
-      <div key={j} className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-mono text-purple-500">0{j + 1}</span>
-          <span className="font-semibold text-sm text-gray-900">{item.title}</span>
-        </div>
-        <p className="text-sm text-gray-600 leading-relaxed">{item.body}</p>
-      </div>
-    ))}
+  <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <table className="w-full text-sm text-left">
+      <thead className="bg-gray-50 border-b border-gray-200">
+        <tr>
+          <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-1/3">Hạng mục</th>
+          <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-100 bg-white">
+        {items.map((item, j) => (
+          <tr key={j} className="hover:bg-gray-50 transition-colors">
+            <td className="px-4 py-3 font-semibold text-gray-900 align-top">{item.title}</td>
+            <td className="px-4 py-3 text-gray-600 align-top leading-relaxed whitespace-pre-wrap">{item.body}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   </div>
 );
 
@@ -652,7 +659,7 @@ const WorkflowDetail = ({ workflowId, useDB, onBack }: { workflowId: string; use
 
   return (
     <div>
-      <BackBtn onClick={onBack} label="Workflow" />
+      <BackBtn onClick={onBack} label="Quay lại danh sách" />
       <div className="mb-6 flex items-center gap-3">
         <SectionBadge label={workflow.number} />
         <h2 className="text-xl font-bold text-gray-900">{workflow.title}</h2>

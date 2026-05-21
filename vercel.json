@@ -7,11 +7,7 @@
     ],
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/api/$1"
-        },
-        {
-            "source": "/((?!assets/)(?!sw\\.js)(?!workbox-)(?!registerSW\\.js)(?!manifest\\.webmanifest)(?!vite\\.svg).*)",
+            "source": "/(.*)",
             "destination": "/index.html"
         }
     ]

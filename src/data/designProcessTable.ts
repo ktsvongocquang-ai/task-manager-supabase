@@ -1,5 +1,5 @@
 // ============================================================================
-// DQH Design Process — Bảng Quy trình Gọn (4 Giai đoạn, ~20 bước)
+// DQH Design Process — Bảng Quy trình Chuẩn SESAN (Bổ sung Tóm tắt Giai đoạn)
 // ============================================================================
 
 export interface ProcessStep {
@@ -18,6 +18,12 @@ export interface ProcessPhase {
   color: string;
   bgLight: string;
   totalDuration: string;
+  // Bổ sung phần tóm tắt cho toàn bộ giai đoạn (giống hình mẫu SESAN)
+  phaseTask: string;
+  phaseDeliverable: string;
+  phaseExecutor: string;
+  phaseReviewer: string;
+  phaseForm: string;
   steps: ProcessStep[];
 }
 
@@ -33,6 +39,11 @@ export const DESIGN_PROCESS_TABLE: {
       color: "#3B82F6",
       bgLight: "#EFF6FF",
       totalDuration: "01 tuần",
+      phaseTask: "Xác định yêu cầu của khách hàng và các điều kiện thực tế của công trường",
+      phaseDeliverable: "Thông tin mặt bằng, hệ thống kỹ thuật, dữ liệu kiến trúc lưu vào Design Folder",
+      phaseExecutor: "Designer & Leader",
+      phaseReviewer: "Director",
+      phaseForm: "Design Brief",
       steps: [
         { code: "A1", task: "Nhận thông tin dự án", deliverable: "Email to confirm", executor: "Designer", reviewer: "Leader", form: "Email, Design Brief", duration: "1 day" },
         { code: "A2", task: "Lập folder dự án trên Drive", deliverable: "Project Folder", executor: "Leader", reviewer: "Director", form: "Template Folder", duration: "0.5 day" },
@@ -47,6 +58,11 @@ export const DESIGN_PROCESS_TABLE: {
       color: "#059669",
       bgLight: "#ECFDF5",
       totalDuration: "02 - 04 tuần",
+      phaseTask: "Xác định phong cách, định hướng chủ đạo, mức độ đầu tư",
+      phaseDeliverable: "Bản thiết kế concept: zoning, testfit layout, hình ảnh minh họa (02 phương án)",
+      phaseExecutor: "Designer & Leader",
+      phaseReviewer: "Director",
+      phaseForm: "Concept Presentation",
       steps: [
         { code: "B1", task: "Brainstorm nhu cầu khách hàng", deliverable: "Design Brief", executor: "Designer & Leader", reviewer: "Director", form: "Email, Design Brief", duration: "1 day" },
         { code: "B2", task: "Định hướng phong cách, mức đầu tư", deliverable: "Mood Board", executor: "Designer & Leader", reviewer: "Director", form: "Concept Template", duration: "2 days" },
@@ -62,6 +78,11 @@ export const DESIGN_PROCESS_TABLE: {
       color: "#D97706",
       bgLight: "#FFFBEB",
       totalDuration: "03 - 06 tuần",
+      phaseTask: "Thể hiện định hướng thiết kế lên 3D và chi tiết hóa bản vẽ thi công",
+      phaseDeliverable: "Full set bản vẽ, 3D renders, Material Schedule, BOQ",
+      phaseExecutor: "Team Thiết Kế",
+      phaseReviewer: "Director",
+      phaseForm: "Drawing Set + BOQ",
       steps: [
         { code: "C1", task: "Triển khai mặt bằng chi tiết", deliverable: "AutoCAD Layout", executor: "Designer", reviewer: "Leader", form: "CAD Template", duration: "2 days" },
         { code: "C2", task: "Dựng 3D, render phối cảnh", deliverable: "3D Renders (5+ góc)", executor: "3D Viz", reviewer: "Leader", form: "Render Checklist", duration: "5 days" },
@@ -77,6 +98,11 @@ export const DESIGN_PROCESS_TABLE: {
       color: "#DC2626",
       bgLight: "#FEF2F2",
       totalDuration: "Theo tiến độ TC",
+      phaseTask: "Chốt ngân sách thi công, ký hợp đồng và giám sát tác quyền",
+      phaseDeliverable: "Hợp đồng thi công, Báo cáo giám sát, Biên bản nghiệm thu",
+      phaseExecutor: "Leader & Director",
+      phaseReviewer: "Client",
+      phaseForm: "Contract, Handover Form",
       steps: [
         { code: "D1", task: "Present hồ sơ + Báo giá TC cho khách", deliverable: "Báo giá TC Approved", executor: "Leader & Sales", reviewer: "Director", form: "BOQ + PPT", duration: "1 day" },
         { code: "D2", task: "Ký HĐ TC, bàn giao hồ sơ cho nhà thầu", deliverable: "HĐ TC + Hồ sơ TC", executor: "Director", reviewer: "—", form: "HĐ Template", duration: "1 day" },

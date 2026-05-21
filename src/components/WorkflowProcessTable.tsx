@@ -97,7 +97,7 @@ export default function WorkflowProcessTable() {
               }`}
             >
               <Filter size={13} />
-              {filterRole || "Filter"}
+              {filterRole || "Lọc theo vai trò"}
             </button>
             {showFilter && (
               <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[160px]">
@@ -105,7 +105,7 @@ export default function WorkflowProcessTable() {
                   onClick={() => { setFilterRole(null); setShowFilter(false); }}
                   className={`w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 ${!filterRole ? "font-semibold text-purple-700" : "text-gray-600"}`}
                 >
-                  Tất cả
+                  Tất cả vai trò
                 </button>
                 {allRoles.map((r) => (
                   <button
@@ -126,8 +126,8 @@ export default function WorkflowProcessTable() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
-              className="pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-lg w-48 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+              placeholder="Tìm kiếm nhiệm vụ..."
+              className="pl-8 pr-3 py-2 text-xs border border-gray-200 rounded-lg w-56 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
             />
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function WorkflowProcessTable() {
                 <Fragment key={phase.code}>
                   {/* Phase group header */}
                   <tr style={{ backgroundColor: phase.bgLight }}>
-                    <td className="px-4 py-3 border-b border-gray-200">
+                    <td className="px-4 py-3 border-b border-gray-200 align-top">
                       <span
                         className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white font-bold text-sm"
                         style={{ backgroundColor: phase.color }}
@@ -173,11 +173,26 @@ export default function WorkflowProcessTable() {
                         {phase.code}
                       </span>
                     </td>
-                    <td colSpan={6} className="px-4 py-3 border-b border-gray-200">
+                    <td className="px-4 py-3 border-b border-gray-200 align-top">
                       <span className="font-bold text-sm text-gray-900">{phase.name}</span>
                     </td>
-                    <td className="px-4 py-3 border-b border-gray-200 text-right">
-                      <span className="text-[11px] font-medium text-gray-500 bg-white/60 px-2 py-1 rounded">
+                    <td className="px-4 py-3 border-b border-gray-200 text-sm font-semibold text-gray-800 align-top">
+                      {phase.phaseTask}
+                    </td>
+                    <td className="px-4 py-3 border-b border-gray-200 text-xs font-semibold text-gray-700 align-top">
+                      {phase.phaseDeliverable}
+                    </td>
+                    <td className="px-4 py-3 border-b border-gray-200 align-top">
+                      <RoleBadge role={phase.phaseExecutor} />
+                    </td>
+                    <td className="px-4 py-3 border-b border-gray-200 align-top">
+                      <RoleBadge role={phase.phaseReviewer} />
+                    </td>
+                    <td className="px-4 py-3 border-b border-gray-200 text-xs font-medium text-gray-600 align-top">
+                      {phase.phaseForm}
+                    </td>
+                    <td className="px-4 py-3 border-b border-gray-200 text-right align-top">
+                      <span className="text-[11px] font-medium text-gray-700 bg-white/60 border border-gray-300 px-2 py-1 rounded">
                         {phase.totalDuration}
                       </span>
                     </td>
