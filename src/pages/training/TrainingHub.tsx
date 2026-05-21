@@ -558,30 +558,73 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
 
   if (loading) return <LoadingSpinner />;
 
+  // If many subsections (e.g. job descriptions) → tabbed view
+  const useTabs = subsections.length >= 4;
+
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-5 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <SectionBadge label={section.number} />
         <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
       </div>
       {lead && (
-        <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-purple-300 pl-3">{lead}</p>
+        <p className="text-sm text-gray-500 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
       )}
 
-      {/* Content blocks */}
-      <div className="space-y-8">
-        {subsections.map((block: any, i: number) => (
-          <div key={i}>
-            <h3 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
-              {block.title || block.heading}
-            </h3>
-            <ContentBlock block={block} />
-          </div>
+      {useTabs ? (
+        <TabbedSubsections subsections={subsections} />
+      ) : (
+        <div className="space-y-8">
+          {subsections.map((block: any, i: number) => (
+            <div key={i}>
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
+                {block.title || block.heading}
+              </h3>
+              <ContentBlock block={block} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {subsections.length === 0 && <EmptyState text="Chưa có nội dung chi tiết." />}
+    </div>
+  );
+};
+
+/** Tabbed view for subsections (e.g., Job Descriptions) */
+const TabbedSubsections = ({ subsections }: { subsections: any[] }) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const active = subsections[activeIdx];
+
+  return (
+    <div>
+      {/* Tab bar — scrollable row */}
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 border-b border-gray-200">
+        {subsections.map((sub: any, i: number) => (
+          <button
+            key={i}
+            onClick={() => setActiveIdx(i)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all whitespace-nowrap ${
+              i === activeIdx
+                ? "bg-purple-600 text-white shadow-sm"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {sub.heading || sub.title}
+          </button>
         ))}
       </div>
 
-      {subsections.length === 0 && <EmptyState text="Chưa có nội dung chi tiết." />}
+      {/* Active tab content */}
+      {active && (
+        <div>
+          <h3 className="text-base font-bold text-gray-900 mb-4">
+            {active.heading || active.title}
+          </h3>
+          <ContentBlock block={active} />
+        </div>
+      )}
     </div>
   );
 };
