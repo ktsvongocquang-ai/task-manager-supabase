@@ -668,8 +668,8 @@ const WorkflowDetail = ({ workflowId, useDB, onBack }: { workflowId: string; use
         </div>
       )}
 
-      {/* Regular steps */}
-      {steps.length > 0 && (
+      {/* Regular steps (hide for 3.2 since it uses the table view) */}
+      {steps.length > 0 && !isDesignProcess && (
         <div className="space-y-6 mb-6">
           {steps.map((step, i) => (
             <div key={step.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
