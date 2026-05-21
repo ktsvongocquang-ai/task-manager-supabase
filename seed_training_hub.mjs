@@ -1927,7 +1927,129 @@ async function seed() {
   // MODULE 5 — ESTIMATION (no DB content — client-side only)
   // ══════════════════════════════════════════════════════════════
   // Module already inserted above. No sections/subsections needed.
-  console.log(`ℹ️  Module 5 (Estimation) — client-side only, no DB content.`);
+  const mod5Id = moduleBySlug["estimation"].id;
+  
+  const mod5SectionsData = [
+  {
+    "slug": "pricing-philosophy",
+    "number": "5.1",
+    "title": "Triết lý Báo giá của DQH",
+    "description": "Bán Giá Trị (Value-based) thay vì Bán Vật Tư (Cost-plus)",
+    "icon": "Gem",
+    "content": "Khách hàng mua một không gian sống, không mua những tấm ván gỗ.",
+    "sort_order": 1
+  },
+  {
+    "slug": "estimation-art",
+    "number": "5.2",
+    "title": "Nghệ thuật Bóc tách Dự toán (BOQ)",
+    "description": "Nguyên tắc bóc tách minh bạch, phòng ngừa rủi ro",
+    "icon": "FileSpreadsheet",
+    "content": "BOQ chuẩn là tấm khiên bảo vệ biên lợi nhuận của công ty và túi tiền của khách.",
+    "sort_order": 2
+  },
+  {
+    "slug": "budget-handling",
+    "number": "5.3",
+    "title": "Xử lý Ngân sách (Budget Objection)",
+    "description": "Value Engineering & Kịch bản đàm phán",
+    "icon": "Coins",
+    "content": "Đừng bao giờ giảm giá trị hợp đồng bằng cách tự bóp chết chất lượng thiết kế.",
+    "sort_order": 3
+  }
+].map(s => ({
+    ...s,
+    module_id: mod5Id
+  }));
+  
+  const mod5Sections = await upsertAndReturn("training_sections", mod5SectionsData);
+  console.log(`✅ Inserted ${mod5Sections.length} Module 5 sections`);
+  
+  const sec5BySlug = {};
+  for (const s of mod5Sections) sec5BySlug[s.slug] = s;
+  
+  const mod5SubsectionsData = [
+  {
+    "slug": "pricing-mindset",
+    "heading": "1. Tư duy Định giá (Pricing Mindset)",
+    "content_type": "list",
+    "metadata": {
+      "items": [
+        {
+          "title": "Báo giá DQH không bao giờ rẻ nhất",
+          "body": "Đừng cố cạnh tranh về giá với các xưởng mộc hay nhà thầu tư nhân. Chi phí của DQH bao gồm: Trình độ thiết kế, quy trình kiểm soát chất lượng (QC), chi phí bảo hành, và quan trọng nhất là SỰ YÊN TÂM của khách hàng."
+        },
+        {
+          "title": "Minh bạch tuyệt đối",
+          "body": "Không dùng chiến thuật 'Báo giá ban đầu thật thấp để ký hợp đồng rồi vẽ phát sinh'. Đó là tư duy làm ăn chộp giật. Ở DQH, giá ban đầu có thể làm khách giật mình, nhưng khi thi công xong, khách không phải trả thêm một đồng nào ngoài dự kiến. Đó là uy tín."
+        },
+        {
+          "title": "Tính trọn gói (Lump Sum vs Unit Price)",
+          "body": "Hạn chế báo giá theo mét dài, mét vuông chung chung. Hãy báo giá theo Hạng mục (Gói phòng khách, Gói phòng bếp). Khách hàng cao cấp muốn biết tổng số tiền họ phải trả để dọn vào ở, không phải ngồi đếm mét gỗ."
+        }
+      ]
+    },
+    "sort_order": 1
+  },
+  {
+    "slug": "boq-rules",
+    "heading": "2. Nguyên tắc Bóc tách Dự toán (BOQ)",
+    "content_type": "list",
+    "metadata": {
+      "items": [
+        {
+          "title": "Càng chi tiết càng ít cãi nhau",
+          "body": "Một dòng báo giá tủ áo phải chỉ rõ: Gỗ thùng là MFC hay MDF, ván An Cường mã nào, hậu tủ mấy ly, bản lề Hafele hay Blum, có bao gồm đèn LED hắt khe chưa. Thiếu những chi tiết này, khi thi công kiểu gì cũng nảy sinh tranh cãi."
+        },
+        {
+          "title": "Dự phòng rủi ro (Contingency)",
+          "body": "Đối với các công trình cải tạo (renovation), luôn phải cấu trúc một khoản dự phòng rủi ro từ 5-10% cho các vấn đề ẩn (như thấm nứt, đường ống cũ mục nát) không thấy được lúc khảo sát mặt ngoài."
+        },
+        {
+          "title": "Cross-check giữa 3D và BOQ",
+          "body": "Lỗi kinh điển làm mất tiền: 3D vẽ đá ốp tường nguyên khối, nhưng BOQ báo giá gạch men giả đá. Sale chốt hợp đồng theo BOQ, thi công làm theo 3D. Công ty ôm lỗ. Drafter và Sales phải check chéo 100% trước khi gửi khách."
+        }
+      ]
+    },
+    "sort_order": 1
+  },
+  {
+    "slug": "value-engineering",
+    "heading": "3. Value Engineering (Tối ưu hóa giá trị)",
+    "content_type": "list",
+    "metadata": {
+      "items": [
+        {
+          "title": "Khi khách chê giá cao, tuyệt đối KHÔNG GIẢM GIÁ (Discount)",
+          "body": "Giảm giá vô cớ tức là bạn thừa nhận ban đầu mình báo giá khống. Thay vào đó, hãy dùng Value Engineering: Giảm chi phí bằng cách thay đổi giải pháp nhưng vẫn giữ nguyên tinh thần thiết kế."
+        },
+        {
+          "title": "Chiến thuật thay thế vật liệu",
+          "body": "Ví dụ: 'Nếu ngân sách anh/chị bị lố 200tr, em đề xuất khu vực phòng khách mình vẫn giữ gỗ Sồi tự nhiên để khách đến chơi thấy được sự sang trọng. Nhưng hệ tủ quần áo phòng ngủ master, mình chuyển sang gỗ công nghiệp phủ Melamine vân sồi, vừa tiết kiệm được 150tr vừa chống trầy tốt hơn'."
+        },
+        {
+          "title": "Phân bổ lại ngân sách (Re-allocation)",
+          "body": "Nguyên tắc 80/20: Dồn tiền vào những thứ khách hàng chạm vào hàng ngày (Mặt bếp đá xịn, phụ kiện bản lề xịn, nệm sofa êm), và tiết kiệm ở những nơi khuất tầm nhìn (thùng tủ, hậu tủ, trần phụ)."
+        }
+      ]
+    },
+    "sort_order": 1
+  }
+];
+  const mod5Subsections = mod5SubsectionsData.map(s => {
+    let sectionSlug = "";
+    if (s.slug.includes("pricing")) sectionSlug = "pricing-philosophy";
+    else if (s.slug.includes("boq")) sectionSlug = "estimation-art";
+    else sectionSlug = "budget-handling";
+    
+    return {
+      ...s,
+      section_id: sec5BySlug[sectionSlug].id
+    };
+  });
+  
+  const mod5SubsResult = await upsertAndReturn("training_subsections", mod5Subsections);
+  console.log(`✅ Inserted ${mod5SubsResult.length} Module 5 subsections`);
 
   // ══════════════════════════════════════════════════════════════
   // MODULE 6 — SALES & MARKETING (placeholder)
@@ -2283,7 +2405,7 @@ async function seed() {
 
   // ── DONE ──────────────────────────────────────────────────
 
-  const totalSections = mod1Sections.length + mod2Sections.length + mod4Sections.length + mod6Sections.length;
+  const totalSections = mod1Sections.length + mod2Sections.length + mod4Sections.length + mod5Sections.length + mod6Sections.length;
   const totalSubsections = mod1SubsResult.length + mod2SubsResult.length + mod4SubsResult.length + mod5SubsResult.length + mod6SubsResult.length;
 
   console.log("\n🎉 Training Hub seeded successfully! (v3.0 Full Content)");
