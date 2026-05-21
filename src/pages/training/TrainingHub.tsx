@@ -41,12 +41,10 @@ const getIcon = (name: string | null) => ICON_MAP[name || ""] || BookOpen;
 // These are used when Supabase tables don't exist yet
 
 const FALLBACK_MODULES: TrainingModule[] = [
-  { id: "m1", slug: "foundation", title: "Nền tảng DQH", description: "Nền tảng DQH — Vision, Mission, Values, Brand DNA", icon: "BookOpen", color: "#7C3AED", sort_order: 1, created_at: "", updated_at: "" },
-  { id: "m2", slug: "design-knowledge", title: "Kiến thức Thiết kế", description: "Kiến thức thiết kế — Quiet Luxury, Materials, Styles", icon: "Layers", color: "#059669", sort_order: 2, created_at: "", updated_at: "" },
-  { id: "m3", slug: "workflow", title: "Quy trình (Workflow)", description: "Quy trình thực chiến — 9 workflows chi tiết", icon: "Zap", color: "#D97706", sort_order: 3, created_at: "", updated_at: "" },
-  { id: "m4", slug: "tools-templates", title: "Hạ tầng & Kỹ thuật", description: "Kỹ thuật hạ tầng — MEP, Construction, As-Built", icon: "Settings", color: "#6B7280", sort_order: 4, created_at: "", updated_at: "" },
-  { id: "m5", slug: "estimation", title: "Dự toán", description: "Công cụ dự toán — Rates, Calculations", icon: "Calculator", color: "#0891B2", sort_order: 5, created_at: "", updated_at: "" },
-  { id: "m6", slug: "sales-marketing", title: "Sales & Marketing", description: "Bộ chuẩn marketing — Scripts, Messaging", icon: "Megaphone", color: "#DC2626", sort_order: 6, created_at: "", updated_at: "" },
+  { id: "m1", slug: "foundation", title: "Nền tảng DQH", description: "Vision · Mission · Values · Brand DNA · Tư duy thiết kế", icon: "BookOpen", color: "#7C3AED", sort_order: 1, created_at: "", updated_at: "" },
+  { id: "m2", slug: "design-knowledge", title: "Kiến thức Thiết kế", description: "Quiet Luxury · Vật liệu · Phong cách · Lỗi thường gặp", icon: "Layers", color: "#059669", sort_order: 2, created_at: "", updated_at: "" },
+  { id: "m3", slug: "workflow", title: "Quy trình vận hành", description: "9 quy trình chuẩn — từ gặp khách đến nghiệm thu", icon: "Zap", color: "#D97706", sort_order: 3, created_at: "", updated_at: "" },
+  { id: "m4", slug: "tools-templates", title: "Kỹ thuật & Kỹ năng mềm", description: "Hạ tầng kỹ thuật · Thi công · Giao tiếp · Thuyết trình", icon: "Settings", color: "#6B7280", sort_order: 4, created_at: "", updated_at: "" },
 ];
 
 const FALLBACK_DESIGN_SECTIONS: Section[] = [
@@ -970,7 +968,7 @@ const EstimationModule = () => {
 
 export default function TrainingHub() {
   const [modules, setModules] = useState<TrainingModule[]>([]);
-  const [activeModuleSlug, setActiveModuleSlug] = useState<string>("design-knowledge");
+  const [activeModuleSlug, setActiveModuleSlug] = useState<string>("onboarding");
   const [useDB, setUseDB] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -996,9 +994,6 @@ export default function TrainingHub() {
 
   const renderModuleContent = () => {
     if (!activeModule) return <EmptyState />;
-
-    // Estimation: always client-side
-    if (activeModule.slug === 'estimation') return <EstimationModule />;
 
     // Workflow module
     if (activeModule.slug === 'workflow') return <WorkflowModule moduleId={activeModule.id} useDB={useDB} />;
