@@ -89,6 +89,22 @@ export async function fetchModules(): Promise<TrainingModule[]> {
 }
 
 /**
+ * Update the metadata for a given subsection
+ */
+export async function updateSubsectionMetadata(subsectionId: string, newMetadata: any): Promise<boolean> {
+  const { error } = await supabase
+    .from('training_subsections')
+    .update({ metadata: newMetadata })
+    .eq('id', subsectionId);
+
+  if (error) {
+    console.error('Error updating subsection metadata:', error);
+    return false;
+  }
+  return true;
+}
+
+/**
  * Get all sections for a given module, each with nested subsections
  */
 export async function fetchSectionsForModule(moduleId: string): Promise<Section[]> {

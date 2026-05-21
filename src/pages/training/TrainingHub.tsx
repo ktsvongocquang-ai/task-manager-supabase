@@ -17,6 +17,7 @@ import {
   fetchWorkflows,
   fetchWorkflowWithSteps,
   searchTrainingContent,
+  updateSubsectionMetadata,
   type TrainingModule,
   type Section,
   type Subsection,
@@ -365,50 +366,168 @@ const Checklist = ({ items }: { items: string[] }) => (
 // ─── SUBSECTION RENDERERS ────────────────────────────────────
 
 /** Render a block of items (title + body pairs) from DB metadata or fallback */
-const ItemsBlock = ({ items }: { items: { title: string; body: string }[] }) => (
-  <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-    <table className="w-full text-sm text-left">
-      <thead className="bg-gray-50 border-b border-gray-200">
-        <tr>
-          <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-1/3">Hạng mục</th>
-          <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Chi tiết</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100 bg-white">
-        {items.map((item, j) => (
-          <tr key={j} className="hover:bg-gray-50 transition-colors">
-            <td className="px-4 py-3 font-semibold text-gray-900 align-top">{item.title}</td>
-            <td className="px-4 py-3 text-gray-600 align-top leading-relaxed whitespace-pre-wrap">{item.body}</td>
+const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; body: string }[], isEditing?: boolean, onChange?: (items: any[]) => void }) => {
+  if (isEditing) {
+    const handleTitleChange = (idx: number, val: string) => {
+      const newItems = [...items];
+      newItems[idx] = { ...newItems[idx], title: val };
+      onChange?.(newItems);
+    };
+    const handleBodyChange = (idx: number, val: string) => {
+      const newItems = [...items];
+      newItems[idx] = { ...newItems[idx], body: val };
+      onChange?.(newItems);
+    };
+    const addItem = () => {
+      onChange?.([...items, { title: '', body: '' }]);
+    };
+    const removeItem = (idx: number) => {
+      onChange?.(items.filter((_, i) => i !== idx));
+    };
+
+    return (
+      <div className="overflow-x-auto rounded-lg border-2 border-purple-200">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-purple-50">
+            <tr>
+              <th className="px-4 py-3 text-[11px] font-semibold text-purple-700 uppercase tracking-wider w-1/3">Hạng mục (Title)</th>
+              <th className="px-4 py-3 text-[11px] font-semibold text-purple-700 uppercase tracking-wider">Chi tiết (Body)</th>
+              <th className="w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-purple-100 bg-white">
+            {items.map((item, j) => (
+              <tr key={j}>
+                <td className="px-2 py-2 align-top">
+                  <textarea value={item.title} onChange={e => handleTitleChange(j, e.target.value)} rows={2} className="w-full text-sm font-semibold text-gray-900 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                </td>
+                <td className="px-2 py-2 align-top">
+                  <textarea value={item.body} onChange={e => handleBodyChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-700 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                </td>
+                <td className="px-2 py-2 text-center align-top">
+                  <button onClick={() => removeItem(j)} className="text-red-500 hover:text-red-700 p-1 mt-1"><Trash2 size={16}/></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="p-3 bg-gray-50 border-t border-purple-100">
+          <button onClick={addItem} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
+            <Plus size={16} /> Thêm hạng mục
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-1/3">Hạng mục</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Chi tiết</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white">
+          {items.map((item, j) => (
+            <tr key={j} className="hover:bg-gray-50 transition-colors">
+              <td className="px-4 py-3 font-semibold text-gray-900 align-top">{item.title}</td>
+              <td className="px-4 py-3 text-gray-600 align-top leading-relaxed whitespace-pre-wrap">{item.body}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 /** Render a data table from DB metadata or fallback */
-const TableBlock = ({ table }: { table: string[][] }) => (
-  <div className="overflow-x-auto rounded-lg border border-gray-200">
-    <table className="w-full text-sm">
-      <thead className="bg-gray-50">
-        <tr>
-          {table[0].map((h, i) => (
-            <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100 bg-white">
-        {table.slice(1).map((row, i) => (
-          <tr key={i} className="hover:bg-gray-50">
-            {row.map((cell, j) => (
-              <td key={j} className={`px-4 py-3 ${j === 0 ? "font-medium text-gray-900" : "font-mono text-gray-600"}`}>{cell}</td>
+const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: boolean, onChange?: (t: any) => void }) => {
+  const isObject = !Array.isArray(table);
+  const headers = isObject ? table.headers : table[0];
+  const rows = isObject ? table.rows : table.slice(1);
+
+  if (isEditing) {
+    const handleHeaderChange = (idx: number, val: string) => {
+      const newH = [...headers]; newH[idx] = val;
+      onChange?.(isObject ? { headers: newH, rows } : [newH, ...rows]);
+    };
+    const handleCellChange = (rIdx: number, cIdx: number, val: string) => {
+      const newR = [...rows];
+      newR[rIdx] = [...newR[rIdx]];
+      newR[rIdx][cIdx] = val;
+      onChange?.(isObject ? { headers, rows: newR } : [headers, ...newR]);
+    };
+    const addRow = () => {
+      const newRow = new Array(headers.length).fill('');
+      onChange?.(isObject ? { headers, rows: [...rows, newRow] } : [headers, ...rows, newRow]);
+    };
+    const removeRow = (rIdx: number) => {
+      const newR = rows.filter((_, i) => i !== rIdx);
+      onChange?.(isObject ? { headers, rows: newR } : [headers, ...newR]);
+    };
+
+    return (
+      <div className="overflow-x-auto rounded-lg border-2 border-purple-200">
+        <table className="w-full text-sm">
+          <thead className="bg-purple-50">
+            <tr>
+              {headers.map((h: string, i: number) => (
+                <th key={i} className="px-2 py-2">
+                  <input value={h} onChange={e => handleHeaderChange(i, e.target.value)} className="w-full text-xs font-semibold text-purple-900 bg-white border border-purple-200 rounded px-2 py-1" />
+                </th>
+              ))}
+              <th className="w-10"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-purple-100 bg-white">
+            {rows.map((row: string[], i: number) => (
+              <tr key={i}>
+                {row.map((cell: string, j: number) => (
+                  <td key={j} className="px-2 py-2">
+                    <textarea value={cell} onChange={e => handleCellChange(i, j, e.target.value)} rows={2} className="w-full text-sm text-gray-800 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                  </td>
+                ))}
+                <td className="px-2 py-2 text-center">
+                  <button onClick={() => removeRow(i)} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16}/></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="p-3 bg-gray-50 border-t border-purple-100">
+          <button onClick={addRow} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
+            <Plus size={16} /> Thêm dòng
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            {headers.map((h: string, i: number) => (
+              <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+        </thead>
+        <tbody className="divide-y divide-gray-100 bg-white">
+          {rows.map((row: string[], i: number) => (
+            <tr key={i} className="hover:bg-gray-50">
+              {row.map((cell: string, j: number) => (
+                <td key={j} className={`px-4 py-3 ${j === 0 ? "font-medium text-gray-900" : "font-mono text-gray-600"} whitespace-pre-wrap`}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 /** Render mistakes (wrong/right pairs) from DB metadata or fallback */
 const MistakesBlock = ({ mistakes }: { mistakes: { wrong: string; right: string }[] }) => (
@@ -433,17 +552,26 @@ const MistakesBlock = ({ mistakes }: { mistakes: { wrong: string; right: string 
 );
 
 /** Render a content block based on type (from DB subsection or fallback block) */
-const ContentBlock = ({ block }: { block: any }) => {
+const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: boolean, onUpdate?: (id: string, metadata: any) => void }) => {
   // DB subsection format: content_type + metadata
   if (block.content_type) {
     const meta = block.metadata || {};
-    if ((block.content_type === "list" || block.content_type === "items") && meta.items) return <ItemsBlock items={meta.items} />;
-    if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} />;
+    const handleUpdate = (key: string, data: any) => {
+      onUpdate?.(block.id, { ...meta, [key]: data });
+    };
+
+    if ((block.content_type === "list" || block.content_type === "items") && meta.items) return <ItemsBlock items={meta.items} isEditing={isEditing} onChange={(d) => handleUpdate("items", d)} />;
+    if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} isEditing={isEditing} onChange={(d) => handleUpdate("table", d)} />;
     if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} />;
-    if (block.content_type === "text" && block.content) return <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{block.content}</p>;
+    if (block.content_type === "text" && block.content) {
+      if (isEditing) {
+        return <textarea value={block.content} onChange={e => onUpdate?.(block.id, { ...meta, content: e.target.value })} rows={4} className="w-full text-sm text-gray-800 border-2 border-purple-200 rounded px-3 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />;
+      }
+      return <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{block.content}</p>;
+    }
     if (block.content_type === "mindset_tier" && meta.data) return <MindsetTierBlock data={meta.data} />;
     // Fallback: if metadata has items but content_type doesn't match, still render
-    if (meta.items) return <ItemsBlock items={meta.items} />;
+    if (meta.items) return <ItemsBlock items={meta.items} isEditing={isEditing} onChange={(d) => handleUpdate("items", d)} />;
     return null;
   }
   // Fallback format: items / table / mistakes arrays directly on block
@@ -550,6 +678,7 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
 const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }) => {
   const [subsections, setSubsections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -566,6 +695,11 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
     }
   }, [section, useDB]);
 
+  const handleUpdate = async (id: string, newMetadata: any) => {
+    setSubsections(prev => prev.map(s => s.id === id ? { ...s, metadata: newMetadata } : s));
+    await updateSubsectionMetadata(id, newMetadata);
+  };
+
   const lead = useDB ? section.content : FALLBACK_DESIGN_CONTENT[section.number]?.lead;
 
   if (loading) return <LoadingSpinner />;
@@ -576,9 +710,16 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-4 flex items-center gap-3">
-        <SectionBadge label={section.number} />
-        <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <SectionBadge label={section.number} />
+          <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
+        </div>
+        {useDB && (
+          <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
+            {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
+          </button>
+        )}
       </div>
       {lead && (
         <p className="text-sm text-gray-500 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
@@ -593,7 +734,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
               <h3 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
                 {block.title || block.heading}
               </h3>
-              <ContentBlock block={block} />
+              <ContentBlock block={block} isEditing={isEditing} onUpdate={handleUpdate} />
             </div>
           ))}
         </div>
@@ -605,7 +746,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
 };
 
 /** Tabbed view for subsections (e.g., Job Descriptions) */
-const TabbedSubsections = ({ subsections }: { subsections: any[] }) => {
+const TabbedSubsections = ({ subsections, isEditing, onUpdate }: { subsections: any[], isEditing?: boolean, onUpdate?: (id: string, metadata: any) => void }) => {
   const [activeIdx, setActiveIdx] = useState(0);
   const active = subsections[activeIdx];
 
@@ -634,7 +775,7 @@ const TabbedSubsections = ({ subsections }: { subsections: any[] }) => {
           <h3 className="text-base font-bold text-gray-900 mb-4">
             {active.heading || active.title}
           </h3>
-          <ContentBlock block={active} />
+          <ContentBlock block={active} isEditing={isEditing} onUpdate={onUpdate} />
         </div>
       )}
     </div>
