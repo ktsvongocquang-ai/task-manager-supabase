@@ -4,118 +4,59 @@ dotenv.config();
 
 const sb = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
 
-async function consolidate() {
-  console.log('=== GỘP SECTIONS MODULE 1 (6 → 3) ===\n');
+async function updateValues() {
+  console.log('=== GỘP 5 GIÁ TRỊ → 3 GIÁ TRỊ CỐT LÕI ===\n');
 
-  // Lấy module 1
-  const { data: mod } = await sb.from('training_modules').select('id').eq('slug', 'onboarding').single();
-  if (!mod) { console.log('❌ Không tìm thấy module'); return; }
+  // Tìm subsection "5 Giá trị cốt lõi" trong section 1.1
+  const { data: subs } = await sb.from('training_subsections')
+    .select('id, heading, slug')
+    .ilike('heading', '%Giá trị cốt lõi%');
 
-  // Lấy tất cả sections + subsections hiện tại
-  const { data: sections } = await sb.from('training_sections').select('id, number, title, slug, content')
-    .eq('module_id', mod.id).order('sort_order');
-  
-  if (!sections) { console.log('❌ Không có sections'); return; }
-  console.log('Sections hiện tại:');
-  sections.forEach(s => console.log(`  ${s.number} ${s.title}`));
-
-  // Lấy subsections cho từng section
-  const allSubs = {};
-  for (const sec of sections) {
-    const { data } = await sb.from('training_subsections').select('*').eq('section_id', sec.id).order('sort_order');
-    allSubs[sec.number] = data || [];
+  if (!subs || subs.length === 0) {
+    console.log('❌ Không tìm thấy. Tìm theo slug...');
+    const { data: subs2 } = await sb.from('training_subsections')
+      .select('id, heading, slug')
+      .ilike('slug', '%gia-tri%');
+    console.log('Tìm thấy:', subs2);
+    if (!subs2 || subs2.length === 0) return;
+    // Cập nhật cái đầu tiên
+    await updateSubsection(subs2[0].id);
+  } else {
+    console.log('Tìm thấy:', subs.map(s => `${s.id}: ${s.heading}`));
+    await updateSubsection(subs[0].id);
   }
-
-  // Xóa tất cả subsections và sections cũ
-  for (const sec of sections) {
-    await sb.from('training_subsections').delete().eq('section_id', sec.id);
-  }
-  await sb.from('training_sections').delete().eq('module_id', mod.id);
-  console.log('\n✅ Đã xóa sections cũ');
-
-  // === TẠO 3 SECTIONS MỚI ===
-  
-  // 1.1 Bản sắc DQH (gộp 1.1 + 1.2 + 1.3)
-  const { data: sec1 } = await sb.from('training_sections').insert({
-    module_id: mod.id,
-    slug: 'ban-sac-dqh',
-    number: '1.1',
-    title: 'Bản sắc DQH',
-    description: 'Tầm nhìn · Sứ mệnh · Giá trị cốt lõi · Brand DNA',
-    icon: 'BookOpen',
-    content: '"Quiet Luxury" — Sang trọng không cần phô trương.',
-    sort_order: 1,
-  }).select('id').single();
-
-  // 1.2 Tư duy Thiết kế (gộp 1.4 + 1.5)
-  const { data: sec2 } = await sb.from('training_sections').insert({
-    module_id: mod.id,
-    slug: 'tu-duy-thiet-ke',
-    number: '1.2',
-    title: 'Tư duy Thiết kế Thực chiến',
-    description: '5 nhóm tư duy · Master Suite · Ergonomics',
-    icon: 'Sparkles',
-    content: 'Designer DQH không chỉ vẽ đẹp — phải giải quyết bài toán không gian.',
-    sort_order: 2,
-  }).select('id').single();
-
-  // 1.3 Mô tả công việc (giữ nguyên 1.6)
-  const { data: sec3 } = await sb.from('training_sections').insert({
-    module_id: mod.id,
-    slug: 'mo-ta-cong-viec',
-    number: '1.3',
-    title: 'Mô tả công việc (8 Vị trí)',
-    description: 'Nhiệm vụ chi tiết A/B/C/D cho từng vị trí',
-    icon: 'Users',
-    content: 'Mỗi người rõ việc — không chồng chéo, không bỏ sót.',
-    sort_order: 3,
-  }).select('id').single();
-
-  console.log('✅ Đã tạo 3 sections mới\n');
-
-  // === CHUYỂN SUBSECTIONS ===
-
-  // 1.1 Bản sắc: gộp subsections từ 1.1 + 1.2 + 1.3
-  const banSacSubs = [
-    ...allSubs['1.1']?.map((s, i) => ({ ...s, section_id: sec1.id, sort_order: i + 1 })) || [],
-    ...allSubs['1.2']?.map((s, i) => ({ ...s, section_id: sec1.id, sort_order: 10 + i })) || [],
-    ...allSubs['1.3']?.map((s, i) => ({ ...s, section_id: sec1.id, sort_order: 20 + i })) || [],
-  ];
-  
-  // 1.2 Tư duy: gộp subsections từ 1.4 + 1.5
-  const tuDuySubs = [
-    ...allSubs['1.4']?.map((s, i) => ({ ...s, section_id: sec2.id, sort_order: i + 1 })) || [],
-    ...allSubs['1.5']?.map((s, i) => ({ ...s, section_id: sec2.id, sort_order: 10 + i })) || [],
-  ];
-
-  // 1.3 Mô tả: giữ nguyên subsections từ 1.6
-  const jobSubs = allSubs['1.6']?.map((s, i) => ({ ...s, section_id: sec3.id, sort_order: i + 1 })) || [];
-
-  // Insert tất cả (xóa id cũ)
-  const cleanInsert = (arr) => arr.map(({ id, created_at, updated_at, ...rest }) => rest);
-
-  if (banSacSubs.length > 0) {
-    const { error } = await sb.from('training_subsections').insert(cleanInsert(banSacSubs));
-    if (error) console.log('❌ 1.1:', error.message);
-    else console.log(`✅ 1.1 Bản sắc DQH: ${banSacSubs.length} subsections`);
-  }
-
-  if (tuDuySubs.length > 0) {
-    const { error } = await sb.from('training_subsections').insert(cleanInsert(tuDuySubs));
-    if (error) console.log('❌ 1.2:', error.message);
-    else console.log(`✅ 1.2 Tư duy Thiết kế: ${tuDuySubs.length} subsections`);
-  }
-
-  if (jobSubs.length > 0) {
-    const { error } = await sb.from('training_subsections').insert(cleanInsert(jobSubs));
-    if (error) console.log('❌ 1.3:', error.message);
-    else console.log(`✅ 1.3 Mô tả công việc: ${jobSubs.length} subsections`);
-  }
-
-  console.log('\n=== CẤU TRÚC MỚI MODULE 1 ===');
-  console.log('  1.1 Bản sắc DQH (Vision + Values + Brand DNA)');
-  console.log('  1.2 Tư duy Thiết kế (5 nhóm + Master Suite)');
-  console.log('  1.3 Mô tả công việc (8 Vị trí)');
 }
 
-consolidate();
+async function updateSubsection(subId) {
+  const newValues = {
+    heading: '3 Giá trị cốt lõi',
+    content_type: 'items',
+    metadata: {
+      items: [
+        {
+          title: 'THÁI ĐỘ — Tận tâm trong từng chi tiết',
+          body: 'Ở DQH, không có việc nhỏ. Từ cách chọn vật liệu đến góc bo của tủ bếp — tất cả đều phản ánh thái độ làm nghề.\n\n• Duyệt sample vật liệu thật trước khi trình khách — không gửi ảnh thay thế\n• Mọi quyết định thiết kế đều có lý do — không "thấy đẹp thì làm"\n• Phát hiện lỗi thi công → dừng, sửa, báo — không che, không bỏ qua\n• Tight deadline vẫn phải kiểm tra kỹ bản vẽ — không được phép tắc trách\n• Trình concept phải giải thích được "tại sao" chứ không chỉ "là gì"'
+        },
+        {
+          title: 'TRÁCH NHIỆM — Chủ động, không chờ nhắc',
+          body: 'Công ty nhỏ = mỗi người là chủ của phần việc mình. Sai thì nhận, thiếu thì bổ sung, không đổ lỗi.\n\n• Phần việc của mình → tự track tiến độ, không cần Leader nhắc\n• Thấy vấn đề → báo ngay trong ngày, không để tồn đọng\n• Thấy lỗi của người khác → nói thẳng, xây dựng — không im lặng\n• Deadline đang nguy → raise flag sớm, đừng để đến ngày mới báo\n• Feedback phải cụ thể: "sửa góc này vì..." — không nói chung chung "không đẹp"'
+        },
+        {
+          title: 'ĐỒNG HÀNH — Cùng khách hàng & đội ngũ phát triển',
+          body: 'DQH không bán thiết kế rồi biến mất — chúng tôi đi cùng khách từ ý tưởng đầu tiên đến ngày dọn vào ở, và đi cùng nhau phát triển nghề.\n\n• Lắng nghe khách trước khi phản biện — hiểu rồi mới tư vấn\n• Khách yêu cầu sai → tư vấn thẳng thắn, giải thích tại sao — không chiều theo\n• Mỗi dự án hoàn thành → review 1 bài học rút ra cho cả team\n• Chia sẻ kiến thức nội bộ — người biết dạy người chưa biết\n• Follow ít nhất 5 studio quốc tế để cập nhật xu hướng liên tục'
+        },
+      ]
+    },
+  };
+
+  const { error } = await sb.from('training_subsections').update(newValues).eq('id', subId);
+  if (error) console.log('❌ Lỗi:', error.message);
+  else console.log('✅ Đã cập nhật "5 Giá trị" → "3 Giá trị cốt lõi"');
+
+  console.log('\n=== 3 GIÁ TRỊ MỚI ===');
+  console.log('  1. THÁI ĐỘ — Tận tâm trong từng chi tiết (gộp EXCELLENCE + CRAFT)');
+  console.log('  2. TRÁCH NHIỆM — Chủ động, không chờ nhắc (gộp OWNERSHIP + thẳng thắn)');
+  console.log('  3. ĐỒNG HÀNH — Cùng khách & đội ngũ phát triển (gộp GROWTH + RESPECT)');
+}
+
+updateValues();
