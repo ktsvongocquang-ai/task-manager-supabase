@@ -5,8 +5,7 @@ import {
   Lightbulb, Sparkles, Ruler, Palette, Layers,
   FileText, Users, ClipboardList, FolderOpen, Package,
   RefreshCw, TriangleAlert, Zap, Settings, Megaphone,
-  Loader2, Gem, FileSpreadsheet, Coins, BedDouble,
-  Crown, Monitor, HardHat, Map, Wrench
+  Loader2, Gem, FileSpreadsheet, Coins, HardHat, Map, Wrench
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -16,7 +15,6 @@ import {
   fetchWorkflowWithSteps,
   type TrainingModule,
   type Section,
-  type Subsection,
   type Workflow,
   type WorkflowStep,
 } from "../../services/trainingService";
@@ -26,7 +24,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   BookOpen, GitBranch, Calculator, Sparkles, Ruler, Palette, Layers,
   FileText, Users, ClipboardList, FolderOpen, Package, RefreshCw,
   CheckCircle2, Zap, Settings, Megaphone, TriangleAlert, Gem,
-  FileSpreadsheet, Coins, BedDouble, Crown, Monitor, HardHat, Map, Wrench,
+  FileSpreadsheet, Coins, HardHat, Map, Wrench,
 };
 const getIcon = (name: string | null) => ICON_MAP[name || ""] || BookOpen;
 
