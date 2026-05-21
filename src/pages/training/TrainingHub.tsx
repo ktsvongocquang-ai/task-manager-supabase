@@ -461,85 +461,93 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
     if (useDB) {
       fetchSectionsForModule(moduleId).then(data => {
         setSections(data);
+        if (data.length > 0) setActiveSection(data[0].id);
         setLoading(false);
       });
     } else {
-      // Fallback: only Module 2 has hardcoded sections
       setSections(FALLBACK_DESIGN_SECTIONS);
+      if (FALLBACK_DESIGN_SECTIONS.length > 0) setActiveSection(FALLBACK_DESIGN_SECTIONS[0].id);
       setLoading(false);
     }
   }, [moduleId, useDB]);
 
   if (loading) return <LoadingSpinner />;
-  if (sections.length === 0) return <EmptyState text="Module này chưa có nội dung. Vui lòng thêm dữ liệu vào Supabase." />;
+  if (sections.length === 0) return <EmptyState text="Module này chưa có nội dung." />;
 
-  // Detail view
-  if (activeSection) {
-    const section = sections.find(s => s.id === activeSection);
-    if (!section) return null;
-    return <SectionDetail section={section} useDB={useDB} onBack={() => setActiveSection(null)} />;
-  }
+  const selected = sections.find(s => s.id === activeSection);
 
-  // Section list — dạng bảng gọn
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]">Mục</th>
-            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nội dung</th>
-            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
+    <div className="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+      {/* LEFT — Section sidebar */}
+      <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Danh mục</span>
+        </div>
+        <div className="divide-y divide-gray-100">
           {sections.map((s) => {
             const Icon = getIcon(s.icon);
+            const isActive = s.id === activeSection;
             return (
-              <tr
+              <button
                 key={s.id}
                 onClick={() => setActiveSection(s.id)}
-                className="hover:bg-purple-50/50 cursor-pointer transition-colors group"
+                className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                  isActive
+                    ? "bg-white border-l-3 border-l-purple-600 shadow-sm"
+                    : "hover:bg-white/80 border-l-3 border-l-transparent"
+                }`}
               >
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-purple-50 text-purple-600">
-                    <Icon size={14} />
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded">{s.number}</span>
-                    <span className="font-medium text-sm text-gray-900 group-hover:text-purple-700">{s.title}</span>
+                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                  isActive ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"
+                }`}>
+                  <Icon size={14} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                      isActive ? "text-purple-600 bg-purple-50" : "text-gray-400 bg-gray-100"
+                    }`}>{s.number}</span>
+                    <span className={`text-[13px] font-medium truncate ${
+                      isActive ? "text-gray-900" : "text-gray-600"
+                    }`}>{s.title}</span>
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <ChevronRight size={14} className="text-gray-300 group-hover:text-purple-500" />
-                </td>
-              </tr>
+                </div>
+              </button>
             );
           })}
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      {/* RIGHT — Content area */}
+      <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+        {selected ? (
+          <SectionContent section={selected} useDB={useDB} />
+        ) : (
+          <div className="flex items-center justify-center h-full text-sm text-gray-400">
+            ← Chọn một mục để xem nội dung
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
-const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: boolean; onBack: () => void }) => {
+/** Inline content for a section (renders inside the right panel) */
+const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }) => {
   const [subsections, setSubsections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     if (useDB && section.subsections && section.subsections.length > 0) {
-      // Already loaded via fetchSectionsForModule
       setSubsections(section.subsections);
       setLoading(false);
     } else if (!useDB) {
-      // Fallback: use hardcoded content
       const content = FALLBACK_DESIGN_CONTENT[section.number];
-      if (content) {
-        setSubsections(content.blocks);
-      }
+      if (content) setSubsections(content.blocks);
       setLoading(false);
     } else {
+      setSubsections([]);
       setLoading(false);
     }
   }, [section, useDB]);
@@ -549,20 +557,21 @@ const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: bo
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div>
-      <BackBtn onClick={onBack} />
-      <div className="mb-6 flex items-center gap-3">
+    <div className="p-6">
+      {/* Header */}
+      <div className="mb-5 flex items-center gap-3">
         <SectionBadge label={section.number} />
-        <h2 className="text-xl font-bold text-gray-900">{section.title}</h2>
+        <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
       </div>
       {lead && (
-        <p className="text-base text-gray-600 italic mb-8 border-l-4 border-purple-300 pl-4">{lead}</p>
+        <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-purple-300 pl-3">{lead}</p>
       )}
 
-      <div className="space-y-10">
+      {/* Content blocks */}
+      <div className="space-y-8">
         {subsections.map((block: any, i: number) => (
           <div key={i}>
-            <h3 className="text-base font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
               {block.title || block.heading}
             </h3>
             <ContentBlock block={block} />
@@ -570,7 +579,7 @@ const SectionDetail = ({ section, useDB, onBack }: { section: Section; useDB: bo
         ))}
       </div>
 
-      {subsections.length === 0 && <EmptyState text="Chưa có nội dung chi tiết cho section này." />}
+      {subsections.length === 0 && <EmptyState text="Chưa có nội dung chi tiết." />}
     </div>
   );
 };
@@ -588,63 +597,76 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
     if (useDB) {
       fetchWorkflows(moduleId).then(data => {
         setWorkflows(data);
+        if (data.length > 0) setActiveWorkflow(data[0].id);
         setLoading(false);
       });
     } else {
       setWorkflows(FALLBACK_WORKFLOWS);
+      if (FALLBACK_WORKFLOWS.length > 0) setActiveWorkflow(FALLBACK_WORKFLOWS[0].id);
       setLoading(false);
     }
   }, [moduleId, useDB]);
 
   if (loading) return <LoadingSpinner />;
-  if (workflows.length === 0) return <EmptyState text="Chưa có workflow nào." />;
-
-  if (activeWorkflow) {
-    return <WorkflowDetail workflowId={activeWorkflow} useDB={useDB} onBack={() => setActiveWorkflow(null)} />;
-  }
+  if (workflows.length === 0) return <EmptyState text="Chưa có quy trình nào." />;
 
   return (
-    <div>
-      <div className="mb-4">
-        <h2 className="text-lg font-bold text-gray-900">Quy trình vận hành</h2>
+    <div className="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+      {/* LEFT — Workflow sidebar */}
+      <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Quy trình</span>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {workflows.map((w) => {
+            const Icon = getIcon(w.icon);
+            const isActive = w.id === activeWorkflow;
+            return (
+              <button
+                key={w.id}
+                onClick={() => setActiveWorkflow(w.id)}
+                className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                  isActive
+                    ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
+                    : "hover:bg-white/80 border-l-3 border-l-transparent"
+                }`}
+              >
+                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                  isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                }`}>
+                  <Icon size={14} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                      isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
+                    }`}>{w.number}</span>
+                  </div>
+                  <span className={`text-[13px] font-medium block truncate ${
+                    isActive ? "text-gray-900" : "text-gray-600"
+                  }`}>{w.title}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]">Mã</th>
-              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Quy trình</th>
-              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Mô tả</th>
-              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[40px]"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-        {workflows.map((w) => (
-          <tr
-            key={w.id}
-            onClick={() => setActiveWorkflow(w.id)}
-            className="hover:bg-purple-50/50 cursor-pointer transition-colors group"
-          >
-            <td className="px-4 py-3">
-              <span className="text-[11px] font-mono font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{w.number}</span>
-            </td>
-            <td className="px-4 py-3">
-              <span className="font-medium text-sm text-gray-900 group-hover:text-purple-700">{w.title}</span>
-            </td>
-            <td className="px-4 py-3 text-xs text-gray-500">{w.description}</td>
-            <td className="px-4 py-3">
-              <ChevronRight size={14} className="text-gray-300 group-hover:text-purple-500" />
-            </td>
-          </tr>
-        ))}
-          </tbody>
-        </table>
+
+      {/* RIGHT — Content area */}
+      <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+        {activeWorkflow ? (
+          <WorkflowContent workflowId={activeWorkflow} useDB={useDB} />
+        ) : (
+          <div className="flex items-center justify-center h-full text-sm text-gray-400">
+            ← Chọn một quy trình để xem
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const WorkflowDetail = ({ workflowId, useDB, onBack }: { workflowId: string; useDB: boolean; onBack: () => void }) => {
+const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boolean }) => {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [loading, setLoading] = useState(true);
@@ -676,14 +698,13 @@ const WorkflowDetail = ({ workflowId, useDB, onBack }: { workflowId: string; use
   const isDesignProcess = workflow.number === '3.2';
 
   return (
-    <div>
-      <BackBtn onClick={onBack} label="Quay lại danh sách" />
-      <div className="mb-6 flex items-center gap-3">
+    <div className="p-6">
+      <div className="mb-5 flex items-center gap-3">
         <SectionBadge label={workflow.number} />
-        <h2 className="text-xl font-bold text-gray-900">{workflow.title}</h2>
+        <h2 className="text-lg font-bold text-gray-900">{workflow.title}</h2>
       </div>
       {workflow.lead_quote && (
-        <p className="text-base text-gray-600 italic mb-8 border-l-4 border-purple-300 pl-4">{workflow.lead_quote}</p>
+        <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-amber-300 pl-3">{workflow.lead_quote}</p>
       )}
 
       {/* Design Process Table (workflow 3.2) */}
