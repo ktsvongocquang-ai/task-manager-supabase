@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import DQHFoundationPage from "../../components/DQHFoundationPage";
+import MindsetTierBlock from "../../components/training/MindsetTierBlock";
 import {
   BookOpen, GitBranch, Calculator, ChevronRight, ChevronDown,
   AlertTriangle, CheckCircle2, Plus, Trash2, Download, Upload,
@@ -440,6 +441,7 @@ const ContentBlock = ({ block }: { block: any }) => {
     if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} />;
     if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} />;
     if (block.content_type === "text" && block.content) return <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{block.content}</p>;
+    if (block.content_type === "mindset_tier" && meta.data) return <MindsetTierBlock data={meta.data} />;
     // Fallback: if metadata has items but content_type doesn't match, still render
     if (meta.items) return <ItemsBlock items={meta.items} />;
     return null;

@@ -1,0 +1,491 @@
+{
+  "section": "2.8",
+  "title": "Tư duy Thiết kế Thực chiến",
+  "subtitle": "Designer DQH không chỉ vẽ đẹp — phải giải quyết bài toán không gian.",
+  "version": "2.0",
+  "context": "Calibrate cho nhà phố HCM 4×15m–5×20m, 3–4 tầng. Khách hàng: couple 30–45 tuổi, 1–2 con nhỏ, thu nhập cao.",
+  "tiers": [
+    {
+      "id": "tier_1",
+      "order": 1,
+      "label": "Tầng 1 — Triết lý nền tảng",
+      "title": "Tại sao DQH thiết kế khác?",
+      "description": "Dành cho toàn bộ nhân sự — từ KTS, NTT đến Sales. Đây không phải slogan, đây là cách tư duy trước mỗi quyết định thiết kế.",
+      "roles": ["all"],
+      "groups": [
+        {
+          "id": "g1_1",
+          "title": "Bán không gian — không bán vật liệu",
+          "tag": "Triết lý cốt lõi",
+          "principles": [
+            {
+              "id": "p1_1_1",
+              "name": "Không gian là vĩnh cửu. Vật liệu là tạm thời.",
+              "story": "Chị Lan ở Q.7 xây nhà mới năm 2019. Chọn microcement toàn bộ sàn vì thấy đẹp trên Instagram. Sau 2 mùa mưa HCM: 14 vết nứt, bong tróc 3 điểm, chi phí sửa 85 triệu. Gạch bóng phòng khách chị mua xu hướng năm 2020 — đến 2023 nhìn đã lỗi thời. Trong khi đó, nhà chị hàng xóm xây cùng năm — gạch nền 350k/m², tường trắng mờ — nhìn vẫn như mới.",
+              "rows": [
+                {
+                  "type": "wrong",
+                  "label": "Khách nghĩ:",
+                  "content": "Nhà đẹp = vật liệu đắt, vật liệu trend. Microcement sang. Gạch bóng hiện đại."
+                },
+                {
+                  "type": "correct",
+                  "label": "Thực tế chuyên môn:",
+                  "content": "Cấu trúc nhà — chiều cao trần, tỉ lệ cửa, luồng gió — đi theo gia chủ cả đời và không thể thay. Vật liệu có thể thay sau 5–7 năm. Đầu tư sai chỗ = hối hận cả đời."
+                },
+                {
+                  "type": "warning",
+                  "label": "Hệ quả kỹ thuật:",
+                  "content": "Microcement co ngót 0.3–0.5mm/m khi nhiệt độ HCM dao động 15–35°C → nứt mạch khi thi công trên sàn bê tông không đủ độ ổn định. Chi phí sửa thường bằng 60–80% chi phí thi công ban đầu."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Ưu tiên ngân sách cho: chiều cao trần (tối thiểu 3.0m thay vì 2.7m tiêu chuẩn), tỉ lệ cửa sổ (tối thiểu 1/5 diện tích sàn), bố cục không gian mạch lạc. Vật liệu chọn basic nhưng đúng — gạch nền đồng chất <500k/m², tường sơn mờ trung tính."
+                }
+              ],
+              "specs": [
+                "Trần tối thiểu: 3.0m",
+                "Cửa sổ ≥ 1/5 diện tích sàn",
+                "Microcement: tránh dùng ở HCM"
+              ],
+              "sales_script": null
+            },
+            {
+              "id": "p1_1_2",
+              "name": "Chuyển dịch ngân sách: đầu tư vào chất lượng sống, không vào thứ trưng bày",
+              "story": "Anh Minh Q.Bình Thạnh ngân sách 1.2 tỷ nội thất. Công ty cũ tư vấn: tủ bếp Acrylic cao cấp 320tr, đá Marble nhập Ý 180tr, đèn chùm nhập khẩu 95tr. Kết quả: bếp đẹp để chụp ảnh, nhưng giường ngủ 8tr — lưng đau sau 3 tháng, WC vòi nước kẹt sau 6 tháng. DQH làm khác: tủ bếp Melamine tốt 180tr, gạch nhập Tây Ban Nha 85tr, đèn local design 35tr — dôi ra 295tr đầu tư vào đệm Sealy, vòi sen Hansgrohe, hệ thống lọc nước toàn nhà.",
+              "rows": [
+                {
+                  "type": "wrong",
+                  "label": "Khách nghĩ:",
+                  "content": "Tiết kiệm là chọn vật liệu rẻ hơn ở mọi hạng mục. Hoặc ngược lại: đắt hơn = tốt hơn mọi thứ."
+                },
+                {
+                  "type": "correct",
+                  "label": "Thực tế:",
+                  "content": "Có 2 loại chi tiêu: thứ khách nhìn thấy (vật liệu, đèn, tủ) và thứ khách cảm nhận mỗi ngày (chất lượng giấc ngủ, áp lực nước, không khí). Cái sau quyết định hạnh phúc trong nhà."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Tư vấn phân bổ ngân sách theo 3 nhóm: ① Không thể thay đổi sau (kết cấu, điện nước âm tường, hệ thống): ưu tiên cao nhất ② Có thể nâng cấp sau (đồ nội thất rời, đèn): chọn vừa đủ ③ Ảnh hưởng sức khỏe hàng ngày (đệm, vòi, lọc nước): không tiết kiệm."
+                }
+              ],
+              "specs": [
+                "Kết cấu + MEP: 35–40% ngân sách",
+                "Đệm xịn hơn giường xịn",
+                "Vòi sen Hansgrohe/Grohe tối thiểu"
+              ],
+              "sales_script": null
+            }
+          ]
+        },
+        {
+          "id": "g1_2",
+          "title": "Cái đẹp đến từ kiến thức — không từ cảm quan",
+          "tag": "Triết lý #2",
+          "principles": [
+            {
+              "id": "p1_2_1",
+              "name": "Designer càng giỏi, nhà càng đơn giản",
+              "story": "Showroom nội thất thường nhét vào nhà càng nhiều thứ càng tốt — mỗi góc phải có điểm nhấn, mỗi mặt tường phải có trang trí. Lý do: họ bán theo mặt hàng. DQH bán theo không gian — mục tiêu ngược lại: giảm xuống mức đơn giản nhất mà vẫn đẹp nhất.",
+              "rows": [
+                {
+                  "type": "wrong",
+                  "label": "Sai lầm phổ biến:",
+                  "content": "Nghĩ rằng nhà trống là nhà chưa xong. Cứ phải có feature wall, ốp đá, tranh treo, đèn trang trí nhiều điểm."
+                },
+                {
+                  "type": "correct",
+                  "label": "Thực tế:",
+                  "content": "Nhà càng basic, designer càng phải giỏi — không có vật liệu đặc biệt để che lỗi bố cục. Sự đơn giản là thứ khó nhất để đạt được và không bao giờ lỗi mốt."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Đánh giá concept qua: tỉ lệ không gian, chất lượng ánh sáng, sự mạch lạc của lưu thông — không qua số lượng điểm nhấn hay độ đắt của vật liệu. Một bức tường trắng mờ được soi đúng ánh sáng đẹp hơn 10 bức feature wall."
+                }
+              ],
+              "specs": [],
+              "sales_script": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tier_2",
+      "order": 2,
+      "label": "Tầng 2 — Kiến thức chuyên môn",
+      "title": "Những gì khách không biết — DQH phải biết",
+      "description": "Kiến thức kỹ thuật cụ thể, calibrate theo nhà phố HCM 4×15m–5×20m, 3–4 tầng. Đây là lý do khách cần chuyên gia — không phải để vẽ đẹp, mà để giải quyết những bài toán họ không nhìn thấy.",
+      "roles": ["designer", "sales"],
+      "groups": [
+        {
+          "id": "g2_1",
+          "title": "Phân lớp không gian & nhiệt học",
+          "tag": "Kỹ thuật không gian",
+          "principles": [
+            {
+              "id": "p2_1_1",
+              "name": "3 lớp không gian — thiếu 1 lớp, nhà hỏng về nhiệt",
+              "story": "Nhà phố HCM mặt tiền 4–5m, sâu 15–20m: ánh nắng buổi sáng xiên thẳng vào mặt tiền, chiều tây rọi vào hông. Không có lớp đệm = nhiệt độ trong nhà hơn ngoài đường ban ngày. Điều hòa chạy từ 10h sáng đến 23h đêm. Bill điện 4–6 triệu/tháng.",
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "3 lớp bắt buộc:",
+                  "content": "① Ngoài trời — tự nhiên 100% (vỉa hè, sân trước) ② Vùng đệm ½ tự nhiên — tiền sảnh có mái che sâu ≥1.5m, sân sau, terrace với mái lam: nơi nhiệt độ chuyển tiếp trước khi vào trong ③ Trong nhà khép kín — điều hòa hoạt động hiệu quả vì nhiệt độ đầu vào đã giảm 5–8°C."
+                },
+                {
+                  "type": "warning",
+                  "label": "Thực tế nhà phố HCM:",
+                  "content": "Ban công 1.0–1.2m: không đủ để ra ngồi, không đủ để trồng cây che nắng, mái che ngắn không cản nhiệt. 90% ban công nhà phố HCM không ai dùng sau 6 tháng."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Chuyển ban công → Terrace: sâu ≥2.0m (nhà 4m mặt tiền: 2.0m; nhà 5m: 2.5m). Mái lam/lam gỗ góc 30–45° chặn nắng đỉnh nhưng vẫn cho sáng khuếch tán vào. Trồng cây leo hoặc cây đứng tạo vách xanh tự nhiên."
+                }
+              ],
+              "specs": [
+                "Terrace ≥ 2.0m (không phải ban công)",
+                "Mái lam góc 30–45°",
+                "Vùng đệm giảm nhiệt 5–8°C"
+              ],
+              "sales_script": null
+            },
+            {
+              "id": "p2_1_2",
+              "name": "Đối lưu 2 chiều — bắt buộc, không thương lượng",
+              "story": "Phòng ngủ con của anh Tuấn (Q.Tân Bình): 1 cửa sổ nhìn ra tường nhà hàng xóm. Buổi tối tắt điều hòa 10 phút là bí. Bé ngủ hay thức giấc, hay ốm. Sau khi DQH tư vấn: đục thêm ô thông gió hướng hành lang (đối diện cửa sổ), cao sát trần (≥2.4m) — gió nóng đi lên và ra. Bé ngủ ngon hơn, tiền điện giảm 1.2 triệu/tháng.",
+              "rows": [
+                {
+                  "type": "wrong",
+                  "label": "Hiểu sai:",
+                  "content": "Có điều hòa thì không cần gió tự nhiên. 1 cửa sổ đủ thông thoáng."
+                },
+                {
+                  "type": "correct",
+                  "label": "Vật lý học:",
+                  "content": "Không khí nóng nhẹ hơn → đi lên. Để đối lưu xảy ra tự nhiên cần: điểm vào thấp (cửa chính, cửa sổ thấp) + điểm ra cao (ô thông gió sát trần, giếng trời). 1 điểm = không khí không di chuyển = nhiệt tích tụ."
+                },
+                {
+                  "type": "action",
+                  "label": "Tiêu chuẩn DQH:",
+                  "content": "Mọi phòng phải có ≥2 điểm thông gió. Lý tưởng: đối diện hoặc chéo góc 90°. Ô thông gió ra hành lang: 40×20cm, cao ≥2.4m so với sàn. Nhà phố sâu ≥12m: bắt buộc giếng trời ở giữa nhà."
+                }
+              ],
+              "specs": [
+                "≥2 điểm thông gió mỗi phòng",
+                "Ô thông gió cao ≥2.4m",
+                "Nhà sâu ≥12m: cần giếng trời"
+              ],
+              "sales_script": "\"Nhà em thiết kế tiết kiệm điện không phải vì dùng vật liệu cách nhiệt đắt tiền — mà vì em tính toán luồng gió từ đầu. Nhà anh/chị sẽ mát tự nhiên phần lớn thời gian trong năm.\""
+            },
+            {
+              "id": "p2_1_3",
+              "name": "Giếng trời — phổi của nhà phố HCM",
+              "story": "Nhà phố 4×18m không có giếng trời: giữa nhà (vị trí 6–12m từ mặt tiền) tối và nóng cả ngày. Phải bật đèn 24/7. Đây là nơi thường đặt bếp hoặc phòng ăn — 2 không gian cần ánh sáng và thông gió nhất.",
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "Nguyên tắc vị trí:",
+                  "content": "Giếng trời đặt ở 1/2–2/3 chiều sâu nhà (nhà 18m: đặt ở điểm 9–12m). Kích thước tối thiểu: 1.2×2.0m (nhà 4m mặt tiền). Lý tưởng: 1.5×2.5m để ánh sáng tự nhiên chiếu đủ xuống tầng trệt."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Mái giếng trời: kính cường lực + hệ thống che nắng tự động (motor + cảm biến mưa) hoặc mái lam xoay. Trồng cây dọc vách giếng trời: cây bền bóng (trầu bà, dương xỉ) — tạo 'lõi xanh' giữa nhà, lọc không khí tự nhiên."
+                }
+              ],
+              "specs": [
+                "Vị trí: 1/2–2/3 chiều sâu nhà",
+                "Kích thước tối thiểu: 1.2×2.0m",
+                "Mái kính + che nắng tự động"
+              ],
+              "sales_script": "\"Nhà 4×18m của anh/chị nếu không có giếng trời thì phòng ăn và bếp sẽ tối và nóng quanh năm, dù có điều hòa cũng không thoải mái. Em sẽ thiết kế giếng trời ở giữa nhà — ánh sáng tự nhiên chiếu thẳng xuống bếp, gió đi xuyên suốt từ mặt tiền ra sau. Đây là khoản đầu tư 80–120 triệu nhưng tiết kiệm tiền điện 1–2 triệu/tháng và tăng chất lượng sống đáng kể.\""
+            }
+          ]
+        },
+        {
+          "id": "g2_2",
+          "title": "Công năng & Ergonomics — thiết kế cho cơ thể người",
+          "tag": "Kỹ thuật công năng",
+          "principles": [
+            {
+              "id": "p2_2_1",
+              "name": "Hệ sinh thái bếp 4 phân khu — không phải bếp đẹp, là bếp hoạt động đúng",
+              "story": "Chị Hoa (Q.9) thiết kế bếp đảo lớn, đẹp như Pinterest. 6 tháng sau: mỗi lần nấu mắm kho là cả nhà phải đóng cửa phòng. Bồn rửa đảo dùng để rửa cá tươi → vi khuẩn lan sang rau → con hay đau bụng. Tủ điện tử (lò nướng + vi sóng) để cạnh bếp từ → nhiệt tỏa ra, máy nhanh hỏng. Đây không phải lỗi thiết kế bề mặt — đây là lỗi thiếu hiểu biết về workflow nấu ăn.",
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "4 khu bắt buộc:",
+                  "content": "① Lưu trữ khô: tủ lạnh + tủ đựng khô (gạo, gia vị, snack) ② Thiết bị điện tử: lò nướng, vi sóng, nồi cơm — gom 1 hệ tủ có hút mùi riêng, tách xa nguồn nhiệt ③ Nấu & Rửa sống: bếp từ + bồn rửa thịt cá + bẫy tách mỡ TGBT ④ Bàn đảo (Rửa chín): CHỈ rửa rau, trái cây — TUYỆT ĐỐI không rửa thịt cá sống (lây nhiễm chéo Salmonella, E.coli)."
+                },
+                {
+                  "type": "action",
+                  "label": "Dirty Kitchen (Bếp phụ):",
+                  "content": "Vị trí: góc khuất phía sau hoặc tầng trệt. Chứa: tủ đông, bếp ga nấu món nặng mùi (kho, rang, lẩu), khu giặt phơi. Cách li hoàn toàn mùi và nhiệt khỏi khu sinh hoạt chính. Đây là tiêu chuẩn của mọi nhà bếp restaurant — DQH áp dụng cho nhà ở."
+                }
+              ],
+              "specs": [
+                "4 khu độc lập",
+                "Bẫy tách mỡ TGBT bắt buộc",
+                "Dirty Kitchen: tách biệt hoàn toàn"
+              ],
+              "sales_script": "\"Anh/chị hay nấu ăn tại nhà không? Em hỏi vì bếp nhà mình em thiết kế theo tiêu chuẩn bếp nhà hàng — tách khu rửa thịt cá riêng với khu rửa rau hoàn toàn, có bếp phụ ở phía sau để nấu món nặng mùi. Nhà đẹp mà nấu mắm kho mở cửa ra là cả xóm biết thì không ổn.\""
+            },
+            {
+              "id": "p2_2_2",
+              "name": "Ergonomics 5 điểm — những thứ khách không nghĩ đến cho đến khi đau lưng",
+              "story": "5 chi tiết nhỏ, chi phí thấp, tác động lớn đến cuộc sống hàng ngày. Không KTS nào dạy trong trường. Không có trong sách giáo khoa thiết kế.",
+              "rows": [
+                {
+                  "type": "action",
+                  "label": "Đôn bục máy giặt 60cm:",
+                  "content": "Người đứng thao tác không cúp lưng (tiêu chuẩn ergonomics: điểm làm việc ngang rốn). Gầm dưới: sọt kéo nhựa 3 ngăn (đồ trắng / đồ màu / đồ tế nhị). Chi phí đôn bục: 3–5 triệu. Giá trị: tránh đau lưng mãn tính sau 40 tuổi."
+                },
+                {
+                  "type": "action",
+                  "label": "Gen đồ dơ liên tầng:",
+                  "content": "Ống PVC Ø200mm chạy âm tường từ phòng thay đồ Master (tầng 3–4) xuống thẳng giỏ đồ dơ khu giặt (tầng 1 hoặc trệt). Chi phí: 2–4 triệu khi thi công thô. Nếu làm sau: đục tường, 15–25 triệu."
+                },
+                {
+                  "type": "action",
+                  "label": "Tủ giày hở gầm:",
+                  "content": "Gầm 15–20cm: đá giày vào không cần mở cánh — đúng hành vi thực tế khi về nhà tay xách đồ. Kèm bench ngồi mang giày. Chênh lệch chi phí so với tủ thường chỉ 2–3 triệu."
+                },
+                {
+                  "type": "action",
+                  "label": "Kho chứa đồ vô hình (bắt buộc):",
+                  "content": "Mỗi nhà cần ≥2 điểm kho cho: chổi, cây lau, thang nhôm, thùng carton, đồ sửa chữa. Vị trí lý tưởng: dưới cầu thang, hốc tường hành lang, cabinet ẩn dưới sàn. Nhà đẹp mà chổi gác góc tường = dự án thất bại."
+                },
+                {
+                  "type": "action",
+                  "label": "Điểm sạc trung tâm:",
+                  "content": "1 tủ console entry có: ngăn kéo nhỏ (chìa khóa, ví, khẩu trang), ổ cắm 4 cổng USB+Type-C, móc treo túi. Mọi thiết bị sạc tại 1 điểm — không có cảnh điện thoại sạc khắp nhà."
+                }
+              ],
+              "specs": [
+                "Đôn bục máy giặt: 60cm",
+                "Gen đồ dơ: Ø200mm PVC",
+                "Kho: tối thiểu 2 điểm"
+              ],
+              "sales_script": null
+            }
+          ]
+        },
+        {
+          "id": "g2_3",
+          "title": "Giao thông & sự riêng tư — kiến trúc của cuộc sống thực",
+          "tag": "Kỹ thuật lưu thông",
+          "principles": [
+            {
+              "id": "p2_3_1",
+              "name": "Phân luồng 2 tuyến: tuyến chủ nhà và tuyến công cộng",
+              "story": "Anh Khoa (Q.Bình Thạnh) tiếp khách tại nhà thường xuyên. Trước khi DQH thiết kế: shipper giao đồ, thợ sửa chữa, bạn bè đến chơi — tất cả đều phải đi qua phòng khách, qua bếp để ra WC, nhìn thấy hết cầu thang lên phòng ngủ. Không có sự riêng tư ngay trong nhà mình.",
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "2 luồng cần thiết kế từ đầu:",
+                  "content": "Luồng công cộng: Cổng chính → Tiền sảnh → Phòng khách → WC chung → Ra về. Không nhìn thấy bếp, cầu thang, sinh hoạt riêng. Luồng riêng tư: Cổng phụ (xe máy) → Hành lang bên hông → Bếp phụ/Giặt phơi/Sân sau → Lên tầng trực tiếp. Về nhà không cần đi qua phòng khách."
+                },
+                {
+                  "type": "action",
+                  "label": "Hành lang bên hông (Side Corridor):",
+                  "content": "Nhà phố HCM 4–5m mặt tiền: thiết kế hành lang bên hông rộng 0.9–1.0m chạy từ cổng phụ vào trong. Tuyến này phục vụ: đi làm về hàng ngày, nhận đồ shipper, thợ sửa chữa vào làm, giặt phơi. Không giao cắt với tuyến tiếp khách."
+                },
+                {
+                  "type": "warning",
+                  "label": "Thường bị bỏ qua:",
+                  "content": "Nhiều bản thiết kế nhà phố không có hành lang bên hông vì 'lãng phí' 0.9m². Thực tế: không có hành lang này = mất hoàn toàn sự riêng tư của gia đình."
+                }
+              ],
+              "specs": [
+                "Hành lang bên hông: 0.9–1.0m",
+                "2 tuyến độc lập",
+                "Cổng phụ: xe máy, đi về hàng ngày"
+              ],
+              "sales_script": "\"Nhà anh/chị em sẽ thiết kế 2 lối vào hoàn toàn tách biệt: một cho tiếp khách, một cho sinh hoạt hàng ngày của gia đình. Khách đến ngồi phòng khách mà không biết phía sau bếp đang nấu gì, không nhìn thấy cầu thang lên phòng ngủ. Đây là tiêu chuẩn biệt thự, em áp dụng vào nhà phố.\""
+            },
+            {
+              "id": "p2_3_2",
+              "name": "Sảnh đệm thị giác & thiết kế mở cho tương lai",
+              "story": null,
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "Sảnh đệm (Visual Lobby):",
+                  "content": "Không bao giờ mở cửa phòng ngủ nhìn thẳng ra hành lang hoặc cầu thang. Phải có 1 trong 3: ① Vách ngăn lửng (panel gỗ, vách kính mờ) ② Bàn console + tranh (tạo điểm dừng thị giác) ③ Góc khuất 90° (cửa mở ra hướng tường). Tiêu chí: mở cửa 24/24 — người từ cầu thang không nhìn thấy giường."
+                },
+                {
+                  "type": "action",
+                  "label": "Thiết kế mở cho tương lai:",
+                  "content": "Couple 35 tuổi, 1 con nhỏ. 5 năm sau: bố mẹ lên ở cùng hoặc sinh thêm. DQH thiết kế 'phòng mở': 2 phòng nhỏ đập thông thành 1 phòng chơi lớn. Phần thô (ống nước, hố ga, dây điện 3 pha) đã đi sẵn âm tường/sàn. 5 năm sau: đặt hệ tủ kịch trần = vách ngăn = 2 phòng riêng. Không đập gạch, không bụi, không ảnh hưởng sinh hoạt."
+                }
+              ],
+              "specs": [],
+              "sales_script": null
+            }
+          ]
+        },
+        {
+          "id": "g2_4",
+          "title": "Ánh sáng & ngôn ngữ kiến trúc — cái đẹp có lý do",
+          "tag": "Kỹ thuật thẩm mỹ",
+          "principles": [
+            {
+              "id": "p2_4_1",
+              "name": "Ánh sáng gián tiếp — tại sao khách sạn 5 sao không bao giờ chiếu thẳng vào mắt",
+              "story": "Thử nghiệm: vào phòng ngủ nhà bạn lúc 11pm, bật đèn ốp trần → cảm giác như văn phòng. Sau đó vào phòng Suite Intercontinental: không có đèn nào chiếu thẳng. Toàn bộ ánh sáng hắt từ trần, từ khe tường, từ đèn cạnh giường. Cảm giác ấm áp, thư giãn ngay lập tức. Đây không phải cảm quan — đây là sinh lý học mắt người: ánh sáng gián tiếp giảm 70% căng thẳng thị giác so với ánh sáng trực tiếp cùng lux.",
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "Tiêu chuẩn ánh sáng theo khu:",
+                  "content": "Khu ngủ & thư giãn (Master, phòng đọc): 100% gián tiếp — hắt trần (cove lighting), hắt khe tường, đèn cạnh giường. Không đèn ốp trần chiếu thẳng. Lux: 50–100 lux ambient. Khu làm việc: đèn task lighting có thể điều chỉnh hướng, 300–500 lux tại mặt bàn. Khu sinh hoạt chung: 70% gián tiếp + 30% downlight chức năng, 200–300 lux."
+                },
+                {
+                  "type": "action",
+                  "label": "DQH làm:",
+                  "content": "Không để khách tự chọn vị trí đèn. KTS thiết kế lighting concept trước (bản vẽ lighting layout riêng), sau đó giải thích lý do. Nhiệt màu: phòng ngủ 2700K (ấm), phòng làm việc 4000K (trung tính), không dùng 6500K (lạnh) trong không gian ở."
+                }
+              ],
+              "specs": [
+                "Ngủ: 50–100 lux, 2700K",
+                "Làm việc: 300–500 lux, 4000K",
+                "Phòng ngủ: 0% đèn chiếu thẳng"
+              ],
+              "sales_script": "\"Phòng ngủ nhà anh/chị em thiết kế ánh sáng theo tiêu chuẩn suite khách sạn 5 sao — không có đèn nào chiếu thẳng vào mắt. Toàn bộ hắt từ trần và khe tường. Anh/chị biết tại sao ngủ trong khách sạn tốt thường ngủ ngon hơn ở nhà không? Một phần lớn là do ánh sáng.\""
+            },
+            {
+              "id": "p2_4_2",
+              "name": "Framing the View & vật liệu bản địa — kiến trúc bền theo thời gian",
+              "story": null,
+              "rows": [
+                {
+                  "type": "correct",
+                  "label": "Framing the View:",
+                  "content": "Cửa sổ, ô thông gió không chỉ để lấy sáng — mà là 'bức tranh sống'. KTS tính toán tỉ lệ ô kính để bắt trọn 1 cảnh cụ thể: cây xanh trong sân, khoảng trời, mái nhà cũ. Câu hỏi thiết kế: 'Chủ nhà nhìn thấy gì đầu tiên khi thức dậy lúc 6am?' Đó là quyết định của KTS, không phải của nhà thầu."
+                },
+                {
+                  "type": "correct",
+                  "label": "Vật liệu bản địa & Rustic:",
+                  "content": "Gỗ thô mộc, đá tự nhiên VN, gạch nung thủ công: càng dùng lâu càng có hồn. Tránh Microcement ở HCM: co ngót nhiệt cao, nứt mạch, chi phí sửa bằng 60% chi phí ban đầu. Tránh vật liệu 'faux' (giả gỗ, giả đá công nghiệp): nhìn đẹp năm đầu, lỗi thời sau 3 năm."
+                },
+                {
+                  "type": "action",
+                  "label": "Nội thất Bespoke:",
+                  "content": "Tủ sách đúng kích thước từng cuốn. Gallery wall: 20–30 khung ảnh gia đình bố cục organic — không đối xứng, không cùng kích thước. Góc check-in theo mùa: cây theo mùa + ánh sáng tự nhiên + ổ cắm ẩn sẵn. Đây là thứ tạo ra nhà 'có hồn' thay vì nhà showroom."
+                }
+              ],
+              "specs": [],
+              "sales_script": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tier_3",
+      "order": 3,
+      "label": "Tầng 3 — Thực chiến",
+      "title": "Áp dụng trong dự án thực tế",
+      "description": "Checklist tự kiểm tra, lỗi thường gặp và bộ câu hỏi khai thác nhu cầu cho Sales. Dùng trước mỗi dự án.",
+      "roles": ["designer", "sales"],
+      "groups": [
+        {
+          "id": "g3_1",
+          "title": "Checklist 12 điểm — designer tự review trước khi submit",
+          "tag": "Công cụ Designer",
+          "type": "checklist",
+          "items": [
+            { "text": "Mỗi phòng có ≥2 điểm thông gió đối diện hoặc chéo?", "category": "Không khí" },
+            { "text": "Nhà sâu ≥12m: đã có giếng trời ở vị trí 1/2–2/3 chiều sâu?", "category": "Không khí" },
+            { "text": "Vùng đệm nhiệt (terrace/sân có mái): sâu ≥2.0m?", "category": "Nhiệt học" },
+            { "text": "Bếp đã có đủ 4 khu + Dirty Kitchen tách biệt?", "category": "Công năng" },
+            { "text": "Sảnh đệm thị giác: không nhìn thẳng vào giường khi mở cửa phòng ngủ?", "category": "Riêng tư" },
+            { "text": "2 tuyến lưu thông đã tách biệt: chủ nhà và khách/dịch vụ?", "category": "Giao thông" },
+            { "text": "Hành lang bên hông (side corridor): ≥0.9m?", "category": "Giao thông" },
+            { "text": "Kho chứa đồ vô hình: ≥2 điểm trong nhà?", "category": "Công năng" },
+            { "text": "Đôn bục máy giặt 60cm + sọt kéo gầm?", "category": "Ergonomics" },
+            { "text": "Gen đồ dơ liên tầng: ống Ø200mm đã đi sẵn âm tường?", "category": "Ergonomics" },
+            { "text": "Lighting concept: phòng ngủ 100% gián tiếp, nhiệt màu 2700K?", "category": "Ánh sáng" },
+            { "text": "Phần thô backup tương lai: ống nước/dây điện đã đi sẵn cho phòng có thể chia đôi?", "category": "Tương lai" }
+          ]
+        },
+        {
+          "id": "g3_2",
+          "title": "5 lỗi thường gặp — học từ dự án thực tế",
+          "tag": "Bài học thực tế",
+          "type": "lessons",
+          "items": [
+            {
+              "title": "Lỗi 1 — Bếp không có Dirty Kitchen",
+              "content": "Designer thiết kế bếp đẹp nhưng không có bếp phụ. Khách HCM nấu kho tộ, rang mực → mùi thấm vào gỗ tủ, tường sơn → không thể tẩy sau. Khách phàn nàn sau 2–3 tháng.",
+              "prevention": "Dirty Kitchen là hạng mục bắt buộc trong mọi dự án nhà ở DQH, không phải optional."
+            },
+            {
+              "title": "Lỗi 2 — Phòng 1 cửa sổ, không có đối lưu",
+              "content": "View đẹp 1 hướng nhưng không đục ô thông gió phía đối diện → phòng nóng bức, điều hòa chạy 100% thời gian. Khách không biết nguyên nhân, chỉ thấy tiền điện cao và ngủ không ngon.",
+              "prevention": "Checklist mục 1 — không pass nếu thiếu điểm đối lưu thứ 2."
+            },
+            {
+              "title": "Lỗi 3 — Mở cửa phòng ngủ nhìn thẳng vào giường",
+              "content": "Concept đẹp trên bản vẽ nhưng cửa phòng ngủ master mở thẳng ra hành lang, ai đi qua cũng nhìn thấy giường. Khách phát hiện sau khi thi công xong — cực khó sửa.",
+              "prevention": "Kiểm tra sightline từ mỗi cửa phòng ngủ trước khi finalise layout."
+            },
+            {
+              "title": "Lỗi 4 — Không tính điểm cất đồ vô hình",
+              "content": "Portfolio đẹp, bàn giao ấn tượng. 1 tháng sau: chổi gác cầu thang, thang nhôm dựng hành lang, thùng carton chất góc phòng khách. Không phải khách lộn xộn — là thiết kế thiếu storage.",
+              "prevention": "Tính storage trong concept, không phải sau khi xong layout."
+            },
+            {
+              "title": "Lỗi 5 — Tư vấn vật liệu không phù hợp khí hậu HCM",
+              "content": "Microcement toàn sàn, đá tự nhiên nhạt màu ở sân ngoài trời, gỗ tự nhiên chưa xử lý kỹ ở khu ẩm ướt. Sau 1–2 mùa mưa: nứt, ố vàng, mốc. Khiếu nại.",
+              "prevention": "Mỗi vật liệu phải kiểm tra compatibility với điều kiện HCM: nhiệt độ 25–38°C, độ ẩm 70–90%, mưa lớn 6 tháng/năm."
+            }
+          ]
+        },
+        {
+          "id": "g3_3",
+          "title": "Sales — bộ câu hỏi khai thác nhu cầu ẩn",
+          "tag": "Công cụ Sales",
+          "type": "qdeck",
+          "items": [
+            {
+              "context": "Về thói quen hàng ngày",
+              "question": "Anh/chị về nhà thường vào lối nào — cổng chính hay cổng hông? Hay chỉ có 1 cổng?",
+              "purpose": "Phát hiện nhu cầu side corridor và cổng phụ. Nếu chỉ có 1 cổng → tư vấn thiết kế 2 luồng vào. Nếu hay dùng xe máy → cổng phụ là must-have."
+            },
+            {
+              "context": "Về nấu ăn",
+              "question": "Gia đình hay nấu gì cuối tuần? Có món nặng mùi không — kho, lẩu, rang?",
+              "purpose": "Xác nhận nhu cầu Dirty Kitchen. Nếu nấu nướng nhiều → Dirty Kitchen là bắt buộc, không phải optional. Dẫn dắt: 'Em thiết kế bếp phụ ở phía sau để nấu thoải mái mà không xông mùi vào phòng khách.'"
+            },
+            {
+              "context": "Về con cái & tương lai",
+              "question": "Bé đang mấy tuổi? Trong 5 năm tới gia đình có thay đổi không — bố mẹ lên ở, hay sinh thêm?",
+              "purpose": "Mở ra tư duy thiết kế linh hoạt cho tương lai. Tư vấn: phòng mở có thể chia đôi sau, ống nước/điện đi sẵn. Đây là điểm khác biệt DQH mà khách không nghĩ đến."
+            },
+            {
+              "context": "Về thói quen buổi tối",
+              "question": "Buổi tối sau 9pm anh/chị hay làm gì — xem phim, đọc sách, tập thể dục?",
+              "purpose": "Thiết kế ánh sáng và không gian đúng. Xem phim → cần không gian tối, màn chiếu/TV ẩn. Đọc sách → cần đèn task lighting 4000K tại ghế đọc. Tập thể dục → cần phòng riêng hoặc sàn tầng thượng."
+            },
+            {
+              "context": "Về vấn đề nhà cũ",
+              "question": "Nhà cũ anh/chị ở có điều gì anh/chị thấy bất tiện nhất trong sinh hoạt hàng ngày?",
+              "purpose": "Câu hỏi quan trọng nhất — khách sẽ tự nói ra pain point thực sự. Lắng nghe kỹ: đây là thứ DQH phải giải quyết trong thiết kế mới. Mọi pain point đều có giải pháp kỹ thuật."
+            },
+            {
+              "context": "Về ngân sách",
+              "question": "Anh/chị đã nghĩ đến việc phân bổ ngân sách chưa — phần nào muốn đầu tư nhiều nhất?",
+              "purpose": "Không hỏi 'ngân sách bao nhiêu' ngay — hỏi 'muốn đầu tư vào đâu' để hiểu priority. Sau đó tư vấn lại theo đúng logic: kết cấu/MEP trước, vật liệu và nội thất sau."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
