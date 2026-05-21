@@ -482,32 +482,45 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
     return <SectionDetail section={section} useDB={useDB} onBack={() => setActiveSection(null)} />;
   }
 
-  // Section list
+  // Section list — dạng bảng gọn
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {sections.map((s) => {
-        const Icon = getIcon(s.icon);
-        const desc = s.description || s.content?.substring(0, 80) || "";
-        return (
-          <button
-            key={s.id}
-            onClick={() => setActiveSection(s.id)}
-            className="text-left bg-white border border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:shadow-md transition-all group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
-                <Icon size={18} className="text-purple-600" />
-              </div>
-              <span className="text-xs text-gray-400 font-mono">{s.number}</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-purple-700 transition-colors">{s.title}</h3>
-            <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-            <div className="mt-3 flex items-center gap-1 text-xs text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
-              Xem chi tiết <ChevronRight size={13} />
-            </div>
-          </button>
-        );
-      })}
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <table className="w-full text-left">
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]">Mục</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Nội dung</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {sections.map((s) => {
+            const Icon = getIcon(s.icon);
+            return (
+              <tr
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className="hover:bg-purple-50/50 cursor-pointer transition-colors group"
+              >
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-purple-50 text-purple-600">
+                    <Icon size={14} />
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded">{s.number}</span>
+                    <span className="font-medium text-sm text-gray-900 group-hover:text-purple-700">{s.title}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <ChevronRight size={14} className="text-gray-300 group-hover:text-purple-500" />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -594,33 +607,40 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Workflow</h2>
-        <p className="text-sm text-gray-500 mt-1">9 quy trình vận hành cốt lõi — mỗi bước rõ owner, deliverable, và checkpoint chất lượng.</p>
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-gray-900">Quy trình vận hành</h2>
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100 overflow-hidden">
-        {workflows.map((w) => {
-          const Icon = getIcon(w.icon);
-          return (
-            <button
-              key={w.id}
-              onClick={() => setActiveWorkflow(w.id)}
-              className="w-full text-left px-5 py-4 flex items-center gap-4 hover:bg-purple-50 transition-colors group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <Icon size={16} className="text-purple-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900 text-sm group-hover:text-purple-700">{w.title}</span>
-                  <span className="text-[10px] font-mono text-gray-400">{w.number}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-0.5">{w.description}</p>
-              </div>
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-purple-500 flex-shrink-0" />
-            </button>
-          );
-        })}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[50px]">Mã</th>
+              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Quy trình</th>
+              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Mô tả</th>
+              <th className="px-4 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-[40px]"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+        {workflows.map((w) => (
+          <tr
+            key={w.id}
+            onClick={() => setActiveWorkflow(w.id)}
+            className="hover:bg-purple-50/50 cursor-pointer transition-colors group"
+          >
+            <td className="px-4 py-3">
+              <span className="text-[11px] font-mono font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">{w.number}</span>
+            </td>
+            <td className="px-4 py-3">
+              <span className="font-medium text-sm text-gray-900 group-hover:text-purple-700">{w.title}</span>
+            </td>
+            <td className="px-4 py-3 text-xs text-gray-500">{w.description}</td>
+            <td className="px-4 py-3">
+              <ChevronRight size={14} className="text-gray-300 group-hover:text-purple-500" />
+            </td>
+          </tr>
+        ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -1001,7 +1021,7 @@ export default function TrainingHub() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Training Hub</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Đào tạo & Thư viện</h1>
             <p className="text-sm text-gray-500 mt-0.5">Kiến thức nội bộ · Quy trình · Công cụ</p>
           </div>
           {useDB && (
