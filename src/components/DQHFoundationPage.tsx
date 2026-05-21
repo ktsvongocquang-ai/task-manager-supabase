@@ -1,354 +1,453 @@
-import { useState, useEffect, useRef } from 'react';
-import {
-  Heart, Target, Users, Sparkles, ArrowDown,
-  Star, HandHeart, Award, Eye, Compass, Shield,
-  ChevronRight
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 /* ────────────────────────────────────────────────────────────── */
-/*  DQH Foundation Page — Internal Branding Landing Page         */
+/*  DQH Foundation Page — Quiet Luxury Internal Branding Page    */
+/*  Spec: DQH_LandingPage_Spec_Antigravity v1.0                 */
 /* ────────────────────────────────────────────────────────────── */
+
+const COLORS = {
+  cream: '#F5F2EC',
+  warmWhite: '#FAF8F4',
+  charcoal: '#1C1C1A',
+  stone: '#8A8780',
+  stoneLight: '#C4C0B8',
+  gold: '#B89B6A',
+  goldLight: '#D4BC95',
+  border: 'rgba(28,28,26,0.10)',
+};
+
+const SERIF = "'Cormorant Garamond', Georgia, serif";
+const SANS = "'DM Sans', sans-serif";
+
+/* ── Scroll animation hook ───────────────────────────────────── */
+function useFadeUp() {
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) e.target.classList.add('dqh-visible');
+      }),
+      { threshold: 0.15 }
+    );
+    document.querySelectorAll('.dqh-fade-up').forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+}
+
+/* ── Inline style helper ─────────────────────────────────────── */
+const label = (color = COLORS.gold): React.CSSProperties => ({
+  fontFamily: SANS, fontSize: '9px', letterSpacing: '0.3em', textTransform: 'uppercase' as const,
+  color, fontWeight: 500,
+});
 
 export default function DQHFoundationPage() {
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisibleSections((prev) => new Set([...prev, entry.target.id]));
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
-    );
-
-    document.querySelectorAll('[data-animate]').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  const isVisible = (id: string) => visibleSections.has(id);
+  useFadeUp();
 
   return (
-    <div className="space-y-0 overflow-hidden">
-      {/* ═══ HERO ═══ */}
-      <section
-        id="hero" data-animate
-        className={`relative overflow-hidden rounded-2xl transition-all duration-700 ${isVisible('hero') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        style={{
-          background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)',
-          minHeight: '380px',
-        }}
-      >
-        {/* Decorative circles */}
-        <div className="absolute top-[-60px] right-[-60px] w-[250px] h-[250px] rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #a78bfa 0%, transparent 70%)' }} />
-        <div className="absolute bottom-[-40px] left-[-40px] w-[200px] h-[200px] rounded-full opacity-8" style={{ background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)' }} />
+    <>
+      {/* Google Fonts */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet"
+      />
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-16">
-          {/* Logo text */}
-          <div className="mb-2">
-            <span className="text-[11px] font-semibold tracking-[0.3em] uppercase text-purple-300/70">Interior Design & Build Studio</span>
+      {/* Global animation styles */}
+      <style>{`
+        .dqh-fade-up {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .dqh-visible {
+          opacity: 1 !important;
+          transform: translateY(0) !important;
+        }
+        .dqh-fade-up:nth-child(2) { transition-delay: 0.1s; }
+        .dqh-fade-up:nth-child(3) { transition-delay: 0.2s; }
+        .dqh-fade-up:nth-child(4) { transition-delay: 0.3s; }
+        .dqh-card-value { transition: all 0.4s ease; cursor: default; }
+        .dqh-card-value:hover { background-color: ${COLORS.charcoal} !important; }
+        .dqh-card-value:hover .dqh-val-letter { color: ${COLORS.gold} !important; }
+        .dqh-card-value:hover .dqh-val-name { color: ${COLORS.cream} !important; }
+        .dqh-card-value:hover .dqh-val-sub { color: ${COLORS.goldLight} !important; }
+        .dqh-card-value:hover .dqh-val-body { color: ${COLORS.stoneLight} !important; }
+        .dqh-card-value:hover .dqh-val-bullet { color: rgba(255,255,255,0.55) !important; }
+        .dqh-card-value:hover .dqh-val-dash { color: ${COLORS.gold} !important; }
+        @keyframes dqh-pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+      `}</style>
+
+      <div style={{ fontFamily: SANS, color: COLORS.charcoal, lineHeight: 1.9, fontSize: '14px' }}>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* HERO                                                   */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section
+          className="dqh-fade-up"
+          style={{
+            background: 'linear-gradient(160deg, #2A2820 0%, #1C1C1A 60%, #0E0E0C 100%)',
+            position: 'relative',
+            overflow: 'hidden',
+            padding: 'clamp(4rem, 10vw, 7rem) clamp(2rem, 4vw, 4rem)',
+          }}
+        >
+          {/* Decorative vertical line */}
+          <div style={{
+            position: 'absolute', right: 'clamp(3rem, 12vw, 12rem)', top: 0, bottom: 0,
+            width: '0.5px',
+            background: `linear-gradient(to bottom, transparent 10%, ${COLORS.gold}40 50%, transparent 90%)`,
+          }}>
+            <span style={{
+              position: 'absolute', top: '50%', right: '-2rem',
+              transform: 'rotate(90deg) translateX(-50%)',
+              fontFamily: SANS, fontSize: '9px', letterSpacing: '0.25em',
+              color: COLORS.stoneLight, whiteSpace: 'nowrap',
+            }}>
+              Est. 30 · 12 · 2020
+            </span>
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-3" style={{ fontFamily: "'Inter', sans-serif" }}>
-            <span className="text-purple-300">D</span>
-            <span className="text-white/90">Q</span>
-            <span className="text-amber-300">H</span>
-          </h1>
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px' }}>
+            <p style={{ ...label(COLORS.stoneLight), marginBottom: '2rem' }}>
+              Interior Design & Build Studio · TP.HCM
+            </p>
 
-          <p className="text-lg md:text-xl text-white/60 font-light tracking-wide mb-8">
-            Define Quality Housing
-          </p>
+            <h1 style={{
+              fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(3rem, 7vw, 5.5rem)',
+              lineHeight: 1.05, color: COLORS.cream, margin: '0 0 1.5rem 0',
+            }}>
+              Define<br />
+              <em style={{ fontStyle: 'italic', color: COLORS.stoneLight }}>Quality</em><br />
+              Housing
+            </h1>
 
-          {/* Slogan */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-8 py-5 max-w-lg">
-            <p className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p style={{
+              fontFamily: SERIF, fontStyle: 'italic', fontWeight: 300,
+              fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)',
+              color: COLORS.goldLight, margin: '0 0 2.5rem 0',
+            }}>
               "Làm nghề tử tế."
             </p>
-            <p className="text-sm text-white/50">
-              Thiết kế & Thi công Nội thất Cao cấp · TP.HCM · Est. 2020
-            </p>
-          </div>
 
-          <div className="mt-8 animate-bounce">
-            <ArrowDown size={20} className="text-white/30" />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ DQH LÀ GÌ? ═══ */}
-      <section
-        id="about" data-animate
-        className={`bg-white rounded-2xl border border-gray-200 p-8 md:p-10 transition-all duration-700 delay-100 ${isVisible('about') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        <div className="max-w-2xl mx-auto text-center">
-          <span className="inline-block px-3 py-1 bg-purple-50 text-purple-600 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-4">
-            Về DQH
-          </span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Chúng tôi là ai?</h2>
-          <p className="text-base text-gray-600 leading-relaxed mb-4">
-            Công ty thiết kế & thi công nội thất tại TP.HCM, thành lập <strong>30/12/2020</strong>.
-          </p>
-          <p className="text-base text-gray-600 leading-relaxed mb-4">
-            Làm theo mô hình <span className="font-semibold text-purple-700">Design & Build</span> — đồng hành cùng khách hàng từ thiết kế đến hoàn thiện thi công, không phải chỉ làm một phần rồi bàn giao.
-          </p>
-          <p className="text-base text-gray-600 leading-relaxed">
-            Phân khúc khách hàng: <span className="font-semibold text-gray-900">cao cấp</span>. Họ có tiêu chuẩn cao, trả tiền xứng đáng, và kỳ vọng sự chuyên nghiệp ở <em>từng điểm chạm</em>.
-          </p>
-        </div>
-      </section>
-
-      {/* ═══ CHÂM NGÔN ═══ */}
-      <section
-        id="motto" data-animate
-        className={`rounded-2xl p-8 md:p-10 transition-all duration-700 delay-150 ${isVisible('motto') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        style={{ background: 'linear-gradient(135deg, #fdf4ff 0%, #f5f3ff 50%, #eff6ff 100%)' }}
-      >
-        <div className="max-w-2xl mx-auto text-center mb-8">
-          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-4">
-            Châm ngôn
-          </span>
-          <h2 className="text-3xl font-black text-gray-900 mb-2">"Làm nghề tử tế."</h2>
-          <p className="text-sm text-gray-500">Không phải slogan — đây là cách DQH vận hành mỗi ngày.</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-          {[
-            { icon: Heart, color: '#EC4899', bg: '#FDF2F8', title: 'Tử tế với khách hàng', desc: 'Nói thật, làm đúng, không qua loa.' },
-            { icon: Users, color: '#8B5CF6', bg: '#F5F3FF', title: 'Tử tế với đồng nghiệp', desc: 'Hỗ trợ nhau, không đổ lỗi.' },
-            { icon: Sparkles, color: '#F59E0B', bg: '#FFFBEB', title: 'Tử tế với nghề', desc: 'Làm kỹ dù không ai nhìn thấy.' },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl p-6 text-center border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
-            >
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: item.bg }}
-              >
-                <item.icon size={22} style={{ color: item.color }} />
-              </div>
-              <h3 className="font-bold text-sm text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ D · Q · H NGHĨA LÀ GÌ? ═══ */}
-      <section
-        id="dqh-meaning" data-animate
-        className={`bg-gray-900 rounded-2xl p-8 md:p-10 transition-all duration-700 delay-200 ${isVisible('dqh-meaning') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        <div className="text-center mb-8">
-          <span className="inline-block px-3 py-1 bg-white/10 text-white/70 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-4">
-            Ý nghĩa thương hiệu
-          </span>
-          <h2 className="text-2xl font-bold text-white">
-            <span className="text-purple-400">D</span> · <span className="text-white">Q</span> · <span className="text-amber-400">H</span>
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
-          {[
-            {
-              letter: 'D', label: 'ĐỒNG HÀNH', color: '#A78BFA', bg: 'rgba(167,139,250,0.15)',
-              client: 'Luôn có mặt, kể cả lúc khó',
-              work: 'Hỏi khi chưa rõ, không tự đoán',
-            },
-            {
-              letter: 'Q', label: 'QUY CHUẨN', color: '#F9FAFB', bg: 'rgba(255,255,255,0.08)',
-              client: 'Làm đúng bản vẽ, đúng cam kết',
-              work: 'Làm có quy trình, không tự phá chuẩn',
-            },
-            {
-              letter: 'H', label: 'HÀI LÒNG', color: '#FBBF24', bg: 'rgba(251,191,36,0.15)',
-              client: 'Khách hàng thấy xứng đáng',
-              work: 'Tự hào khi nhìn lại việc mình làm',
-            },
-          ].map((item, i) => (
-            <div key={i} className="rounded-xl p-6 border border-white/10" style={{ backgroundColor: item.bg }}>
-              <div className="text-center mb-5">
-                <span className="text-4xl font-black" style={{ color: item.color }}>{item.letter}</span>
-                <p className="text-[11px] font-semibold tracking-widest mt-1" style={{ color: item.color }}>{item.label}</p>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Với khách hàng</p>
-                  <p className="text-sm text-white/80 leading-relaxed">{item.client}</p>
+            {/* 3 meta info */}
+            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              {[
+                { label: 'Mô hình', value: 'Design & Build' },
+                { label: 'Phân khúc', value: 'Cao cấp' },
+                { label: 'Triết lý', value: 'Quiet Luxury' },
+              ].map((m, i) => (
+                <div key={i}>
+                  <p style={{ ...label(COLORS.stone), marginBottom: '4px' }}>{m.label}</p>
+                  <p style={{ fontFamily: SANS, fontSize: '14px', color: COLORS.stoneLight, fontWeight: 400, margin: 0 }}>{m.value}</p>
                 </div>
-                <div className="border-t border-white/10 pt-3">
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Với công việc hàng ngày</p>
-                  <p className="text-sm text-white/80 leading-relaxed">{item.work}</p>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ 3 CAM KẾT ═══ */}
-      <section
-        id="commitments" data-animate
-        className={`bg-white rounded-2xl border border-gray-200 p-8 md:p-10 transition-all duration-700 delay-100 ${isVisible('commitments') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        <div className="text-center mb-8">
-          <span className="inline-block px-3 py-1 bg-green-50 text-green-700 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-4">
-            Cam kết
-          </span>
-          <h2 className="text-2xl font-bold text-gray-900">3 Điều DQH cam kết với bạn</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
-          {[
-            {
-              icon: Target, color: '#7C3AED', bg: '#F5F3FF',
-              title: 'Sân chơi',
-              desc: 'Bạn được thử, được học, được làm thứ mình tự hào.',
-            },
-            {
-              icon: HandHeart, color: '#059669', bg: '#ECFDF5',
-              title: 'Đồng hành',
-              desc: 'Khi bạn gặp khó, có người cùng giải quyết. Không ai bị bỏ lại một mình.',
-            },
-            {
-              icon: Award, color: '#D97706', bg: '#FFFBEB',
-              title: 'Công nhận',
-              desc: 'Làm tốt thì được nhìn thấy. Không cần tự PR.',
-            },
-          ].map((item, i) => (
-            <div key={i} className="rounded-xl p-6 text-center border-2 border-dashed hover:border-solid transition-all duration-300" style={{ borderColor: `${item.color}30` }}>
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: item.bg }}>
-                <item.icon size={24} style={{ color: item.color }} />
-              </div>
-              <h3 className="font-bold text-base text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ TẦM NHÌN & SỨ MỆNH ═══ */}
-      <section
-        id="vision" data-animate
-        className={`rounded-2xl overflow-hidden transition-all duration-700 delay-150 ${isVisible('vision') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-          {/* Tầm nhìn */}
-          <div className="p-8 md:p-10" style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Eye size={18} className="text-purple-200" />
-              <span className="text-[11px] font-semibold tracking-widest uppercase text-purple-200">Tầm nhìn</span>
-            </div>
-            <p className="text-xl font-bold text-white leading-relaxed">
-              Studio nội thất cao cấp được tin chọn hàng đầu tại TP.HCM.
-            </p>
           </div>
-          {/* Sứ mệnh */}
-          <div className="p-8 md:p-10" style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <Compass size={18} className="text-green-200" />
-              <span className="text-[11px] font-semibold tracking-widest uppercase text-green-200">Sứ mệnh</span>
-            </div>
-            <p className="text-xl font-bold text-white leading-relaxed">
-              Mỗi không gian DQH tạo ra phải phản ánh đúng bản sắc của gia chủ — không copy template, không làm cho xong.
+
+          {/* Scroll indicator */}
+          <div style={{
+            position: 'absolute', bottom: '2rem', right: '2rem',
+            width: '0.5px', height: '40px',
+            background: `linear-gradient(to bottom, ${COLORS.gold}, transparent)`,
+            animation: 'dqh-pulse 2s infinite',
+          }} />
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* ABOUT                                                  */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.warmWhite, padding: 'clamp(3rem, 6vw, 7rem) clamp(2rem, 4vw, 4rem)' }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <p style={label()}>Chúng tôi là ai</p>
+            <h2 style={{
+              fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)',
+              lineHeight: 1.2, margin: '1rem 0 2rem 0', color: COLORS.charcoal,
+            }}>
+              Không chỉ thiết kế — <em style={{ fontStyle: 'italic' }}>đồng hành trọn vẹn</em>
+            </h2>
+            <p style={{ color: COLORS.stone, marginBottom: '1rem' }}>
+              DQH Architects là studio thiết kế & thi công nội thất tại TP.HCM, hoạt động theo mô hình Design & Build. Chúng tôi đồng hành cùng khách hàng từ ý tưởng đầu tiên đến ngày bàn giao — không phải chỉ làm một phần rồi chuyển giao.
             </p>
-          </div>
-        </div>
-      </section>
+            <p style={{ color: COLORS.stone }}>
+              Phục vụ phân khúc cao cấp — những khách hàng có tiêu chuẩn cao, hiểu giá trị của chất lượng, và kỳ vọng sự chuyên nghiệp ở từng điểm chạm.
+            </p>
 
-      {/* ═══ 3 GIÁ TRỊ CỐT LÕI ═══ */}
-      <section
-        id="values" data-animate
-        className={`bg-white rounded-2xl border border-gray-200 p-8 md:p-10 transition-all duration-700 delay-200 ${isVisible('values') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        <div className="text-center mb-8">
-          <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-4">
-            Giá trị cốt lõi
-          </span>
-          <h2 className="text-2xl font-bold text-gray-900">3 Giá trị DQH sống mỗi ngày</h2>
-        </div>
-
-        <div className="space-y-4 max-w-3xl mx-auto">
-          {[
-            {
-              icon: Star, color: '#EF4444', gradient: 'linear-gradient(135deg, #FEF2F2 0%, #FFF1F2 100%)',
-              title: 'THÁI ĐỘ', subtitle: 'Tận tâm trong từng chi tiết',
-              bullets: [
-                'Duyệt sample vật liệu thật trước khi trình khách',
-                'Mọi quyết định thiết kế đều có lý do — không "thấy đẹp thì làm"',
-                'Phát hiện lỗi thi công → dừng, sửa, báo — không che',
-                'Trình concept phải giải thích được "tại sao"',
-              ],
-            },
-            {
-              icon: Shield, color: '#3B82F6', gradient: 'linear-gradient(135deg, #EFF6FF 0%, #F0F9FF 100%)',
-              title: 'TRÁCH NHIỆM', subtitle: 'Chủ động, không chờ nhắc',
-              bullets: [
-                'Phần việc của mình → tự track, không cần Leader nhắc',
-                'Thấy vấn đề → báo ngay trong ngày, không tồn đọng',
-                'Thấy lỗi người khác → nói thẳng, xây dựng',
-                'Feedback phải cụ thể — không nói chung chung',
-              ],
-            },
-            {
-              icon: HandHeart, color: '#059669', gradient: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDF4 100%)',
-              title: 'ĐỒNG HÀNH', subtitle: 'Cùng khách & đội ngũ phát triển',
-              bullets: [
-                'Lắng nghe khách trước khi phản biện',
-                'Khách yêu cầu sai → tư vấn thẳng, giải thích tại sao',
-                'Mỗi dự án xong → review 1 bài học cho cả team',
-                'Chia sẻ kiến thức nội bộ — người biết dạy người chưa biết',
-              ],
-            },
-          ].map((val, i) => (
-            <div
-              key={i}
-              className="rounded-xl p-6 border border-gray-100 hover:shadow-md transition-all duration-300"
-              style={{ background: val.gradient }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-white shadow-sm">
-                  <val.icon size={20} style={{ color: val.color }} />
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: '3rem', marginTop: '2.5rem', flexWrap: 'wrap' }}>
+              {[
+                { num: '4+', desc: 'Năm hoạt động' },
+                { num: 'D·Q·H', desc: 'Giá trị cốt lõi' },
+                { num: '100%', desc: 'Design & Build' },
+              ].map((s, i) => (
+                <div key={i} style={{ textAlign: 'center' }}>
+                  <p style={{ fontFamily: SERIF, fontSize: '2rem', fontWeight: 300, color: COLORS.charcoal, margin: '0 0 4px 0' }}>{s.num}</p>
+                  <p style={{ ...label(), margin: 0 }}>{s.desc}</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-black text-sm tracking-wide" style={{ color: val.color }}>{val.title}</h3>
-                    <span className="text-xs text-gray-500">— {val.subtitle}</span>
-                  </div>
-                  <ul className="mt-3 space-y-1.5">
-                    {val.bullets.map((b, j) => (
-                      <li key={j} className="flex items-start gap-2 text-[13px] text-gray-600">
-                        <ChevronRight size={12} className="flex-shrink-0 mt-1" style={{ color: val.color }} />
-                        <span>{b}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* MOTTO                                                  */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.charcoal, padding: 'clamp(3rem, 6vw, 7rem) clamp(2rem, 4vw, 4rem)' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+            <p style={label()}>Châm ngôn làm nghề</p>
+
+            <blockquote style={{
+              fontFamily: SERIF, fontStyle: 'italic', fontWeight: 300,
+              fontSize: 'clamp(1.8rem, 4vw, 3rem)', lineHeight: 1.3,
+              color: COLORS.cream, margin: '1.5rem 0 1rem 0',
+            }}>
+              "Làm nghề <em>tử tế.</em>"
+            </blockquote>
+            <p style={{ color: COLORS.stoneLight, fontSize: '14px', marginBottom: '3rem', maxWidth: '600px' }}>
+              Không phải slogan — đây là cách DQH vận hành mỗi ngày, trong từng quyết định nhỏ của mỗi thành viên.
+            </p>
+
+            <div style={{ borderTop: `0.5px solid ${COLORS.border}`, marginBottom: '2rem' }} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2rem' }}>
+              {[
+                { num: '01', title: 'Tử tế với khách hàng', body: 'Nói thật, làm đúng, không qua loa. Khách hàng trả tiền cho sự tin tưởng — không phải chỉ cho sản phẩm.' },
+                { num: '02', title: 'Tử tế với đồng nghiệp', body: 'Hỗ trợ nhau, không đổ lỗi. Người biết dạy người chưa biết. Không ai phải tự giải quyết một mình.' },
+                { num: '03', title: 'Tử tế với nghề', body: 'Làm kỹ dù không ai nhìn thấy. Một chi tiết đúng không cần giải thích — người ta cảm nhận được.' },
+              ].map((item) => (
+                <div key={item.num}>
+                  <p style={{ fontFamily: SERIF, fontSize: '2rem', fontWeight: 300, color: COLORS.goldLight, margin: '0 0 0.5rem 0' }}>{item.num}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: COLORS.cream, marginBottom: '0.5rem', letterSpacing: '0.02em' }}>{item.title}</p>
+                  <p style={{ fontSize: '13px', color: COLORS.stoneLight, lineHeight: 1.8, margin: 0 }}>{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* VALUES — D · Q · H                                     */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.cream, padding: 'clamp(3rem, 6vw, 7rem) clamp(2rem, 4vw, 4rem)' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <p style={label()}>Bản sắc thương hiệu</p>
+              <h2 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', margin: '1rem 0 0 0', color: COLORS.charcoal }}>
+                D · Q · H — <em style={{ fontStyle: 'italic' }}>Ba giá trị sống mỗi ngày</em>
+              </h2>
+            </div>
+
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1px', background: COLORS.border,
+            }}>
+              {[
+                {
+                  letter: 'D', name: 'ĐỒNG HÀNH', sub: '"Luôn có mặt, kể cả lúc khó."',
+                  bullets: ['Lắng nghe khách hàng trước khi phản biện', 'Hỏi khi chưa rõ, không tự đoán', 'Thấy vấn đề → báo ngay, không tồn đọng', 'Không ai làm việc một mình tại DQH'],
+                },
+                {
+                  letter: 'Q', name: 'QUY CHUẨN', sub: '"Làm đúng, làm kỹ, làm có lý do."',
+                  bullets: ['Mọi quyết định thiết kế có lý do chuyên môn', 'Bản vẽ đủ chi tiết để thợ làm đúng ngay lần đầu', 'Phát hiện lỗi → dừng, sửa, báo — không che', 'Tiến độ & chi phí minh bạch, không phát sinh bất ngờ'],
+                },
+                {
+                  letter: 'H', name: 'HÀI LÒNG', sub: '"Nụ cười bàn giao là thước đo thành công."',
+                  bullets: ['Khách hàng cảm thấy không gian là của họ', 'Tự hào khi nhìn lại việc mình đã làm', 'Mỗi dự án xong → một bài học cho cả team', 'Sự hài lòng tuyệt đối, không phải đủ để giao'],
+                },
+              ].map((v) => (
+                <div key={v.letter} className="dqh-card-value" style={{
+                  background: COLORS.cream, padding: 'clamp(2rem, 3vw, 3rem)',
+                  position: 'relative', overflow: 'hidden',
+                }}>
+                  {/* Big decorative letter */}
+                  <span className="dqh-val-letter" style={{
+                    position: 'absolute', top: '-10px', right: '10px',
+                    fontFamily: SERIF, fontSize: '5rem', fontWeight: 300,
+                    color: 'rgba(28,28,26,0.06)', lineHeight: 1, pointerEvents: 'none',
+                    transition: 'color 0.4s ease',
+                  }}>{v.letter}</span>
+
+                  <p className="dqh-val-name" style={{ ...label(COLORS.charcoal), fontSize: '11px', fontWeight: 500, letterSpacing: '0.2em', marginBottom: '0.3rem', transition: 'color 0.4s ease' }}>
+                    {v.name}
+                  </p>
+                  <p className="dqh-val-sub" style={{
+                    fontFamily: SERIF, fontStyle: 'italic', fontSize: '15px', fontWeight: 300,
+                    color: COLORS.stone, marginBottom: '1.5rem', transition: 'color 0.4s ease',
+                  }}>{v.sub}</p>
+
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {v.bullets.map((b, j) => (
+                      <li key={j} className="dqh-val-bullet" style={{
+                        fontSize: '13px', color: COLORS.stone, lineHeight: 1.8,
+                        display: 'flex', alignItems: 'flex-start', gap: '8px', transition: 'color 0.4s ease',
+                      }}>
+                        <span className="dqh-val-dash" style={{ color: COLORS.gold, flexShrink: 0, transition: 'color 0.4s ease' }}>—</span>
+                        {b}
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* ═══ TRIẾT LÝ THIẾT KẾ ═══ */}
-      <section
-        id="philosophy" data-animate
-        className={`rounded-2xl p-8 md:p-10 text-center transition-all duration-700 delay-100 ${isVisible('philosophy') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-        style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' }}
-      >
-        <span className="inline-block px-3 py-1 bg-white/10 text-white/60 text-[11px] font-semibold rounded-full uppercase tracking-wider mb-6">
-          Triết lý thiết kế
-        </span>
-        <blockquote className="text-xl md:text-2xl font-bold text-white leading-relaxed max-w-2xl mx-auto mb-4">
-          "Quiet Luxury" — Sang trọng không cần phô trương.
-        </blockquote>
-        <p className="text-sm text-white/50 max-w-xl mx-auto leading-relaxed">
-          Vẻ đẹp thực sự đến từ tỷ lệ chuẩn mực, vật liệu chân thực, và sự kiềm chế có chủ ý.
-          Không gian tốt nhất là không gian người ta cảm nhận được mà không thể giải thích tại sao.
-        </p>
-      </section>
-    </div>
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* PHILOSOPHY — Quiet Luxury                              */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.warmWhite, padding: 'clamp(3rem, 6vw, 7rem) clamp(2rem, 4vw, 4rem)' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 'clamp(2rem, 5vw, 6rem)' }}>
+            {/* Left — Quote block */}
+            <div style={{ borderLeft: `0.5px solid ${COLORS.border}`, paddingLeft: '2rem' }}>
+              {/* Decorative quote mark */}
+              <span style={{ fontFamily: SERIF, fontSize: '4rem', lineHeight: 1, color: `${COLORS.gold}4D`, display: 'block', marginBottom: '-1rem' }}>"</span>
+              <blockquote style={{
+                fontFamily: SERIF, fontStyle: 'italic', fontWeight: 300,
+                fontSize: 'clamp(1.4rem, 2.5vw, 2rem)', lineHeight: 1.4,
+                color: COLORS.charcoal, margin: '0 0 2rem 0',
+              }}>
+                Sang trọng không cần phô trương.
+              </blockquote>
+
+              {[
+                { num: '01', text: 'Chất lượng nói thay lời quảng cáo — một chi tiết hoàn thiện đúng được cảm nhận, không cần giải thích.' },
+                { num: '02', text: 'Sự tinh tế nằm ở những gì biết kiềm chế. Không gian tốt nhất là không gian biết bỏ đi đúng lúc.' },
+                { num: '03', text: 'Niềm tin được xây dựng qua hành động, không phải lời hứa. Khách hàng cao cấp không cần thuyết phục — cần được chứng minh.' },
+              ].map((p) => (
+                <div key={p.num} style={{ borderTop: `0.5px solid ${COLORS.border}`, paddingTop: '1rem', marginBottom: '1rem' }}>
+                  <span style={{ fontFamily: SERIF, fontSize: '1.2rem', color: COLORS.gold, fontWeight: 300 }}>{p.num}</span>
+                  <p style={{ fontSize: '13px', color: COLORS.stone, lineHeight: 1.8, margin: '0.3rem 0 0 0' }}>{p.text}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Right — Explanation */}
+            <div>
+              <p style={label()}>Triết lý thiết kế</p>
+              <h2 style={{
+                fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.6rem, 3vw, 2.5rem)',
+                lineHeight: 1.2, margin: '1rem 0 2rem 0', color: COLORS.charcoal,
+              }}>
+                Quiet Luxury — <em style={{ fontStyle: 'italic' }}>Tinh tế có chủ ý</em>
+              </h2>
+              <p style={{ color: COLORS.stone, marginBottom: '1rem' }}>
+                Quiet Luxury không phải phong cách thiết kế. Đó là cách DQH tiếp cận mọi thứ — từ cách tạo ra không gian, đến cách giao tiếp với khách hàng, đến cách xây dựng đội ngũ.
+              </p>
+              <p style={{ color: COLORS.stone }}>
+                Vẻ đẹp thực sự đến từ tỷ lệ chuẩn mực, vật liệu chân thực, và sự kiềm chế có chủ ý. Người ta cảm nhận được mà không thể giải thích tại sao — đó là dấu hiệu của một không gian thực sự tốt.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* VISION & MISSION                                       */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.charcoal }}>
+          <div style={{
+            maxWidth: '1200px', margin: '0 auto',
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          }}>
+            {/* Tầm nhìn */}
+            <div style={{ padding: 'clamp(3rem, 5vw, 5rem) clamp(2rem, 4vw, 4rem)', borderRight: `0.5px solid rgba(255,255,255,0.08)` }}>
+              <p style={label()}>Tầm nhìn</p>
+              <h2 style={{
+                fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.4rem, 2.5vw, 2rem)',
+                lineHeight: 1.3, color: COLORS.cream, margin: '1rem 0 1.5rem 0',
+              }}>
+                Studio nội thất cao cấp được tin chọn hàng đầu tại TP.HCM.
+              </h2>
+              <p style={{
+                fontSize: '13px', color: `rgba(255,255,255,0.35)`, lineHeight: 1.8,
+                borderLeft: `2px solid ${COLORS.gold}40`, paddingLeft: '1rem',
+              }}>
+                Không phải tham vọng về quy mô — mà là tham vọng về chất lượng được ghi nhớ. Khi khách hàng nghĩ đến một không gian thực sự đúng với họ, họ nghĩ đến DQH.
+              </p>
+            </div>
+            {/* Sứ mệnh */}
+            <div style={{ padding: 'clamp(3rem, 5vw, 5rem) clamp(2rem, 4vw, 4rem)' }}>
+              <p style={label()}>Sứ mệnh</p>
+              <h2 style={{
+                fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.4rem, 2.5vw, 2rem)',
+                lineHeight: 1.3, color: COLORS.cream, margin: '1rem 0 1.5rem 0',
+              }}>
+                Mỗi không gian DQH tạo ra phải phản ánh đúng bản sắc của gia chủ.
+              </h2>
+              <p style={{
+                fontSize: '13px', color: `rgba(255,255,255,0.35)`, lineHeight: 1.8,
+                borderLeft: `2px solid ${COLORS.gold}40`, paddingLeft: '1rem',
+              }}>
+                Không copy template. Không làm cho xong. Mỗi dự án là một tác phẩm cá nhân hóa — nơi thẩm mỹ tinh tế hòa quyện với kỹ thuật chuẩn xác.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* 3 COMMITMENTS                                          */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{ background: COLORS.cream, padding: 'clamp(3rem, 6vw, 7rem) clamp(2rem, 4vw, 4rem)' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <p style={label()}>Dành cho đội ngũ</p>
+              <h2 style={{ fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', margin: '1rem 0 0 0', color: COLORS.charcoal }}>
+                3 điều DQH <em style={{ fontStyle: 'italic' }}>cam kết với bạn</em>
+              </h2>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
+              {[
+                { num: 'I', title: 'Sân chơi', body: 'Bạn được thử, được học, được làm những thứ bạn thực sự tự hào. DQH là nơi để phát triển — không chỉ để thực thi.' },
+                { num: 'II', title: 'Đồng hành', body: 'Khi bạn gặp khó, có người cùng giải quyết. Không ai bị bỏ lại một mình. Văn hóa DQH là hỗ trợ nhau — không cạnh tranh nội bộ.' },
+                { num: 'III', title: 'Công nhận', body: 'Làm tốt thì được nhìn thấy. Đóng góp của bạn có ý nghĩa — và điều đó được ghi nhận rõ ràng.' },
+              ].map((c) => (
+                <div key={c.num} style={{
+                  border: `0.5px solid ${COLORS.border}`,
+                  borderTop: `2px solid ${COLORS.gold}`,
+                  padding: '2rem',
+                  background: COLORS.warmWhite,
+                }}>
+                  <p style={{ fontFamily: SERIF, fontSize: '1.5rem', fontWeight: 300, color: COLORS.gold, margin: '0 0 0.3rem 0' }}>{c.num}.</p>
+                  <p style={{ ...label(COLORS.charcoal), fontSize: '11px', marginBottom: '0.8rem' }}>{c.title.toUpperCase()}</p>
+                  <p style={{ fontSize: '13px', color: COLORS.stone, lineHeight: 1.8, margin: 0 }}>{c.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* CLOSING                                                */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <section className="dqh-fade-up" style={{
+          background: COLORS.warmWhite,
+          padding: 'clamp(4rem, 8vw, 8rem) clamp(2rem, 4vw, 4rem)',
+          textAlign: 'center',
+        }}>
+          <p style={{ ...label(), marginBottom: '1.5rem' }}>Bạn thuộc về đây nếu</p>
+          <h2 style={{
+            fontFamily: SERIF, fontWeight: 300, fontSize: 'clamp(1.6rem, 3.5vw, 2.5rem)',
+            lineHeight: 1.4, color: COLORS.charcoal, maxWidth: '700px', margin: '0 auto',
+          }}>
+            Bạn muốn làm tốt hơn là làm nhiều — và muốn công việc để lại <em style={{ fontStyle: 'italic', color: COLORS.stone }}>dấu ấn thật sự.</em>
+          </h2>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* FOOTER                                                 */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <footer style={{
+          background: COLORS.charcoal, padding: '2rem',
+          textAlign: 'center', borderTop: `0.5px solid rgba(255,255,255,0.06)`,
+        }}>
+          <p style={{ fontFamily: SERIF, fontSize: '14px', color: COLORS.stoneLight, margin: '0 0 4px 0' }}>
+            DQH Architects
+          </p>
+          <p style={{ fontSize: '11px', color: COLORS.stone, margin: '0 0 4px 0' }}>
+            © 2020 – 2025 · TP.HCM, Việt Nam
+          </p>
+          <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: '12px', color: COLORS.goldLight, margin: 0 }}>
+            "Làm nghề tử tế."
+          </p>
+        </footer>
+      </div>
+    </>
   );
 }
