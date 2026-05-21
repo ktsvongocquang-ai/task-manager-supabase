@@ -670,7 +670,7 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
   return (
     <div className="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
       {/* LEFT — Workflow sidebar */}
-      <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+      <div className="w-[210px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
         <div className="px-4 py-3 border-b border-gray-200">
           <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Quy trình</span>
         </div>

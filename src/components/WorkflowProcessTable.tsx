@@ -128,7 +128,7 @@ export default function WorkflowProcessTable() {
       {/* Table — fixed layout with % widths */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', minWidth: '800px' }}>
+          <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', minWidth: '750px' }}>
             <colgroup>
               <col style={{ width: '4%' }} />
               <col style={{ width: '12%' }} />
