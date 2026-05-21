@@ -1070,10 +1070,13 @@ export default function TrainingHub() {
   const renderModuleContent = () => {
     if (!activeModule) return <EmptyState />;
 
+    // Module 1: Foundation landing page
+    if (activeModule.slug === 'onboarding') return <DQHFoundationPage />;
+
     // Workflow module
     if (activeModule.slug === 'workflow') return <WorkflowModule moduleId={activeModule.id} useDB={useDB} />;
 
-    // Modules 1, 2, 4, 6: Section-based content
+    // Modules 2, 4: Section-based content
     return <SectionModule moduleId={activeModule.id} moduleColor={activeModule.color || "#7C3AED"} useDB={useDB} />;
   };
 
