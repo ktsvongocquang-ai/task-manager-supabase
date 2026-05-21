@@ -476,6 +476,15 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
   if (loading) return <LoadingSpinner />;
   if (sections.length === 0) return <EmptyState text="Module này chưa có nội dung." />;
 
+  // If only 1 section → show content directly without sidebar
+  if (sections.length === 1) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <SectionContent section={sections[0]} useDB={useDB} />
+      </div>
+    );
+  }
+
   const selected = sections.find(s => s.id === activeSection);
 
   return (
