@@ -269,3 +269,18 @@ export async function updateWorkflowChecklist(workflowId: string, checklist: str
   }
   return true;
 }
+
+/**
+ * Update workflow step metadata (e.g. docs)
+ */
+export async function updateWorkflowStepMetadata(stepId: string, metadata: Record<string, unknown>): Promise<boolean> {
+  const { error } = await supabase
+    .from('training_workflow_steps')
+    .update({ metadata })
+    .eq('id', stepId);
+  if (error) {
+    console.error('Error updating step metadata:', error);
+    return false;
+  }
+  return true;
+}

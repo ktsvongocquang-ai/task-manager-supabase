@@ -1136,6 +1136,83 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
   );
 };
 
+// ─── STEP DOCS EDITOR ────────────────────────────────────────
+const StepDocsEditor = ({ stepId, workflowId, docs, useDB, onUpdate }: {
+  stepId: string;
+  workflowId: string;
+  docs: { label: string; url: string }[];
+  useDB: boolean;
+  onUpdate: (docs: { label: string; url: string }[]) => void;
+}) => {
+  const [newLabel, setNewLabel] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+
+  const saveDocs = (newDocs: { label: string; url: string }[]) => {
+    onUpdate(newDocs);
+    if (useDB) {
+      import('../../services/trainingService').then(({ updateWorkflowStepMetadata }) => {
+        updateWorkflowStepMetadata(stepId, { docs: newDocs });
+      });
+    }
+  };
+
+  const addDoc = () => {
+    if (!newLabel.trim() || !newUrl.trim()) return;
+    saveDocs([...docs, { label: newLabel.trim(), url: newUrl.trim() }]);
+    setNewLabel("");
+    setNewUrl("");
+  };
+
+  const removeDoc = (idx: number) => {
+    saveDocs(docs.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-purple-700 mb-2 flex items-center gap-1.5">
+        <FileText size={12} /> Tài liệu đính kèm
+      </p>
+      {docs.length > 0 && (
+        <div className="space-y-1.5 mb-3">
+          {docs.map((doc, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs bg-blue-50 rounded-lg px-3 py-1.5 border border-blue-100">
+              <FileText size={11} className="text-blue-500 flex-shrink-0" />
+              <span className="font-medium text-blue-700 truncate">{doc.label}</span>
+              <span className="text-blue-400 truncate flex-1 text-[10px]">{doc.url}</span>
+              <button onClick={() => removeDoc(i)} className="text-red-400 hover:text-red-600 flex-shrink-0">
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newLabel}
+          onChange={e => setNewLabel(e.target.value)}
+          placeholder="Tên tài liệu..."
+          className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
+        />
+        <input
+          type="text"
+          value={newUrl}
+          onChange={e => setNewUrl(e.target.value)}
+          placeholder="https://link..."
+          className="flex-[2] px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
+        />
+        <button
+          onClick={addDoc}
+          disabled={!newLabel.trim() || !newUrl.trim()}
+          className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+        >
+          + Thêm
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boolean }) => {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
@@ -1274,7 +1351,9 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       {/* Regular steps (hide for 3.2 and 3.3 since they use table views) */}
       {steps.length > 0 && !isDesignProcess && !isCoordinationProcess && (
         <div className="space-y-6 mb-6">
-          {steps.map((step, i) => (
+          {steps.map((step, i) => {
+            const docs: { label: string; url: string }[] = (step.metadata as any)?.docs || [];
+            return (
             <div key={step.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -1293,8 +1372,43 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
                   </li>
                 ))}
               </ul>
+
+              {/* Document Links */}
+              {docs.length > 0 && (
+                <div className="px-5 pb-4 flex flex-wrap gap-2">
+                  {docs.map((doc, di) => (
+                    <a
+                      key={di}
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <FileText size={12} />
+                      {doc.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {/* Admin: Edit docs */}
+              {isEditing && (
+                <div className="px-5 pb-4 border-t border-dashed border-purple-200 pt-3 mt-1">
+                  <StepDocsEditor
+                    stepId={step.id}
+                    workflowId={workflowId}
+                    docs={docs}
+                    useDB={useDB}
+                    onUpdate={(newDocs) => {
+                      const newMeta = { ...(step.metadata as any || {}), docs: newDocs };
+                      setSteps(prev => prev.map(s => s.id === step.id ? { ...s, metadata: newMeta } : s));
+                    }}
+                  />
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
