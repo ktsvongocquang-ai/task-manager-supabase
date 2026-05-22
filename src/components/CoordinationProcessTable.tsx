@@ -33,7 +33,6 @@ const TABLE_DATA: ProcessRow[] = [
   { step: "★ Nghiệm thu & bàn giao", design: "Phối hợp", drafting2d: "Nhận tin", construction: "Phối hợp", factory: "Phối hợp", client: "Chủ trì", days: "1–2", input: "Công trình hoàn thiện", output: "→ Bảo hành", isMilestone: true }
 ];
 
-/* ── Role colors ─────────────────────────────── */
 const ROLE_STYLE: Record<string, string> = {
   "Chủ trì": "text-amber-600 font-semibold",
   "Phối hợp": "text-blue-600 font-medium",
@@ -46,7 +45,6 @@ const RoleBadge = ({ role }: { role: RoleType }) => {
   return <span className={`text-[11px] leading-tight ${ROLE_STYLE[role] || "text-gray-500"}`}>{role}</span>;
 };
 
-/* ── Props ───────────────────────────────────── */
 interface CoordinationProcessTableProps {
   steps?: any[];
   isEditing?: boolean;
@@ -56,6 +54,7 @@ interface CoordinationProcessTableProps {
 export default function CoordinationProcessTable({ steps = [], isEditing, onUpdateChecklist }: CoordinationProcessTableProps) {
   const [editingPhase, setEditingPhase] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [hoveredStep, setHoveredStep] = useState<string | null>(null);
 
   const getChecklist = (phase: string): string[] => {
     const step = steps.find(s => s.phase === phase);
@@ -85,19 +84,18 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
         <span><span className="text-gray-400">Nhận tin</span> = thông báo</span>
       </div>
 
-      {/* TABLE — no overflow, fits container */}
       <div className="rounded-xl border border-gray-200 shadow-sm">
         <table className="w-full text-left border-collapse bg-white table-fixed">
           <colgroup>
-            <col style={{ width: '22%' }} />  {/* Bước công việc */}
-            <col style={{ width: '8%' }} />   {/* TK */}
-            <col style={{ width: '8%' }} />   {/* 2D */}
-            <col style={{ width: '8%' }} />   {/* TC */}
-            <col style={{ width: '8%' }} />   {/* Xưởng */}
-            <col style={{ width: '8%' }} />   {/* KH */}
-            <col style={{ width: '6%' }} />   {/* Ngày */}
-            <col style={{ width: '16%' }} />  {/* Đầu vào */}
-            <col style={{ width: '16%' }} />  {/* Bàn giao */}
+            <col style={{ width: '22%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '6%' }} />
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '16%' }} />
           </colgroup>
           <thead>
             <tr className="bg-gray-800 text-gray-100 text-[11px]">
@@ -117,29 +115,33 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
               const checklist = getChecklist(row.step);
               const isEditingThis = editingPhase === row.step;
               const hasChecklist = checklist.length > 0;
+              const isHovered = hoveredStep === row.step;
 
               return (
-                <tr 
-                  key={idx} 
-                  className={`transition-colors hover:bg-gray-50 group ${row.isMilestone ? 'bg-red-50/50' : ''}`}
+                <tr
+                  key={idx}
+                  className={`transition-colors hover:bg-gray-50 ${row.isMilestone ? 'bg-red-50/50' : ''}`}
                 >
-                  {/* Bước công việc — with tooltip */}
-                  <td className={`px-2 py-2 text-[12px] relative ${row.isMilestone ? 'font-bold text-red-700' : 'font-medium text-gray-900'}`}>
+                  {/* Bước công việc — hover here to show tooltip */}
+                  <td
+                    className={`px-2 py-2 text-[12px] ${row.isMilestone ? 'font-bold text-red-700' : 'font-medium text-gray-900'}`}
+                    style={{ position: 'relative', zIndex: isHovered ? 100 : 'auto' }}
+                    onMouseEnter={() => { if (!isEditing && hasChecklist) setHoveredStep(row.step); }}
+                    onMouseLeave={() => setHoveredStep(null)}
+                  >
                     <div className="flex items-center gap-1">
-                      <span className="cursor-help truncate">
+                      <span className={`truncate ${hasChecklist && !isEditing ? 'cursor-help underline decoration-dotted decoration-purple-300 underline-offset-2' : ''}`}>
                         {row.step}
                       </span>
 
-                      {/* Checklist count badge */}
                       {hasChecklist && !isEditing && (
                         <span className="bg-purple-100 text-purple-700 text-[9px] w-4 h-4 rounded-full font-bold flex items-center justify-center flex-shrink-0">
                           {checklist.length}
                         </span>
                       )}
 
-                      {/* Edit button */}
                       {isEditing && (
-                        <button 
+                        <button
                           onClick={() => startEdit(row.step)}
                           className="p-1 rounded text-purple-500 hover:text-purple-700 hover:bg-purple-100 border border-purple-200 flex-shrink-0"
                           title="Sửa checklist"
@@ -149,9 +151,14 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
                       )}
                     </div>
 
-                    {/* ── Hover Tooltip ── */}
-                    {!isEditing && hasChecklist && (
-                      <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-[100] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                    {/* Tooltip — controlled by JS state, not CSS hover */}
+                    {isHovered && hasChecklist && !isEditing && (
+                      <div
+                        style={{ position: 'absolute', left: 0, top: '100%', marginTop: 4, width: 320, zIndex: 9999 }}
+                        className="bg-white rounded-xl shadow-2xl border border-gray-200 p-4"
+                        onMouseEnter={() => setHoveredStep(row.step)}
+                        onMouseLeave={() => setHoveredStep(null)}
+                      >
                         <div className="flex items-center gap-2 mb-2 text-purple-700 font-semibold text-[13px] border-b border-purple-100 pb-2">
                           <ClipboardList size={15} />
                           Checklist đầu ra
@@ -164,13 +171,16 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
                             </li>
                           ))}
                         </ul>
-                        <div className="absolute -top-2 left-5 w-3 h-3 bg-white border-t border-l border-gray-200 rotate-45"></div>
+                        <div className="absolute -top-2 left-5 w-3 h-3 bg-white border-t border-l border-gray-200 rotate-45" />
                       </div>
                     )}
 
-                    {/* ── Inline Edit Form ── */}
+                    {/* Inline Edit Form */}
                     {isEditingThis && (
-                      <div className="absolute left-0 top-full mt-1 w-[400px] bg-white rounded-xl shadow-2xl border border-purple-200 p-4 z-[100]" style={{ whiteSpace: 'normal' }}>
+                      <div
+                        style={{ position: 'absolute', left: 0, top: '100%', marginTop: 4, width: 400, zIndex: 9999, whiteSpace: 'normal' }}
+                        className="bg-white rounded-xl shadow-2xl border border-purple-200 p-4"
+                      >
                         <label className="block text-xs font-semibold text-purple-800 mb-1 flex items-center gap-1.5">
                           <ClipboardList size={13} /> Checklist — {row.step}
                         </label>
@@ -194,7 +204,6 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
                     )}
                   </td>
 
-                  {/* Role columns — centered */}
                   <td className="px-1.5 py-2 text-center"><RoleBadge role={row.design} /></td>
                   <td className="px-1.5 py-2 text-center"><RoleBadge role={row.drafting2d} /></td>
                   <td className="px-1.5 py-2 text-center"><RoleBadge role={row.construction} /></td>
@@ -212,7 +221,7 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
 
       <div className="mt-3 p-2.5 bg-gray-50 rounded-lg text-[11px] text-gray-500 flex items-start gap-2 border border-gray-100">
         <Info size={14} className="text-gray-400 mt-0.5 shrink-0" />
-        <p>Hàng đỏ <span className="text-red-600 font-bold">★</span> = mốc chốt KH. Bước ⑦ chạy song song. Tổng ≈ 66–81 ngày. <strong>Rê chuột vào tên bước</strong> để xem checklist.</p>
+        <p>Hàng đỏ <span className="text-red-600 font-bold">★</span> = mốc chốt KH. Bước ⑦ chạy song song. Tổng ≈ 66–81 ngày. <strong className="text-purple-600">Rê chuột vào cột "Bước công việc"</strong> để xem checklist đầu ra.</p>
       </div>
     </div>
   );
