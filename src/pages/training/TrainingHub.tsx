@@ -661,56 +661,93 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
   const selected = sections.find(s => s.id === activeSection);
 
   return (
-    <div className="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
-      {/* LEFT — Section sidebar */}
-      <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Danh mục</span>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+      {/* Mobile: horizontal scrollable tabs */}
+      <div className="md:hidden">
+        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50/50">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            {sections.map((s) => {
+              const Icon = getIcon(s.icon);
+              const isActive = s.id === activeSection;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSection(s.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                    isActive
+                      ? "bg-purple-600 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Icon size={13} />
+                  <span>{s.number}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div className="divide-y divide-gray-100">
-          {sections.map((s) => {
-            const Icon = getIcon(s.icon);
-            const isActive = s.id === activeSection;
-            return (
-              <button
-                key={s.id}
-                onClick={() => setActiveSection(s.id)}
-                className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
-                  isActive
-                    ? "bg-white border-l-3 border-l-purple-600 shadow-sm"
-                    : "hover:bg-white/80 border-l-3 border-l-transparent"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                  isActive ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"
-                }`}>
-                  <Icon size={14} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                      isActive ? "text-purple-600 bg-purple-50" : "text-gray-400 bg-gray-100"
-                    }`}>{s.number}</span>
-                    <span className={`text-[13px] font-medium truncate ${
-                      isActive ? "text-gray-900" : "text-gray-600"
-                    }`}>{s.title}</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        {/* Mobile content */}
+        <div className="overflow-y-auto" style={{ maxHeight: '70vh' }}>
+          {selected ? (
+            <SectionContent section={selected} useDB={useDB} />
+          ) : (
+            <div className="p-6 text-center text-sm text-gray-400">Chọn mục để xem</div>
+          )}
         </div>
       </div>
 
-      {/* RIGHT — Content area */}
-      <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
-        {selected ? (
-          <SectionContent section={selected} useDB={useDB} />
-        ) : (
-          <div className="flex items-center justify-center h-full text-sm text-gray-400">
-            ← Chọn một mục để xem nội dung
+      {/* Desktop: sidebar + content */}
+      <div className="hidden md:flex gap-0" style={{ minHeight: '500px' }}>
+        {/* LEFT — Section sidebar */}
+        <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Danh mục</span>
           </div>
-        )}
+          <div className="divide-y divide-gray-100">
+            {sections.map((s) => {
+              const Icon = getIcon(s.icon);
+              const isActive = s.id === activeSection;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setActiveSection(s.id)}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                    isActive
+                      ? "bg-white border-l-3 border-l-purple-600 shadow-sm"
+                      : "hover:bg-white/80 border-l-3 border-l-transparent"
+                  }`}
+                >
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                    isActive ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    <Icon size={14} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                        isActive ? "text-purple-600 bg-purple-50" : "text-gray-400 bg-gray-100"
+                      }`}>{s.number}</span>
+                      <span className={`text-[13px] font-medium truncate ${
+                        isActive ? "text-gray-900" : "text-gray-600"
+                      }`}>{s.title}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* RIGHT — Content area */}
+        <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+          {selected ? (
+            <SectionContent section={selected} useDB={useDB} />
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+              ← Chọn một mục để xem nội dung
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -750,7 +787,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
   const useTabs = subsections.length >= 4;
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -758,7 +795,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
           <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
         </div>
         {useDB && (
-          <button onClick={() => setIsEditing(!isEditing)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
+          <button onClick={() => setIsEditing(!isEditing)} className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
             {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
           </button>
         )}
@@ -851,56 +888,90 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
   if (workflows.length === 0) return <EmptyState text="Chưa có quy trình nào." />;
 
   return (
-    <div className="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
-      {/* LEFT — Workflow sidebar */}
-      <div className="w-[210px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
-        <div className="px-4 py-3 border-b border-gray-200">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Quy trình</span>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+      {/* Mobile: horizontal scrollable tabs */}
+      <div className="md:hidden">
+        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50/50">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            {workflows.map((w) => {
+              const isActive = w.id === activeWorkflow;
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => setActiveWorkflow(w.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium whitespace-nowrap transition-all flex-shrink-0 ${
+                    isActive
+                      ? "bg-amber-500 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <span>{w.number}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <div className="divide-y divide-gray-100">
-          {workflows.map((w) => {
-            const Icon = getIcon(w.icon);
-            const isActive = w.id === activeWorkflow;
-            return (
-              <button
-                key={w.id}
-                onClick={() => setActiveWorkflow(w.id)}
-                className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
-                  isActive
-                    ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
-                    : "hover:bg-white/80 border-l-3 border-l-transparent"
-                }`}
-              >
-                <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                  isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
-                }`}>
-                  <Icon size={14} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                      isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
-                    }`}>{w.number}</span>
-                  </div>
-                  <span className={`text-[13px] font-medium block truncate ${
-                    isActive ? "text-gray-900" : "text-gray-600"
-                  }`}>{w.title}</span>
-                </div>
-              </button>
-            );
-          })}
+        <div className="overflow-y-auto" style={{ maxHeight: '70vh' }}>
+          {activeWorkflow ? (
+            <WorkflowContent workflowId={activeWorkflow} useDB={useDB} />
+          ) : (
+            <div className="p-6 text-center text-sm text-gray-400">Chọn quy trình để xem</div>
+          )}
         </div>
       </div>
 
-      {/* RIGHT — Content area */}
-      <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
-        {activeWorkflow ? (
-          <WorkflowContent workflowId={activeWorkflow} useDB={useDB} />
-        ) : (
-          <div className="flex items-center justify-center h-full text-sm text-gray-400">
-            ← Chọn một quy trình để xem
+      {/* Desktop: sidebar + content */}
+      <div className="hidden md:flex gap-0" style={{ minHeight: '500px' }}>
+        {/* LEFT — Workflow sidebar */}
+        <div className="w-[210px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Quy trình</span>
           </div>
-        )}
+          <div className="divide-y divide-gray-100">
+            {workflows.map((w) => {
+              const Icon = getIcon(w.icon);
+              const isActive = w.id === activeWorkflow;
+              return (
+                <button
+                  key={w.id}
+                  onClick={() => setActiveWorkflow(w.id)}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                    isActive
+                      ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
+                      : "hover:bg-white/80 border-l-3 border-l-transparent"
+                  }`}
+                >
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                    isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    <Icon size={14} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                        isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
+                      }`}>{w.number}</span>
+                    </div>
+                    <span className={`text-[13px] font-medium block truncate ${
+                      isActive ? "text-gray-900" : "text-gray-600"
+                    }`}>{w.title}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* RIGHT — Content area */}
+        <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+          {activeWorkflow ? (
+            <WorkflowContent workflowId={activeWorkflow} useDB={useDB} />
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-gray-400">
+              ← Chọn một quy trình để xem
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1277,11 +1348,11 @@ export default function TrainingHub() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Đào tạo & Thư viện</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Kiến thức nội bộ · Quy trình · Công cụ</p>
+            <h1 className="text-lg md:text-2xl font-bold text-gray-900">Đào tạo & Thư viện</h1>
+            <p className="text-xs md:text-sm text-gray-500 mt-0.5">Kiến thức nội bộ · Quy trình · Công cụ</p>
           </div>
           {useDB && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
@@ -1292,7 +1363,7 @@ export default function TrainingHub() {
       </div>
 
       {/* Tab nav — 6 modules */}
-      <div className="bg-white border-b border-gray-200 px-6">
+      <div className="bg-white border-b border-gray-200 px-3 md:px-6">
         <div className="flex gap-0 overflow-x-auto scrollbar-hide">
           {modules.map((m) => {
             const Icon = getIcon(m.icon);
@@ -1300,14 +1371,14 @@ export default function TrainingHub() {
               <button
                 key={m.slug}
                 onClick={() => setActiveModuleSlug(m.slug)}
-                className={`inline-flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                   activeModuleSlug === m.slug
                     ? "border-purple-600 text-purple-600"
                     : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <Icon size={16} />
-                {m.title}
+                <span className="hidden sm:inline">{m.title}</span>
               </button>
             );
           })}
@@ -1315,7 +1386,7 @@ export default function TrainingHub() {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-8">
         {renderModuleContent()}
       </div>
     </div>
