@@ -308,7 +308,9 @@ export const Layout = () => {
         }
 
         // Tab Báo giá Nội thất
-        items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
+        if (isAdminRole(role)) {
+            items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
+        }
 
         // Đào tạo & Thư viện
         if (canAccessRoute(role, '/training')) {
