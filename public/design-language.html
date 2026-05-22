@@ -720,57 +720,76 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 <!-- 10  CHECKLIST TRAINING -->
 <!-- ═══════════════════════════════════════════ -->
 <section class="slide" data-index="10" data-label="Checklist">
-  <div class="layout-2col">
+  <div class="layout-2col" style="grid-template-columns:300px 1fr; max-width:1440px; margin: 0 auto; gap: 0 40px;">
     <div>
       <span class="slide-tag">Training Tool 08</span>
-      <div class="slide-title">Checklist<br><em>Review bản vẽ</em></div>
+      <div class="slide-title" style="font-size: clamp(32px, 4vw, 48px);">Checklist<br><em>Review bản vẽ</em></div>
       <p class="tagline">"Trước khi submit bất kỳ bản vẽ nào — chạy checklist này. Thiếu 1 mục = chưa xong."</p>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:40px;">
+      <!-- Cột 1: Vật liệu & Màu sắc -->
       <div>
-        <div class="check-section">
-          <div class="check-title">Vật liệu</div>
+        <div class="check-section" style="margin-bottom:24px;">
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Vật liệu</div>
           <div class="check-item"><div class="check-box"></div><div class="check-text">Có đúng <strong>1 hero material</strong> / không gian chưa?</div></div>
           <div class="check-item"><div class="check-box"></div><div class="check-text">Material board có <strong>3 tầng hierarchy</strong> rõ ràng?</div></div>
           <div class="check-item"><div class="check-box"></div><div class="check-text">Không có 2 vật liệu <strong>cùng texture</strong> cạnh nhau?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Tất cả finish đều <strong>matte</strong>, không polished?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Accent kim loại <strong>brushed/oxidized</strong>, không chrome bóng?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Tất cả finish đều <strong>matte</strong>, không dùng polished?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Vật liệu nặng (đá) đặt <strong>dưới hoặc trước</strong> vật liệu nhẹ (gỗ)?</div></div>
         </div>
         <div class="check-section">
-          <div class="check-title">Màu sắc</div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Palette trong <strong>warm neutral range</strong>? Không cool gray?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Tối:Sáng:Neutral = <strong>30:20:50</strong>?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Không quá <strong>3 tông màu</strong> / không gian?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Không có màu trending ngắn hạn?</div></div>
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Màu sắc</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Palette nằm trong <strong>warm neutral range</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Tỷ lệ Tối : Sáng : Neutral = <strong>30 : 20 : 50</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không quá <strong>3 tông màu</strong> / một không gian?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không dùng <strong>cool white / cool gray</strong> ở bất kỳ đâu?</div></div>
         </div>
       </div>
+      <!-- Cột 2: Đường nét & Tỉ lệ -->
       <div>
-        <div class="check-section">
-          <div class="check-title">Đường nét &amp; Dimension</div>
+        <div class="check-section" style="margin-bottom:24px;">
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Đường nét &amp; Dimension</div>
           <div class="check-item"><div class="check-box"></div><div class="check-text">Mọi shadow gap có <strong>dimension cụ thể</strong> trên bản vẽ?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Khe tường: <strong>3–5mm</strong>. Khe tủ: <strong>2–3mm</strong>?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Ceiling gap <strong>10–20mm</strong> + LED strip ẩn?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Solid:Void = <strong>3:1</strong> trên mỗi mặt tường?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Điểm nghỉ thị giác mỗi <strong>2.5–3m</strong> liên tục?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Khe tường/trần: <strong>3–5mm</strong>. Khe tủ: <strong>2–3mm</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Ceiling shadow gap <strong>10–20mm</strong> + ẩn LED strip?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Slat/Corten: Tỷ lệ thanh và khe là <strong>2:1</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Chỉ có <strong>1 accent line</strong> duy nhất (1-2mm) trên tường?</div></div>
         </div>
         <div class="check-section">
-          <div class="check-title">Ánh sáng &amp; Chuyển tiếp</div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text"><strong>4 lighting layers</strong> riêng biệt, mỗi layer 1 circuit?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Toàn bộ <strong>2700–3000K</strong>, không cool white?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Mọi chuyển tiếp vật liệu có <strong>chi tiết joint</strong>?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Không có nẹp kim loại nổi trên sàn?</div></div>
-          <div class="check-item"><div class="check-box"></div><div class="check-text">Hidden storage: <strong>không thấy tay nắm</strong> nổi?</div></div>
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Tỉ lệ không gian</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Solid : Void = <strong>3:1</strong> trên mỗi mặt tường đứng?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Điểm nghỉ thị giác cách nhau mỗi <strong>2.5–3m</strong> liên tục?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Coffee table bằng <strong>1/2</strong> chiều dài sofa?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Scale nội thất (sofa, tủ) <strong>tương xứng trần</strong>?</div></div>
+        </div>
+      </div>
+      <!-- Cột 3: Ánh sáng & Chuyển tiếp -->
+      <div>
+        <div class="check-section" style="margin-bottom:24px;">
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Ánh sáng</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Đầy đủ <strong>4 lighting layers</strong> (Ambient, Task, Accent, Drama)?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Toàn bộ đèn từ <strong>2700K – 3000K</strong> (không dùng sáng lạnh)?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Nguồn sáng gián tiếp (Ambient) <strong>giấu hoàn toàn</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Chỉ <strong>1 điểm Drama</strong> (pendant cluster) mỗi phòng?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Downlight bắt buộc dùng loại <strong>anti-glare baffle</strong>?</div></div>
+        </div>
+        <div class="check-section">
+          <div class="check-title" style="font-size:12px;margin-bottom:12px;">Chi tiết Chuyển tiếp</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Có <strong>khe âm 5mm</strong> giữa 2 vật liệu cùng mặt phẳng?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Chuyển sàn đều dùng <strong>bậc/nosing tự nhiên</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Tủ ẩn: khe 3mm, cùng mã tường, <strong>không tay nắm nổi</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Hardware kim loại dùng loại <strong>matte/brushed</strong>?</div></div>
         </div>
       </div>
     </div>
-    <div style="position:absolute;bottom:50px;left:48px;right:100px;">
-      <div style="padding:10px 16px;border:1px solid rgba(184,149,106,.3);border-radius:2px;background:rgba(184,149,106,.05);display:flex;gap:12px;align-items:center;">
-        <div style="font-size:18px;color:var(--gold);">◈</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.6;">Checklist này là <strong style="color:var(--sand);">ngưỡng tối thiểu</strong> để submit bản vẽ. Không phải đảm bảo đẹp — mà đảm bảo <strong style="color:var(--sand);">đúng ngôn ngữ DQH</strong>. Đẹp đến từ tư duy tỷ lệ và cảm nhận vật liệu — không checklist nào thay thế được.</div>
+    
+    <div style="position:absolute;bottom:48px;left:48px;right:48px;max-width:1440px;margin:0 auto;">
+      <div style="padding:16px 24px;border:1px solid rgba(184,149,106,.3);border-radius:2px;background:rgba(184,149,106,.05);display:flex;gap:16px;align-items:center;">
+        <div style="font-size:24px;color:var(--gold);">◈</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.65;">Checklist này là <strong style="color:var(--sand);">ngưỡng tối thiểu</strong> để submit bản vẽ. Không phải đảm bảo thiết kế đẹp — mà đảm bảo <strong style="color:var(--sand);">đúng chuẩn ngôn ngữ DQH Signature</strong>. Cái đẹp đỉnh cao đến từ tư duy tỷ lệ và sự nhạy cảm với vật liệu của Designer — không checklist nào thay thế được điều đó.</div>
       </div>
     </div>
   </div>
-  <span class="slide-num">10 / 10</span>
 </section>
 
 </div><!-- slides-wrap -->
