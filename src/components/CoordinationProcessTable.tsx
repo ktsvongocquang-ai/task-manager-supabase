@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { Info, Edit2, Check, X, ClipboardList } from "lucide-react";
 
 type RoleType = "Chủ trì" | "Phối hợp" | "Tư vấn" | "Nhận tin" | "—";
 
@@ -45,9 +45,36 @@ const RoleBadge = ({ role }: { role: RoleType }) => {
   return <span className={`text-[13px] ${colorClass}`}>{role}</span>;
 };
 
-export default function CoordinationProcessTable() {
+interface CoordinationProcessTableProps {
+  steps?: any[];
+  isEditing?: boolean;
+  onUpdateChecklist?: (phase: string, actions: string[]) => void;
+}
+
+export default function CoordinationProcessTable({ steps = [], isEditing, onUpdateChecklist }: CoordinationProcessTableProps) {
+  const [editingPhase, setEditingPhase] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const getChecklist = (phase: string): string[] => {
+    const step = steps.find(s => s.phase === phase);
+    return step?.actions || [];
+  };
+
+  const startEdit = (phase: string) => {
+    setEditingPhase(phase);
+    setEditValue(getChecklist(phase).join("\\n"));
+  };
+
+  const saveEdit = () => {
+    if (editingPhase && onUpdateChecklist) {
+      const newActions = editValue.split("\\n").map(s => s.trim()).filter(s => s.length > 0);
+      onUpdateChecklist(editingPhase, newActions);
+    }
+    setEditingPhase(null);
+  };
+
   return (
-    <div className="w-full">
+    <div className="w-full pb-32"> {/* Extra padding bottom for tooltips */}
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 mb-4 text-sm px-2">
         <span className="flex items-center gap-1.5"><span className="text-amber-600 font-semibold">Chủ trì</span> = làm chính</span>
@@ -56,8 +83,8 @@ export default function CoordinationProcessTable() {
         <span className="flex items-center gap-1.5"><span className="text-gray-400">Nhận tin</span> = được thông báo</span>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
-        <table className="w-full text-left border-collapse bg-white whitespace-nowrap">
+      <div className="rounded-xl border border-gray-200 shadow-sm overflow-visible">
+        <table className="w-full text-left border-collapse bg-white whitespace-nowrap overflow-visible">
           <thead>
             <tr className="bg-gray-800 text-gray-100 text-[13px]">
               <th className="p-3 font-semibold border-b border-gray-700 w-1/4">Bước công việc</th>
@@ -72,24 +99,89 @@ export default function CoordinationProcessTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {TABLE_DATA.map((row, idx) => (
-              <tr 
-                key={idx} 
-                className={`transition-colors hover:bg-gray-50 ${row.isMilestone ? 'bg-red-50/40' : ''}`}
-              >
-                <td className={`p-3 text-[13px] ${row.isMilestone ? 'font-bold text-red-700' : 'font-medium text-gray-900'}`}>
-                  {row.step}
-                </td>
-                <td className="p-3"><RoleBadge role={row.design} /></td>
-                <td className="p-3"><RoleBadge role={row.drafting2d} /></td>
-                <td className="p-3"><RoleBadge role={row.construction} /></td>
-                <td className="p-3"><RoleBadge role={row.factory} /></td>
-                <td className="p-3"><RoleBadge role={row.client} /></td>
-                <td className="p-3 text-center font-mono text-[13px] font-semibold text-gray-700">{row.days}</td>
-                <td className="p-3 text-[13px] text-blue-600">{row.input}</td>
-                <td className="p-3 text-[13px] text-red-600">→ {row.output}</td>
-              </tr>
-            ))}
+            {TABLE_DATA.map((row, idx) => {
+              const checklist = getChecklist(row.step);
+              const isEditingThis = editingPhase === row.step;
+
+              return (
+                <tr 
+                  key={idx} 
+                  className={`transition-colors hover:bg-gray-50 group relative ${row.isMilestone ? 'bg-red-50/40' : ''}`}
+                >
+                  <td className={`p-3 text-[13px] ${row.isMilestone ? 'font-bold text-red-700' : 'font-medium text-gray-900'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="cursor-help relative">
+                        {row.step}
+                        
+                        {/* Hover Tooltip */}
+                        {checklist.length > 0 && !isEditing && (
+                          <div className="absolute left-0 top-full mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
+                            <div className="flex items-center gap-2 mb-2 text-purple-700 font-semibold text-sm border-b border-gray-100 pb-2">
+                              <ClipboardList size={16} />
+                              Checklist Thông Tin
+                            </div>
+                            <ul className="space-y-1.5">
+                              {checklist.map((item, i) => (
+                                <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600 whitespace-normal">
+                                  <span className="text-purple-400 mt-1 flex-shrink-0">•</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-t border-l border-gray-200 rotate-45"></div>
+                          </div>
+                        )}
+                      </span>
+
+                      {/* Editing Button & Mode */}
+                      {isEditing && (
+                        <button 
+                          onClick={() => startEdit(row.step)}
+                          className="p-1 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                      )}
+                      {checklist.length > 0 && isEditing && (
+                        <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded-full font-semibold">
+                          {checklist.length} mục
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Inline Edit Form */}
+                    {isEditingThis && (
+                      <div className="absolute left-0 top-full mt-1 w-[400px] bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 whitespace-normal">
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">Checklist (mỗi mục 1 dòng)</label>
+                        <textarea
+                          autoFocus
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg p-2 text-sm min-h-[100px] focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Mỗi dòng là một checklist item..."
+                        />
+                        <div className="flex justify-end gap-2 mt-3">
+                          <button onClick={() => setEditingPhase(null)} className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded flex items-center gap-1">
+                            <X size={14} /> Hủy
+                          </button>
+                          <button onClick={saveEdit} className="px-3 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded flex items-center gap-1 font-medium">
+                            <Check size={14} /> Lưu checklist
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-3"><RoleBadge role={row.design} /></td>
+                  <td className="p-3"><RoleBadge role={row.drafting2d} /></td>
+                  <td className="p-3"><RoleBadge role={row.construction} /></td>
+                  <td className="p-3"><RoleBadge role={row.factory} /></td>
+                  <td className="p-3"><RoleBadge role={row.client} /></td>
+                  <td className="p-3 text-center font-mono text-[13px] font-semibold text-gray-700">{row.days}</td>
+                  <td className="p-3 text-[13px] text-blue-600">{row.input}</td>
+                  <td className="p-3 text-[13px] text-red-600">→ {row.output}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

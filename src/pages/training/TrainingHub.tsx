@@ -1142,6 +1142,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (useDB) {
@@ -1162,6 +1163,36 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
     }
   }, [workflowId, useDB]);
 
+  const handleUpdateCoordinationChecklist = async (phase: string, actions: string[]) => {
+    // Optimistic UI update
+    const existingStepIdx = steps.findIndex(s => s.phase === phase);
+    let newSteps = [...steps];
+    
+    if (existingStepIdx >= 0) {
+      newSteps[existingStepIdx] = { ...newSteps[existingStepIdx], actions };
+    } else {
+      // Create a temporary step object for UI
+      newSteps.push({
+        id: 'temp-' + Date.now(),
+        workflow_id: workflowId,
+        phase,
+        actions,
+        owner: null,
+        metadata: null,
+        sort_order: 1,
+        created_at: '',
+        updated_at: ''
+      });
+    }
+    setSteps(newSteps);
+
+    if (useDB) {
+      import('../../services/trainingService').then(({ updateWorkflowStepActions }) => {
+        updateWorkflowStepActions(workflowId, phase, actions);
+      });
+    }
+  };
+
   if (loading) return <LoadingSpinner />;
   if (!workflow) return <EmptyState text="Không tìm thấy workflow." />;
 
@@ -1172,9 +1203,19 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
 
   return (
     <div className="p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <SectionBadge label={workflow.number} />
-        <h2 className="text-lg font-bold text-gray-900">{workflow.title}</h2>
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <SectionBadge label={workflow.number} />
+          <h2 className="text-lg font-bold text-gray-900">{workflow.title}</h2>
+        </div>
+        {useDB && isCoordinationProcess && (
+          <button 
+            onClick={() => setIsEditing(!isEditing)} 
+            className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}
+          >
+            {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
+          </button>
+        )}
       </div>
       {workflow.lead_quote && (
         <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-amber-300 pl-3">{workflow.lead_quote}</p>
@@ -1190,7 +1231,11 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       {/* Coordination Process Table (workflow 3.3) */}
       {isCoordinationProcess && (
         <div className="mb-8">
-          <CoordinationProcessTable />
+          <CoordinationProcessTable 
+            steps={steps}
+            isEditing={isEditing}
+            onUpdateChecklist={handleUpdateCoordinationChecklist}
+          />
         </div>
       )}
 

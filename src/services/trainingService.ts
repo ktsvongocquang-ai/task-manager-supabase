@@ -216,3 +216,41 @@ export async function searchTrainingContent(query: string): Promise<{
     subsections: subsectionsRes.data || [],
   };
 }
+
+/**
+ * Upsert workflow step actions (for the coordination checklist)
+ */
+export async function updateWorkflowStepActions(workflowId: string, phase: string, actions: string[]): Promise<boolean> {
+  // First, check if step exists
+  const { data: existing } = await supabase
+    .from('training_workflow_steps')
+    .select('id')
+    .eq('workflow_id', workflowId)
+    .eq('phase', phase)
+    .single();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('training_workflow_steps')
+      .update({ actions })
+      .eq('id', existing.id);
+    if (error) {
+      console.error('Error updating step actions:', error);
+      return false;
+    }
+  } else {
+    const { error } = await supabase
+      .from('training_workflow_steps')
+      .insert({
+        workflow_id: workflowId,
+        phase,
+        actions,
+        sort_order: 1 // Default
+      });
+    if (error) {
+      console.error('Error inserting step actions:', error);
+      return false;
+    }
+  }
+  return true;
+}
