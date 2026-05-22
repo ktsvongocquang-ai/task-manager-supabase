@@ -445,8 +445,8 @@ const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; bo
 /** Render a data table from DB metadata or fallback */
 const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: boolean, onChange?: (t: any) => void }) => {
   const isObject = !Array.isArray(table);
-  const headers = isObject ? table.headers : table[0];
-  const rows = isObject ? table.rows : table.slice(1);
+  const headers = isObject ? (table.headers || table.columns || []) : table[0];
+  const rows = isObject ? (table.rows || []) : table.slice(1);
 
   if (isEditing) {
     const handleHeaderChange = (idx: number, val: string) => {
