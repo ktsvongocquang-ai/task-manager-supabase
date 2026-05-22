@@ -1578,10 +1578,25 @@ async function seed() {
   });
   stepsData.push({
     workflow_id: fnId,
-    phase: "Folder structure (7 cấp)",
+    phase: "Folder structure (Template Công Ty)",
     owner: "Toàn team",
     actions: [
-      "01_BRIEF → 02_CONCEPT → 03_DESIGN → 04_TECHNICAL → 05_EXECUTION → 06_HANDOVER → 07_ARCHIVE",
+      "Cấu trúc thư mục chuẩn bắt buộc cho mọi dự án (@DQH_HO SO DU AN_2026):",
+      "📂 0_IN (Tài liệu đầu vào từ KH/bên thứ 3)",
+      "📂 0_Out (Hồ sơ xuất ra gửi KH)",
+      "📂 0_Ref (Tài liệu tham khảo, moodboard)",
+      "📂 1_2D (File CAD mặt bằng, triển khai)",
+      "📂 2_3DSmax (File 3Ds Max)",
+      "📂 3_Revit (File mô hình BIM)",
+      "📂 4_SketchUp (File dựng hình SU)",
+      "📂 5_PDF (Bản vẽ PDF lưu trữ/in ấn)",
+      "📂 6_Photoshop (File PSD, hậu kỳ)",
+      "📂 7_Jpeg (Hình ảnh xuất JPG duyệt nhanh)",
+      "📂 9_Render (Bản render chất lượng cao cuối cùng)",
+      "📂 10_MOM (Biên bản họp - Minutes of Meeting)",
+      "📂 11_Presentation (File trình bày, PDF concept)",
+      "📂 12_Note (Ghi chú, to-do list dự án)",
+      "📂 13_Supplier (Báo giá, thông tin từ NCC)"
     ],
     sort_order: 2,
     metadata: null,
