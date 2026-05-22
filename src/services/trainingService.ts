@@ -254,3 +254,18 @@ export async function updateWorkflowStepActions(workflowId: string, phase: strin
   }
   return true;
 }
+
+/**
+ * Update workflow checklist
+ */
+export async function updateWorkflowChecklist(workflowId: string, checklist: string[]): Promise<boolean> {
+  const { error } = await supabase
+    .from('training_workflows')
+    .update({ checklist })
+    .eq('id', workflowId);
+  if (error) {
+    console.error('Error updating workflow checklist:', error);
+    return false;
+  }
+  return true;
+}

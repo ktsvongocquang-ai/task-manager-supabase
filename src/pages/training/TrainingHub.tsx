@@ -1093,31 +1093,51 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
               const Icon = getIcon(w.icon);
               const isActive = w.id === activeWorkflow;
               return (
-                <button
-                  key={w.id}
-                  onClick={() => setActiveWorkflow(w.id)}
-                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
-                    isActive
-                      ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
-                      : "hover:bg-white/80 border-l-3 border-l-transparent"
-                  }`}
-                >
-                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                    isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
-                  }`}>
-                    <Icon size={14} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                        isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
-                      }`}>{w.number}</span>
+                <div key={w.id} className="relative group">
+                  <button
+                    onClick={() => setActiveWorkflow(w.id)}
+                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                      isActive
+                        ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
+                        : "hover:bg-white/80 border-l-3 border-l-transparent"
+                    }`}
+                  >
+                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                      isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      <Icon size={14} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                          isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
+                        }`}>{w.number}</span>
+                      </div>
+                      <span className={`text-[13px] font-medium block truncate ${
+                        isActive ? "text-gray-900" : "text-gray-600"
+                      }`}>{w.title}</span>
                     </div>
-                    <span className={`text-[13px] font-medium block truncate ${
-                      isActive ? "text-gray-900" : "text-gray-600"
-                    }`}>{w.title}</span>
-                  </div>
-                </button>
+                  </button>
+
+                  {/* Sidebar Hover Tooltip for Checklist */}
+                  {w.checklist && w.checklist.length > 0 && (
+                    <div className="absolute left-full top-0 ml-1 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
+                      <div className="flex items-center gap-2 mb-2 text-amber-700 font-semibold text-sm border-b border-gray-100 pb-2">
+                        <ClipboardList size={16} />
+                        Checklist Đầu Ra
+                      </div>
+                      <ul className="space-y-1.5">
+                        {w.checklist.map((item, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600 whitespace-normal">
+                            <span className="text-amber-400 mt-1 flex-shrink-0">•</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="absolute top-4 -left-1.5 w-3 h-3 bg-white border-t border-l border-gray-200 -rotate-45"></div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -1164,14 +1184,13 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
   }, [workflowId, useDB]);
 
   const handleUpdateCoordinationChecklist = async (phase: string, actions: string[]) => {
-    // Optimistic UI update
+    // ... (unchanged)
     const existingStepIdx = steps.findIndex(s => s.phase === phase);
     let newSteps = [...steps];
     
     if (existingStepIdx >= 0) {
       newSteps[existingStepIdx] = { ...newSteps[existingStepIdx], actions };
     } else {
-      // Create a temporary step object for UI
       newSteps.push({
         id: 'temp-' + Date.now(),
         workflow_id: workflowId,
@@ -1193,6 +1212,25 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
     }
   };
 
+  const [editChecklistText, setEditChecklistText] = useState("");
+
+  const handleToggleEdit = () => {
+    if (isEditing && workflow) {
+      // Save changes
+      const newChecklist = editChecklistText.split("\\n").map(s => s.trim()).filter(s => s.length > 0);
+      setWorkflow({ ...workflow, checklist: newChecklist });
+      if (useDB) {
+        import('../../services/trainingService').then(({ updateWorkflowChecklist }) => {
+          updateWorkflowChecklist(workflowId, newChecklist);
+        });
+      }
+    } else {
+      // Enter edit mode
+      setEditChecklistText((workflow?.checklist || []).join("\\n"));
+    }
+    setIsEditing(!isEditing);
+  };
+
   if (loading) return <LoadingSpinner />;
   if (!workflow) return <EmptyState text="Không tìm thấy workflow." />;
 
@@ -1208,9 +1246,9 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
           <SectionBadge label={workflow.number} />
           <h2 className="text-lg font-bold text-gray-900">{workflow.title}</h2>
         </div>
-        {useDB && isCoordinationProcess && (
+        {useDB && (
           <button 
-            onClick={() => setIsEditing(!isEditing)} 
+            onClick={handleToggleEdit} 
             className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}
           >
             {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
@@ -1219,6 +1257,22 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       </div>
       {workflow.lead_quote && (
         <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-amber-300 pl-3">{workflow.lead_quote}</p>
+      )}
+
+      {isEditing && (
+        <div className="mb-6 p-4 border border-purple-200 rounded-xl bg-purple-50/50">
+          <label className="block text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+            <ClipboardList size={16} />
+            Checklist Đầu Ra cho giai đoạn này (Hiển thị khi hover vào Mục lục)
+          </label>
+          <p className="text-xs text-purple-600 mb-3">Mỗi dòng là một mục checklist. Để trống nếu không có.</p>
+          <textarea
+            value={editChecklistText}
+            onChange={(e) => setEditChecklistText(e.target.value)}
+            className="w-full h-32 border border-purple-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Nhập checklist tại đây..."
+          />
+        </div>
       )}
 
       {/* Design Process Table (workflow 3.2) */}
