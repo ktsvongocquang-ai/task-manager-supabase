@@ -26,8 +26,10 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 
 /* SLIDES */
 .slides-wrap{width:100%;height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth;}
-.slide{width:100%;min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:80px 48px 60px;position:relative;overflow:hidden;}
+.slide{width:100%;min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;padding:120px 48px 100px;position:relative;}
+.slide > div { margin: auto; width: 100%; }
 .slide::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C8B89A' fill-opacity='0.012'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+.slide-content { width: 100%; max-width: 1440px; margin: auto; }
 .slide-num{position:absolute;bottom:28px;right:48px;font-size:10px;letter-spacing:.2em;color:var(--muted);}
 .slide-tag{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:14px;}
 .slide-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4.5vw,56px);font-weight:300;line-height:1.1;color:var(--warm-white);margin-bottom:12px;}
@@ -783,7 +785,7 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
       </div>
     </div>
     
-    <div style="position:absolute;bottom:48px;left:48px;right:48px;max-width:1440px;margin:0 auto;">
+    <div style="margin-top:40px;grid-column:1 / -1;">
       <div style="padding:16px 24px;border:1px solid rgba(184,149,106,.3);border-radius:2px;background:rgba(184,149,106,.05);display:flex;gap:16px;align-items:center;">
         <div style="font-size:24px;color:var(--gold);">◈</div>
         <div style="font-size:14px;color:var(--muted);line-height:1.65;">Checklist này là <strong style="color:var(--sand);">ngưỡng tối thiểu</strong> để submit bản vẽ. Không phải đảm bảo thiết kế đẹp — mà đảm bảo <strong style="color:var(--sand);">đúng chuẩn ngôn ngữ DQH Signature</strong>. Cái đẹp đỉnh cao đến từ tư duy tỷ lệ và sự nhạy cảm với vật liệu của Designer — không checklist nào thay thế được điều đó.</div>
