@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DQH Signature — Quiet Luxury Training</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sand: #C8B89A; --taupe: #A89880; --charcoal: #2C2825;
+  --dark: #1A1714; --cream: #EDE8DF; --warm-white: #F5F0E8;
+  --gold: #B8956A; --muted: #8A8278; --line: rgba(200,184,154,0.22);
+  --green: #6DBFA0; --red: #D4826A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);overflow-x:hidden;}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:linear-gradient(to bottom,rgba(26,23,20,.96),transparent);}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;letter-spacing:.25em;color:var(--sand);text-transform:uppercase;}
+.nav-right{display:flex;align-items:center;gap:20px;}
+.nav-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.nav-dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:300px;}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);cursor:pointer;transition:all .3s;border:none;padding:0;flex-shrink:0;}
+.nav-dot.active{background:var(--sand);transform:scale(1.5);}
+
+/* SLIDES */
+.slides-wrap{width:100%;height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth;}
+.slide{width:100%;min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:80px 48px 60px;position:relative;overflow:hidden;}
+.slide::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C8B89A' fill-opacity='0.012'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
+.slide-num{position:absolute;bottom:28px;right:48px;font-size:10px;letter-spacing:.2em;color:var(--muted);}
+.slide-tag{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:14px;}
+.slide-title{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,3.2vw,42px);font-weight:300;line-height:1.1;color:var(--warm-white);margin-bottom:6px;}
+.slide-title em{font-style:italic;color:var(--sand);}
+.tagline{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.7;font-style:italic;border-left:1px solid var(--line);padding-left:14px;}
+
+/* LAYOUT */
+.layout-2col{display:grid;grid-template-columns:200px 1fr;gap:0 56px;align-items:start;width:100%;max-width:1100px;}
+.layout-full{width:100%;max-width:1100px;}
+
+/* COVER */
+.slide-cover{flex-direction:column;align-items:flex-start;padding-left:12vw;}
+.cover-title{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,8vw,100px);font-weight:300;line-height:1.0;color:var(--warm-white);}
+.cover-title em{font-style:italic;color:var(--sand);}
+.cover-sub{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-top:28px;border-top:1px solid var(--line);padding-top:18px;width:400px;}
+.cover-vline{position:absolute;right:22vw;top:0;bottom:0;width:1px;background:var(--line);}
+.cover-rot{position:absolute;right:calc(22vw - 90px);top:50%;transform:translateY(-50%) rotate(90deg);font-size:10px;letter-spacing:.28em;color:var(--muted);white-space:nowrap;text-transform:uppercase;}
+
+/* RULE LIST */
+.rule-list{list-style:none;display:flex;flex-direction:column;}
+.rule-item{display:grid;grid-template-columns:24px 1fr;gap:0 18px;padding:18px 0;border-bottom:1px solid var(--line);align-items:start;}
+.rule-item:first-child{border-top:1px solid var(--line);}
+.rule-num{font-size:10px;color:var(--gold);letter-spacing:.1em;padding-top:2px;}
+.rule-title{font-size:13px;font-weight:500;color:var(--cream);margin-bottom:4px;}
+.rule-desc{font-size:12px;color:var(--muted);line-height:1.65;}
+.rule-desc strong{color:var(--sand);font-weight:500;}
+.rule-tag{display:inline-block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-left:6px;vertical-align:middle;}
+.tag-dim{background:rgba(184,149,106,.12);color:var(--gold);}
+.tag-crit{background:rgba(212,130,106,.12);color:var(--red);}
+
+/* MATERIAL CARDS */
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mat-card{border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+.mat-header{height:64px;display:flex;align-items:flex-end;padding:10px 14px;position:relative;}
+.mat-tier-badge{font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:3px 8px;border-radius:2px;position:absolute;top:10px;right:10px;}
+.mat-card-body{padding:12px 14px;}
+.mat-name{font-size:13px;font-weight:500;color:var(--cream);margin-bottom:4px;}
+.mat-sub{font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:8px;}
+.mat-specs{display:flex;flex-wrap:wrap;gap:5px;}
+.spec-pill{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--line);color:var(--muted);}
+.spec-pill.active{border-color:rgba(184,149,106,.4);color:var(--gold);}
+
+/* TEXTURE RULE */
+.texture-chain{display:flex;align-items:center;gap:0;margin:12px 0;}
+.tex-box{flex:1;padding:12px 10px;text-align:center;border:1px solid var(--line);}
+.tex-box-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.tex-box-name{font-size:12px;color:var(--cream);}
+.tex-arr{padding:0 8px;color:var(--muted);font-size:18px;flex-shrink:0;}
+
+/* LINE LANGUAGE */
+.line-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.line-card{padding:16px;border:1px solid var(--line);border-radius:2px;background:rgba(200,184,154,.025);}
+.line-card-title{font-size:12px;font-weight:500;color:var(--cream);margin-bottom:6px;}
+.line-card-body{font-size:11px;color:var(--muted);line-height:1.6;}
+.line-card-body strong{color:var(--sand);font-weight:500;}
+.line-demo{margin-bottom:10px;display:block;}
+
+/* JOINT DETAIL TABLE */
+.joint-table{width:100%;border-collapse:collapse;font-size:12px;}
+.joint-table th{text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--line);font-weight:400;}
+.joint-table td{padding:12px 12px;border-bottom:1px solid rgba(200,184,154,.1);vertical-align:top;line-height:1.55;}
+.joint-table td:first-child{color:var(--cream);font-weight:500;white-space:nowrap;width:130px;}
+.joint-table td:not(:first-child){color:var(--muted);}
+.joint-table td strong{color:var(--sand);font-weight:500;}
+.joint-table tr:last-child td{border-bottom:none;}
+
+/* LIGHTING */
+.light-table{width:100%;border-collapse:collapse;}
+.light-row-tr{border-bottom:1px solid var(--line);}
+.light-row-tr:first-child td{border-top:1px solid var(--line);}
+.light-row-tr td{padding:14px 12px;vertical-align:top;font-size:12px;}
+.light-layer{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--gold);width:90px;}
+.light-pct{font-size:22px;font-family:'Cormorant Garamond',serif;color:var(--sand);width:60px;text-align:center;}
+.light-tech{color:var(--cream);line-height:1.55;}
+.light-spec{color:var(--muted);font-size:11px;line-height:1.55;}
+.light-spec strong{color:var(--sand);}
+
+/* DO DONT */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.dd-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid;}
+.dd-do .dd-label{color:var(--green);border-color:rgba(109,191,160,.25);}
+.dd-dont .dd-label{color:var(--red);border-color:rgba(212,130,106,.22);}
+.dd-item{display:flex;gap:10px;margin-bottom:13px;align-items:flex-start;}
+.dd-sym{flex-shrink:0;font-size:12px;padding-top:1px;}
+.dd-do .dd-sym{color:var(--green);}
+.dd-dont .dd-sym{color:var(--red);}
+.dd-text{font-size:12px;color:var(--muted);line-height:1.6;}
+.dd-text strong{color:var(--cream);font-weight:500;}
+
+/* PROPORTION VIS */
+.prop-vis{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.prop-bar{display:flex;height:32px;border-radius:2px;overflow:hidden;}
+.prop-seg{display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:.1em;font-weight:500;}
+
+/* CHECKLIST */
+.check-section{margin-bottom:14px;}
+.check-title{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--gold);margin-bottom:8px;}
+.check-item{display:flex;gap:10px;margin-bottom:7px;align-items:flex-start;}
+.check-box{width:14px;height:14px;border:1px solid var(--muted);border-radius:2px;flex-shrink:0;margin-top:1px;}
+.check-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.check-text strong{color:var(--cream);}
+
+/* NAV ARROWS */
+.arr-nav{position:fixed;bottom:28px;left:48px;display:flex;gap:10px;z-index:100;}
+.arr-btn{width:36px;height:36px;border-radius:50%;background:rgba(200,184,154,.07);border:1px solid var(--line);color:var(--sand);font-size:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.arr-btn:hover{background:rgba(200,184,154,.15);}
+
+/* SECTION DIVIDER inside slide */
+.s-divider{height:1px;background:var(--line);margin:16px 0;}
+.note-box{padding:12px 16px;border:1px solid var(--line);border-radius:2px;background:rgba(200,184,154,.03);margin-top:12px;}
+.note-label{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--gold);margin-bottom:5px;}
+.note-text{font-size:11px;color:var(--muted);line-height:1.65;}
+.note-text strong{color:var(--sand);font-weight:500;}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-logo">DQH · Design Language</span>
+  <div class="nav-right">
+    <span class="nav-label" id="slideLabel">Cover</span>
+    <div class="nav-dots" id="navDots"></div>
+  </div>
+</nav>
+
+<div class="arr-nav">
+  <button class="arr-btn" onclick="prevSlide()">↑</button>
+  <button class="arr-btn" onclick="nextSlide()">↓</button>
+</div>
+
+<div class="slides-wrap" id="slidesWrap">
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 00  COVER -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide slide-cover" data-index="0" data-label="Cover">
+  <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;">DQH Studio · Training Framework · 2024</div>
+  <div class="cover-title">Quiet<br><em>Luxury</em></div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.2vw,32px);font-weight:300;color:var(--muted);margin-top:6px;">Design Language</div>
+  <div class="cover-sub">Tỉ lệ · Vật liệu · Ngôn ngữ đường nét · Ánh sáng · Màu sắc · Chuyển tiếp vật liệu</div>
+  <div class="cover-vline"></div>
+  <div class="cover-rot">Contemporary Minimalism — DQH Signature</div>
+  <span class="slide-num">00</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 01  TỈ LỆ -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="1" data-label="Tỉ lệ">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 01</span>
+      <div class="slide-title">Tỉ lệ<br><em>Proportion</em></div>
+      <p class="tagline">"Tỷ lệ sai thì vật liệu đắt tiền cũng vô nghĩa. Tỷ lệ đúng thì tường trắng vẫn sang."</p>
+    </div>
+    <div>
+      <ul class="rule-list">
+        <li class="rule-item">
+          <span class="rule-num">01</span>
+          <div><div class="rule-title">Solid : Void = 3 : 1 trên mỗi mặt tường <span class="rule-tag tag-dim">Chuẩn DQH</span></div>
+          <div class="rule-desc">25% diện tích tường là <strong>void</strong> — khe, recessed panel, khoảng âm. Không gian thở tạo luxury, không phải vật liệu lấp đầy. Tường 5m dài → có ít nhất 1.2m void zones.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">02</span>
+          <div><div class="rule-title">Furniture scale theo trần — không theo sở thích</div>
+          <div class="rule-desc">Trần 2.8m: sofa lưng ≤80cm, tủ ≤240cm. Trần 3.2m+: sofa lưng ≤90cm, tủ đến trần. <strong>Scale sai với trần = lỗi cơ bản nhất</strong>, không vật liệu nào cứu được.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">03</span>
+          <div><div class="rule-title">Khe shadow gap: 3–5mm tường · 2–3mm tủ <span class="rule-tag tag-dim">Dimension</span></div>
+          <div class="rule-desc">Rộng hơn 6mm = thô. Hẹp hơn 2mm = không đọc được. Đây là dimension chuẩn, <strong>không thay đổi theo budget dự án</strong>. Khe là chữ ký — không phải tiết kiệm vật liệu.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">04</span>
+          <div><div class="rule-title">Ceiling coffer : Tổng trần = 1 : 4 <span class="rule-tag tag-dim">Dimension</span></div>
+          <div class="rule-desc">Coffer chiếm 20–25% diện tích trần. Lớn hơn → nặng nề. Nhỏ hơn → mất hiệu ứng. Depth coffer tối thiểu 80mm để tạo shadow line đọc được từ dưới nhìn lên.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">05</span>
+          <div><div class="rule-title">Coffee table : Sofa = 1 : 2 (chiều dài)</div>
+          <div class="rule-desc">Bàn không vượt 50% chiều dài ghế. Chiều cao bàn = chiều cao đệm sofa ±20mm. Tỷ lệ nhóm furniture phải đọc được từ góc nhìn đứng — không chỉ trên mặt bằng 2D.</div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-num">01 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 02  VẬT LIỆU — HIERARCHY -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="2" data-label="Vật liệu: Hierarchy">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 02A</span>
+      <div class="slide-title">Vật liệu<br><em>3 tầng</em></div>
+      <p class="tagline">"Mỗi không gian: 1 Hero + 1 Supporting + 1 Neutral. Thêm vật liệu thứ 4 không có lý do = loạn."</p>
+    </div>
+    <div>
+      <div class="mat-grid">
+        <div class="mat-card">
+          <div class="mat-header" style="background:linear-gradient(135deg,#2A2420,#3D3028);">
+            <span class="mat-tier-badge" style="background:rgba(184,149,106,.15);color:var(--gold);">HERO</span>
+            <span style="font-size:11px;color:var(--sand);">Travertine · Marble · Limestone</span>
+          </div>
+          <div class="mat-card-body">
+            <div class="mat-name">Đá tự nhiên nguyên bản</div>
+            <div class="mat-sub">Dùng ở diện tích focal lớn nhất: tường TV, island bếp, fireplace surround. Vật liệu có lịch sử — già đẹp hơn theo thời gian. Không dùng quá 1 loại đá / không gian.</div>
+            <div class="mat-specs">
+              <span class="spec-pill active">Matte finish</span>
+              <span class="spec-pill active">Vân chìm ≤ vân nổi</span>
+              <span class="spec-pill">Không polished</span>
+            </div>
+          </div>
+        </div>
+        <div class="mat-card">
+          <div class="mat-header" style="background:linear-gradient(135deg,#1E1C18,#2C2820);">
+            <span class="mat-tier-badge" style="background:rgba(184,149,106,.1);color:var(--taupe);">SUPPORTING</span>
+            <span style="font-size:11px;color:var(--taupe);">Oak · Walnut · Charcoal panel</span>
+          </div>
+          <div class="mat-card-body">
+            <div class="mat-name">Gỗ tự nhiên matte finish</div>
+            <div class="mat-sub">Tạo contrast ấm với hero đá. Grain dọc làm nhịp thẳng đứng nhẹ nhàng. Không cạnh tranh hero. Áp dụng: TV panel, cửa, joinery tủ, trần ốp gỗ khu vực nhỏ.</div>
+            <div class="mat-specs">
+              <span class="spec-pill active">Matte oil finish</span>
+              <span class="spec-pill active">Grain direction: dọc</span>
+              <span class="spec-pill">Không lacquer bóng</span>
+            </div>
+          </div>
+        </div>
+        <div class="mat-card">
+          <div class="mat-header" style="background:linear-gradient(135deg,#28261F,#35322A);">
+            <span class="mat-tier-badge" style="background:rgba(138,130,120,.12);color:var(--muted);">NEUTRAL</span>
+            <span style="font-size:11px;color:var(--muted);">Plaster · Microcement cao cấp · Linen</span>
+          </div>
+          <div class="mat-card-body">
+            <div class="mat-name">Vật liệu nền — im lặng chủ động</div>
+            <div class="mat-sub">Tường nền, trần, soft furnishing. Màu greige đồng nhất. Không có pattern, không texture rõ. Nhiệm vụ: làm nền để hero và supporting nổi bật.</div>
+            <div class="mat-specs">
+              <span class="spec-pill active">Greige / Warm white</span>
+              <span class="spec-pill active">Flat / matte</span>
+              <span class="spec-pill">Không cool gray</span>
+            </div>
+          </div>
+        </div>
+        <div class="mat-card">
+          <div class="mat-header" style="background:linear-gradient(135deg,#221E18,#302A22);">
+            <span class="mat-tier-badge" style="background:rgba(184,149,106,.1);color:var(--gold);">ACCENT</span>
+            <span style="font-size:11px;color:var(--gold);">Brushed brass · Oxidized steel</span>
+          </div>
+          <div class="mat-card-body">
+            <div class="mat-name">Kim loại matte — rất ít, rất chọn lọc</div>
+            <div class="mat-sub">Chỉ xuất hiện ở hardware (tay nắm, hinge), profile joint, pendant frame. Không bao giờ làm surface lớn. Matte luôn luôn — không polished chrome, không mạ vàng sáng bóng.</div>
+            <div class="mat-specs">
+              <span class="spec-pill active">Brushed / oxidized</span>
+              <span class="spec-pill active">≤5% diện tích</span>
+              <span class="spec-pill">Không polished</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">02 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 03  VẬT LIỆU — TEXTURE + ỨNG DỤNG CỤ THỂ -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="3" data-label="Vật liệu: Texture">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 02B</span>
+      <div class="slide-title">Vật liệu<br><em>Texture &amp; Ứng dụng</em></div>
+      <p class="tagline">"Không bao giờ để 2 vật liệu cùng texture cạnh nhau. Matte–Grain–Rough–Smooth phải xen kẽ."</p>
+    </div>
+    <div>
+      <!-- Texture chain -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--gold);margin-bottom:10px;">Chuỗi texture đúng — phải xen kẽ nhau</div>
+        <div class="texture-chain">
+          <div class="tex-box" style="background:rgba(200,184,154,.06);">
+            <div class="tex-box-label">Matte</div>
+            <div class="tex-box-name">Plaster tường</div>
+          </div>
+          <div class="tex-arr">→</div>
+          <div class="tex-box" style="background:rgba(60,50,40,.4);">
+            <div class="tex-box-label">Grain</div>
+            <div class="tex-box-name">Oak panel</div>
+          </div>
+          <div class="tex-arr">→</div>
+          <div class="tex-box" style="background:rgba(180,160,130,.12);">
+            <div class="tex-box-label">Tactile</div>
+            <div class="tex-box-name">Travertine</div>
+          </div>
+          <div class="tex-arr">→</div>
+          <div class="tex-box" style="background:rgba(200,184,154,.04);">
+            <div class="tex-box-label">Smooth</div>
+            <div class="tex-box-name">Linen sofa</div>
+          </div>
+        </div>
+      </div>
+      <!-- Application table -->
+      <table class="joint-table">
+        <tr><th>Khu vực</th><th>Vật liệu đúng</th><th>Không bao giờ dùng</th></tr>
+        <tr>
+          <td>Tường focal (TV / fireplace)</td>
+          <td>Travertine hoặc charcoal oak — chọn một, không kết hợp cùng 1 mặt tường</td>
+          <td>Microcement rẻ, wallpaper pattern, gạch subway</td>
+        </tr>
+        <tr>
+          <td>Tường nền (3 mặt còn lại)</td>
+          <td>Plaster greige matte, smooth hoàn toàn. Không texture, không pattern</td>
+          <td>Sơn bóng, cool white thuần, màu tương phản</td>
+        </tr>
+        <tr>
+          <td>Sàn toàn bộ</td>
+          <td>Oak herringbone 90×450mm, hoặc marble large format ≥800×800mm joints mỏng ≤2mm</td>
+          <td>Gỗ kém chất lượng, vinyl giả gỗ, gạch ceramic pattern</td>
+        </tr>
+        <tr>
+          <td>Island / Bếp</td>
+          <td><strong>1 loại đá duy nhất</strong> bọc 3 mặt — không thay đổi vật liệu giữa chừng</td>
+          <td>Đảo gỗ + đá mix, inox bề mặt lớn, lacquer bóng</td>
+        </tr>
+        <tr>
+          <td>Trần</td>
+          <td>Plaster flat matte, hoặc gỗ dark dạng slat 20–30mm gap. Shadow gap trần-tường 10–15mm</td>
+          <td>Trần thạch cao rườm rà, đèn ốp nổi hộp vuông, không shadow gap</td>
+        </tr>
+        <tr>
+          <td>Soft furnishing</td>
+          <td>Linen, bouclé, cashmere — cream, greige, charcoal. Texture nhưng không pattern</td>
+          <td>Vải có hoa văn, màu tươi, velvet quá bóng</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <span class="slide-num">03 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 04  MÀU SẮC -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="4" data-label="Màu sắc">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 03</span>
+      <div class="slide-title">Màu sắc<br><em>Palette</em></div>
+      <p class="tagline">"Warm neutral không phải chọn vì nhàm. Ánh sáng VN thiên vàng — cool gray sẽ chết dưới ánh nắng."</p>
+    </div>
+    <div>
+      <!-- Palette visual -->
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px;">
+        <div>
+          <div style="height:52px;background:#F5F0E8;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Warm White<br>#F5F0E8</div>
+        </div>
+        <div>
+          <div style="height:52px;background:#D4C9B4;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Sand<br>#D4C9B4</div>
+        </div>
+        <div>
+          <div style="height:52px;background:#C8B89A;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Cream<br>#C8B89A</div>
+        </div>
+        <div>
+          <div style="height:52px;background:#A89880;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Taupe<br>#A89880</div>
+        </div>
+        <div>
+          <div style="height:52px;background:#3A3530;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Charcoal<br>#3A3530</div>
+        </div>
+        <div>
+          <div style="height:52px;background:#1A1714;border-radius:2px;"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;">Matte Black<br>#1A1714</div>
+        </div>
+      </div>
+      <!-- Proportion bar -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin-bottom:8px;">Tỷ lệ màu chuẩn DQH trong 1 không gian</div>
+        <div class="prop-bar" style="height:36px;">
+          <div class="prop-seg" style="flex:5;background:#A89880;color:#3A2815;font-size:10px;">50% Neutral</div>
+          <div class="prop-seg" style="flex:3;background:#3A3530;color:#C8B89A;font-size:10px;">30% Dark</div>
+          <div class="prop-seg" style="flex:2;background:#F5F0E8;color:#6B5535;font-size:10px;">20% Light</div>
+        </div>
+      </div>
+      <ul class="rule-list">
+        <li class="rule-item">
+          <span class="rule-num">01</span>
+          <div><div class="rule-title">Không bao giờ dùng cool white (>5000K hoặc màu #F0F0F0 thuần)</div>
+          <div class="rule-desc">Warm white #F5F0E8 – #EDE8DF. Tường greige: #D8D0C4 – #C8BEB2. <strong>Cool white làm gỗ và đá trông như nhựa</strong> dưới ánh sáng nhân tạo.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">02</span>
+          <div><div class="rule-title">Accent màu duy nhất được phép: brushed gold / oxidized bronze</div>
+          <div class="rule-desc">Không navy, không sage green, không terracotta đang trending. Hỏi: "Màu này có trên Pinterest 3 năm nay không?" Nếu có → <strong>Quiet Luxury không dùng</strong>.</div></div>
+        </li>
+        <li class="rule-item">
+          <span class="rule-num">03</span>
+          <div><div class="rule-title">3 tông trong 1 không gian — không hơn</div>
+          <div class="rule-desc">Chọn 1 tông chính (warm beige), 1 tông tối (charcoal/dark oak), 1 tông ánh sáng (cream/warm white). Tông thứ 4 trở đi phải có lý do thiết kế rõ ràng, không phải "cho thêm điểm nhấn".</div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <span class="slide-num">04 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 05  NGÔN NGỮ ĐƯỜNG NÉT — 4 LOẠI -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="5" data-label="Đường nét: 4 loại">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 04A</span>
+      <div class="slide-title">Đường nét<br><em>4 ngôn ngữ</em></div>
+      <p class="tagline">"Đường nét đúng là đường biết im lặng. Và biết lúc nào cần xuất hiện."</p>
+    </div>
+    <div>
+      <div class="line-grid">
+        <div class="line-card">
+          <svg class="line-demo" width="100%" height="36" viewBox="0 0 220 36">
+            <line x1="0" y1="10" x2="220" y2="10" stroke="#C8B89A" stroke-width="1.5"/>
+            <line x1="0" y1="20" x2="220" y2="20" stroke="#8A8278" stroke-width="0.5"/>
+            <line x1="0" y1="30" x2="220" y2="30" stroke="#3A3530" stroke-width="2"/>
+          </svg>
+          <div class="line-card-title">① Horizontal dominant</div>
+          <div class="line-card-body">TV wall / ledge / marble sill — <strong>một trục ngang liên tục</strong>. Ngôn ngữ chính DQH: grounding, ổn định, kéo rộng không gian theo chiều ngang. Tất cả yếu tố quan trọng nằm trên cùng 1 trục.</div>
+        </div>
+        <div class="line-card">
+          <svg class="line-demo" width="100%" height="36" viewBox="0 0 220 36">
+            <line x1="28" y1="0" x2="28" y2="36" stroke="#C8B89A" stroke-width="0.5"/>
+            <line x1="66" y1="0" x2="66" y2="36" stroke="#8A8278" stroke-width="1.5"/>
+            <line x1="112" y1="0" x2="112" y2="36" stroke="#C8B89A" stroke-width="0.5"/>
+            <line x1="148" y1="0" x2="148" y2="36" stroke="#C8B89A" stroke-width="1"/>
+            <line x1="192" y1="0" x2="192" y2="36" stroke="#8A8278" stroke-width="0.5"/>
+          </svg>
+          <div class="line-card-title">② Vertical nhịp điệu</div>
+          <div class="line-card-body">Panel dọc <strong>không đều nhau</strong> — nhịp 1:2:1:1.5 như syncopation. Không đều tuyệt đối = sống động. Đều hoàn toàn = cứng nhắc, mechanical. Áp dụng: corten slat, gỗ panel, curtain fold.</div>
+        </div>
+        <div class="line-card">
+          <svg class="line-demo" width="100%" height="36" viewBox="0 0 220 36">
+            <rect x="10" y="6" width="80" height="24" fill="none" stroke="#3A3530" stroke-width="1"/>
+            <rect x="98" y="6" width="112" height="24" fill="none" stroke="#3A3530" stroke-width="1"/>
+            <rect x="90" y="0" width="8" height="36" fill="#1A1714"/>
+          </svg>
+          <div class="line-card-title">③ Shadow gap — khe âm</div>
+          <div class="line-card-body"><strong>3–5mm</strong> giữa panel. Đường tối tạo bởi bóng — không phải đường vẽ. Hai vật liệu không bao giờ chạm nhau trực tiếp. Khe là <strong>dấu phẩy giữa hai câu</strong>.</div>
+        </div>
+        <div class="line-card">
+          <svg class="line-demo" width="100%" height="36" viewBox="0 0 220 36">
+            <rect x="0" y="0" width="220" height="36" fill="#1A1714"/>
+            <line x1="0" y1="33" x2="220" y2="33" stroke="#C8B89A" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.6"/>
+            <line x1="55" y1="0" x2="55" y2="36" stroke="#B8956A" stroke-width="1.5"/>
+            <rect x="60" y="4" width="100" height="28" fill="none" stroke="#8A8278" stroke-width="0.5"/>
+          </svg>
+          <div class="line-card-title">④ Accent corten line</div>
+          <div class="line-card-body"><strong>Một đường 1–2mm</strong> trên trần hoặc tường. Đặt đúng vị trí → thay đổi toàn bộ cảm nhận không gian. Nhiều hơn 1 đường accent / mặt tường = loạn. Vị trí: tại ranh giới zone hoặc tại tỷ lệ vàng.</div>
+        </div>
+      </div>
+      <div class="note-box" style="margin-top:10px;">
+        <div class="note-label">Quy tắc điểm nghỉ thị giác</div>
+        <div class="note-text">Mắt người không theo dõi đường thẳng liên tục > 3m mà không mỏi. Mỗi 2.5–3m phải có <strong>1 điểm nghỉ</strong>: thay vật liệu, recessed panel, khoảng trống, hoặc thay đổi depth.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">05 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 06  NGÔN NGỮ ĐƯỜNG NÉT — DIMENSION CỤ THỂ -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="6" data-label="Đường nét: Dimension">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 04B</span>
+      <div class="slide-title">Đường nét<br><em>Dimension thực tế</em></div>
+      <p class="tagline">"Đường nét đẹp không phải vẽ tay đẹp — mà là dimension chính xác đến từng mm."</p>
+    </div>
+    <div>
+      <table class="joint-table">
+        <tr>
+          <th>Chi tiết</th>
+          <th>Dimension chuẩn DQH</th>
+          <th>Lý do</th>
+        </tr>
+        <tr>
+          <td>Shadow gap tường</td>
+          <td><strong>3–5mm</strong> rộng · 10–15mm sâu</td>
+          <td>Đủ tạo shadow line đọc được. Sâu hơn = shadow tối hơn = đọc rõ hơn</td>
+        </tr>
+        <tr>
+          <td>Shadow gap tủ joinery</td>
+          <td><strong>2–3mm</strong> rộng · 8mm sâu</td>
+          <td>Tủ ẩn: khe nhỏ nhất có thể mà vẫn thao tác được. Joinery thông thường: 3mm.</td>
+        </tr>
+        <tr>
+          <td>Shadow gap trần–tường</td>
+          <td><strong>10–20mm</strong> rộng · LED strip ẩn trong</td>
+          <td>Đủ rộng giấu LED strip + tạo floating ceiling effect</td>
+        </tr>
+        <tr>
+          <td>Corten accent line</td>
+          <td><strong>1–2mm</strong> rộng, nhô 2–3mm khỏi mặt phẳng</td>
+          <td>Mỏng hơn thì không đọc được. Dày hơn → trang trí, mất tinh tế</td>
+        </tr>
+        <tr>
+          <td>Slat corten / gỗ trần</td>
+          <td>Thanh <strong>20–30mm</strong> rộng · khe 10–15mm giữa thanh</td>
+          <td>Tỷ lệ thanh:khe = 2:1. Khe nhỏ hơn = đặc, mất nhịp. Khe lớn hơn = thưa, mất mật độ.</td>
+        </tr>
+        <tr>
+          <td>Panel chiều cao</td>
+          <td>Điểm dừng tại <strong>2200–2400mm</strong> từ sàn, không full height (trừ khi tủ full height)</td>
+          <td>Tạo visual break. Full height liên tục toàn phòng = nhàm, không có điểm nghỉ</td>
+        </tr>
+        <tr>
+          <td>Marble ledge / TV ledge</td>
+          <td>Nhô ra <strong>30–50mm</strong> khỏi mặt tường · dày 20–30mm</td>
+          <td>Vừa đủ tạo shadow phía dưới = tăng chiều sâu. Mỏng hơn = yếu. Dày hơn = thô.</td>
+        </tr>
+        <tr>
+          <td>Grout joint sàn đá/gỗ</td>
+          <td><strong>1.5–2mm</strong> (đá) · không thấy grout (gỗ)</td>
+          <td>Joint mỏng = seamless, cao cấp. Joint rộng 5mm+ = tile thông thường</td>
+        </tr>
+      </table>
+      <div class="note-box">
+        <div class="note-label">Nguyên tắc thi công — nhân sự cần thuộc</div>
+        <div class="note-text">Bản vẽ thiếu dimension khe = nhà thầu tự quyết = sai. <strong>Mọi shadow gap, mọi khe joint, mọi accent line phải có dimension trên bản vẽ chi tiết</strong> — không để mặc định.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">06 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 07  ÁNH SÁNG -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="7" data-label="Ánh sáng">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 05</span>
+      <div class="slide-title">Ánh sáng<br><em>4 layers</em></div>
+      <p class="tagline">"Đừng hỏi đủ sáng chưa. Hỏi: bóng tối đang nằm đúng chỗ chưa?"</p>
+    </div>
+    <div>
+      <table class="light-table">
+        <tr class="light-row-tr">
+          <td class="light-layer">Ambient</td>
+          <td class="light-pct">30%</td>
+          <td class="light-tech">Indirect LED strip giấu hoàn toàn — shadow gap trần/tường, corten coving. Không nhìn thấy nguồn sáng.</td>
+          <td class="light-spec"><strong>2700K</strong> · Dimmer riêng · CRI≥90 · Ra bật lúc 17h, mờ dần 23h</td>
+        </tr>
+        <tr class="light-row-tr">
+          <td class="light-layer">Task</td>
+          <td class="light-pct">30%</td>
+          <td class="light-tech">Recessed downlight âm trần, beam 25°–36°. Chỉ chiếu điểm cần: mặt bàn ăn, bàn bếp, bàn làm việc. Không chiếu tường, không chiếu ngẫu nhiên.</td>
+          <td class="light-spec"><strong>3000K</strong> · Thẳng hàng · CRI≥95 · Anti-glare baffle bắt buộc</td>
+        </tr>
+        <tr class="light-row-tr">
+          <td class="light-layer">Accent</td>
+          <td class="light-pct">30%</td>
+          <td class="light-tech">LED strip trong kệ display — chiếu vào vật phẩm, không chiếu xuống sàn. Highlight vân đá tường, texture gỗ, decorative objects. Intensity thấp hơn ambient.</td>
+          <td class="light-spec"><strong>2700K</strong> · ≤500 lux tại điểm chiếu · Dimmer riêng</td>
+        </tr>
+        <tr class="light-row-tr">
+          <td class="light-layer">Drama</td>
+          <td class="light-pct">10%</td>
+          <td class="light-tech">Pendant cluster (crystal, wabi-sabi ceramic, rope) ở nhiều độ cao trong cụm. Chỉ 1 điểm drama/phòng — living hoặc dining, không cả hai cùng lúc.</td>
+          <td class="light-spec"><strong>2200K</strong> · Không dimmer bắt buộc · Scale pendant theo trần cao</td>
+        </tr>
+      </table>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+        <div style="padding:11px 14px;border:1px solid rgba(109,191,160,.2);border-radius:2px;background:rgba(109,191,160,.04);">
+          <div style="font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;">✓ Spec chuẩn</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.65;">2700–3000K toàn bộ · Mỗi layer 1 circuit độc lập · Dimmer tất cả · CRI ≥ 90 · Anti-glare mọi điểm</div>
+        </div>
+        <div style="padding:11px 14px;border:1px solid rgba(212,130,106,.2);border-radius:2px;background:rgba(212,130,106,.04);">
+          <div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;">✗ Tuyệt đối không</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.65;">Cool white bất kỳ điểm · Đèn ốp nổi nhìn thấy nguồn · LED RGB màu · Uniform 1 layer duy nhất</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">07 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 08  CHUYỂN TIẾP VẬT LIỆU -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="8" data-label="Chuyển tiếp">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Nguyên tắc 06</span>
+      <div class="slide-title">Chuyển tiếp<br><em>Material Joint</em></div>
+      <p class="tagline">"Cách 2 vật liệu gặp nhau tại đường joint — đây là nơi phân biệt level designer."</p>
+    </div>
+    <div>
+      <table class="joint-table">
+        <tr><th>Tình huống</th><th>Kỹ thuật chuyển tiếp</th><th>Dimension / Chi tiết thi công</th></tr>
+        <tr>
+          <td>Tường: Đá → Gỗ (cùng mặt phẳng)</td>
+          <td>Khe âm <strong>5mm + shadow line</strong>. Không dùng nẹp kim loại nổi. Hai vật liệu không chạm nhau.</td>
+          <td>Khe 5mm rộng · 15mm sâu · bắt vít vào khung phía sau</td>
+        </tr>
+        <tr>
+          <td>Tường → Sàn (chân tường)</td>
+          <td>Marble wall <strong>kéo dài thành ledge ngang</strong> xuống sàn 15mm, sau đó sàn gỗ bắt đầu. Không cần skirting board.</td>
+          <td>Ledge nhô 30mm · dày 20mm · marble cùng lô với tường</td>
+        </tr>
+        <tr>
+          <td>Tường → Tủ ẩn (invisible)</td>
+          <td>Cùng màu sơn + cùng finish. Khe 3mm = ranh giới duy nhất. <strong>Không tay nắm, không frame nổi</strong> — push-open hoặc magnet catch.</td>
+          <td>Khe 3mm đều · sơn cùng mã màu · gap dưới tủ 5mm đồng đều</td>
+        </tr>
+        <tr>
+          <td>Trần → Tường (ceiling gap)</td>
+          <td>Shadow gap <strong>12–18mm</strong> + LED strip ẩn. Không crown molding, không coving nổi truyền thống.</td>
+          <td>Khe 15mm rộng · LED 2700K strip · gutter depth 40mm giấu dây</td>
+        </tr>
+        <tr>
+          <td>Zone: Kitchen → Living (sàn)</td>
+          <td>Oak herringbone <strong>làm vùng đệm 600mm</strong> giữa 2 zone vật liệu khác nhau. Gỗ = ngôn ngữ trung gian universal.</td>
+          <td>Buffer strip 600mm rộng · herringbone 45° · grout ≤2mm</td>
+        </tr>
+        <tr>
+          <td>Floating panel (tường)</td>
+          <td>Panel <strong>cách tường 50mm</strong> hai bên. LED strip hidden trong khe. Ánh sáng thay thế vật liệu làm ranh giới.</td>
+          <td>Gap 50mm hai bên · LED 3000K · panel dày ≥18mm để không võng</td>
+        </tr>
+        <tr>
+          <td>Sàn: Đá → Gỗ (khác zone)</td>
+          <td>Bậc cao <strong>10–15mm</strong> làm ranh giới tự nhiên. Không dùng nẹp kim loại trên sàn — xấu và không bền.</td>
+          <td>Step nosing bằng chính marble · cạnh 45° vát · không nẹp</td>
+        </tr>
+      </table>
+      <div class="note-box">
+        <div class="note-label">Luật trọng lực vật liệu</div>
+        <div class="note-text">Vật liệu <strong>"nặng" (stone, marble) luôn ở dưới hoặc phía trước</strong>. Vật liệu "nhẹ" (wood, plaster, fabric) ở trên hoặc phía sau. Ngược lại = bất ổn về mặt thị giác, ngay cả khi kết cấu đúng.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">08 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 09  DO / DON'T — TỔNG HỢP -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="9" data-label="Do / Don't">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Tổng hợp 07</span>
+      <div class="slide-title">DQH<br><em>Do / Don't</em></div>
+      <p class="tagline">"Quiet Luxury là ngôn ngữ của người đủ tự tin để không giải thích. Thiết kế cũng vậy."</p>
+    </div>
+    <div>
+      <div class="dd-grid">
+        <div class="dd-col do">
+          <div class="dd-label">✓ DQH Signature — Làm</div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>1 vật liệu hero</strong> focal per không gian. Ít nhưng đúng chất.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Shadow gap 3–5mm</strong> tại mọi điểm chuyển tiếp vật liệu.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Indirect lighting</strong> 2700K, không nhìn thấy nguồn, dimmer tất cả layers.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Warm neutrals</strong>: greige, taupe, sand, charcoal. 3 tông / không gian.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Texture xen kẽ</strong>: matte → grain → tactile → smooth — không bao giờ 2 cùng loại cạnh nhau.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Hidden storage</strong>: không nhìn thấy dấu vết sinh hoạt. Mọi thứ có chỗ cất.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Proportion trước decoration</strong>: tỷ lệ đúng → không cần trang trí. Tỷ lệ sai → trang trí không cứu được.</div></div>
+          <div class="dd-item"><span class="dd-sym">✓</span><div class="dd-text"><strong>Dimension trên bản vẽ</strong>: mọi khe, joint, gap phải ghi số cụ thể.</div></div>
+        </div>
+        <div class="dd-col dont">
+          <div class="dd-label">✗ Tuyệt đối không — Don't</div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Microcement rẻ, mạ vàng sáng bóng</strong>: trendy trap — đẹp ảnh render, fail thực tế.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Nhiều vật liệu cùng lúc</strong>: hơn 3 vật liệu / không gian mà không có hierarchy rõ = loạn.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Cool white</strong> bất kỳ điểm nào: làm chết vật liệu organic — gỗ, đá, vải trông như nhựa.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Visible logos, bold colors</strong>: insecure luxury. Khách hàng DQH không cần chứng minh.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Excessive ornamentation</strong>: trang trí rườm rà che giấu sự thiếu tự tin về tỷ lệ và vật liệu.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>2 vật liệu cùng texture cạnh nhau</strong>: 2 matte, 2 gloss, 2 grain cạnh nhau = flat, mất chiều sâu.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Bản vẽ thiếu dimension khe</strong>: nhà thầu tự quyết = sai. Khe là chữ ký — không thể để mặc định.</div></div>
+          <div class="dd-item"><span class="dd-sym">✗</span><div class="dd-text"><strong>Trendy materials</strong> theo Pinterest: nếu màu/vật liệu đang viral → chờ 2 năm trước khi dùng.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">09 / 10</span>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- 10  CHECKLIST TRAINING -->
+<!-- ═══════════════════════════════════════════ -->
+<section class="slide" data-index="10" data-label="Checklist">
+  <div class="layout-2col">
+    <div>
+      <span class="slide-tag">Training Tool 08</span>
+      <div class="slide-title">Checklist<br><em>Review bản vẽ</em></div>
+      <p class="tagline">"Trước khi submit bất kỳ bản vẽ nào — chạy checklist này. Thiếu 1 mục = chưa xong."</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div class="check-section">
+          <div class="check-title">Vật liệu</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Có đúng <strong>1 hero material</strong> / không gian chưa?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Material board có <strong>3 tầng hierarchy</strong> rõ ràng?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không có 2 vật liệu <strong>cùng texture</strong> cạnh nhau?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Tất cả finish đều <strong>matte</strong>, không polished?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Accent kim loại <strong>brushed/oxidized</strong>, không chrome bóng?</div></div>
+        </div>
+        <div class="check-section">
+          <div class="check-title">Màu sắc</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Palette trong <strong>warm neutral range</strong>? Không cool gray?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Tối:Sáng:Neutral = <strong>30:20:50</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không quá <strong>3 tông màu</strong> / không gian?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không có màu trending ngắn hạn?</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="check-section">
+          <div class="check-title">Đường nét &amp; Dimension</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Mọi shadow gap có <strong>dimension cụ thể</strong> trên bản vẽ?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Khe tường: <strong>3–5mm</strong>. Khe tủ: <strong>2–3mm</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Ceiling gap <strong>10–20mm</strong> + LED strip ẩn?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Solid:Void = <strong>3:1</strong> trên mỗi mặt tường?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Điểm nghỉ thị giác mỗi <strong>2.5–3m</strong> liên tục?</div></div>
+        </div>
+        <div class="check-section">
+          <div class="check-title">Ánh sáng &amp; Chuyển tiếp</div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text"><strong>4 lighting layers</strong> riêng biệt, mỗi layer 1 circuit?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Toàn bộ <strong>2700–3000K</strong>, không cool white?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Mọi chuyển tiếp vật liệu có <strong>chi tiết joint</strong>?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Không có nẹp kim loại nổi trên sàn?</div></div>
+          <div class="check-item"><div class="check-box"></div><div class="check-text">Hidden storage: <strong>không thấy tay nắm</strong> nổi?</div></div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:50px;left:48px;right:100px;">
+      <div style="padding:10px 16px;border:1px solid rgba(184,149,106,.3);border-radius:2px;background:rgba(184,149,106,.05);display:flex;gap:12px;align-items:center;">
+        <div style="font-size:18px;color:var(--gold);">◈</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;">Checklist này là <strong style="color:var(--sand);">ngưỡng tối thiểu</strong> để submit bản vẽ. Không phải đảm bảo đẹp — mà đảm bảo <strong style="color:var(--sand);">đúng ngôn ngữ DQH</strong>. Đẹp đến từ tư duy tỷ lệ và cảm nhận vật liệu — không checklist nào thay thế được.</div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-num">10 / 10</span>
+</section>
+
+</div><!-- slides-wrap -->
+
+<script>
+const wrap = document.getElementById('slidesWrap');
+const slides = document.querySelectorAll('.slide');
+const dotsEl = document.getElementById('navDots');
+const labelEl = document.getElementById('slideLabel');
+let current = 0;
+
+slides.forEach((_,i)=>{
+  const d = document.createElement('button');
+  d.className='nav-dot'+(i===0?' active':'');
+  d.title = slides[i].dataset.label || '';
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+});
+
+function goTo(n){
+  current = Math.max(0,Math.min(n,slides.length-1));
+  slides[current].scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i===current));
+  labelEl.textContent = slides[current].dataset.label || '';
+}
+function nextSlide(){goTo(current+1);}
+function prevSlide(){goTo(current-1);}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowRight') nextSlide();
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft') prevSlide();
+});
+
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(entry=>{
+    if(entry.isIntersecting){
+      const idx=parseInt(entry.target.dataset.index);
+      current=idx;
+      document.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+      labelEl.textContent = entry.target.dataset.label||'';
+    }
+  });
+},{threshold:0.6});
+slides.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

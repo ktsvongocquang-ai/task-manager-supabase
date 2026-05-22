@@ -988,7 +988,17 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
         <p className="text-sm text-gray-500 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
       )}
 
-      {useTabs ? (
+      {/* Special: 2.2 Ngôn ngữ Thiết kế — full HTML slide presentation */}
+      {section.slug === 'design-language' ? (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
+          <iframe
+            src="/design-language.html"
+            title="DQH Design Language"
+            className="w-full h-full border-0"
+            style={{ background: '#1A1714' }}
+          />
+        </div>
+      ) : useTabs ? (
         <TabbedSubsections subsections={subsections} isEditing={isEditing} onUpdate={handleUpdate} />
       ) : (
         <div className="space-y-8">
