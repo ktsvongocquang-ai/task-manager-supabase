@@ -26,8 +26,9 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 
 /* SLIDES */
 .slides-wrap{width:100%;height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth;}
-.slide{width:100%;min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;padding:120px 48px 100px;position:relative;}
-.slide > div { margin: auto; width: 100%; }
+.slide{width:100%;min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;padding:120px 48px 100px;position:relative;}
+.layout-2col, .layout-full, .layout-cover { margin-top: auto; margin-bottom: auto; width: 100%; }
+.layout-cover { max-width: 1360px; padding-left: 12vw; display: flex; flex-direction: column; align-items: flex-start; }
 .slide::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C8B89A' fill-opacity='0.012'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");pointer-events:none;}
 .slide-content { width: 100%; max-width: 1440px; margin: auto; }
 .slide-num{position:absolute;bottom:28px;right:48px;font-size:10px;letter-spacing:.2em;color:var(--muted);}
@@ -41,7 +42,6 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 .layout-full{width:100%;max-width:1360px;}
 
 /* COVER */
-.slide-cover{flex-direction:column;align-items:flex-start;padding-left:12vw;}
 .cover-title{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,8vw,100px);font-weight:300;line-height:1.0;color:var(--warm-white);}
 .cover-title em{font-style:italic;color:var(--sand);}
 .cover-sub{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-top:28px;border-top:1px solid var(--line);padding-top:18px;width:400px;}
@@ -143,6 +143,24 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 .note-label{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--gold);margin-bottom:5px;}
 .note-text{font-size:11px;color:var(--muted);line-height:1.65;}
 .note-text strong{color:var(--sand);font-weight:500;}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .nav { padding: 12px 20px !important; flex-direction: column; align-items: flex-start; gap: 8px; }
+  .nav-logo { font-size: 12px; }
+  .slide { padding: 100px 20px 80px !important; }
+  .layout-2col { grid-template-columns: 1fr !important; gap: 40px !important; }
+  .layout-cover { padding-left: 0 !important; align-items: center; text-align: center; }
+  .cover-title { font-size: clamp(40px, 12vw, 60px) !important; text-align: center; }
+  .cover-sub { width: 100% !important; text-align: center; }
+  .cover-vline, .cover-rot { display: none !important; }
+  .rule-item { grid-template-columns: 24px 1fr !important; gap: 12px !important; }
+  .mat-grid, .line-grid, .dd-grid { grid-template-columns: 1fr !important; }
+  .arr-nav { left: 20px !important; bottom: 20px !important; }
+  div[style*="repeat(3, 1fr)"] { grid-template-columns: 1fr !important; }
+  .joint-table { display: block; overflow-x: auto; white-space: nowrap; }
+  .light-table { display: block; overflow-x: auto; }
+}
 </style>
 </head>
 <body>
@@ -166,10 +184,12 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--cream);
 <!-- 00  COVER -->
 <!-- ═══════════════════════════════════════════ -->
 <section class="slide slide-cover" data-index="0" data-label="Cover">
-  <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;">DQH Studio · Training Framework · 2024</div>
-  <div class="cover-title">Quiet<br><em>Luxury</em></div>
-  <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.2vw,32px);font-weight:300;color:var(--muted);margin-top:6px;">Design Language</div>
-  <div class="cover-sub">Tỉ lệ · Vật liệu · Ngôn ngữ đường nét · Ánh sáng · Màu sắc · Chuyển tiếp vật liệu</div>
+  <div class="layout-cover">
+    <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;">DQH Studio · Training Framework · 2024</div>
+    <div class="cover-title">Quiet<br><em>Luxury</em></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.2vw,32px);font-weight:300;color:var(--muted);margin-top:6px;">Design Language</div>
+    <div class="cover-sub">Tỉ lệ · Vật liệu · Ngôn ngữ đường nét · Ánh sáng · Màu sắc · Chuyển tiếp vật liệu</div>
+  </div>
   <div class="cover-vline"></div>
   <div class="cover-rot">Contemporary Minimalism — DQH Signature</div>
   <span class="slide-num">00</span>
