@@ -7,10 +7,11 @@ import {
   Lightbulb, ArrowLeft, Sparkles, Ruler, Palette, Layers,
   FileText, Users, ClipboardList, FolderOpen, Package,
   RefreshCw, TriangleAlert, Zap, Settings, Megaphone,
-  Search, Loader2
+  Search, Loader2, Network
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import WorkflowProcessTable from "../../components/WorkflowProcessTable";
+import CoordinationProcessTable from "../../components/CoordinationProcessTable";
 import {
   fetchModules,
   fetchSectionsForModule,
@@ -29,7 +30,7 @@ import {
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
   BookOpen, GitBranch, Calculator, Sparkles, Ruler, Palette, Layers,
   FileText, Users, ClipboardList, FolderOpen, Package, RefreshCw,
-  CheckCircle2, Zap, Settings, Megaphone, TriangleAlert,
+  CheckCircle2, Zap, Settings, Megaphone, TriangleAlert, Network
 };
 
 const getIcon = (name: string | null) => ICON_MAP[name || ""] || BookOpen;
@@ -213,13 +214,12 @@ const FALLBACK_DESIGN_CONTENT: Record<string, { title: string; number: string; l
 const FALLBACK_WORKFLOWS: Workflow[] = [
   { id: "w1", module_id: "m3", slug: "client-meeting", number: "3.1", title: "Gặp khách & Tư vấn", description: "Tiếp khách lần đầu đến ký hợp đồng", icon: "Users", lead_quote: "Lần gặp đầu tiên quyết định 70% khả năng ký HĐ.", checklist: ["Brochure & bảng giá phân khúc đã in", "3–5 case study chuẩn bị (in hoặc iPad)", "Sample vật liệu signature (gỗ, đá, vải) mang theo", "Intake questionnaire sẵn sàng"], sort_order: 1, created_at: "", updated_at: "" },
   { id: "w2", module_id: "m3", slug: "design-process", number: "3.2", title: "Quy trình thiết kế", description: "Concept → 3D → Bản vẽ kỹ thuật", icon: "Sparkles", lead_quote: "Mỗi giai đoạn có deliverable cụ thể — không bỏ qua bước nào.", checklist: ["Mỗi giai đoạn có biên bản xác nhận của khách", "Không bắt đầu giai đoạn sau khi chưa duyệt giai đoạn trước", "Mọi thay đổi sau khi duyệt = change order"], sort_order: 2, created_at: "", updated_at: "" },
-  { id: "w3", module_id: "m3", slug: "handover", number: "3.3", title: "Bàn giao TK → TC", description: "Chuyển giao giữa các bộ phận", icon: "RefreshCw", lead_quote: "Điểm dễ rớt thông tin nhất. Quy trình chặt = ít rework.", checklist: null, sort_order: 3, created_at: "", updated_at: "" },
-  { id: "w4", module_id: "m3", slug: "file-naming", number: "3.4", title: "Lưu file & Naming", description: "Quy chuẩn đặt tên, version control", icon: "FileText", lead_quote: "Một file sai tên = 30 phút tìm kiếm của cả team.", checklist: null, sort_order: 4, created_at: "", updated_at: "" },
-  { id: "w5", module_id: "m3", slug: "library", number: "3.5", title: "Thư viện & Block", description: "CAD blocks, 3D models, material", icon: "Package", lead_quote: "Thư viện chung tiết kiệm thời gian + đảm bảo nhất quán.", checklist: null, sort_order: 5, created_at: "", updated_at: "" },
-  { id: "w6", module_id: "m3", slug: "storage", number: "3.6", title: "Lưu trữ dự án", description: "Cấu trúc folder chuẩn DQH", icon: "FolderOpen", lead_quote: "Một cấu trúc folder duy nhất cho mọi dự án — không sáng tạo riêng.", checklist: null, sort_order: 6, created_at: "", updated_at: "" },
-  { id: "w7", module_id: "m3", slug: "standards", number: "3.7", title: "Tiêu chuẩn đầu ra", description: "Deliverable theo từng tier", icon: "ClipboardList", lead_quote: "Khách trả ngân sách khác nhau — kỳ vọng đầu ra cũng phải khác.", checklist: null, sort_order: 7, created_at: "", updated_at: "" },
-  { id: "w8", module_id: "m3", slug: "change-order", number: "3.8", title: "Phát sinh & Thay đổi", description: "Change request, change order", icon: "GitBranch", lead_quote: "Không có thay đổi miễn phí. Mọi thay đổi đều có giấy tờ — dù 0đ.", checklist: null, sort_order: 8, created_at: "", updated_at: "" },
-  { id: "w9", module_id: "m3", slug: "handover-client", number: "3.9", title: "Nghiệm thu & Hậu mãi", description: "Bàn giao khách, bảo hành", icon: "CheckCircle2", lead_quote: "Bàn giao tốt = giới thiệu khách mới. Hậu mãi tốt = thương hiệu bền.", checklist: null, sort_order: 9, created_at: "", updated_at: "" },
+  { id: "w_coord", module_id: "m3", slug: "coordination-process", number: "3.3", title: "Phối hợp phòng ban", description: "Quy trình phối hợp Thiết kế, 2D, Thi công, Xưởng", icon: "Network", lead_quote: "Quy trình chặt chẽ giữa các phòng ban giúp giảm 80% rớt thông tin và làm lại.", checklist: null, sort_order: 3, created_at: "", updated_at: "" },
+  { id: "w3", module_id: "m3", slug: "handover", number: "3.4", title: "Bàn giao TK → TC", description: "Chuyển giao giữa các bộ phận", icon: "RefreshCw", lead_quote: "Điểm dễ rớt thông tin nhất. Quy trình chặt = ít rework.", checklist: null, sort_order: 4, created_at: "", updated_at: "" },
+  { id: "w4", module_id: "m3", slug: "file-naming", number: "3.5", title: "Lưu file & Naming", description: "Quy chuẩn đặt tên, version control", icon: "FileText", lead_quote: "Một file sai tên = 30 phút tìm kiếm của cả team.", checklist: null, sort_order: 5, created_at: "", updated_at: "" },
+  { id: "w5", module_id: "m3", slug: "library", number: "3.6", title: "Thư viện & Block", description: "CAD blocks, 3D models, material", icon: "Package", lead_quote: "Thư viện chung tiết kiệm thời gian + đảm bảo nhất quán.", checklist: null, sort_order: 6, created_at: "", updated_at: "" },
+  { id: "w8", module_id: "m3", slug: "change-order", number: "3.7", title: "Phát sinh & Thay đổi", description: "Change request, change order", icon: "GitBranch", lead_quote: "Không có thay đổi miễn phí. Mọi thay đổi đều có giấy tờ — dù 0đ.", checklist: null, sort_order: 7, created_at: "", updated_at: "" },
+  { id: "w9", module_id: "m3", slug: "handover-client", number: "3.8", title: "Nghiệm thu & Hậu mãi", description: "Bàn giao khách, bảo hành", icon: "CheckCircle2", lead_quote: "Bàn giao tốt = giới thiệu khách mới. Hậu mãi tốt = thương hiệu bền.", checklist: null, sort_order: 8, created_at: "", updated_at: "" },
 ];
 
 const FALLBACK_WORKFLOW_STEPS: Record<string, WorkflowStep[]> = {
@@ -247,8 +247,7 @@ const FALLBACK_WORKFLOW_STEPS: Record<string, WorkflowStep[]> = {
     { id: "ws13", workflow_id: "w5", phase: "3D Model Library", owner: "Lead + Diễn họa", actions: ["Model FF&E phân loại theo style", "Lưu tại Drive/DQH_LIBRARY/3D_MODELS/"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
     { id: "ws14", workflow_id: "w5", phase: "Material Sample (vật lý)", owner: "Office Manager", actions: ["Tủ mẫu tại văn phòng, code trùng với file", "Update khi có vật liệu mới"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
   ],
-  w6: [], // Special: tree view (handled separately)
-  w7: [], // Special: tiers (handled separately)
+  w_coord: [], // Special: handled separately
   w8: [
     { id: "ws15", workflow_id: "w8", phase: "Khi khách yêu cầu thay đổi", owner: "Sales / PM", actions: ["Tiếp nhận qua văn bản (Zalo, email — KHÔNG miệng)", "Đánh giá impact: chi phí, thời gian, kỹ thuật", "Lập Change Order Sheet trong 24–48h", "Khách ký xác nhận TRƯỚC khi thực hiện"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
     { id: "ws16", workflow_id: "w8", phase: "Change Order Sheet gồm", owner: "—", actions: ["Mô tả thay đổi (trước & sau)", "Chi phí phát sinh (+/– VND)", "Thay đổi timeline (+/– ngày)", "Tác động đến hạng mục khác", "Chữ ký khách + DQH"], metadata: null, sort_order: 1, created_at: "", updated_at: "" },
@@ -1169,6 +1168,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
   const isStorage = workflow.number === '3.6';
   const isStandards = workflow.number === '3.7';
   const isDesignProcess = workflow.number === '3.2';
+  const isCoordinationProcess = workflow.number === '3.3';
 
   return (
     <div className="p-6">
@@ -1187,8 +1187,15 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
         </div>
       )}
 
-      {/* Regular steps (hide for 3.2 since it uses the table view) */}
-      {steps.length > 0 && !isDesignProcess && (
+      {/* Coordination Process Table (workflow 3.3) */}
+      {isCoordinationProcess && (
+        <div className="mb-8">
+          <CoordinationProcessTable />
+        </div>
+      )}
+
+      {/* Regular steps (hide for 3.2 and 3.3 since they use table views) */}
+      {steps.length > 0 && !isDesignProcess && !isCoordinationProcess && (
         <div className="space-y-6 mb-6">
           {steps.map((step, i) => (
             <div key={step.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
