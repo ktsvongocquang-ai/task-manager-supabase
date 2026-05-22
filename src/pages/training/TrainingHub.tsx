@@ -543,27 +543,46 @@ const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: s
     const removeMistake = (idx: number) => onChange?.(mistakes.filter((_, i) => i !== idx));
 
     return (
-      <div className="space-y-3 border-2 border-purple-200 rounded-lg p-3">
+      <div className="border border-purple-200 rounded-lg overflow-hidden">
+        {/* Table header */}
+        <div className="grid grid-cols-[1fr_1fr_32px] bg-gray-100 border-b border-gray-200">
+          <div className="px-3 py-1.5 text-[11px] font-bold text-red-600 uppercase flex items-center gap-1">
+            <AlertTriangle size={11} /> Lỗi sai
+          </div>
+          <div className="px-3 py-1.5 text-[11px] font-bold text-green-600 uppercase flex items-center gap-1 border-l border-gray-200">
+            <CheckCircle2 size={11} /> Chuẩn DQH
+          </div>
+          <div></div>
+        </div>
+        {/* Rows */}
         {mistakes.map((m, j) => (
-          <div key={j} className="relative grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg overflow-hidden border border-gray-200 p-2">
-            <div className="bg-red-50 p-2 rounded">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">
-                <AlertTriangle size={13} /> Lỗi sai
-              </div>
-              <textarea value={m.wrong} onChange={e => handleWrongChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-800 border border-red-200 rounded px-2 py-1 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-y" />
+          <div key={j} className="grid grid-cols-[1fr_1fr_32px] border-b border-gray-100 hover:bg-gray-50/50">
+            <div className="p-1.5">
+              <textarea
+                value={m.wrong}
+                onChange={e => handleWrongChange(j, e.target.value)}
+                rows={2}
+                className="w-full text-[12px] text-gray-800 border border-red-100 bg-red-50/50 rounded px-2 py-1 focus:border-red-400 focus:ring-1 focus:ring-red-400 outline-none resize-y"
+              />
             </div>
-            <div className="bg-green-50 p-2 rounded">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">
-                <CheckCircle2 size={13} /> Chuẩn DQH
-              </div>
-              <textarea value={m.right} onChange={e => handleRightChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-800 border border-green-200 rounded px-2 py-1 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none resize-y" />
+            <div className="p-1.5 border-l border-gray-100">
+              <textarea
+                value={m.right}
+                onChange={e => handleRightChange(j, e.target.value)}
+                rows={2}
+                className="w-full text-[12px] text-gray-800 border border-green-100 bg-green-50/50 rounded px-2 py-1 focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none resize-y"
+              />
             </div>
-            <button onClick={() => removeMistake(j)} className="absolute top-2 right-2 text-red-400 hover:text-red-600 bg-white rounded-full p-1 shadow-sm"><Trash2 size={14}/></button>
+            <div className="flex items-center justify-center">
+              <button onClick={() => removeMistake(j)} className="text-red-300 hover:text-red-600 p-0.5"><Trash2 size={12}/></button>
+            </div>
           </div>
         ))}
-        <button onClick={addMistake} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
-          <Plus size={16} /> Thêm lỗi
-        </button>
+        <div className="p-2 bg-gray-50 border-t border-gray-200">
+          <button onClick={addMistake} className="flex items-center gap-1 text-[12px] text-purple-600 hover:text-purple-800 font-medium">
+            <Plus size={14} /> Thêm lỗi mới
+          </button>
+        </div>
       </div>
     );
   }
