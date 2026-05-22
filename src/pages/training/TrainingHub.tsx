@@ -1136,6 +1136,39 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
   );
 };
 
+// ─── STEP ACTIONS EDITOR ─────────────────────────────────────
+const StepActionsEditor = ({ stepId, actions, useDB, onUpdate }: {
+  stepId: string;
+  actions: string[];
+  useDB: boolean;
+  onUpdate: (actions: string[]) => void;
+}) => {
+  const [text, setText] = useState(actions.join("\n"));
+
+  const save = () => {
+    const newActions = text.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+    onUpdate(newActions);
+    if (useDB) {
+      import('../../services/supabase').then(({ supabase }) => {
+        supabase.from('training_workflow_steps').update({ actions: newActions }).eq('id', stepId);
+      });
+    }
+  };
+
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-gray-500 mb-1.5">Nội dung bước (mỗi dòng = 1 gạch đầu dòng)</p>
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        onBlur={save}
+        className="w-full border border-gray-200 rounded-lg p-3 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gray-50"
+        placeholder="Nhập nội dung..."
+      />
+    </div>
+  );
+};
+
 // ─── STEP DOCS EDITOR ────────────────────────────────────────
 const StepDocsEditor = ({ stepId, workflowId, docs, useDB, onUpdate }: {
   stepId: string;
@@ -1364,14 +1397,27 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
                   <span className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-0.5">{step.owner}</span>
                 )}
               </div>
-              <ul className="px-5 py-4 space-y-2">
-                {(step.actions || []).map((a: string, j: number) => (
-                  <li key={j} className="flex items-start gap-2.5 text-sm text-gray-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0 mt-2" />
-                    {a}
-                  </li>
-                ))}
-              </ul>
+              {isEditing ? (
+                <div className="px-5 py-4">
+                  <StepActionsEditor
+                    stepId={step.id}
+                    actions={step.actions || []}
+                    useDB={useDB}
+                    onUpdate={(newActions) => {
+                      setSteps(prev => prev.map(s => s.id === step.id ? { ...s, actions: newActions } : s));
+                    }}
+                  />
+                </div>
+              ) : (
+                <ul className="px-5 py-4 space-y-2">
+                  {(step.actions || []).map((a: string, j: number) => (
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-gray-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0 mt-2" />
+                      {a}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               {/* Document Links */}
               {docs.length > 0 && (
