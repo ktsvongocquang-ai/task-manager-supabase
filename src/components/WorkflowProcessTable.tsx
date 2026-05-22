@@ -125,80 +125,130 @@ export default function WorkflowProcessTable() {
         </div>
       </div>
 
-      {/* Table — fixed layout with % widths */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', minWidth: '750px' }}>
-            <colgroup>
-              <col style={{ width: '4%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '22%' }} />
-              <col style={{ width: '16%' }} />
-              <col style={{ width: '13%' }} />
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '9%' }} />
-            </colgroup>
-            <thead>
-              <tr className="bg-gray-800 text-white">
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">STT</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Giai đoạn</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Nhiệm vụ</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Kết quả</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Thực hiện</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Kiểm soát</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase">Form</th>
-                <th className="px-2 py-2 text-[10px] font-semibold uppercase text-center">T.Gian</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((phase) => (
-                <Fragment key={phase.code}>
-                  {/* Phase header */}
-                  <tr style={{ backgroundColor: phase.bgLight }}>
-                    <td className="px-2 py-2 border-b border-gray-200 align-top">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white font-bold text-[11px]"
-                        style={{ backgroundColor: phase.color }}>{phase.code}</span>
-                    </td>
-                    <td className="px-2 py-2 border-b border-gray-200 align-top">
-                      <span className="font-bold text-[11px] text-gray-900 leading-tight block">{phase.name}</span>
-                    </td>
-                    <td className="px-2 py-2 border-b border-gray-200 text-[11px] font-medium text-gray-700 align-top leading-snug">{phase.phaseTask}</td>
-                    <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top leading-snug">{phase.phaseDeliverable}</td>
-                    <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseExecutor} /></td>
-                    <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseReviewer} /></td>
-                    <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top">{phase.phaseForm}</td>
-                    <td className="px-2 py-2 border-b border-gray-200 text-center align-top">
-                      <span className="text-[10px] font-semibold text-gray-700 bg-white/70 border border-gray-300 px-1.5 py-0.5 rounded">{phase.totalDuration}</span>
-                    </td>
-                  </tr>
-                  {/* Steps */}
-                  {phase.steps.map((step, idx) => (
-                    <tr key={step.code}
-                      className={`hover:bg-gray-50/80 ${idx < phase.steps.length - 1 ? "border-b border-gray-100" : "border-b border-gray-200"}`}>
-                      <td className="px-2 py-1.5">
-                        <span className="text-[10px] font-mono font-bold" style={{ color: phase.color }}>{step.code}</span>
+      {/* ── MOBILE: Card layout ─────────────────────────────── */}
+      <div className="md:hidden space-y-3">
+        {filtered.map((phase) => (
+          <div key={phase.code}>
+            {/* Phase header card */}
+            <div className="rounded-lg p-3 mb-2 border" style={{ backgroundColor: phase.bgLight, borderColor: phase.color + '40' }}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white font-bold text-[11px]"
+                  style={{ backgroundColor: phase.color }}>{phase.code}</span>
+                <span className="font-bold text-[13px] text-gray-900">{phase.name}</span>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[11px] text-gray-600">{phase.phaseTask}</span>
+                <span className="text-[10px] font-semibold text-gray-700 bg-white/70 border border-gray-300 px-1.5 py-0.5 rounded whitespace-nowrap ml-2">{phase.totalDuration}</span>
+              </div>
+            </div>
+
+            {/* Step cards */}
+            <div className="space-y-2 ml-2 pl-3 border-l-2" style={{ borderColor: phase.color + '60' }}>
+              {phase.steps.map((step) => (
+                <div key={step.code} className="bg-white rounded-lg border border-gray-200 p-3">
+                  {/* Step code + Task */}
+                  <div className="flex items-start gap-2 mb-2">
+                    <span className="text-[10px] font-mono font-bold mt-0.5 flex-shrink-0" style={{ color: phase.color }}>{step.code}</span>
+                    <span className="text-[12px] font-medium text-gray-800 leading-snug">{step.task}</span>
+                  </div>
+
+                  {/* Deliverable */}
+                  {step.deliverable && step.deliverable !== "—" && (
+                    <p className="text-[10px] text-gray-500 mb-2 pl-5 leading-snug">→ {step.deliverable}</p>
+                  )}
+
+                  {/* Meta row: Roles + Form + Duration */}
+                  <div className="flex flex-wrap items-center gap-1.5 pl-5">
+                    <RoleBadge role={step.executor} />
+                    {step.reviewer && step.reviewer !== "—" && <RoleBadge role={step.reviewer} />}
+                    {step.form && step.form !== "—" && (
+                      <span className="text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{step.form}</span>
+                    )}
+                    <span className="text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 ml-auto">{step.duration}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── DESKTOP: Table layout ───────────────────────────── */}
+      <div className="hidden md:block">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', minWidth: '750px' }}>
+              <colgroup>
+                <col style={{ width: '4%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '22%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '9%' }} />
+              </colgroup>
+              <thead>
+                <tr className="bg-gray-800 text-white">
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">STT</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Giai đoạn</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Nhiệm vụ</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Kết quả</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Thực hiện</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Kiểm soát</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase">Form</th>
+                  <th className="px-2 py-2 text-[10px] font-semibold uppercase text-center">T.Gian</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((phase) => (
+                  <Fragment key={phase.code}>
+                    {/* Phase header */}
+                    <tr style={{ backgroundColor: phase.bgLight }}>
+                      <td className="px-2 py-2 border-b border-gray-200 align-top">
+                        <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white font-bold text-[11px]"
+                          style={{ backgroundColor: phase.color }}>{phase.code}</span>
                       </td>
-                      <td className="px-2 py-1.5" />
-                      <td className="px-2 py-1.5 text-[11px] text-gray-800 leading-snug">{step.task}</td>
-                      <td className="px-2 py-1.5 text-[10px] text-gray-600 leading-snug">{step.deliverable}</td>
-                      <td className="px-2 py-1.5"><RoleBadge role={step.executor} /></td>
-                      <td className="px-2 py-1.5"><RoleBadge role={step.reviewer} /></td>
-                      <td className="px-2 py-1.5 text-[10px] text-gray-500 leading-snug">{step.form}</td>
-                      <td className="px-2 py-1.5 text-center">
-                        <span className="text-[10px] text-gray-500 bg-gray-50 px-1 py-0.5 rounded">{step.duration}</span>
+                      <td className="px-2 py-2 border-b border-gray-200 align-top">
+                        <span className="font-bold text-[11px] text-gray-900 leading-tight block">{phase.name}</span>
+                      </td>
+                      <td className="px-2 py-2 border-b border-gray-200 text-[11px] font-medium text-gray-700 align-top leading-snug">{phase.phaseTask}</td>
+                      <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top leading-snug">{phase.phaseDeliverable}</td>
+                      <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseExecutor} /></td>
+                      <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseReviewer} /></td>
+                      <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top">{phase.phaseForm}</td>
+                      <td className="px-2 py-2 border-b border-gray-200 text-center align-top">
+                        <span className="text-[10px] font-semibold text-gray-700 bg-white/70 border border-gray-300 px-1.5 py-0.5 rounded">{phase.totalDuration}</span>
                       </td>
                     </tr>
-                  ))}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+                    {/* Steps */}
+                    {phase.steps.map((step, idx) => (
+                      <tr key={step.code}
+                        className={`hover:bg-gray-50/80 ${idx < phase.steps.length - 1 ? "border-b border-gray-100" : "border-b border-gray-200"}`}>
+                        <td className="px-2 py-1.5">
+                          <span className="text-[10px] font-mono font-bold" style={{ color: phase.color }}>{step.code}</span>
+                        </td>
+                        <td className="px-2 py-1.5" />
+                        <td className="px-2 py-1.5 text-[11px] text-gray-800 leading-snug">{step.task}</td>
+                        <td className="px-2 py-1.5 text-[10px] text-gray-600 leading-snug">{step.deliverable}</td>
+                        <td className="px-2 py-1.5"><RoleBadge role={step.executor} /></td>
+                        <td className="px-2 py-1.5"><RoleBadge role={step.reviewer} /></td>
+                        <td className="px-2 py-1.5 text-[10px] text-gray-500 leading-snug">{step.form}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          <span className="text-[10px] text-gray-500 bg-gray-50 px-1 py-0.5 rounded">{step.duration}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-3 flex flex-wrap gap-3 items-center">
+      <div className="mt-3 flex flex-wrap gap-2 md:gap-3 items-center">
         <span className="text-[10px] text-gray-400 font-medium">Giai đoạn:</span>
         {DESIGN_PROCESS_TABLE.phases.map((p) => (
           <div key={p.code} className="flex items-center gap-1">
