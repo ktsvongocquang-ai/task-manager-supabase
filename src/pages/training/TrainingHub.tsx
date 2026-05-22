@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, Fragment } from "react";
 import DQHFoundationPage from "../../components/DQHFoundationPage";
 import MindsetTierBlock from "../../components/training/MindsetTierBlock";
 import {
@@ -1852,7 +1852,7 @@ export default function TrainingHub() {
           {modules.map((m, index) => {
             const Icon = getIcon(m.icon);
             return (
-              <React.Fragment key={m.slug}>
+              <Fragment key={m.slug}>
                 <button
                   onClick={() => setActiveModuleSlug(m.slug)}
                   className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
@@ -1878,7 +1878,7 @@ export default function TrainingHub() {
                     <span className="hidden sm:inline">DQH Signature</span>
                   </button>
                 )}
-              </React.Fragment>
+              </Fragment>
             );
           })}
         </div>
