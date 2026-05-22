@@ -593,6 +593,167 @@ const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: s
   );
 };
 
+/** Interactive quiz component */
+const QuizBlock = ({ quiz }: { quiz: any }) => {
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [showExplanation, setShowExplanation] = useState<Record<number, boolean>>({});
+
+  const questions = quiz?.questions || [];
+  const totalQ = questions.length;
+  const answeredCount = Object.keys(answers).length;
+  const correctCount = questions.filter((q: any) => answers[q.id] === q.correct).length;
+  const score = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+  const passed = score >= (quiz?.passingScore || 70);
+
+  const handleSelect = (qId: number, optIdx: number) => {
+    if (submitted) return;
+    setAnswers(prev => ({ ...prev, [qId]: optIdx }));
+  };
+
+  const handleSubmit = () => setSubmitted(true);
+  const handleReset = () => { setAnswers({}); setSubmitted(false); setShowExplanation({}); };
+
+  return (
+    <div>
+      {/* Quiz header */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4 border border-purple-100">
+        <h3 className="font-bold text-base text-gray-900">{quiz?.title || "Bài kiểm tra"}</h3>
+        {quiz?.description && <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>}
+        <div className="flex flex-wrap gap-3 mt-3">
+          <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
+            📝 {totalQ} câu hỏi
+          </span>
+          {quiz?.timeLimit && (
+            <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
+              ⏱ {quiz.timeLimit} phút
+            </span>
+          )}
+          <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
+            🎯 Đạt: ≥{quiz?.passingScore || 70}%
+          </span>
+        </div>
+      </div>
+
+      {/* Results banner */}
+      {submitted && (
+        <div className={`rounded-xl p-4 mb-4 border-2 ${passed ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className={`text-lg font-bold ${passed ? 'text-green-700' : 'text-red-700'}`}>
+                {passed ? '🎉 Đạt!' : '❌ Chưa đạt'}
+              </div>
+              <div className="text-sm text-gray-600 mt-0.5">
+                Đúng {correctCount}/{totalQ} câu · Điểm: {score}%
+              </div>
+            </div>
+            <button onClick={handleReset}
+              className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700">
+              Làm lại
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Progress bar */}
+      {!submitted && (
+        <div className="mb-4">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>Đã trả lời: {answeredCount}/{totalQ}</span>
+            <span>{Math.round((answeredCount / totalQ) * 100)}%</span>
+          </div>
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-purple-500 rounded-full transition-all duration-300"
+              style={{ width: `${(answeredCount / totalQ) * 100}%` }} />
+          </div>
+        </div>
+      )}
+
+      {/* Questions */}
+      <div className="space-y-4">
+        {questions.map((q: any, idx: number) => {
+          const selected = answers[q.id];
+          const isCorrect = submitted && selected === q.correct;
+          const isWrong = submitted && selected !== undefined && selected !== q.correct;
+
+          return (
+            <div key={q.id}
+              className={`rounded-xl border p-4 transition-colors ${
+                submitted
+                  ? isCorrect ? 'border-green-300 bg-green-50/50' : isWrong ? 'border-red-300 bg-red-50/50' : 'border-gray-200'
+                  : selected !== undefined ? 'border-purple-300 bg-purple-50/30' : 'border-gray-200 hover:border-gray-300'
+              }`}>
+              <div className="flex gap-2 mb-3">
+                <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  submitted
+                    ? isCorrect ? 'bg-green-500 text-white' : isWrong ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
+                    : selected !== undefined ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-600'
+                }`}>{idx + 1}</span>
+                <p className="text-sm font-medium text-gray-800 pt-1 leading-relaxed">{q.question}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ml-9">
+                {(q.options || []).map((opt: string, optIdx: number) => {
+                  const isSelected = selected === optIdx;
+                  const isCorrectOpt = submitted && optIdx === q.correct;
+                  const isWrongOpt = submitted && isSelected && optIdx !== q.correct;
+
+                  return (
+                    <button key={optIdx}
+                      onClick={() => handleSelect(q.id, optIdx)}
+                      disabled={submitted}
+                      className={`text-left px-3 py-2 rounded-lg text-sm border transition-all ${
+                        isCorrectOpt
+                          ? 'bg-green-100 border-green-400 text-green-800 font-medium'
+                          : isWrongOpt
+                          ? 'bg-red-100 border-red-400 text-red-800 line-through'
+                          : isSelected
+                          ? 'bg-purple-100 border-purple-400 text-purple-800 font-medium'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300 hover:bg-purple-50'
+                      }`}>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Explanation */}
+              {submitted && q.explanation && (
+                <div className="ml-9 mt-2">
+                  <button onClick={() => setShowExplanation(prev => ({ ...prev, [q.id]: !prev[q.id] }))}
+                    className="text-xs text-purple-600 hover:text-purple-800 font-medium">
+                    {showExplanation[q.id] ? '▾ Ẩn giải thích' : '▸ Xem giải thích'}
+                  </button>
+                  {showExplanation[q.id] && (
+                    <p className="text-xs text-gray-600 mt-1 bg-white p-2 rounded border border-gray-200 leading-relaxed">
+                      💡 {q.explanation}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Submit button */}
+      {!submitted && totalQ > 0 && (
+        <div className="mt-6 flex justify-center">
+          <button onClick={handleSubmit}
+            disabled={answeredCount < totalQ}
+            className={`px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition-all ${
+              answeredCount === totalQ
+                ? 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-xl'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}>
+            {answeredCount === totalQ ? '✅ Nộp bài' : `Còn ${totalQ - answeredCount} câu chưa trả lời`}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 /** Render a content block based on type (from DB subsection or fallback block) */
 const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: boolean, onUpdate?: (id: string, metadata: any) => void }) => {
   // DB subsection format: content_type + metadata
@@ -605,6 +766,7 @@ const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: 
     if ((block.content_type === "list" || block.content_type === "items") && meta.items) return <ItemsBlock items={meta.items} isEditing={isEditing} onChange={(d) => handleUpdate("items", d)} />;
     if (block.content_type === "table" && meta.table) return <TableBlock table={meta.table} isEditing={isEditing} onChange={(d) => handleUpdate("table", d)} />;
     if (block.content_type === "mistakes" && meta.mistakes) return <MistakesBlock mistakes={meta.mistakes} isEditing={isEditing} onChange={(d) => handleUpdate("mistakes", d)} />;
+    if (block.content_type === "quiz" && meta.quiz) return <QuizBlock quiz={meta.quiz} />;
     if (block.content_type === "text" && block.content) {
       if (isEditing) {
         return <textarea value={block.content} onChange={e => onUpdate?.(block.id, { ...meta, content: e.target.value })} rows={4} className="w-full text-sm text-gray-800 border-2 border-purple-200 rounded px-3 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />;
