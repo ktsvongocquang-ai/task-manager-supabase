@@ -1197,7 +1197,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
   const handleToggleEdit = () => {
     if (isEditing && workflow) {
       // Save changes
-      const newChecklist = editChecklistText.split("\\n").map(s => s.trim()).filter(s => s.length > 0);
+      const newChecklist = editChecklistText.split("\n").map(s => s.trim()).filter(s => s.length > 0);
       setWorkflow({ ...workflow, checklist: newChecklist });
       if (useDB) {
         import('../../services/trainingService').then(({ updateWorkflowChecklist }) => {
@@ -1206,7 +1206,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       }
     } else {
       // Enter edit mode
-      setEditChecklistText((workflow?.checklist || []).join("\\n"));
+      setEditChecklistText((workflow?.checklist || []).join("\n"));
     }
     setIsEditing(!isEditing);
   };
