@@ -1300,9 +1300,32 @@ const EstimationModule = () => {
 
 export default function TrainingHub() {
   const [modules, setModules] = useState<TrainingModule[]>([]);
-  const [activeModuleSlug, setActiveModuleSlug] = useState<string>("onboarding");
   const [useDB, setUseDB] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Read initial tab from URL hash (e.g. #design-knowledge)
+  const getHashSlug = () => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'onboarding';
+  };
+
+  const [activeModuleSlug, setActiveModuleSlugState] = useState<string>(getHashSlug());
+
+  // Wrap setActiveModuleSlug to also update hash
+  const setActiveModuleSlug = useCallback((slug: string) => {
+    setActiveModuleSlugState(slug);
+    window.location.hash = slug;
+  }, []);
+
+  // Listen for hash changes (browser back/forward)
+  useEffect(() => {
+    const onHashChange = () => {
+      const slug = window.location.hash.replace('#', '');
+      if (slug) setActiveModuleSlugState(slug);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   useEffect(() => {
     fetchModules().then(data => {
