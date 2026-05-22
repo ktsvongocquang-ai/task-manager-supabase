@@ -7,7 +7,7 @@ import {
   Lightbulb, ArrowLeft, Sparkles, Ruler, Palette, Layers,
   FileText, Users, ClipboardList, FolderOpen, Package,
   RefreshCw, TriangleAlert, Zap, Settings, Megaphone,
-  Search, Loader2, Network
+  Search, Loader2, Network, X
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import WorkflowProcessTable from "../../components/WorkflowProcessTable";
