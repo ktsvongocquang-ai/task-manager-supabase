@@ -988,15 +988,21 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
         <p className="text-sm text-gray-500 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
       )}
 
-      {/* Special: 2.2 Ngôn ngữ Thiết kế — full HTML slide presentation */}
+      {/* Special: 2.2 links to standalone DQH Signature tab */}
       {section.slug === 'design-language' ? (
-        <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: 'calc(100vh - 200px)', minHeight: '600px' }}>
-          <iframe
-            src="/design-language.html"
-            title="DQH Design Language"
-            className="w-full h-full border-0"
-            style={{ background: '#1A1714' }}
-          />
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 text-center">
+          <Sparkles size={32} className="mx-auto text-amber-500 mb-3" />
+          <h3 className="text-lg font-bold text-gray-900 mb-2">DQH Signature — Design Language</h3>
+          <p className="text-sm text-gray-600 mb-4">Xem toàn bộ ngôn ngữ thiết kế DQH trong giao diện trình chiếu chuyên nghiệp.</p>
+          <button
+            onClick={() => {
+              window.location.hash = '#dqh-signature';
+              window.dispatchEvent(new HashChangeEvent('hashchange'));
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm shadow-sm"
+          >
+            <Sparkles size={16} /> Mở DQH Signature
+          </button>
         </div>
       ) : useTabs ? (
         <TabbedSubsections subsections={subsections} isEditing={isEditing} onUpdate={handleUpdate} />
@@ -1789,6 +1795,20 @@ export default function TrainingHub() {
   const activeModule = modules.find(m => m.slug === activeModuleSlug);
 
   const renderModuleContent = () => {
+    // DQH Signature — full-screen design language slides
+    if (activeModuleSlug === 'dqh-signature') {
+      return (
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: 'calc(100vh - 160px)', minHeight: '600px' }}>
+          <iframe
+            src="/design-language.html"
+            title="DQH Signature — Design Language"
+            className="w-full h-full border-0"
+            style={{ background: '#1A1714' }}
+          />
+        </div>
+      );
+    }
+
     if (!activeModule) return <EmptyState />;
 
     // Module 1: Foundation landing page
@@ -1826,7 +1846,7 @@ export default function TrainingHub() {
         </div>
       </div>
 
-      {/* Tab nav — 6 modules */}
+      {/* Tab nav — modules + DQH Signature */}
       <div className="bg-white border-b border-gray-200 px-3 md:px-6">
         <div className="flex gap-0 overflow-x-auto scrollbar-hide">
           {modules.map((m) => {
@@ -1846,11 +1866,23 @@ export default function TrainingHub() {
               </button>
             );
           })}
+          {/* DQH Signature — standalone tab */}
+          <button
+            onClick={() => setActiveModuleSlug('dqh-signature')}
+            className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+              activeModuleSlug === 'dqh-signature'
+                ? "border-amber-600 text-amber-700"
+                : "border-transparent text-amber-600/70 hover:text-amber-700"
+            }`}
+          >
+            <Sparkles size={16} />
+            <span className="hidden sm:inline">DQH Signature</span>
+          </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-8">
+      <div className={activeModuleSlug === 'dqh-signature' ? 'px-3 md:px-6 py-4' : 'max-w-6xl mx-auto px-3 md:px-6 py-4 md:py-8'}>
         {renderModuleContent()}
       </div>
     </div>
