@@ -954,7 +954,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
           <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
         </div>
         {useDB && (
-          <button onClick={() => setIsEditing(!isEditing)} className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
+          <button onClick={() => setIsEditing(!isEditing)} className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
             {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
           </button>
         )}
@@ -964,7 +964,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
       )}
 
       {useTabs ? (
-        <TabbedSubsections subsections={subsections} />
+        <TabbedSubsections subsections={subsections} isEditing={isEditing} onUpdate={handleUpdate} />
       ) : (
         <div className="space-y-8">
           {subsections.map((block: any, i: number) => (
