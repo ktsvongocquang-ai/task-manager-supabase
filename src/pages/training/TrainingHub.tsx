@@ -1093,51 +1093,31 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
               const Icon = getIcon(w.icon);
               const isActive = w.id === activeWorkflow;
               return (
-                <div key={w.id} className="relative group">
-                  <button
-                    onClick={() => setActiveWorkflow(w.id)}
-                    className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
-                      isActive
-                        ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
-                        : "hover:bg-white/80 border-l-3 border-l-transparent"
-                    }`}
-                  >
-                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                      isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
-                    }`}>
-                      <Icon size={14} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                          isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
-                        }`}>{w.number}</span>
-                      </div>
-                      <span className={`text-[13px] font-medium block truncate ${
-                        isActive ? "text-gray-900" : "text-gray-600"
-                      }`}>{w.title}</span>
+                <button
+                  key={w.id}
+                  onClick={() => setActiveWorkflow(w.id)}
+                  className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
+                    isActive
+                      ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
+                      : "hover:bg-white/80 border-l-3 border-l-transparent"
+                  }`}
+                >
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
+                    isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    <Icon size={14} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
+                        isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
+                      }`}>{w.number}</span>
                     </div>
-                  </button>
-
-                  {/* Sidebar Hover Tooltip for Checklist */}
-                  {w.checklist && w.checklist.length > 0 && (
-                    <div className="absolute left-full top-0 ml-1 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
-                      <div className="flex items-center gap-2 mb-2 text-amber-700 font-semibold text-sm border-b border-gray-100 pb-2">
-                        <ClipboardList size={16} />
-                        Checklist Đầu Ra
-                      </div>
-                      <ul className="space-y-1.5">
-                        {w.checklist.map((item, i) => (
-                          <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600 whitespace-normal">
-                            <span className="text-amber-400 mt-1 flex-shrink-0">•</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="absolute top-4 -left-1.5 w-3 h-3 bg-white border-t border-l border-gray-200 -rotate-45"></div>
-                    </div>
-                  )}
-                </div>
+                    <span className={`text-[13px] font-medium block truncate ${
+                      isActive ? "text-gray-900" : "text-gray-600"
+                    }`}>{w.title}</span>
+                  </div>
+                </button>
               );
             })}
           </div>

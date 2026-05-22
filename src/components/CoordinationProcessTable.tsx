@@ -114,20 +114,24 @@ export default function CoordinationProcessTable({ steps = [], isEditing, onUpda
                         {row.step}
                         
                         {/* Hover Tooltip */}
-                        {checklist.length > 0 && !isEditing && (
+                        {!isEditing && (
                           <div className="absolute left-0 top-full mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
                             <div className="flex items-center gap-2 mb-2 text-purple-700 font-semibold text-sm border-b border-gray-100 pb-2">
                               <ClipboardList size={16} />
                               Checklist Thông Tin
                             </div>
-                            <ul className="space-y-1.5">
-                              {checklist.map((item, i) => (
-                                <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600 whitespace-normal">
-                                  <span className="text-purple-400 mt-1 flex-shrink-0">•</span>
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
+                            {checklist.length > 0 ? (
+                              <ul className="space-y-1.5">
+                                {checklist.map((item, i) => (
+                                  <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600 whitespace-normal">
+                                    <span className="text-purple-400 mt-1 flex-shrink-0">•</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-xs text-gray-500 italic">Chưa có checklist. Admin vui lòng bấm &quot;Chỉnh sửa nội dung&quot; để thêm.</p>
+                            )}
                             <div className="absolute -top-2 left-4 w-4 h-4 bg-white border-t border-l border-gray-200 rotate-45"></div>
                           </div>
                         )}
