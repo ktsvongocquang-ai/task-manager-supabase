@@ -442,8 +442,14 @@ const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; bo
 /** Render a data table from DB metadata or fallback */
 const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: boolean, onChange?: (t: any) => void }) => {
   const isObject = !Array.isArray(table);
-  const headers = isObject ? (table.headers || table.columns || []) : table[0];
-  const rows = isObject ? (table.rows || []) : table.slice(1);
+  const headers: string[] = isObject ? (table.headers || table.columns || []) : table[0];
+  // Normalize rows: support both string[][] and Record<string,string>[]
+  const rawRows = isObject ? (table.rows || []) : table.slice(1);
+  const rows: string[][] = rawRows.map((row: any) => {
+    if (Array.isArray(row)) return row;
+    // Convert object row to array using headers as keys
+    return headers.map((h: string) => (row[h] ?? '') as string);
+  });
 
   if (isEditing) {
     const handleHeaderChange = (idx: number, val: string) => {
