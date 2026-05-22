@@ -1849,35 +1849,38 @@ export default function TrainingHub() {
       {/* Tab nav — modules + DQH Signature */}
       <div className="bg-white border-b border-gray-200 px-3 md:px-6">
         <div className="flex gap-0 overflow-x-auto scrollbar-hide">
-          {modules.map((m) => {
+          {modules.map((m, index) => {
             const Icon = getIcon(m.icon);
             return (
-              <button
-                key={m.slug}
-                onClick={() => setActiveModuleSlug(m.slug)}
-                className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-                  activeModuleSlug === m.slug
-                    ? "border-purple-600 text-purple-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                <Icon size={16} />
-                <span className="hidden sm:inline">{m.title}</span>
-              </button>
+              <React.Fragment key={m.slug}>
+                <button
+                  onClick={() => setActiveModuleSlug(m.slug)}
+                  className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                    activeModuleSlug === m.slug
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Icon size={16} />
+                  <span className="hidden sm:inline">{m.title}</span>
+                </button>
+                {/* DQH Signature — standalone tab placed after Module 1 */}
+                {index === 0 && (
+                  <button
+                    onClick={() => setActiveModuleSlug('dqh-signature')}
+                    className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
+                      activeModuleSlug === 'dqh-signature'
+                        ? "border-amber-600 text-amber-700"
+                        : "border-transparent text-amber-600/70 hover:text-amber-700"
+                    }`}
+                  >
+                    <Sparkles size={16} />
+                    <span className="hidden sm:inline">DQH Signature</span>
+                  </button>
+                )}
+              </React.Fragment>
             );
           })}
-          {/* DQH Signature — standalone tab */}
-          <button
-            onClick={() => setActiveModuleSlug('dqh-signature')}
-            className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-semibold border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
-              activeModuleSlug === 'dqh-signature'
-                ? "border-amber-600 text-amber-700"
-                : "border-transparent text-amber-600/70 hover:text-amber-700"
-            }`}
-          >
-            <Sparkles size={16} />
-            <span className="hidden sm:inline">DQH Signature</span>
-          </button>
         </div>
       </div>
 
