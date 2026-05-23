@@ -113,7 +113,6 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                                 <option value="Thi công">Thi công</option>
                                 <option value="Hoàn thành">Hoàn thành</option>
                                 <option value="Tạm dừng">Tạm dừng</option>
-                                <option value="Hủy bỏ">Hủy bỏ</option>
                             </select>
                         </div>
                     </div>
