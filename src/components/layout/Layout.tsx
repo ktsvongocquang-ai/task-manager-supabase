@@ -49,7 +49,7 @@ const viewTitles: Record<string, string> = {
     '/tasks': 'Mục tiêu tuần',
     '/schedule': 'Lịch',
     '/history': 'Lịch sử Hoạt động',
-    '/users': 'Quản lý Nhân viên',
+    '/users': 'Quản lý Thiết kế',
     '/construction': 'Quản lý Thi công',
     '/customers': 'CRM',
     '/marketing': 'Marketing',
@@ -252,7 +252,7 @@ export const Layout = () => {
     }
 
     const getNavItemsByRole = (userRole?: string): any[] => {
-        const role = userRole?.trim() || 'Nhân viên';
+        const role = userRole?.trim() || 'Thiết kế';
         const items: any[] = [];
 
         // Lịch - standalone top-level item
@@ -385,7 +385,7 @@ export const Layout = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-text-main truncate group-hover:text-indigo-600 transition-colors">{profile?.full_name || 'Người dùng'}</p>
-                                <p className={`text-xs ${getRoleBrand(profile?.role).text}`}>{profile?.role || 'Nhân viên'}</p>
+                                <p className={`text-xs ${getRoleBrand(profile?.role).text}`}>{profile?.role || 'Thiết kế'}</p>
                             </div>
                         </button>
                         <div className="grid grid-cols-2 gap-2 mt-4">

@@ -240,7 +240,7 @@ export const Dashboard = () => {
 
             const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
             let fetchedLogs = (logs || []) as ActivityLog[];
-            if (profile?.role === 'Nhân viên') {
+            if (profile?.role === 'Thiết kế') {
                 fetchedLogs = fetchedLogs.filter(log => !log.project_id || fetchedProjects.some(p => p.id === log.project_id));
             }
             if (fetchedLogs) setRecentActivities(fetchedLogs.slice(0, 6))

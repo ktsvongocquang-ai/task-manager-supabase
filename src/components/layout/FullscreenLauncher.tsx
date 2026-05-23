@@ -84,7 +84,7 @@ export const FullscreenLauncher: React.FC<FullscreenLauncherProps> = ({ isOpen, 
   ];
 
   const getFilteredModules = () => {
-      const role = profile?.role?.trim() || 'Nhân viên';
+      const role = profile?.role?.trim() || 'Thiết kế';
       const dept = profile?.position;
       const isAdmin = role === 'Admin' || role === 'Giám đốc';
 

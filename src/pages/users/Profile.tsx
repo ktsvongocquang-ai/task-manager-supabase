@@ -19,7 +19,7 @@ export const Profile = () => {
         if (role === 'Sale') return { color: 'bg-pink-500', text: 'text-pink-600', badge: 'bg-pink-50 text-pink-600 font-bold' }
         if (role === 'Marketing') return { color: 'bg-violet-500', text: 'text-violet-600', badge: 'bg-violet-50 text-violet-600 font-bold' }
         if (role === 'Khách hàng') return { color: 'bg-emerald-500', text: 'text-emerald-600', badge: 'bg-emerald-50 text-emerald-600 font-bold' }
-        if (role === 'Nhân viên') return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
+        if (role === 'Thiết kế') return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
         return { color: 'bg-employee', text: 'text-employee', badge: 'bg-green-50 text-employee font-bold' }
     }
 
@@ -195,7 +195,7 @@ export const Profile = () => {
                                         </>
                                     )}
 
-                                    {profile?.role === 'Nhân viên' && (
+                                    {profile?.role === 'Thiết kế' && (
                                         <>
                                             <PermissionItem title="Công việc cá nhân" desc="Truy cập danh sách việc và Kanban cá nhân." type="full" />
                                             <PermissionItem title="Dự án tổng" desc="Chỉ xem các dự án được chỉ định." type="read" />

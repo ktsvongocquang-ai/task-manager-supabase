@@ -160,7 +160,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
         if (role === 'Sale') return { color: 'bg-pink-500', text: 'text-pink-500', badge: 'bg-pink-50 text-pink-600 border border-pink-200' }
         if (role === 'Marketing') return { color: 'bg-violet-500', text: 'text-violet-500', badge: 'bg-violet-50 text-violet-600 border border-violet-200' }
         if (role === 'Khách hàng') return { color: 'bg-emerald-500', text: 'text-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border border-emerald-200' }
-        if (role === 'Nhân viên') return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' }
+        if (role === 'Thiết kế') return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' }
         return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' }
     }
 

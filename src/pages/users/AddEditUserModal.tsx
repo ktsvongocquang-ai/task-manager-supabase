@@ -85,7 +85,7 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, co
                             <option value="Sale">Sale</option>
                             <option value="Marketing">Marketing</option>
                             <option value="Khách hàng">Khách hàng</option>
-                            <option value="Nhân viên">Nhân viên</option>
+                            <option value="Thiết kế">Thiết kế</option>
                         </select>
                     </div>
                     {form.role === 'Khách hàng' && (

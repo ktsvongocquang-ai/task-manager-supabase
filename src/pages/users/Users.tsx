@@ -14,7 +14,7 @@ export const Users = () => {
     const [showModal, setShowModal] = useState(false)
     const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
     const [form, setForm] = useState({
-        staff_id: '', full_name: '', email: '', position: '', role: 'Nhân viên', password: '',
+        staff_id: '', full_name: '', email: '', position: '', role: 'Thiết kế', password: '',
         construction_project_id: '' as string | null
     })
     const [constructionProjects, setConstructionProjects] = useState<{ id: string; name: string; owner_name?: string | null }[]>([])
@@ -56,7 +56,7 @@ export const Users = () => {
     const openAddModal = () => {
         setEditingProfile(null)
         const nextId = `NV${String(profiles.length + 1).padStart(3, '0')}`
-        setForm({ staff_id: nextId, full_name: '', email: '', position: '', role: 'Nhân viên', password: '', construction_project_id: null })
+        setForm({ staff_id: nextId, full_name: '', email: '', position: '', role: 'Thiết kế', password: '', construction_project_id: null })
         setShowModal(true)
     }
 

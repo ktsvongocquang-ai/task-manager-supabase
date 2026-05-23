@@ -59,7 +59,7 @@ export const Gantt = () => {
             let fetchedTasks = (t || []) as Task[];
             let fetchedProjects = (p || []) as Project[];
 
-            if (currentProfile?.role === 'Nhân viên') {
+            if (currentProfile?.role === 'Thiết kế') {
                 const employeeTasks = fetchedTasks.filter(task =>
                     task.assignee_id === currentProfile?.id ||
                     task.supporter_id === currentProfile?.id

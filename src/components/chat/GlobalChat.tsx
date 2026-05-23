@@ -232,7 +232,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
         if (!isOpen || activeTab !== 'ai' || briefingLoaded || !currentUserProfile?.id) return;
         setBriefingLoaded(true);
         setAiLoading(true);
-        getDailyBriefing(currentUserProfile.id, currentUserProfile.full_name || 'bạn', currentUserProfile.role || 'Nhân viên').then(text => {
+        getDailyBriefing(currentUserProfile.id, currentUserProfile.full_name || 'bạn', currentUserProfile.role || 'Thiết kế').then(text => {
             setAiMessages([{ role: 'assistant', content: text, timestamp: new Date() }]);
             setAiLoading(false);
         });

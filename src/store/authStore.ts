@@ -65,9 +65,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                                         id: session.user.id,
                                         email: session.user.email,
                                         full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
-                                        role: 'Nhân viên',
+                                        role: 'Thiết kế',
                                         staff_id: newStaffId,
-                                        position: 'Nhân viên mới'
+                                        position: 'Thiết kế mới'
                                     }
                                 })
                             });

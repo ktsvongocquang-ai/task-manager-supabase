@@ -57,7 +57,7 @@ export const fetchTeamTasks = async (options?: {
         'Giám Sát': 'Thi công',
         'Sale': 'CSKH',
         'Marketing': 'Marketing',
-        'Nhân viên': 'Thiết kế',
+        'Thiết kế': 'Thiết kế',
     }
 
     // Enrich tasks with assignee info

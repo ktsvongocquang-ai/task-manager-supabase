@@ -1,29 +1,29 @@
 import type { UserRole } from '../pages/construction/types'
 
-export type AppRole = 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Giám Sát' | 'Sale' | 'Marketing' | 'Khách hàng' | 'Nhân viên'
+export type AppRole = 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Giám Sát' | 'Sale' | 'Marketing' | 'Khách hàng' | 'Thiết kế'
 
 const ROUTE_ACCESS: Record<string, AppRole[]> = {
-    '/dashboard':    ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/kanban':       ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/tasks':        ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/schedule':     ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/gantt':        ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/projects':     ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
+    '/dashboard':    ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/kanban':       ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/tasks':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/schedule':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/gantt':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/projects':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/marketing':    ['Admin', 'Quản lý thiết kế', 'Marketing'],
     '/construction': ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Khách hàng'],
     '/customers':    ['Admin', 'Quản lý thiết kế', 'Sale'],
     '/history':      ['Admin', 'Quản lý thiết kế'],
     '/users':        ['Admin'],
-    '/profile':      ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Sale', 'Marketing', 'Khách hàng', 'Nhân viên'],
-    '/mytasks':      ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing'],
-    '/training':     ['Admin', 'Quản lý thiết kế', 'Nhân viên', 'Sale', 'Marketing', 'Quản lý thi công', 'Giám Sát'],
+    '/profile':      ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Sale', 'Marketing', 'Khách hàng', 'Thiết kế'],
+    '/mytasks':      ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/training':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing', 'Quản lý thi công', 'Giám Sát'],
 }
 
 export const getDefaultRoute = (role?: string | null): string => {
     switch (role) {
         case 'Admin':
         case 'Quản lý thiết kế':
-        case 'Nhân viên':
+        case 'Thiết kế':
         case 'Sale':
         case 'Marketing':
             return '/kanban'

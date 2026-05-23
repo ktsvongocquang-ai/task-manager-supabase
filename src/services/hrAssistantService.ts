@@ -8,7 +8,7 @@ const ROLE_PRICES: Record<string, number> = {
     'Concept': 8000,
     'Thiết kế 3D Nội thất': 12000,
     'Kiến trúc sư chính': 15000,
-    'Nhân viên': 4000, // fallback
+    'Thiết kế': 4000, // fallback
     'Quản lý thiết kế': 15000,
 };
 

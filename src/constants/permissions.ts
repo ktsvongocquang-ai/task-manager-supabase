@@ -152,7 +152,7 @@ export const generateFlatPermissions = () => {
                 'Admin': row.admin.value,
                 'Quản lý thiết kế': row.manager.value,
                 'Quản lý thi công': row.manager.value,
-                'Nhân viên': row.design.value,
+                'Thiết kế': row.design.value,
                 'Marketing': row.marketing.value,
                 'Sale': row.sale.value,
                 'Giám Sát': row.supervisor.value,
