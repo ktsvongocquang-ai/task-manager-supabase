@@ -132,6 +132,7 @@ export const Projects = () => {
     const statusCounts = {
         'Chưa bắt đầu': baseFilteredProjects.filter(p => p.status === 'Chưa bắt đầu' || p.status === 'Mới').length,
         'Đang thực hiện': baseFilteredProjects.filter(p => p.status === 'Đang thực hiện').length,
+        'Thi công': baseFilteredProjects.filter(p => p.status === 'Thi công').length,
         'Hoàn thành': baseFilteredProjects.filter(p => p.status === 'Hoàn thành').length,
         'Tạm dừng': baseFilteredProjects.filter(p => p.status === 'Tạm dừng').length,
         'Hủy bỏ': baseFilteredProjects.filter(p => p.status === 'Hủy bỏ').length,
@@ -362,6 +363,7 @@ export const Projects = () => {
     const getStatusBadge = (status: string) => {
         if (status === 'Hoàn thành') return 'bg-emerald-100 text-emerald-700 border-emerald-200'
         if (status === 'Đang thực hiện') return 'bg-blue-100 text-blue-700 border-blue-200'
+        if (status === 'Thi công') return 'bg-purple-100 text-purple-700 border-purple-200'
         if (status === 'Tạm dừng') return 'bg-amber-100 text-amber-700 border-amber-200'
         if (status === 'Hủy bỏ') return 'bg-red-100 text-red-700 border-red-200'
         return 'bg-slate-100 text-slate-700 border-slate-200'
@@ -465,8 +467,9 @@ export const Projects = () => {
                     >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
                             status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
-                                status === 'Hủy bỏ' ? 'bg-red-50 text-red-600' :
-                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                                status === 'Thi công' ? 'bg-purple-50 text-purple-600' :
+                                    status === 'Hủy bỏ' ? 'bg-red-50 text-red-600' :
+                                        status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
                             }`}>
                             {count}
                         </div>
