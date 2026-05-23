@@ -932,7 +932,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
-                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                            {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                         </select>
                                         {form.assignee_id && (
                                             <button 
@@ -955,7 +955,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">Thêm người...</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                                     </select>
                                 </div>
                             </div>

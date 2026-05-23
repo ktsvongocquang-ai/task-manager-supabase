@@ -796,7 +796,7 @@ export const Tasks = () => {
                                                                                                     disabled={!canEdit}
                                                                                                 >
                                                                                                     <option value="">Chưa gán</option>
-                                                                                                    {profiles.map(p => (
+                                                                                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => (
                                                                                                         <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                                                                                                     ))}
                                                                                                 </select>
