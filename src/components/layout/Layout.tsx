@@ -72,7 +72,7 @@ export const Layout = () => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false) // Added Mobile Sidebar state
     
     // Accordion sidebar state
-    const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Công việc': true })
+    const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Thiết kế': true, 'Quản lý thiết kế': true, 'Công việc': true })
 
     // Track page views for usage analytics
     const lastTrackedPath = useRef('')
@@ -278,7 +278,7 @@ export const Layout = () => {
         // Tab Công Việc
         if (canAccessRoute(role, '/kanban')) {
             items.push({
-                name: 'Công việc',
+                name: isManagerRole(role) ? 'Quản lý thiết kế' : 'Thiết kế',
                 path: '/kanban',
                 icon: KanbanIcon,
                 matchPrefix: ['/kanban', '/tasks', '/gantt', '/projects', '/dashboard'],
