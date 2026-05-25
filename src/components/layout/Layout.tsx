@@ -296,6 +296,10 @@ export const Layout = () => {
         // Tab Marketing
         if (canAccessRoute(role, '/marketing')) {
             items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
+        }
+
+        // Tab Portfolio
+        if (canAccessRoute(role, '/portfolio-manager')) {
             items.push({ name: 'Portfolio', path: '/portfolio-manager', icon: LinkIcon, matchPrefix: ['/portfolio-manager'] });
         }
 
