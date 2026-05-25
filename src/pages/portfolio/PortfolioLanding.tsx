@@ -2594,6 +2594,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                         src={stg.image} 
                         alt={stg.title} 
                         className="w-full h-full object-cover select-none pointer-events-none" 
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       />
                       <div className={`absolute inset-0 bg-[#161412] transition-opacity duration-500 ${activeStage === sIdx ? 'opacity-0' : 'opacity-65'}`} />
                       <div className={`absolute inset-0 border-2 transition-all duration-500 rounded-sm pointer-events-none ${activeStage === sIdx ? 'border-[#B8913A]' : hoveredStage === sIdx ? 'border-[#B8913A]/50' : 'border-transparent'}`} />
@@ -2709,6 +2710,111 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                           })}
                         </div>
 
+                        {/* Illustrative Images for this specific section, visible by default */}
+                        <div className="mt-4 my-2">
+                          {sIdx === 0 && (
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm relative">
+                                <img 
+                                  src={selectedCaseStudy.floorPlan.blueprint} 
+                                  className="w-full h-full object-cover opacity-90 select-none pointer-events-none" 
+                                  alt="Blueprint" 
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm relative">
+                                <img 
+                                  src={selectedCaseStudy.floorPlan.sitePhoto} 
+                                  className="w-full h-full object-cover select-none pointer-events-none" 
+                                  alt="Site construction" 
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {sIdx === 1 && (
+                            <div className="grid grid-cols-3 gap-2">
+                              {selectedCaseStudy.design3D.images.map((img: string, imgIdx: number) => (
+                                <div key={imgIdx} className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
+                                  <img 
+                                    src={img} 
+                                    className="w-full h-full object-cover select-none pointer-events-none" 
+                                    alt={`3D render ${imgIdx}`} 
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {sIdx === 2 && (
+                            <div className="relative aspect-[16/10] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
+                              <img 
+                                src={selectedCaseStudy.structural.imgMain} 
+                                className="w-full h-full object-cover select-none pointer-events-none" 
+                                alt="Ceiling layout detail" 
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                              <div className="absolute inset-0 bg-black/5" />
+                              <div className="absolute left-[8%] top-[12%] text-red-500 font-serif italic text-[9px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] pointer-events-none select-none">
+                                ↖ Khung lam gió thẩm mỹ phẳng viền
+                              </div>
+                              <div className="absolute right-[8%] bottom-[15%] text-red-500 font-serif italic text-[9px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] pointer-events-none select-none">
+                                Tách khe tạo độ nét shadow gap ↗
+                              </div>
+                            </div>
+                          )}
+                          {sIdx === 3 && (
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
+                                <img 
+                                  src={selectedCaseStudy.fixedInterior.imgMain} 
+                                  className="w-full h-full object-cover select-none pointer-events-none" 
+                                  alt="Interior assembly" 
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
+                                <img 
+                                  src={selectedCaseStudy.looseFurniture.imgMain} 
+                                  className="w-full h-full object-cover select-none pointer-events-none" 
+                                  alt="Loose furniture corner" 
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                          {sIdx === 4 && (
+                            <div className="space-y-2.5">
+                              <div className="aspect-[16/10] bg-stone-100 rounded-sm overflow-hidden shadow-md relative">
+                                <img 
+                                  src={selectedCaseStudy.finalize.images[0]} 
+                                  className="w-full h-full object-cover select-none pointer-events-none" 
+                                  alt="Completed overall view" 
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2.5">
+                                <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
+                                  <img 
+                                    src={selectedCaseStudy.finalize.images[1]} 
+                                    className="w-full h-full object-cover select-none pointer-events-none" 
+                                    alt="Completed detail 1" 
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                  />
+                                </div>
+                                <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
+                                  <img 
+                                    src={selectedCaseStudy.finalize.images[2]} 
+                                    className="w-full h-full object-cover select-none pointer-events-none" 
+                                    alt="Completed detail 2" 
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Accordion trigger */}
                         <div>
                           <button
@@ -2757,18 +2863,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                                       <span className="text-[9px] text-[#2C2920] font-sans font-medium">{det.name}</span>
                                     </div>
                                   ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {sIdx === 4 && stg.subImages && (
-                              <div className="space-y-3">
-                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
-                                  ẢNH BÀN GIAO THỰC TẾ BỔ SUNG
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <img src={stg.subImages[1]} className="rounded-sm aspect-[4/3] object-cover shadow-sm" alt="Detail 1" />
-                                  <img src={stg.subImages[2]} className="rounded-sm aspect-[4/3] object-cover shadow-sm" alt="Detail 2" />
                                 </div>
                               </div>
                             )}
