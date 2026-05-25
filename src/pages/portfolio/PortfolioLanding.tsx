@@ -168,6 +168,19 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [pin, setPin] = useState('');
   const [authenticated, setAuthenticated] = useState(isPreview);
   const [showShareManager, setShowShareManager] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (isPreview) {
@@ -266,8 +279,14 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
     <div className="font-sans antialiased bg-[#FAF8F4] text-[#1C1C1A] selection:bg-[#B89B6A] selection:text-white">
       
       {/* ── NAVBAR ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between bg-[#FAF8F4]/92 backdrop-blur-xl border-b border-[#1C1C1A]/10">
-        <a href="#" className="font-serif text-xl font-semibold tracking-wide text-[#1C1C1A]">
+      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-[#FAF8F4]/95 backdrop-blur-md border-b border-[#1C1C1A]/10 shadow-sm' 
+          : 'bg-transparent border-b border-transparent'
+      }`}>
+        <a href="#" className={`font-serif text-xl font-semibold tracking-wide transition-colors duration-300 ${
+          isScrolled ? 'text-[#1C1C1A]' : 'text-[#F5F2EC]'
+        }`}>
           DQH <span className="font-light italic text-[#B89B6A]">Signature</span>
         </a>
         <div className="hidden md:flex gap-9">
@@ -275,7 +294,11 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <a 
               key={idx} 
               href={`#section-${idx}`} 
-              className="text-xs tracking-[0.12em] uppercase text-[#8A8780] hover:text-[#1C1C1A] transition-colors duration-300 font-medium"
+              className={`text-xs tracking-[0.12em] uppercase transition-colors duration-300 font-medium ${
+                isScrolled 
+                  ? 'text-[#8A8780] hover:text-[#1C1C1A]' 
+                  : 'text-[#C4C0B8] hover:text-[#FAF8F4]'
+              }`}
             >
               {label}
             </a>
@@ -283,47 +306,101 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
         <a 
           href="#contact" 
-          className="text-xs tracking-[0.1em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-5 py-2.5 hover:bg-[#B89B6A] transition-colors duration-300 font-semibold"
+          className={`text-xs tracking-[0.1em] uppercase px-5 py-2.5 transition-all duration-300 font-semibold ${
+            isScrolled 
+              ? 'text-[#FAF8F4] bg-[#1C1C1A] hover:bg-[#B89B6A]' 
+              : 'text-[#1C1C1A] bg-[#F5F2EC] hover:bg-[#B89B6A] hover:text-[#FAF8F4]'
+          }`}
         >
           Đặt Lịch Tư Vấn
         </a>
       </nav>
 
       {/* ── HERO ── */}
-      <section className="min-h-screen pt-24 grid grid-cols-1 md:grid-cols-2 overflow-hidden bg-[#F5F2EC]">
-        <div className="flex flex-col justify-center px-6 md:px-16 py-16 relative z-10">
+      <section 
+        className="min-h-screen pt-28 pb-16 flex flex-col justify-center px-6 md:px-16 relative overflow-hidden bg-[#131312]"
+        style={{
+          background: 'linear-gradient(180deg, #181816 0%, #111110 100%)',
+        }}
+      >
+        {/* Decorative vertical line */}
+        <div 
+          className="absolute right-12 md:right-32 top-0 bottom-0 pointer-events-none hidden sm:block opacity-60"
+          style={{
+            width: '0.5px',
+            background: 'linear-gradient(to bottom, transparent 10%, rgba(184, 155, 106, 0.3) 50%, transparent 90%)',
+          }}
+        >
+          <span 
+            className="absolute top-1/2 right-[-2.8rem] transform rotate-90 translate-y-[-50%] text-[10px] tracking-[0.3em] text-[#8A8780] white-space-nowrap uppercase font-sans font-medium"
+          >
+            Est. 30 . 12 . 2020
+          </span>
+        </div>
+
+        <div className="relative z-10 max-w-[720px] w-full mx-auto md:mx-0">
           <Reveal>
-            <p className="text-xs tracking-[0.25em] uppercase text-[#8A8780] mb-5 flex items-center gap-3">
-              <span className="w-6 h-px bg-[#8A8780] inline-block" />
-              DQH ARCHITECTS · DESIGN & BUILD
+            <p className="text-[9px] tracking-[0.3em] uppercase text-[#8A8780] mb-8 font-sans font-medium">
+              INTERIOR DESIGN &amp; BUILD STUDIO · TP.HCM
             </p>
           </Reveal>
+          
           <Reveal delay={100}>
-            <h1 className="font-serif text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-[1.1] mb-6 text-[#1C1C1A]">
-              Giải pháp kiến trúc<br />
-              <em className="not-italic text-[#B89B6A]">Quiet Luxury</em><br />
-              Trọn gói D&amp;B.
+            <h1 className="font-serif text-[clamp(3rem,8vw,5.8rem)] font-light leading-[1.05] mb-6 text-[#F5F2EC]">
+              Define<br />
+              <em className="italic text-[#F5F2EC] font-light">Quality</em><br />
+              Housing
             </h1>
           </Reveal>
+
           <Reveal delay={200}>
-            <p className="text-[0.95rem] text-[#8A8780] leading-[1.8] max-w-[460px] mb-8">
-              Chúng tôi không chỉ bán bản vẽ. DQH chịu trách nhiệm từ khâu khảo sát, thiết kế ý tưởng đến sản xuất lắp ráp đồ gỗ và thi công xây dựng hoàn thiện. Một đầu mối duy nhất, cam kết không phát sinh, bàn giao sản phẩm cuối cùng hoàn hảo.
+            <p className="font-serif italic font-light text-[clamp(1.2rem,2.5vw,1.75rem)] text-[#B89B6A] mb-14">
+              "Làm nghề tử tế."
             </p>
           </Reveal>
+
+          {/* 3 meta info cards */}
           <Reveal delay={300}>
-            <div className="flex items-center gap-5 flex-wrap">
-              <a href="#section-0" className="inline-block text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-8 py-3.5 hover:bg-[#B89B6A] transition-all duration-300 font-semibold">Xem các công trình</a>
-              <a href="#section-3" className="inline-flex items-center gap-2 text-xs tracking-[0.12em] uppercase text-[#1C1C1A] hover:gap-4 transition-all duration-300 font-semibold">Bộ tiêu chuẩn mẫu →</a>
+            <div className="flex gap-16 md:gap-24 flex-wrap mb-14 max-w-[600px]">
+              {[
+                { label: 'MÔ HÌNH', value: 'Design & Build' },
+                { label: 'PHÂN KHÚC', value: 'Cao cấp' },
+                { label: 'TRIẾT LÝ', value: 'Quiet Luxury' },
+              ].map((m, i) => (
+                <div key={i} className="space-y-1">
+                  <p className="text-[9px] tracking-[0.25em] uppercase text-[#8A8780] font-sans font-medium">{m.label}</p>
+                  <p className="text-sm text-[#F5F2EC] font-sans font-medium">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Action buttons */}
+          <Reveal delay={400}>
+            <div className="flex items-center gap-6 flex-wrap">
+              <a 
+                href="#section-0" 
+                className="bg-[#B89B6A] hover:bg-[#B89B6A]/85 text-[#131312] text-xs tracking-[0.15em] uppercase px-8 py-3.5 font-sans font-semibold transition-all duration-300 cursor-pointer rounded-sm"
+              >
+                Xem các công trình
+              </a>
+              <a 
+                href="#section-3" 
+                className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer"
+              >
+                Bộ tiêu chuẩn mẫu →
+              </a>
             </div>
           </Reveal>
         </div>
-        <div className="relative h-[60vw] md:h-auto overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&q=80"
-            alt="DQH Quiet Luxury Home"
-            className="w-full h-full object-cover"
-          />
-        </div>
+
+        {/* Scroll down indicator dot/line */}
+        <div 
+          className="absolute bottom-10 right-10 w-[0.5px] h-10 hidden md:block"
+          style={{
+            background: 'linear-gradient(to bottom, #B89B6A, transparent)',
+          }}
+        />
       </section>
 
       {/* ── SECTION 0: CÔNG TRÌNH NỔI BẬT ── */}
