@@ -59,6 +59,185 @@ const PROJECTS = [
   { id: 4, num: "04", cat: "Boutique Resort · Đà Lạt", title: "Arden Boutique Resort", img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80", desc: "Công trình nghỉ dưỡng cao cấp hòa quyện với thiên nhiên sương mù, sử dụng limewash sơn vôi tự nhiên." },
 ];
 
+const PROJECT_CASE_STUDIES = [
+  {
+    id: 1,
+    title: "THE LUMÉ RESIDENCE",
+    subtitle: "QUÁ TRÌNH HOÀN THIỆN DỰ ÁN BIỆT THỰ THỦ ĐỨC",
+    location: "Thành phố Thủ Đức",
+    area: "450m2",
+    style: "Quiet Luxury · Travertine & Oak",
+    studio: "by DQH Architects",
+    date: "Tháng 12 - 2025",
+    introText: "Từ những trao đổi đầu tiên, định hướng của dự án dần trở nên rõ ràng: giữ lại sự tối giản để không gian không bị nặng nề, nhưng phải đủ chiều sâu để không trở nên lạnh lẽo. Đây không phải là một bài toán vẽ trang trí, mà là một quá trình tinh chỉnh để từng chi tiết đều phục vụ cho trải nghiệm sống hằng ngày.",
+    palette: [
+      { hex: "#E3DAC9", name: "Warm Beige" },
+      { hex: "#AFA69D", name: "Taupe Beige" },
+      { hex: "#887764", name: "Taupe Brown" },
+      { hex: "#40311E", name: "Espresso Brown" }
+    ],
+    coverImage: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1600&q=80",
+    floorPlan: {
+      text: "Khi bắt đầu làm việc với mặt bằng, đội ngũ không nhìn nó như một bản vẽ tĩnh, mà như một không gian đang vận hành mỗi ngày. Mọi thứ được đặt lại câu hỏi, từ cách di chuyển trong nhà cho đến những khoảng không tưởng chừng nhỏ nhưng lại ảnh hưởng lớn đến trải nghiệm tổng thể. Chúng tôi mở rộng diện tích phòng khách bằng cách liên thông với sảnh đón, và tối ưu kết cấu dầm chịu lực để không lộ cột.",
+      sitePhoto: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      blueprint: "https://images.unsplash.com/photo-1503387762-592dec58ef4e?w=800&q=80"
+    },
+    design3D: {
+      text: "Quá trình dựng 3D tập trung hoàn toàn vào tỷ lệ khối và cách ánh sáng tự nhiên quét qua các bề mặt travertine và gỗ sồi thô. Chúng tôi tinh giản tối đa tủ kệ, nhường chỗ cho các khoảng thở shadow gap 3mm âm trần. Bản vẽ 3D được hoàn thiện đến từng mạch ghép của đá tự nhiên.",
+      images: [
+        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+        "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&q=80"
+      ]
+    },
+    tailoring: {
+      text: "Đối với DQH, một dự án đạt chuẩn không chỉ là sản phẩm phải giống với bản vẽ. Mà còn phải phù hợp với công năng mong muốn của gia chủ và đảm bảo chi phí vật liệu phù hợp. Vì thế giai đoạn này thường chiếm phần lớn thời gian thảo luận.",
+      images: [
+        "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+        "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80",
+        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80"
+      ],
+      steps: [
+        { title: "Trình bày thiết kế 3D", desc: "Giải trình chi tiết phương án đi điện nước âm tường và cách xử lý chống thấm ngược để chủ nhà an tâm trước khi thi công thô." },
+        { title: "Báo giá khối lượng vật liệu", desc: "Lập BOQ chi tiết từng mã gỗ sồi tự nhiên, đá travertine nhập khẩu Ý, và phụ kiện bản lề hơi Häfele." },
+        { title: "Trao đổi mẫu vật liệu thực tế", desc: "Mời chủ nhà trực tiếp sờ và chọn vân đá travertine, độ mờ của lớp sơn phủ gỗ sồi tại văn phòng DQH." }
+      ]
+    }
+  },
+  {
+    id: 2,
+    title: "THE HORIZON HOUSE",
+    subtitle: "QUÁ TRÌNH HOÀN THIỆN DỰ ÁN NHÀ PHỐ QUẬN 2",
+    location: "Quận 2, TP. Thủ Đức",
+    area: "280m2",
+    style: "Modern Tropical · Biophilic",
+    studio: "by DQH Architects",
+    date: "Tháng 10 - 2025",
+    introText: "Được xây dựng trên triết lý đưa thiên nhiên và ánh sáng len lỏi vào từng không gian sống. Horizon House giải quyết bài toán nhà ống hẹp ngang bằng hệ giếng trời thông tầng lớn và vườn treo biophilic, mang lại trải nghiệm nghỉ dưỡng đích thực ngay giữa lòng đô thị.",
+    palette: [
+      { hex: "#D2C2A4", name: "Sand Beige" },
+      { hex: "#8A9A86", name: "Olive Green" },
+      { hex: "#6E5B4F", name: "Walnut Brown" },
+      { hex: "#EAE6DF", name: "Off-white" }
+    ],
+    coverImage: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1600&q=80",
+    floorPlan: {
+      text: "Mặt bằng được tối ưu để tạo ra các khoảng trống thông gió tự nhiên (Void) kết hợp cây xanh. Chúng tôi đập bỏ bớt một phần sàn lầu 1 để làm khoảng giếng trời lớn gấp đôi, giúp ánh sáng chiếu sâu vào khu vực bếp và bàn ăn ở tầng trệt.",
+      sitePhoto: "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=800&q=80",
+      blueprint: "https://images.unsplash.com/photo-1503387762-592dec58ef4e?w=800&q=80"
+    },
+    design3D: {
+      text: "Hồ sơ 3D tập trung thể hiện hiệu ứng đổ bóng của giếng trời tại các thời điểm trong ngày. Màu xanh của hệ thực vật hòa quyện hoàn hảo với tông gỗ walnut ấm áp và lớp sơn vôi limewash tự nhiên trên tường.",
+      images: [
+        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80"
+      ]
+    },
+    tailoring: {
+      text: "Quá trình hoàn thiện nhà phố đòi hỏi KTS bám sát hiện trường để điều phối ánh sáng tự nhiên và lắp đặt hệ cây trồng phù hợp khí hậu miền Nam. Từng tấm ốp gỗ đều được đo đạc tỉ mỉ.",
+      images: [
+        "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80",
+        "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+        "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+      ],
+      steps: [
+        { title: "Đóng lưới thép chống nứt", desc: "Đóng lưới mắt cáo tại các vị trí tiếp giáp tường gạch và bê tông trước khi tô vữa để tránh nứt tường giếng trời." },
+        { title: "Mockup ánh sáng & cây xanh", desc: "Thử nghiệm mockup cây xanh thực tế dưới giếng trời để đảm bảo cây nhận đủ ánh sáng và sinh trưởng tốt." },
+        { title: "Kiểm tra độ ẩm gỗ nội thất", desc: "Đo độ ẩm gỗ walnut trước khi gia công tại xưởng để đảm bảo không bị cong vênh dưới tác động của giếng trời." }
+      ]
+    }
+  },
+  {
+    id: 3,
+    title: "THE VERENA PENTHOUSE",
+    subtitle: "QUÁ TRÌNH HOÀN THIỆN DỰ ÁN PENTHOUSE QUẬN 7",
+    location: "Phú Mỹ Hưng, Quận 7",
+    area: "320m2",
+    style: "Minimalist Luxury · Travertine & Metal",
+    studio: "by DQH Architects",
+    date: "Tháng 08 - 2025",
+    introText: "Một tuyệt tác tối giản ngự trị trên tầng cao của khu đô thị Phú Mỹ Hưng. Verena Penthouse là sự đối thoại tinh tế giữa đá travertine nguyên khối, thép rỉ và các khoảng trần cao ngút ngàn, tôn vinh lối sống tự do và tĩnh lặng.",
+    palette: [
+      { hex: "#D6CFC7", name: "Travertine Gray" },
+      { hex: "#4E4B47", name: "Charcoal Gray" },
+      { hex: "#9F825B", name: "Bronze Gold" },
+      { hex: "#F3EFE9", name: "Soft Cream" }
+    ],
+    coverImage: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=1600&q=80",
+    floorPlan: {
+      text: "Cấu trúc căn Penthouse ban đầu bị chia nhỏ bởi quá nhiều phòng phụ. Đội ngũ DQH đã giải phóng toàn bộ không gian trung tâm, đập bỏ các vách ngăn không chịu lực để tạo ra một khoảng không lớn liên tục dài 18m từ phòng khách ra ban công.",
+      sitePhoto: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      blueprint: "https://images.unsplash.com/photo-1503387762-592dec58ef4e?w=800&q=80"
+    },
+    design3D: {
+      text: "Dựng 3D tập trung mô phỏng các diện tường lớn không tì vết. Hệ tủ âm tường được giấu hoàn toàn vào vách thạch cao. Vị trí khớp bóng shadow gap được tính toán tỉ mỉ đến từng milimet để tạo cảm giác trần lơ lửng.",
+      images: [
+        "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=80",
+        "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&q=80"
+      ]
+    },
+    tailoring: {
+      text: "Thi công Penthouse đòi hỏi biện pháp vận chuyển vật liệu đá nguyên khối bằng cẩu chuyên dụng lên tầng cao nhất. Quá trình chọn đá travertine được kiểm soát chặt chẽ.",
+      images: [
+        "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80",
+        "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80"
+      ],
+      steps: [
+        { title: "Nghiệm thu chống thấm ban công", desc: "Thực hiện ngâm nước thử nghiệm ban công Penthouse suốt 72 giờ để đảm bảo không thấm dột xuống căn hộ bên dưới." },
+        { title: "Lắp đặt cẩu chuyên dụng", desc: "Lập phương án và cẩu tấm đá travertine nguyên khối nặng 300kg lên tầng 32 an toàn, chính xác." },
+        { title: "Shadow Gap 3mm tường trần", desc: "Giám sát kỹ thuật bắn nẹp nhôm âm thạch cao tạo khe bóng 3mm sắc sảo cho hệ trần." }
+      ]
+    }
+  },
+  {
+    id: 4,
+    title: "ARDEN BOUTIQUE RESORT",
+    subtitle: "QUÁ TRÌNH HOÀN THIỆN DỰ ÁN RESORT ĐÀ LẠT",
+    location: "Trại Mát, Đà Lạt",
+    area: "1200m2",
+    style: "Rustic Luxury · Limewash & Pine Wood",
+    studio: "by DQH Architects",
+    date: "Tháng 05 - 2025",
+    introText: "Nằm nép mình bên sườn đồi Trại Mát sương mù, Arden Boutique Resort mang vẻ đẹp mộc mạc nguyên sơ nhưng tinh tế vô ngần. Công trình sử dụng các vật liệu địa phương như gỗ thông hun khói, đá chẻ tự nhiên kết hợp kỹ thuật sơn vôi thủ công.",
+    palette: [
+      { hex: "#C2B29F", name: "Pine Bark" },
+      { hex: "#EBE3D5", name: "Lime Wash" },
+      { hex: "#5C635A", name: "Forest Gray" },
+      { hex: "#44392F", name: "Charred Pine" }
+    ],
+    coverImage: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1600&q=80",
+    floorPlan: {
+      text: "Địa hình sườn dốc dốc đứng đặt ra bài toán khó về gia cố móng nẹp đá. Mặt bằng được chia thành 4 phân khu Bungalow nương tựa theo địa hình tự nhiên, không san gạt đồi đất lớn để bảo vệ hệ rễ thông cổ thụ xung quanh.",
+      sitePhoto: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      blueprint: "https://images.unsplash.com/photo-1503387762-592dec58ef4e?w=800&q=80"
+    },
+    design3D: {
+      text: "Phối cảnh 3D tập trung tái hiện không khí mù sương của Đà Lạt và cách ánh sáng ấm của đèn 2700K hắt nhẹ lên tường vôi gồ ghề. Gỗ thông hun khói đen được phối làm điểm nhấn đối lập.",
+      images: [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+        "https://images.unsplash.com/photo-1565538810844-1e119eae811d?w=800&q=80"
+      ]
+    },
+    tailoring: {
+      text: "Quá trình sản xuất mộc và thi công tại chỗ đòi hỏi sự kiên nhẫn tối đa của người thợ. Gỗ thông địa phương được tuyển chọn và xử lý sấy hun khói 45 ngày để chống mối mọt.",
+      images: [
+        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80",
+        "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+        "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80"
+      ],
+      steps: [
+        { title: "Sơn vôi Limewash 3 lớp", desc: "Nghệ nhân quét sơn vôi limewash thủ công tạo ra các vệt loang tự nhiên thô mộc trên diện tường ngoài trời." },
+        { title: "Hun khói gỗ thông 45 ngày", desc: "Gia công sấy hun khói gỗ thông Đà Lạt đạt tiêu chuẩn chống co ngót, chống mối mọt dưới khí hậu ẩm sương mù." },
+        { title: "Kè đá chẻ tự nhiên móng", desc: "Xếp kè đá chẻ tự nhiên từ các tảng đá tại địa phương để giữ vững sườn dốc mà không phá vỡ cảnh quan." }
+      ]
+    }
+  }
+];
+
 const STAFF_PORTFOLIO = [
   {
     name: "Đỗ Quang Hải",
@@ -266,7 +445,14 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [expandedStaff, setExpandedStaff] = useState<Record<number, boolean>>({});
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
   const [showRaciTable, setShowRaciTable] = useState(false);
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState<any>(null);
 
+  const handleOpenCaseStudy = (id: number) => {
+    const study = PROJECT_CASE_STUDIES.find(s => s.id === id);
+    if (study) {
+      setSelectedCaseStudy(study);
+    }
+  };
 
   // Real Project Data from Supabase
   const [realProject, setRealProject] = useState<any>(null);
@@ -587,19 +773,34 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
             {PROJECTS.map((proj, idx) => (
               <div key={proj.id} className={`group transition-all duration-500 ${idx % 2 === 1 ? 'md:mt-24' : ''}`}>
-                <div className="overflow-hidden aspect-[16/10] relative mb-8 rounded-sm bg-[#F5F2EC]">
+                <div 
+                  onClick={() => handleOpenCaseStudy(proj.id)}
+                  className="overflow-hidden aspect-[16/10] relative mb-8 rounded-sm bg-[#F5F2EC] cursor-pointer"
+                >
                   <img 
                     src={proj.img} 
                     alt={proj.title} 
-                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 filter grayscale group-hover:grayscale-0" 
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700" 
                   />
                   <div className="absolute top-6 left-6 bg-[#1A1814]/90 text-[#F5F2EC] px-3.5 py-1 text-xs font-serif italic tracking-wide">{proj.num}</div>
                 </div>
                 <div className="space-y-3">
                   <span className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] block font-sans font-medium">{proj.cat}</span>
-                  <h3 className="font-serif text-2xl font-light text-[#2C2920] group-hover:text-[#B8913A] transition-colors">{proj.title}</h3>
+                  <h3 
+                    onClick={() => handleOpenCaseStudy(proj.id)}
+                    className="font-serif text-2xl font-light text-[#2C2920] group-hover:text-[#B8913A] transition-colors cursor-pointer"
+                  >
+                    {proj.title}
+                  </h3>
                   <div className="h-px w-10 bg-[#B8913A]/30 group-hover:w-20 transition-all duration-500" />
                   <p className="text-xs text-[#8A8070] leading-relaxed max-w-md font-sans">{proj.desc}</p>
+                  
+                  <button 
+                    onClick={() => handleOpenCaseStudy(proj.id)}
+                    className="text-[10px] tracking-[0.12em] uppercase text-[#B8913A] hover:text-[#2C2920] transition-colors font-bold flex items-center gap-1.5 cursor-pointer pt-2"
+                  >
+                    ↗ Xem Album Kể chuyện (Case Study)
+                  </button>
                 </div>
               </div>
             ))}
@@ -1976,6 +2177,148 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               <span>100% HOÀN THÀNH - ĐẠT TIÊU CHUẨN ĐÚNG GIÁ TRỊ</span>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ── CASE STUDY STORYTELLING EDITORIAL MODAL ── */}
+      {selectedCaseStudy && (
+        <div className="fixed inset-0 bg-[#1A1814]/90 z-[1000] overflow-y-auto font-sans text-[#2C2920] backdrop-blur-sm animate-fade-in">
+          {/* Close button */}
+          <button 
+            onClick={() => setSelectedCaseStudy(null)}
+            className="fixed top-6 right-6 z-[1050] bg-[#FAF8F4] hover:bg-[#B8913A] hover:text-[#FAF8F4] text-[#1A1814] w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl font-mono text-xl cursor-pointer"
+          >
+            &times;
+          </button>
+          
+          <div className="min-h-screen bg-[#FAF8F4] py-20 px-6 md:px-16 lg:px-24 max-w-6xl mx-auto shadow-2xl relative border-x border-[#2C2920]/10">
+            {/* ── SECTION 1: ALBUM COVER (MAGAZINE STYLE) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="text-center mb-6">
+                <p className="text-[10px] tracking-[0.3em] uppercase text-[#8A8070] font-sans font-bold mb-2">QUÁ TRÌNH HOÀN THIỆN DỰ ÁN</p>
+                <h2 className="font-sans font-bold text-4xl md:text-6xl tracking-tight text-[#1A1814] uppercase">{selectedCaseStudy.title}</h2>
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4 text-xs font-mono text-[#8A8070] uppercase tracking-wider">
+                  <span>{selectedCaseStudy.area}</span>
+                  <span>·</span>
+                  <span>{selectedCaseStudy.style}</span>
+                  <span>·</span>
+                  <span>{selectedCaseStudy.studio}</span>
+                  <span>·</span>
+                  <span>{selectedCaseStudy.date}</span>
+                </div>
+              </div>
+
+              {/* Large Cover Image */}
+              <div className="aspect-[16/9] overflow-hidden my-12 rounded-sm relative shadow-md">
+                <img 
+                  src={selectedCaseStudy.coverImage} 
+                  alt="Cover" 
+                  className="w-full h-full object-cover" 
+                />
+                {/* Overlay Text description */}
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1A1814]/95 via-[#1A1814]/40 to-transparent p-6 md:p-12 text-white">
+                  <p className="max-w-3xl text-xs md:text-sm lg:text-base font-serif font-light leading-relaxed italic text-stone-200">
+                    "{selectedCaseStudy.introText}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Palette Strip */}
+              <div className="mt-12">
+                <p className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] font-sans font-bold mb-6 text-center">BẢNG MÀU CHỦ ĐẠO (COLOR PALETTE)</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                  {selectedCaseStudy.palette.map((color: any, cIdx: number) => (
+                    <div key={cIdx} className="bg-white p-3 rounded shadow-sm border border-[#2C2920]/5 text-center">
+                      <div className="w-full h-16 rounded-sm mb-3" style={{ backgroundColor: color.hex }} />
+                      <span className="block font-mono text-[10px] text-[#2C2920] font-bold">{color.hex}</span>
+                      <span className="block text-[10px] text-[#8A8070] uppercase font-sans mt-0.5">{color.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 2: FLOOR PLAN (SƠ ĐỒ MẶT BẰNG) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">01 / CONCEPT &amp; LAYOUT</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Sơ đồ bố trí mặt bằng (Floor Plan)</h3>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                {/* Left: Text & Blueprints */}
+                <div className="lg:col-span-6 space-y-8 font-sans">
+                  <p className="text-xs text-[#8A8070] leading-relaxed">
+                    {selectedCaseStudy.floorPlan.text}
+                  </p>
+                  <div className="space-y-4">
+                    <span className="block text-[9px] tracking-[0.2em] uppercase text-[#2C2920] font-bold">BẢN VẼ PHƯƠNG ÁN ĐẬP PHÁ CẢI TẠO</span>
+                    <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden">
+                      <img src={selectedCaseStudy.floorPlan.blueprint} className="w-full h-full object-cover grayscale opacity-80" alt="Blueprint" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Construction Site Photos */}
+                <div className="lg:col-span-6 space-y-8">
+                  <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.floorPlan.sitePhoto} className="w-full h-full object-cover" alt="Site construction" />
+                  </div>
+                  <p className="text-[11px] text-[#8A8070] leading-relaxed italic border-l-2 border-[#B8913A] pl-4">
+                    "Khảo sát đo cốt thô tại hiện trường bằng máy quét laser, đảm bảo sai số phần thô dưới 5mm trước khi lập bản vẽ kỹ thuật thi công hệ tủ âm trần."
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 3: 3D DESIGN (THIẾT KẾ 3D) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">02 / 3D DESIGN RENDERING</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Phối cảnh thiết kế 3D hoàn chỉnh</h3>
+              </div>
+
+              <div className="space-y-8">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.design3D.text}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {selectedCaseStudy.design3D.images.map((img: string, imgIdx: number) => (
+                    <div key={imgIdx} className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden">
+                      <img src={img} className="w-full h-full object-cover hover:scale-102 transition-transform duration-500" alt={`3D render ${imgIdx}`} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 4: TAILORING (TỐI ƯU CÔNG NĂNG & VẬT LIỆU THỰC TẾ) ── */}
+            <div>
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">03 / TAILORING &amp; CONSTRUCTION</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Tinh chỉnh công năng &amp; Lựa chọn vật liệu thực tế</h3>
+              </div>
+
+              <div className="space-y-12">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.tailoring.text}
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {selectedCaseStudy.tailoring.steps.map((step: any, sIdx: number) => (
+                    <div key={sIdx} className="space-y-4">
+                      <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
+                        <img src={selectedCaseStudy.tailoring.images[sIdx]} className="w-full h-full object-cover" alt={step.title} />
+                      </div>
+                      <h4 className="font-sans font-bold text-xs text-[#1A1814] uppercase tracking-wider">{step.title}</h4>
+                      <p className="text-[11px] text-[#8A8070] leading-relaxed font-sans">{step.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
