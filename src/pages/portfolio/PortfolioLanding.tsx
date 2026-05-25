@@ -208,6 +208,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [activeTab, setActiveTab] = useState<'DESIGN' | 'CONSTRUCTION' | 'CHECKLIST'>('DESIGN');
   const [activeDiaryTab, setActiveDiaryTab] = useState<'GANTT' | 'DIARY'>('GANTT');
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
+  const [showLarkModal, setShowLarkModal] = useState(false);
+  const [showExcelModal, setShowExcelModal] = useState(false);
+  const [excelActiveTab, setExcelActiveTab] = useState<'MEP' | 'WALL' | 'WOOD'>('MEP');
 
   // Real Project Data from Supabase
   const [realProject, setRealProject] = useState<any>(null);
@@ -704,6 +707,43 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               <div className="bg-[#B8913A]/5 border border-[#B8913A]/20 p-4 rounded-lg">
                 <span className="text-[9px] font-mono tracking-widest text-[#B8913A] uppercase font-bold block mb-1">MẬT ĐỘ BẢO MẬT</span>
                 <p className="text-[11px] text-[#8A8070] leading-relaxed">Bộ tiêu chuẩn hiển thị dưới dạng <strong>Teaser rút gọn</strong> để bảo vệ tài sản trí tuệ DQH. Liên hệ KTS để đăng ký tài khoản chính thức xem bản Full.</p>
+              </div>
+
+              {/* Lark / Excel Template buttons */}
+              <div className="mt-8 space-y-3">
+                <span className="text-[10px] tracking-[0.15em] uppercase text-[#2C2920] font-bold block">BIỂU MẪU & NGHIỆM THU NỘI BỘ</span>
+                
+                <button 
+                  onClick={() => setShowLarkModal(true)}
+                  className="w-full flex items-center justify-between p-4 bg-white border border-[#2C2920]/10 hover:border-[#B8913A] rounded-xl transition-all shadow-sm group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-[#B8913A]/10 group-hover:text-[#B8913A] transition-colors">
+                      <FileText size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wide">Biên bản Nghiệm thu nội bộ</h4>
+                      <p className="text-[10px] text-[#8A8070]">Mẫu ký duyệt online (Lark Suite)</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-[#8A8070] group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                <button 
+                  onClick={() => setShowExcelModal(true)}
+                  className="w-full flex items-center justify-between p-4 bg-white border border-[#2C2920]/10 hover:border-[#B8913A] rounded-xl transition-all shadow-sm group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0 group-hover:bg-[#B8913A]/10 group-hover:text-[#B8913A] transition-colors">
+                      <Layers size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wide">Excel Checklist 120 điểm</h4>
+                      <p className="text-[10px] text-[#8A8070]">Bảng kiểm soát lỗi thợ thi công</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="text-[#8A8070] group-hover:translate-x-1 transition-transform" />
+                </button>
               </div>
             </div>
             
@@ -1225,6 +1265,376 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <div className="p-2">
               <PortfolioManager />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── LARK SUITE DOCS MODAL ── */}
+      {showLarkModal && (
+        <div className="fixed inset-0 bg-[#1A1814]/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#F8F9FA] rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden text-slate-800 font-sans relative">
+            {/* Lark Header */}
+            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-lg shadow-sm">L</div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-800 leading-tight">BIÊN BẢN NGHIỆM THU NỘI BỘ - THE HORIZON HOUSE</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-slate-400">Tài liệu đám mây (Lark Suite)</span>
+                    <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded font-bold">
+                      <span className="w-1 h-1 rounded-full bg-emerald-500" /> ĐÃ KÝ DUYỆT SỐ
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    alert("Tải tài liệu PDF đang được khởi tạo...");
+                  }}
+                  className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  Xuất PDF
+                </button>
+                <button 
+                  onClick={() => setShowLarkModal(false)}
+                  className="text-slate-400 hover:text-slate-600 text-2xl font-bold bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            {/* Lark Toolbar simulator */}
+            <div className="bg-slate-50 border-b border-slate-200 px-6 py-2 flex items-center gap-4 text-slate-400 text-xs overflow-x-auto shrink-0 select-none">
+              <span>Font: System Sans</span>
+              <div className="h-4 w-px bg-slate-300" />
+              <div className="flex gap-2 text-slate-600 font-bold">
+                <span className="hover:bg-slate-200 px-1 rounded cursor-pointer">B</span>
+                <span className="hover:bg-slate-200 px-1 rounded cursor-pointer italic">I</span>
+                <span className="hover:bg-slate-200 px-1 rounded cursor-pointer underline">U</span>
+              </div>
+              <div className="h-4 w-px bg-slate-300" />
+              <span>Căn lề trái</span>
+              <span>Chia sẻ link 🔗</span>
+            </div>
+
+            {/* Lark Body */}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-100/50">
+              <div className="max-w-3xl mx-auto bg-white border border-slate-200 shadow-sm rounded-lg p-6 md:p-12 space-y-8 min-h-[1000px]">
+                {/* Brand Header */}
+                <div className="flex justify-between items-center border-b border-slate-200 pb-6">
+                  <div>
+                    <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-wide">DQH <span className="text-[#B8913A] italic font-light">Signature</span></h1>
+                    <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">INTERIOR DESIGN & BUILD STUDIO</p>
+                  </div>
+                  <div className="text-right text-xs text-slate-400 space-y-0.5">
+                    <p>Mã biên bản: BB-NTNB-2026-004</p>
+                    <p>Ngày thực hiện: {new Date().toLocaleDateString('vi-VN')}</p>
+                  </div>
+                </div>
+
+                {/* Doc Title */}
+                <div className="text-center space-y-2">
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 uppercase tracking-wide">BIÊN BẢN NGHIỆM THU NỘI BỘ</h2>
+                  <p className="text-xs text-slate-500 italic">Áp dụng cho quy chuẩn kiểm tra defect 120 điểm trước bàn giao</p>
+                </div>
+
+                {/* Metadata Table */}
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-slate-400 uppercase font-bold text-[9px]">DỰ ÁN XÂY DỰNG</p>
+                    <p className="font-bold text-slate-700 mt-1">Biệt thự The Horizon House</p>
+                    <p className="text-slate-500 mt-0.5">Lô B2, KĐT Thủ Đức, TP. Hồ Chí Minh</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400 uppercase font-bold text-[9px]">CHỦ ĐẦU TƯ</p>
+                    <p className="font-bold text-slate-700 mt-1">Anh Minh & Chị Nhung</p>
+                    <p className="text-slate-500 mt-0.5">Điện thoại liên hệ: 0903 xxx xxx</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400 uppercase font-bold text-[9px]">GIÁM SÁT NGHIỆM THU</p>
+                    <p className="font-bold text-slate-700 mt-1">KTS. Đỗ Quang Hải (Founder)</p>
+                    <p className="text-slate-500 mt-0.5">KS. Lê Văn Khoa (PM thi công hiện trường)</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-400 uppercase font-bold text-[9px]">TIÊU CHUẨN ÁP DỤNG</p>
+                    <p className="font-bold text-[#B8913A] mt-1">DQH Quality Standards Engine v1.2</p>
+                    <p className="text-slate-500 mt-0.5">Bộ tiêu chuẩn 120 hạng mục chi tiết</p>
+                  </div>
+                </div>
+
+                {/* Section I: MEP */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">I. NGHIỆM THU PHẦN THÔ & MEP (ĐIỆN NƯỚC)</h3>
+                  <div className="space-y-3 text-xs">
+                    {[
+                      { item: 'Ngâm nước chống thấm sàn vệ sinh và ban công 72h', date: '3 ngày trước', detail: 'Đã bơm ngập nước 5cm, ngâm trong 72 giờ. Sàn bê tông và trần thạch cao tầng dưới khô ráo, không thấm nước.', result: 'ĐẠT' },
+                      { item: 'Test áp lực đường ống PPR cấp nước sinh hoạt', date: '5 ngày trước', detail: 'Bơm áp lực 8 bar liên tục trong 24 giờ. Đồng hồ giữ nguyên chỉ số, không phát hiện rò rỉ tại các khớp nối.', result: 'ĐẠT' },
+                      { item: 'Đóng lưới mắt cáo chống nứt tường vây', date: '10 ngày trước', detail: 'Đóng lưới thép mắt cáo 100% các điểm giao đà bê tông và tường gạch trước khi tiến hành tô vữa trát.', result: 'ĐẠT' }
+                    ].map((row, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="w-5 h-5 bg-emerald-500 text-white flex items-center justify-center rounded-full shrink-0 font-bold text-[10px] mt-0.5">✓</div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-bold text-slate-700">{row.item}</h4>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold font-mono">{row.result}</span>
+                          </div>
+                          <p className="text-slate-500">{row.detail}</p>
+                          <span className="text-[9px] text-slate-400 block font-mono">Nghiệm thu ngày: {row.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section II: Gỗ nội thất */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">II. NGHIỆM THU HOÀN THIỆN ĐỒ GỖ NỘI THẤT (JOINERY)</h3>
+                  <div className="space-y-3 text-xs">
+                    {[
+                      { item: 'Kiểm tra đường cạnh dán ABS góc tủ bếp và tủ quần áo', date: 'Hôm qua', detail: 'Cạnh gỗ ép chỉ nhiệt ABS phẳng khít. Sai lệch mép chỉ mỏng hơn 0.3mm, không có keo thừa hay bong mép.', result: 'ĐẠT' },
+                      { item: 'Shadow line khe hở bóng tối 3mm giáp trần và vách tủ', date: 'Hôm qua', detail: 'Khe co giãn rộng đều tăm tắp 3mm dọc các mép tủ kịch trần, tạo hiệu ứng bóng tối tự nhiên.', result: 'ĐẠT' },
+                      { item: 'Đóng mở bản lề và ray hộc tủ âm Häfele', date: 'Hôm nay', detail: 'Toàn bộ bản lề hơi tự động giảm chấn đóng êm ái góc 30 độ. Không phát ra tiếng kêu, hộc kéo chịu tải 30kg kéo nhẹ nhàng.', result: 'ĐẠT' }
+                    ].map((row, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="w-5 h-5 bg-emerald-500 text-white flex items-center justify-center rounded-full shrink-0 font-bold text-[10px] mt-0.5">✓</div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-bold text-slate-700">{row.item}</h4>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold font-mono">{row.result}</span>
+                          </div>
+                          <p className="text-slate-500">{row.detail}</p>
+                          <span className="text-[9px] text-slate-400 block font-mono">Nghiệm thu ngày: {row.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section III: Signatures */}
+                <div className="pt-8 border-t border-slate-200">
+                  <p className="text-center text-xs text-slate-500 italic mb-8">
+                    "Các thành viên nghiệm thu xác nhận công trình đạt chuẩn 100% theo checklist 120 điểm của DQH Signature, sẵn sàng bàn giao chìa khóa."
+                  </p>
+                  <div className="grid grid-cols-2 text-center text-xs font-sans">
+                    <div className="space-y-12">
+                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">GIÁM SÁT HIỆN TRƯỜNG</p>
+                      <div className="space-y-1">
+                        <p className="font-serif italic text-base font-bold text-slate-700">Le Van Khoa</p>
+                        <p className="font-bold text-slate-700">KS. Lê Văn Khoa</p>
+                      </div>
+                    </div>
+                    <div className="space-y-12 relative flex flex-col items-center">
+                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">KTS TRƯỜNG & FOUNDER</p>
+                      <div className="space-y-1 z-10">
+                        <p className="font-serif italic text-base font-bold text-slate-700">Do Quang Hai</p>
+                        <p className="font-bold text-slate-700">KTS. Đỗ Quang Hải</p>
+                      </div>
+                      {/* Red stamp */}
+                      <div className="absolute bottom-[-15px] opacity-80 border border-red-500 text-red-500 rounded-full w-24 h-24 flex flex-col items-center justify-center font-bold text-[9px] tracking-tighter transform rotate-12 select-none pointer-events-none uppercase">
+                        <p>ĐÃ DUYỆT</p>
+                        <p className="font-serif text-[10px]">DQH SIGNATURE</p>
+                        <p className="text-[7px]">NGHIỆM THU</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EXCEL SPREADSHEET MODAL ── */}
+      {showExcelModal && (
+        <div className="fixed inset-0 bg-[#1A1814]/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#f3f2f1] rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden font-sans text-slate-700 relative">
+            
+            {/* Excel Top bar */}
+            <div className="bg-[#107c41] text-white px-5 py-3.5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                {/* Excel icon block */}
+                <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#107c41] font-black text-sm shadow">X</div>
+                <div>
+                  <h3 className="font-bold text-sm text-white leading-tight">DQH_Quality_Checklist_120_Points.xlsx</h3>
+                  <p className="text-[10px] text-emerald-100 opacity-90 mt-0.5">Bảng tính kiểm soát lỗi thi công và hoàn thiện chi tiết</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    // Trigger real download of CSV/Excel
+                    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+                    csvContent += "STT,Hang muc kiem tra,Phuong phap do dac,Tieu chuan dat,Ket qua,Ghi chu\n";
+                    csvContent += "1,Chong tham toilet 72h,Do ngap nuoc 5cm,Khong ri nuoc xuong tang duoi,DAT,Ngam nghiem thu\n";
+                    csvContent += "2,Ap luc duong MEP,Ap luc 8 bar,Khong sut ap suat trong 24h,DAT,OK\n";
+                    csvContent += "3,Do doc san toilet,Tha bong cao su 4 goc,Bong lan dung ve phieu thu,DAT,OK\n";
+                    csvContent += "4,Lưới mắt cáo chống nứt,Đóng lưới 100mm dọc khe giao bê tông,Lưới sát không bùng vữa,DAT,Đã trát vữa\n";
+                    csvContent += "5,Độ phẳng tường bả,Dùng thước nhôm 2m quét đèn pin,Độ hở dưới thước <= 1mm,DAT,Đạt chuẩn bả\n";
+                    csvContent += "6,Khe cạnh dán ABS gỗ,Thước đo panme,Cạnh dán ABS khít <= 0.5mm,DAT,Viền phẳng\n";
+                    csvContent += "7,Khớp shadow line gỗ,Đo khoảng cách trần tủ,Khe hở bóng tối 3mm đều,DAT,Shadow line đẹp\n";
+                    
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "DQH_Checklist_Nghiem_Thu_120_Diem.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="bg-white hover:bg-emerald-50 text-[#107c41] text-xs font-bold px-3 py-1.5 rounded shadow transition-all cursor-pointer"
+                >
+                  Tải file .xlsx mẫu
+                </button>
+                <button 
+                  onClick={() => setShowExcelModal(false)}
+                  className="text-white/80 hover:text-white text-2xl font-bold bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            {/* Excel Ribbon Toolbar Menu */}
+            <div className="bg-[#f3f2f1] border-b border-slate-300 px-4 py-1.5 flex gap-5 text-[11px] text-slate-600 select-none overflow-x-auto shrink-0">
+              <span className="font-bold border-b-2 border-[#107c41] text-[#107c41] pb-1 cursor-pointer">Trang chủ</span>
+              <span className="hover:text-slate-900 cursor-pointer">Chèn</span>
+              <span className="hover:text-slate-900 cursor-pointer">Vẽ</span>
+              <span className="hover:text-slate-900 cursor-pointer">Bố trí Trang</span>
+              <span className="hover:text-slate-900 cursor-pointer">Công thức</span>
+              <span className="hover:text-slate-900 cursor-pointer">Dữ liệu</span>
+              <span className="hover:text-slate-900 cursor-pointer">Xem lại</span>
+            </div>
+
+            {/* Excel Grid Header Columns A B C */}
+            <div className="bg-slate-50 border-b border-slate-300 px-4 py-2 flex gap-4 text-xs font-mono text-slate-400 select-none overflow-x-auto shrink-0 items-center">
+              <span className="font-bold text-[#107c41] bg-[#107c41]/10 px-2 py-0.5 rounded">A1</span>
+              <div className="h-4 w-px bg-slate-300" />
+              <span className="italic text-slate-500">fx = BẢNG KIỂM SOÁT DEFECT CHUẨN 120 ĐIỂM HOÀN THIỆN DQH</span>
+            </div>
+
+            {/* Excel Sheet Tabs */}
+            <div className="bg-[#e1dfdd] px-4 py-1.5 flex gap-1 border-b border-slate-300 shrink-0">
+              {[
+                { id: 'MEP', label: '1. Cơ điện & MEP' },
+                { id: 'WALL', label: '2. Trần & Tường' },
+                { id: 'WOOD', label: '3. Joinery Đồ gỗ' }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setExcelActiveTab(tab.id as any)}
+                  className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-t cursor-pointer border-t border-x transition-all ${
+                    excelActiveTab === tab.id 
+                      ? 'bg-white text-[#107c41] border-slate-300 font-black shadow-sm' 
+                      : 'bg-transparent text-slate-600 border-transparent hover:bg-white/30'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Spreadsheet Table grid area */}
+            <div className="flex-1 bg-white overflow-auto p-4 custom-scrollbar">
+              <table className="w-full text-left text-xs font-sans border-collapse border border-slate-300">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-500 font-mono text-[10px] border-b border-slate-300">
+                    <th className="p-1 border border-slate-300 text-center w-8 select-none bg-slate-200/50">Row</th>
+                    <th className="p-2 border border-slate-300 w-12 text-center">Col A (STT)</th>
+                    <th className="p-2 border border-slate-300">Col B (Hạng mục chi tiết)</th>
+                    <th className="p-2 border border-slate-300">Col C (Phương pháp kiểm nghiệm)</th>
+                    <th className="p-2 border border-slate-300">Col D (Quy chuẩn tối đa cho phép)</th>
+                    <th className="p-2 border border-slate-300 w-24 text-center">Col E (Kết quả)</th>
+                    <th className="p-2 border border-slate-300 w-32">Col F (Người giám sát)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Title Row */}
+                  <tr className="bg-[#107c41]/5 font-bold border-b border-slate-300">
+                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">1</td>
+                    <td colSpan={6} className="p-2.5 text-center text-[#107c41] uppercase tracking-wide">
+                      BẢNG KIỂM SOÁT DEFECT 120 ĐIỂM NGHIỆM THU NỘI BỘ - DQH SIGNATURE ({excelActiveTab === 'MEP' ? 'HẠNG MỤC CƠ ĐIỆN & MEP' : excelActiveTab === 'WALL' ? 'HẠNG MỤC TRẦN & TƯỜNG' : 'HẠNG MỤC JOINERY ĐỒ GỖ HOÀN THIỆN'})
+                    </td>
+                  </tr>
+
+                  {/* Metadata Row */}
+                  <tr className="bg-slate-50 border-b border-slate-300 italic text-[11px] text-slate-500">
+                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">2</td>
+                    <td className="p-2 border border-slate-300 text-center font-mono">-</td>
+                    <td colSpan={2} className="p-2 border border-slate-300">Dự án: The Horizon House (Biệt thự Quận 2)</td>
+                    <td colSpan={3} className="p-2 border border-slate-300">Giám sát hiện trường: KS. Lê Văn Khoa | Ngày nghiệm thu: {new Date().toLocaleDateString('vi-VN')}</td>
+                  </tr>
+
+                  {/* Grid Data Rendering */}
+                  {excelActiveTab === 'MEP' && [
+                    { stt: 1, item: 'Ngâm nước chống thấm sàn toilet & ban công 72h', method: 'Do ngập nước sàn 5cm liên tục trong 72 giờ và theo dõi trần bê tông dưới', std: 'Khô ráo 100%, không xuất hiện vết ẩm mốc hoặc rò rỉ nước', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 2, item: 'Test áp lực đường ống PPR cấp nước sinh hoạt', method: 'Bơm áp lực nước đạt 8 bar liên tục trong 24 giờ', std: 'Áp lực giữ nguyên trên đồng hồ đo áp lực, không sụt áp suất', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 3, item: 'Kiểm tra độ dốc thoát nước sàn toilet', method: 'Thả bóng cao su tại 4 góc sàn toilet và dội nước chảy', std: 'Bóng cao su lăn thẳng về hướng phễu thu sàn, không đọng vũng', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 4, item: 'Nghiệm thu điện trở cách điện hệ thống MEP', method: 'Đo điện trở cách điện ruột dẫn điện với vỏ bọc bảo vệ', std: 'Chỉ số đo bằng Megohmmeter đạt >= 10 Megaohm', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' }
+                  ].map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                      <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 text-center">
+                        <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
+                      </td>
+                      <td className="p-2 border border-slate-300 text-slate-600 font-medium">{row.inspector}</td>
+                    </tr>
+                  ))}
+
+                  {excelActiveTab === 'WALL' && [
+                    { stt: 1, item: 'Đóng lưới mắt cáo tại khe nối tường gạch và đà bê tông', method: 'Kiểm tra thực địa đóng lưới thép rộng 100mm dọc toàn bộ khe nối', std: 'Lưới thép bám chắc chắn, không phồng rộp trước khi tô trát vữa', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 2, item: 'Kiểm tra độ phẳng bề mặt tường sơn nước', method: 'Áp thước nhôm phẳng 2m lên tường, rà đèn pin theo khe hở', std: 'Độ lệch bề mặt (khe hở lọt ánh sáng) <= 1mm trên thước 2m', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 3, item: 'Kiểm tra độ vuông góc các góc cạnh tường trong nhà', method: 'Sử dụng thước vuông eke thép áp sát góc tường', std: 'Sai lệch góc vuông eke <= 1.0mm, cạnh tường đứng thẳng', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
+                    { stt: 4, item: 'Tạo khe co giãn Shadow Line thạch cao tại vị trí giáp tường', method: 'Thiết kế nẹp nhôm shadow line khe rộng 12mm chạy âm viền', std: 'Đường khe chạy thẳng tắp, rộng đều đúng 12mm, không cong xéo', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' }
+                  ].map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                      <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 text-center">
+                        <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
+                      </td>
+                      <td className="p-2 border border-slate-300 text-slate-600 font-medium">{row.inspector}</td>
+                    </tr>
+                  ))}
+
+                  {excelActiveTab === 'WOOD' && [
+                    { stt: 1, item: 'Kiểm tra nẹp cạnh viền ABS gỗ công nghiệp', method: 'Dùng thước kẹp panme đo độ dày keo và độ khít của chỉ viền', std: 'Khe hở cạnh dán chỉ nhựa ABS <= 0.5mm, không bong tróc, nhẵn phẳng', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' },
+                    { stt: 2, item: 'Khoảng hở khớp shadow line liên kết gỗ giáp tường', method: 'Đo khe hở chuyển tiếp giáp vách tường thạch cao quanh tủ', std: 'Khe hở song song chạy thẳng tắp rộng đúng 3mm, không lệch xéo', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' },
+                    { stt: 3, item: 'Nghiệm thu bản lề hơi giảm chấn Häfele', method: 'Mở rộng cửa tủ góc 45 độ rồi thả tự do cho cửa tự khép lại', std: 'Cánh tủ đóng khép êm ái góc 30 độ, tự động hít khít đều, không kêu', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' },
+                    { stt: 4, item: 'Kiểm tra độ thẳng phẳng cánh tủ kịch trần (lớn hơn 2m)', method: 'Áp thước nhôm 2m kiểm tra dọc theo bề mặt cánh tủ gỗ', std: 'Độ cong vênh bề mặt cánh tủ không vượt quá 1.5mm trên 2m chiều cao', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' }
+                  ].map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                      <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 text-center">
+                        <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
+                      </td>
+                      <td className="p-2 border border-slate-300 text-slate-600 font-medium">{row.inspector}</td>
+                    </tr>
+                  ))}
+
+                </tbody>
+              </table>
+            </div>
+
+            {/* Excel Status Bar Footer */}
+            <div className="bg-[#107c41] text-white px-4 py-1 flex justify-between items-center text-[10px] shrink-0 font-mono">
+              <span>BẢNG TÍNH: {excelActiveTab === 'MEP' ? 'CƠ ĐIỆN MEP' : excelActiveTab === 'WALL' ? 'TRẦN TƯỜNG' : 'JOINERY GỖ'}</span>
+              <span>100% HOÀN THÀNH - ĐẠT TIÊU CHUẨN ĐÚNG GIÁ TRỊ</span>
+            </div>
+
           </div>
         </div>
       )}
