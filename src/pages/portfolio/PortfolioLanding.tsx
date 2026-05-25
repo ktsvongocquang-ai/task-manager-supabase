@@ -102,6 +102,58 @@ const PROJECT_CASE_STUDIES = [
         { title: "Báo giá khối lượng vật liệu", desc: "Lập BOQ chi tiết từng mã gỗ sồi tự nhiên, đá travertine nhập khẩu Ý, và phụ kiện bản lề hơi Häfele." },
         { title: "Trao đổi mẫu vật liệu thực tế", desc: "Mời chủ nhà trực tiếp sờ và chọn vân đá travertine, độ mờ của lớp sơn phủ gỗ sồi tại văn phòng DQH." }
       ]
+    },
+    structural: {
+      text: "Công trình bắt đầu bằng việc xử lý hiện trạng và triển khai các hạng mục kỹ thuật. Những thay đổi về layout được thực hiện trước, sau đó là hệ thống điện nước âm tường được bố trí lại theo thiết kế mới. Các công đoạn như trần thạch cao, sơn nước và ốp lát được triển khai theo trình tự để đảm bảo không ảnh hưởng lẫn nhau. Ở giai đoạn này, sự chính xác đóng vai trò quyết định. Những chi tiết như vị trí ổ cắm, cao độ trần hay độ phẳng của bề mặt đều ảnh hưởng trực tiếp đến các hạng mục phía sau. Mọi thứ được kiểm soát chặt chẽ để đảm bảo khi bước sang giai đoạn hoàn thiện, không cần phải chỉnh sửa lại những phần đã làm.",
+      imgMain: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      imgDetail1: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=80",
+      imgDetail2: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400&q=80"
+    },
+    material: {
+      text: "Khi bước vào lựa chọn vật liệu, mọi thứ bắt đầu rời khỏi màn hình và tiến gần hơn đến thực tế. Những gì trước đó chỉ là màu sắc trong bản vẽ giờ trở thành bề mặt có thể chạm vào, cảm nhận được độ nhám, độ bóng và độ ấm. Đây là giai đoạn mà sự khác biệt giữa 'đẹp' và 'phù hợp' trở nên rõ ràng hơn bao giờ hết. Từng lựa chọn đều phải cân nhắc giữa thẩm mỹ, độ bền và ngân sách. Không phải vật liệu đắt nhất sẽ mang lại hiệu quả tốt nhất, mà là vật liệu phù hợp nhất với tổng thể thiết kế và cách không gian được sử dụng. Sự đồng bộ được đặt lên hàng đầu, đảm bảo khi hoàn thiện, mọi thứ không bị rời rạc hay lệch tông.",
+      samples: [
+        { name: "Ván phủ Melamine vân Travertine", desc: "Melamine coated travertine veneer", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+        { name: "Ván phủ Melamine MFC-MS 230PL", desc: "Melamine MFC", img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&q=80" },
+        { name: "Da vi sợi", desc: "Microfiber Leather", img: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400&q=80" },
+        { name: "Vật liệu gỗ & phụ kiện khác", desc: "Others", img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&q=80" },
+        { name: "Ván phủ Melamine MFC-MS 203 T", desc: "Melamine MFC", img: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=400&q=80" },
+        { name: "Đá cẩm thạch tự nhiên", desc: "Marble Stone", img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=80" }
+      ]
+    },
+    fixedInterior: {
+      text: "Sau khi hoàn thiện hạng mục thi công phần thô, công trình sẽ bước vào giai đoạn thi công nội thất cố định. Ở giai đoạn này, toàn bộ quá trình được giám sát chặt chẽ bởi quản lý dự án và chủ đầu tư nhằm kịp thời đưa ra các phương án điều chỉnh phù hợp, hạn chế phát sinh chi phí ngoài ngân sách dự kiến cũng như các lệch về kích thước hoặc vật liệu. Đồng thời, vẫn đảm bảo công trình bám sát thiết kế ban đầu với độ tương đồng lên đến trên 90%.",
+      extraText: "Phong cách hiện đại được thể hiện hệ thống qua sự kết hợp tinh tế của Marble Stone và gỗ tự nhiên, nơi vẻ đẹp đẳng cấp của đá cẩm thạch hòa quyện vào sự ấm áp, sự gần gũi của chất liệu gỗ. Đến bước này sẽ có những thay đổi rõ rệt nhất của dự án mới bắt đầu hình thành. Lúc này xưởng sản xuất của DQH sẽ gia công nội thất tùy chỉnh kích thước theo nhu cầu của gia chủ để tránh xảy ra những sai sót không đáng có. Các hệ cánh tủ bếp, khung cửa lùa hay đặc biệt nhất là khung giường âm tường được lắp đặt vừa vặn dưới bàn tay lành nghề của đội ngũ thi công.",
+      imgMain: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+    },
+    looseFurniture: {
+      text: "Bảng màu trung tính kết hợp cùng đường nét tự nhiên của gỗ và đá mang đến cho tổng thể không gian cảm giác ấm áp, thanh thoát và hài hòa. Để tạo điểm nhấn riêng biệt cho căn hộ, đội ngũ thiết kế đã khéo léo đưa vào những món nội thất bọc da tông nâu trà sữa, góp phần tăng chiều sâu thị giác và nét sang trọng tinh tế. Mọi chi tiết đều được cân nhắc nhằm hướng đến một trải nghiệm sống liền mạch, bền vững, nơi sự ấm cúng, yên tĩnh và giá trị thẩm mỹ cùng song hành.",
+      imgMain: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80"
+    },
+    details: {
+      text: "Bảng màu trung tính kết hợp cùng đường nét tự nhiên của gỗ và đá mang đến cho tổng thể không gian cảm giác ấm áp, thanh thoát và hài hòa. Để tạo điểm nhấn riêng biệt cho căn hộ, đội ngũ thiết kế đã khéo léo đưa vào những món nội thất bọc da tông nâu trà sữa, góp phần tăng chiều sâu thị giác và nét sang trọng tinh tế. Mọi chi tiết đều được cân nhắc nhằm hướng đến một trải nghiệm sống liền mạch, bền vững, nơi sự ấm cúng, yên tĩnh và giá trị thẩm mỹ cùng song hành.",
+      items: [
+        { num: 1, name: "Bàn trà travertine & gỗ" },
+        { num: 2, name: "Armchair thư giãn da bò" },
+        { num: 3, name: "Bàn làm việc slim & ghế xoay" },
+        { num: 4, name: "Đèn bàn trang trí kim loại" },
+        { num: 5, name: "Sofa module dài màu nâu trà" },
+        { num: 6, name: "Bộ bàn ăn gỗ 4 ghế bọc da" },
+        { num: 7, name: "Ghế thư giãn phụ hình nấm" }
+      ]
+    },
+    finalize: {
+      text: "Không gian sống Quiet Luxury đích thực đã sẵn sàng phục vụ sinh hoạt hằng ngày của gia đình. DQH bàn giao hồ sơ hoàn công kèm cam kết bảo hành kết cấu 10 năm.",
+      images: [
+        "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&q=80",
+        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80",
+        "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=80"
+      ]
     }
   },
   {
@@ -135,7 +187,7 @@ const PROJECT_CASE_STUDIES = [
       ]
     },
     tailoring: {
-      text: "Quá trình hoàn thiện nhà phố đòi hỏi KTS bám sát hiện trường để điều phối ánh sáng tự nhiên và lắp đặt hệ cây trồng phù hợp khí hậu miền Nam. Từng tấm ốp gỗ đều được đo đạc tỉ mỉ.",
+      text: "Quá trình hoàn thiện nhà phố đòi hỏi KTS bám sát hiện trường để điều phối ánh sáng tự nhiên và lắp đặt hệ cây trồng phù hợp khí lưu miền Nam. Từng tấm ốp gỗ đều được đo đạc tỉ mỉ.",
       images: [
         "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80",
         "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
@@ -145,6 +197,58 @@ const PROJECT_CASE_STUDIES = [
         { title: "Đóng lưới thép chống nứt", desc: "Đóng lưới mắt cáo tại các vị trí tiếp giáp tường gạch và bê tông trước khi tô vữa để tránh nứt tường giếng trời." },
         { title: "Mockup ánh sáng & cây xanh", desc: "Thử nghiệm mockup cây xanh thực tế dưới giếng trời để đảm bảo cây nhận đủ ánh sáng và sinh trưởng tốt." },
         { title: "Kiểm tra độ ẩm gỗ nội thất", desc: "Đo độ ẩm gỗ walnut trước khi gia công tại xưởng để đảm bảo không bị cong vênh dưới tác động của giếng trời." }
+      ]
+    },
+    structural: {
+      text: "Thi công thô nhà phố tập trung gia cố chống nứt tường ngoài và lắp đặt chống thấm sàn ban công giếng trời, tạo điều kiện thuận lợi nhất cho cây xanh phát triển sau này.",
+      imgMain: "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=800&q=80",
+      imgDetail1: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=80",
+      imgDetail2: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80"
+    },
+    material: {
+      text: "Lựa chọn các tông màu mộc tự nhiên: sơn hiệu ứng vôi limewash loang nhạt, gỗ sồi sấy mộc, vải bố lanh thô dệt thủ công và gạch gốm tráng men màu rêu bóng nhẹ.",
+      samples: [
+        { name: "Sơn vôi hiệu ứng Limewash", desc: "Limewash effect paint", img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80" },
+        { name: "Vải bố zellige thô tự nhiên", desc: "Rough canvas", img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+        { name: "Ván phủ Melamine vân sồi mộc", desc: "Light Oak MFC", img: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400&q=80" },
+        { name: "Sàn gỗ Walnut tự nhiên", desc: "Walnut Flooring", img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=80" },
+        { name: "Gốm men bóng thủ công", desc: "Glazed Zellige Tile", img: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=400&q=80" },
+        { name: "Đá travertine nhám mịn", desc: "Honed Travertine", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" }
+      ]
+    },
+    fixedInterior: {
+      text: "Gia công lắp ráp hệ vách gỗ ốp tường walnut liên mạch. Toàn bộ phụ kiện bản lề cửa gỗ lùa và ray kéo tủ âm tường đều được cân chỉnh để trượt êm ái.",
+      extraText: "Gỗ walnut tự nhiên kết hợp hệ tủ kịch trần sơn mờ tiệp màu tường, tạo ra dòng chảy thị giác mở rộng không gian tối đa.",
+      imgMain: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+    },
+    looseFurniture: {
+      text: "Phối hợp bàn trà tròn thấp, armchair da lộn xanh olive tiệp màu vườn treo thông tầng, tạo cảm giác thư thái tĩnh lặng tối đa cho gia đình.",
+      imgMain: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+      img3: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80"
+    },
+    details: {
+      text: "Nội thất rời chọn lọc mang đậm tinh thần Modern Tropical Biophilic cho Horizon House.",
+      items: [
+        { num: 1, name: "Bàn trà tròn thấp gỗ walnut" },
+        { num: 2, name: "Armchair bọc nỉ xanh Olive" },
+        { num: 3, name: "Bàn console giáp tường gỗ" },
+        { num: 4, name: "Đèn trần hắt sáng dịu nhẹ" },
+        { num: 5, name: "Sofa nỉ màu xám tro tối giản" },
+        { num: 6, name: "Bộ bàn ăn gỗ sồi sấy mộc" },
+        { num: 7, name: "Ghế đôn tròn cói đan tay" }
+      ]
+    },
+    finalize: {
+      text: "Không gian sống ngập tràn nắng gió tự nhiên của Horizon House chính thức được DQH bàn giao hoàn thiện cho chủ nhà.",
+      images: [
+        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80",
+        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80"
       ]
     }
   },
@@ -190,6 +294,58 @@ const PROJECT_CASE_STUDIES = [
         { title: "Lắp đặt cẩu chuyên dụng", desc: "Lập phương án và cẩu tấm đá travertine nguyên khối nặng 300kg lên tầng 32 an toàn, chính xác." },
         { title: "Shadow Gap 3mm tường trần", desc: "Giám sát kỹ thuật bắn nẹp nhôm âm thạch cao tạo khe bóng 3mm sắc sảo cho hệ trần." }
       ]
+    },
+    structural: {
+      text: "Xử lý đập phá kết cấu cũ, gia cố dầm sàn chịu lực. Chúng tôi đi hệ thống MEP và cách âm sàn chuyên dụng cho rạp phim gia đình âm tường.",
+      imgMain: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+      imgDetail1: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80",
+      imgDetail2: "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=400&q=80"
+    },
+    material: {
+      text: "Màu sắc trung tính kiềm chế: Đá thạch anh vân mây xám, đá travertine đánh bóng mịn sờ mát lạnh, viền thép sơn mạ đồng và da nappa bọc ghế cao cấp.",
+      samples: [
+        { name: "Đá cẩm thạch Calacatta Ý", desc: "Calacatta Marble Quartz", img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=80" },
+        { name: "Đá Travertine xám tro", desc: "Grey Travertine", img: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=400&q=80" },
+        { name: "Kim loại mạ đồng xước", desc: "Brushed Bronze Metal", img: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=400&q=80" },
+        { name: "Da Nappa cao cấp nhập khẩu", desc: "Nappa Leather", img: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400&q=80" },
+        { name: "Kính gợn sóng mờ viền thép", desc: "Fluted Wave Glass", img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&q=80" },
+        { name: "Gỗ sồi nhuộm đen thô mộc", desc: "Black Stained Oak", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" }
+      ]
+    },
+    fixedInterior: {
+      text: "Lắp đặt hệ tủ âm tường, vách thạch cao giấu cửa phòng và nẹp khe chân tủ shadow gap 2mm tạo đường viền bóng tối tự nhiên sắc sảo.",
+      extraText: "Sự kết hợp hoàn mỹ giữa đá travertine ốp diện tivi dài 6m và tủ kệ giấu cánh tinh tế.",
+      imgMain: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80"
+    },
+    looseFurniture: {
+      text: "Lựa chọn mẫu sofa bệt dáng béo, bàn trà kim loại xước bóng nhẹ và ghế lounge bọc nỉ thư giãn sang trọng.",
+      imgMain: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80"
+    },
+    details: {
+      text: "Danh sách đồ nội thất rời tối giản sang trọng được tuyển chọn cho Verena Penthouse.",
+      items: [
+        { num: 1, name: "Bàn trà kim loại đồng xước thấp" },
+        { num: 2, name: "Ghế thư giãn bọc da Nappa màu kem" },
+        { num: 3, name: "Bàn làm việc console kính đen" },
+        { num: 4, name: "Đèn đứng trang trí bronze" },
+        { num: 5, name: "Sofa bệt dáng cong cao cấp" },
+        { num: 6, name: "Bàn ăn mặt đá tự nhiên lớn" },
+        { num: 7, name: "Ghế bàn ăn bọc da đen" }
+      ]
+    },
+    finalize: {
+      text: "Penthouse được bàn giao sạch đẹp, mang lại phong thái sống tĩnh lặng, tự do trên cao hoàn mỹ cho chủ nhân.",
+      images: [
+        "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=80",
+        "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&q=80",
+        "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&q=80"
+      ]
     }
   },
   {
@@ -233,6 +389,58 @@ const PROJECT_CASE_STUDIES = [
         { title: "Sơn vôi Limewash 3 lớp", desc: "Nghệ nhân quét sơn vôi limewash thủ công tạo ra các vệt loang tự nhiên thô mộc trên diện tường ngoài trời." },
         { title: "Hun khói gỗ thông 45 ngày", desc: "Gia công sấy hun khói gỗ thông Đà Lạt đạt tiêu chuẩn chống co ngót, chống mối mọt dưới khí hậu ẩm sương mù." },
         { title: "Kè đá chẻ tự nhiên móng", desc: "Xếp kè đá chẻ tự nhiên từ các tảng đá tại địa phương để giữ vững sườn dốc mà không phá vỡ cảnh quan." }
+      ]
+    },
+    structural: {
+      text: "Thi công thô móng resort, kè đá chẻ tự nhiên kiên cố đảm bảo sườn dốc sạt lở. Định hình khung kèo thép lắp ghép gỗ thông thân thiện.",
+      imgMain: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+      imgDetail1: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&q=80",
+      imgDetail2: "https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?w=400&q=80"
+    },
+    material: {
+      text: "Vật liệu đặc thù núi rừng: Gỗ thông sấy mộc, tường sơn hiệu ứng vôi limewash loang, đá chẻ ốp lò sưởi và vải đũi, len dệt tay thô ráp mộc mạc.",
+      samples: [
+        { name: "Gỗ thông Đà Lạt sấy mộc", desc: "Local Dalat Pine Wood", img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80" },
+        { name: "Sơn vôi Limewash loang", desc: "Limewash Paint Coarse", img: "https://images.unsplash.com/photo-1565538810844-1e119eae811d?w=400&q=80" },
+        { name: "Đá chẻ ốp vách mộc", desc: "Split Slate Stone", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=80" },
+        { name: "Vải đũi thô dệt thủ công", desc: "Handwoven Raw Cotton", img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+        { name: "Sắt nghệ thuật rỉ sét", desc: "Rust Corten Steel", img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&q=80" },
+        { name: "Kính cường lực đón nắng", desc: "High-clear Glazing Window", img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&q=80" }
+      ]
+    },
+    fixedInterior: {
+      text: "Lắp đặt kết cấu lò sưởi giả cổ, ốp trần vách hoàn toàn bằng gỗ thông hun khói đen sang trọng mà mộc mạc.",
+      extraText: "Gỗ thông thô phối hợp đá chẻ tạo không khí tĩnh lặng ấm áp như trời Âu giữa sương mù Đà Lạt.",
+      imgMain: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1542744094-3a31f103e35f?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&q=80"
+    },
+    looseFurniture: {
+      text: "Bài trí hệ sofa da màu bò thô mộc ráp lò sưởi, bàn trà tròn gốc cây tự nhiên cắt lát, mang lại sự tối giản thô mộc đầy ấm cúng.",
+      imgMain: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+      img1: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80",
+      img2: "https://images.unsplash.com/photo-1565538810844-1e119eae811d?w=600&q=80",
+      img3: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80"
+    },
+    details: {
+      text: "Danh sách đồ gỗ rời đậm chất Rustic Luxury dành riêng cho Bungalow Arden Đà Lạt.",
+      items: [
+        { num: 1, name: "Bàn trà tròn gốc cây lát tự nhiên" },
+        { num: 2, name: "Armchair da bò thô có tay gỗ" },
+        { num: 3, name: "Bàn console đầu giường thông hun" },
+        { num: 4, name: "Đèn thả lồng tre thủ công" },
+        { num: 5, name: "Sofa nỉ thô màu nâu cát đồi" },
+        { num: 6, name: "Bàn ăn dài gỗ ghép nguyên tấm" },
+        { num: 7, name: "Ghế tựa lưng cói đan mộc" }
+      ]
+    },
+    finalize: {
+      text: "Arden Boutique Resort đã chính thức bàn giao hoàn thiện, sẵn sàng đón những lượt khách lưu trú đầu tiên nghỉ dưỡng.",
+      images: [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80",
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
+        "https://images.unsplash.com/photo-1565538810844-1e119eae811d?w=800&q=80"
       ]
     }
   }
@@ -2295,7 +2503,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </div>
 
             {/* ── SECTION 4: TAILORING (TỐI ƯU CÔNG NĂNG & VẬT LIỆU THỰC TẾ) ── */}
-            <div>
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
               <div className="mb-12">
                 <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">03 / TAILORING &amp; CONSTRUCTION</span>
                 <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Tinh chỉnh công năng &amp; Lựa chọn vật liệu thực tế</h3>
@@ -2318,6 +2526,278 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* ── SECTION 5: STRUCTURAL (THI CÔNG PHẦN THÔ & KỸ THUẬT) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">04 / STRUCTURAL &amp; MEP</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Thi công phần thô &amp; Hệ thống MEP âm tường</h3>
+              </div>
+
+              <div className="space-y-8">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.structural.text}
+                </p>
+
+                {/* Main image with absolute-positioned text layers acting as red marker labels */}
+                <div className="relative aspect-[16/9] bg-stone-100 rounded-sm overflow-hidden shadow-md group">
+                  <img src={selectedCaseStudy.structural.imgMain} className="w-full h-full object-cover" alt="Structural phase main" />
+                  <div className="absolute inset-0 bg-[#1A1814]/10 transition-colors duration-300" />
+                  
+                  {/* Red handwritten annotations */}
+                  <div className="absolute left-[12%] top-[20%] text-red-500 font-serif italic text-[11px] md:text-xs select-none pointer-events-none drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] flex flex-col items-start">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                      [+] Khung xương thạch cao âm trần
+                    </span>
+                    <span className="h-8 border-l border-red-500/60 ml-1.5 border-dashed" />
+                  </div>
+
+                  <div className="absolute right-[15%] top-[15%] text-red-500 font-serif italic text-[11px] md:text-xs select-none pointer-events-none drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] flex flex-col items-end">
+                    <span className="flex items-center gap-1">
+                      [+] Khung lam gió máy lạnh âm trần
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                    </span>
+                    <span className="h-6 border-r border-red-500/60 mr-1.5 border-dashed" />
+                  </div>
+
+                  <div className="absolute left-[25%] bottom-[20%] text-red-500 font-serif italic text-[11px] md:text-xs select-none pointer-events-none drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] flex flex-col items-start">
+                    <span className="h-10 border-l border-red-500/60 ml-1.5 border-dashed" />
+                    <span className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                      [+] Đường ống nước PPR Hàn Nhiệt
+                    </span>
+                  </div>
+
+                  <div className="absolute right-[28%] bottom-[25%] text-red-500 font-serif italic text-[11px] md:text-xs select-none pointer-events-none drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] flex flex-col items-end">
+                    <span className="h-8 border-r border-red-500/60 mr-1.5 border-dashed" />
+                    <span className="flex items-center gap-1">
+                      [+] Đi dây điện âm tường ống chống cháy
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse inline-block" />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Detail images */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.structural.imgDetail1} className="w-full h-full object-cover" alt="Structural detail 1" />
+                  </div>
+                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.structural.imgDetail2} className="w-full h-full object-cover" alt="Structural detail 2" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 6: MATERIAL (VẬT LIỆU SỬ DỤNG) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">05 / MATERIAL SELECTION</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Hồ sơ vật liệu &amp; Bảng mẫu thực tế</h3>
+              </div>
+
+              <div className="space-y-12">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.material.text}
+                </p>
+
+                {/* 6 sample boxes grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                  {selectedCaseStudy.material.samples.map((sample: any, sIdx: number) => (
+                    <div key={sIdx} className="bg-white border border-[#2C2920]/10 rounded-sm p-4 hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
+                      <div className="aspect-square bg-stone-50 rounded-sm overflow-hidden mb-4 border border-[#2C2920]/5">
+                        <img src={sample.img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={sample.name} />
+                      </div>
+                      <div>
+                        <h4 className="font-sans font-bold text-xs text-[#1A1814] uppercase tracking-wider line-clamp-1">{sample.name}</h4>
+                        <p className="text-[10px] text-[#8A8070] font-mono mt-1 italic">{sample.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 7: FIXED INTERIOR (NỘI THẤT CỐ ĐỊNH JOINERY) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">06 / FIXED INTERIOR JOINERY</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Thi công nội thất cố định</h3>
+              </div>
+
+              <div className="space-y-12">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.fixedInterior.text}
+                </p>
+
+                <div className="aspect-[16/9] bg-stone-100 rounded-sm overflow-hidden shadow-md mb-8">
+                  <img src={selectedCaseStudy.fixedInterior.imgMain} className="w-full h-full object-cover" alt="Fixed interior main" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-8 grid grid-cols-3 gap-4">
+                    <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden">
+                      <img src={selectedCaseStudy.fixedInterior.img1} className="w-full h-full object-cover" alt="Joinery assembly 1" />
+                    </div>
+                    <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden">
+                      <img src={selectedCaseStudy.fixedInterior.img2} className="w-full h-full object-cover" alt="Joinery assembly 2" />
+                    </div>
+                    <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden">
+                      <img src={selectedCaseStudy.fixedInterior.img3} className="w-full h-full object-cover" alt="Joinery assembly 3" />
+                    </div>
+                  </div>
+                  <div className="lg:col-span-4 bg-white p-6 rounded-sm border border-[#2C2920]/10">
+                    <p className="text-xs text-[#8A8070] leading-relaxed font-sans italic">
+                      {selectedCaseStudy.fixedInterior.extraText}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 8: LOOSE FURNITURE (NỘI THẤT RỜI) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">07 / LOOSE FURNITURE STYLING</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Sắp xếp &amp; Phối cảnh nội thất rời</h3>
+              </div>
+
+              <div className="space-y-12">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.looseFurniture.text}
+                </p>
+
+                <div className="aspect-[16/9] bg-stone-100 rounded-sm overflow-hidden shadow-md mb-8">
+                  <img src={selectedCaseStudy.looseFurniture.imgMain} className="w-full h-full object-cover" alt="Loose furniture setup main" />
+                </div>
+
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="aspect-square bg-stone-100 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.looseFurniture.img1} className="w-full h-full object-cover" alt="Loose item 1" />
+                  </div>
+                  <div className="aspect-square bg-stone-100 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.looseFurniture.img2} className="w-full h-full object-cover" alt="Loose item 2" />
+                  </div>
+                  <div className="aspect-square bg-stone-100 rounded-sm overflow-hidden">
+                    <img src={selectedCaseStudy.looseFurniture.img3} className="w-full h-full object-cover" alt="Loose item 3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 9: FURNITURE LIST DETAILS (CHI TIẾT ĐỒ RỜI) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20 bg-white/40 p-8 rounded-sm">
+              <div className="mb-8">
+                <span className="text-[10px] tracking-[0.2em] font-sans text-[#8A8070] font-bold block">VISTA VERDE 2025</span>
+                <div className="flex flex-col md:flex-row md:items-baseline gap-4 mt-2">
+                  <h3 className="font-sans font-bold text-5xl tracking-tight text-[#1A1814]">DETAILS</h3>
+                  <span className="text-sm font-serif italic text-[#8A8070]">Danh sách nội thất rời</span>
+                </div>
+                <div className="text-[10px] font-mono text-[#8A8070] mt-1">(D) ────────────────</div>
+              </div>
+
+              {/* Dotted border box container simulating the user's uploaded page layout */}
+              <div className="border-2 border-dashed border-[#2C2920]/20 p-8 md:p-12 bg-white/70 rounded-lg relative overflow-hidden">
+                
+                {/* Floating decor circle or grid pattern */}
+                <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#B8913A]/10" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+                  {selectedCaseStudy.details.items.map((item: any, iIdx: number) => (
+                    <div 
+                      key={iIdx} 
+                      className="flex items-center gap-4 bg-[#FAF8F4] p-4 rounded-sm border border-[#2C2920]/5 shadow-sm hover:translate-y-[-2px] transition-transform duration-300"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-mono text-xs font-bold shrink-0 shadow-inner">
+                        {item.num}
+                      </div>
+                      <div>
+                        <span className="text-[10px] tracking-widest text-[#8A8070] uppercase font-mono block">Mã số {item.num}</span>
+                        <h4 className="font-sans font-bold text-xs text-[#1A1814] tracking-wide mt-0.5">{item.name}</h4>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <p className="text-[10px] text-[#8A8070] italic text-center mt-8 font-mono">
+                  * Ghi chú: Kích thước và màu sắc da bọc có thể tinh chỉnh theo yêu cầu kỹ thuật của mặt bằng thực tế.
+                </p>
+              </div>
+            </div>
+
+            {/* ── SECTION 10: FINALIZE (BÀN GIAO THỰC TẾ) ── */}
+            <div className="border-b border-[#2C2920]/15 pb-20 mb-20">
+              <div className="mb-12">
+                <span className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">09 / PROJECT COMPLETION</span>
+                <h3 className="font-serif text-3xl font-light text-[#1A1814] mt-1">Công trình thực tế hoàn thiện</h3>
+              </div>
+
+              <div className="space-y-12">
+                <p className="text-xs text-[#8A8070] leading-relaxed max-w-3xl">
+                  {selectedCaseStudy.finalize.text}
+                </p>
+
+                {/* Editorial Masonry/Grid of Final Images */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left big image */}
+                  <div className="lg:col-span-8 aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-md group">
+                    <img src={selectedCaseStudy.finalize.images[0]} className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-500" alt="Completed project 1" />
+                  </div>
+                  
+                  {/* Right column with two images */}
+                  <div className="lg:col-span-4 grid grid-cols-1 gap-6">
+                    <div className="aspect-[4/3] lg:aspect-auto lg:h-[calc(50%-12px)] bg-stone-100 rounded-sm overflow-hidden shadow-sm group">
+                      <img src={selectedCaseStudy.finalize.images[1]} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" alt="Completed project 2" />
+                    </div>
+                    <div className="aspect-[4/3] lg:aspect-auto lg:h-[calc(50%-12px)] bg-stone-100 rounded-sm overflow-hidden shadow-sm group">
+                      <img src={selectedCaseStudy.finalize.images[2]} className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" alt="Completed project 3" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SECTION 11: THANK YOU SLIDE ── */}
+            <div className="bg-[#1A1814] text-white p-12 md:p-20 rounded-sm text-center relative overflow-hidden shadow-inner flex flex-col justify-between min-h-[450px]">
+              
+              {/* Abstract decorative graphic line or circle */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-white/5 pointer-events-none" />
+              
+              {/* Studio Logo */}
+              <div className="relative z-10">
+                <span className="font-serif tracking-[0.25em] text-sm uppercase text-[#D4BC95] font-light">Plan.A studio</span>
+                <span className="block text-[8px] tracking-[0.3em] uppercase text-stone-400 mt-1 font-mono">living space build &amp; success orientation</span>
+              </div>
+
+              {/* Thank you text */}
+              <div className="my-12 relative z-10">
+                <h3 className="font-sans font-extrabold text-5xl md:text-7xl tracking-wide text-white">THANK YOU</h3>
+                <p className="font-serif italic text-[#D4BC95] text-lg mt-2">for watching</p>
+                <div className="w-16 h-[1px] bg-white/20 mx-auto mt-6" />
+              </div>
+
+              {/* Footer contacts grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-8 border-t border-white/10 relative z-10 text-[10px] md:text-xs font-mono text-stone-300 uppercase tracking-wider">
+                <div className="flex flex-col items-center">
+                  <span className="text-stone-500 text-[9px] mb-1">Contact</span>
+                  <a href="tel:0987897494" className="hover:text-[#D4BC95] transition-colors duration-300">098 789 7494</a>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-stone-500 text-[9px] mb-1">Website</span>
+                  <a href="https://planastudio.vn" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300 lowercase">planastudio.vn</a>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-stone-500 text-[9px] mb-1">Behance</span>
+                  <a href="#" className="hover:text-[#D4BC95] transition-colors duration-300">Plan. A studio</a>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-stone-500 text-[9px] mb-1">Facebook</span>
+                  <a href="https://facebook.com/Plan.Architect.VN" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300">Plan.Architect.VN</a>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
