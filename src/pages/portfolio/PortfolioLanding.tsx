@@ -156,6 +156,58 @@ const COST_BREAKDOWN = [
   { label: "Vận hành công ty tối ưu", pct: 3, color: "#444120", desc: "Chi phí văn phòng đại diện và quản lý tối giản" }
 ];
 
+const DQH_VALUES = [
+  {
+    letter: "D",
+    title: "ĐỒNG HÀNH",
+    quote: "Luôn có mặt, kể cả lúc khó.",
+    points: [
+      "Lắng nghe khách hàng trước khi phản biện",
+      "Hỏi khi chưa rõ, không tự đoán",
+      "Thấy vấn đề → báo ngay, không tồn đọng",
+      "Không ai làm việc một mình tại DQH"
+    ]
+  },
+  {
+    letter: "Q",
+    title: "QUY CHUẨN",
+    quote: "Làm đúng, làm kỹ, làm có lý do.",
+    points: [
+      "Mọi quyết định thiết kế có lý do chuyên môn",
+      "Bản vẽ đủ chi tiết để thợ làm đúng ngay lần đầu",
+      "Phát hiện lỗi → dừng, sửa, báo — không che",
+      "Tiến độ & chi phí minh bạch, không phát sinh bất ngờ"
+    ]
+  },
+  {
+    letter: "H",
+    title: "HÀI LÒNG",
+    quote: "Nụ cười bàn giao là thước đo thành công.",
+    points: [
+      "Khách hàng cảm thấy không gian là của họ",
+      "Tự hào khi nhìn lại việc mình đã làm",
+      "Mỗi dự án xong → một bài học cho cả team",
+      "Sự hài lòng tuyệt đối, không phải đủ để giao"
+    ]
+  }
+];
+
+const RACI_ROWS = [
+  { step: "① Khảo sát hiện trạng", tk: "Chủ trì", d2: "Phối hợp", tc: "Tư vấn", xuong: "—", kh: "Nhận tin", date: "2", input: "Hợp đồng + KH", output: "Concept" },
+  { step: "② Concept – công năng", tk: "Chủ trì", d2: "Phối hợp", tc: "—", xuong: "—", kh: "Phối hợp", date: "4", input: "Hiện trạng + nhu cầu", output: "2D layout" },
+  { step: "③ Triển khai 2D layout", tk: "Tư vấn", d2: "Chủ trì", tc: "—", xuong: "—", kh: "Tư vấn", date: "3", input: "Concept đã duyệt", output: "Chốt 2D" },
+  { step: "★ Chốt 2D layout", tk: "Phối hợp", d2: "Phối hợp", tc: "Nhận tin", xuong: "Nhận tin", kh: "Chủ trì", date: "1–2", input: "Bản vẽ 2D layout", output: "3D Render", isMilestone: true },
+  { step: "④ 3D Render – dựng &...", tk: "Chủ trì", d2: "Tư vấn", tc: "—", xuong: "—", kh: "Tư vấn", date: "6–8", input: "Layout đã chốt", output: "Chốt 3D" },
+  { step: "★ Chốt 3D", tk: "Phối hợp", d2: "Nhận tin", tc: "—", xuong: "Nhận tin", kh: "Chủ trì", date: "1–2", input: "3D Render hoàn chỉnh", output: "Báo giá", isMilestone: true },
+  { step: "⑤ Lập báo giá thi công", tk: "Tư vấn", d2: "Chủ trì", tc: "Phối hợp", xuong: "Phối hợp", kh: "Nhận tin", date: "3–4", input: "3D + layout đã chốt", output: "Chốt báo giá" },
+  { step: "★ Chốt báo giá", tk: "Nhận tin", d2: "Phối hợp", tc: "Nhận tin", xuong: "Nhận tin", kh: "Chủ trì", date: "2–3", input: "Bảng báo giá", output: "Hồ sơ 2D", isMilestone: true },
+  { step: "⑥ Hồ sơ 2D + vật liệu...", tk: "Tư vấn", d2: "Chủ trì", tc: "Tư vấn", xuong: "Tư vấn", kh: "Phối hợp", date: "7", input: "Báo giá đã chốt", output: "Chốt hồ sơ" },
+  { step: "★ Chốt hồ sơ 2D", tk: "Phối hợp", d2: "Phối hợp", tc: "Nhận tin", xuong: "Nhận tin", kh: "Chủ trì", date: "1–2", input: "Hồ sơ 2D + vật liệu", output: "TC + Xưởng", isMilestone: true },
+  { step: "⑦ Thi công tại căn hộ", tk: "Tư vấn", d2: "Tư vấn", tc: "Chủ trì", xuong: "—", kh: "Nhận tin", date: "21–28", input: "Hồ sơ đã chốt", output: "Lắp đặt" },
+  { step: "⑦ Lên hàng nội thất (xưởng)", tk: "Tư vấn", d2: "Tư vấn", tc: "—", xuong: "Chủ trì", kh: "Nhận tin", date: "21–28", input: "Hồ sơ + spec đã chốt", output: "Lắp đặt" },
+  { step: "⑧ Lắp đặt & hoàn thiện", tk: "Tư vấn", d2: "—", tc: "Phối hợp", xuong: "Chủ trì", kh: "Nhận tin", date: "14", input: "MB TC + hàng xưởng", output: "Nghiệm thu" }
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT HOOKS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -213,6 +265,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [excelActiveTab, setExcelActiveTab] = useState<'MEP' | 'WALL' | 'WOOD'>('MEP');
   const [expandedStaff, setExpandedStaff] = useState<Record<number, boolean>>({});
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
+  const [showRaciTable, setShowRaciTable] = useState(false);
 
 
   // Real Project Data from Supabase
@@ -406,7 +459,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           DQH <span className="font-light italic text-[#B8913A]">Signature</span>
         </a>
         <div className="hidden lg:flex gap-9">
-          {["Công trình", "Đội ngũ", "Quy trình phối hợp", "Tiêu chuẩn kỹ thuật", "Báo giá & Chi phí", "Bảo hành & Nhật ký", "Ý kiến khách hàng"].map((label, idx) => (
+          {["Công trình", "Bản sắc", "Đội ngũ", "Quy trình phối hợp", "Tiêu chuẩn kỹ thuật", "Báo giá & Chi phí", "Bảo hành & Nhật ký", "Ý kiến khách hàng"].map((label, idx) => (
             <a 
               key={idx} 
               href={`#section-${idx}`} 
@@ -503,7 +556,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 Xem các công trình
               </a>
               <a 
-                href="#section-3" 
+                href="#section-4" 
                 className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer"
               >
                 Bộ tiêu chuẩn mẫu →
@@ -554,8 +607,116 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
       </section>
 
-      {/* ── SECTION 1: ĐỘI NGŨ MẠNH & SƠ ĐỒ BỘ MÁY D&B ── */}
+      {/* ── SECTION 1: BẢN SẮC THƯƠNG HIỆU ── */}
+      {/* ── BRAND SECTION 1A: CHÚNG TÔI LÀ AI ── */}
       <section id="section-1" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-16">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">CHÚNG TÔI LÀ AI</p>
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] mb-8 leading-[1.1]">
+              Không chỉ thiết kế — <br />
+              <span className="font-serif italic font-light text-[#B8913A]">đồng hành trọn vẹn</span>
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-sm text-[#8A8070] leading-relaxed mb-20 font-sans">
+            <p>
+              DQH Architects là studio thiết kế & thi công nội thất tại TP.HCM, hoạt động theo mô hình Design & Build. Chúng tôi đồng hành cùng khách hàng từ ý tưởng đầu tiên đến ngày bàn giao — không phải chỉ làm một phần rồi chuyển giao.
+            </p>
+            <p>
+              Phục vụ phân khúc cao cấp — những khách hàng có tiêu chuẩn cao, hiểu giá trị của chất lượng, và kỳ vọng sự chuyên nghiệp ở từng điểm chạm.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-8 pt-12 border-t border-[#2C2920]/10 text-center">
+            <div>
+              <div className="font-sans font-bold text-3xl md:text-5xl text-[#2C2920] mb-2">4+</div>
+              <div className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold">NĂM HOẠT ĐỘNG</div>
+            </div>
+            <div>
+              <div className="font-serif font-light text-2xl md:text-4xl text-[#B8913A] italic mb-2">D·Q·H</div>
+              <div className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold">GIÁ TRỊ CỐT LÕI</div>
+            </div>
+            <div>
+              <div className="font-sans font-bold text-3xl md:text-5xl text-[#2C2920] mb-2">100%</div>
+              <div className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold">DESIGN & BUILD</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BRAND SECTION 1B: TẦM NHÌN & SỨ MỆNH ── */}
+      <section className="px-6 md:px-16 py-32 bg-[#1A1814] text-white border-b border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24">
+            {/* Column 1: Vision */}
+            <div className="space-y-6">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#B8913A] font-bold">TẦM NHÌN</p>
+              <h3 className="font-serif text-3xl md:text-4xl font-light text-[#F5F2EC] leading-tight">
+                Studio nội thất cao cấp được tin chọn hàng đầu tại TP.HCM.
+              </h3>
+              <div className="border-l-2 border-[#B8913A] pl-6 py-1">
+                <p className="text-xs text-[#8A8070] leading-relaxed italic">
+                  Không phải tham vọng về quy mô — mà là tham vọng về chất lượng được ghi nhớ. Khi khách hàng nghĩ đến một không gian thực sự đúng với họ, họ nghĩ đến DQH.
+                </p>
+              </div>
+            </div>
+
+            {/* Column 2: Mission */}
+            <div className="space-y-6">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#B8913A] font-bold">SỨ MỆNH</p>
+              <h3 className="font-serif text-3xl md:text-4xl font-light text-[#F5F2EC] leading-tight">
+                Mỗi không gian DQH tạo ra phải phản ánh đúng bản sắc của gia chủ.
+              </h3>
+              <div className="border-l-2 border-[#B8913A] pl-6 py-1">
+                <p className="text-xs text-[#8A8070] leading-relaxed italic">
+                  Không copy template. Không làm cho xong. Mỗi dự án là một tác phẩm cá nhân hóa — nơi thẩm mỹ tinh tế hòa quyện với kỹ thuật chuẩn xác.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BRAND SECTION 1C: BA GIÁ TRỊ SỐNG MỖI NGÀY ── */}
+      <section className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-24">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">BẢN SẮC THƯƠNG HIỆU</p>
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] leading-[1.1]">
+              D·Q·H — <span className="font-serif italic font-light text-[#B8913A]">Ba giá trị sống mỗi ngày</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+            {DQH_VALUES.map((val, idx) => (
+              <div key={idx} className="relative space-y-6 pt-16">
+                {/* Watermark letter */}
+                <div className="absolute -top-6 left-0 text-[13rem] font-serif font-black text-[#2C2920] opacity-[0.03] select-none pointer-events-none leading-none">
+                  {val.letter}
+                </div>
+                
+                <div className="relative z-10 space-y-4">
+                  <h3 className="font-sans font-bold text-sm tracking-[0.2em] text-[#2C2920] uppercase">{val.title}</h3>
+                  <p className="font-serif text-lg text-[#B8913A] italic font-light">"{val.quote}"</p>
+                  
+                  <ul className="space-y-3 pt-4 border-t border-[#2C2920]/10">
+                    {val.points.map((pt, pIdx) => (
+                      <li key={pIdx} className="text-xs text-[#8A8070] leading-relaxed flex items-start gap-2">
+                        <span className="text-[#B8913A] mt-1.5">—</span>
+                        <span className="font-sans">{pt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 2: ĐỘI NGŨ MẠNH & SƠ ĐỒ BỘ MÁY D&B ── */}
+      <section id="section-2" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mb-24">
             <div className="lg:col-span-4">
@@ -635,8 +796,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
       </section>
 
-      {/* ── SECTION 2: QUY TRÌNH PHỐI HỢP & CHI TIẾT HIỆN TRƯỜNG ── */}
-      <section id="section-2" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+      {/* ── SECTION 3: QUY TRÌNH PHỐI HỢP & CHI TIẾT HIỆN TRƯỜNG ── */}
+      <section id="section-3" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(vận hành chi tiết)</p>
@@ -725,11 +886,95 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </div>
             </div>
           </div>
+
+          {/* RACI Matrix Table Trigger Button */}
+          <div className="pt-12 border-t border-[#2C2920]/15 flex flex-col items-center">
+            <button 
+              onClick={() => setShowRaciTable(!showRaciTable)}
+              className="group text-xs text-[#8A8070] hover:text-[#2C2920] flex items-center gap-2 cursor-pointer transition-all font-bold uppercase tracking-wider pb-1 border-b border-transparent hover:border-[#2C2920]"
+            >
+              <span>{showRaciTable ? "— Thu gọn bảng phối hợp vai trò" : "↗ Xem bảng phối hợp vai trò liên phòng ban (RACI Matrix)"}</span>
+            </button>
+
+            {showRaciTable && (
+              <div className="w-full mt-12 overflow-x-auto border-t border-[#2C2920]/10 pt-8 animate-fade-in">
+                {/* RACI Legend */}
+                <div className="flex gap-6 flex-wrap text-[10px] font-bold uppercase tracking-widest text-[#8A8070] mb-6 justify-center">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#B8913A]" />
+                    <span>Chủ trì = Làm chính</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]" />
+                    <span>Phối hợp = Tham gia</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" />
+                    <span>Tư vấn = Hỏi ý kiến</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#8A8070]" />
+                    <span>Nhận tin = Thông báo</span>
+                  </div>
+                </div>
+
+                {/* RACI Table Grid */}
+                <table className="w-full text-left text-[11px] font-sans border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="border-b border-[#2C2920]/25 text-[#2C2920] uppercase font-bold tracking-wider font-sans">
+                      <th className="py-3 w-48">Bước công việc</th>
+                      <th className="py-3 text-center w-20">TK (Thiết kế)</th>
+                      <th className="py-3 text-center w-20">2D (Bản vẽ)</th>
+                      <th className="py-3 text-center w-20">TC (Thi công)</th>
+                      <th className="py-3 text-center w-20">Xưởng</th>
+                      <th className="py-3 text-center w-20">KH (Khách)</th>
+                      <th className="py-3 text-center w-16">Ngày</th>
+                      <th className="py-3 pl-4">Nhận đầu vào từ</th>
+                      <th className="py-3 pl-4">Bàn giao cho</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#2C2920]/10 font-sans">
+                    {RACI_ROWS.map((row, idx) => {
+                      const getRoleBadge = (role: string) => {
+                        if (role === "Chủ trì") return <span className="font-bold text-[#B8913A]">Chủ trì</span>;
+                        if (role === "Phối hợp") return <span className="font-bold text-[#3B82F6]">Phối hợp</span>;
+                        if (role === "Tư vấn") return <span className="font-bold text-[#10B981]">Tư vấn</span>;
+                        if (role === "Nhận tin") return <span className="font-medium text-[#8A8070]/80">Nhận tin</span>;
+                        return <span className="text-gray-300">—</span>;
+                      };
+
+                      return (
+                        <tr 
+                          key={idx} 
+                          className={`hover:bg-[#2C2920]/5 transition-colors ${
+                            row.isMilestone ? 'bg-[#B8913A]/5 font-semibold text-[#B8913A]' : 'text-[#2C2920]'
+                          }`}
+                        >
+                          <td className="py-3.5 font-bold">
+                            {row.isMilestone ? <span className="text-red-500 mr-1">★</span> : null}
+                            {row.step}
+                          </td>
+                          <td className="py-3.5 text-center">{getRoleBadge(row.tk)}</td>
+                          <td className="py-3.5 text-center">{getRoleBadge(row.d2)}</td>
+                          <td className="py-3.5 text-center">{getRoleBadge(row.tc)}</td>
+                          <td className="py-3.5 text-center">{getRoleBadge(row.xuong)}</td>
+                          <td className="py-3.5 text-center">{getRoleBadge(row.kh)}</td>
+                          <td className="py-3.5 text-center font-mono font-bold text-[#8A8070]">{row.date}</td>
+                          <td className="py-3.5 pl-4 text-[#8A8070]">{row.input}</td>
+                          <td className="py-3.5 pl-4 font-bold text-[#2C2920]">{row.output}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* ── SECTION 3: TRÌNH DUYỆT TIÊU CHUẨN KỸ THUẬT SỐ ── */}
-      <section id="section-3" className="px-6 md:px-16 py-32 bg-[#1A1814] text-[#F8F5F0] border-b border-white/5">
+      {/* ── SECTION 4: TRÌNH DUYỆT TIÊU CHUẨN KỸ THUẬT SỐ ── */}
+      <section id="section-4" className="px-6 md:px-16 py-32 bg-[#1A1814] text-[#F8F5F0] border-b border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-16 items-start">
             <div className="lg:col-span-5 space-y-6">
@@ -867,8 +1112,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
       </section>
 
-      {/* ── SECTION 4: MINH BẠCH BÁO GIÁ & CHI PHÍ ── */}
-      <section id="section-4" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+      {/* ── SECTION 5: MINH BẠCH BÁO GIÁ & CHI PHÍ ── */}
+      <section id="section-5" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(cam kết minh bạch)</p>
@@ -938,8 +1183,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
       </section>
 
-      {/* ── SECTION 5: BẢO HÀNH & NHẬT KÝ THI CÔNG REAL-TIME ── */}
-      <section id="section-5" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+      {/* ── SECTION 6: BẢO HÀNH & NHẬT KÝ THI CÔNG REAL-TIME ── */}
+      <section id="section-6" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto">
           <div className="mb-24 text-center">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
@@ -1215,8 +1460,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </div>
       </section>
 
-      {/* ── SECTION 6: PHÁP LÝ & ĐỊNH HÌNH UY TÍN ── */}
-      <section className="px-6 md:px-16 py-24 bg-[#1A1814] text-[#F8F5F0]">
+      {/* ── SECTION 7: PHÁP LÝ & ĐỊNH HÌNH UY TÍN ── */}
+      <section id="section-7" className="px-6 md:px-16 py-24 bg-[#1A1814] text-[#F8F5F0]">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-6">
@@ -1307,7 +1552,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           <div className="grid grid-cols-1 gap-1.5 pt-1">
             <button 
               onClick={() => {
-                document.getElementById('section-2')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('section-3')?.scrollIntoView({ behavior: 'smooth' });
                 setExpandedStep(4); // Step 5: Thi công thô
               }}
               className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
@@ -1317,7 +1562,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </button>
             <button 
               onClick={() => {
-                document.getElementById('section-3')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('section-4')?.scrollIntoView({ behavior: 'smooth' });
                 setActiveTab('CHECKLIST');
               }}
               className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
@@ -1327,7 +1572,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </button>
             <button 
               onClick={() => {
-                document.getElementById('section-4')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('section-5')?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
             >
@@ -1336,7 +1581,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </button>
             <button 
               onClick={() => {
-                document.getElementById('section-5')?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('section-6')?.scrollIntoView({ behavior: 'smooth' });
                 setActiveDiaryTab('DIARY');
               }}
               className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
