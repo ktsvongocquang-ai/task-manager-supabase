@@ -5,6 +5,7 @@ CREATE TABLE public.portfolio_shares (
     token TEXT NOT NULL UNIQUE,
     passcode TEXT, -- Cho phép NULL nếu không cài PIN
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    project_id UUID REFERENCES public.construction_projects(id) ON DELETE SET NULL, -- Liên kết với dự án thực tế
     created_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
