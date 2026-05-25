@@ -10,6 +10,8 @@
   --color-employee: var(--color-employee);
   --color-text-main: var(--color-text-primary);
   --color-border-main: var(--color-border);
+  --font-serif: "Cormorant Garamond", "Georgia", serif;
+  --font-sans: "DM Sans", "system-ui", sans-serif;
 }
 
 :root {

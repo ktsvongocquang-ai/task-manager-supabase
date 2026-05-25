@@ -22,6 +22,8 @@ import InteriorQuote from './pages/baogia/InteriorQuote'
 import TrainingHub from './pages/training/TrainingHub'
 import { ConstructionProvider } from './contexts/ConstructionContext'
 import { ClientView } from './pages/client/ClientView'
+import { PortfolioLanding } from './pages/portfolio/PortfolioLanding'
+import { PortfolioManager } from './pages/portfolio/PortfolioManager'
 
 function App() {
   return (
@@ -33,6 +35,9 @@ function App() {
 
         {/* Public client landing page — NO auth required */}
         <Route path="/c/:token" element={<ClientView />} />
+        
+        {/* Public Portfolio Landing page */}
+        <Route path="/p/:token" element={<PortfolioLanding />} />
 
         {/* Protected Routes */}
         <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
@@ -54,6 +59,7 @@ function App() {
           <Route path="mytasks" element={<MyTasks />} />
           <Route path="bao-gia" element={<InteriorQuote />} />
           <Route path="training" element={<TrainingHub />} />
+          <Route path="portfolio-manager" element={<PortfolioManager />} />
         </Route>
 
 

@@ -29,7 +29,8 @@ import {
     Menu,
     Database,
     Calculator,
-    BookOpen
+    BookOpen,
+    Link as LinkIcon
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -295,6 +296,7 @@ export const Layout = () => {
         // Tab Marketing
         if (canAccessRoute(role, '/marketing')) {
             items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
+            items.push({ name: 'Portfolio', path: '/portfolio-manager', icon: LinkIcon, matchPrefix: ['/portfolio-manager'] });
         }
 
         // Tab Thi Công
