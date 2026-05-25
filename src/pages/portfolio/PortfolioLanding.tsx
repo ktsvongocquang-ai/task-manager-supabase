@@ -318,9 +318,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       {/* ── HERO ── */}
       <section 
-        className="min-h-screen pt-28 pb-16 flex flex-col justify-center px-6 md:px-16 relative overflow-hidden bg-[#131312]"
+        className="min-h-screen pt-28 pb-16 flex flex-col justify-center px-6 md:px-16 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(180deg, #181816 0%, #111110 100%)',
+          background: 'linear-gradient(160deg, #2A2820 0%, #1C1C1A 60%, #0E0E0C 100%)',
         }}
       >
         {/* Decorative vertical line */}
