@@ -464,9 +464,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           </Reveal>
           
           <Reveal delay={100}>
-            <h1 className="font-serif text-[clamp(3rem,8vw,5.8rem)] font-light leading-[1.05] mb-6 text-[#F5F2EC]">
+            <h1 className="font-sans font-bold text-[clamp(2.8rem,7vw,5.2rem)] leading-[1.05] tracking-tight mb-6 text-[#F5F2EC]">
               Define<br />
-              <em className="italic text-[#F5F2EC] font-light">Quality</em><br />
+              <span className="font-serif italic font-light text-[#B8913A]">Quality</span><br />
               Housing
             </h1>
           </Reveal>
@@ -526,9 +526,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         <div className="max-w-6xl mx-auto">
           <div className="mb-24">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(năng lực thiết kế)</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] leading-[1.1]">
               Thiết kế có gu &amp; <br />
-              <em className="italic text-[#B8913A] font-light">Công trình thành công</em>
+              <span className="font-serif italic font-light text-[#B8913A]">Công trình thành công</span>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
@@ -560,9 +560,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mb-24">
             <div className="lg:col-span-4">
               <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(bộ máy tổ chức)</p>
-              <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920] mb-6 leading-[1.1]">
+              <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] mb-6 leading-[1.1]">
                 Đội ngũ mạnh,<br />
-                <em className="italic text-[#B8913A] font-light">Design &amp; Build</em> trọn vẹn
+                <span className="font-serif italic font-light text-[#B8913A]">Design &amp; Build</span> trọn vẹn
               </h2>
               <p className="text-xs text-[#8A8070] leading-relaxed max-w-sm">
                 Tại DQH, kiến trúc sư và kỹ sư giám sát công trình cùng làm việc dưới một mái nhà. Chúng tôi loại bỏ hoàn toàn việc kiến trúc sư đổ lỗi cho thợ thi công làm sai, hoặc thợ thi công chê bản vẽ không thực tế. Mọi thành viên đều chung mục tiêu: sản phẩm cuối cùng hoàn hảo nhất.
@@ -640,9 +640,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(vận hành chi tiết)</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
-              Quy trình phối hợp <br />
-              <em className="italic text-[#B8913A] font-light">liên phòng ban</em>
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] leading-[1.1]">
+                Quy trình phối hợp <br />
+                <span className="font-serif italic font-light text-[#B8913A]">liên phòng ban</span>
             </h2>
           </div>
  
@@ -734,9 +734,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-16 items-start">
             <div className="lg:col-span-5 space-y-6">
               <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(kỹ thuật thi công)</p>
-              <h2 className="font-serif text-4xl md:text-5xl font-light text-white leading-tight">
+              <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-white leading-[1.1]">
                 Tiêu chuẩn thiết kế &amp; <br />
-                <em className="italic text-[#B8913A] font-light">Checklist 120 điểm</em>
+                <span className="font-serif italic font-light text-[#B8913A]">Checklist 120 điểm</span>
               </h2>
               <p className="text-xs text-[#C4C0B8] leading-relaxed max-w-sm font-sans pt-4">
                 DQH số hóa toàn bộ tiêu chuẩn kỹ thuật thiết kế và thi công vào ứng dụng quản lý. Mọi chi tiết thiết kế và hạng mục hoàn thiện đều được nhân sự kiểm tra chéo theo checklist nghiêm ngặt dưới đây.
@@ -872,9 +872,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(cam kết minh bạch)</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] leading-[1.1]">
               Tại sao giá DQH là <br />
-              <em className="italic text-[#B8913A] font-light">Giá đúng giá trị?</em>
+              <span className="font-serif italic font-light text-[#B8913A]">Giá đúng giá trị?</span>
             </h2>
           </div>
  
@@ -943,9 +943,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         <div className="max-w-6xl mx-auto">
           <div className="mb-24 text-center">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
-            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight text-[#2C2920] leading-[1.1]">
               Nhật ký tiến độ &amp; <br />
-              <em className="italic text-[#B8913A] font-light">Cam kết bảo hành vàng</em>
+              <span className="font-serif italic font-light text-[#B8913A]">Cam kết bảo hành vàng</span>
             </h2>
           </div>
 
@@ -1171,24 +1171,45 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </div>
           </div>
 
-          {/* Ý kiến khách hàng cũ */}
-          <div className="border-t border-[#2C2920]/10 pt-20 mt-20">
-            <h3 className="font-serif text-xl font-light text-[#2C2920] mb-12 text-center">Ý kiến từ những chủ nhà đã đồng hành cùng DQH</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { name: "Chị Minh Châu", role: "Chủ nhà · Biệt thự Thủ Đức 2024", text: "Từ buổi gặp đầu tiên, họ đã hiểu hoàn toàn tầm nhìn của chúng tôi. Thiết kế cuối cùng cảm giác rất tự nhiên — từng phòng đều chảy liền mạch." },
-                { name: "Anh Tuấn Anh", role: "Chủ nhà · Nhà phố Quận 3 2023", text: "Checklist nghiệm thu của DQH còn dài hơn danh sách của vợ tôi. Bàn giao xong thực sự không có gì để phàn nàn — từng chi tiết đều hoàn hảo." },
-                { name: "Chị Hồng Nhung", role: "Chủ nhà · Căn hộ Quận 7 2022", text: "Ban công thấm sau 1 năm, gọi buổi sáng — chiều cùng ngày đã có kỹ thuật viên đến. Bảo hành không phải lời hứa, đó là cam kết thực sự." }
-              ].map((feedback, idx) => (
-                <div key={idx} className="bg-white p-6 rounded-xl border border-[#2C2920]/10 space-y-4 relative shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex gap-1 text-[#B8913A]"><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /></div>
-                  <p className="text-xs text-[#8A8070] leading-relaxed">"{feedback.text}"</p>
-                  <div className="pt-3 border-t border-[#2C2920]/5">
-                    <h4 className="text-xs font-bold text-[#2C2920]">{feedback.name}</h4>
-                    <span className="text-[10px] text-[#8A8070]">{feedback.role}</span>
+          {/* Ý kiến khách hàng cũ - Nâng cấp thành khối hình ảnh chèn chữ màu trắng sang trọng giống Framer Screen 4 */}
+          <div className="border-t border-[#2C2920]/10 pt-32 mt-32">
+            <div className="mb-16">
+              <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đánh giá thực tế)</p>
+              <h3 className="font-sans font-bold text-3xl md:text-4xl tracking-tight text-[#2C2920] uppercase">WHAT OUR CLIENTS SAY</h3>
+            </div>
+            
+            <div className="relative aspect-[16/10] md:aspect-[21/9] rounded-sm overflow-hidden bg-[#FAF8F4] shadow-sm group">
+              {/* Background Image */}
+              <img 
+                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=80" 
+                alt="Client Luxury Living Space" 
+                className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out"
+              />
+              {/* Dark overlay for readable white text */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#1A1814]/90 via-[#1A1814]/70 to-transparent" />
+              
+              {/* Testimonial content overlay */}
+              <div className="absolute inset-0 flex flex-col justify-between p-8 md:p-16 z-10 text-white">
+                <div className="max-w-2xl space-y-6">
+                  <p className="font-serif text-lg md:text-2xl font-light leading-relaxed italic text-[#F5F2EC]">
+                    "Từ buổi gặp đầu tiên, họ đã hiểu hoàn toàn tầm nhìn của chúng tôi. Thiết kế cuối cùng cảm giác rất tự nhiên — từng phòng đều chảy liền mạch, mọi ngóc ngách đều lộng lẫy và hoàn mỹ đúng như mong đợi."
+                  </p>
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-[#B8913A]">CHỊ MINH CHÂU</h4>
+                    <p className="text-[10px] text-[#C4C0B8] uppercase font-mono mt-0.5">Chủ nhà · Biệt thự Thủ Đức</p>
                   </div>
                 </div>
-              ))}
+
+                {/* Client Avatar indicators bottom left */}
+                <div className="flex gap-3 items-center pt-6 md:pt-0">
+                  <div className="flex -space-x-2">
+                    <img className="w-8 h-8 rounded-full border border-[#1A1814] object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80" alt="Avatar 1" />
+                    <img className="w-8 h-8 rounded-full border border-[#1A1814] object-cover" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&q=80" alt="Avatar 2" />
+                    <img className="w-8 h-8 rounded-full border border-[#1A1814] object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="Avatar 3" />
+                  </div>
+                  <span className="text-[10px] tracking-wider uppercase text-[#C4C0B8] font-bold">12+ Chủ nhà đã đồng hành cùng DQH</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1200,8 +1221,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-6">
               <p className="text-xs tracking-[0.22em] uppercase text-[#B8913A]">(pháp lý doanh nghiệp)</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-light text-white">
-                Bộ máy vận hành &amp; <em className="not-italic text-[#B89B6A]">Cơ sở pháp lý uy tín</em>
+              <h2 className="font-sans font-bold text-3xl md:text-4xl tracking-tight text-white leading-[1.1]">
+                Bộ máy vận hành &amp; <br />
+                <span className="font-serif italic font-light text-[#B89B6A]">Cơ sở pháp lý uy tín</span>
               </h2>
               <div className="space-y-4 text-sm text-[#C4C0B8] leading-relaxed">
                 <p>
