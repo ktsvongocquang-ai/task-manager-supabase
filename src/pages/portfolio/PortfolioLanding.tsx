@@ -1,98 +1,133 @@
-/**
- * DesignCoPage.jsx
- * React + Tailwind CSS clone of https://receptive-questions-750334.framer.app/
- * Adapted for DQH — Architecture & Interior (Vietnamese)
- *
- * Usage (Next.js App Router):
- *   app/page.tsx  →  import DesignCoPage from "@/components/DesignCoPage"
- *
- * Fonts needed in layout.tsx / _document.tsx:
- *   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
- *
- * tailwind.config.js — extend fonts:
- *   theme: { extend: { fontFamily: {
- *     serif:  ["Cormorant Garamond", "Georgia", "serif"],
- *     sans:   ["Inter", "system-ui", "sans-serif"],
- *   }}}
- */
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { PortfolioManager } from './PortfolioManager';
+import { 
+  Shield, 
+  Users, 
+  FileText, 
+  CheckCircle, 
+  MapPin, 
+  Clock, 
+  Calendar, 
+  Compass, 
+  Layers, 
+  Search, 
+  Award, 
+  Heart, 
+  Wrench, 
+  CheckSquare, 
+  DollarSign, 
+  ChevronRight, 
+  Building,
+  Star
+} from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DATA
+// DESIGN SYSTEM CONSTANTS (DQH Quiet Luxury DNA)
 // ─────────────────────────────────────────────────────────────────────────────
+const COLORS = {
+  cream: '#F5F2EC',
+  warmWhite: '#FAF8F4',
+  charcoal: '#1C1C1A',
+  stone: '#8A8780',
+  stoneLight: '#C4C0B8',
+  gold: '#B89B6A',
+  goldLight: '#D4BC95',
+  border: 'rgba(28,28,26,0.10)',
+};
 
-const NAV_LINKS = [
-  { label: "Công trình", href: "#works" },
-  { label: "Về chúng tôi", href: "#about" },
-  { label: "Dịch vụ", href: "#services" },
-  { label: "Liên hệ", href: "#contact" },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA & RESOURCES
+// ─────────────────────────────────────────────────────────────────────────────
 
 const PROJECTS = [
-  { id: 1, num: "01", cat: "Biệt thự · Thủ Đức", title: "The Lumé Residence",   img: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=700&q=70" },
-  { id: 2, num: "02", cat: "Nhà phố · Quận 3",   title: "The Horizon House",    img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=700&q=70" },
-  { id: 3, num: "03", cat: "Penthouse · Quận 7",  title: "The Verena Penthouse", img: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=700&q=70" },
-  { id: 4, num: "04", cat: "Boutique · Đà Lạt",   title: "Arden Boutique Resort",img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=700&q=70" },
+  { id: 1, num: "01", cat: "Biệt thự · Thủ Đức", title: "The Lumé Residence", img: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=800&q=80", desc: "Diện tích 450m2. Thiết kế theo tinh thần Quiet Luxury với vật liệu chủ đạo là đá tự nhiên Travertine và gỗ sồi nhập khẩu." },
+  { id: 2, num: "02", cat: "Nhà phố · Quận 2", title: "The Horizon House", img: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&q=80", desc: "Diện tích 280m2. Ứng dụng triết lý Modern Tropical Biophilic đưa ánh sáng tự nhiên và cây xanh xen kẽ vào không gian." },
+  { id: 3, num: "03", cat: "Penthouse · Quận 7", title: "The Verena Penthouse", img: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=800&q=80", desc: "Diện tích 320m2. Thiết kế tối giản tinh tế, tập trung vào tỷ lệ hình khối và sự kiềm chế màu sắc." },
+  { id: 4, num: "04", cat: "Boutique Resort · Đà Lạt", title: "Arden Boutique Resort", img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80", desc: "Công trình nghỉ dưỡng cao cấp hòa quyện với thiên nhiên sương mù, sử dụng limewash sơn vôi tự nhiên." },
 ];
 
-const SERVICES = [
+const STAFF_PORTFOLIO = [
   {
-    num: "01", title: "Thiết kế nội thất nhà ở",
-    desc: "Chúng tôi tạo ra những không gian phản ánh phong cách sống của bạn — hòa quyện sự thoải mái, tinh tế và nguyên tắc thiết kế trường tồn.",
-    img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=900&q=70",
+    name: "Đỗ Quang Hải",
+    role: "KTS Trưởng & Founder",
+    experience: "15+ Năm Kinh Nghiệm",
+    bio: "Tốt nghiệp ĐH Kiến Trúc TP.HCM. 15 năm thiết kế các biệt thự cao cấp. Định hướng triết lý 'Quiet Luxury' tại DQH — không gian tinh tế từ tỷ lệ, không phô trương từ chi tiết.",
+    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80"
   },
   {
-    num: "02", title: "Thiết kế thương mại & văn phòng",
-    desc: "Chúng tôi thiết kế môi trường có mục đích — nâng cao nhận diện thương hiệu và cải thiện cách mọi người làm việc, kết nối.",
-    img: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=900&q=70",
+    name: "Nguyễn Minh Tuấn",
+    role: "Giám Đốc Sáng Tạo",
+    experience: "10+ Năm Kinh Nghiệm",
+    bio: "Chuyên gia về vật liệu tự nhiên và ánh sáng gián tiếp. Đảm bảo mọi moodboard thiết kế đạt chuẩn thẩm mỹ cao cấp nhất, kết hợp hài hòa giữa đá, gỗ và vải sợi thô zellige.",
+    img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80"
   },
   {
-    num: "03", title: "Thi công & Quản lý dự án",
-    desc: "Giám sát từng giai đoạn với độ chính xác cao. Giá cố định trong hợp đồng, tiến độ cam kết, báo cáo hàng tuần qua Zalo.",
-    img: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=70",
+    name: "Trần Hoàng Nam",
+    role: "Kỹ Sư Kết Cấu Cao Cấp",
+    experience: "12+ Năm Kinh Nghiệm",
+    bio: "Chuyên môn kết cấu đảm bảo các phương án kiến trúc vượt nhịp lớn, giấu cột âm tường tinh tế. Biến các ý tưởng bay bổng trên bản vẽ 3D thành hiện thực vững chãi.",
+    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80"
   },
+  {
+    name: "Lê Văn Khoa",
+    role: "Quản Lý Dự Án & Thi Công",
+    experience: "8+ Năm Kinh Nghiệm",
+    bio: "Giám sát kỹ thuật hiện trường. Quản lý chặt chẽ BOQ, kiểm soát chất lượng từ xưởng gỗ nội thất đến công trình thô, đảm bảo tiến độ bàn giao đúng cam kết.",
+    img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80"
+  }
 ];
 
-const TESTIMONIALS = [
-  { text: "Từ buổi gặp đầu tiên, họ đã hiểu hoàn toàn tầm nhìn của chúng tôi. Thiết kế cuối cùng cảm giác rất tự nhiên — từng phòng đều chảy liền mạch.", name: "Chị Minh Châu", role: "Chủ nhà · Biệt thự Thủ Đức 2024", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&q=70", bg: "https://images.unsplash.com/photo-1600210491892-03d54730d73e?w=900&q=70" },
-  { text: "Checklist nghiệm thu của DQH còn dài hơn danh sách của vợ tôi. Bàn giao xong thực sự không có gì để phàn nàn — từng chi tiết đều hoàn hảo.", name: "Anh Tuấn Anh", role: "Chủ nhà · Nhà phố Quận 3 2023", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&q=70", bg: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=900&q=70" },
-  { text: "Ban công thấm sau 1 năm, gọi buổi sáng — chiều cùng ngày đã có kỹ thuật viên đến. Bảo hành không phải lời hứa, đó là cam kết thực sự.", name: "Chị Hồng Nhung", role: "Chủ nhà · Căn hộ Quận 7 2022", img: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&q=70", bg: "https://images.unsplash.com/photo-1583845112203-29329902332e?w=900&q=70" },
+const CASE_STUDIES = [
+  {
+    title: "Đêm bão xử lý dột cho công trình cũ đã hết hạn bảo hành",
+    tag: "Tử tế làm đầu",
+    desc: "Căn penthouse Quận 7 bàn giao năm 2022 của chị Nhung gặp sự cố thấm dột do bão lớn tràn qua khe kính giếng trời của tòa nhà (không thuộc phạm vi bảo hành của DQH). Tuy nhiên, nhận cuộc gọi lúc 21h, KTS Hải và kỹ thuật viên Khoa đã trực tiếp mang bạt và vật liệu chuyên dụng đến hiện trường trong đêm mưa để che chắn và xử lý keo tạm thời, bảo vệ an toàn cho hệ sàn gỗ tự nhiên của chủ nhà. Sáng hôm sau, DQH phối hợp cùng BQL tòa nhà khắc phục triệt để. Chị Nhung chia sẻ: 'Gọi điện lúc đêm bão chỉ mong được tư vấn cách xử lý tạm, không ngờ các em lại trực tiếp phi xe qua.'"
+  },
+  {
+    title: "Từ chối mạ vàng bóng để bảo vệ 'gu' Quiet Luxury",
+    tag: "Chuyên môn & Đạo đức",
+    desc: "Trong quá trình trao đổi thiết kế căn biệt thự Thủ Đức, chủ nhà (anh Hùng) muốn ốp toàn bộ viền vách tivi bằng inox mạ vàng gương bóng loáng theo gợi ý của một đơn vị bên ngoài. Thay vì làm theo để chiều lòng khách hàng nhanh chóng, team thiết kế DQH đã kiên trì giải thích và làm mẫu mockup thực tế 1:1 kết hợp giữa tấm travertine mờ và inox brushed brass (vàng xước mờ). Sau khi nhìn trực tiếp mẫu mockup dưới đèn chiếu 2700K, anh Hùng đã bị thuyết phục hoàn toàn bởi vẻ sang trọng tiết chế và thừa nhận: 'Nếu hôm đó làm vàng bóng thì bây giờ mỗi lần bật đèn tivi là một lần chói mắt. Cảm ơn các em đã giữ vững lập trường chuyên môn.'"
+  }
 ];
 
-const PHILOSOPHY = [
-  { kicker: "Sự đơn giản", title: "Simplicity", desc: "Chúng tôi đề cao những đường nét gọn gàng và sự kiềm chế có chủ ý, cho phép mỗi yếu tố được thở và phục vụ đúng mục đích.", img: "https://images.unsplash.com/photo-1616137466211-f939a420be84?w=800&q=70" },
-  { kicker: "Sự hài hòa", title: "Harmony", desc: "Mỗi không gian nên cảm thấy gắn kết — sự pha trộn liền mạch của vật liệu, màu sắc và ánh sáng được thiết kế để truyền cảm hứng bình yên.", img: "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=800&q=70" },
-  { kicker: "Sự bền vững", title: "Longevity", desc: "Chúng tôi thiết kế với ý định, đảm bảo mỗi quyết định đứng vững trước thử thách của thời gian về cả phong cách lẫn chất lượng.", img: "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?w=800&q=70" },
+const TIMELINE_TEMPLATE = [
+  { phase: "Giai đoạn 1", title: "Khảo sát & Concept", duration: "15 - 20 Ngày", details: "Khảo sát hiện trạng chi tiết, đo đạc cốt kỹ thuật, lên mặt bằng công năng 2D và moodboard vật liệu mẫu." },
+  { phase: "Giai đoạn 2", title: "Thiết kế 3D & BOQ", duration: "25 - 30 Ngày", details: "Dựng phối cảnh 3D không gian, test ánh sáng ảo, bóc tách khối lượng chi tiết (BOQ) cam kết không phát sinh." },
+  { phase: "Giai đoạn 3", title: "Thi công thô & Cơ điện", duration: "60 - 90 Ngày", details: "Xây trát, chống thấm 3 lớp, đi đường ống MEP (Downlight âm trần, điều hòa trung tâm) theo tiêu chuẩn kỹ thuật." },
+  { phase: "Giai đoạn 4", title: "Hoàn thiện & Nội thất", duration: "30 - 45 Ngày", details: "Sơn limewash, lắp ráp đồ gỗ tại xưởng gỗ DQH, kiểm tra khớp shadow gap 3mm, bàn giao nghiệm thu." }
 ];
 
-const TEAM = [
-  { name: "Đỗ Quang Hải",   role: "KTS Trưởng & Founder",    bio: "15+ năm kinh nghiệm thiết kế kiến trúc và nội thất cao cấp. Phong cách xoay quanh việc tạo ra những không gian phản ánh cá tính trong khi duy trì sự tinh tế hiện đại.", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=70" },
-  { name: "Nguyễn Minh Tuấn", role: "Giám đốc sáng tạo",     bio: "Giám sát tầm nhìn sáng tạo của studio. Con mắt tinh tế về màu sắc, ánh sáng và kết cấu — biến những căn phòng bình thường thành trải nghiệm đáng nhớ.", img: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=70" },
-  { name: "Trần Hoàng Nam",  role: "Kỹ sư kết cấu cao cấp",  bio: "Chuyên gia quy hoạch không gian và kiến trúc. Chuyên môn đảm bảo mọi khái niệm chuyển tiếp liền mạch từ bản vẽ đến thi công thực tế.", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=70" },
-  { name: "Lê Văn Khoa",    role: "Quản lý dự án",           bio: "Điều phối tiến độ, giao tiếp khách hàng và giám sát thi công. Đảm bảo mọi thiết kế được thực hiện với độ chính xác và đúng tiến độ cam kết.", img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=70" },
-];
+const TECHNICAL_STANDARDS = {
+  design: [
+    { title: "Tỷ lệ Solid : Void = 3 : 1", desc: "25% diện tích tường là void (khoảng trống, khe, âm trần) giúp không gian thở, không nhồi nhét đồ đạc." },
+    { title: "Furniture Scale theo trần", desc: "Chiều cao sofa và tủ kệ được thiết kế riêng tương ứng với chiều cao trần nhà để tránh tạo cảm giác thô kệch." },
+    { title: "Độ chuẩn xác Shadow Gap", desc: "Cấu hình khe âm 3-5mm cho chuyển tiếp tường và 2-3mm cho tủ joinery, tạo bóng tối tự nhiên sắc nét." }
+  ],
+  construction: [
+    { title: "Chống thấm 3 lớp đặc chủng", desc: "Thiết kế màng chống thấm liên tục tại khu vệ sinh và ban công, ngâm thử nước 72h trước khi lát nền." },
+    { title: "Chống nứt cổ trần & đà liên kết", desc: "Sử dụng lưới mắt cáo chống nứt tại các điểm tiếp giáp giữa gạch và bê tông trước khi tô trát." },
+    { title: "Lắp đặt Mockup Ánh sáng tại hiện trường", desc: "Trước khi thi công trần thạch cao, DQH lắp thử hệ đèn 2700K/3000K để kiểm tra độ hắt sáng thực tế trên bề mặt tường." }
+  ]
+};
 
-const FAQS = [
-  { q: "DQH cung cấp những dịch vụ gì?", a: "Chúng tôi cung cấp dịch vụ thiết kế nội thất toàn diện bao gồm quy hoạch không gian, thiết kế kiến trúc, thi công và quản lý dự án. Từ tư vấn ban đầu đến bàn giao chìa khoá." },
-  { q: "DQH có làm dự án thương mại không?", a: "Có, chúng tôi làm việc trên nhiều loại không gian — từ nhà phố, biệt thự, căn hộ đến văn phòng, khách sạn boutique và không gian thương mại cao cấp." },
-  { q: "Thời gian thi công điển hình là bao lâu?", a: "Nhà phố 4 tầng (thô): 4–5 tháng. Nội thất bổ sung: 2–3 tháng. Cải tạo căn hộ: 2–4 tháng. Tất cả được ghi rõ trong hợp đồng với điều khoản phạt nếu trễ." },
-  { q: "Tư vấn ban đầu có mất phí không?", a: "Hoàn toàn miễn phí. KTS đến tận nhà khảo sát, phân tích không gian, tư vấn phong cách và ước tính ngân sách sơ bộ — không ràng buộc, không phí." },
-  { q: "DQH có cam kết giá không phát sinh không?", a: "Có. Sau khi ký hợp đồng, giá được cố định. BOQ chi tiết từng hạng mục lập trước khi ký. Nếu phát sinh ngoài thiết kế đã duyệt, DQH chịu trách nhiệm chi phí đó." },
+const COOP_STEPS = [
+  { step: "01", name: "Bộ phận Khảo sát & KTS", desc: "Đo đạc hiện trạng bằng máy laser, ghi nhận hướng nắng, hướng gió và độ ẩm công trình." },
+  { step: "02", name: "Team Concept & 3D", desc: "Phát triển bản vẽ 2D công năng và dựng hình khối 3D, lựa chọn bảng màu giới hạn tối đa 3 tông màu." },
+  { step: "03", name: "Phòng Dự toán & Vật liệu", desc: "Lập BOQ bóc tách từng chi tiết đinh ốc, mã sơn, xuất xứ gỗ. Trình mẫu vật liệu thực tế tại văn phòng." },
+  { step: "04", name: "Đội ngũ Kỹ sư & Thi công", desc: "Triển khai thi công thô dưới sự giám sát trực tiếp của kỹ sư kết cấu, đảm bảo đúng định vị cơ điện." },
+  { step: "05", name: "Xưởng gỗ DQH & Bàn giao", desc: "Sản xuất nội thất theo bản vẽ CAD chi tiết, sơn phủ mờ bảo vệ bề mặt, lắp đặt và nghiệm thu 2 lớp cùng chủ nhà." }
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HOOKS
+// COMPONENT HOOKS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Reveal element when it enters viewport */
 function useReveal(threshold = 0.12) {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -104,56 +139,15 @@ function useReveal(threshold = 0.12) {
     obs.observe(el);
     return () => obs.disconnect();
   }, [threshold]);
-  return [ref, visible];
+  return [ref, visible] as const;
 }
 
-/** Animated number counter */
-function useCounter(target, duration = 1500) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setStarted(true); obs.disconnect(); } },
-      { threshold: 0.5 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    const steps = 60;
-    const inc = target / steps;
-    let cur = 0;
-    const id = setInterval(() => {
-      cur = Math.min(cur + inc, target);
-      setCount(Math.floor(cur));
-      if (cur >= target) clearInterval(id);
-    }, duration / steps);
-    return () => clearInterval(id);
-  }, [started, target, duration]);
-
-  return [ref, count];
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SMALL COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Fade-up reveal wrapper */
-function Reveal({ children, className = "", delay = 0, direction = "up" }) {
+function Reveal({ children, className = "", delay = 0 }) {
   const [ref, visible] = useReveal();
-  const base = direction === "left"
-    ? "translate-x-[-28px]"
-    : "translate-y-[28px]";
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-x-0 translate-y-0" : `opacity-0 ${base}`} ${className}`}
+      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-7"} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -161,683 +155,8 @@ function Reveal({ children, className = "", delay = 0, direction = "up" }) {
   );
 }
 
-/** Section tag label */
-function Tag({ children }) {
-  return (
-    <p className="text-xs tracking-[0.22em] uppercase text-[#C4C0B8] font-sans mb-4">
-      {children}
-    </p>
-  );
-}
-
-/** Dark CTA button */
-function BtnDark({ children, href = "#", onClick }) {
-  return (
-    <a
-      href={href}
-      onClick={onClick}
-      className="inline-block text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-8 py-3.5 hover:bg-[#B89B6A] transition-colors duration-300 font-sans"
-    >
-      {children}
-    </a>
-  );
-}
-
-/** Arrow link */
-function BtnArrow({ children, href = "#" }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center gap-2 text-xs tracking-[0.12em] uppercase text-[#1C1C1A] hover:gap-4 transition-all duration-300 font-sans group"
-    >
-      {children}
-      <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
-    </a>
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTIONS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/* ── Navbar ── */
-function Navbar({ mobileOpen, setMobileOpen }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", h);
-    return () => window.removeEventListener("scroll", h);
-  }, []);
-
-  return (
-    <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between transition-all duration-400 ${
-          scrolled ? "bg-[#FAF8F4]/92 backdrop-blur-xl border-b border-[#1C1C1A]/10" : ""
-        }`}
-      >
-        <a href="#" className="font-serif text-xl font-semibold tracking-wide text-[#1C1C1A]">
-          DQH
-        </a>
-
-        {/* Desktop links */}
-        <ul className="hidden md:flex gap-9 list-none">
-          {NAV_LINKS.map((l) => (
-            <li key={l.label}>
-              <a href={l.href} className="text-xs tracking-[0.12em] uppercase text-[#C4C0B8] hover:text-[#1C1C1A] transition-colors duration-300 font-sans">
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <a href="#contact" className="hidden md:inline-block text-xs tracking-[0.1em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-6 py-2.5 hover:bg-[#B89B6A] transition-colors duration-300 font-sans">
-          Đặt lịch tư vấn
-        </a>
-
-        {/* Hamburger */}
-        <button
-          className="md:hidden flex flex-col gap-[5px] p-1"
-          onClick={() => setMobileOpen((o) => !o)}
-          aria-label="Menu"
-        >
-          <span className={`block w-5 h-px bg-[#1C1C1A] transition-all duration-300 ${mobileOpen ? "rotate-45 translate-y-[6px]" : ""}`} />
-          <span className={`block w-5 h-px bg-[#1C1C1A] transition-all duration-300 ${mobileOpen ? "opacity-0" : ""}`} />
-          <span className={`block w-5 h-px bg-[#1C1C1A] transition-all duration-300 ${mobileOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
-        </button>
-      </nav>
-
-      {/* Mobile fullscreen menu */}
-      <div
-        className={`fixed inset-0 z-40 bg-[#FAF8F4] flex flex-col items-center justify-center gap-8 transition-all duration-400 ${
-          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        {NAV_LINKS.map((l) => (
-          <a
-            key={l.label}
-            href={l.href}
-            onClick={() => setMobileOpen(false)}
-            className="font-serif text-4xl font-light text-[#1C1C1A] tracking-wide hover:text-[#B89B6A] transition-colors duration-300"
-          >
-            {l.label}
-          </a>
-        ))}
-      </div>
-    </>
-  );
-}
-
-/* ── Hero ── */
-function Hero() {
-  return (
-    <section id="hero" className="min-h-screen grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-      {/* Left */}
-      <div className="flex flex-col justify-end px-6 md:px-16 pb-16 pt-32 md:pt-0 bg-[#FAF8F4] relative z-10">
-        <Reveal>
-          <p className="text-xs tracking-[0.25em] uppercase text-[#C4C0B8] mb-7 flex items-center gap-3 font-sans">
-            <span className="w-6 h-px bg-slate-400 inline-block" />
-            Trụ sở tại TP. Hồ Chí Minh, Việt Nam
-          </p>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <h1 className="font-serif text-[clamp(2.8rem,6vw,5rem)] font-light leading-[1.08] mb-7 text-[#1C1C1A]">
-            Không gian sống
-            <br />
-            <em className="not-italic text-[#B89B6A]">tinh tế.</em>
-            <br />
-            Kiến tạo cho bạn.
-          </h1>
-        </Reveal>
-
-        <Reveal delay={200}>
-          <p className="text-[0.95rem] text-[#8A8780] leading-[1.85] max-w-[420px] mb-10 font-sans">
-            Chúng tôi tạo ra những không gian tinh tế — kết hợp sự thoải mái, thẩm mỹ và thiết kế bền vững, được điều chỉnh theo phong cách sống của bạn.
-          </p>
-        </Reveal>
-
-        <Reveal delay={300}>
-          <div className="flex items-center gap-5 flex-wrap">
-            <BtnDark href="#works">Xem công trình</BtnDark>
-            <BtnArrow href="#contact">Tư vấn miễn phí</BtnArrow>
-          </div>
-        </Reveal>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 right-10 hidden md:flex flex-col items-center gap-2 opacity-30">
-          <div className="w-px h-10 bg-slate-400 animate-pulse" />
-          <span className="text-[0.55rem] tracking-[0.2em] uppercase text-[#C4C0B8] [writing-mode:vertical-rl] font-sans">Scroll</span>
-        </div>
-      </div>
-
-      {/* Right — hero image */}
-      <div className="relative overflow-hidden h-[55vw] md:h-auto">
-        <img
-          src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1400&q=80"
-          alt="DQH Interior"
-          className="w-full h-full object-cover transition-transform duration-[8s] ease-out hover:scale-105"
-        />
-      </div>
-    </section>
-  );
-}
-
-/* ── Marquee ── */
-function Marquee() {
-  const items = ["Kiến trúc & Nội thất", "Modern Tropical Biophilic", "Thi công chuyên nghiệp", "Bảo hành 10 năm", "Giá cố định", "150+ công trình"];
-  const doubled = [...items, ...items];
-  return (
-    <div className="border-y border-[#1C1C1A]/10 overflow-hidden bg-white py-4">
-      <div
-        className="flex whitespace-nowrap"
-        style={{ animation: "marquee 28s linear infinite" }}
-      >
-        {doubled.map((t, i) => (
-          <span key={i} className="font-serif text-base italic text-[#C4C0B8] px-10">
-            {t}
-            <span className="text-[#B89B6A] ml-10">✦</span>
-          </span>
-        ))}
-      </div>
-      <style>{`@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }`}</style>
-    </div>
-  );
-}
-
-/* ── Works ── */
-function Works() {
-  const [hovered, setHovered] = useState(null);
-  return (
-    <section id="works" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-14">
-        <div>
-          <Reveal><Tag>(công trình)</Tag></Reveal>
-          <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,4vw,3.2rem)] font-light text-[#1C1C1A]">
-              Công trình <em className="not-italic text-[#B89B6A]">nổi bật</em>
-            </h2>
-          </Reveal>
-        </div>
-        <Reveal delay={200}>
-          <BtnArrow href="#">Xem tất cả</BtnArrow>
-        </Reveal>
-      </div>
-
-      {/* List */}
-      <div className="flex flex-col">
-        {PROJECTS.map((p, i) => (
-          <a
-            key={p.id}
-            href="#"
-            className="grid grid-cols-[48px_1fr] md:grid-cols-[60px_1fr_340px] gap-0 items-center py-6 border-t border-[#1C1C1A]/10 last:border-b hover:bg-[#1C1C1A]/[0.015] transition-colors duration-300 no-underline text-inherit group"
-            onMouseEnter={() => setHovered(p.id)}
-            onMouseLeave={() => setHovered(null)}
-          >
-            <span className="font-serif text-sm italic text-[#C4C0B8]">{p.num}</span>
-            <div className="pl-8 md:pl-10">
-              <p className="text-[0.6rem] tracking-[0.18em] uppercase text-[#C4C0B8] mb-1 font-sans">{p.cat}</p>
-              <p className="font-serif text-xl md:text-2xl font-light text-[#1C1C1A] group-hover:text-[#B89B6A] transition-colors duration-300">
-                {p.title}
-              </p>
-            </div>
-            {/* Hover image — desktop only */}
-            <div
-              className={`hidden md:block overflow-hidden transition-all duration-400 ${
-                hovered === p.id ? "opacity-100 scale-100" : "opacity-0 scale-[0.97]"
-              }`}
-            >
-              <img src={p.img} alt={p.title} className="w-full h-[190px] object-cover" />
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ── About ── */
-function About() {
-  const [r0, c0] = useCounter(150);
-  const [r1, c1] = useCounter(12);
-  const [r2, c2] = useCounter(98);
-
-  return (
-    <section id="about" className="px-6 md:px-16 py-24 bg-[#F5F2EC]">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-center">
-        {/* Image */}
-        <Reveal direction="left">
-          <div className="relative overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1200&q=80"
-              alt="DQH Studio"
-              className="w-full aspect-[4/3] object-cover"
-            />
-            <div className="absolute bottom-6 left-6 bg-white px-5 py-2.5 text-[0.62rem] tracking-[0.15em] uppercase text-[#1C1C1A] font-sans">
-              Thành lập 2012 · TP.HCM
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Text */}
-        <div>
-          <Reveal><Tag>(về chúng tôi)</Tag></Reveal>
-          <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light leading-[1.12] text-[#1C1C1A] mb-6">
-              Thiết kế không gian với{" "}
-              <em className="not-italic text-[#B89B6A]">mục đích</em> và sự chính xác
-            </h2>
-          </Reveal>
-          <Reveal delay={200}>
-            <p className="text-[0.92rem] text-[#8A8780] leading-[1.9] mb-4 font-sans">
-              Chúng tôi tiếp cận mỗi không gian như một sự cân bằng giữa chức năng, hình thức và cảm xúc. Qua vật liệu, ánh sáng và kết cấu được chọn lọc, DQH tạo ra những nội thất phản ánh cá tính đồng thời trường tồn với thời gian.
-            </p>
-            <p className="text-[0.92rem] text-[#8A8780] leading-[1.9] font-sans">
-              Với 12 năm kinh nghiệm và hơn 150 công trình hoàn thành, chúng tôi tự hào là đơn vị được tin tưởng bởi những gia chủ khó tính nhất tại Việt Nam.
-            </p>
-          </Reveal>
-          <Reveal delay={300}>
-            <div className="mt-9"><BtnDark href="#contact">Liên hệ chúng tôi</BtnDark></div>
-          </Reveal>
-
-          {/* Stats */}
-          <Reveal delay={400}>
-            <div className="flex gap-8 mt-12 pt-10 border-t border-[#1C1C1A]/10">
-              {[
-                { ref: r0, val: c0, suffix: "+", label: "Công trình hoàn thành" },
-                { ref: r1, val: c1, suffix: "+", label: "Năm kinh nghiệm" },
-                { ref: r2, val: c2, suffix: "%", label: "Khách hàng hài lòng" },
-              ].map((s) => (
-                <div key={s.label} ref={s.ref} className="flex-1">
-                  <p className="font-serif text-[2.6rem] font-light leading-none mb-1 text-[#1C1C1A]">
-                    {s.val}
-                    <span className="text-2xl">{s.suffix}</span>
-                  </p>
-                  <p className="text-[0.65rem] tracking-[0.12em] uppercase text-[#C4C0B8] font-sans leading-snug">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Services ── */
-function Services() {
-  return (
-    <section id="services" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
-      {/* Header */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-end mb-16">
-        <div>
-          <Reveal><Tag>(dịch vụ)</Tag></Reveal>
-          <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-[#1C1C1A]">
-              Dịch vụ <em className="not-italic text-[#B89B6A]">dành riêng</em> cho bạn
-            </h2>
-          </Reveal>
-        </div>
-        <Reveal delay={200}>
-          <p className="text-[0.9rem] text-[#8A8780] leading-[1.85] font-sans">
-            Từ tư vấn ý tưởng đến bàn giao chìa khoá — chúng tôi đồng hành toàn diện trong mỗi dự án.
-          </p>
-        </Reveal>
-      </div>
-
-      {/* List */}
-      <div className="flex flex-col">
-        {SERVICES.map((s, i) => (
-          <Reveal key={s.num} delay={i * 80}>
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 md:gap-16 py-10 border-t border-[#1C1C1A]/10 last:border-b items-center group">
-              <div>
-                <p className="font-serif text-sm italic text-[#C4C0B8] mb-3">{s.num}</p>
-                <h3 className="font-serif text-[1.4rem] font-light text-[#1C1C1A] mb-3 group-hover:text-[#B89B6A] transition-colors duration-300">
-                  {s.title}
-                </h3>
-                <p className="text-[0.87rem] text-[#8A8780] leading-[1.75] max-w-[440px] mb-4 font-sans">{s.desc}</p>
-                <BtnArrow href="#contact">Đặt dịch vụ</BtnArrow>
-              </div>
-              <div className="overflow-hidden">
-                <img
-                  src={s.img}
-                  alt={s.title}
-                  className="w-full aspect-[4/3] object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-              </div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ── Testimonials ── */
-function Testimonials() {
-  const [cur, setCur] = useState(0);
-  const next = useCallback(() => setCur((c) => (c + 1) % TESTIMONIALS.length), []);
-  const prev = useCallback(() => setCur((c) => (c - 1 + TESTIMONIALS.length) % TESTIMONIALS.length), []);
-
-  useEffect(() => {
-    const id = setInterval(next, 6000);
-    return () => clearInterval(id);
-  }, [next]);
-
-  const t = TESTIMONIALS[cur];
-
-  return (
-    <section id="testimonials" className="bg-[#1C1C1A] px-6 md:px-16 py-24 overflow-hidden">
-      <p className="text-[0.62rem] tracking-[0.22em] uppercase text-[#8A8780] mb-8 font-sans">(đánh giá)</p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-        <div>
-          <p className="font-serif text-5xl italic text-[#8A8780] leading-none mb-6">"</p>
-          <blockquote
-            key={cur}
-            className="font-serif text-[clamp(1.2rem,2.2vw,1.8rem)] font-light italic leading-[1.55] text-[#FAF8F4] mb-8 transition-all duration-500"
-          >
-            {t.text}
-          </blockquote>
-          <p className="font-serif text-[#B89B6A] text-base mb-1">{t.name}</p>
-          <p className="text-[0.65rem] tracking-[0.14em] uppercase text-[#8A8780] font-sans mb-8">{t.role}</p>
-
-          {/* Avatars */}
-          <div className="flex gap-3 mb-8">
-            {TESTIMONIALS.map((tt, i) => (
-              <button
-                key={i}
-                onClick={() => setCur(i)}
-                className={`w-11 h-11 rounded-full overflow-hidden border-2 transition-all duration-300 ${
-                  i === cur ? "border-[#B89B6A]" : "border-transparent"
-                }`}
-              >
-                <img src={tt.img} alt={tt.name} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-
-          {/* Arrows */}
-          <div className="flex gap-3">
-            {[["‹", prev], ["›", next]].map(([label, fn]) => (
-              <button
-                key={label}
-                onClick={fn}
-                className="w-10 h-10 border border-[#C4C0B8]/30 text-[#C4C0B8] hover:border-[#B89B6A] hover:text-[#B89B6A] transition-all duration-300 flex items-center justify-center text-lg"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right image */}
-        <div className="hidden md:block overflow-hidden aspect-[4/3]">
-          <img
-            key={t.bg}
-            src={t.bg}
-            alt=""
-            className="w-full h-full object-cover transition-all duration-700"
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Philosophy ── */
-function Philosophy() {
-  return (
-    <section id="philosophy" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
-      <div className="text-center max-w-xl mx-auto mb-16">
-        <Reveal><Tag>(triết lý)</Tag></Reveal>
-        <Reveal delay={100}>
-          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-[#1C1C1A]">
-            Triết lý thiết kế <em className="not-italic text-[#B89B6A]">của chúng tôi</em>
-          </h2>
-        </Reveal>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-0.5">
-        {PHILOSOPHY.map((p, i) => (
-          <Reveal key={p.title} delay={i * 100}>
-            <div className="relative overflow-hidden aspect-[3/4] group cursor-default">
-              <img
-                src={p.img}
-                alt={p.title}
-                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-              />
-              {/* Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-transparent to-transparent group-hover:from-slate-900/90 group-hover:via-slate-900/20 transition-all duration-400" />
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-8">
-                <p className="text-[0.6rem] tracking-[0.2em] uppercase text-[#D4BC95] mb-2 font-sans">{p.kicker}</p>
-                <h3 className="font-serif text-[1.35rem] font-light text-[#FAF8F4] mb-2">{p.title}</h3>
-                <p className="text-[0.78rem] text-[#C4C0B8]/70 leading-[1.65] font-sans max-h-0 group-hover:max-h-24 overflow-hidden transition-all duration-400">
-                  {p.desc}
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ── Team ── */
-function Team() {
-  return (
-    <section id="team" className="px-6 md:px-16 py-24 bg-[#F5F2EC]">
-      <div className="mb-14">
-        <Reveal><Tag>(đội ngũ)</Tag></Reveal>
-        <Reveal delay={100}>
-          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-[#1C1C1A]">
-            Những người <em className="not-italic text-[#B89B6A]">tạo nên</em> DQH
-          </h2>
-        </Reveal>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-        {TEAM.map((m, i) => (
-          <Reveal key={m.name} delay={i * 80}>
-            <div className="group">
-              <div className="overflow-hidden aspect-[3/4] mb-5">
-                <img
-                  src={m.img}
-                  alt={m.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-              <h3 className="font-serif text-[1.1rem] text-[#1C1C1A] mb-1">{m.name}</h3>
-              <p className="text-[0.62rem] tracking-[0.14em] uppercase text-[#B89B6A] mb-2 font-sans">{m.role}</p>
-              <p className="text-[0.78rem] text-[#8A8780] leading-[1.65] font-sans">{m.bio}</p>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ── FAQ ── */
-function FAQ() {
-  const [open, setOpen] = useState(null);
-  const toggle = (i) => setOpen((c) => (c === i ? null : i));
-
-  return (
-    <section id="faq" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-        <div>
-          <Reveal><Tag>(faq)</Tag></Reveal>
-          <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-[#1C1C1A] mb-10">
-              Câu hỏi <em className="not-italic text-[#B89B6A]">thường gặp</em>
-            </h2>
-          </Reveal>
-
-          <div className="flex flex-col">
-            {FAQS.map((f, i) => (
-              <Reveal key={i} delay={i * 60}>
-                <div className="border-t border-[#1C1C1A]/10 last:border-b overflow-hidden">
-                  <button
-                    onClick={() => toggle(i)}
-                    className="w-full text-left flex justify-between items-center py-5 font-serif text-[1.02rem] font-light text-[#1C1C1A] hover:text-[#B89B6A] transition-colors duration-300"
-                  >
-                    {f.q}
-                    <span className={`text-[#C4C0B8] text-xl ml-5 flex-shrink-0 transition-transform duration-300 font-sans ${open === i ? "rotate-45 text-[#B89B6A]" : ""}`}>
-                      +
-                    </span>
-                  </button>
-                  <div
-                    className="overflow-hidden transition-all duration-400 ease-out"
-                    style={{ maxHeight: open === i ? "200px" : "0px" }}
-                  >
-                    <p className="text-[0.88rem] text-[#8A8780] leading-[1.8] pb-5 font-sans">{f.a}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-
-        {/* Sticky image */}
-        <Reveal direction="left">
-          <div className="hidden md:block aspect-[3/4] overflow-hidden sticky top-24">
-            <img
-              src="https://images.unsplash.com/photo-1615529182904-14819c35db37?w=900&q=80"
-              alt="FAQ"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ── Contact ── */
-function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", type: "", message: "" });
-  const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("✅ Cảm ơn bạn đã liên hệ!\nDQH sẽ phản hồi trong vòng 2 giờ làm việc.");
-  };
-
-  const inputCls = "w-full bg-transparent border-0 border-b border-[#1C1C1A]/10 pb-2 pt-1 text-[0.92rem] text-[#1C1C1A] placeholder-slate-400 focus:outline-none focus:border-slate-900 transition-colors duration-300 font-sans";
-  const labelCls = "block text-[0.6rem] tracking-[0.16em] uppercase text-[#C4C0B8] mb-2 font-sans";
-
-  return (
-    <section id="contact" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
-        {/* Left — info */}
-        <div>
-          <Reveal><Tag>(liên hệ)</Tag></Reveal>
-          <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-[#1C1C1A] mb-12">
-              Kết nối
-              <br />
-              <em className="not-italic text-[#B89B6A]">với chúng tôi</em>
-            </h2>
-          </Reveal>
-
-          <div className="flex flex-col gap-8">
-            {[
-              { label: "Địa chỉ", val: "123 Nguyễn Văn Linh, Quận 7, TP.HCM", href: "#" },
-              { label: "Email", val: "info@dqh.vn", href: "mailto:info@dqh.vn" },
-              { label: "Điện thoại", val: "0900 000 000", href: "tel:0900000000" },
-              { label: "Giờ làm việc", val: "Thứ 2 – Thứ 7, 8:00 – 17:30", href: null },
-            ].map((c, i) => (
-              <Reveal key={c.label} delay={100 + i * 60}>
-                <div>
-                  <p className={labelCls}>{c.label}</p>
-                  {c.href ? (
-                    <a href={c.href} className="font-serif text-[1.02rem] text-[#1C1C1A] hover:text-[#B89B6A] transition-colors duration-300">{c.val}</a>
-                  ) : (
-                    <p className="font-serif text-[1.02rem] text-[#1C1C1A]">{c.val}</p>
-                  )}
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          <Reveal delay={400}>
-            <div className="mt-10 overflow-hidden aspect-[4/3]">
-              <img
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80"
-                alt="DQH Office"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </Reveal>
-        </div>
-
-        {/* Right — form */}
-        <Reveal delay={150}>
-          <form onSubmit={handleSubmit} className="pt-2 flex flex-col gap-6">
-            <div>
-              <label className={labelCls}>Họ và tên</label>
-              <input name="name" value={form.name} onChange={handleChange} placeholder="Nguyễn Văn A" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Email</label>
-              <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="email@example.com" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Số điện thoại</label>
-              <input name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="0900 000 000" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Loại dự án</label>
-              <input name="type" value={form.type} onChange={handleChange} placeholder="Nhà phố / Biệt thự / Căn hộ / Văn phòng…" className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Lời nhắn</label>
-              <textarea
-                name="message"
-                value={form.message}
-                onChange={handleChange}
-                placeholder="Chia sẻ với chúng tôi về không gian và kỳ vọng của bạn…"
-                rows={4}
-                className={`${inputCls} resize-none`}
-              />
-            </div>
-            <button
-              type="submit"
-              className="mt-2 self-start text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-10 py-3.5 hover:bg-[#B89B6A] transition-colors duration-300 font-sans"
-            >
-              Gửi yêu cầu tư vấn
-            </button>
-          </form>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
-/* ── Footer ── */
-function Footer() {
-  return (
-    <footer className="bg-[#1C1C1A] px-6 md:px-16 py-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-[#1C1C1A]/30">
-      <p className="font-serif text-lg font-light tracking-wide text-slate-200">DQH</p>
-      <p className="text-[0.62rem] tracking-[0.1em] uppercase text-[#8A8780] font-sans">
-        © 2025 DQH Architecture & Interior. All rights reserved.
-      </p>
-      <div className="flex gap-7">
-        {["Instagram", "Facebook", "Behance"].map((l) => (
-          <a key={l} href="#" className="text-[0.62rem] tracking-[0.12em] uppercase text-[#8A8780] hover:text-[#B89B6A] transition-colors duration-300 font-sans">
-            {l}
-          </a>
-        ))}
-      </div>
-    </footer>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ROOT COMPONENT
+// COMPONENT MAIN
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean }) {
@@ -919,7 +238,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAF8F4] text-[#1C1C1A] font-sans px-4">
         <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-[#1C1C1A]/10 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 bg-[#FAF8F4] rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-[#C4C0B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           </div>
           <h2 className="font-serif text-2xl mb-2 text-[#1C1C1A]">{portfolio?.title}</h2>
@@ -931,7 +250,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               value={pin}
               onChange={e => setPin(e.target.value)}
               placeholder="Nhập mã PIN"
-              className="w-full text-center tracking-widest bg-[#FAF8F4] border border-[#1C1C1A]/10 px-4 py-3 rounded-lg focus:outline-none focus:border-slate-900 transition-colors font-mono"
+              className="w-full text-center tracking-widest bg-[#FAF8F4] border border-[#1C1C1A]/10 px-4 py-3 rounded-lg focus:outline-none focus:border-[#1C1C1A] transition-colors font-mono"
               autoFocus
             />
             <button type="submit" className="w-full text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-8 py-3.5 hover:bg-[#B89B6A] transition-colors duration-300 rounded-lg">
@@ -944,44 +263,443 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   }
 
   return (
-    <div className="font-sans antialiased bg-[#FAF8F4] text-[#1C1C1A]">
-      <Navbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
-      <Hero />
-      <Marquee />
-      <Works />
-      <About />
-      <Services />
-      <Testimonials />
-      <Philosophy />
-      <Team />
-      <FAQ />
-      <Contact />
-      <Footer />
+    <div className="font-sans antialiased bg-[#FAF8F4] text-[#1C1C1A] selection:bg-[#B89B6A] selection:text-white">
+      
+      {/* ── NAVBAR ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between bg-[#FAF8F4]/92 backdrop-blur-xl border-b border-[#1C1C1A]/10">
+        <a href="#" className="font-serif text-xl font-semibold tracking-wide text-[#1C1C1A]">
+          DQH <span className="font-light italic text-[#B89B6A]">Signature</span>
+        </a>
+        <div className="hidden md:flex gap-9">
+          {["Công trình", "Đội ngũ", "Quy trình phối hợp", "Tiêu chuẩn kỹ thuật", "Bảo hành & Báo giá", "Ý kiến khách hàng"].map((label, idx) => (
+            <a 
+              key={idx} 
+              href={`#section-${idx}`} 
+              className="text-xs tracking-[0.12em] uppercase text-[#8A8780] hover:text-[#1C1C1A] transition-colors duration-300 font-medium"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+        <a 
+          href="#contact" 
+          className="text-xs tracking-[0.1em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-5 py-2.5 hover:bg-[#B89B6A] transition-colors duration-300 font-semibold"
+        >
+          Đặt Lịch Tư Vấn
+        </a>
+      </nav>
 
-      {/* Floating admin control bar in Preview mode */}
+      {/* ── HERO ── */}
+      <section className="min-h-screen pt-24 grid grid-cols-1 md:grid-cols-2 overflow-hidden bg-[#F5F2EC]">
+        <div className="flex flex-col justify-center px-6 md:px-16 py-16 relative z-10">
+          <Reveal>
+            <p className="text-xs tracking-[0.25em] uppercase text-[#8A8780] mb-5 flex items-center gap-3">
+              <span className="w-6 h-px bg-[#8A8780] inline-block" />
+              DQH ARCHITECTS · DESIGN & BUILD
+            </p>
+          </Reveal>
+          <Reveal delay={100}>
+            <h1 className="font-serif text-[clamp(2.5rem,5.5vw,4.5rem)] font-light leading-[1.1] mb-6 text-[#1C1C1A]">
+              Giải pháp kiến trúc<br />
+              <em className="not-italic text-[#B89B6A]">Quiet Luxury</em><br />
+              Trọn gói D&amp;B.
+            </h1>
+          </Reveal>
+          <Reveal delay={200}>
+            <p className="text-[0.95rem] text-[#8A8780] leading-[1.8] max-w-[460px] mb-8">
+              Chúng tôi không chỉ bán bản vẽ. DQH chịu trách nhiệm từ khâu khảo sát, thiết kế ý tưởng đến sản xuất lắp ráp đồ gỗ và thi công xây dựng hoàn thiện. Một đầu mối duy nhất, cam kết không phát sinh, bàn giao sản phẩm cuối cùng hoàn hảo.
+            </p>
+          </Reveal>
+          <Reveal delay={300}>
+            <div className="flex items-center gap-5 flex-wrap">
+              <a href="#section-0" className="inline-block text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] px-8 py-3.5 hover:bg-[#B89B6A] transition-all duration-300 font-semibold">Xem các công trình</a>
+              <a href="#section-3" className="inline-flex items-center gap-2 text-xs tracking-[0.12em] uppercase text-[#1C1C1A] hover:gap-4 transition-all duration-300 font-semibold">Bộ tiêu chuẩn mẫu →</a>
+            </div>
+          </Reveal>
+        </div>
+        <div className="relative h-[60vw] md:h-auto overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&q=80"
+            alt="DQH Quiet Luxury Home"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </section>
+
+      {/* ── SECTION 0: CÔNG TRÌNH NỔI BẬT ── */}
+      <section id="section-0" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-16">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(năng lực thiết kế)</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A]">
+              Thiết kế có gu &amp; <em className="not-italic text-[#B89B6A]">Công trình thành công</em>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {PROJECTS.map((proj) => (
+              <div key={proj.id} className="group border border-[#1C1C1A]/10 bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                <div className="overflow-hidden aspect-[16/10] relative">
+                  <img 
+                    src={proj.img} 
+                    alt={proj.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                  />
+                  <div className="absolute top-4 left-4 bg-[#FAF8F4]/90 backdrop-blur-md px-3 py-1 rounded text-xs font-serif italic text-[#B89B6A]">{proj.num}</div>
+                </div>
+                <div className="p-6">
+                  <span className="text-[10px] tracking-[0.15em] uppercase text-[#8A8780] block mb-2">{proj.cat}</span>
+                  <h3 className="font-serif text-xl font-light text-[#1C1C1A] mb-3 group-hover:text-[#B89B6A] transition-colors">{proj.title}</h3>
+                  <p className="text-xs text-[#8A8780] leading-relaxed">{proj.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 1: ĐỘI NGŨ MẠNH & SƠ ĐỒ BỘ MÁY D&B ── */}
+      <section id="section-1" className="px-6 md:px-16 py-24 bg-[#F5F2EC]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start mb-16">
+            <div className="lg:col-span-1">
+              <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(bộ máy tổ chức)</p>
+              <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A] mb-6">
+                Đội ngũ mạnh,<br />
+                <em className="not-italic text-[#B89B6A]">Design &amp; Build</em> trọn vẹn
+              </h2>
+              <p className="text-sm text-[#8A8780] leading-relaxed">
+                Tại DQH, kiến trúc sư và kỹ sư giám sát công trình cùng làm việc dưới một mái nhà. Chúng tôi loại bỏ hoàn toàn việc kiến trúc sư đổ lỗi cho thợ thi công làm sai, hoặc thợ thi công chê bản vẽ không thực tế. Mọi thành viên đều chung mục tiêu: sản phẩm cuối cùng hoàn hảo nhất.
+              </p>
+            </div>
+            
+            {/* Sơ đồ bộ máy D&B */}
+            <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-[#1C1C1A]/10 shadow-sm space-y-6">
+              <h3 className="text-xs tracking-[0.15em] uppercase text-[#1C1C1A] font-bold pb-4 border-b border-[#1C1C1A]/10 flex items-center gap-2">
+                <Building size={16} className="text-[#B89B6A]" /> SƠ ĐỒ PHỐI HỢP DESIGN &amp; BUILD
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { title: "Khảo Sát & Concept", team: "Phòng Thiết Kế", desc: "KTS khảo sát hiện trạng, đo cốt, lập moodboard ý tưởng phù hợp lối sống chủ nhà." },
+                  { title: "Bản Vẽ Kỹ Thuật & BOQ", team: "Phòng Kỹ Thuật & Dự Toán", desc: "Kỹ sư tính kết cấu chịu lực, bóc tách cấu tạo gỗ, lập bảng dự toán BOQ chi tiết." },
+                  { title: "Sản Xuất & Thi Công", team: "Xưởng Gỗ & Đội Giám Sát", desc: "Nội thất sản xuất tại xưởng gỗ DQH, kỹ sư cơ điện lắp đặt thiết bị và thi công hoàn thiện." }
+                ].map((step, idx) => (
+                  <div key={idx} className="bg-[#FAF8F4] p-4 rounded-xl border border-[#1C1C1A]/5 space-y-2 relative">
+                    <div className="absolute top-3 right-3 text-[10px] font-bold text-[#C4C0B8]">0{idx + 1}</div>
+                    <h4 className="text-xs font-bold text-[#1C1C1A]">{step.title}</h4>
+                    <span className="inline-block text-[9px] tracking-[0.1em] uppercase text-[#B89B6A] font-semibold">{step.team}</span>
+                    <p className="text-[11px] text-[#8A8780] leading-relaxed">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Portfolio nhân sự nòng cốt */}
+          <div className="border-t border-[#1C1C1A]/10 pt-16">
+            <h3 className="font-serif text-xl font-light text-[#1C1C1A] mb-8">Hồ sơ chuyên môn nhân sự chủ chốt</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {STAFF_PORTFOLIO.map((staff, idx) => (
+                <div key={idx} className="bg-white rounded-xl border border-[#1C1C1A]/10 overflow-hidden p-5 space-y-4">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-[#FAF8F4]">
+                    <img src={staff.img} alt={staff.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="font-serif text-lg font-bold text-[#1C1C1A]">{staff.name}</h4>
+                    <p className="text-[10px] tracking-[0.12em] uppercase text-[#B89B6A] font-semibold mb-1">{staff.role}</p>
+                    <span className="text-[10px] text-[#8A8780] font-medium block">{staff.experience}</span>
+                  </div>
+                  <p className="text-xs text-[#8A8780] leading-relaxed border-t border-[#1C1C1A]/5 pt-3">
+                    {staff.bio}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 2: QUY TRÌNH PHỐI HỢP & CHI TIẾT HIỆN TRƯỜNG ── */}
+      <section id="section-2" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-16">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(vận hành chi tiết)</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A]">
+              Quy trình phối hợp <em className="not-italic text-[#B89B6A]">liên phòng ban</em>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="lg:col-span-2 space-y-4">
+              {COOP_STEPS.map((step, idx) => (
+                <div key={idx} className="flex gap-6 p-5 bg-white border border-[#1C1C1A]/10 rounded-xl items-start">
+                  <div className="font-serif text-2xl text-[#B89B6A] italic font-light leading-none">{step.step}</div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-[#1C1C1A] uppercase tracking-wide">{step.name}</h4>
+                    <p className="text-xs text-[#8A8780] leading-relaxed">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Chi tiết hiện trường & Test vật liệu ánh sáng */}
+            <div className="lg:col-span-1 bg-[#F5F2EC] p-6 rounded-xl border border-[#1C1C1A]/10 space-y-6">
+              <h3 className="font-serif text-lg font-light text-[#1C1C1A] border-b border-[#1C1C1A]/10 pb-3">Chi tiết điểm chạm hiện trường</h3>
+              <div className="space-y-4 text-xs text-[#8A8780] leading-relaxed">
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-[#1C1C1A]">1. Quy trình test ánh sáng &amp; vật liệu:</h4>
+                  <p>Mẫu vật liệu thật được đặt tại công trình để test màu sắc dưới ánh sáng mặt trời góc 12h và 17h, đảm bảo không bị đổi màu sai lệch.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-[#1C1C1A]">2. Mockup ánh sáng:</h4>
+                  <p>Lắp đặt tạm hệ trần thạch cao nhỏ tại công trình, test vị trí giấu LED và khoảng hắt sáng để xác định khoảng cách tối ưu (chỉ số shadow line 10-15mm).</p>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-[#1C1C1A]">3. Nghiệm thu tại xưởng gỗ:</h4>
+                  <p>Khách hàng được mời tới xưởng gỗ DQH xem thô sản phẩm nội thất trước khi sơn phủ bề mặt mờ, kiểm tra độ sắc sảo của các đường ghép mộng gỗ.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 3: BỘ TIÊU CHUẨN KỸ THUẬT & TIMELINE MẪU ── */}
+      <section id="section-3" className="px-6 md:px-16 py-24 bg-[#F5F2EC]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
+            <div className="lg:col-span-1">
+              <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(kỹ thuật thi công)</p>
+              <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A] mb-6">
+                Tiêu chuẩn thiết kế &amp; <em className="not-italic text-[#B89B6A]">Thi công thô mẫu</em>
+              </h2>
+              <p className="text-sm text-[#8A8780] leading-relaxed">
+                Mọi chi tiết thiết kế và quy trình thi công tại DQH đều tuân thủ bộ tiêu chuẩn mẫu khắt khe. Chúng tôi cung cấp hồ sơ kỹ thuật chi tiết để làm cơ sở nghiệm thu minh bạch cùng chủ nhà.
+              </p>
+            </div>
+            
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-xl border border-[#1C1C1A]/10 space-y-4">
+                <h3 className="text-xs font-bold text-[#1C1C1A] tracking-wider uppercase border-b border-[#1C1C1A]/10 pb-3 flex items-center gap-1.5">
+                  <Compass size={14} className="text-[#B89B6A]" /> Tiêu chuẩn thiết kế ý tưởng
+                </h3>
+                <ul className="space-y-3">
+                  {TECHNICAL_STANDARDS.design.map((item, i) => (
+                    <li key={i} className="text-xs space-y-1">
+                      <h4 className="font-bold text-[#1C1C1A]">{item.title}</h4>
+                      <p className="text-[#8A8780] leading-relaxed">{item.desc}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl border border-[#1C1C1A]/10 space-y-4">
+                <h3 className="text-xs font-bold text-[#1C1C1A] tracking-wider uppercase border-b border-[#1C1C1A]/10 pb-3 flex items-center gap-1.5">
+                  <Wrench size={14} className="text-[#B89B6A]" /> Tiêu chuẩn thi công hiện trường
+                </h3>
+                <ul className="space-y-3">
+                  {TECHNICAL_STANDARDS.construction.map((item, i) => (
+                    <li key={i} className="text-xs space-y-1">
+                      <h4 className="font-bold text-[#1C1C1A]">{item.title}</h4>
+                      <p className="text-[#8A8780] leading-relaxed">{item.desc}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Timeline tiến độ mẫu */}
+          <div className="border-t border-[#1C1C1A]/10 pt-16">
+            <h3 className="font-serif text-xl font-light text-[#1C1C1A] mb-8">Lộ trình triển khai dự án chuẩn (Timeline mẫu)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {TIMELINE_TEMPLATE.map((time, idx) => (
+                <div key={idx} className="bg-white p-5 rounded-xl border border-[#1C1C1A]/10 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] tracking-[0.1em] uppercase text-[#B89B6A] font-semibold bg-[#F5F2EC] px-2 py-0.5 rounded">{time.phase}</span>
+                    <span className="text-[10px] text-[#8A8780] font-medium flex items-center gap-1"><Clock size={10} /> {time.duration}</span>
+                  </div>
+                  <h4 className="font-serif text-md font-bold text-[#1C1C1A]">{time.title}</h4>
+                  <p className="text-xs text-[#8A8780] leading-relaxed">{time.details}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 4: BẢO HÀNH & BÁO GIÁ ĐÚNG GIÁ ── */}
+      <section id="section-4" className="px-6 md:px-16 py-24 bg-[#FAF8F4]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(cam kết minh bạch)</p>
+              <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A]">
+                Tiêu chuẩn báo giá đúng giá &amp; <em className="not-italic text-[#B89B6A]">Tại sao đúng giá?</em>
+              </h2>
+              <div className="space-y-4 text-sm text-[#8A8780] leading-relaxed">
+                <p>
+                  <strong>Dự toán chi tiết (BOQ):</strong> DQH lập bảng bóc tách khối lượng chi tiết đến từng thanh ray ngăn kéo, mã số sơn lót, vị trí ổ cắm trước khi ký hợp đồng. Khách hàng biết chính xác mình trả tiền cho sản phẩm gì.
+                </p>
+                <p>
+                  <strong>Cam kết không phát sinh:</strong> Một khi hợp đồng đã ký và bản vẽ đã duyệt, đơn giá được cố định. Nếu có phát sinh chi phí trong quá trình thi công thực tế (như chênh lệch nhân công, hao hụt vật liệu), DQH sẽ tự chịu trách nhiệm chi trả 100%.
+                </p>
+                <p>
+                  <strong>Chính sách bảo hành:</strong> Bảo hành kết cấu phần thô công trình lên tới 10 năm. Bảo hành hoàn thiện nội thất và đồ gỗ 2 năm. Cam kết tiếp nhận thông tin và kỹ thuật viên đến công trình xử lý trong vòng 24 giờ kể từ khi nhận phản hồi.
+                </p>
+              </div>
+            </div>
+            
+            {/* Visual card */}
+            <div className="bg-[#1C1C1A] text-[#FAF8F4] p-8 rounded-2xl border border-[#FAF8F4]/10 space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#B89B6A]/10 rounded-full blur-2xl" />
+              <h3 className="font-serif text-xl font-light text-[#B89B6A]">Cam kết vàng từ DQH</h3>
+              <div className="space-y-4">
+                {[
+                  { icon: <CheckSquare size={16} />, title: "Sai lệch kích thước thi công ≤ 2mm", desc: "Nếu sai vượt tiêu chuẩn, DQH dỡ ra làm lại bằng chi phí của mình." },
+                  { icon: <DollarSign size={16} />, title: "BOQ chi tiết & Đúng giá trị thực", desc: "Nói không với báo giá gộp chung chung tính theo mét vuông." },
+                  { icon: <Shield size={16} />, title: "Bảo hành kết cấu 10 năm", desc: "Đồng hành dài lâu với căn nhà của khách hàng ngay cả sau bàn giao." }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-full bg-[#FAF8F4]/10 flex items-center justify-center text-[#B89B6A] shrink-0">{item.icon}</div>
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold uppercase tracking-wide">{item.title}</h4>
+                      <p className="text-[11px] text-[#C4C0B8] leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 5: CÂU CHUYỆN SỰ TỬ TẾ & FEEDBACK ── */}
+      <section id="section-5" className="px-6 md:px-16 py-24 bg-[#F5F2EC]">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-16 text-center">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8780] mb-2">(giá trị cốt lõi thực tế)</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#1C1C1A]">
+              Những case study <em className="not-italic text-[#B89B6A]">chia sẻ về sự tử tế</em>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            {CASE_STUDIES.map((study, idx) => (
+              <div key={idx} className="bg-white p-8 rounded-xl border border-[#1C1C1A]/10 space-y-4">
+                <span className="text-[9px] tracking-[0.15em] uppercase text-[#B89B6A] font-semibold bg-[#F5F2EC] px-2.5 py-1 rounded">{study.tag}</span>
+                <h3 className="font-serif text-lg font-bold text-[#1C1C1A]">{study.title}</h3>
+                <p className="text-xs text-[#8A8780] leading-relaxed italic border-l-2 border-[#B89B6A] pl-4">
+                  "{study.desc}"
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Ý kiến khách hàng cũ */}
+          <div className="border-t border-[#1C1C1A]/10 pt-16">
+            <h3 className="font-serif text-xl font-light text-[#1C1C1A] mb-8 text-center">Ý kiến từ những chủ nhà đã đồng hành cùng DQH</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { name: "Chị Minh Châu", role: "Chủ nhà · Biệt thự Thủ Đức 2024", text: "Từ buổi gặp đầu tiên, họ đã hiểu hoàn toàn tầm nhìn của chúng tôi. Thiết kế cuối cùng cảm giác rất tự nhiên — từng phòng đều chảy liền mạch." },
+                { name: "Anh Tuấn Anh", role: "Chủ nhà · Nhà phố Quận 3 2023", text: "Checklist nghiệm thu của DQH còn dài hơn danh sách của vợ tôi. Bàn giao xong thực sự không có gì để phàn nàn — từng chi tiết đều hoàn hảo." },
+                { name: "Chị Hồng Nhung", role: "Chủ nhà · Căn hộ Quận 7 2022", text: "Ban công thấm sau 1 năm, gọi buổi sáng — chiều cùng ngày đã có kỹ thuật viên đến. Bảo hành không phải lời hứa, đó là cam kết thực sự." }
+              ].map((feedback, idx) => (
+                <div key={idx} className="bg-white p-6 rounded-xl border border-[#1C1C1A]/10 space-y-3 relative">
+                  <div className="flex gap-1 text-[#B89B6A]"><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /><Star size={12} fill="currentColor" /></div>
+                  <p className="text-xs text-[#8A8780] leading-relaxed">"{feedback.text}"</p>
+                  <div className="pt-2 border-t border-[#1C1C1A]/5">
+                    <h4 className="text-xs font-bold text-[#1C1C1A]">{feedback.name}</h4>
+                    <span className="text-[10px] text-[#8A8780]">{feedback.role}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECTION 6: PHÁP LÝ & ĐỊNH HÌNH UY TÍN ── */}
+      <section className="px-6 md:px-16 py-24 bg-[#1C1C1A] text-[#FAF8F4]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-6">
+              <p className="text-xs tracking-[0.22em] uppercase text-[#B89B6A]">(pháp lý doanh nghiệp)</p>
+              <h2 className="font-serif text-3xl md:text-4xl font-light text-white">
+                Bộ máy vận hành &amp; <em className="not-italic text-[#B89B6A]">Cơ sở pháp lý uy tín</em>
+              </h2>
+              <div className="space-y-4 text-sm text-[#C4C0B8] leading-relaxed">
+                <p>
+                  <strong>Công ty TNHH Kiến Trúc &amp; Nội Thất DQH</strong><br />
+                  Mã số thuế: 03168894xx do Sở Kế hoạch và Đầu tư TP.HCM cấp. Mọi giao dịch hợp đồng thiết kế, báo giá và thi công đều được thực hiện minh bạch qua pháp nhân doanh nghiệp, bảo vệ quyền lợi pháp lý cao nhất cho khách hàng.
+                </p>
+                <p>
+                  <strong>Showroom &amp; Văn phòng:</strong> Quận 7, TP. Hồ Chí Minh. Nơi tiếp khách, trưng bày các mẫu vật liệu travertine, zellige, gỗ sồi mẫu thật để test trực tiếp.
+                </p>
+                <p>
+                  <strong>Xưởng sản xuất nội thất DQH:</strong> Quy mô 1,500m2 tại Bình Chánh với máy móc gia công tự động hiện đại, đảm bảo độ chuẩn xác đường cắt shadow gap gỗ dưới 2mm.
+                </p>
+              </div>
+            </div>
+
+            {/* Form liên hệ chốt sales */}
+            <div id="contact" className="bg-[#FAF8F4] text-[#1C1C1A] p-8 rounded-2xl border border-[#1C1C1A]/10 space-y-6">
+              <h3 className="font-serif text-xl font-light text-[#B89B6A]">Đăng ký tư vấn Quiet Luxury</h3>
+              <p className="text-xs text-[#8A8780] leading-relaxed">Đội ngũ KTS của DQH sẽ liên hệ trực tiếp trong vòng 2 giờ để trao đổi sâu về định hướng không gian của gia đình.</p>
+              <form onSubmit={(e) => { e.preventDefault(); alert("✅ Gửi yêu cầu thành công. DQH sẽ liên hệ anh/chị ngay!"); }} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8780] mb-1 font-semibold">Họ và tên</label>
+                  <input type="text" required placeholder="Nguyễn Văn A" className="w-full bg-[#F5F2EC] border border-[#1C1C1A]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B89B6A]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8780] mb-1 font-semibold">Số điện thoại</label>
+                  <input type="tel" required placeholder="0900 000 000" className="w-full bg-[#F5F2EC] border border-[#1C1C1A]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B89B6A]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8780] mb-1 font-semibold">Lời nhắn / Yêu cầu</label>
+                  <textarea rows={3} placeholder="Mô tả sơ bộ về dự án của anh/chị..." className="w-full bg-[#F5F2EC] border border-[#1C1C1A]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B89B6A] resize-none" />
+                </div>
+                <button type="submit" className="w-full text-xs tracking-[0.12em] uppercase text-[#FAF8F4] bg-[#1C1C1A] py-3 hover:bg-[#B89B6A] transition-colors duration-300 font-bold rounded">Gửi yêu cầu tư vấn</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="bg-[#1C1C1A] px-6 md:px-16 py-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-[#FAF8F4]/10 text-[#C4C0B8] text-xs">
+        <p className="font-serif text-lg font-light tracking-wide text-white">DQH <span className="italic text-[#B89B6A]">Signature</span></p>
+        <p>© 2020 – 2025 DQH Architects. Bảo lưu mọi quyền.</p>
+        <div className="flex gap-6">
+          <a href="#" className="hover:text-[#B89B6A]">Instagram</a>
+          <a href="#" className="hover:text-[#B89B6A]">Facebook</a>
+          <a href="#" className="hover:text-[#B89B6A]">Behance</a>
+        </div>
+      </footer>
+
+      {/* ── FLOATING ADMIN BAR ── */}
       {isPreview && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#1C1C1A]/90 backdrop-blur-md border border-slate-850 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-[#FAF8F4] text-sm font-sans animate-fade-in transition-all">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-stone-900/90 backdrop-blur-md border border-stone-800 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-stone-100 text-sm font-sans animate-fade-in transition-all">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-medium text-[#C4C0B8] tracking-wide text-xs uppercase">Xem trước Portfolio</span>
+            <span className="font-medium text-stone-300 tracking-wide text-xs uppercase">Xem trước Portfolio</span>
           </div>
-          <div className="h-4 w-px bg-slate-700" />
+          <div className="h-4 w-px bg-stone-700" />
           <button 
             onClick={() => setShowShareManager(true)}
-            className="bg-[#B89B6A] hover:bg-[#B89B6A] active:scale-95 text-[#FAF8F4] px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
+            className="bg-[#B89B6A] hover:bg-[#B89B6A]/85 active:scale-95 text-stone-50 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
           >
-            Tạo & Chia sẻ link
+            Tạo &amp; Chia sẻ link
           </button>
         </div>
       )}
 
-      {/* Sharing manager panel modal */}
+      {/* ── SHARING MANAGER PANEL MODAL ── */}
       {isPreview && showShareManager && (
-        <div className="fixed inset-0 bg-slate-950/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 bg-stone-950/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative animate-scale-up">
             <button 
               onClick={() => setShowShareManager(false)}
-              className="absolute top-4 right-4 text-[#C4C0B8] hover:text-[#1C1C1A] text-2xl font-bold bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 text-2xl font-bold bg-stone-100 hover:bg-stone-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
             >
               &times;
             </button>
@@ -991,6 +709,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           </div>
         </div>
       )}
+
     </div>
   );
 }
