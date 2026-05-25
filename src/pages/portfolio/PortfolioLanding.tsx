@@ -654,11 +654,59 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
   const [showRaciTable, setShowRaciTable] = useState(false);
   const [selectedCaseStudy, setSelectedCaseStudy] = useState<any>(null);
+  const [activeStage, setActiveStage] = useState<number>(0);
+  const [hoveredStage, setHoveredStage] = useState<number | null>(null);
+  const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
+  const [expandedStories, setExpandedStories] = useState<Record<number, boolean>>({});
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    let currentActive = 0;
+    let minDiff = Infinity;
+    
+    for (let i = 0; i < 5; i++) {
+      const el = document.getElementById(`stage-section-${i}`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const containerTop = container.getBoundingClientRect().top;
+        const diff = Math.abs(rect.top - containerTop);
+        if (diff < minDiff) {
+          minDiff = diff;
+          currentActive = i;
+        }
+      }
+    }
+    setActiveStage(currentActive);
+  };
+
+  const scrollToStage = (stageIdx: number) => {
+    const container = scrollContainerRef.current;
+    const el = document.getElementById(`stage-section-${stageIdx}`);
+    if (container && el) {
+      const containerTop = container.getBoundingClientRect().top;
+      const elTop = el.getBoundingClientRect().top;
+      const scrollOffset = container.scrollTop + (elTop - containerTop);
+      container.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+      setActiveStage(stageIdx);
+    }
+  };
 
   const handleOpenCaseStudy = (id: number) => {
     const study = PROJECT_CASE_STUDIES.find(s => s.id === id);
     if (study) {
       setSelectedCaseStudy(study);
+      setActiveStage(0);
+      setHoveredStage(null);
+      setExpandedDetails({});
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+      }, 50);
     }
   };
 
@@ -1810,17 +1858,30 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </h3>
               
               <div className="space-y-6 divide-y divide-[#2C2920]/10">
-                {CASE_STUDIES.map((study, idx) => (
-                  <div key={idx} className="border-l-2 border-[#B8913A] pl-6 py-2 space-y-3 pt-6 first:pt-0 border-t border-[#2C2920]/5 first:border-t-0">
-                    <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold block">
-                      {study.tag}
-                    </span>
-                    <h4 className="font-serif text-lg font-light text-[#2C2920]">{study.title}</h4>
-                    <p className="text-xs text-[#8A8070] leading-relaxed italic">
-                      "{study.desc}"
-                    </p>
-                  </div>
-                ))}
+                {CASE_STUDIES.map((study, idx) => {
+                  const isStoryExpanded = !!expandedStories[idx];
+                  const displayDesc = isStoryExpanded ? study.desc : (study.desc.length > 150 ? study.desc.substring(0, 150) + "..." : study.desc);
+                  
+                  return (
+                    <div key={idx} className="border-l-2 border-[#B8913A] pl-6 py-2 space-y-3 pt-6 first:pt-0 border-t border-[#2C2920]/5 first:border-t-0">
+                      <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold block">
+                        {study.tag}
+                      </span>
+                      <h4 className="font-serif text-lg font-light text-[#2C2920]">{study.title}</h4>
+                      <p className="text-xs text-[#8A8070] leading-relaxed italic transition-all duration-300">
+                        "{displayDesc}"
+                      </p>
+                      {study.desc.length > 150 && (
+                        <button
+                          onClick={() => setExpandedStories(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                          className="text-[9px] tracking-[0.12em] uppercase text-[#B8913A] hover:text-[#2C2920] font-bold cursor-pointer transition-colors pt-1 block"
+                        >
+                          {isStoryExpanded ? '[-] Thu gọn' : '[+] Xem chi tiết câu chuyện'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -2390,472 +2451,424 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       )}
 
       {/* ── CASE STUDY STORYTELLING EDITORIAL MODAL ── */}
-      {selectedCaseStudy && (
-        <div className="fixed inset-0 bg-[#1A1814]/95 z-[1000] overflow-y-auto font-sans text-[#2C2920] backdrop-blur-md animate-fade-in select-none">
-          {/* Close button */}
-          <button 
-            onClick={() => setSelectedCaseStudy(null)}
-            className="fixed top-6 right-6 z-[1050] bg-[#FAF8F4] hover:bg-[#B8913A] hover:text-[#FAF8F4] text-[#1A1814] w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl font-sans font-light text-2xl cursor-pointer"
-          >
-            &times;
-          </button>
+      {selectedCaseStudy && (() => {
+        // Map 10 chapters to 5 core stages for dynamic presentation
+        const stages = [
+          {
+            id: 0,
+            title: "Ý TƯỞNG & MẶT BẰNG",
+            subtitle: "CONCEPT & LAYOUT",
+            painPoint: selectedCaseStudy.id === 1 ? "Gia chủ trăn trở về việc giữ lại sự tối giản Quiet Luxury để không gian rộng rãi nhưng không bị lạnh lẽo, trống trải." :
+                      selectedCaseStudy.id === 2 ? "Nhà ống hẹp ngang bị thiếu sáng trầm trọng, ngột ngạt và bí bách cho các con hoạt động." :
+                      selectedCaseStudy.id === 3 ? "Không gian Penthouse bị phân mảnh bởi quá nhiều phòng phụ, cản trở tầm nhìn panorama đắt giá." :
+                      "Địa hình sườn dốc Đà Lạt dốc đứng phức tạp, e ngại việc san gạt đất làm sạt lở đồi rừng và huỷ hoại hệ sinh thái.",
+            storyText: selectedCaseStudy.introText + "\n\n" + selectedCaseStudy.floorPlan.text + "\n\n" + selectedCaseStudy.design3D.text,
+            image: selectedCaseStudy.floorPlan.blueprint,
+            subImage: selectedCaseStudy.floorPlan.sitePhoto,
+            techChecklist: [
+              { label: "Sai số đo đạc phần thô", value: "Dưới 5mm (Dùng máy quét laser 3D hiện trường)" },
+              { label: "Mật độ không gian thở (Void ratio)", value: "Đạt chuẩn Solid:Void = 3:1 tối ưu luồng khí" },
+              { label: "Thiết kế giấu cột chịu lực", value: "100% cột bê tông được giấu chìm âm tường thạch cao" }
+            ]
+          },
+          {
+            id: 1,
+            title: "TINH CHỈNH & VẬT LIỆU",
+            subtitle: "MATERIAL & TAILORING",
+            painPoint: selectedCaseStudy.id === 1 ? "Lo ngại chi phí gỗ tự nhiên travertine bị phát sinh ngoài dự kiến và vân đá thực tế lệch pha với 3D." :
+                      selectedCaseStudy.id === 2 ? "Gỗ walnut tự nhiên dễ bị cong vênh dưới tác động nhiệt của giếng trời thông tầng hướng nắng." :
+                      selectedCaseStudy.id === 3 ? "Làm thế nào để vận chuyển an toàn các tấm đá travertine nguyên khối nặng 300kg lên tầng 32 penthouse." :
+                      "Gỗ thông địa phương có độ ẩm cao, dễ mục nát, co ngót dưới khí hậu ẩm sương mù đặc thù của Đà Lạt.",
+            storyText: selectedCaseStudy.tailoring.text + "\n\n" + selectedCaseStudy.material.text,
+            image: selectedCaseStudy.material.samples && selectedCaseStudy.material.samples[5] ? selectedCaseStudy.material.samples[5].img : selectedCaseStudy.coverImage,
+            techChecklist: selectedCaseStudy.tailoring.steps.map((st: any) => ({
+              label: st.title,
+              value: st.desc
+            })) || []
+          },
+          {
+            id: 2,
+            title: "THI CÔNG PHẦN THÔ",
+            subtitle: "ROUGH CONSTRUCTION",
+            painPoint: selectedCaseStudy.id === 1 ? "Ám ảnh những vết nứt chân chim ở góc tường thạch cao và toilet bị thấm ẩm loang lổ." :
+                      selectedCaseStudy.id === 2 ? "Chống nứt dầm giếng trời chịu lực lớn và thấm dột từ ban công kính thông tầng ngoài trời." :
+                      selectedCaseStudy.id === 3 ? "Hệ thống điện nước âm sàn phức tạp cho phòng chiếu phim gia đình dễ gặp sự cố rò rỉ khó sửa chữa." :
+                      "Xử lý gia cố móng kè đá chẻ tự nhiên chịu tải Bungalow trên sườn dốc nghiêng 45 độ tránh sạt lở.",
+            storyText: selectedCaseStudy.structural.text,
+            image: selectedCaseStudy.structural.imgMain,
+            techChecklist: [
+              { label: "Chống nứt góc tường", value: "Đóng lưới thép mắt cáo 100% điểm tiếp giáp trước khi tô vữa" },
+              { label: "Chống thấm toilet", value: "Màng chống thấm Polymere 3 lớp đặc chủng, ngâm thử nước 72h" },
+              { label: "Mockup ánh sáng hiện trường", value: "Lắp thử hệ LED 2700K/3000K trước khi đóng trần thạch cao" }
+            ],
+            annotated: true
+          },
+          {
+            id: 3,
+            title: "LẮP RÁP NỘI THẤT",
+            subtitle: "INTERIOR ASSEMBLY",
+            painPoint: selectedCaseStudy.id === 1 ? "Đồ nội thất gia công cẩu thả ở xưởng thô ráp, nẹp chỉ nhựa ABS hở keo bong tróc." :
+                      selectedCaseStudy.id === 2 ? "Cánh tủ quần áo kịch trần cao trên 2.2m bị cong vênh, ray trượt cửa lùa kẹt rít." :
+                      selectedCaseStudy.id === 3 ? "Lắp đặt hệ vách đá tự nhiên tivi âm tường dài 6m đòi hỏi khít khao không lộ mạch ghép nối." :
+                      "Lò sưởi giả cổ và hệ trần gỗ thông hun khói bị cong ngót do chênh lệch nhiệt độ ngày đêm lớn.",
+            storyText: selectedCaseStudy.fixedInterior.text + "\n\n" + (selectedCaseStudy.fixedInterior.extraText || "") + "\n\n" + selectedCaseStudy.looseFurniture.text,
+            image: selectedCaseStudy.fixedInterior.imgMain,
+            techChecklist: [
+              { label: "Khe cạnh dán ABS gỗ", value: "Mịn phẳng tuyệt đối <= 0.5mm, dùng máy dán cạnh tự động" },
+              { label: "Bản lề hơi giảm chấn", value: "100% Häfele đóng mở tự êm dịu góc 30 độ không tiếng động" },
+              { label: "Độ chuẩn xác Shadow Gap", value: "Đạt chuẩn khe âm thạch cao 3mm và chân tủ 2mm thẳng tắp" }
+            ],
+            detailsItems: selectedCaseStudy.details.items || []
+          },
+          {
+            id: 4,
+            title: "BÀN GIAO THỰC TẾ",
+            subtitle: "FINAL HANDOVER",
+            painPoint: selectedCaseStudy.id === 1 ? "Chính sách bảo hành mập mờ, khi xảy ra sự cố gọi điện nhà thầu không phản hồi." :
+                      selectedCaseStudy.id === 2 ? "Bảo trì cây xanh giếng trời sau bàn giao phức tạp, thiếu hướng dẫn chăm sóc chuyên sâu." :
+                      selectedCaseStudy.id === 3 ? "Bàn giao vội vã không kiểm tra kỹ các defect nhỏ, để lại keo thừa bụi bẩn." :
+                      "Chủ đầu tư resort lo ngại tiến độ bàn giao trễ hạn ảnh hưởng tới ngày khai trương đón khách đã định sẵn.",
+            storyText: selectedCaseStudy.finalize.text,
+            image: selectedCaseStudy.finalize.images[0],
+            subImages: selectedCaseStudy.finalize.images || [],
+            techChecklist: [
+              { label: "Bảo hành kết cấu công trình", value: "10 Năm cam kết bằng văn bản ký kết chính thức" },
+              { label: "Checklist bàn giao chìa khoá", value: "Rà soát kỹ lưỡng 120 điểm nghiệm thu nghiêm ngặt cùng chủ nhà" },
+              { label: "Thời gian xử lý sự cố bảo trì", value: "Có mặt hiện trường xử lý triệt để trong vòng 24h - 48h" }
+            ]
+          }
+        ];
+
+        const getCardStyle = (idx: number) => {
+          const isActive = activeStage === idx;
+          const isHovered = hoveredStage === idx;
           
-          <div className="min-h-screen bg-[#FAF8F4] py-16 px-6 md:px-12 lg:px-20 max-w-5xl mx-auto shadow-2xl relative border-x border-[#2C2920]/10 space-y-24">
+          if (isActive) {
+            return {
+              transform: 'translate3d(0, -30px, 150px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1.05)',
+              opacity: 1,
+              zIndex: 50,
+              pointerEvents: 'auto' as const,
+            };
+          } else {
+            // Isometric Stack offsets
+            const zOffset = -120 + idx * 25;
+            const yOffset = 100 + idx * 6;
+            const xOffset = -50 + idx * 14;
             
-            {/* ── SECTION 1: ALBUM COVER ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="text-center mb-6">
-                <span className="text-[10px] tracking-[0.3em] uppercase text-[#8A8070] font-sans font-bold block mb-2">QUÁ TRÌNH HOÀN THIỆN DỰ ÁN</span>
-                <h2 className="font-sans font-extrabold text-4xl md:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">{selectedCaseStudy.title}</h2>
-                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4 text-[10px] font-sans text-[#8A8070] uppercase tracking-widest font-semibold">
-                  <span>{selectedCaseStudy.area}</span>
-                  <span>·</span>
-                  <span>{selectedCaseStudy.style}</span>
-                  <span>·</span>
-                  <span>{selectedCaseStudy.studio}</span>
-                  <span>·</span>
-                  <span>{selectedCaseStudy.date}</span>
-                </div>
-              </div>
+            const hoverLiftZ = isHovered ? 25 : 0;
+            const hoverLiftY = isHovered ? -15 : 0;
+            
+            return {
+              transform: `rotateX(55deg) rotateY(0deg) rotateZ(-35deg) translate3d(${xOffset}px, ${yOffset + hoverLiftY}px, ${zOffset + hoverLiftZ}px) scale(0.75)`,
+              opacity: isHovered ? 0.85 : 0.35,
+              zIndex: 10 + idx,
+              pointerEvents: 'auto' as const,
+            };
+          }
+        };
 
-              {/* Large Cover Image */}
-              <div className="aspect-[16/9] overflow-hidden my-10 rounded-sm relative shadow-md">
-                <img 
-                  src={selectedCaseStudy.coverImage} 
-                  alt="Cover" 
-                  className="w-full h-full object-cover" 
-                />
-                {/* Overlay Text description */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1A1814]/95 via-[#1A1814]/30 to-transparent p-6 md:p-10 text-white">
-                  <p className="max-w-3xl text-xs md:text-sm leading-relaxed font-sans font-medium text-stone-200">
-                    "{selectedCaseStudy.introText}"
-                  </p>
-                </div>
-              </div>
+        return (
+          <div className="fixed inset-0 bg-[#161412]/95 z-[1000] flex items-center justify-center p-0 md:p-6 lg:p-10 font-sans text-[#2C2920] backdrop-blur-md overflow-hidden animate-fade-in">
+            {/* Close button */}
+            <button 
+              onClick={() => setSelectedCaseStudy(null)}
+              className="absolute top-4 right-4 md:top-6 md:right-6 z-[1050] bg-[#FAF8F4] hover:bg-[#B8913A] hover:text-[#FAF8F4] text-[#1A1814] w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl font-sans font-light text-xl cursor-pointer"
+            >
+              &times;
+            </button>
+            
+            {/* Split Screen Modal Frame */}
+            <div className="w-full h-full md:max-w-6xl md:h-[90vh] bg-[#FAF8F4] rounded-sm shadow-2xl overflow-hidden relative flex flex-col md:flex-row border border-[#2C2920]/15">
+              
+              {/* Sticky Visual Column (60% Desktop) */}
+              <div className="w-full md:w-[55%] lg:w-[60%] h-[35vh] md:h-full bg-[#161412] relative overflow-hidden flex items-center justify-center border-b md:border-b-0 md:border-r border-[#2C2920]/10 select-none">
+                {/* Grid Background Pattern */}
+                <div className="absolute inset-0 bg-[radial-gradient(#FAF8F4/0.03_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
+                <div className="absolute w-[450px] h-[450px] rounded-full border border-[#FAF8F4]/5 pointer-events-none" />
+                <div className="absolute w-[300px] h-[300px] rounded-full border border-[#FAF8F4]/3 pointer-events-none" />
 
-              {/* Palette Strip */}
-              <div className="mt-10">
-                <p className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] font-sans font-bold mb-6 text-center">BẢNG MÀU CHỦ ĐẠO (COLOR PALETTE)</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-                  {selectedCaseStudy.palette.map((color: any, cIdx: number) => (
-                    <div key={cIdx} className="bg-white p-3 rounded-sm border border-[#2C2920]/5 text-center shadow-sm">
-                      <div className="w-full h-12 rounded-sm mb-2" style={{ backgroundColor: color.hex }} />
-                      <span className="block font-sans text-[10px] text-[#2C2920] font-bold">{color.hex}</span>
-                      <span className="block text-[9px] text-[#8A8070] uppercase font-sans mt-0.5 font-medium">{color.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 2: FLOOR PLAN ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">CONCEPT &amp; LAYOUT</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Sơ đồ bố trí mặt bằng (Floor Plan)</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(C) ───────────────────</div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                <div className="lg:col-span-6 space-y-6">
-                  <p className="text-xs text-[#8A8070] leading-relaxed font-sans">
-                    {selectedCaseStudy.floorPlan.text}
-                  </p>
-                  <div className="space-y-3">
-                    <span className="block text-[9px] tracking-[0.2em] uppercase text-[#2C2920] font-bold">BẢN VẼ PHƯƠNG ÁN ĐẬP PHÁ CẢI TẠO</span>
-                    <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm">
-                      <img src={selectedCaseStudy.floorPlan.blueprint} className="w-full h-full object-cover opacity-90" alt="Blueprint" />
-                    </div>
-                  </div>
+                {/* HUD HUD Overlay */}
+                <div className="absolute top-4 left-4 text-white/50 text-[8px] font-sans tracking-[0.25em] z-20">
+                  DQH ARCHITECTS · STAGE 0{activeStage + 1} / 05
                 </div>
 
-                <div className="lg:col-span-6 space-y-6">
-                  <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.floorPlan.sitePhoto} className="w-full h-full object-cover" alt="Site construction" />
-                  </div>
-                  <p className="text-[10px] text-[#8A8070] leading-relaxed font-sans border-l-2 border-[#B8913A] pl-4">
-                    "Khảo sát đo cốt thô tại hiện trường bằng máy quét laser, đảm bảo sai số phần thô dưới 5mm trước khi lập bản vẽ kỹ thuật thi công hệ tủ âm trần."
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 3: 3D DESIGN ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">3D RENDERING</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Phối cảnh thiết kế 3D hoàn chỉnh</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(R) ───────────────────</div>
-              </div>
-
-              <div className="space-y-6">
-                <p className="text-xs text-[#8A8070] leading-relaxed font-sans max-w-3xl">
-                  {selectedCaseStudy.design3D.text}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {selectedCaseStudy.design3D.images.map((img: string, imgIdx: number) => (
-                    <div key={imgIdx} className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                      <img src={img} className="w-full h-full object-cover hover:scale-102 transition-transform duration-500" alt={`3D render ${imgIdx}`} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 4: TAILORING ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">TAILORING</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Tinh chỉnh công năng &amp; Lựa chọn vật liệu thực tế</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(T) ───────────────────</div>
-              </div>
-
-              <div className="space-y-8">
-                <p className="text-xs text-[#8A8070] leading-relaxed font-sans max-w-3xl">
-                  {selectedCaseStudy.tailoring.text}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {selectedCaseStudy.tailoring.steps.map((step: any, sIdx: number) => (
-                    <div key={sIdx} className="space-y-3">
-                      <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                        <img src={selectedCaseStudy.tailoring.images[sIdx]} className="w-full h-full object-cover" alt={step.title} />
-                      </div>
-                      <h4 className="font-sans font-bold text-xs text-[#1A1814] uppercase tracking-wider">{step.title}</h4>
-                      <p className="text-[10px] text-[#8A8070] leading-relaxed font-sans">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 5: STRUCTURAL ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">STRUCTURAL</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Thi công phần thô</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(S) ───────────────────</div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-8">
-                {/* Images layout matching the Vista Verde page */}
-                <div className="lg:col-span-8 grid grid-cols-2 gap-4">
-                  {/* Top-left: Site photo */}
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.floorPlan.sitePhoto} className="w-full h-full object-cover" alt="Site thô 1" />
-                  </div>
-                  {/* Top-right: Ceiling detail with red notes */}
-                  <div className="relative aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.structural.imgMain} className="w-full h-full object-cover" alt="Ceiling layout detail" />
-                    <div className="absolute inset-0 bg-[#1A1814]/5" />
-                    
-                    {/* Red handwritten annotations */}
-                    <div className="absolute left-[15%] top-[15%] text-red-500 font-serif italic text-[10px] select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                      ↖ khung lam gió thẩm mỹ phẳng viền
-                    </div>
-                    <div className="absolute right-[12%] bottom-[20%] text-red-500 font-serif italic text-[10px] select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                      tách khe tạo độ nét ↗
-                    </div>
-                  </div>
-                  
-                  {/* Bottom row: details */}
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                    <img src={selectedCaseStudy.structural.imgDetail1} className="w-full h-full object-cover" alt="Detail 1" />
-                    <div className="absolute left-4 top-4 text-red-500 font-serif italic text-[10px] select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                      [+] trần chuẩn + phẳng cạnh
-                    </div>
-                  </div>
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                    <img src={selectedCaseStudy.structural.imgDetail2} className="w-full h-full object-cover" alt="Detail 2" />
-                    <div className="absolute right-4 bottom-4 text-red-500 font-serif italic text-[10px] select-none pointer-events-none drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                      khung xương thạch cao ↗
-                    </div>
-                  </div>
-                </div>
-
-                {/* Vertical long image on the right */}
-                <div className="lg:col-span-4 aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                  <img src={selectedCaseStudy.floorPlan.blueprint} className="w-full h-full object-cover opacity-85" alt="Blueprint vertical detail" />
-                </div>
-              </div>
-
-              {/* Text columns underneath */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs text-[#8A8070] leading-relaxed font-sans">
-                <p>
-                  Công trình bắt đầu bằng việc xử lý hiện trạng và triển khai các hạng mục kỹ thuật. Những thay đổi về layout được thực hiện trước, sau đó là hệ thống điện nước âm tường được bố trí lại theo thiết kế mới. Các công đoạn như trần thạch cao, sơn nước và ốp lát được triển khai theo trình tự để đảm bảo không ảnh hưởng lẫn nhau.
-                </p>
-                <p>
-                  Ở giai đoạn này, sự chính xác đóng vai trò quyết định. Những chi tiết như vị trí ổ cắm, cao độ trần hay độ phẳng của bề mặt đều ảnh hưởng trực tiếp đến các hạng mục phía sau. Mọi thứ được kiểm soát chặt chẽ để đảm bảo khi bước sang giai đoạn hoàn thiện, không cần phải chỉnh sửa lại những phần đã làm. Sự chính xác là yếu tố tiên quyết nhằm đảm bảo không phát sinh chi phí phát sinh.
-                </p>
-              </div>
-            </div>
-
-            {/* ── SECTION 6: MATERIAL ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">MATERIAL</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Vật liệu sử dụng</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(M) ───────────────────</div>
-              </div>
-
-              <div className="space-y-10">
-                <p className="text-xs text-[#8A8070] leading-relaxed font-sans max-w-3xl">
-                  {selectedCaseStudy.material.text}
-                </p>
-
-                {/* 3-column layout top row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {selectedCaseStudy.material.samples.slice(0, 3).map((sample: any, sIdx: number) => (
-                    <div key={sIdx} className="flex flex-col justify-between group">
-                      <div className="aspect-[3/4] bg-stone-50 rounded-sm overflow-hidden mb-3 shadow-sm border border-[#2C2920]/5">
-                        <img src={sample.img} className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500" alt={sample.name} />
-                      </div>
-                      <div className="font-sans">
-                        <span className="block text-[9px] text-[#8A8070] uppercase font-semibold mb-0.5">{sample.desc}</span>
-                        <h4 className="font-sans font-extrabold text-xs text-[#1A1814] uppercase tracking-wider">{sample.name}</h4>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Dotted separator line */}
-                <div className="border-t border-dashed border-[#2C2920]/20 my-6" />
-
-                {/* 3-column layout bottom row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {selectedCaseStudy.material.samples.slice(3, 6).map((sample: any, sIdx: number) => (
-                    <div key={sIdx} className="flex flex-col justify-between group">
-                      <div className="aspect-[3/4] bg-stone-50 rounded-sm overflow-hidden mb-3 shadow-sm border border-[#2C2920]/5">
-                        <img src={sample.img} className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500" alt={sample.name} />
-                      </div>
-                      <div className="font-sans">
-                        <span className="block text-[9px] text-[#8A8070] uppercase font-semibold mb-0.5">{sample.desc}</span>
-                        <h4 className="font-sans font-extrabold text-xs text-[#1A1814] uppercase tracking-wider">{sample.name}</h4>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 7: FIXED INTERIOR ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">FIXED INTERIOR</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Thi công nội thất cố định</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">DQH Architects ───────────────────</div>
-              </div>
-
-              {/* 3-column editorial masonry layout matching FIXED INTERIOR page */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Column 1 */}
-                <div className="space-y-6">
-                  <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.fixedInterior.imgMain} className="w-full h-full object-cover" alt="Interior assembly" />
-                  </div>
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.fixedInterior.img1} className="w-full h-full object-cover" alt="Interior assembly detail" />
-                  </div>
-                  <p className="text-xs text-[#8A8070] leading-relaxed font-sans">
-                    {selectedCaseStudy.fixedInterior.text}
-                  </p>
-                </div>
-
-                {/* Column 2 */}
-                <div className="space-y-6">
-                  <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.fixedInterior.img2} className="w-full h-full object-cover" alt="Interior layout wall" />
-                  </div>
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.fixedInterior.img3} className="w-full h-full object-cover" alt="Interior finish look" />
-                  </div>
-                </div>
-
-                {/* Column 3 */}
-                <div className="space-y-6 text-xs text-[#8A8070] leading-relaxed font-sans">
-                  <p className="font-semibold text-[#1A1814]">
-                    Phong cách hiện đại được thể hiện hệ thống qua sự kết hợp tinh tế của Marble Stone và gỗ tự nhiên, nơi vẻ đẹp đẳng cấp của đá cẩm thạch hòa quyện vào sự ấm áp, sự gần gũi của chất liệu gỗ.
-                  </p>
-                  <p>
-                    Lúc này xưởng sản xuất của DQH Architects sẽ gia công nội thất tùy chỉnh kích thước theo nhu cầu của gia chủ để tránh xảy ra những sai sót không đáng có. Các hệ cánh tủ bếp, khung cửa lùa hay đặc biệt nhất là khung giường âm tường được lắp đặt vừa vặn dưới bàn tay lành nghề của đội ngũ thi công.
-                  </p>
-                  <p className="italic text-[#8A8070]/80 mt-6 border-l border-[#2C2920]/20 pl-4">
-                    {selectedCaseStudy.fixedInterior.extraText}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 8: LOOSE FURNITURE ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">LOOSE FURNITURE</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Thi công nội thất rời</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(L) ───────────────────</div>
-              </div>
-
-              {/* Grid matching media__1779728543534.png layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                <div className="space-y-6">
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.looseFurniture.imgMain} className="w-full h-full object-cover" alt="Loose item corner" />
-                  </div>
-                  <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.looseFurniture.img1} className="w-full h-full object-cover" alt="Loose item close up" />
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="aspect-[3/4] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.looseFurniture.img2} className="w-full h-full object-cover" alt="Loose dining look" />
-                  </div>
-                  <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                    <img src={selectedCaseStudy.looseFurniture.img3} className="w-full h-full object-cover" alt="Loose armchair close up" />
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 border border-[#2C2920]/10 rounded-sm space-y-4 shadow-sm">
-                  <p className="text-xs text-[#8A8070] leading-relaxed font-sans">
-                    {selectedCaseStudy.looseFurniture.text}
-                  </p>
-                  <p className="text-[10px] text-[#8A8070] font-sans italic">
-                    Bảng màu trung tính kết hợp cùng đường nét tự nhiên của gỗ và đá mang đến cho tổng thể không gian cảm giác ấm áp, thanh thoát và hài hòa.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ── SECTION 9: DETAILS ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">DETAILS</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Danh sách nội thất rời</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(D) ───────────────────</div>
-              </div>
-
-              {/* Top main look */}
-              <div className="aspect-[16/9] bg-stone-100 rounded-sm overflow-hidden mb-10 shadow-sm border border-[#2C2920]/10">
-                <img src={selectedCaseStudy.coverImage} className="w-full h-full object-cover" alt="Details main layout" />
-              </div>
-
-              {/* Dotted border box container simulating the user's uploaded page layout */}
-              <div className="border-2 border-dashed border-[#2C2920]/25 p-8 md:p-12 bg-white/70 rounded-sm relative overflow-hidden">
-                <div className="absolute top-6 right-6 w-8 h-8 rounded-full bg-[#B8913A]/10" />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
-                  {selectedCaseStudy.details.items.map((item: any, iIdx: number) => (
-                    <div 
-                      key={iIdx} 
-                      className="flex items-center gap-4 bg-[#FAF8F4] p-4 rounded-sm border border-[#2C2920]/5 shadow-sm hover:translate-y-[-2px] transition-transform duration-300"
+                {/* 3D Isometric Stack Canvas */}
+                <div className="w-[300px] h-[360px] relative transform-style-3d perspective-[1000px] flex items-center justify-center scale-[0.7] sm:scale-[0.85] md:scale-100 transition-transform">
+                  {stages.map((stg, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className="absolute inset-0 w-full h-full rounded-sm overflow-hidden border border-white/10 shadow-2xl cursor-pointer transition-all duration-700 ease-out-expo select-none"
+                      style={getCardStyle(sIdx)}
+                      onMouseEnter={() => setHoveredStage(sIdx)}
+                      onMouseLeave={() => setHoveredStage(null)}
+                      onClick={() => scrollToStage(sIdx)}
                     >
-                      <div className="w-8 h-8 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-sans text-xs font-bold shrink-0">
-                        {item.num}
-                      </div>
-                      <div>
-                        <span className="text-[9px] tracking-wider text-[#8A8070] uppercase font-sans block font-semibold">Mã số {item.num}</span>
-                        <h4 className="font-sans font-bold text-xs text-[#1A1814] tracking-wide mt-0.5">{item.name}</h4>
+                      <img 
+                        src={stg.image} 
+                        alt={stg.title} 
+                        className="w-full h-full object-cover select-none pointer-events-none" 
+                      />
+                      <div className={`absolute inset-0 bg-[#161412] transition-opacity duration-500 ${activeStage === sIdx ? 'opacity-0' : 'opacity-65'}`} />
+                      <div className={`absolute inset-0 border-2 transition-all duration-500 rounded-sm pointer-events-none ${activeStage === sIdx ? 'border-[#B8913A]' : hoveredStage === sIdx ? 'border-[#B8913A]/50' : 'border-transparent'}`} />
+
+                      {/* Red hand-annotated overlays on stage 2 (rough construction) */}
+                      {activeStage === sIdx && sIdx === 2 && (
+                        <div className="absolute inset-0 pointer-events-none select-none">
+                          <div className="absolute left-[15%] top-[15%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                            ↖ Khung lam gió thẩm mỹ phẳng viền
+                          </div>
+                          <div className="absolute right-[12%] bottom-[20%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                            Tách khe tạo độ nét shadow gap ↗
+                          </div>
+                          <div className="absolute left-[20%] bottom-[45%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
+                            [+] Test ngâm nước toilet 72h liên tục
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Card label */}
+                      <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-between text-white">
+                        <span className="font-mono text-[9px] tracking-widest text-[#B8913A] font-bold">{stg.subtitle}</span>
+                        <span className="text-[8px] tracking-wider text-stone-300 uppercase font-sans font-semibold">0{sIdx + 1}</span>
                       </div>
                     </div>
                   ))}
                 </div>
+
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white/40 text-[8px] font-sans tracking-widest">
+                  <span>CLICK LAYER TO NAVIGATE</span>
+                  <span>DQH SIGNATURE</span>
+                </div>
+              </div>
+
+              {/* Scrollable Storytelling Column (40% Desktop) */}
+              <div className="w-full md:w-[45%] lg:w-[40%] h-[65vh] md:h-full bg-[#FAF8F4] flex flex-col relative select-none">
                 
-                <p className="text-[10px] text-[#8A8070] italic text-center mt-8 font-sans">
-                  * Ghi chú: Kích thước và màu sắc da bọc có thể tinh chỉnh theo yêu cầu kỹ thuật của mặt bằng thực tế.
-                </p>
-              </div>
-            </div>
-
-            {/* ── SECTION 10: FINALIZE ── */}
-            <div className="border-b border-[#2C2920]/15 pb-16">
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
-                <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">FINALIZE</h3>
-                <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Công trình thực tế bàn giao</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">(F) ───────────────────</div>
-              </div>
-
-              <div className="space-y-8">
-                {/* Large Panoramic view */}
-                <div className="aspect-[16/9] bg-stone-100 rounded-sm overflow-hidden shadow-md">
-                  <img src={selectedCaseStudy.finalize.images[0]} className="w-full h-full object-cover" alt="Completed overall view" />
+                {/* Header status bar */}
+                <div className="bg-[#FAF8F4] px-6 py-4 border-b border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
+                  <div className="flex items-center gap-2">
+                    <span className="font-serif text-sm font-semibold text-[#1A1814]">DQH</span>
+                    <span className="text-[10px] font-sans text-[#8A8070] uppercase tracking-wider">Case Study</span>
+                  </div>
+                  <span className="text-[9px] font-sans text-[#8A8070] uppercase tracking-widest font-semibold">
+                    {selectedCaseStudy.title}
+                  </span>
                 </div>
 
-                {/* 3 columns underneath */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-4">
-                    <div className="aspect-square bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                      <img src={selectedCaseStudy.finalize.images[1]} className="w-full h-full object-cover" alt="Completed detail 1" />
-                    </div>
-                    <span className="text-[9px] tracking-wider text-[#8A8070] uppercase font-sans font-semibold">01 / GÓC TI VI &amp; KHÔNG GIAN SỐNG</span>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="aspect-square bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                      <img src={selectedCaseStudy.finalize.images[2]} className="w-full h-full object-cover" alt="Completed detail 2" />
-                    </div>
-                    <span className="text-[9px] tracking-wider text-[#8A8070] uppercase font-sans font-semibold">02 / BÀN LÀM VIỆC TỐI GIẢN TĨNH LẶNG</span>
-                  </div>
-                  <div className="bg-white p-6 border border-[#2C2920]/10 rounded-sm space-y-4 shadow-sm flex flex-col justify-between">
-                    <p className="text-xs text-[#8A8070] leading-relaxed font-sans">
-                      {selectedCaseStudy.finalize.text}
+                {/* Progress bar */}
+                <div className="h-[2px] w-full bg-stone-200 relative shrink-0">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-[#B8913A] transition-all duration-500 ease-out-expo"
+                    style={{ width: `${(activeStage + 1) * 20}%` }}
+                  />
+                </div>
+
+                {/* Scrollable text areas */}
+                <div 
+                  ref={scrollContainerRef}
+                  onScroll={handleScroll}
+                  className="flex-1 overflow-y-auto px-6 py-8 md:px-8 space-y-12 scroll-smooth"
+                >
+                  <div className="pb-4 border-b border-[#2C2920]/10 space-y-2">
+                    <span className="text-[9px] tracking-[0.3em] uppercase text-[#8A8070] font-sans font-bold block">
+                      JOURNAL OF FINISHING
+                    </span>
+                    <h2 className="font-sans font-extrabold text-2xl tracking-tight text-[#1A1814] uppercase leading-none">
+                      {selectedCaseStudy.title}
+                    </h2>
+                    <p className="text-[9px] text-[#8A8070] uppercase font-sans tracking-widest font-semibold">
+                      {selectedCaseStudy.area} · {selectedCaseStudy.style} · by {selectedCaseStudy.studio}
                     </p>
-                    <span className="text-[9px] tracking-wider text-[#8A8070] uppercase font-sans font-semibold block pt-4 border-t border-[#2C2920]/10">03 / CHI TIẾT BÀN GIAO THỰC TẾ</span>
+                  </div>
+
+                  {stages.map((stg, sIdx) => {
+                    const isExpanded = !!expandedDetails[`stage-${sIdx}`];
+                    
+                    return (
+                      <div 
+                        key={sIdx}
+                        id={`stage-section-${sIdx}`}
+                        className="space-y-5 pt-2 pb-10 border-b border-[#2C2920]/10 last:border-0 scroll-mt-4"
+                      >
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-sans text-[#B8913A] font-bold tracking-widest block">
+                            PHASE 0{sIdx + 1} / 05
+                          </span>
+                          <h3 className="font-sans font-bold text-base text-[#1A1814] tracking-wide uppercase">
+                            {stg.title}
+                          </h3>
+                          <span className="block text-[9px] text-[#8A8070] tracking-widest font-sans font-medium">
+                            {stg.subtitle}
+                          </span>
+                        </div>
+
+                        {/* Gold Serif italic painpoint quote */}
+                        <blockquote className="font-serif italic text-xs text-[#B8913A] pl-4 border-l-2 border-[#B8913A] my-4 leading-relaxed bg-[#B8913A]/3 py-2 pr-2">
+                          "{stg.painPoint}"
+                        </blockquote>
+
+                        {/* Story Content */}
+                        <div className="space-y-4">
+                          {stg.storyText.split('\n\n').map((pText, pIdx) => {
+                            if (!isExpanded && pIdx > 0) return null;
+                            return (
+                              <p 
+                                key={pIdx} 
+                                className="text-xs text-[#2C2920] leading-relaxed font-sans font-normal"
+                              >
+                                {pText}
+                              </p>
+                            );
+                          })}
+                        </div>
+
+                        {/* Accordion trigger */}
+                        <div>
+                          <button
+                            onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))}
+                            className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors duration-300 cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5"
+                          >
+                            {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
+                          </button>
+                        </div>
+
+                        {/* Dropdown content */}
+                        {isExpanded && (
+                          <div className="space-y-5 pt-4 mt-4 border-t border-dashed border-[#2C2920]/15 animate-fade-in">
+                            {sIdx === 1 && selectedCaseStudy.material.samples && (
+                              <div className="space-y-3">
+                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                  KHAY MẪU VẬT LIỆU THỰC TẾ
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {selectedCaseStudy.material.samples.map((samp: any, sampIdx: number) => (
+                                    <div key={sampIdx} className="bg-white p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2 items-center">
+                                      <div className="w-8 h-8 rounded-sm overflow-hidden shrink-0">
+                                        <img src={samp.img} className="w-full h-full object-cover" alt={samp.name} />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <span className="block text-[8px] text-[#8A8070] uppercase truncate font-medium">{samp.desc}</span>
+                                        <span className="block text-[9px] font-sans font-bold text-[#2C2920] truncate">{samp.name}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {sIdx === 3 && stg.detailsItems && stg.detailsItems.length > 0 && (
+                              <div className="space-y-3">
+                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                  DANH SÁCH MỘC NỘI THẤT RỜI ĐÃ PHỐI HỢP
+                                </span>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {stg.detailsItems.map((det: any, dIdx: number) => (
+                                    <div key={dIdx} className="flex items-center gap-3 bg-white p-1.5 border border-[#2C2920]/5 rounded-sm">
+                                      <div className="w-4 h-4 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-sans text-[8px] font-bold">
+                                        {det.num}
+                                      </div>
+                                      <span className="text-[9px] text-[#2C2920] font-sans font-medium">{det.name}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {sIdx === 4 && stg.subImages && (
+                              <div className="space-y-3">
+                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                  ẢNH BÀN GIAO THỰC TẾ BỔ SUNG
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <img src={stg.subImages[1]} className="rounded-sm aspect-[4/3] object-cover shadow-sm" alt="Detail 1" />
+                                  <img src={stg.subImages[2]} className="rounded-sm aspect-[4/3] object-cover shadow-sm" alt="Detail 2" />
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="space-y-3">
+                              <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                BẰNG CHỨNG KỸ THUẬT (DQH QUALITY PROOF)
+                              </span>
+                              <div className="space-y-2">
+                                {stg.techChecklist.map((item: any, cIdx: number) => (
+                                  <div key={cIdx} className="bg-white p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
+                                    <span className="font-sans font-bold text-[9px] text-[#1A1814] uppercase tracking-wide">
+                                      {item.label}
+                                    </span>
+                                    <span className="font-sans text-[9px] text-[#8A8070] leading-relaxed">
+                                      {item.value}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Thank you box */}
+                  <div className="bg-[#161412] text-white p-6 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
+                    
+                    <div className="relative z-10 space-y-1">
+                      <span className="font-sans tracking-[0.35em] text-[10px] uppercase text-[#D4BC95] font-extrabold block">DQH Architects</span>
+                      <span className="block text-[6px] tracking-[0.3em] uppercase text-stone-400 font-sans">living space build &amp; success orientation</span>
+                    </div>
+
+                    <div className="relative z-10 space-y-1 py-2">
+                      <h4 className="font-sans font-extrabold text-3xl tracking-widest text-white leading-none">THANK YOU</h4>
+                      <p className="font-serif italic text-[#D4BC95] text-xs">for watching</p>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 relative z-10 text-[8px] font-sans text-stone-300 uppercase tracking-widest flex flex-col gap-2 text-left">
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-stone-500 font-semibold">Hotline:</span>
+                        <a href="tel:0987897494" className="hover:text-[#D4BC95] transition-colors">098 789 7494</a>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-stone-500 font-semibold">Website:</span>
+                        <a href="https://dqh.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors lowercase">dqh.vercel.app</a>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-1">
+                        <span className="text-stone-500 font-semibold">Facebook:</span>
+                        <a href="https://facebook.com/DQH.Architects" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors">DQH.Architects</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* ── SECTION 11: THANK YOU SLIDE ── */}
-            <div className="bg-[#1A1814] text-white p-12 md:p-20 rounded-sm text-center relative overflow-hidden shadow-2xl flex flex-col justify-between min-h-[420px]">
-              
-              {/* Abstract decorative graphic line or circle */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-white/5 pointer-events-none" />
-              
-              {/* Studio Logo */}
-              <div className="relative z-10">
-                <span className="font-sans tracking-[0.35em] text-sm uppercase text-[#D4BC95] font-extrabold block">DQH Architects</span>
-                <span className="block text-[8px] tracking-[0.3em] uppercase text-stone-400 mt-1 font-sans">living space build &amp; success orientation</span>
-              </div>
-
-              {/* Thank you text */}
-              <div className="my-10 relative z-10 space-y-2">
-                <h3 className="font-sans font-extrabold text-5xl md:text-7xl tracking-widest text-white leading-none">THANK YOU</h3>
-                <p className="font-serif italic text-[#D4BC95] text-lg">for watching</p>
-                <div className="w-16 h-[1px] bg-white/20 mx-auto mt-4" />
-              </div>
-
-              {/* Footer contacts line */}
-              <div className="pt-6 border-t border-white/10 relative z-10 text-[9px] font-sans text-stone-300 uppercase tracking-widest flex flex-wrap justify-center gap-x-8 gap-y-2 font-medium">
-                <div>
-                  <span className="text-stone-500 mr-2 font-semibold">Contact:</span>
-                  <a href="tel:0987897494" className="hover:text-[#D4BC95] transition-colors duration-300">098 789 7494</a>
-                </div>
-                <div>
-                  <span className="text-stone-500 mr-2 font-semibold">Website:</span>
-                  <a href="https://dqh.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300 lowercase">dqh.vercel.app</a>
-                </div>
-                <div>
-                  <span className="text-stone-500 mr-2 font-semibold">Behance:</span>
-                  <a href="#" className="hover:text-[#D4BC95] transition-colors duration-300">DQH Architects</a>
-                </div>
-                <div>
-                  <span className="text-stone-500 mr-2 font-semibold">Facebook:</span>
-                  <a href="https://facebook.com/DQH.Architects" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300">DQH.Architects</a>
+                {/* Floating bottom controls */}
+                <div className="bg-[#FAF8F4] px-6 py-4 border-t border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
+                  <div className="flex gap-2">
+                    <button 
+                      disabled={activeStage === 0}
+                      onClick={() => scrollToStage(activeStage - 1)}
+                      className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer select-none"
+                    >
+                      ←
+                    </button>
+                    <button 
+                      disabled={activeStage === 4}
+                      onClick={() => scrollToStage(activeStage + 1)}
+                      className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer select-none"
+                    >
+                      →
+                    </button>
+                  </div>
+                  <span className="text-[9px] font-sans font-semibold tracking-wider text-[#8A8070]">
+                    PHASE 0{activeStage + 1} / 05
+                  </span>
                 </div>
               </div>
 
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );
