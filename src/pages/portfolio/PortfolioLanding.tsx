@@ -2650,7 +2650,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 <span className="text-[10px] tracking-[0.3em] text-[#8A8070] font-sans font-bold uppercase block mb-1">VISTA VERDE 2025</span>
                 <h3 className="font-sans font-extrabold text-4xl md:text-5xl lg:text-6xl tracking-tight text-[#1A1814] uppercase leading-none">FIXED INTERIOR</h3>
                 <span className="text-xs font-sans text-[#8A8070] uppercase tracking-wider block mt-1">Thi công nội thất cố định</span>
-                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">Plan. A ───────────────────</div>
+                <div className="text-[10px] font-sans text-[#8A8070]/60 mt-2 select-none">DQH Architects ───────────────────</div>
               </div>
 
               {/* 3-column editorial masonry layout matching FIXED INTERIOR page */}
@@ -2684,7 +2684,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                     Phong cách hiện đại được thể hiện hệ thống qua sự kết hợp tinh tế của Marble Stone và gỗ tự nhiên, nơi vẻ đẹp đẳng cấp của đá cẩm thạch hòa quyện vào sự ấm áp, sự gần gũi của chất liệu gỗ.
                   </p>
                   <p>
-                    Lúc này xưởng sản xuất của Plan. A sẽ gia công nội thất tùy chỉnh kích thước theo nhu cầu của gia chủ để tránh xảy ra những sai sót không đáng có. Các hệ cánh tủ bếp, khung cửa lùa hay đặc biệt nhất là khung giường âm tường được lắp đặt vừa vặn dưới bàn tay lành nghề của đội ngũ thi công.
+                    Lúc này xưởng sản xuất của DQH Architects sẽ gia công nội thất tùy chỉnh kích thước theo nhu cầu của gia chủ để tránh xảy ra những sai sót không đáng có. Các hệ cánh tủ bếp, khung cửa lùa hay đặc biệt nhất là khung giường âm tường được lắp đặt vừa vặn dưới bàn tay lành nghề của đội ngũ thi công.
                   </p>
                   <p className="italic text-[#8A8070]/80 mt-6 border-l border-[#2C2920]/20 pl-4">
                     {selectedCaseStudy.fixedInterior.extraText}
@@ -2821,7 +2821,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               
               {/* Studio Logo */}
               <div className="relative z-10">
-                <span className="font-sans tracking-[0.35em] text-sm uppercase text-[#D4BC95] font-extrabold block">Plan.A studio</span>
+                <span className="font-sans tracking-[0.35em] text-sm uppercase text-[#D4BC95] font-extrabold block">DQH Architects</span>
                 <span className="block text-[8px] tracking-[0.3em] uppercase text-stone-400 mt-1 font-sans">living space build &amp; success orientation</span>
               </div>
 
@@ -2840,15 +2840,15 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 </div>
                 <div>
                   <span className="text-stone-500 mr-2 font-semibold">Website:</span>
-                  <a href="https://planastudio.vn" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300 lowercase">planastudio.vn</a>
+                  <a href="https://dqh.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300 lowercase">dqh.vercel.app</a>
                 </div>
                 <div>
                   <span className="text-stone-500 mr-2 font-semibold">Behance:</span>
-                  <a href="#" className="hover:text-[#D4BC95] transition-colors duration-300">Plan. A studio</a>
+                  <a href="#" className="hover:text-[#D4BC95] transition-colors duration-300">DQH Architects</a>
                 </div>
                 <div>
                   <span className="text-stone-500 mr-2 font-semibold">Facebook:</span>
-                  <a href="https://facebook.com/Plan.Architect.VN" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300">Plan.Architect.VN</a>
+                  <a href="https://facebook.com/DQH.Architects" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors duration-300">DQH.Architects</a>
                 </div>
               </div>
 
