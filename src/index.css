@@ -12,6 +12,14 @@
   --color-border-main: var(--color-border);
   --font-serif: "Cormorant Garamond", "Georgia", serif;
   --font-sans: "Inter", "system-ui", sans-serif;
+  
+  --color-ql-cream: #F5F2EC;
+  --color-ql-warm-white: #FAF8F4;
+  --color-ql-charcoal: #1C1C1A;
+  --color-ql-stone: #8A8780;
+  --color-ql-stone-light: #C4C0B8;
+  --color-ql-gold: #B89B6A;
+  --color-ql-gold-light: #D4BC95;
 }
 
 :root {
