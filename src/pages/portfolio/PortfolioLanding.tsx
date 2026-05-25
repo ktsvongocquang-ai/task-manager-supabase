@@ -164,7 +164,7 @@ function Reveal({ children, className = "", delay = 0, direction = "up" }) {
 /** Section tag label */
 function Tag({ children }) {
   return (
-    <p className="text-xs tracking-[0.22em] uppercase text-stone-400 font-sans mb-4">
+    <p className="text-xs tracking-[0.22em] uppercase text-slate-400 font-sans mb-4">
       {children}
     </p>
   );
@@ -176,7 +176,7 @@ function BtnDark({ children, href = "#", onClick }) {
     <a
       href={href}
       onClick={onClick}
-      className="inline-block text-xs tracking-[0.12em] uppercase text-stone-50 bg-stone-900 px-8 py-3.5 hover:bg-amber-700 transition-colors duration-300 font-sans"
+      className="inline-block text-xs tracking-[0.12em] uppercase text-slate-50 bg-slate-900 px-8 py-3.5 hover:bg-blue-700 transition-colors duration-300 font-sans"
     >
       {children}
     </a>
@@ -188,7 +188,7 @@ function BtnArrow({ children, href = "#" }) {
   return (
     <a
       href={href}
-      className="inline-flex items-center gap-2 text-xs tracking-[0.12em] uppercase text-stone-900 hover:gap-4 transition-all duration-300 font-sans group"
+      className="inline-flex items-center gap-2 text-xs tracking-[0.12em] uppercase text-slate-900 hover:gap-4 transition-all duration-300 font-sans group"
     >
       {children}
       <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
@@ -213,10 +213,10 @@ function Navbar({ mobileOpen, setMobileOpen }) {
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between transition-all duration-400 ${
-          scrolled ? "bg-stone-50/92 backdrop-blur-xl border-b border-stone-200" : ""
+          scrolled ? "bg-slate-50/92 backdrop-blur-xl border-b border-slate-200" : ""
         }`}
       >
-        <a href="#" className="font-serif text-xl font-semibold tracking-wide text-stone-900">
+        <a href="#" className="font-serif text-xl font-semibold tracking-wide text-slate-900">
           DQH
         </a>
 
@@ -224,14 +224,14 @@ function Navbar({ mobileOpen, setMobileOpen }) {
         <ul className="hidden md:flex gap-9 list-none">
           {NAV_LINKS.map((l) => (
             <li key={l.label}>
-              <a href={l.href} className="text-xs tracking-[0.12em] uppercase text-stone-400 hover:text-stone-900 transition-colors duration-300 font-sans">
+              <a href={l.href} className="text-xs tracking-[0.12em] uppercase text-slate-400 hover:text-slate-900 transition-colors duration-300 font-sans">
                 {l.label}
               </a>
             </li>
           ))}
         </ul>
 
-        <a href="#contact" className="hidden md:inline-block text-xs tracking-[0.1em] uppercase text-stone-50 bg-stone-900 px-6 py-2.5 hover:bg-amber-700 transition-colors duration-300 font-sans">
+        <a href="#contact" className="hidden md:inline-block text-xs tracking-[0.1em] uppercase text-slate-50 bg-slate-900 px-6 py-2.5 hover:bg-blue-700 transition-colors duration-300 font-sans">
           Đặt lịch tư vấn
         </a>
 
@@ -241,15 +241,15 @@ function Navbar({ mobileOpen, setMobileOpen }) {
           onClick={() => setMobileOpen((o) => !o)}
           aria-label="Menu"
         >
-          <span className={`block w-5 h-px bg-stone-900 transition-all duration-300 ${mobileOpen ? "rotate-45 translate-y-[6px]" : ""}`} />
-          <span className={`block w-5 h-px bg-stone-900 transition-all duration-300 ${mobileOpen ? "opacity-0" : ""}`} />
-          <span className={`block w-5 h-px bg-stone-900 transition-all duration-300 ${mobileOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
+          <span className={`block w-5 h-px bg-slate-900 transition-all duration-300 ${mobileOpen ? "rotate-45 translate-y-[6px]" : ""}`} />
+          <span className={`block w-5 h-px bg-slate-900 transition-all duration-300 ${mobileOpen ? "opacity-0" : ""}`} />
+          <span className={`block w-5 h-px bg-slate-900 transition-all duration-300 ${mobileOpen ? "-rotate-45 -translate-y-[6px]" : ""}`} />
         </button>
       </nav>
 
       {/* Mobile fullscreen menu */}
       <div
-        className={`fixed inset-0 z-40 bg-stone-50 flex flex-col items-center justify-center gap-8 transition-all duration-400 ${
+        className={`fixed inset-0 z-40 bg-slate-50 flex flex-col items-center justify-center gap-8 transition-all duration-400 ${
           mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
@@ -258,7 +258,7 @@ function Navbar({ mobileOpen, setMobileOpen }) {
             key={l.label}
             href={l.href}
             onClick={() => setMobileOpen(false)}
-            className="font-serif text-4xl font-light text-stone-900 tracking-wide hover:text-amber-700 transition-colors duration-300"
+            className="font-serif text-4xl font-light text-slate-900 tracking-wide hover:text-blue-700 transition-colors duration-300"
           >
             {l.label}
           </a>
@@ -273,26 +273,26 @@ function Hero() {
   return (
     <section id="hero" className="min-h-screen grid grid-cols-1 md:grid-cols-2 overflow-hidden">
       {/* Left */}
-      <div className="flex flex-col justify-end px-6 md:px-16 pb-16 pt-32 md:pt-0 bg-[#F8F5F0] relative z-10">
+      <div className="flex flex-col justify-end px-6 md:px-16 pb-16 pt-32 md:pt-0 bg-[#FAFAFA] relative z-10">
         <Reveal>
-          <p className="text-xs tracking-[0.25em] uppercase text-stone-400 mb-7 flex items-center gap-3 font-sans">
-            <span className="w-6 h-px bg-stone-400 inline-block" />
+          <p className="text-xs tracking-[0.25em] uppercase text-slate-400 mb-7 flex items-center gap-3 font-sans">
+            <span className="w-6 h-px bg-slate-400 inline-block" />
             Trụ sở tại TP. Hồ Chí Minh, Việt Nam
           </p>
         </Reveal>
 
         <Reveal delay={100}>
-          <h1 className="font-serif text-[clamp(2.8rem,6vw,5rem)] font-light leading-[1.08] mb-7 text-stone-900">
+          <h1 className="font-serif text-[clamp(2.8rem,6vw,5rem)] font-light leading-[1.08] mb-7 text-slate-900">
             Không gian sống
             <br />
-            <em className="not-italic text-amber-700">tinh tế.</em>
+            <em className="not-italic text-blue-700">tinh tế.</em>
             <br />
             Kiến tạo cho bạn.
           </h1>
         </Reveal>
 
         <Reveal delay={200}>
-          <p className="text-[0.95rem] text-stone-500 leading-[1.85] max-w-[420px] mb-10 font-sans">
+          <p className="text-[0.95rem] text-slate-500 leading-[1.85] max-w-[420px] mb-10 font-sans">
             Chúng tôi tạo ra những không gian tinh tế — kết hợp sự thoải mái, thẩm mỹ và thiết kế bền vững, được điều chỉnh theo phong cách sống của bạn.
           </p>
         </Reveal>
@@ -306,8 +306,8 @@ function Hero() {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-10 right-10 hidden md:flex flex-col items-center gap-2 opacity-30">
-          <div className="w-px h-10 bg-stone-400 animate-pulse" />
-          <span className="text-[0.55rem] tracking-[0.2em] uppercase text-stone-400 [writing-mode:vertical-rl] font-sans">Scroll</span>
+          <div className="w-px h-10 bg-slate-400 animate-pulse" />
+          <span className="text-[0.55rem] tracking-[0.2em] uppercase text-slate-400 [writing-mode:vertical-rl] font-sans">Scroll</span>
         </div>
       </div>
 
@@ -328,15 +328,15 @@ function Marquee() {
   const items = ["Kiến trúc & Nội thất", "Modern Tropical Biophilic", "Thi công chuyên nghiệp", "Bảo hành 10 năm", "Giá cố định", "150+ công trình"];
   const doubled = [...items, ...items];
   return (
-    <div className="border-y border-stone-200 overflow-hidden bg-white py-4">
+    <div className="border-y border-slate-200 overflow-hidden bg-white py-4">
       <div
         className="flex whitespace-nowrap"
         style={{ animation: "marquee 28s linear infinite" }}
       >
         {doubled.map((t, i) => (
-          <span key={i} className="font-serif text-base italic text-stone-400 px-10">
+          <span key={i} className="font-serif text-base italic text-slate-400 px-10">
             {t}
-            <span className="text-amber-600 ml-10">✦</span>
+            <span className="text-blue-600 ml-10">✦</span>
           </span>
         ))}
       </div>
@@ -349,14 +349,14 @@ function Marquee() {
 function Works() {
   const [hovered, setHovered] = useState(null);
   return (
-    <section id="works" className="px-6 md:px-16 py-24 bg-[#F8F5F0]">
+    <section id="works" className="px-6 md:px-16 py-24 bg-[#FAFAFA]">
       {/* Header */}
       <div className="flex justify-between items-end mb-14">
         <div>
           <Reveal><Tag>(công trình)</Tag></Reveal>
           <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,4vw,3.2rem)] font-light text-stone-900">
-              Công trình <em className="not-italic text-amber-700">nổi bật</em>
+            <h2 className="font-serif text-[clamp(2rem,4vw,3.2rem)] font-light text-slate-900">
+              Công trình <em className="not-italic text-blue-700">nổi bật</em>
             </h2>
           </Reveal>
         </div>
@@ -371,14 +371,14 @@ function Works() {
           <a
             key={p.id}
             href="#"
-            className="grid grid-cols-[48px_1fr] md:grid-cols-[60px_1fr_340px] gap-0 items-center py-6 border-t border-stone-200 last:border-b hover:bg-stone-900/[0.015] transition-colors duration-300 no-underline text-inherit group"
+            className="grid grid-cols-[48px_1fr] md:grid-cols-[60px_1fr_340px] gap-0 items-center py-6 border-t border-slate-200 last:border-b hover:bg-slate-900/[0.015] transition-colors duration-300 no-underline text-inherit group"
             onMouseEnter={() => setHovered(p.id)}
             onMouseLeave={() => setHovered(null)}
           >
-            <span className="font-serif text-sm italic text-stone-400">{p.num}</span>
+            <span className="font-serif text-sm italic text-slate-400">{p.num}</span>
             <div className="pl-8 md:pl-10">
-              <p className="text-[0.6rem] tracking-[0.18em] uppercase text-stone-400 mb-1 font-sans">{p.cat}</p>
-              <p className="font-serif text-xl md:text-2xl font-light text-stone-900 group-hover:text-amber-700 transition-colors duration-300">
+              <p className="text-[0.6rem] tracking-[0.18em] uppercase text-slate-400 mb-1 font-sans">{p.cat}</p>
+              <p className="font-serif text-xl md:text-2xl font-light text-slate-900 group-hover:text-blue-700 transition-colors duration-300">
                 {p.title}
               </p>
             </div>
@@ -414,7 +414,7 @@ function About() {
               alt="DQH Studio"
               className="w-full aspect-[4/3] object-cover"
             />
-            <div className="absolute bottom-6 left-6 bg-white px-5 py-2.5 text-[0.62rem] tracking-[0.15em] uppercase text-stone-900 font-sans">
+            <div className="absolute bottom-6 left-6 bg-white px-5 py-2.5 text-[0.62rem] tracking-[0.15em] uppercase text-slate-900 font-sans">
               Thành lập 2012 · TP.HCM
             </div>
           </div>
@@ -424,16 +424,16 @@ function About() {
         <div>
           <Reveal><Tag>(về chúng tôi)</Tag></Reveal>
           <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light leading-[1.12] text-stone-900 mb-6">
+            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light leading-[1.12] text-slate-900 mb-6">
               Thiết kế không gian với{" "}
-              <em className="not-italic text-amber-700">mục đích</em> và sự chính xác
+              <em className="not-italic text-blue-700">mục đích</em> và sự chính xác
             </h2>
           </Reveal>
           <Reveal delay={200}>
-            <p className="text-[0.92rem] text-stone-500 leading-[1.9] mb-4 font-sans">
+            <p className="text-[0.92rem] text-slate-500 leading-[1.9] mb-4 font-sans">
               Chúng tôi tiếp cận mỗi không gian như một sự cân bằng giữa chức năng, hình thức và cảm xúc. Qua vật liệu, ánh sáng và kết cấu được chọn lọc, DQH tạo ra những nội thất phản ánh cá tính đồng thời trường tồn với thời gian.
             </p>
-            <p className="text-[0.92rem] text-stone-500 leading-[1.9] font-sans">
+            <p className="text-[0.92rem] text-slate-500 leading-[1.9] font-sans">
               Với 12 năm kinh nghiệm và hơn 150 công trình hoàn thành, chúng tôi tự hào là đơn vị được tin tưởng bởi những gia chủ khó tính nhất tại Việt Nam.
             </p>
           </Reveal>
@@ -443,18 +443,18 @@ function About() {
 
           {/* Stats */}
           <Reveal delay={400}>
-            <div className="flex gap-8 mt-12 pt-10 border-t border-stone-200">
+            <div className="flex gap-8 mt-12 pt-10 border-t border-slate-200">
               {[
                 { ref: r0, val: c0, suffix: "+", label: "Công trình hoàn thành" },
                 { ref: r1, val: c1, suffix: "+", label: "Năm kinh nghiệm" },
                 { ref: r2, val: c2, suffix: "%", label: "Khách hàng hài lòng" },
               ].map((s) => (
                 <div key={s.label} ref={s.ref} className="flex-1">
-                  <p className="font-serif text-[2.6rem] font-light leading-none mb-1 text-stone-900">
+                  <p className="font-serif text-[2.6rem] font-light leading-none mb-1 text-slate-900">
                     {s.val}
                     <span className="text-2xl">{s.suffix}</span>
                   </p>
-                  <p className="text-[0.65rem] tracking-[0.12em] uppercase text-stone-400 font-sans leading-snug">{s.label}</p>
+                  <p className="text-[0.65rem] tracking-[0.12em] uppercase text-slate-400 font-sans leading-snug">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -468,19 +468,19 @@ function About() {
 /* ── Services ── */
 function Services() {
   return (
-    <section id="services" className="px-6 md:px-16 py-24 bg-[#F8F5F0]">
+    <section id="services" className="px-6 md:px-16 py-24 bg-[#FAFAFA]">
       {/* Header */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-end mb-16">
         <div>
           <Reveal><Tag>(dịch vụ)</Tag></Reveal>
           <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-stone-900">
-              Dịch vụ <em className="not-italic text-amber-700">dành riêng</em> cho bạn
+            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-slate-900">
+              Dịch vụ <em className="not-italic text-blue-700">dành riêng</em> cho bạn
             </h2>
           </Reveal>
         </div>
         <Reveal delay={200}>
-          <p className="text-[0.9rem] text-stone-500 leading-[1.85] font-sans">
+          <p className="text-[0.9rem] text-slate-500 leading-[1.85] font-sans">
             Từ tư vấn ý tưởng đến bàn giao chìa khoá — chúng tôi đồng hành toàn diện trong mỗi dự án.
           </p>
         </Reveal>
@@ -490,13 +490,13 @@ function Services() {
       <div className="flex flex-col">
         {SERVICES.map((s, i) => (
           <Reveal key={s.num} delay={i * 80}>
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 md:gap-16 py-10 border-t border-stone-200 last:border-b items-center group">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-6 md:gap-16 py-10 border-t border-slate-200 last:border-b items-center group">
               <div>
-                <p className="font-serif text-sm italic text-stone-400 mb-3">{s.num}</p>
-                <h3 className="font-serif text-[1.4rem] font-light text-stone-900 mb-3 group-hover:text-amber-700 transition-colors duration-300">
+                <p className="font-serif text-sm italic text-slate-400 mb-3">{s.num}</p>
+                <h3 className="font-serif text-[1.4rem] font-light text-slate-900 mb-3 group-hover:text-blue-700 transition-colors duration-300">
                   {s.title}
                 </h3>
-                <p className="text-[0.87rem] text-stone-500 leading-[1.75] max-w-[440px] mb-4 font-sans">{s.desc}</p>
+                <p className="text-[0.87rem] text-slate-500 leading-[1.75] max-w-[440px] mb-4 font-sans">{s.desc}</p>
                 <BtnArrow href="#contact">Đặt dịch vụ</BtnArrow>
               </div>
               <div className="overflow-hidden">
@@ -528,20 +528,20 @@ function Testimonials() {
   const t = TESTIMONIALS[cur];
 
   return (
-    <section id="testimonials" className="bg-stone-900 px-6 md:px-16 py-24 overflow-hidden">
-      <p className="text-[0.62rem] tracking-[0.22em] uppercase text-stone-500 mb-8 font-sans">(đánh giá)</p>
+    <section id="testimonials" className="bg-slate-900 px-6 md:px-16 py-24 overflow-hidden">
+      <p className="text-[0.62rem] tracking-[0.22em] uppercase text-slate-500 mb-8 font-sans">(đánh giá)</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
         <div>
-          <p className="font-serif text-5xl italic text-stone-600 leading-none mb-6">"</p>
+          <p className="font-serif text-5xl italic text-slate-600 leading-none mb-6">"</p>
           <blockquote
             key={cur}
-            className="font-serif text-[clamp(1.2rem,2.2vw,1.8rem)] font-light italic leading-[1.55] text-stone-100 mb-8 transition-all duration-500"
+            className="font-serif text-[clamp(1.2rem,2.2vw,1.8rem)] font-light italic leading-[1.55] text-slate-100 mb-8 transition-all duration-500"
           >
             {t.text}
           </blockquote>
-          <p className="font-serif text-amber-500 text-base mb-1">{t.name}</p>
-          <p className="text-[0.65rem] tracking-[0.14em] uppercase text-stone-500 font-sans mb-8">{t.role}</p>
+          <p className="font-serif text-blue-500 text-base mb-1">{t.name}</p>
+          <p className="text-[0.65rem] tracking-[0.14em] uppercase text-slate-500 font-sans mb-8">{t.role}</p>
 
           {/* Avatars */}
           <div className="flex gap-3 mb-8">
@@ -550,7 +550,7 @@ function Testimonials() {
                 key={i}
                 onClick={() => setCur(i)}
                 className={`w-11 h-11 rounded-full overflow-hidden border-2 transition-all duration-300 ${
-                  i === cur ? "border-amber-500" : "border-transparent"
+                  i === cur ? "border-blue-500" : "border-transparent"
                 }`}
               >
                 <img src={tt.img} alt={tt.name} className="w-full h-full object-cover" />
@@ -564,7 +564,7 @@ function Testimonials() {
               <button
                 key={label}
                 onClick={fn}
-                className="w-10 h-10 border border-stone-700 text-stone-400 hover:border-amber-500 hover:text-amber-500 transition-all duration-300 flex items-center justify-center text-lg"
+                className="w-10 h-10 border border-slate-700 text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all duration-300 flex items-center justify-center text-lg"
               >
                 {label}
               </button>
@@ -593,8 +593,8 @@ function Philosophy() {
       <div className="text-center max-w-xl mx-auto mb-16">
         <Reveal><Tag>(triết lý)</Tag></Reveal>
         <Reveal delay={100}>
-          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-stone-900">
-            Triết lý thiết kế <em className="not-italic text-amber-700">của chúng tôi</em>
+          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-slate-900">
+            Triết lý thiết kế <em className="not-italic text-blue-700">của chúng tôi</em>
           </h2>
         </Reveal>
       </div>
@@ -609,12 +609,12 @@ function Philosophy() {
                 className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
               />
               {/* Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-900/85 via-transparent to-transparent group-hover:from-stone-900/90 group-hover:via-stone-900/20 transition-all duration-400" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-transparent to-transparent group-hover:from-slate-900/90 group-hover:via-slate-900/20 transition-all duration-400" />
               {/* Content */}
               <div className="absolute bottom-0 left-0 right-0 p-8">
-                <p className="text-[0.6rem] tracking-[0.2em] uppercase text-amber-400 mb-2 font-sans">{p.kicker}</p>
-                <h3 className="font-serif text-[1.35rem] font-light text-stone-100 mb-2">{p.title}</h3>
-                <p className="text-[0.78rem] text-stone-300/70 leading-[1.65] font-sans max-h-0 group-hover:max-h-24 overflow-hidden transition-all duration-400">
+                <p className="text-[0.6rem] tracking-[0.2em] uppercase text-blue-400 mb-2 font-sans">{p.kicker}</p>
+                <h3 className="font-serif text-[1.35rem] font-light text-slate-100 mb-2">{p.title}</h3>
+                <p className="text-[0.78rem] text-slate-300/70 leading-[1.65] font-sans max-h-0 group-hover:max-h-24 overflow-hidden transition-all duration-400">
                   {p.desc}
                 </p>
               </div>
@@ -629,12 +629,12 @@ function Philosophy() {
 /* ── Team ── */
 function Team() {
   return (
-    <section id="team" className="px-6 md:px-16 py-24 bg-[#F8F5F0]">
+    <section id="team" className="px-6 md:px-16 py-24 bg-[#FAFAFA]">
       <div className="mb-14">
         <Reveal><Tag>(đội ngũ)</Tag></Reveal>
         <Reveal delay={100}>
-          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-stone-900">
-            Những người <em className="not-italic text-amber-700">tạo nên</em> DQH
+          <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-slate-900">
+            Những người <em className="not-italic text-blue-700">tạo nên</em> DQH
           </h2>
         </Reveal>
       </div>
@@ -650,9 +650,9 @@ function Team() {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
-              <h3 className="font-serif text-[1.1rem] text-stone-900 mb-1">{m.name}</h3>
-              <p className="text-[0.62rem] tracking-[0.14em] uppercase text-amber-700 mb-2 font-sans">{m.role}</p>
-              <p className="text-[0.78rem] text-stone-500 leading-[1.65] font-sans">{m.bio}</p>
+              <h3 className="font-serif text-[1.1rem] text-slate-900 mb-1">{m.name}</h3>
+              <p className="text-[0.62rem] tracking-[0.14em] uppercase text-blue-700 mb-2 font-sans">{m.role}</p>
+              <p className="text-[0.78rem] text-slate-500 leading-[1.65] font-sans">{m.bio}</p>
             </div>
           </Reveal>
         ))}
@@ -672,21 +672,21 @@ function FAQ() {
         <div>
           <Reveal><Tag>(faq)</Tag></Reveal>
           <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-stone-900 mb-10">
-              Câu hỏi <em className="not-italic text-amber-700">thường gặp</em>
+            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-slate-900 mb-10">
+              Câu hỏi <em className="not-italic text-blue-700">thường gặp</em>
             </h2>
           </Reveal>
 
           <div className="flex flex-col">
             {FAQS.map((f, i) => (
               <Reveal key={i} delay={i * 60}>
-                <div className="border-t border-stone-200 last:border-b overflow-hidden">
+                <div className="border-t border-slate-200 last:border-b overflow-hidden">
                   <button
                     onClick={() => toggle(i)}
-                    className="w-full text-left flex justify-between items-center py-5 font-serif text-[1.02rem] font-light text-stone-900 hover:text-amber-700 transition-colors duration-300"
+                    className="w-full text-left flex justify-between items-center py-5 font-serif text-[1.02rem] font-light text-slate-900 hover:text-blue-700 transition-colors duration-300"
                   >
                     {f.q}
-                    <span className={`text-stone-400 text-xl ml-5 flex-shrink-0 transition-transform duration-300 font-sans ${open === i ? "rotate-45 text-amber-700" : ""}`}>
+                    <span className={`text-slate-400 text-xl ml-5 flex-shrink-0 transition-transform duration-300 font-sans ${open === i ? "rotate-45 text-blue-700" : ""}`}>
                       +
                     </span>
                   </button>
@@ -694,7 +694,7 @@ function FAQ() {
                     className="overflow-hidden transition-all duration-400 ease-out"
                     style={{ maxHeight: open === i ? "200px" : "0px" }}
                   >
-                    <p className="text-[0.88rem] text-stone-500 leading-[1.8] pb-5 font-sans">{f.a}</p>
+                    <p className="text-[0.88rem] text-slate-500 leading-[1.8] pb-5 font-sans">{f.a}</p>
                   </div>
                 </div>
               </Reveal>
@@ -726,20 +726,20 @@ function Contact() {
     alert("✅ Cảm ơn bạn đã liên hệ!\nDQH sẽ phản hồi trong vòng 2 giờ làm việc.");
   };
 
-  const inputCls = "w-full bg-transparent border-0 border-b border-stone-200 pb-2 pt-1 text-[0.92rem] text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors duration-300 font-sans";
-  const labelCls = "block text-[0.6rem] tracking-[0.16em] uppercase text-stone-400 mb-2 font-sans";
+  const inputCls = "w-full bg-transparent border-0 border-b border-slate-200 pb-2 pt-1 text-[0.92rem] text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 transition-colors duration-300 font-sans";
+  const labelCls = "block text-[0.6rem] tracking-[0.16em] uppercase text-slate-400 mb-2 font-sans";
 
   return (
-    <section id="contact" className="px-6 md:px-16 py-24 bg-[#F8F5F0]">
+    <section id="contact" className="px-6 md:px-16 py-24 bg-[#FAFAFA]">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-start">
         {/* Left — info */}
         <div>
           <Reveal><Tag>(liên hệ)</Tag></Reveal>
           <Reveal delay={100}>
-            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-stone-900 mb-12">
+            <h2 className="font-serif text-[clamp(2rem,3.5vw,3rem)] font-light text-slate-900 mb-12">
               Kết nối
               <br />
-              <em className="not-italic text-amber-700">với chúng tôi</em>
+              <em className="not-italic text-blue-700">với chúng tôi</em>
             </h2>
           </Reveal>
 
@@ -754,9 +754,9 @@ function Contact() {
                 <div>
                   <p className={labelCls}>{c.label}</p>
                   {c.href ? (
-                    <a href={c.href} className="font-serif text-[1.02rem] text-stone-900 hover:text-amber-700 transition-colors duration-300">{c.val}</a>
+                    <a href={c.href} className="font-serif text-[1.02rem] text-slate-900 hover:text-blue-700 transition-colors duration-300">{c.val}</a>
                   ) : (
-                    <p className="font-serif text-[1.02rem] text-stone-900">{c.val}</p>
+                    <p className="font-serif text-[1.02rem] text-slate-900">{c.val}</p>
                   )}
                 </div>
               </Reveal>
@@ -806,7 +806,7 @@ function Contact() {
             </div>
             <button
               type="submit"
-              className="mt-2 self-start text-xs tracking-[0.12em] uppercase text-stone-50 bg-stone-900 px-10 py-3.5 hover:bg-amber-700 transition-colors duration-300 font-sans"
+              className="mt-2 self-start text-xs tracking-[0.12em] uppercase text-slate-50 bg-slate-900 px-10 py-3.5 hover:bg-blue-700 transition-colors duration-300 font-sans"
             >
               Gửi yêu cầu tư vấn
             </button>
@@ -820,14 +820,14 @@ function Contact() {
 /* ── Footer ── */
 function Footer() {
   return (
-    <footer className="bg-stone-900 px-6 md:px-16 py-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-stone-800">
-      <p className="font-serif text-lg font-light tracking-wide text-stone-200">DQH</p>
-      <p className="text-[0.62rem] tracking-[0.1em] uppercase text-stone-500 font-sans">
+    <footer className="bg-slate-900 px-6 md:px-16 py-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-800">
+      <p className="font-serif text-lg font-light tracking-wide text-slate-200">DQH</p>
+      <p className="text-[0.62rem] tracking-[0.1em] uppercase text-slate-500 font-sans">
         © 2025 DQH Architecture & Interior. All rights reserved.
       </p>
       <div className="flex gap-7">
         {["Instagram", "Facebook", "Behance"].map((l) => (
-          <a key={l} href="#" className="text-[0.62rem] tracking-[0.12em] uppercase text-stone-500 hover:text-amber-500 transition-colors duration-300 font-sans">
+          <a key={l} href="#" className="text-[0.62rem] tracking-[0.12em] uppercase text-slate-500 hover:text-blue-500 transition-colors duration-300 font-sans">
             {l}
           </a>
         ))}
@@ -903,27 +903,27 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#F8F5F0] text-stone-900 font-sans">Đang tải...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] text-slate-900 font-sans">Đang tải...</div>;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F5F0] text-stone-900 font-sans px-4 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFA] text-slate-900 font-sans px-4 text-center">
         <h1 className="font-serif text-3xl mb-4">Oops!</h1>
-        <p className="text-stone-500">{error}</p>
+        <p className="text-slate-500">{error}</p>
       </div>
     );
   }
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F5F0] text-stone-900 font-sans px-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-stone-100 text-center">
-          <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAFA] text-slate-900 font-sans px-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           </div>
-          <h2 className="font-serif text-2xl mb-2 text-stone-900">{portfolio?.title}</h2>
-          <p className="text-sm text-stone-500 mb-8">Vui lòng nhập Mã PIN để xem Hồ sơ năng lực này.</p>
+          <h2 className="font-serif text-2xl mb-2 text-slate-900">{portfolio?.title}</h2>
+          <p className="text-sm text-slate-500 mb-8">Vui lòng nhập Mã PIN để xem Hồ sơ năng lực này.</p>
           
           <form onSubmit={handlePinSubmit} className="flex flex-col gap-4">
             <input 
@@ -931,10 +931,10 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               value={pin}
               onChange={e => setPin(e.target.value)}
               placeholder="Nhập mã PIN"
-              className="w-full text-center tracking-widest bg-stone-50 border border-stone-200 px-4 py-3 rounded-lg focus:outline-none focus:border-stone-900 transition-colors font-mono"
+              className="w-full text-center tracking-widest bg-slate-50 border border-slate-200 px-4 py-3 rounded-lg focus:outline-none focus:border-slate-900 transition-colors font-mono"
               autoFocus
             />
-            <button type="submit" className="w-full text-xs tracking-[0.12em] uppercase text-stone-50 bg-stone-900 px-8 py-3.5 hover:bg-amber-700 transition-colors duration-300 rounded-lg">
+            <button type="submit" className="w-full text-xs tracking-[0.12em] uppercase text-slate-50 bg-slate-900 px-8 py-3.5 hover:bg-blue-700 transition-colors duration-300 rounded-lg">
               Xác nhận
             </button>
           </form>
@@ -944,7 +944,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   }
 
   return (
-    <div className="font-sans antialiased bg-[#F8F5F0] text-stone-900">
+    <div className="font-sans antialiased bg-[#FAFAFA] text-slate-900">
       <Navbar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <Hero />
       <Marquee />
@@ -960,15 +960,15 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       {/* Floating admin control bar in Preview mode */}
       {isPreview && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-stone-900/90 backdrop-blur-md border border-stone-850 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-stone-100 text-sm font-sans animate-fade-in transition-all">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-slate-900/90 backdrop-blur-md border border-slate-850 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-slate-100 text-sm font-sans animate-fade-in transition-all">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-medium text-stone-300 tracking-wide text-xs uppercase">Xem trước Portfolio</span>
+            <span className="font-medium text-slate-300 tracking-wide text-xs uppercase">Xem trước Portfolio</span>
           </div>
-          <div className="h-4 w-px bg-stone-700" />
+          <div className="h-4 w-px bg-slate-700" />
           <button 
             onClick={() => setShowShareManager(true)}
-            className="bg-amber-600 hover:bg-amber-700 active:scale-95 text-stone-50 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-slate-50 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
           >
             Tạo & Chia sẻ link
           </button>
@@ -977,11 +977,11 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       {/* Sharing manager panel modal */}
       {isPreview && showShareManager && (
-        <div className="fixed inset-0 bg-stone-950/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 bg-slate-950/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative animate-scale-up">
             <button 
               onClick={() => setShowShareManager(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 text-2xl font-bold bg-stone-100 hover:bg-stone-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 text-2xl font-bold bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
             >
               &times;
             </button>
