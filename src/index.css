@@ -11,14 +11,16 @@
   --color-text-main: var(--color-text-primary);
   --color-border-main: var(--color-border);
   --font-serif: "Cormorant Garamond", "Georgia", serif;
-  --font-sans: "Inter", "system-ui", sans-serif;
+  --font-sans: "DM Sans", "Inter", "system-ui", sans-serif;
+  --font-mono: "Space Mono", monospace;
   
   --color-ql-cream: #F5F2EC;
-  --color-ql-warm-white: #FAF8F4;
-  --color-ql-charcoal: #1C1C1A;
-  --color-ql-stone: #8A8780;
+  --color-ql-warm-white: #F8F5F0;
+  --color-ql-charcoal: #1A1814;
+  --color-ql-text-dark: #2C2920;
+  --color-ql-stone: #8A8070;
   --color-ql-stone-light: #C4C0B8;
-  --color-ql-gold: #B89B6A;
+  --color-ql-gold: #B8913A;
   --color-ql-gold-light: #D4BC95;
 }
 

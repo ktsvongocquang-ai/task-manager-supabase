@@ -7,6 +7,7 @@ import { Plus, Link as LinkIcon, Trash2, Copy, Shield, ShieldOff, Clock } from '
 export function PortfolioManager() {
     const { profile } = useAuthStore();
     const [shares, setShares] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     
@@ -15,17 +16,28 @@ export function PortfolioManager() {
     const [passcode, setPasscode] = useState('');
     const [usePasscode, setUsePasscode] = useState(true);
     const [expireDays, setExpireDays] = useState(7);
+    const [selectedProjectId, setSelectedProjectId] = useState('');
     const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         fetchShares();
+        fetchProjects();
     }, [profile]);
+
+    const fetchProjects = async () => {
+        try {
+            const { data } = await supabase.from('construction_projects').select('id, name').order('created_at', { ascending: false });
+            if (data) setProjects(data);
+        } catch (err) {
+            console.error('Lỗi tải danh sách dự án:', err);
+        }
+    };
 
     const fetchShares = async () => {
         if (!profile) return;
         setLoading(true);
         try {
-            let query = supabase.from('portfolio_shares').select('*').order('created_at', { ascending: false });
+            let query = supabase.from('portfolio_shares').select('*, construction_projects:project_id(name)').order('created_at', { ascending: false });
             if (profile.role !== 'Admin') {
                 query = query.eq('created_by', profile.id);
             }
@@ -55,6 +67,7 @@ export function PortfolioManager() {
                 token,
                 passcode: usePasscode && passcode.trim() !== '' ? passcode : null,
                 expires_at: expiresAt.toISOString(),
+                project_id: selectedProjectId || null,
                 created_by: profile?.id
             });
 
@@ -63,6 +76,7 @@ export function PortfolioManager() {
             setShowModal(false);
             setTitle('');
             setPasscode('');
+            setSelectedProjectId('');
             fetchShares();
         } catch (err: any) {
             alert('Lỗi tạo link: ' + err.message);
@@ -116,13 +130,20 @@ export function PortfolioManager() {
                         <div key={share.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                             <div className="p-5 flex-1">
                                 <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-bold text-gray-900 line-clamp-1" title={share.title}>{share.title}</h3>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-gray-900 line-clamp-1 mb-1" title={share.title}>{share.title}</h3>
+                                        {share.construction_projects?.name && (
+                                            <div className="text-[10px] text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded font-semibold inline-block">
+                                                Dự án: {share.construction_projects.name}
+                                            </div>
+                                        )}
+                                    </div>
                                     {share.passcode ? (
-                                        <div className="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-medium flex items-center gap-1" title="Có bảo mật mã PIN">
+                                        <div className="text-green-600 bg-green-50 px-2 py-1 rounded text-xs font-medium flex items-center gap-1 shrink-0 ml-2" title="Có bảo mật mã PIN">
                                             <Shield size={14} /> PIN
                                         </div>
                                     ) : (
-                                        <div className="text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs font-medium flex items-center gap-1" title="Không dùng mã PIN">
+                                        <div className="text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs font-medium flex items-center gap-1 shrink-0 ml-2" title="Không dùng mã PIN">
                                             <ShieldOff size={14} /> Public
                                         </div>
                                     )}
@@ -242,6 +263,20 @@ export function PortfolioManager() {
                                     <option value={7}>7 ngày</option>
                                     <option value={14}>14 ngày</option>
                                     <option value={30}>30 ngày</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Liên kết dự án thực tế (Không bắt buộc)</label>
+                                <select 
+                                    value={selectedProjectId}
+                                    onChange={e => setSelectedProjectId(e.target.value)}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white"
+                                >
+                                    <option value="">-- Không liên kết (Chế độ mô phỏng) --</option>
+                                    {projects.map(proj => (
+                                        <option key={proj.id} value={proj.id}>{proj.name}</option>
+                                    ))}
                                 </select>
                             </div>
 
