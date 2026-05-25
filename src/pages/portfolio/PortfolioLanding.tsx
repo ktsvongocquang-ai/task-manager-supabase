@@ -21,6 +21,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { PortfolioManager } from './PortfolioManager';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA
@@ -839,18 +840,27 @@ function Footer() {
 // ROOT COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function PortfolioLanding() {
+export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean }) {
   const { token } = useParams<{ token: string }>();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isPreview);
   const [portfolio, setPortfolio] = useState<any>(null);
   const [error, setError] = useState('');
   const [pin, setPin] = useState('');
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(isPreview);
+  const [showShareManager, setShowShareManager] = useState(false);
 
   useEffect(() => {
-    if (token) fetchPortfolio();
-  }, [token]);
+    if (isPreview) {
+      setLoading(false);
+      setAuthenticated(true);
+    } else if (token) {
+      fetchPortfolio();
+    } else {
+      setError('Đường dẫn chia sẻ không hợp lệ.');
+      setLoading(false);
+    }
+  }, [token, isPreview]);
 
   const fetchPortfolio = async () => {
     try {
@@ -947,6 +957,40 @@ export function PortfolioLanding() {
       <FAQ />
       <Contact />
       <Footer />
+
+      {/* Floating admin control bar in Preview mode */}
+      {isPreview && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-stone-900/90 backdrop-blur-md border border-stone-850 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-stone-100 text-sm font-sans animate-fade-in transition-all">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-medium text-stone-300 tracking-wide text-xs uppercase">Xem trước Portfolio</span>
+          </div>
+          <div className="h-4 w-px bg-stone-700" />
+          <button 
+            onClick={() => setShowShareManager(true)}
+            className="bg-amber-600 hover:bg-amber-700 active:scale-95 text-stone-50 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
+          >
+            Tạo & Chia sẻ link
+          </button>
+        </div>
+      )}
+
+      {/* Sharing manager panel modal */}
+      {isPreview && showShareManager && (
+        <div className="fixed inset-0 bg-stone-950/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative animate-scale-up">
+            <button 
+              onClick={() => setShowShareManager(false)}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 text-2xl font-bold bg-stone-100 hover:bg-stone-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
+            >
+              &times;
+            </button>
+            <div className="p-2">
+              <PortfolioManager />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

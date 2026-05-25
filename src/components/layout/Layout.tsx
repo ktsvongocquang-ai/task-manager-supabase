@@ -56,6 +56,7 @@ const viewTitles: Record<string, string> = {
     '/marketing': 'Marketing',
     '/bao-gia': 'Báo giá Nội thất',
     '/training': 'Đào tạo & Thư viện',
+    '/portfolio': 'Portfolio',
 }
 
 export const Layout = () => {
@@ -299,8 +300,8 @@ export const Layout = () => {
         }
 
         // Tab Portfolio
-        if (canAccessRoute(role, '/portfolio-manager')) {
-            items.push({ name: 'Portfolio', path: '/portfolio-manager', icon: LinkIcon, matchPrefix: ['/portfolio-manager'] });
+        if (canAccessRoute(role, '/portfolio')) {
+            items.push({ name: 'Portfolio', path: '/portfolio', icon: LinkIcon, matchPrefix: ['/portfolio'] });
         }
 
         // Tab Thi Công

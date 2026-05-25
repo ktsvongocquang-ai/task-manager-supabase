@@ -17,7 +17,7 @@ const ROUTE_ACCESS: Record<string, AppRole[]> = {
     '/profile':      ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Sale', 'Marketing', 'Khách hàng', 'Thiết kế'],
     '/mytasks':      ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/training':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing', 'Quản lý thi công', 'Giám Sát'],
-    '/portfolio-manager': ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
+    '/portfolio': ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
 }
 
 export const getDefaultRoute = (role?: string | null): string => {

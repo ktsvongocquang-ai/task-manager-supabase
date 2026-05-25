@@ -59,7 +59,7 @@ function App() {
           <Route path="mytasks" element={<MyTasks />} />
           <Route path="bao-gia" element={<InteriorQuote />} />
           <Route path="training" element={<TrainingHub />} />
-          <Route path="portfolio-manager" element={<PortfolioManager />} />
+          <Route path="portfolio" element={<PortfolioLanding isPreview={true} />} />
         </Route>
 
 
