@@ -436,7 +436,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <section 
         className="min-h-screen pt-28 pb-16 flex flex-col justify-center px-6 md:px-16 relative overflow-hidden"
         style={{
-          background: 'linear-gradient(160deg, #2A2820 0%, #1C1C1A 60%, #0E0E0C 100%)',
+          backgroundImage: 'linear-gradient(to right, rgba(26, 24, 20, 0.95) 0%, rgba(26, 24, 20, 0.75) 45%, rgba(14, 14, 12, 0.4) 100%), url("https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
         {/* Decorative vertical line */}
