@@ -211,6 +211,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [showLarkModal, setShowLarkModal] = useState(false);
   const [showExcelModal, setShowExcelModal] = useState(false);
   const [excelActiveTab, setExcelActiveTab] = useState<'MEP' | 'WALL' | 'WOOD'>('MEP');
+  const [expandedStaff, setExpandedStaff] = useState<Record<number, boolean>>({});
+  const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
+
 
   // Real Project Data from Supabase
   const [realProject, setRealProject] = useState<any>(null);
@@ -517,29 +520,31 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       </section>
 
       {/* ── SECTION 0: CÔNG TRÌNH NỔI BẬT ── */}
-      <section id="section-0" className="px-6 md:px-16 py-24 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+      <section id="section-0" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-16">
+          <div className="mb-24">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(năng lực thiết kế)</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920]">
-              Thiết kế có gu &amp; <em className="not-italic text-[#B89B6A]">Công trình thành công</em>
+            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+              Thiết kế có gu &amp; <br />
+              <em className="italic text-[#B8913A] font-light">Công trình thành công</em>
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {PROJECTS.map((proj) => (
-              <div key={proj.id} className="group border border-[#2C2920]/10 bg-white rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
-                <div className="overflow-hidden aspect-[16/10] relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
+            {PROJECTS.map((proj, idx) => (
+              <div key={proj.id} className={`group transition-all duration-500 ${idx % 2 === 1 ? 'md:mt-24' : ''}`}>
+                <div className="overflow-hidden aspect-[16/10] relative mb-8 rounded-sm bg-[#F5F2EC]">
                   <img 
                     src={proj.img} 
                     alt={proj.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 filter grayscale group-hover:grayscale-0" 
                   />
-                  <div className="absolute top-4 left-4 bg-[#F8F5F0]/90 backdrop-blur-md px-3 py-1 rounded text-xs font-serif italic text-[#B8913A]">{proj.num}</div>
+                  <div className="absolute top-6 left-6 bg-[#1A1814]/90 text-[#F5F2EC] px-3.5 py-1 text-xs font-serif italic tracking-wide">{proj.num}</div>
                 </div>
-                <div className="p-6">
-                  <span className="text-[10px] tracking-[0.15em] uppercase text-[#8A8070] block mb-2">{proj.cat}</span>
-                  <h3 className="font-serif text-xl font-light text-[#2C2920] mb-3 group-hover:text-[#B8913A] transition-colors">{proj.title}</h3>
-                  <p className="text-xs text-[#8A8070] leading-relaxed">{proj.desc}</p>
+                <div className="space-y-3">
+                  <span className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] block font-sans font-medium">{proj.cat}</span>
+                  <h3 className="font-serif text-2xl font-light text-[#2C2920] group-hover:text-[#B8913A] transition-colors">{proj.title}</h3>
+                  <div className="h-px w-10 bg-[#B8913A]/30 group-hover:w-20 transition-all duration-500" />
+                  <p className="text-xs text-[#8A8070] leading-relaxed max-w-md font-sans">{proj.desc}</p>
                 </div>
               </div>
             ))}
@@ -548,36 +553,36 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       </section>
 
       {/* ── SECTION 1: ĐỘI NGŨ MẠNH & SƠ ĐỒ BỘ MÁY D&B ── */}
-      <section id="section-1" className="px-6 md:px-16 py-24 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+      <section id="section-1" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start mb-16">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start mb-24">
+            <div className="lg:col-span-4">
               <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(bộ máy tổ chức)</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920] mb-6">
+              <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920] mb-6 leading-[1.1]">
                 Đội ngũ mạnh,<br />
-                <em className="not-italic text-[#B8913A]">Design &amp; Build</em> trọn vẹn
+                <em className="italic text-[#B8913A] font-light">Design &amp; Build</em> trọn vẹn
               </h2>
-              <p className="text-sm text-[#8A8070] leading-relaxed">
+              <p className="text-xs text-[#8A8070] leading-relaxed max-w-sm">
                 Tại DQH, kiến trúc sư và kỹ sư giám sát công trình cùng làm việc dưới một mái nhà. Chúng tôi loại bỏ hoàn toàn việc kiến trúc sư đổ lỗi cho thợ thi công làm sai, hoặc thợ thi công chê bản vẽ không thực tế. Mọi thành viên đều chung mục tiêu: sản phẩm cuối cùng hoàn hảo nhất.
               </p>
             </div>
             
-            {/* Sơ đồ bộ máy D&B */}
-            <div className="lg:col-span-2 bg-white p-8 rounded-xl border border-[#2C2920]/10 shadow-sm space-y-6">
-              <h3 className="text-xs tracking-[0.15em] uppercase text-[#2C2920] font-bold pb-4 border-b border-[#2C2920]/10 flex items-center gap-2">
-                <Building size={16} className="text-[#B8913A]" /> SƠ ĐỒ PHỐI HỢP DESIGN &amp; BUILD
+            {/* Sơ đồ bộ máy D&B phẳng tối giản */}
+            <div className="lg:col-span-8 space-y-8">
+              <h3 className="text-[10px] tracking-[0.2em] uppercase text-[#2C2920] font-bold flex items-center gap-2">
+                <Building size={14} className="text-[#B8913A]" /> SƠ ĐỒ PHỐI HỢP DESIGN &amp; BUILD
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                 {[
                   { title: "Khảo Sát & Concept", team: "Phòng Thiết Kế", desc: "KTS khảo sát hiện trạng, đo cốt, lập moodboard ý tưởng phù hợp lối sống chủ nhà." },
                   { title: "Bản Vẽ Kỹ Thuật & BOQ", team: "Phòng Kỹ Thuật & Dự Toán", desc: "Kỹ sư tính kết cấu chịu lực, bóc tách cấu tạo gỗ, lập bảng dự toán BOQ chi tiết." },
                   { title: "Sản Xuất & Thi Công", team: "Xưởng Gỗ & Đội Giám Sát", desc: "Nội thất sản xuất tại xưởng gỗ DQH, kỹ sư cơ điện lắp đặt thiết bị và thi công hoàn thiện." }
                 ].map((step, idx) => (
-                  <div key={idx} className="bg-[#F8F5F0] p-4 rounded-lg border border-[#2C2920]/5 space-y-2 relative">
-                    <div className="absolute top-3 right-3 text-[10px] font-bold text-[#C4C0B8]">0{idx + 1}</div>
-                    <h4 className="text-xs font-bold text-[#2C2920]">{step.title}</h4>
-                    <span className="inline-block text-[9px] tracking-[0.1em] uppercase text-[#B8913A] font-semibold">{step.team}</span>
-                    <p className="text-[11px] text-[#8A8070] leading-relaxed">{step.desc}</p>
+                  <div key={idx} className="space-y-3 relative border-t border-[#2C2920]/10 pt-4">
+                    <div className="text-[10px] font-mono tracking-widest text-[#B8913A] font-bold">0{idx + 1}</div>
+                    <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wider">{step.title}</h4>
+                    <span className="block text-[9px] tracking-[0.1em] uppercase text-[#8A8070] font-semibold">{step.team}</span>
+                    <p className="text-[11px] text-[#8A8070] leading-relaxed font-sans">{step.desc}</p>
                   </div>
                 ))}
               </div>
@@ -585,71 +590,89 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           </div>
 
           {/* Portfolio nhân sự nòng cốt */}
-          <div className="border-t border-[#2C2920]/10 pt-16">
-            <h3 className="font-serif text-xl font-light text-[#2C2920] mb-8">Hồ sơ chuyên môn nhân sự chủ chốt</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {STAFF_PORTFOLIO.map((staff, idx) => (
-                <div key={idx} className="bg-white rounded-xl border border-[#2C2920]/10 overflow-hidden p-5 space-y-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="aspect-square rounded-lg overflow-hidden bg-[#F8F5F0]">
-                    <img src={staff.img} alt={staff.name} className="w-full h-full object-cover" />
+          <div className="border-t border-[#2C2920]/10 pt-20">
+            <div className="mb-12">
+              <p className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] mb-2 font-mono">CORE TEAM</p>
+              <h3 className="font-serif text-3xl font-light text-[#2C2920]">Hồ sơ chuyên môn nhân sự chủ chốt</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+              {STAFF_PORTFOLIO.map((staff, idx) => {
+                const isExpanded = !!expandedStaff[idx];
+                return (
+                  <div key={idx} className="space-y-4">
+                    <div className="aspect-[3/4] overflow-hidden bg-[#F8F5F0] relative group">
+                      <img 
+                        src={staff.img} 
+                        alt={staff.name} 
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-102" 
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-semibold block">{staff.role}</span>
+                      <h4 className="font-serif text-xl font-light text-[#2C2920]">{staff.name}</h4>
+                    </div>
+                    
+                    <button 
+                      onClick={() => setExpandedStaff(prev => ({ ...prev, [idx]: !isExpanded }))}
+                      className="text-[10px] tracking-[0.12em] uppercase text-[#8A8070] hover:text-[#2C2920] transition-colors font-semibold flex items-center gap-1 cursor-pointer"
+                    >
+                      {isExpanded ? '— Ẩn profile' : '+ Xem profile'}
+                    </button>
+                    
+                    {isExpanded && (
+                      <div className="space-y-2.5 pt-3 border-t border-[#2C2920]/5 animate-fade-in">
+                        <span className="text-[9px] font-mono uppercase text-[#8A8070] block font-bold">Kinh nghiệm: {staff.experience}</span>
+                        <p className="text-xs text-[#8A8070] leading-relaxed font-sans font-normal">{staff.bio}</p>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <h4 className="font-serif text-lg font-bold text-[#2C2920]">{staff.name}</h4>
-                    <p className="text-[10px] tracking-[0.12em] uppercase text-[#B8913A] font-semibold mb-1">{staff.role}</p>
-                    <span className="text-[10px] text-[#8A8070] font-medium block">{staff.experience}</span>
-                  </div>
-                  <p className="text-xs text-[#8A8070] leading-relaxed border-t border-[#2C2920]/5 pt-3">
-                    {staff.bio}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
       {/* ── SECTION 2: QUY TRÌNH PHỐI HỢP & CHI TIẾT HIỆN TRƯỜNG ── */}
-      <section id="section-2" className="px-6 md:px-16 py-24 bg-[#F8F5F0] border-b border-[#2C2920]/5">
-        <div className="max-w-6xl mx-auto">
+      <section id="section-2" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+        <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(vận hành chi tiết)</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920]">
-              Quy trình phối hợp <em className="not-italic text-[#B8913A]">liên phòng ban</em>
+            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+              Quy trình phối hợp <br />
+              <em className="italic text-[#B8913A] font-light">liên phòng ban</em>
             </h2>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+ 
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
-            {/* Interactive Vertical 8-Step Stepper */}
-            <div className="lg:col-span-2 space-y-3">
+            {/* Interactive Vertical 8-Step Stepper (Minimalist list style with hover effect) */}
+            <div className="lg:col-span-7 divide-y divide-[#2C2920]/10">
               {MASTER_STEPS.map((step, idx) => {
                 const isExpanded = expandedStep === idx;
                 return (
                   <div 
                     key={idx} 
-                    className={`bg-white border rounded-xl overflow-hidden transition-all duration-300 ${
-                      isExpanded ? 'border-[#B8913A] shadow-md' : 'border-[#2C2920]/10 hover:border-[#2C2920]/30 shadow-sm'
-                    }`}
+                    className="py-6 first:pt-0 last:pb-0 transition-all duration-300"
                   >
                     <button 
                       onClick={() => setExpandedStep(isExpanded ? null : idx)}
-                      className="w-full flex justify-between items-center p-5 text-left focus:outline-none cursor-pointer"
+                      className="w-full flex justify-between items-center text-left focus:outline-none cursor-pointer group"
                     >
-                      <div className="flex items-center gap-4">
-                        <span className="font-serif text-xl text-[#B8913A] italic font-light">{step.step}</span>
+                      <div className="flex items-center gap-6">
+                        <span className="font-serif text-2xl text-[#B8913A] italic font-light group-hover:translate-x-1 transition-transform">{step.step}</span>
                         <div>
-                          <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wider">{step.title}</h4>
+                          <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-widest group-hover:text-[#B8913A] transition-colors">{step.title}</h4>
                           <span className="text-[10px] text-[#8A8070] font-mono">{step.duration}</span>
                         </div>
                       </div>
-                      <ChevronDown 
-                        size={16} 
-                        className={`text-[#8A8070] transition-transform duration-300 ${isExpanded ? 'rotate-180 text-[#B8913A]' : ''}`} 
-                      />
+                      <span className="text-lg text-[#B8913A] font-light font-mono transition-transform duration-300">
+                        {isExpanded ? '—' : '+'}
+                      </span>
                     </button>
                     
                     {isExpanded && (
-                      <div className="px-5 pb-5 pt-1 border-t border-[#2C2920]/5 bg-[#F5F2EC]/30 space-y-3 animate-fade-in">
+                      <div className="mt-5 pl-12 space-y-4 animate-fade-in">
                         <div className="grid grid-cols-2 gap-4 text-[10px] font-mono uppercase text-[#8A8070]">
                           <div>
                             <span className="block font-bold">Người thực hiện:</span>
@@ -660,7 +683,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                             <span className="text-[#2C2920]">{step.duration}</span>
                           </div>
                         </div>
-                        <p className="text-xs text-[#2C2920] leading-relaxed border-t border-[#2C2920]/5 pt-3">
+                        <p className="text-xs text-[#8A8070] leading-relaxed border-t border-[#2C2920]/5 pt-4 max-w-xl font-sans">
                           {step.details}
                         </p>
                       </div>
@@ -669,22 +692,33 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 );
               })}
             </div>
-
-            {/* Chi tiết hiện trường & Test vật liệu ánh sáng */}
-            <div className="lg:col-span-1 bg-[#F5F2EC] p-6 rounded-xl border border-[#2C2920]/10 space-y-6 h-fit shadow-sm">
-              <h3 className="font-serif text-lg font-light text-[#2C2920] border-b border-[#2C2920]/10 pb-3">Chi tiết điểm chạm hiện trường</h3>
-              <div className="space-y-4 text-xs text-[#8A8070] leading-relaxed">
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-[#2C2920]">1. Quy trình test ánh sáng &amp; vật liệu:</h4>
-                  <p>Mẫu vật liệu thật được đặt tại công trình để test màu sắc dưới ánh sáng mặt trời góc 12h và 17h, đảm bảo không bị đổi màu sai lệch.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-[#2C2920]">2. Mockup ánh sáng:</h4>
-                  <p>Lắp đặt tạm hệ trần thạch cao nhỏ tại công trình, test vị trí giấu LED và khoảng hắt sáng để xác định khoảng cách tối ưu (chỉ số shadow line 10-15mm).</p>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-[#2C2920]">3. Nghiệm thu tại xưởng gỗ:</h4>
-                  <p>Khách hàng được mời tới xưởng gỗ DQH xem thô sản phẩm nội thất trước khi sơn phủ bề mặt mờ, kiểm tra độ sắc sảo của các đường ghép mộng gỗ.</p>
+ 
+            {/* Asymmetric Photo & Detailed field anchors */}
+            <div className="lg:col-span-5 space-y-8">
+              <div className="aspect-[4/5] rounded-sm overflow-hidden bg-[#F5F2EC] shadow-sm relative group">
+                <img 
+                  src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80" 
+                  alt="DQH Site Supervision" 
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 filter grayscale"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A1814]/40 to-transparent pointer-events-none" />
+              </div>
+              
+              <div className="space-y-6 pl-4 border-l border-[#B8913A]/30">
+                <h3 className="font-serif text-xl italic font-light text-[#2C2920]">Chi tiết điểm chạm hiện trường</h3>
+                <div className="space-y-4 text-xs text-[#8A8070] leading-relaxed">
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-[#2C2920] uppercase text-[10px] tracking-wider">1. Quy trình test ánh sáng &amp; vật liệu:</h4>
+                    <p>Mẫu vật liệu thật được đặt tại công trình để test màu sắc dưới ánh sáng mặt trời góc 12h và 17h, đảm bảo không bị đổi màu sai lệch.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-[#2C2920] uppercase text-[10px] tracking-wider">2. Mockup ánh sáng:</h4>
+                    <p>Lắp đặt tạm hệ trần thạch cao nhỏ tại công trình, test vị trí giấu LED và khoảng hắt sáng để xác định khoảng cách tối ưu (chỉ số shadow line 10-15mm).</p>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-[#2C2920] uppercase text-[10px] tracking-wider">3. Nghiệm thu tại xưởng gỗ:</h4>
+                    <p>Khách hàng được mời tới xưởng gỗ DQH xem thô sản phẩm nội thất trước khi sơn phủ bề mặt mờ, kiểm tra độ sắc sảo của các đường ghép mộng gỗ.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -693,232 +727,209 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       </section>
 
       {/* ── SECTION 3: TRÌNH DUYỆT TIÊU CHUẨN KỸ THUẬT SỐ ── */}
-      <section id="section-3" className="px-6 md:px-16 py-24 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+      <section id="section-3" className="px-6 md:px-16 py-32 bg-[#1A1814] text-[#F8F5F0] border-b border-white/5">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-16 items-start">
+            <div className="lg:col-span-5 space-y-6">
               <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(kỹ thuật thi công)</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920] mb-6">
-                Tiêu chuẩn thiết kế &amp; <em className="not-italic text-[#B8913A]">Checklist 120 điểm</em>
+              <h2 className="font-serif text-4xl md:text-5xl font-light text-white leading-tight">
+                Tiêu chuẩn thiết kế &amp; <br />
+                <em className="italic text-[#B8913A] font-light">Checklist 120 điểm</em>
               </h2>
-              <p className="text-sm text-[#8A8070] leading-relaxed mb-6">
+              <p className="text-xs text-[#C4C0B8] leading-relaxed max-w-sm font-sans pt-4">
                 DQH số hóa toàn bộ tiêu chuẩn kỹ thuật thiết kế và thi công vào ứng dụng quản lý. Mọi chi tiết thiết kế và hạng mục hoàn thiện đều được nhân sự kiểm tra chéo theo checklist nghiêm ngặt dưới đây.
               </p>
-              <div className="bg-[#B8913A]/5 border border-[#B8913A]/20 p-4 rounded-lg">
+              <div className="bg-white/5 border border-white/10 p-4 rounded-sm max-w-sm">
                 <span className="text-[9px] font-mono tracking-widest text-[#B8913A] uppercase font-bold block mb-1">MẬT ĐỘ BẢO MẬT</span>
-                <p className="text-[11px] text-[#8A8070] leading-relaxed">Bộ tiêu chuẩn hiển thị dưới dạng <strong>Teaser rút gọn</strong> để bảo vệ tài sản trí tuệ DQH. Liên hệ KTS để đăng ký tài khoản chính thức xem bản Full.</p>
+                <p className="text-[11px] text-gray-400 leading-relaxed">Bộ tiêu chuẩn hiển thị dưới dạng <strong>Teaser rút gọn</strong> để bảo vệ tài sản trí tuệ DQH. Liên hệ KTS để đăng ký tài khoản chính thức xem bản Full.</p>
               </div>
-
-              {/* Lark / Excel Template buttons */}
-              <div className="mt-8 space-y-3">
-                <span className="text-[10px] tracking-[0.15em] uppercase text-[#2C2920] font-bold block">BIỂU MẪU & NGHIỆM THU NỘI BỘ</span>
-                
-                <button 
-                  onClick={() => setShowLarkModal(true)}
-                  className="w-full flex items-center justify-between p-4 bg-white border border-[#2C2920]/10 hover:border-[#B8913A] rounded-xl transition-all shadow-sm group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shrink-0 group-hover:bg-[#B8913A]/10 group-hover:text-[#B8913A] transition-colors">
-                      <FileText size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wide">Biên bản Nghiệm thu nội bộ</h4>
-                      <p className="text-[10px] text-[#8A8070]">Mẫu ký duyệt online (Lark Suite)</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-[#8A8070] group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <button 
-                  onClick={() => setShowExcelModal(true)}
-                  className="w-full flex items-center justify-between p-4 bg-white border border-[#2C2920]/10 hover:border-[#B8913A] rounded-xl transition-all shadow-sm group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 shrink-0 group-hover:bg-[#B8913A]/10 group-hover:text-[#B8913A] transition-colors">
-                      <Layers size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-[#2C2920] uppercase tracking-wide">Excel Checklist 120 điểm</h4>
-                      <p className="text-[10px] text-[#8A8070]">Bảng kiểm soát lỗi thợ thi công</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-[#8A8070] group-hover:translate-x-1 transition-transform" />
-                </button>
+ 
+              {/* Lark / Excel Template buttons (Ultra clean minimal link style) */}
+              <div className="pt-6 space-y-3 max-w-sm">
+                <span className="text-[9px] tracking-[0.2em] uppercase text-gray-400 font-bold block">TÀI LIỆU VẬN HÀNH THỰC TẾ</span>
+                <div className="flex flex-col gap-2">
+                  <button 
+                    onClick={() => setShowLarkModal(true)}
+                    className="group text-left text-xs text-[#C4C0B8] hover:text-white flex items-center gap-2 cursor-pointer pb-1.5 border-b border-white/5 hover:border-[#B8913A] transition-all"
+                  >
+                    <span>Biên bản Nghiệm thu nội bộ (Lark Suite)</span>
+                    <span className="text-[#B8913A] group-hover:translate-x-1 transition-transform">↗</span>
+                  </button>
+                  <button 
+                    onClick={() => setShowExcelModal(true)}
+                    className="group text-left text-xs text-[#C4C0B8] hover:text-white flex items-center gap-2 cursor-pointer pb-1.5 border-b border-white/5 hover:border-[#B8913A] transition-all"
+                  >
+                    <span>File Excel Checklist 120 điểm mẫu</span>
+                    <span className="text-[#B8913A] group-hover:translate-x-1 transition-transform">↗</span>
+                  </button>
+                </div>
               </div>
             </div>
             
-            {/* Interactive App Screen Mockup */}
-            <div className="lg:col-span-2 bg-[#1A1814] text-[#F8F5F0] rounded-2xl border border-white/5 shadow-xl overflow-hidden flex flex-col min-h-[460px]">
+            {/* Interactive Standard Tabs Layout (Elegant photography & clean list) */}
+            <div className="lg:col-span-7 space-y-10 flex flex-col justify-between h-full pl-0 lg:pl-10">
               
-              {/* App Screen Header */}
-              <div className="bg-[#111110] px-6 py-4 border-b border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+              <div className="aspect-[21/9] rounded-sm overflow-hidden bg-white/5 border border-white/10 relative group">
+                <img 
+                  src="https://images.unsplash.com/photo-1600585155256-990dced4db0d?w=800&q=80" 
+                  alt="Detail Craftsmanship" 
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 filter grayscale"
+                />
+                <div className="absolute top-4 right-4 bg-[#B8913A] text-[#1A1814] text-[9px] font-mono uppercase font-black px-2.5 py-0.5 rounded shadow-sm">
+                  STANDARDS
                 </div>
-                <div className="text-[10px] tracking-[0.2em] font-mono uppercase text-[#8A8070] font-bold">DQH STANDARDS ENGINE v1.2</div>
-                <div className="text-[10px] font-mono text-[#B8913A] bg-[#B8913A]/10 px-2 py-0.5 rounded">CONNECTED</div>
               </div>
-
-              {/* Tabs selector */}
-              <div className="bg-[#151514] px-4 py-2 flex gap-1 border-b border-white/5 overflow-x-auto">
-                {[
-                  { id: 'DESIGN', label: 'Tiêu chuẩn Thiết kế' },
-                  { id: 'CONSTRUCTION', label: 'Tiêu chuẩn Thi công' },
-                  { id: 'CHECKLIST', label: 'Checklist 120 điểm (Gỗ & Lát)' }
-                ].map(tab => (
-                  <button 
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all cursor-pointer whitespace-nowrap ${
-                      activeTab === tab.id 
-                        ? 'bg-[#B8913A] text-[#1A1814]' 
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* App Screen Content Panel */}
-              <div className="p-6 flex-1 bg-[#1A1814] overflow-y-auto custom-scrollbar">
-                {activeTab === 'DESIGN' && (
-                  <ul className="space-y-5">
-                    {TECHNICAL_STANDARDS.design.map((item, i) => (
-                      <li key={i} className="border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B8913A]" />
-                          <h4 className="text-xs font-bold uppercase tracking-wide text-white">{item.title}</h4>
-                        </div>
-                        <p className="text-[11px] text-[#C4C0B8] leading-relaxed pl-3.5 font-sans font-normal">{item.desc}</p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {activeTab === 'CONSTRUCTION' && (
-                  <ul className="space-y-5">
-                    {TECHNICAL_STANDARDS.construction.map((item, i) => (
-                      <li key={i} className="border-b border-white/5 pb-4 last:border-0 last:pb-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#B8913A]" />
-                          <h4 className="text-xs font-bold uppercase tracking-wide text-white">{item.title}</h4>
-                        </div>
-                        <p className="text-[11px] text-[#C4C0B8] leading-relaxed pl-3.5 font-sans font-normal">{item.desc}</p>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {activeTab === 'CHECKLIST' && (
-                  <div className="space-y-4">
-                    <div className="text-[10px] text-[#8A8070] italic font-sans mb-3">Nhấp để chọn đánh dấu nghiệm thu thử nghiệm:</div>
-                    <div className="grid grid-cols-1 gap-2.5">
-                      {TECHNICAL_STANDARDS.checklist.map((item, i) => {
-                        const isChecked = !!checkedItems[i];
-                        return (
-                          <div 
-                            key={i}
-                            onClick={() => toggleChecklist(i)}
-                            className={`flex gap-3 items-start p-3 rounded-lg border transition-all cursor-pointer ${
-                              isChecked 
-                                ? 'bg-[#B8913A]/10 border-[#B8913A]/40 text-[#FAF8F4]' 
-                                : 'bg-white/5 border-white/5 text-[#C4C0B8] hover:border-white/10'
-                            }`}
-                          >
-                            <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                              isChecked ? 'bg-[#B8913A] border-[#B8913A] text-[#1A1814]' : 'border-white/20'
-                            }`}>
-                              {isChecked && <Check size={12} strokeWidth={3} />}
+ 
+              <div className="space-y-6">
+                {/* Tabs selector */}
+                <div className="flex gap-6 border-b border-white/10 pb-3 overflow-x-auto">
+                  {[
+                    { id: 'DESIGN', label: 'Tiêu chuẩn Thiết kế' },
+                    { id: 'CONSTRUCTION', label: 'Tiêu chuẩn Thi công' },
+                    { id: 'CHECKLIST', label: 'Checklist 120 điểm' }
+                  ].map(tab => (
+                    <button 
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id as any)}
+                      className={`text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer pb-2 whitespace-nowrap ${
+                        activeTab === tab.id 
+                          ? 'border-b-2 border-[#B8913A] text-white' 
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+ 
+                {/* App Screen Content Panel */}
+                <div className="min-h-[260px] overflow-y-auto custom-scrollbar pr-2 select-none">
+                  {activeTab === 'DESIGN' && (
+                    <ul className="space-y-5">
+                      {TECHNICAL_STANDARDS.design.map((item, i) => (
+                        <li key={i} className="border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-1.5">{item.title}</h4>
+                          <p className="text-[11px] text-[#C4C0B8] leading-relaxed font-sans font-normal">{item.desc}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+ 
+                  {activeTab === 'CONSTRUCTION' && (
+                    <ul className="space-y-5">
+                      {TECHNICAL_STANDARDS.construction.map((item, i) => (
+                        <li key={i} className="border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-1.5">{item.title}</h4>
+                          <p className="text-[11px] text-[#C4C0B8] leading-relaxed font-sans font-normal">{item.desc}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+ 
+                  {activeTab === 'CHECKLIST' && (
+                    <div className="space-y-4">
+                      <div className="text-[10px] text-gray-500 italic font-sans mb-3">Bấm để đánh dấu nghiệm thu thử nghiệm:</div>
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {TECHNICAL_STANDARDS.checklist.map((item, i) => {
+                          const isChecked = !!checkedItems[i];
+                          return (
+                            <div 
+                              key={i}
+                              onClick={() => toggleChecklist(i)}
+                              className={`flex gap-3 items-start p-3.5 rounded-sm border transition-all cursor-pointer ${
+                                isChecked 
+                                  ? 'bg-[#B8913A]/5 border-[#B8913A]/30 text-[#FAF8F4]' 
+                                  : 'bg-white/5 border-white/5 text-[#C4C0B8] hover:border-white/10'
+                              }`}
+                            >
+                              <div className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                                isChecked ? 'bg-[#B8913A] border-[#B8913A] text-[#1A1814]' : 'border-white/20'
+                              }`}>
+                                {isChecked && <Check size={10} strokeWidth={3} />}
+                              </div>
+                              <div className="space-y-1">
+                                <h4 className={`text-xs font-bold tracking-wide uppercase transition-colors ${isChecked ? 'text-white' : 'text-[#FAF8F4]'}`}>{item.title}</h4>
+                                <p className="text-[11px] leading-relaxed opacity-80">{item.desc}</p>
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <h4 className={`text-xs font-bold tracking-wide uppercase transition-colors ${isChecked ? 'text-white' : 'text-[#FAF8F4]'}`}>{item.title}</h4>
-                              <p className="text-[11px] leading-relaxed opacity-80">{item.desc}</p>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+ 
             </div>
           </div>
         </div>
       </section>
 
       {/* ── SECTION 4: MINH BẠCH BÁO GIÁ & CHI PHÍ ── */}
-      <section id="section-4" className="px-6 md:px-16 py-24 bg-[#F8F5F0] border-b border-[#2C2920]/5">
-        <div className="max-w-6xl mx-auto">
+      <section id="section-4" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+        <div className="max-w-6xl mx-auto space-y-20">
           <div className="mb-16">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(cam kết minh bạch)</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920]">
-              Tại sao giá DQH là <em className="not-italic text-[#B89B6A]">Giá đúng giá trị?</em>
+            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+              Tại sao giá DQH là <br />
+              <em className="italic text-[#B8913A] font-light">Giá đúng giá trị?</em>
             </h2>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+ 
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
             
-            {/* Cost Breakdown percentage display */}
-            <div className="lg:col-span-7 bg-white p-8 rounded-xl border border-[#2C2920]/10 shadow-sm space-y-6">
-              <h3 className="text-xs tracking-[0.15em] uppercase text-[#2C2920] font-bold flex items-center gap-2">
-                <DollarSign size={16} className="text-[#B8913A]" /> CƠ CẤU PHÂN BỔ 100% CHI PHÍ HỢP ĐỒNG
+            {/* Cost Breakdown percentage display (Elegant typography layout) */}
+            <div className="lg:col-span-7 space-y-8 pr-0 lg:pr-10">
+              <h3 className="text-[10px] tracking-[0.2em] uppercase text-[#2C2920] font-bold">
+                CƠ CẤU PHÂN BỔ 100% CHI PHÍ HỢP ĐỒNG
               </h3>
               
-              {/* HTML/CSS Bar Chart Stack */}
-              <div className="h-6 w-full rounded-md overflow-hidden flex shadow-inner">
+              {/* HTML/CSS Bar Chart Stack (Extremely Thin Line Style) */}
+              <div className="h-[1.5px] w-full bg-[#2C2920]/15 flex pointer-events-none">
                 {COST_BREAKDOWN.map((item, idx) => (
                   <div 
                     key={idx} 
-                    style={{ width: `${item.pct}%`, backgroundColor: item.color }} 
-                    className="h-full border-r border-[#2C2920]/5 last:border-0 relative group"
-                    title={`${item.label}: ${item.pct}%`}
+                    style={{ width: `${item.pct}%` }} 
+                    className="h-full bg-[#B8913A] border-r border-[#F8F5F0] last:border-0"
                   />
                 ))}
               </div>
-
+ 
               {/* Grid detail metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 pt-4">
                 {COST_BREAKDOWN.map((item, idx) => (
-                  <div key={idx} className="flex gap-3 items-start border-b border-[#2C2920]/5 pb-3 last:border-0">
-                    <div style={{ backgroundColor: item.color }} className="w-3.5 h-3.5 rounded-sm border border-[#2C2920]/10 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#2C2920]">{item.label}</span>
-                        <span className="font-mono text-[10px] text-[#B8913A] bg-[#B8913A]/5 px-1.5 py-0.2 rounded font-bold">{item.pct}%</span>
-                      </div>
-                      <p className="text-[10px] text-[#8A8070] mt-1 leading-normal">{item.desc}</p>
+                  <div key={idx} className="space-y-2 border-b border-[#2C2920]/5 pb-4 last:border-0">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-xs font-bold text-[#2C2920] uppercase tracking-wider">{item.label}</span>
+                      <span className="font-serif text-2xl italic font-light text-[#B8913A]">{item.pct}%</span>
                     </div>
+                    <p className="text-[11px] text-[#8A8070] leading-relaxed font-sans">{item.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
-            
-            {/* Price comparison card */}
-            <div className="lg:col-span-5 bg-[#1A1814] text-[#F8F5F0] p-8 rounded-xl border border-white/5 space-y-6 shadow-md relative overflow-hidden h-full flex flex-col justify-between">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#B8913A]/10 rounded-full blur-2xl pointer-events-none" />
-              <div>
-                <h3 className="font-serif text-lg font-light text-[#B8913A] mb-4">Đối chiếu rủi ro khi chọn đơn vị giá rẻ</h3>
-                <div className="space-y-4">
-                  {[
-                    { title: "Báo giá rẻ hơn 15% - Phát sinh 30%", desc: "Báo giá gộp chung chung tính theo mét vuông dẫn đến phát sinh chi phí thạch cao,MEP và đinh ốc phụ trội trong quá trình xây thực tế." },
-                    { title: "Sử dụng vật liệu nhái / Không nhãn mác", desc: "Không cung cấp hóa đơn chứng từ chính hãng, thay phụ kiện ray trượt bản lề nhái chỉ sau 1 năm là gỉ sét, kẹt ray tủ bếp." },
-                    { title: "Không có dự toán BOQ cam kết", desc: "Mập mờ chi tiết, khi phát sinh lỗi đùn đẩy trách nhiệm bắt chủ nhà tự chịu chi phí dỡ ra làm lại." }
-                  ].map((risk, idx) => (
-                    <div key={idx} className="space-y-1">
-                      <h4 className="text-xs font-bold uppercase tracking-wide text-[#FAF8F4] flex items-center gap-2">
-                        <span className="text-red-500 font-mono font-bold">✕</span> {risk.title}
-                      </h4>
-                      <p className="text-[10px] text-[#C4C0B8] leading-relaxed pl-4">{risk.desc}</p>
-                    </div>
-                  ))}
-                </div>
+            {/* Price comparison - Clean borderless editorial layout */}
+            <div className="lg:col-span-5 space-y-8 pl-0 lg:pl-10">
+              <div className="border-b border-[#2C2920]/10 pb-4">
+                <h3 className="font-serif text-2xl font-light text-[#2C2920]">Đối chiếu rủi ro khi chọn đơn vị giá rẻ</h3>
               </div>
-              <div className="border-t border-white/10 pt-4 mt-6">
-                <p className="text-[11px] text-[#B8913A] font-bold uppercase tracking-wider">DQH cam kết 3 KHÔNG:</p>
-                <p className="text-[10px] text-[#C4C0B8] mt-1 leading-relaxed">Không phát sinh chi phí ẩn • Không sử dụng vật liệu nhái • Không trễ tiến độ phạt hợp đồng.</p>
+              <div className="space-y-6">
+                {[
+                  { title: "Báo giá rẻ hơn 15% - Phát sinh 30%", desc: "Báo giá gộp chung chung tính theo mét vuông dẫn đến phát sinh chi phí thạch cao, MEP và đinh ốc phụ trội trong quá trình xây thực tế." },
+                  { title: "Sử dụng vật liệu nhái / Không nhãn mác", desc: "Không cung cấp hóa đơn chứng từ chính hãng, thay phụ kiện ray trượt bản lề nhái chỉ sau 1 năm là gỉ sét, kẹt ray tủ bếp." },
+                  { title: "Không có dự toán BOQ cam kết", desc: "Mập mờ chi tiết, khi phát sinh lỗi đùn đẩy trách nhiệm bắt chủ nhà tự chịu chi phí dỡ ra làm lại." }
+                ].map((risk, idx) => (
+                  <div key={idx} className="space-y-1.5 border-b border-[#2C2920]/5 pb-4 last:border-0 last:pb-0">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2C2920] flex items-center gap-2">
+                      <span className="text-[#B8913A] font-bold text-xs">✕</span> {risk.title}
+                    </h4>
+                    <p className="text-[11px] text-[#8A8070] leading-relaxed pl-4 font-sans">{risk.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-[#2C2920]/10 pt-5 space-y-1">
+                <p className="text-[10px] text-[#B8913A] font-bold uppercase tracking-widest">DQH cam kết 3 KHÔNG:</p>
+                <p className="text-[10px] text-[#8A8070] leading-relaxed font-sans">Không phát sinh chi phí ẩn • Không sử dụng vật liệu nhái • Không trễ tiến độ phạt hợp đồng.</p>
               </div>
             </div>
           </div>
@@ -926,154 +937,209 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       </section>
 
       {/* ── SECTION 5: BẢO HÀNH & NHẬT KÝ THI CÔNG REAL-TIME ── */}
-      <section id="section-5" className="px-6 md:px-16 py-24 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+      <section id="section-5" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-16 text-center">
+          <div className="mb-24 text-center">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-light text-[#2C2920]">
-              Nhật ký thi công &amp; <em className="not-italic text-[#B8913A]">Cam kết bảo hành vàng</em>
+            <h2 className="font-serif text-4xl md:text-5xl font-light text-[#2C2920]">
+              Nhật ký tiến độ &amp; <br />
+              <em className="italic text-[#B8913A] font-light">Cam kết bảo hành vàng</em>
             </h2>
           </div>
 
-          {/* Homeowner App Portal Real-time Simulation */}
-          <div className="bg-[#1A1814] text-[#F8F5F0] rounded-2xl border border-white/5 shadow-xl overflow-hidden mb-16 flex flex-col min-h-[500px]">
-            
-            {/* Screen Mockup Top Bar */}
-            <div className="bg-[#111110] px-6 py-4 border-b border-white/5 flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-mono text-[#C4C0B8] tracking-widest uppercase font-bold">CỔNG TIẾN ĐỘ KHÁCH HÀNG REAL-TIME</span>
-              </div>
-              <div className="text-[10px] font-mono text-[#B8913A] bg-[#B8913A]/10 px-3 py-1 rounded">
-                DỰ ÁN: {realProject ? realProject.name : 'THE HORIZON HOUSE (DEMO)'}
-              </div>
-            </div>
-
-            {/* Sub-tabs selector */}
-            <div className="bg-[#151514] px-4 py-2 flex gap-1 border-b border-white/5">
-              <button 
-                onClick={() => setActiveDiaryTab('GANTT')}
-                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer ${
-                  activeDiaryTab === 'GANTT' ? 'bg-[#B8913A] text-[#1A1814]' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Tiến độ Gantt
-              </button>
-              <button 
-                onClick={() => setActiveDiaryTab('DIARY')}
-                className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded transition-all cursor-pointer ${
-                  activeDiaryTab === 'DIARY' ? 'bg-[#B8913A] text-[#1A1814]' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Nhật ký thi công hàng ngày
-              </button>
-            </div>
-
-            {/* Simulated Data Render */}
-            <div className="p-6 flex-1 bg-[#1A1814] overflow-y-auto custom-scrollbar">
-              
-              {/* Gantt Progress list */}
-              {activeDiaryTab === 'GANTT' && (
-                <div className="space-y-5">
-                  {loadingProject ? (
-                    <div className="text-center py-10 font-mono text-gray-400">Đang tải tiến độ thực tế...</div>
-                  ) : realProject && realTasks.length > 0 ? (
-                    realTasks.map((t, idx) => (
-                      <div key={idx} className="space-y-1.5 border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-center text-xs font-mono">
-                          <span className="font-bold text-white uppercase">{t.name}</span>
-                          <span className="text-[#B8913A] font-bold">{t.progress || 0}%</span>
-                        </div>
-                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                          <div style={{ width: `${t.progress || 0}%` }} className="h-full bg-[#B8913A] rounded-full" />
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    SIMULATED_TASKS.map((t, idx) => (
-                      <div key={idx} className="space-y-1.5 border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-center text-xs font-mono">
-                          <span className="font-bold text-white uppercase">{t.name}</span>
-                          <span className="text-[#B8913A] font-bold">{t.progress}% ({t.status})</span>
-                        </div>
-                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                          <div style={{ width: `${t.progress}%` }} className="h-full bg-[#B8913A] rounded-full" />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* Diary Feed */}
-              {activeDiaryTab === 'DIARY' && (
-                <div className="space-y-6">
-                  {loadingProject ? (
-                    <div className="text-center py-10 font-mono text-gray-400">Đang tải nhật ký thực tế...</div>
-                  ) : realProject && realLogs.length > 0 ? (
-                    realLogs.map((log, idx) => (
-                      <div key={idx} className="flex gap-4 items-start border-b border-white/5 pb-5 last:border-0 last:pb-0">
-                        <div className="text-[10px] font-mono text-[#B8913A] bg-[#B8913A]/10 px-2.5 py-1 rounded shrink-0">
-                          {log.date ? new Date(log.date).toLocaleDateString('vi-VN') : ''}
-                        </div>
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-bold text-white uppercase tracking-wider">{log.title}</h4>
-                          <p className="text-[11px] text-[#C4C0B8] leading-relaxed font-sans font-normal">{log.content}</p>
-                          {log.media_urls && Array.isArray(log.media_urls) && log.media_urls.length > 0 && (
-                            <div className="flex gap-2 flex-wrap pt-2">
-                              {log.media_urls.map((imgUrl, i) => (
-                                <img key={i} src={imgUrl} className="w-20 h-20 object-cover rounded border border-white/10" alt="Hiện trường" />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    simulatedLogs.map((log, idx) => (
-                      <div key={idx} className="flex flex-col sm:flex-row gap-5 items-start border-b border-white/5 pb-6 last:border-0 last:pb-0">
-                        <div className="w-full sm:w-28 text-[10px] font-mono text-[#B8913A] bg-[#B8913A]/10 px-2.5 py-1 rounded text-center shrink-0">
-                          {log.date}
-                        </div>
-                        <div className="flex-1 space-y-2.5">
-                          <div className="flex justify-between items-center flex-wrap gap-2">
-                            <h4 className="text-xs font-bold text-white uppercase tracking-wider">{log.title}</h4>
-                            <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">{log.status}</span>
-                          </div>
-                          <p className="text-[11px] text-[#C4C0B8] leading-relaxed font-sans font-normal">{log.content}</p>
-                          <div className="w-24 h-24 rounded-lg overflow-hidden border border-white/15">
-                            <img src={log.image} alt="Nghiệm thu thực địa" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
+          {/* Sub-tabs selector directly on the page canvas */}
+          <div className="flex justify-center gap-9 border-b border-[#2C2920]/15 pb-4 mb-16 overflow-x-auto">
+            <button 
+              onClick={() => setActiveDiaryTab('GANTT')}
+              className={`text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer pb-2 whitespace-nowrap ${
+                activeDiaryTab === 'GANTT' 
+                  ? 'border-b-2 border-[#B8913A] text-[#2C2920]' 
+                  : 'text-[#8A8070] hover:text-[#2C2920]'
+              }`}
+            >
+              Tiến độ dự án (Gantt)
+            </button>
+            <button 
+              onClick={() => setActiveDiaryTab('DIARY')}
+              className={`text-[10px] font-bold uppercase tracking-widest transition-all cursor-pointer pb-2 whitespace-nowrap ${
+                activeDiaryTab === 'DIARY' 
+                  ? 'border-b-2 border-[#B8913A] text-[#2C2920]' 
+                  : 'text-[#8A8070] hover:text-[#2C2920]'
+              }`}
+            >
+              Nhật ký hình ảnh hiện trường
+            </button>
           </div>
 
-          {/* Warranty Table & Stories */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start pt-8">
-            <div className="lg:col-span-7 bg-white p-8 rounded-xl border border-[#2C2920]/10 shadow-sm space-y-5">
+          {/* Progress / Diary Render Area */}
+          <div className="mb-24">
+            
+            {/* Gantt progress as thin gold separator lines */}
+            {activeDiaryTab === 'GANTT' && (
+              <div className="max-w-3xl mx-auto space-y-8">
+                {loadingProject ? (
+                  <div className="text-center py-10 font-mono text-xs text-[#8A8070]">Đang tải tiến độ thực tế...</div>
+                ) : realProject && realTasks.length > 0 ? (
+                  realTasks.map((t, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between items-baseline text-xs">
+                        <span className="font-bold text-[#2C2920] uppercase tracking-wider">{t.name}</span>
+                        <span className="font-serif text-lg italic text-[#B8913A] font-light">{t.progress || 0}%</span>
+                      </div>
+                      <div className="h-[1.5px] w-full bg-[#2C2920]/10 relative">
+                        <div style={{ width: `${t.progress || 0}%` }} className="h-full bg-[#B8913A]" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  SIMULATED_TASKS.map((t, idx) => (
+                    <div key={idx} className="space-y-2">
+                      <div className="flex justify-between items-baseline text-xs">
+                        <span className="font-bold text-[#2C2920] uppercase tracking-wider">{t.name}</span>
+                        <div className="flex gap-3 items-baseline">
+                          <span className="text-[10px] font-mono text-[#8A8070] uppercase">({t.status})</span>
+                          <span className="font-serif text-lg italic text-[#B8913A] font-light">{t.progress}%</span>
+                        </div>
+                      </div>
+                      <div className="h-[1.5px] w-full bg-[#2C2920]/10 relative">
+                        <div style={{ width: `${t.progress}%` }} className="h-full bg-[#B8913A]" />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Daily Photo Journal Grid with collapsible details */}
+            {activeDiaryTab === 'DIARY' && (
+              <div>
+                {loadingProject ? (
+                  <div className="text-center py-10 font-mono text-xs text-[#8A8070]">Đang tải nhật ký thực tế...</div>
+                ) : realProject && realLogs.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+                    {realLogs.map((log, idx) => {
+                      const isExpanded = !!expandedLogs[idx];
+                      const firstImage = log.media_urls && Array.isArray(log.media_urls) && log.media_urls.length > 0 ? log.media_urls[0] : "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&q=80";
+                      return (
+                        <div key={idx} className="space-y-4">
+                          <div 
+                            onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                            className="aspect-[16/10] overflow-hidden bg-[#F8F5F0] relative group cursor-pointer"
+                          >
+                            <img 
+                              src={firstImage} 
+                              alt={log.title} 
+                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-102" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-mono text-[9px] tracking-widest text-[#B8913A]">
+                                {log.date ? new Date(log.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}
+                              </span>
+                              <button 
+                                onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                                className="text-[9px] tracking-[0.1em] uppercase text-[#8A8070] hover:text-[#2C2920] font-semibold cursor-pointer transition-colors"
+                              >
+                                {isExpanded ? '— Ẩn chi tiết' : '+ Xem chi tiết'}
+                              </button>
+                            </div>
+                            <h4 
+                              onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                              className="text-xs font-bold text-[#2C2920] uppercase tracking-wider cursor-pointer hover:text-[#B8913A] transition-colors"
+                            >
+                              {log.title}
+                            </h4>
+                            
+                            {isExpanded && (
+                              <div className="pt-3 border-t border-[#2C2920]/5 space-y-3 animate-fade-in">
+                                <p className="text-[11px] text-[#8A8070] leading-relaxed font-sans font-normal">{log.content}</p>
+                                {log.media_urls && Array.isArray(log.media_urls) && log.media_urls.length > 1 && (
+                                  <div className="flex gap-2 flex-wrap pt-1">
+                                    {log.media_urls.slice(1).map((imgUrl, i) => (
+                                      <img key={i} src={imgUrl} className="w-14 h-14 object-cover border border-[#2C2920]/10" alt="Hiện trường chi tiết" />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-12">
+                    {simulatedLogs.map((log, idx) => {
+                      const isExpanded = !!expandedLogs[idx];
+                      return (
+                        <div key={idx} className="space-y-4">
+                          <div 
+                            onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                            className="aspect-[16/10] overflow-hidden bg-[#F8F5F0] relative group cursor-pointer"
+                          >
+                            <img 
+                              src={log.image} 
+                              alt={log.title} 
+                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out scale-100 group-hover:scale-102" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="font-mono text-[9px] tracking-widest text-[#B8913A]">{log.date}</span>
+                              <div className="flex gap-3 items-center">
+                                <span className="text-[8px] bg-[#B8913A]/15 text-[#B8913A] px-2 py-0.5 rounded font-mono font-bold uppercase">{log.status}</span>
+                                <button 
+                                  onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                                  className="text-[9px] tracking-[0.1em] uppercase text-[#8A8070] hover:text-[#2C2920] font-semibold cursor-pointer transition-colors"
+                                >
+                                  {isExpanded ? '— Ẩn' : '+ Xem'}
+                                </button>
+                              </div>
+                            </div>
+                            <h4 
+                              onClick={() => setExpandedLogs(prev => ({ ...prev, [idx]: !isExpanded }))}
+                              className="text-xs font-bold text-[#2C2920] uppercase tracking-wider cursor-pointer hover:text-[#B8913A] transition-colors"
+                            >
+                              {log.title}
+                            </h4>
+                            
+                            {isExpanded && (
+                              <div className="pt-3 border-t border-[#2C2920]/5 space-y-2 animate-fade-in">
+                                <p className="text-[11px] text-[#8A8070] leading-relaxed font-sans font-normal">{log.content}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Warranty Table & Stories - Flat minimal layouts */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start pt-8">
+            <div className="lg:col-span-7 space-y-6">
               <h3 className="text-xs tracking-[0.15em] uppercase text-[#2C2920] font-bold flex items-center gap-2">
-                <Award size={16} className="text-[#B89B6A]" /> CHÍNH SÁCH BẢO HÀNH CHÍNH THỨC CỦA DQH
+                <Award size={14} className="text-[#B8913A]" /> CHÍNH SÁCH BẢO HÀNH CHÍNH THỨC CỦA DQH
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-sans border-collapse">
                   <thead>
-                    <tr className="border-b border-[#2C2920]/10 text-[#8A8070]">
-                      <th className="py-2.5 font-bold uppercase">Hạng mục bảo hành</th>
-                      <th className="py-2.5 font-bold uppercase text-center">Thời gian</th>
-                      <th className="py-2.5 font-bold uppercase">Ghi chú điều kiện</th>
+                    <tr className="border-b border-[#2C2920]/20 text-[#8A8070]">
+                      <th className="py-3 font-bold uppercase tracking-wider">Hạng mục bảo hành</th>
+                      <th className="py-3 font-bold uppercase tracking-wider text-center w-24">Thời gian</th>
+                      <th className="py-3 font-bold uppercase tracking-wider pl-4">Ghi chú điều kiện</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#2C2920]/5">
                     {WARRANTY_ITEMS.map((w, idx) => (
-                      <tr key={idx} className="border-b border-[#2C2920]/5 last:border-0 hover:bg-[#F5F2EC]/30">
-                        <td className="py-3 font-semibold text-[#2C2920]">{w.item}</td>
-                        <td className="py-3 font-bold text-center text-[#B8913A]">{w.time}</td>
-                        <td className="py-3 text-[#8A8070]">{w.note}</td>
+                      <tr key={idx} className="hover:bg-[#2C2920]/5 transition-colors">
+                        <td className="py-4 font-serif text-sm font-medium text-[#2C2920]">{w.item}</td>
+                        <td className="py-4 font-mono font-bold text-center text-[#B8913A]">{w.time}</td>
+                        <td className="py-4 text-[#8A8070] pl-4 font-sans">{w.note}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1081,20 +1147,20 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </div>
             </div>
 
-            {/* Showcase 3 emotional stories */}
-            <div className="lg:col-span-5 space-y-6">
-              <h3 className="text-xs tracking-[0.15em] uppercase text-[#2C2920] font-bold flex items-center gap-2 pl-2">
-                <Heart size={16} className="text-[#B89B6A]" /> CÂU CHUYỆN SỰ TỬ TẾ &amp; TRÁCH NHIỆM
+            {/* Showcase 3 emotional stories - Borderless column with left highlight */}
+            <div className="lg:col-span-5 space-y-8 pl-0 lg:pl-6">
+              <h3 className="text-xs tracking-[0.15em] uppercase text-[#2C2920] font-bold flex items-center gap-2">
+                <Heart size={14} className="text-[#B8913A]" /> CÂU CHUYỆN SỰ TỬ TẾ &amp; TRÁCH NHIỆM
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-6 divide-y divide-[#2C2920]/10">
                 {CASE_STUDIES.map((study, idx) => (
-                  <div key={idx} className="bg-white p-5 rounded-xl border border-[#2C2920]/10 shadow-sm space-y-3">
-                    <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold bg-[#F5F2EC] px-2.5 py-1 rounded inline-block">
+                  <div key={idx} className="border-l-2 border-[#B8913A] pl-6 py-2 space-y-3 pt-6 first:pt-0 border-t border-[#2C2920]/5 first:border-t-0">
+                    <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold block">
                       {study.tag}
                     </span>
-                    <h4 className="font-serif text-md font-bold text-[#2C2920]">{study.title}</h4>
-                    <p className="text-xs text-[#8A8070] leading-relaxed italic border-l-2 border-[#B8913A] pl-3.5">
+                    <h4 className="font-serif text-lg font-light text-[#2C2920]">{study.title}</h4>
+                    <p className="text-xs text-[#8A8070] leading-relaxed italic">
                       "{study.desc}"
                     </p>
                   </div>
@@ -1149,24 +1215,30 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </div>
             </div>
 
-            {/* Form liên hệ chốt sales */}
-            <div id="contact" className="bg-[#F8F5F0] text-[#1A1814] p-8 rounded-xl border border-[#2C2920]/10 space-y-6 shadow-md">
-              <h3 className="font-serif text-xl font-light text-[#B8913A]">Đăng ký tư vấn Quiet Luxury</h3>
-              <p className="text-xs text-[#8A8070] leading-relaxed">Đội ngũ KTS của DQH sẽ liên hệ trực tiếp trong vòng 2 giờ để trao đổi sâu về định hướng không gian của gia đình.</p>
-              <form onSubmit={(e) => { e.preventDefault(); alert("✅ Gửi yêu cầu thành công. DQH sẽ liên hệ anh/chị ngay!"); }} className="space-y-4">
-                <div>
-                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8070] mb-1 font-bold">Họ và tên</label>
-                  <input type="text" required placeholder="Nguyễn Văn A" className="w-full bg-[#F5F2EC] border border-[#2C2920]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B8913A]" />
+            {/* Form liên hệ chốt sales - Tối giản nền tối, input dạng dòng kẻ dưới */}
+            <div id="contact" className="space-y-8 pl-0 lg:pl-10">
+              <div className="border-b border-[#FAF8F4]/10 pb-4">
+                <h3 className="font-serif text-2xl font-light text-[#B8913A]">Đăng ký tư vấn Quiet Luxury</h3>
+                <p className="text-xs text-[#C4C0B8] mt-2">Đội ngũ KTS của DQH sẽ liên hệ trực tiếp trong vòng 2 giờ để trao đổi sâu về định hướng không gian của gia đình.</p>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); alert("✅ Gửi yêu cầu thành công. DQH sẽ liên hệ anh/chị ngay!"); }} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[9px] tracking-[0.2em] uppercase text-[#8A8070] mb-2 font-semibold">Họ và tên</label>
+                    <input type="text" required placeholder="Nguyễn Văn A" className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] tracking-[0.2em] uppercase text-[#8A8070] mb-2 font-semibold">Số điện thoại</label>
+                    <input type="tel" required placeholder="0900 000 000" className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors" />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8070] mb-1 font-bold">Số điện thoại</label>
-                  <input type="tel" required placeholder="0900 000 000" className="w-full bg-[#F5F2EC] border border-[#2C2920]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B8913A]" />
+                  <label className="block text-[9px] tracking-[0.2em] uppercase text-[#8A8070] mb-2 font-semibold">Lời nhắn / Yêu cầu không gian</label>
+                  <textarea rows={2} placeholder="Mô tả sơ bộ về dự án của anh/chị..." className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors resize-none" />
                 </div>
-                <div>
-                  <label className="block text-[10px] tracking-[0.15em] uppercase text-[#8A8070] mb-1 font-bold">Lời nhắn / Yêu cầu</label>
-                  <textarea rows={3} placeholder="Mô tả sơ bộ về dự án của anh/chị..." className="w-full bg-[#F5F2EC] border border-[#2C2920]/10 px-3 py-2 text-xs rounded focus:outline-none focus:border-[#B8913A] resize-none" />
-                </div>
-                <button type="submit" className="w-full text-xs tracking-[0.12em] uppercase text-[#F8F5F0] bg-[#1A1814] py-3.5 hover:bg-[#B8913A] transition-colors duration-300 font-bold rounded">Gửi yêu cầu tư vấn</button>
+                <button type="submit" className="w-full sm:w-auto text-xs tracking-[0.15em] uppercase text-[#1A1814] bg-[#B8913A] hover:bg-[#B8913A]/85 py-3.5 px-10 transition-all duration-300 font-semibold rounded-sm cursor-pointer">
+                  Gửi yêu cầu tư vấn
+                </button>
               </form>
             </div>
           </div>
