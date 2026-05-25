@@ -615,18 +615,269 @@ function useReveal(threshold = 0.12) {
   return [ref, visible] as const;
 }
 
-function Reveal({ children, className = "", delay = 0 }) {
-  const [ref, visible] = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-7"} ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  );
-}
+// ── ARCHITECTURAL VECTOR FALLBACK CARDS FOR BLOCKED IMAGE URLS ──
+const BlueprintFallback = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
+    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
+      <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
+      <rect x="25" y="25" width="50" height="50" strokeWidth="1" />
+      <line x1="25" y1="50" x2="75" y2="50" strokeWidth="0.75" />
+      <line x1="50" y1="25" x2="50" y2="75" strokeWidth="0.75" />
+      <path d="M 45,50 A 5,5 0 0,1 50,45" strokeWidth="0.75" strokeDasharray="1,1" />
+      <circle cx="50" cy="50" r="1.5" fill="#B8913A" />
+    </svg>
+    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">BẢN VẼ Ý TƯỞNG 2D</span>
+    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">Architectural Layout Schematic</span>
+  </div>
+);
+
+const Design3DFallback = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
+    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
+      <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 50,25 L 75,37.5 L 75,62.5 L 50,75 L 25,62.5 L 25,37.5 Z" strokeWidth="1" />
+      <line x1="50" y1="25" x2="50" y2="75" strokeWidth="1" />
+      <line x1="25" y1="37.5" x2="50" y2="50" strokeWidth="1" />
+      <line x1="75" y1="37.5" x2="50" y2="50" strokeWidth="1" />
+    </svg>
+    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">PHỐI CẢNH 3D</span>
+    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">3D Space Rendering & Scale Models</span>
+  </div>
+);
+
+const ConstructionFallback = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
+    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
+      <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
+      <rect x="20" y="30" width="60" height="40" strokeWidth="0.75" strokeDasharray="2,2" />
+      <line x1="20" y1="50" x2="80" y2="50" strokeWidth="0.75" />
+      <line x1="40" y1="30" x2="40" y2="70" strokeWidth="0.75" />
+      <line x1="60" y1="30" x2="60" y2="70" strokeWidth="0.75" />
+      <circle cx="20" cy="30" r="2" fill="none" stroke="red" strokeWidth="0.75" />
+      <circle cx="80" cy="70" r="2" fill="none" stroke="red" strokeWidth="0.75" />
+    </svg>
+    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">THI CÔNG PHẦN THÔ</span>
+    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">MEP Grid & Concrete Structural Works</span>
+  </div>
+);
+
+const AssemblyFallback = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
+    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
+      <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
+      <rect x="25" y="35" width="50" height="30" strokeWidth="1" />
+      <line x1="25" y1="45" x2="75" y2="45" strokeWidth="0.75" />
+      <line x1="50" y1="45" x2="50" y2="65" strokeWidth="0.75" strokeDasharray="1,1" />
+      <path d="M 35,52.5 L 42.5,52.5 M 57.5,52.5 L 65,52.5" strokeWidth="1" />
+    </svg>
+    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">LẮP RÁP JOINERY</span>
+    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">Custom Fitting & Millwork Assembly</span>
+  </div>
+);
+
+const HandoverFallback = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
+    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
+      <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
+      <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
+      <polygon points="50,20 80,45 20,45" strokeWidth="1" />
+      <rect x="25" y="45" width="50" height="30" strokeWidth="1" />
+      <rect x="44" y="55" width="12" height="20" strokeWidth="0.75" />
+    </svg>
+    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">BÀN GIAO THỰC TẾ</span>
+    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">Completed Quiet Luxury Project</span>
+  </div>
+);
+
+// ── COMPONENT TO RENDER PHASE IMAGES DYNAMICALLY WITH ERROR FALLBACKS ──
+const PhaseVisuals = ({ 
+  stage, 
+  index, 
+  selectedCaseStudy, 
+  imageErrors, 
+  onImageError 
+}: { 
+  stage: any; 
+  index: number; 
+  selectedCaseStudy: any; 
+  imageErrors: Record<string, boolean>; 
+  onImageError: (url: string) => void;
+}) => {
+  // Phase 01: Blueprint + Site Photo
+  if (index === 0) {
+    const bp = selectedCaseStudy.floorPlan.blueprint;
+    const sp = selectedCaseStudy.floorPlan.sitePhoto;
+    const bpFailed = !bp || imageErrors[bp];
+    const spFailed = !sp || imageErrors[sp];
+
+    if (bpFailed && spFailed) {
+      return <BlueprintFallback />;
+    }
+
+    return (
+      <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
+        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+          {!bpFailed ? (
+            <img src={bp} className="w-full h-full object-cover opacity-85 select-none pointer-events-none" alt="Blueprint" onError={() => onImageError(bp)} />
+          ) : (
+            <BlueprintFallback />
+          )}
+        </div>
+        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+          {!spFailed ? (
+            <img src={sp} className="w-full h-full object-cover select-none pointer-events-none" alt="Site construction" onError={() => onImageError(sp)} />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-900/50 p-4 text-center">
+              <span className="text-[8px] font-mono text-stone-500 uppercase tracking-widest">Hiện trạng công trình</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Phase 02: 3D Renderings Gallery
+  if (index === 1) {
+    const imgs = selectedCaseStudy.design3D.images || [];
+    const allFailed = imgs.every((img: string) => !img || imageErrors[img]);
+
+    if (allFailed) {
+      return <Design3DFallback />;
+    }
+
+    return (
+      <div className="w-full h-full grid grid-cols-3 gap-1 p-2 bg-[#161412]">
+        {imgs.map((img: string, idx: number) => {
+          const failed = !img || imageErrors[img];
+          return (
+            <div key={idx} className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+              {!failed ? (
+                <img src={img} className="w-full h-full object-cover select-none pointer-events-none" alt={`3D Render ${idx + 1}`} onError={() => onImageError(img)} />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#1A1814] text-[8px] font-mono text-stone-500">
+                  RENDER 3D 0{idx + 1}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Phase 03: Structural Works + Red Engineering Annotation Overlay
+  if (index === 2) {
+    const img = selectedCaseStudy.structural.imgMain;
+    const failed = !img || imageErrors[img];
+
+    if (failed) {
+      return <ConstructionFallback />;
+    }
+
+    return (
+      <div className="relative w-full h-full bg-[#161412] p-1">
+        <img src={img} className="w-full h-full object-cover rounded-sm select-none pointer-events-none" alt="Rough Construction" onError={() => onImageError(img)} />
+        {/* Technical annotation red overlay */}
+        <div className="absolute inset-0 pointer-events-none select-none">
+          <div className="absolute left-[8%] top-[12%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1.5px_1.5px_rgba(0,0,0,0.95)] bg-black/40 px-2 py-0.5 rounded-sm">
+            ↖ Khung lam gió thẩm mỹ phẳng viền
+          </div>
+          <div className="absolute right-[8%] bottom-[15%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1.5px_1.5px_rgba(0,0,0,0.95)] bg-black/40 px-2 py-0.5 rounded-sm">
+            Tách khe tạo độ nét shadow gap ↗
+          </div>
+          <div className="absolute left-[15%] bottom-[42%] text-[#D4BC95] font-sans text-[8px] tracking-widest drop-shadow-[0_1px_1px_rgba(0,0,0,0.95)] bg-black/70 px-2 py-1 rounded-sm border border-[#D4BC95]/30">
+            [✓] NGÂM THỬ NƯỚC TOILET 72 GIỜ ĐẠT CHUẨN
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Phase 04: Fixed and Loose Furniture
+  if (index === 3) {
+    const fi = selectedCaseStudy.fixedInterior.imgMain;
+    const lf = selectedCaseStudy.looseFurniture.imgMain;
+    const fiFailed = !fi || imageErrors[fi];
+    const lfFailed = !lf || imageErrors[lf];
+
+    if (fiFailed && lfFailed) {
+      return <AssemblyFallback />;
+    }
+
+    return (
+      <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
+        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+          {!fiFailed ? (
+            <img src={fi} className="w-full h-full object-cover select-none pointer-events-none" alt="Fixed Interior Assembly" onError={() => onImageError(fi)} />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-stone-900/50 text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2">
+              NỘI THẤT CỐ ĐỊNH
+            </div>
+          )}
+        </div>
+        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+          {!lfFailed ? (
+            <img src={lf} className="w-full h-full object-cover select-none pointer-events-none" alt="Loose Furniture Setup" onError={() => onImageError(lf)} />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-stone-900/50 text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2">
+              NỘI THẤT RỜI
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Phase 05: Finished Project Images Grid
+  if (index === 4) {
+    const imgs = selectedCaseStudy.finalize.images || [];
+    const allFailed = imgs.every((img: string) => !img || imageErrors[img]);
+
+    if (allFailed) {
+      return <HandoverFallback />;
+    }
+
+    return (
+      <div className="w-full h-full grid grid-rows-2 gap-1 p-1 bg-[#161412]">
+        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+          {imgs[0] && !imageErrors[imgs[0]] ? (
+            <img src={imgs[0]} className="w-full h-full object-cover select-none pointer-events-none" alt="Handover Completion View" onError={() => onImageError(imgs[0])} />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-stone-900/50 text-[8px] font-mono text-stone-500">
+              BÀN GIAO TOÀN CẢNH
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+            {imgs[1] && !imageErrors[imgs[1]] ? (
+              <img src={imgs[1]} className="w-full h-full object-cover select-none pointer-events-none" alt="Handover Detail 1" onError={() => onImageError(imgs[1])} />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-stone-900/50 text-[8px] font-mono text-stone-500">
+                CHI TIẾT 01
+              </div>
+            )}
+          </div>
+          <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+            {imgs[2] && !imageErrors[imgs[2]] ? (
+              <img src={imgs[2]} className="w-full h-full object-cover select-none pointer-events-none" alt="Handover Detail 2" onError={() => onImageError(imgs[2])} />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-stone-900/50 text-[8px] font-mono text-stone-500">
+                CHI TIẾT 02
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <BlueprintFallback />;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT MAIN
@@ -657,6 +908,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [activeStage, setActiveStage] = useState<number>(0);
   const [hoveredStage, setHoveredStage] = useState<number | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -701,6 +953,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       setActiveStage(0);
       setHoveredStage(null);
       setExpandedDetails({});
+      setImageErrors({});
       setTimeout(() => {
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = 0;
@@ -2525,35 +2778,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           }
         ];
 
-        const getCardStyle = (idx: number) => {
-          const isActive = activeStage === idx;
-          const isHovered = hoveredStage === idx;
-          
-          if (isActive) {
-            return {
-              transform: 'translate3d(0, -30px, 150px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1.05)',
-              opacity: 1,
-              zIndex: 50,
-              pointerEvents: 'auto' as const,
-            };
-          } else {
-            // Isometric Stack offsets
-            const zOffset = -120 + idx * 25;
-            const yOffset = 100 + idx * 6;
-            const xOffset = -50 + idx * 14;
-            
-            const hoverLiftZ = isHovered ? 25 : 0;
-            const hoverLiftY = isHovered ? -15 : 0;
-            
-            return {
-              transform: `rotateX(55deg) rotateY(0deg) rotateZ(-35deg) translate3d(${xOffset}px, ${yOffset + hoverLiftY}px, ${zOffset + hoverLiftZ}px) scale(0.75)`,
-              opacity: isHovered ? 0.85 : 0.35,
-              zIndex: 10 + idx,
-              pointerEvents: 'auto' as const,
-            };
-          }
-        };
-
         return (
           <div className="fixed inset-0 bg-[#161412]/95 z-[1000] flex items-center justify-center p-0 md:p-6 lg:p-10 font-sans text-[#2C2920] backdrop-blur-md overflow-hidden animate-fade-in">
             {/* Close button */}
@@ -2564,338 +2788,270 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               &times;
             </button>
             
-            {/* Split Screen Modal Frame */}
-            <div className="w-full h-full md:max-w-6xl md:h-[90vh] bg-[#FAF8F4] rounded-sm shadow-2xl overflow-hidden relative flex flex-col md:flex-row border border-[#2C2920]/15">
+            {/* Modal Frame Container */}
+            <div className="w-full h-full md:max-w-6xl md:h-[90vh] bg-[#FAF8F4] rounded-sm shadow-2xl overflow-hidden relative flex flex-col border border-[#2C2920]/15">
               
-              {/* Sticky Visual Column (60% Desktop) */}
-              <div className="w-full md:w-[55%] lg:w-[60%] h-[35vh] md:h-full bg-[#161412] relative overflow-hidden flex items-center justify-center border-b md:border-b-0 md:border-r border-[#2C2920]/10 select-none">
-                {/* Grid Background Pattern */}
-                <div className="absolute inset-0 bg-[radial-gradient(#FAF8F4/0.03_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
-                <div className="absolute w-[450px] h-[450px] rounded-full border border-[#FAF8F4]/5 pointer-events-none" />
-                <div className="absolute w-[300px] h-[300px] rounded-full border border-[#FAF8F4]/3 pointer-events-none" />
-
-                {/* HUD HUD Overlay */}
-                <div className="absolute top-4 left-4 text-white/50 text-[8px] font-sans tracking-[0.25em] z-20">
-                  DQH ARCHITECTS · STAGE 0{activeStage + 1} / 05
+              {/* Header status bar (Fixed at top) */}
+              <div className="bg-[#FAF8F4] px-6 py-4 border-b border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20 select-none">
+                <div className="flex items-center gap-2">
+                  <span className="font-serif text-sm font-semibold text-[#1A1814]">DQH ARCHITECTS</span>
+                  <span className="text-[10px] font-sans text-[#8A8070] uppercase tracking-wider">Case Study Journal</span>
                 </div>
-
-                {/* 3D Isometric Stack Canvas */}
-                <div className="w-[300px] h-[360px] relative transform-style-3d perspective-[1000px] flex items-center justify-center scale-[0.7] sm:scale-[0.85] md:scale-100 transition-transform">
-                  {stages.map((stg, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="absolute inset-0 w-full h-full rounded-sm overflow-hidden border border-white/10 shadow-2xl cursor-pointer transition-all duration-700 ease-out-expo select-none"
-                      style={getCardStyle(sIdx)}
-                      onMouseEnter={() => setHoveredStage(sIdx)}
-                      onMouseLeave={() => setHoveredStage(null)}
-                      onClick={() => scrollToStage(sIdx)}
-                    >
-                      <img 
-                        src={stg.image} 
-                        alt={stg.title} 
-                        className="w-full h-full object-cover select-none pointer-events-none" 
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      />
-                      <div className={`absolute inset-0 bg-[#161412] transition-opacity duration-500 ${activeStage === sIdx ? 'opacity-0' : 'opacity-65'}`} />
-                      <div className={`absolute inset-0 border-2 transition-all duration-500 rounded-sm pointer-events-none ${activeStage === sIdx ? 'border-[#B8913A]' : hoveredStage === sIdx ? 'border-[#B8913A]/50' : 'border-transparent'}`} />
-
-                      {/* Red hand-annotated overlays on stage 2 (rough construction) */}
-                      {activeStage === sIdx && sIdx === 2 && (
-                        <div className="absolute inset-0 pointer-events-none select-none">
-                          <div className="absolute left-[15%] top-[15%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                            ↖ Khung lam gió thẩm mỹ phẳng viền
-                          </div>
-                          <div className="absolute right-[12%] bottom-[20%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                            Tách khe tạo độ nét shadow gap ↗
-                          </div>
-                          <div className="absolute left-[20%] bottom-[45%] text-red-500 font-serif italic text-[10px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]">
-                            [+] Test ngâm nước toilet 72h liên tục
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Card label */}
-                      <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-between text-white">
-                        <span className="font-mono text-[9px] tracking-widest text-[#B8913A] font-bold">{stg.subtitle}</span>
-                        <span className="text-[8px] tracking-wider text-stone-300 uppercase font-sans font-semibold">0{sIdx + 1}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white/40 text-[8px] font-sans tracking-widest">
-                  <span>CLICK LAYER TO NAVIGATE</span>
-                  <span>DQH SIGNATURE</span>
-                </div>
+                <span className="text-[9px] font-sans text-[#8A8070] uppercase tracking-widest font-semibold text-right">
+                  {selectedCaseStudy.title}
+                </span>
               </div>
 
-              {/* Scrollable Storytelling Column (40% Desktop) */}
-              <div className="w-full md:w-[45%] lg:w-[40%] h-[65vh] md:h-full bg-[#FAF8F4] flex flex-col relative select-none">
+              {/* Progress bar */}
+              <div className="h-[2px] w-full bg-stone-200 relative shrink-0">
+                <div 
+                  className="absolute top-0 left-0 h-full bg-[#B8913A] transition-all duration-500 ease-out-expo"
+                  style={{ width: `${(activeStage + 1) * 20}%` }}
+                />
+              </div>
+
+              {/* Inner Layout (HUD Sidebar + Scrollable Content) */}
+              <div className="flex-1 flex overflow-hidden w-full relative">
                 
-                {/* Header status bar */}
-                <div className="bg-[#FAF8F4] px-6 py-4 border-b border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
-                  <div className="flex items-center gap-2">
-                    <span className="font-serif text-sm font-semibold text-[#1A1814]">DQH</span>
-                    <span className="text-[10px] font-sans text-[#8A8070] uppercase tracking-wider">Case Study</span>
+                {/* Floating HUD Sidebar Table of Contents (Desktop only) */}
+                <div className="hidden md:flex w-60 border-r border-[#2C2920]/10 p-6 bg-[#FAF8F4] flex-col justify-between shrink-0 h-full select-none">
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <span className="text-[8px] tracking-[0.25em] text-[#8A8070] font-sans font-bold uppercase block">
+                        NHẬT KÝ THI CÔNG
+                      </span>
+                      <h4 className="font-sans font-extrabold text-xs text-[#1A1814] uppercase tracking-wider leading-none">
+                        DQH QUALITY PROOF
+                      </h4>
+                    </div>
+
+                    <div className="h-[1px] w-full bg-[#2C2920]/10" />
+
+                    <div className="space-y-4">
+                      {stages.map((stg, sIdx) => (
+                        <button
+                          key={sIdx}
+                          onClick={() => scrollToStage(sIdx)}
+                          className={`flex items-start gap-3 w-full text-left py-1.5 transition-all duration-300 cursor-pointer ${
+                            activeStage === sIdx 
+                              ? 'text-[#B8913A] translate-x-1 font-bold' 
+                              : 'text-[#8A8070] hover:text-[#1A1814]'
+                          }`}
+                        >
+                          <span className={`font-mono text-[9px] tracking-wider ${activeStage === sIdx ? 'text-[#B8913A]' : 'text-stone-400'}`}>
+                            0{sIdx + 1}
+                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] font-sans uppercase tracking-wider truncate leading-tight">
+                              {stg.title}
+                            </span>
+                            <span className="text-[7px] font-sans tracking-widest text-[#8A8070] uppercase truncate mt-0.5">
+                              {stg.subtitle}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <span className="text-[9px] font-sans text-[#8A8070] uppercase tracking-widest font-semibold">
-                    {selectedCaseStudy.title}
-                  </span>
+
+                  <div className="space-y-2 bg-[#161412] text-white p-3.5 rounded-sm border border-white/5 shadow-inner">
+                    <div className="flex justify-between items-center text-[7px] font-sans text-[#D4BC95] tracking-widest font-extrabold">
+                      <span>PROCESS HUD</span>
+                      <span className="bg-[#B8913A]/20 px-1 py-0.5 rounded-sm text-[6px]">PREMIUM</span>
+                    </div>
+                    <div className="text-[8px] font-sans text-stone-300 leading-normal">
+                      Cột bên trái bám dính (sticky) minh họa chi tiết 1-1 cho từng nội dung tương ứng.
+                    </div>
+                  </div>
                 </div>
 
-                {/* Progress bar */}
-                <div className="h-[2px] w-full bg-stone-200 relative shrink-0">
-                  <div 
-                    className="absolute top-0 left-0 h-full bg-[#B8913A] transition-all duration-500 ease-out-expo"
-                    style={{ width: `${(activeStage + 1) * 20}%` }}
-                  />
-                </div>
-
-                {/* Scrollable text areas */}
+                {/* Main Scrollable content column */}
                 <div 
                   ref={scrollContainerRef}
                   onScroll={handleScroll}
-                  className="flex-1 overflow-y-auto px-6 py-8 md:px-8 space-y-12 scroll-smooth"
+                  className="flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-8 space-y-12 scroll-smooth bg-[#FAF8F4]"
                 >
-                  <div className="pb-4 border-b border-[#2C2920]/10 space-y-2">
-                    <span className="text-[9px] tracking-[0.3em] uppercase text-[#8A8070] font-sans font-bold block">
-                      JOURNAL OF FINISHING
-                    </span>
-                    <h2 className="font-sans font-extrabold text-2xl tracking-tight text-[#1A1814] uppercase leading-none">
-                      {selectedCaseStudy.title}
-                    </h2>
-                    <p className="text-[9px] text-[#8A8070] uppercase font-sans tracking-widest font-semibold">
-                      {selectedCaseStudy.area} · {selectedCaseStudy.style} · by {selectedCaseStudy.studio}
+                  {/* Hero Cover Banner */}
+                  <div className="relative w-full h-[25vh] md:h-[40vh] rounded-sm overflow-hidden mb-6 border border-[#2C2920]/10 shadow-lg select-none">
+                    <img 
+                      src={selectedCaseStudy.coverImage} 
+                      alt={selectedCaseStudy.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#161412]/95 via-[#161412]/45 to-transparent flex flex-col justify-end p-5 md:p-8">
+                      <span className="text-[9px] tracking-[0.3em] uppercase text-[#D4BC95] font-extrabold block mb-1">
+                        JOURNAL OF ARCHITECTURAL FINISHING
+                      </span>
+                      <h2 className="font-sans font-extrabold text-xl md:text-3xl tracking-tight text-white uppercase leading-none mb-1.5">
+                        {selectedCaseStudy.title}
+                      </h2>
+                      <p className="text-[9px] text-stone-300 uppercase font-sans tracking-widest font-semibold">
+                        {selectedCaseStudy.location} · {selectedCaseStudy.area} · {selectedCaseStudy.style}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Intro Quote */}
+                  <div className="max-w-2xl mx-auto text-center space-y-3 pb-8 border-b border-[#2C2920]/10">
+                    <p className="font-serif italic text-xs md:text-sm text-[#B8913A] leading-relaxed">
+                      "{selectedCaseStudy.introText}"
                     </p>
                   </div>
 
-                  {stages.map((stg, sIdx) => {
-                    const isExpanded = !!expandedDetails[`stage-${sIdx}`];
-                    
-                    return (
-                      <div 
-                        key={sIdx}
-                        id={`stage-section-${sIdx}`}
-                        className="space-y-5 pt-2 pb-10 border-b border-[#2C2920]/10 last:border-0 scroll-mt-4"
-                      >
-                        <div className="space-y-1">
-                          <span className="text-[9px] font-sans text-[#B8913A] font-bold tracking-widest block">
-                            PHASE 0{sIdx + 1} / 05
-                          </span>
-                          <h3 className="font-sans font-bold text-base text-[#1A1814] tracking-wide uppercase">
-                            {stg.title}
-                          </h3>
-                          <span className="block text-[9px] text-[#8A8070] tracking-widest font-sans font-medium">
-                            {stg.subtitle}
-                          </span>
-                        </div>
-
-                        {/* Gold Serif italic painpoint quote */}
-                        <blockquote className="font-serif italic text-xs text-[#B8913A] pl-4 border-l-2 border-[#B8913A] my-4 leading-relaxed bg-[#B8913A]/3 py-2 pr-2">
-                          "{stg.painPoint}"
-                        </blockquote>
-
-                        {/* Story Content */}
-                        <div className="space-y-4">
-                          {stg.storyText.split('\n\n').map((pText, pIdx) => {
-                            if (!isExpanded && pIdx > 0) return null;
-                            return (
-                              <p 
-                                key={pIdx} 
-                                className="text-xs text-[#2C2920] leading-relaxed font-sans font-normal"
-                              >
-                                {pText}
-                              </p>
-                            );
-                          })}
-                        </div>
-
-                        {/* Illustrative Images for this specific section, visible by default */}
-                        <div className="mt-4 my-2">
-                          {sIdx === 0 && (
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm relative">
-                                <img 
-                                  src={selectedCaseStudy.floorPlan.blueprint} 
-                                  className="w-full h-full object-cover opacity-90 select-none pointer-events-none" 
-                                  alt="Blueprint" 
-                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              </div>
-                              <div className="aspect-[4/3] bg-stone-100 border border-[#2C2920]/10 rounded-sm overflow-hidden shadow-sm relative">
-                                <img 
-                                  src={selectedCaseStudy.floorPlan.sitePhoto} 
-                                  className="w-full h-full object-cover select-none pointer-events-none" 
-                                  alt="Site construction" 
-                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          {sIdx === 1 && (
-                            <div className="grid grid-cols-3 gap-2">
-                              {selectedCaseStudy.design3D.images.map((img: string, imgIdx: number) => (
-                                <div key={imgIdx} className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                                  <img 
-                                    src={img} 
-                                    className="w-full h-full object-cover select-none pointer-events-none" 
-                                    alt={`3D render ${imgIdx}`} 
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {sIdx === 2 && (
-                            <div className="relative aspect-[16/10] bg-stone-100 rounded-sm overflow-hidden shadow-sm">
-                              <img 
-                                src={selectedCaseStudy.structural.imgMain} 
-                                className="w-full h-full object-cover select-none pointer-events-none" 
-                                alt="Ceiling layout detail" 
-                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                              />
-                              <div className="absolute inset-0 bg-black/5" />
-                              <div className="absolute left-[8%] top-[12%] text-red-500 font-serif italic text-[9px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] pointer-events-none select-none">
-                                ↖ Khung lam gió thẩm mỹ phẳng viền
-                              </div>
-                              <div className="absolute right-[8%] bottom-[15%] text-red-500 font-serif italic text-[9px] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] pointer-events-none select-none">
-                                Tách khe tạo độ nét shadow gap ↗
-                              </div>
-                            </div>
-                          )}
-                          {sIdx === 3 && (
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                                <img 
-                                  src={selectedCaseStudy.fixedInterior.imgMain} 
-                                  className="w-full h-full object-cover select-none pointer-events-none" 
-                                  alt="Interior assembly" 
-                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              </div>
-                              <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                                <img 
-                                  src={selectedCaseStudy.looseFurniture.imgMain} 
-                                  className="w-full h-full object-cover select-none pointer-events-none" 
-                                  alt="Loose furniture corner" 
-                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          {sIdx === 4 && (
-                            <div className="space-y-2.5">
-                              <div className="aspect-[16/10] bg-stone-100 rounded-sm overflow-hidden shadow-md relative">
-                                <img 
-                                  src={selectedCaseStudy.finalize.images[0]} 
-                                  className="w-full h-full object-cover select-none pointer-events-none" 
-                                  alt="Completed overall view" 
-                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-2.5">
-                                <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                                  <img 
-                                    src={selectedCaseStudy.finalize.images[1]} 
-                                    className="w-full h-full object-cover select-none pointer-events-none" 
-                                    alt="Completed detail 1" 
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
-                                </div>
-                                <div className="aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden shadow-sm relative">
-                                  <img 
-                                    src={selectedCaseStudy.finalize.images[2]} 
-                                    className="w-full h-full object-cover select-none pointer-events-none" 
-                                    alt="Completed detail 2" 
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Accordion trigger */}
-                        <div>
-                          <button
-                            onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))}
-                            className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors duration-300 cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5"
-                          >
-                            {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
-                          </button>
-                        </div>
-
-                        {/* Dropdown content */}
-                        {isExpanded && (
-                          <div className="space-y-5 pt-4 mt-4 border-t border-dashed border-[#2C2920]/15 animate-fade-in">
-                            {sIdx === 1 && selectedCaseStudy.material.samples && (
-                              <div className="space-y-3">
-                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
-                                  KHAY MẪU VẬT LIỆU THỰC TẾ
-                                </span>
-                                <div className="grid grid-cols-2 gap-2">
-                                  {selectedCaseStudy.material.samples.map((samp: any, sampIdx: number) => (
-                                    <div key={sampIdx} className="bg-white p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2 items-center">
-                                      <div className="w-8 h-8 rounded-sm overflow-hidden shrink-0">
-                                        <img src={samp.img} className="w-full h-full object-cover" alt={samp.name} />
-                                      </div>
-                                      <div className="min-w-0">
-                                        <span className="block text-[8px] text-[#8A8070] uppercase truncate font-medium">{samp.desc}</span>
-                                        <span className="block text-[9px] font-sans font-bold text-[#2C2920] truncate">{samp.name}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {sIdx === 3 && stg.detailsItems && stg.detailsItems.length > 0 && (
-                              <div className="space-y-3">
-                                <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
-                                  DANH SÁCH MỘC NỘI THẤT RỜI ĐÃ PHỐI HỢP
-                                </span>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {stg.detailsItems.map((det: any, dIdx: number) => (
-                                    <div key={dIdx} className="flex items-center gap-3 bg-white p-1.5 border border-[#2C2920]/5 rounded-sm">
-                                      <div className="w-4 h-4 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-sans text-[8px] font-bold">
-                                        {det.num}
-                                      </div>
-                                      <span className="text-[9px] text-[#2C2920] font-sans font-medium">{det.name}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="space-y-3">
-                              <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
-                                BẰNG CHỨNG KỸ THUẬT (DQH QUALITY PROOF)
-                              </span>
-                              <div className="space-y-2">
-                                {stg.techChecklist.map((item: any, cIdx: number) => (
-                                  <div key={cIdx} className="bg-white p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
-                                    <span className="font-sans font-bold text-[9px] text-[#1A1814] uppercase tracking-wide">
-                                      {item.label}
-                                    </span>
-                                    <span className="font-sans text-[9px] text-[#8A8070] leading-relaxed">
-                                      {item.value}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
+                  {/* The 5 Phases (Section-Sticky Side-by-Side layout) */}
+                  <div className="space-y-16 md:space-y-24 pb-12">
+                    {stages.map((stg, sIdx) => {
+                      const isExpanded = !!expandedDetails[`stage-${sIdx}`];
+                      
+                      return (
+                        <div 
+                          key={sIdx}
+                          id={`stage-section-${sIdx}`}
+                          className="relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 scroll-mt-6 border-b border-[#2C2920]/10 pb-12 last:border-b-0"
+                        >
+                          
+                          {/* Left column (Image Gallery) - Sticky within its section parent on desktop */}
+                          <div className="w-full md:sticky md:top-4 md:h-[45vh] self-start overflow-hidden rounded-sm bg-[#161412] border border-[#2C2920]/10 shadow-md flex items-center justify-center p-0 relative min-h-[250px] md:min-h-[300px] select-none">
+                            {/* Grid BG decoration */}
+                            <div className="absolute inset-0 bg-[radial-gradient(#FAF8F4/0.03_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+                            
+                            <PhaseVisuals 
+                              stage={stg} 
+                              index={sIdx} 
+                              selectedCaseStudy={selectedCaseStudy} 
+                              imageErrors={imageErrors}
+                              onImageError={(url) => setImageErrors(prev => ({ ...prev, [url]: true }))}
+                            />
+                            
+                            {/* Visual tag overlay */}
+                            <div className="absolute bottom-3 right-3 bg-[#161412]/80 border border-white/10 px-2 py-0.5 rounded-sm text-[8px] font-sans tracking-widest text-[#D4BC95] uppercase font-bold">
+                              PHASE 0{sIdx + 1} VISUALS
                             </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
+
+                          {/* Right column (Text storytelling content) */}
+                          <div className="space-y-5 flex flex-col justify-start">
+                            <div className="space-y-1">
+                              <span className="text-[9px] font-sans text-[#B8913A] font-bold tracking-widest block">
+                                PHASE 0{sIdx + 1} / 05
+                              </span>
+                              <h3 className="font-sans font-extrabold text-base md:text-lg text-[#1A1814] tracking-wide uppercase">
+                                {stg.title}
+                              </h3>
+                              <span className="block text-[9px] text-[#8A8070] tracking-widest font-sans font-medium">
+                                {stg.subtitle}
+                              </span>
+                            </div>
+
+                            {/* Gold Serif italic painpoint quote */}
+                            <blockquote className="font-serif italic text-xs text-[#B8913A] pl-4 border-l-2 border-[#B8913A] py-1.5 pr-2 bg-[#B8913A]/3 rounded-r-sm leading-relaxed">
+                              "{stg.painPoint}"
+                            </blockquote>
+
+                            {/* Story content */}
+                            <div className="space-y-4 text-xs text-[#2C2920] leading-relaxed font-sans font-normal">
+                              {stg.storyText.split('\n\n').map((pText, pIdx) => {
+                                if (!isExpanded && pIdx > 0) return null;
+                                return (
+                                  <p key={pIdx}>
+                                    {pText}
+                                  </p>
+                                );
+                              })}
+                            </div>
+
+                            {/* Accordion trigger */}
+                            <div>
+                              <button
+                                onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))}
+                                className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors duration-300 cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5"
+                              >
+                                {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
+                              </button>
+                            </div>
+
+                            {/* Dropdown details content */}
+                            {isExpanded && (
+                              <div className="space-y-6 pt-5 border-t border-dashed border-[#2C2920]/15 animate-fade-in">
+                                {sIdx === 1 && selectedCaseStudy.material.samples && (
+                                  <div className="space-y-3">
+                                    <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                      KHAY MẪU VẬT LIỆU THỰC TẾ
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {selectedCaseStudy.material.samples.map((samp: any, sampIdx: number) => {
+                                        const failed = !samp.img || imageErrors[samp.img];
+                                        return (
+                                          <div key={sampIdx} className="bg-white p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2.5 items-center">
+                                            <div className="w-9 h-9 rounded-sm overflow-hidden shrink-0 bg-stone-100 flex items-center justify-center relative">
+                                              {!failed ? (
+                                                <img src={samp.img} className="w-full h-full object-cover" alt={samp.name} onError={() => setImageErrors(prev => ({ ...prev, [samp.img]: true }))} />
+                                              ) : (
+                                                <div className="absolute inset-0 flex items-center justify-center text-[7px] text-stone-400 font-mono">MAT</div>
+                                              )}
+                                            </div>
+                                            <div className="min-w-0">
+                                              <span className="block text-[8px] text-[#8A8070] uppercase truncate font-medium">{samp.desc}</span>
+                                              <span className="block text-[9px] font-sans font-bold text-[#2C2920] truncate">{samp.name}</span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {sIdx === 3 && stg.detailsItems && stg.detailsItems.length > 0 && (
+                                  <div className="space-y-3">
+                                    <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                      DANH SÁCH MỘC NỘI THẤT RỜI ĐÃ PHỐI HỢP
+                                    </span>
+                                    <div className="grid grid-cols-1 gap-1">
+                                      {stg.detailsItems.map((det: any, dIdx: number) => (
+                                        <div key={dIdx} className="flex items-center gap-3 bg-white p-1.5 border border-[#2C2920]/5 rounded-sm">
+                                          <div className="w-4.5 h-4.5 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-sans text-[8px] font-bold shrink-0">
+                                            {det.num}
+                                          </div>
+                                          <span className="text-[9px] text-[#2C2920] font-sans font-medium">{det.name}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="space-y-3">
+                                  <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">
+                                    BẰNG CHỨNG KỸ THUẬT (DQH QUALITY PROOF)
+                                  </span>
+                                  <div className="space-y-2">
+                                    {stg.techChecklist.map((item: any, cIdx: number) => (
+                                      <div key={cIdx} className="bg-white p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
+                                        <span className="font-sans font-bold text-[9px] text-[#1A1814] uppercase tracking-wide">
+                                          {item.label}
+                                        </span>
+                                        <span className="font-sans text-[9px] text-[#8A8070] leading-relaxed">
+                                          {item.value}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                        </div>
+                      );
+                    })}
+                  </div>
 
                   {/* Thank you box */}
-                  <div className="bg-[#161412] text-white p-6 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden">
+                  <div className="bg-[#161412] text-white p-8 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden max-w-2xl mx-auto mt-16 select-none">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-white/5 pointer-events-none" />
                     
                     <div className="relative z-10 space-y-1">
-                      <span className="font-sans tracking-[0.35em] text-[10px] uppercase text-[#D4BC95] font-extrabold block">DQH Architects</span>
+                      <span className="font-sans tracking-[0.35em] text-[10px] uppercase text-[#D4BC95] font-extrabold block">DQH ARCHITECTS</span>
                       <span className="block text-[6px] tracking-[0.3em] uppercase text-stone-400 font-sans">living space build &amp; success orientation</span>
                     </div>
 
@@ -2919,30 +3075,31 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Floating bottom controls */}
-                <div className="bg-[#FAF8F4] px-6 py-4 border-t border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
-                  <div className="flex gap-2">
-                    <button 
-                      disabled={activeStage === 0}
-                      onClick={() => scrollToStage(activeStage - 1)}
-                      className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer select-none"
-                    >
-                      ←
-                    </button>
-                    <button 
-                      disabled={activeStage === 4}
-                      onClick={() => scrollToStage(activeStage + 1)}
-                      className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer select-none"
-                    >
-                      →
-                    </button>
-                  </div>
-                  <span className="text-[9px] font-sans font-semibold tracking-wider text-[#8A8070]">
-                    PHASE 0{activeStage + 1} / 05
-                  </span>
                 </div>
+              </div>
+
+              {/* Floating bottom controls */}
+              <div className="bg-[#FAF8F4] px-6 py-4 border-t border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20 select-none">
+                <div className="flex gap-2">
+                  <button 
+                    disabled={activeStage === 0}
+                    onClick={() => scrollToStage(activeStage - 1)}
+                    className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer"
+                  >
+                    ←
+                  </button>
+                  <button 
+                    disabled={activeStage === 4}
+                    onClick={() => scrollToStage(activeStage + 1)}
+                    className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer"
+                  >
+                    →
+                  </button>
+                </div>
+                <span className="text-[9px] font-sans font-semibold tracking-wider text-[#8A8070]">
+                  PHASE 0{activeStage + 1} / 05
+                </span>
               </div>
 
             </div>
