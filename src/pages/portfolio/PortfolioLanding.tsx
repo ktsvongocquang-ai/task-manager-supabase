@@ -481,17 +481,17 @@ const CASE_STUDIES = [
   {
     title: "Chị gọi lúc 10 giờ tối",
     tag: "Tử tế làm đầu (Story A)",
-    desc: "Gia chủ chị N. gọi điện lúc 10h tối thứ Sáu khi mái nhà penthouse gặp sự cố thấm dột do bão lớn tràn qua khe kính của giếng trời (không thuộc phạm vi thi công của DQH). Nhận thông tin, KTS Minh Tuấn và kỹ thuật viên Khoa trực tiếp mang bạt chuyên dụng đến hiện trường lúc 11h đêm mưa gió để hỗ trợ phủ bạt và bắn keo tạm thời, bảo vệ toàn bộ sàn gỗ tự nhiên cho phòng của bé. Chị N. xúc động chia sẻ: 'Chị gọi điện chỉ mong được hướng dẫn cách xử lý tạm, không ngờ các em lại phi trực tiếp qua công trình trong đêm mưa gió.'"
+    desc: "11h đêm mưa bão, penthouse của chị N. bị thấm dột từ khe kính giếng trời cũ (không thuộc phạm vi của DQH). Nhận cuộc gọi khẩn, đội ngũ DQH lập tức mang bạt chuyên dụng qua hỗ trợ xử lý ngay trong đêm, bảo vệ sàn gỗ tự nhiên và mang lại sự an tâm cho gia đình."
   },
   {
     title: "Anh ấy từ chối 3 triệu",
     tag: "Chuyên môn & Đạo đức (Story B)",
-    desc: "Trong quá trình nghiệm thu lắp ráp hệ tủ Horizon, một thầu phụ nhỏ đề nghị bồi dưỡng riêng 3 triệu đồng cho KTS Hoàng Nam để bỏ qua một khe hở lệch 1.5mm ở vách tủ giáp tường thạch cao. KTS Nam kiên quyết từ chối, yêu cầu thầu phụ tháo ra bào và lắp ráp lại từ đầu, mất thêm 3 ngày sản xuất lại. Anh Nam nói: 'Tôi không thể nhìn vào khe hở đó mỗi ngày và biết mình đã chọn tiền thay vì tiêu chuẩn hoàn thiện.' Sự kiên định này đã bảo vệ tuyệt đối chất lượng khớp shadow line cho chủ nhà."
+    desc: "Phát hiện khe hở tủ lệch 1.5mm giáp tường thạch cao, KTS của DQH từ chối thẳng thắn khoản bồi dưỡng 3 triệu đồng của thầu phụ để nhắm mắt bỏ qua. Anh yêu cầu tháo dỡ và sản xuất lại từ đầu, kiên quyết giữ vững tiêu chuẩn hoàn thiện shadow line sắc sảo nhất."
   },
   {
     title: "48 giờ trước bàn giao",
     tag: "Nhiệt huyết hành động (Story C)",
-    desc: "Hai ngày trước lễ bàn giao chìa khóa, chủ nhà thay đổi ý định và muốn đổi tông màu sơn phòng ngủ phụ từ xám đá sang màu trắng ấm. Mặc dù hợp đồng hoàn toàn cho phép từ chối hoặc tính thêm phí phát sinh trễ hạn, đội sơn của DQH đã ở lại làm việc xuyên đêm, sơn lại 3 lớp để bàn giao đúng ngày giờ tốt cho gia chủ mà không tính thêm bất kỳ một chi phí phát sinh nào."
+    desc: "48h trước lễ bàn giao, gia chủ muốn đổi màu sơn phòng ngủ phụ từ xám sang trắng ấm. Dù hợp đồng cho phép từ chối, đội thợ DQH vẫn ở lại làm việc xuyên đêm, sơn lại 3 lớp để bàn giao đúng ngày lành tháng tốt của chủ nhà mà không tính thêm chi phí."
   }
 ];
 
@@ -657,7 +657,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [activeStage, setActiveStage] = useState<number>(0);
   const [hoveredStage, setHoveredStage] = useState<number | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
-  const [expandedStories, setExpandedStories] = useState<Record<number, boolean>>({});
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -1858,30 +1857,17 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </h3>
               
               <div className="space-y-6 divide-y divide-[#2C2920]/10">
-                {CASE_STUDIES.map((study, idx) => {
-                  const isStoryExpanded = !!expandedStories[idx];
-                  const displayDesc = isStoryExpanded ? study.desc : (study.desc.length > 150 ? study.desc.substring(0, 150) + "..." : study.desc);
-                  
-                  return (
-                    <div key={idx} className="border-l-2 border-[#B8913A] pl-6 py-2 space-y-3 pt-6 first:pt-0 border-t border-[#2C2920]/5 first:border-t-0">
-                      <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold block">
-                        {study.tag}
-                      </span>
-                      <h4 className="font-serif text-lg font-light text-[#2C2920]">{study.title}</h4>
-                      <p className="text-xs text-[#8A8070] leading-relaxed italic transition-all duration-300">
-                        "{displayDesc}"
-                      </p>
-                      {study.desc.length > 150 && (
-                        <button
-                          onClick={() => setExpandedStories(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                          className="text-[9px] tracking-[0.12em] uppercase text-[#B8913A] hover:text-[#2C2920] font-bold cursor-pointer transition-colors pt-1 block"
-                        >
-                          {isStoryExpanded ? '[-] Thu gọn' : '[+] Xem chi tiết câu chuyện'}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                {CASE_STUDIES.map((study, idx) => (
+                  <div key={idx} className="border-l-2 border-[#B8913A] pl-6 py-2 space-y-3 pt-6 first:pt-0 border-t border-[#2C2920]/5 first:border-t-0">
+                    <span className="text-[9px] tracking-[0.15em] uppercase text-[#B8913A] font-bold block">
+                      {study.tag}
+                    </span>
+                    <h4 className="font-serif text-lg font-light text-[#2C2920]">{study.title}</h4>
+                    <p className="text-xs text-[#8A8070] leading-relaxed italic">
+                      "{study.desc}"
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
