@@ -386,10 +386,10 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   }
 
   return (
-    <div className="font-sans antialiased bg-[#F8F5F0] text-[#2C2920] selection:bg-[#B8913A] selection:text-white">
+    <div className="font-sans antialiased bg-[#F8F5F0] text-[#2C2920] selection:bg-[#B8913A] selection:text-white relative">
       
       {/* ── NAVBAR ── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 px-6 md:px-16 py-5 flex items-center justify-between transition-all duration-500 ${
+      <nav className={`${isPreview ? 'absolute' : 'fixed'} top-0 left-0 right-0 z-20 px-6 md:px-16 py-5 flex items-center justify-between transition-all duration-500 ${
         isScrolled 
           ? 'bg-[#F8F5F0]/95 backdrop-blur-md border-b border-[#2C2920]/10 shadow-sm' 
           : 'bg-transparent border-b border-transparent'
