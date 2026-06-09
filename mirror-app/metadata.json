@@ -1,0 +1,11 @@
+{
+  "name": "Interactive Floor Plan Camera & Voice Notes",
+  "description": "Tải bản vẽ mặt bằng, chấm điểm, kích hoạt camera chụp hình hiện trường và thuyết minh bằng giọng nói tiếng Việt.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
