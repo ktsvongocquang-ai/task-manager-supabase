@@ -263,12 +263,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
 
     const MentionsDropdown = () => (
         showMentions && filteredProfiles.length > 0 ? (
-            <div ref={mentionsRef} className="absolute bottom-full mb-2 left-4 bg-white border border-slate-200 rounded-lg shadow-xl w-64 max-h-48 overflow-y-auto z-50">
-                <div className="px-3 py-2 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">Thành viên</div>
+            <div ref={mentionsRef} className="absolute bottom-full mb-2 left-4 bg-[#222] border border-[#333] rounded-lg shadow-xl w-64 max-h-48 overflow-y-auto z-50">
+                <div className="px-3 py-2 bg-[#1c1c1c] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-[#333]">Thành viên</div>
                 {filteredProfiles.map(p => (
                     <div key={p.id} className="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 group transition-colors" onClick={() => insertMention(p)}>
                         <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigo-600">{p.full_name.charAt(0)}</div>
-                        <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-700">@{p.full_name}</span>
+                        <span className="text-sm font-medium text-slate-200 group-hover:text-indigo-700">@{p.full_name}</span>
                     </div>
                 ))}
             </div>
@@ -276,18 +276,18 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
     )
 
     return (
-        <div className="flex h-[340px] border border-slate-200 rounded-xl bg-white overflow-hidden relative transition-all shadow-sm">
+        <div className="flex h-[340px] border border-[#333] rounded-xl bg-[#222] overflow-hidden relative transition-all shadow-sm">
             {/* Left Column (Main Chat) */}
-            <div className={`flex flex-col h-full bg-white transition-all duration-300 ${activeThreadId ? 'w-1/2 border-r border-slate-200' : 'w-full'}`}>
-                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
-                    <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2">
+            <div className={`flex flex-col h-full bg-[#222] transition-all duration-300 ${activeThreadId ? 'w-1/2 border-r border-[#333]' : 'w-full'}`}>
+                <div className="px-4 py-3 bg-[#1c1c1c] border-b border-[#333] flex justify-between items-center z-10 shrink-0">
+                    <h4 className="font-bold text-slate-200 text-sm flex items-center gap-2">
                         <MessageSquare size={16} className="text-indigo-500" />
                         Ghi chú & Thảo luận
                     </h4>
-                    {!activeThreadId && <span className="text-xs text-slate-500 font-medium">{parentComments.length} bản ghi</span>}
+                    {!activeThreadId && <span className="text-xs text-slate-400 font-medium">{parentComments.length} bản ghi</span>}
                 </div>
 
-                <div className="flex-1 p-4 py-3 overflow-y-auto bg-slate-50/20 space-y-4 relative custom-scrollbar">
+                <div className="flex-1 p-4 py-3 overflow-y-auto bg-[#1c1c1c]/20 space-y-4 relative custom-scrollbar">
                     {loading && comments.length === 0 ? (
                         <div className="flex justify-center items-center h-full">
                             <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -306,12 +306,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
 
                             return (
                                 <div key={comment.id || idx} className={`flex gap-3 max-w-[92%] group/comment ${isMe ? 'ml-auto flex-row-reverse' : ''}`}>
-                                    <div className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] text-white font-bold shadow-sm ${isMe ? 'bg-indigo-500' : 'bg-slate-500'}`}>
+                                    <div className={`w-8 h-8 mt-1 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] text-white font-bold shadow-sm ${isMe ? 'bg-indigo-500' : 'bg-[#1c1c1c]0'}`}>
                                         {getProfileInitials(comment.user_id)}
                                     </div>
                                     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} flex-1 min-w-0`}>
                                         <div className="flex items-baseline gap-2 mb-1">
-                                            <span className="text-xs font-bold text-slate-700">{getProfileName(comment.user_id)}</span>
+                                            <span className="text-xs font-bold text-slate-200">{getProfileName(comment.user_id)}</span>
                                             <span className="text-[10px] font-medium text-slate-400">{formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true, locale: vi })}</span>
                                             {isMe && editingCommentId !== comment.id && (
                                                 <div className="flex items-center gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
@@ -322,18 +322,18 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                         </div>
                                         {/* Image */}
                                         {(comment as any).image_url && (
-                                            <div className="mb-1 rounded-xl overflow-hidden border border-slate-200 shadow-sm max-w-[180px]">
+                                            <div className="mb-1 rounded-xl overflow-hidden border border-[#333] shadow-sm max-w-[180px]">
                                                 <img src={(comment as any).image_url} alt="Hình" className="w-full h-auto object-cover cursor-pointer" onClick={() => window.open((comment as any).image_url, '_blank')} />
                                             </div>
                                         )}
                                         {editingCommentId === comment.id ? (
                                             <div className="flex items-center gap-2 w-full">
-                                                <input autoFocus value={editContent} onChange={(e) => setEditContent(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit() }} className="flex-1 bg-white border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700" />
+                                                <input autoFocus value={editContent} onChange={(e) => setEditContent(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit() }} className="flex-1 bg-[#222] border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-200" />
                                                 <button onClick={handleSaveEdit} className="p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"><Check size={14} /></button>
                                                 <button onClick={handleCancelEdit} className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"><X size={14} /></button>
                                             </div>
                                         ) : comment.content ? (
-                                            <div className={`px-4 py-2.5 shadow-sm text-sm break-words whitespace-pre-wrap ${isMe ? 'bg-[#ebf0fe] text-slate-800 border border-[#d6e0fd] rounded-2xl rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm'}`}>
+                                            <div className={`px-4 py-2.5 shadow-sm text-sm break-words whitespace-pre-wrap ${isMe ? 'bg-[#ebf0fe] text-slate-100 border border-[#d6e0fd] rounded-2xl rounded-tr-sm' : 'bg-[#222] border border-[#333] text-slate-100 rounded-2xl rounded-tl-sm'}`}>
                                                 {renderContent(comment.content)}
                                             </div>
                                         ) : null}
@@ -359,10 +359,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                 </div>
 
                 {/* Main Input */}
-                <div className="p-3 bg-white border-t border-slate-200 relative shrink-0">
+                <div className="p-3 bg-[#222] border-t border-[#333] relative shrink-0">
                     {pendingMainPreview && (
                         <div className="relative inline-block mb-2">
-                            <img src={pendingMainPreview} alt="Preview" className="h-16 rounded-lg border border-slate-200 object-cover" />
+                            <img src={pendingMainPreview} alt="Preview" className="h-16 rounded-lg border border-[#333] object-cover" />
                             <button onClick={() => clearImage('main')} className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center">
                                 <XCircle size={12} />
                             </button>
@@ -381,7 +381,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                             onChange={(e) => handleInputChange(e, 'main')}
                             onKeyDown={(e) => handleKeyPress(e, 'main')}
                             placeholder="Ghi chú & thảo luận... (@ để tag)"
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                            className="flex-1 bg-[#1c1c1c] border border-[#333] rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-200"
                             onFocus={() => setActiveMentionTarget('main')}
                         />
                         <button onClick={() => handleSend('main')} disabled={(!newMessage.trim() && !pendingMainImage) || uploadingMain} className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-sm">
@@ -393,33 +393,33 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
 
             {/* Right Column (Thread) */}
             {activeThreadId && (
-                <div className="flex flex-col h-full w-1/2 bg-slate-50 border-l border-slate-200 animate-in fade-in slide-in-from-right-4 duration-300 shadow-[inset_1px_0_0_rgba(0,0,0,0.05)] relative z-20">
-                    <div className="px-4 py-3 bg-white border-b border-slate-200 flex justify-between items-center sticky top-0 z-10 shadow-sm shrink-0">
-                        <h4 className="font-extrabold text-slate-800 text-sm">Chủ đề</h4>
-                        <button onClick={() => setActiveThreadId(null)} className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-lg transition-colors">
+                <div className="flex flex-col h-full w-1/2 bg-[#1c1c1c] border-l border-[#333] animate-in fade-in slide-in-from-right-4 duration-300 shadow-[inset_1px_0_0_rgba(0,0,0,0.05)] relative z-20">
+                    <div className="px-4 py-3 bg-[#222] border-b border-[#333] flex justify-between items-center sticky top-0 z-10 shadow-sm shrink-0">
+                        <h4 className="font-extrabold text-slate-100 text-sm">Chủ đề</h4>
+                        <button onClick={() => setActiveThreadId(null)} className="text-slate-400 hover:text-slate-600 hover:bg-[#2a2a2a] p-1.5 rounded-lg transition-colors">
                             <X size={16} strokeWidth={2.5} />
                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {activeThreadParent && (
-                            <div className="p-4 border-b border-slate-200/60 bg-white">
+                            <div className="p-4 border-b border-[#333]/60 bg-[#222]">
                                 <div className="flex gap-3">
-                                    <div className="w-7 h-7 rounded-full bg-slate-500 flex items-center justify-center flex-shrink-0 text-[10px] text-white font-bold">
+                                    <div className="w-7 h-7 rounded-full bg-[#1c1c1c]0 flex items-center justify-center flex-shrink-0 text-[10px] text-white font-bold">
                                         {getProfileInitials(activeThreadParent.user_id)}
                                     </div>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-baseline gap-2 mb-1">
-                                            <span className="text-xs font-black text-slate-800">{getProfileName(activeThreadParent.user_id)}</span>
+                                            <span className="text-xs font-black text-slate-100">{getProfileName(activeThreadParent.user_id)}</span>
                                             <span className="text-[10px] font-medium text-slate-400">{formatDistanceToNow(parseISO(activeThreadParent.created_at), { addSuffix: true, locale: vi })}</span>
                                         </div>
                                         {(activeThreadParent as any).image_url && (
-                                            <div className="mb-1 rounded-lg overflow-hidden border border-slate-200 max-w-[140px]">
+                                            <div className="mb-1 rounded-lg overflow-hidden border border-[#333] max-w-[140px]">
                                                 <img src={(activeThreadParent as any).image_url} alt="Hình" className="w-full h-auto object-cover cursor-pointer" onClick={() => window.open((activeThreadParent as any).image_url, '_blank')} />
                                             </div>
                                         )}
                                         {activeThreadParent.content && (
-                                            <div className="text-sm text-slate-700 leading-relaxed font-medium break-words whitespace-pre-wrap">
+                                            <div className="text-sm text-slate-200 leading-relaxed font-medium break-words whitespace-pre-wrap">
                                                 {renderContent(activeThreadParent.content)}
                                             </div>
                                         )}
@@ -443,7 +443,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                         </div>
                                         <div className="flex flex-col flex-1 min-w-0">
                                             <div className="flex items-baseline gap-2 mb-1">
-                                                <span className="text-xs font-bold text-slate-700">{getProfileName(reply.user_id)}</span>
+                                                <span className="text-xs font-bold text-slate-200">{getProfileName(reply.user_id)}</span>
                                                 <span className="text-[10px] font-medium text-slate-400">{formatDistanceToNow(parseISO(reply.created_at), { addSuffix: true, locale: vi })}</span>
                                                 {isReplyMine && editingCommentId !== reply.id && (
                                                     <div className="flex items-center gap-1 opacity-0 group-hover/reply:opacity-100 transition-opacity">
@@ -453,18 +453,18 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                                 )}
                                             </div>
                                             {(reply as any).image_url && (
-                                                <div className="mb-1 rounded-lg overflow-hidden border border-slate-200 max-w-[130px]">
+                                                <div className="mb-1 rounded-lg overflow-hidden border border-[#333] max-w-[130px]">
                                                     <img src={(reply as any).image_url} alt="Hình" className="w-full h-auto object-cover cursor-pointer" onClick={() => window.open((reply as any).image_url, '_blank')} />
                                                 </div>
                                             )}
                                             {editingCommentId === reply.id ? (
                                                 <div className="flex items-center gap-2 w-full">
-                                                    <input autoFocus value={editContent} onChange={(e) => setEditContent(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit() }} className="flex-1 bg-white border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-700" />
+                                                    <input autoFocus value={editContent} onChange={(e) => setEditContent(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit() }} className="flex-1 bg-[#222] border border-indigo-300 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-200" />
                                                     <button onClick={handleSaveEdit} className="p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"><Check size={14} /></button>
                                                     <button onClick={handleCancelEdit} className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"><X size={14} /></button>
                                                 </div>
                                             ) : reply.content ? (
-                                                <div className="text-sm text-slate-800 leading-relaxed break-words whitespace-pre-wrap">{renderContent(reply.content)}</div>
+                                                <div className="text-sm text-slate-100 leading-relaxed break-words whitespace-pre-wrap">{renderContent(reply.content)}</div>
                                             ) : null}
                                         </div>
                                     </div>
@@ -475,10 +475,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                     </div>
 
                     {/* Thread Input */}
-                    <div className="p-3 bg-white border-t border-slate-200 relative shrink-0">
+                    <div className="p-3 bg-[#222] border-t border-[#333] relative shrink-0">
                         {pendingThreadPreview && (
                             <div className="relative inline-block mb-2">
-                                <img src={pendingThreadPreview} alt="Preview" className="h-14 rounded-lg border border-slate-200 object-cover" />
+                                <img src={pendingThreadPreview} alt="Preview" className="h-14 rounded-lg border border-[#333] object-cover" />
                                 <button onClick={() => clearImage('thread')} className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center">
                                     <XCircle size={12} />
                                 </button>
@@ -497,10 +497,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                 onChange={(e) => handleInputChange(e, 'thread')}
                                 onKeyDown={(e) => handleKeyPress(e, 'thread')}
                                 placeholder="Trả lời trong chủ đề... (@ để tag)"
-                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700"
+                                className="flex-1 bg-[#222] border border-[#333] rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-200"
                                 onFocus={() => setActiveMentionTarget('thread')}
                             />
-                            <button onClick={() => handleSend('thread')} disabled={(!newThreadMessage.trim() && !pendingThreadImage) || uploadingThread} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-50 disabled:text-slate-400 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm shrink-0">
+                            <button onClick={() => handleSend('thread')} disabled={(!newThreadMessage.trim() && !pendingThreadImage) || uploadingThread} className="w-8 h-8 bg-blue-500 hover:bg-blue-600 disabled:bg-[#1c1c1c] disabled:text-slate-400 text-white rounded-xl flex items-center justify-center transition-colors shadow-sm shrink-0">
                                 {uploadingThread ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                             </button>
                         </div>

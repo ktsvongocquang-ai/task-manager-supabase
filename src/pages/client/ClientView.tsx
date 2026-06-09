@@ -67,33 +67,33 @@ export const ClientView = () => {
   }
 
   if (viewState === 'loading') return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1c1c1c] flex flex-col items-center justify-center p-4">
       <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-4" />
-      <p className="text-slate-500 font-medium">Đang kết nối dự án...</p>
+      <p className="text-slate-400 font-medium">Đang kết nối dự án...</p>
     </div>
   )
 
   if (viewState === 'not_found') return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1c1c1c] flex items-center justify-center p-4">
       <div className="text-center">
         <div className="w-20 h-20 bg-slate-200 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-inner">
           <Building2 size={32} className="text-slate-400" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800">Không tìm thấy dự án</h2>
-        <p className="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Đường dẫn không hợp lệ hoặc đã hết hạn. Vui lòng liên hệ DQH để được cấp lại.</p>
+        <h2 className="text-xl font-bold text-slate-100">Không tìm thấy dự án</h2>
+        <p className="text-sm text-slate-400 mt-2 max-w-xs mx-auto">Đường dẫn không hợp lệ hoặc đã hết hạn. Vui lòng liên hệ DQH để được cấp lại.</p>
       </div>
     </div>
   )
 
   if (viewState === 'gate') return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#1c1c1c] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-sm bg-white rounded-[2rem] shadow-xl p-8 border border-slate-100">
+        className="w-full max-w-sm bg-[#222] rounded-[2rem] shadow-xl p-8 border border-[#333]">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center rounded-2xl mx-auto mb-4 shadow-lg shadow-indigo-200">
             <Lock size={24} className="text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">{project?.name || 'Dự Án DQH'}</h2>
+          <h2 className="text-2xl font-black text-slate-100 tracking-tight">{project?.name || 'Dự Án DQH'}</h2>
           <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-2">XÁC THỰC KHÁCH HÀNG</p>
         </div>
 
@@ -103,7 +103,7 @@ export const ClientView = () => {
               type="password"
               placeholder="Nhập mã bí mật..."
               value={pass} onChange={e => { setPass(e.target.value); setWrong(false); }}
-              className={`w-full bg-slate-50 border-2 rounded-xl px-5 py-4 text-center font-bold tracking-widest text-xl focus:outline-none transition-all placeholder-slate-300 ${wrong ? 'border-rose-400 text-rose-600 bg-rose-50' : 'border-slate-100 focus:border-indigo-400 focus:bg-white text-slate-700'}`}
+              className={`w-full bg-[#1c1c1c] border-2 rounded-xl px-5 py-4 text-center font-bold tracking-widest text-xl focus:outline-none transition-all placeholder-slate-300 ${wrong ? 'border-rose-400 text-rose-600 bg-rose-50' : 'border-[#333] focus:border-indigo-400 focus:bg-[#222] text-slate-200'}`}
               autoFocus
             />
           </motion.div>
@@ -133,11 +133,11 @@ export const ClientView = () => {
         {/* Header - Matches Construction.tsx */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Quản lý Thi công</h1>
+            <h1 className="text-xl font-bold text-slate-100">Quản lý Thi công</h1>
             <p className="text-sm text-slate-400 mt-0.5 uppercase">{project.name} • {project.address}</p>
           </div>
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-             <button className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition-all pointer-events-none">
+          <div className="flex bg-[#2a2a2a] p-1 rounded-xl">
+             <button className="px-3 py-1.5 text-xs font-bold rounded-lg bg-[#222] text-indigo-600 shadow-sm transition-all pointer-events-none">
                 Chủ nhà
              </button>
              <button className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 transition-all pointer-events-none opacity-50">Giám Sát</button>
@@ -146,9 +146,9 @@ export const ClientView = () => {
         </div>
 
         {/* View Tabs */}
-        <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto w-full">
+        <div className="flex bg-[#2a2a2a] p-1 rounded-xl overflow-x-auto w-full">
           {VIEW_TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as ViewTab)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap flex-1 ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as ViewTab)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap flex-1 ${activeTab === tab.id ? 'bg-[#222] text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
               {tab.icon}
               <span>{tab.label}</span>
             </button>

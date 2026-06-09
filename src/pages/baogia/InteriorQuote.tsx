@@ -165,9 +165,9 @@ export default function InteriorQuote() {
         <p>3. Dán vào ô bên dưới → bấm "Phân tích"</p>
       </div>
       <div>
-        <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Dán JSON từ Claude</label>
+        <label className="block text-xs font-bold text-slate-400 uppercase mb-1.5">Dán JSON từ Claude</label>
         <textarea value={rawJson} onChange={e => { setRawJson(e.target.value); setParseError(''); }}
-          rows={14} className="w-full px-4 py-3 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none bg-white resize-y"
+          rows={14} className="w-full px-4 py-3 border border-[#333] rounded-xl text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none bg-[#222] resize-y"
           placeholder={SAMPLE_JSON} />
       </div>
       {parseError && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 font-semibold">{parseError}</div>}
@@ -182,13 +182,13 @@ export default function InteriorQuote() {
 
   const renderStep1 = () => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3 border border-slate-200">
+      <div className="flex items-center justify-between bg-[#1c1c1c] rounded-xl px-4 py-3 border border-[#333]">
         <div className="text-sm"><strong>{project.name}</strong> — {project.clientName} — {project.area} m² — {project.tier.toUpperCase()}</div>
         <div className="text-xs font-bold text-indigo-600">{checkedItems.length} / {bills.flatMap(b=>b.items).length} đã tick</div>
       </div>
       <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
         {bills.map((bill, bi) => (
-          <div key={bill.bill} className="border border-slate-200 rounded-xl overflow-hidden">
+          <div key={bill.bill} className="border border-[#333] rounded-xl overflow-hidden">
             <button onClick={() => setExpandedBills(p => ({ ...p, [bill.bill]: !p[bill.bill] }))}
               className="w-full flex items-center justify-between px-4 py-3 bg-slate-800 text-white text-left">
               <span className="text-sm font-bold">{bill.bill}: {bill.name}</span>
@@ -199,21 +199,21 @@ export default function InteriorQuote() {
             </button>
             {expandedBills[bill.bill] && (
               <div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-200">
+                <div className="flex items-center gap-2 px-4 py-2 bg-[#1c1c1c] border-b border-[#333]">
                   <button onClick={() => toggleAllInBill(bi, true)} className="text-xs font-bold text-emerald-600 hover:underline">Tick tất cả</button>
                   <span className="text-slate-300">|</span>
-                  <button onClick={() => toggleAllInBill(bi, false)} className="text-xs font-bold text-slate-500 hover:underline">Bỏ tick</button>
+                  <button onClick={() => toggleAllInBill(bi, false)} className="text-xs font-bold text-slate-400 hover:underline">Bỏ tick</button>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {bill.items.map((it, ii) => (
-                    <div key={ii} className={`flex items-start gap-3 px-4 py-3 ${it.checked ? 'bg-emerald-50/50' : 'bg-white'} transition-colors`}>
+                    <div key={ii} className={`flex items-start gap-3 px-4 py-3 ${it.checked ? 'bg-emerald-50/50' : 'bg-[#222]'} transition-colors`}>
                       <button onClick={() => toggleItem(bi, ii)} className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-all ${it.checked ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 hover:border-indigo-400'}`}>
                         {it.checked && <Check className="w-3 h-3" />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-slate-800">{it.stt}. {it.name}</div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-500">
-                          <span><strong>KL:</strong> <input type="number" value={it.quantity} onChange={e => updateItemField(bi, ii, 'quantity', Number(e.target.value))} className="w-16 px-1 py-0.5 border border-slate-200 rounded text-center inline-block" /> {it.unit}</span>
+                        <div className="text-sm font-semibold text-slate-100">{it.stt}. {it.name}</div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-slate-400">
+                          <span><strong>KL:</strong> <input type="number" value={it.quantity} onChange={e => updateItemField(bi, ii, 'quantity', Number(e.target.value))} className="w-16 px-1 py-0.5 border border-[#333] rounded text-center inline-block" /> {it.unit}</span>
                           <span><strong>Hao hụt:</strong> ×{it.waste_factor}</span>
                           <span><strong>Scope:</strong> {it.scope}</span>
                         </div>
@@ -245,7 +245,7 @@ export default function InteriorQuote() {
           <p className="text-xs text-amber-600 mt-2 italic">Cần liên hệ NCC hoặc nhập thủ công giá.</p>
         </div>
       )}
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <div className="overflow-x-auto rounded-xl border border-[#333]">
         <table className="w-full text-sm">
           <thead className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
             <tr>
@@ -262,9 +262,9 @@ export default function InteriorQuote() {
               const qty = it.quantity * (it.waste_factor || 1);
               const price = it.matched_price ?? it.unit_price ?? 0;
               return (
-                <tr key={i} className={`hover:bg-slate-50 ${price === 0 ? 'bg-amber-50' : ''}`}>
-                  <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                  <td className="px-3 py-2 font-semibold text-slate-800">{it.name}</td>
+                <tr key={i} className={`hover:bg-[#1c1c1c] ${price === 0 ? 'bg-amber-50' : ''}`}>
+                  <td className="px-3 py-2 text-slate-400">{i + 1}</td>
+                  <td className="px-3 py-2 font-semibold text-slate-100">{it.name}</td>
                   <td className="px-3 py-2 text-center text-slate-600">{it.unit}</td>
                   <td className="px-3 py-2 text-right">{(Math.round(qty * 100) / 100).toLocaleString()}</td>
                   <td className="px-3 py-2 text-right">{price > 0 ? formatVND(price) : <span className="text-red-500 font-bold">—</span>}</td>
@@ -293,7 +293,7 @@ export default function InteriorQuote() {
     <div className="space-y-6 text-center">
       <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-8">
         <FileSpreadsheet className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-        <h3 className="text-xl font-black text-slate-800 mb-2">Báo giá sẵn sàng!</h3>
+        <h3 className="text-xl font-black text-slate-100 mb-2">Báo giá sẵn sàng!</h3>
         <p className="text-sm text-slate-600 mb-1"><strong>{project.name}</strong> — {project.clientName}</p>
         <p className="text-sm text-slate-600">{checkedItems.length} hạng mục • {project.tier.toUpperCase()} • {formatVND(summary.totalAfterVAT)}</p>
         <button onClick={() => exportToExcel(project, lineItems, summary)}
@@ -301,7 +301,7 @@ export default function InteriorQuote() {
           <Download className="w-5 h-5" /> Tải Excel (.xlsx)
         </button>
       </div>
-      <p className="text-xs text-slate-500 italic">Khối lượng cuối cùng được xác định theo nghiệm thu thực tế tại công trình.</p>
+      <p className="text-xs text-slate-400 italic">Khối lượng cuối cùng được xác định theo nghiệm thu thực tế tại công trình.</p>
     </div>
   );
 
@@ -310,23 +310,23 @@ export default function InteriorQuote() {
   return (
     <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+        <h1 className="text-2xl font-black text-slate-50 flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
             <DollarSign className="w-5 h-5 text-white" />
           </div>
           Báo Giá Nội Thất
         </h1>
-        <p className="text-sm text-slate-500 mt-1 ml-[52px]">Dán JSON từ Claude → Checklist → Áp giá → Xuất Excel</p>
+        <p className="text-sm text-slate-400 mt-1 ml-[52px]">Dán JSON từ Claude → Checklist → Áp giá → Xuất Excel</p>
       </div>
 
-      <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1.5 overflow-x-auto">
+      <div className="flex items-center gap-1 bg-[#2a2a2a] rounded-xl p-1.5 overflow-x-auto">
         {STEPS.map((s, i) => {
           const Icon = s.icon;
           const active = i === step;
           const done = i < step;
           return (
             <button key={i} onClick={() => { if (done) setStep(i); }}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition-all flex-1 justify-center ${active ? 'bg-white shadow-sm text-indigo-700' : done ? 'text-emerald-600 hover:bg-white/50 cursor-pointer' : 'text-slate-400 cursor-default'}`}>
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition-all flex-1 justify-center ${active ? 'bg-[#222] shadow-sm text-indigo-700' : done ? 'text-emerald-600 hover:bg-[#222]/50 cursor-pointer' : 'text-slate-400 cursor-default'}`}>
               <Icon className="w-4 h-4 shrink-0" />
               <span className="hidden sm:inline">{s.name}</span>
             </button>
@@ -334,7 +334,7 @@ export default function InteriorQuote() {
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 min-h-[300px]">
+      <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm p-5 sm:p-6 min-h-[300px]">
         {renderers[step]()}
       </div>
     </div>

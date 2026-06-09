@@ -687,7 +687,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><User size={14} className="text-slate-500" /> Hỗ trợ (Support)</label>
+                                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><User size={14} className="text-slate-400" /> Hỗ trợ (Support)</label>
                                             <select
                                                 value={supportId}
                                                 onChange={(e) => setSupportId(e.target.value)}
@@ -802,7 +802,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                             <span className="text-sm text-slate-300 font-medium">Tổng ngày làm (Nội bộ):</span>
                                             <div className="text-right">
                                                 <span className="text-3xl font-black text-white">{timelineData.internalWd}</span>
-                                                <span className="text-sm text-slate-500 ml-1 font-mono">WD</span>
+                                                <span className="text-sm text-slate-400 ml-1 font-mono">WD</span>
                                             </div>
                                         </div>
 
@@ -812,7 +812,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                         </div>
 
                                         <div className="pt-2">
-                                            <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Tỉ trọng Giai đoạn</div>
+                                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tỉ trọng Giai đoạn</div>
                                             {/* Horizontal stacked bar representing phases */}
                                             <div className="h-3 w-full bg-slate-800 rounded-full flex overflow-hidden mb-2 shadow-inner">
                                                 <div style={{ width: `${(timelineData.phases.c / timelineData.internalWd) * 100}%` }} className="bg-blue-500 hover:opacity-80 transition-opacity" title={`Concept: ${timelineData.phases.c} WD`}></div>
@@ -821,7 +821,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                 <div style={{ width: `${(timelineData.phases.kt / timelineData.internalWd) * 100}%` }} className="bg-emerald-500 hover:opacity-80 transition-opacity" title={`Kỹ thuật: ${timelineData.phases.kt} WD`}></div>
                                                 <div style={{ width: `${(timelineData.phases.qc / timelineData.internalWd) * 100}%` }} className="bg-purple-500 hover:opacity-80 transition-opacity" title={`QC: ${timelineData.phases.qc} WD`}></div>
                                             </div>
-                                            <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold px-1">
+                                            <div className="flex justify-between text-[10px] font-mono text-slate-400 font-bold px-1">
                                                 <span>C</span>
                                                 <span>3D</span>
                                                 <span>S</span>
@@ -831,7 +831,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                         </div>
 
                                         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mt-8 flex flex-col items-center justify-center">
-                                            <span className="text-xs text-slate-500 font-bold uppercase mb-1">Dự kiến hoàn thiện nộp File</span>
+                                            <span className="text-xs text-slate-400 font-bold uppercase mb-1">Dự kiến hoàn thiện nộp File</span>
                                             <span className="text-xl font-mono font-black text-emerald-400">~{dynamicTotalDays}</span>
                                             <span className="text-xs text-slate-400">Ngày lịch (Bao gồm T7/CN)</span>
                                         </div>
@@ -925,7 +925,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                             onChange={(e) => handleTaskChange(idx, 'assignee', e.target.value)}
                                                             className="w-full bg-transparent border border-transparent group-hover:border-slate-700 focus:border-indigo-500 rounded px-2 py-1 text-sm text-amber-300 focus:text-amber-400 focus:outline-none focus:bg-slate-950 font-medium transition-colors cursor-pointer"
                                                         >
-                                                            <option value="" className="text-slate-500">Chưa chọn (AI đề xuất)</option>
+                                                            <option value="" className="text-slate-400">Chưa chọn (AI đề xuất)</option>
                                                             {profiles.map(p => (
                                                                 <option key={p.id} value={p.full_name} className="bg-slate-900 text-white">{p.full_name}</option>
                                                             ))}
@@ -934,7 +934,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                     <td className="px-4 py-2 text-center">
                                                         <button
                                                             onClick={() => handleRemoveTask(idx)}
-                                                            className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                                            className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors opacity-0 group-hover:opacity-100"
                                                             title="Xóa Task"
                                                         >
                                                             <Trash2 size={14} />
@@ -985,7 +985,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                             {!projectName.trim() || !clientName.trim() ? (
                                 <button
                                     disabled
-                                    className="px-6 py-3 bg-slate-800 text-slate-500 rounded-xl text-sm font-bold transition-all w-full md:w-auto uppercase tracking-wide cursor-not-allowed border border-slate-700"
+                                    className="px-6 py-3 bg-slate-800 text-slate-400 rounded-xl text-sm font-bold transition-all w-full md:w-auto uppercase tracking-wide cursor-not-allowed border border-slate-700"
                                 >
                                     Nhập Tên Dự Án & Khách Hàng
                                 </button>

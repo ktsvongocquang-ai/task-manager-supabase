@@ -14,24 +14,24 @@ export default function Leads() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">Khách hàng Tiềm năng (Leads)</h2>
+        <h2 className="text-2xl font-bold text-slate-50">Khách hàng Tiềm năng (Leads)</h2>
         <button className="bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Thêm Lead mới
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#222] rounded-xl border border-[#333] shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-96">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
               placeholder="Tìm kiếm lead..." 
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 border border-[#333] rounded-lg text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors">
             <Filter className="w-4 h-4" />
             Bộ lọc
           </button>
@@ -39,7 +39,7 @@ export default function Leads() {
 
         <div className="overflow-x-auto min-h-[400px]">
           {/* Mobile Card View */}
-          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-[#1c1c1c]/30">
             {mockLeads.map((lead) => (
               <SmartCard
                 key={lead.id}
@@ -51,7 +51,7 @@ export default function Leads() {
                   lead.status === 'Mới' ? 'bg-cyan-100 text-cyan-800 border-cyan-200' :
                   lead.status === 'Đã liên hệ' ? 'bg-blue-100 text-blue-800 border-blue-200' :
                   lead.status === 'Tiềm năng cao' ? 'bg-green-100 text-green-800 border-green-200' :
-                  'bg-gray-100 text-gray-800 border-gray-200'
+                  'bg-[#2a2a2a] text-slate-100 border-[#333]'
                 }
                 avatarInitials={lead.name.charAt(0)}
                 progress={lead.score}
@@ -61,27 +61,27 @@ export default function Leads() {
 
           <table className="hidden md:table w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Liên hệ</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nguồn</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Điểm chất lượng</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ngày tạo</th>
+              <tr className="bg-[#1c1c1c] border-b border-[#333]">
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Lead</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Liên hệ</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Nguồn</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Điểm chất lượng</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Trạng thái</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Ngày tạo</th>
                 <th className="px-6 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {mockLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50 transition-colors group">
+                <tr key={lead.id} className="hover:bg-[#1c1c1c] transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold">
                         {lead.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{lead.name}</div>
-                        <div className="text-xs text-gray-500">{lead.id}</div>
+                        <div className="font-medium text-slate-50">{lead.name}</div>
+                        <div className="text-xs text-slate-400">{lead.id}</div>
                       </div>
                     </div>
                   </td>
@@ -114,7 +114,7 @@ export default function Leads() {
                           style={{ width: `${lead.score}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm font-medium text-gray-700">{lead.score}</span>
+                      <span className="text-sm font-medium text-slate-200">{lead.score}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -122,7 +122,7 @@ export default function Leads() {
                       lead.status === 'Mới' ? 'bg-cyan-100 text-cyan-800' :
                       lead.status === 'Đã liên hệ' ? 'bg-blue-100 text-blue-800' :
                       lead.status === 'Tiềm năng cao' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                      'bg-[#2a2a2a] text-slate-100'
                     }`}>
                       {lead.status}
                     </span>
@@ -131,7 +131,7 @@ export default function Leads() {
                     {lead.date}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity">
                       <MoreVertical className="w-5 h-5" />
                     </button>
                   </td>

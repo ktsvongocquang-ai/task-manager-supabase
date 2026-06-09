@@ -108,7 +108,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
         return content
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code class="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded text-xs font-mono">$1</code>')
+            .replace(/`(.*?)`/g, '<code class="bg-[#2a2a2a] text-indigo-600 px-1.5 py-0.5 rounded text-xs font-mono">$1</code>')
             .replace(/^• /gm, '<span class="text-indigo-400 mr-1">•</span>')
             .replace(/^- /gm, '<span class="text-indigo-400 mr-1">–</span>')
             .replace(/\n/g, '<br/>')
@@ -150,11 +150,11 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                         : 'opacity-0 translate-y-8 pointer-events-none'
                 } bottom-36 md:bottom-24 right-3 md:right-6 w-[calc(100vw-24px)] md:w-[420px] max-h-[70vh] md:max-h-[600px]`}
             >
-                <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-200/80 flex flex-col overflow-hidden h-full max-h-[70vh] md:max-h-[600px]">
+                <div className="bg-[#222] rounded-2xl shadow-2xl shadow-slate-900/20 border border-[#333]/80 flex flex-col overflow-hidden h-full max-h-[70vh] md:max-h-[600px]">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-5 py-4 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+                            <div className="w-10 h-10 bg-[#222]/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
                                 <Bot size={22} className="text-white" />
                             </div>
                             <div>
@@ -168,14 +168,14 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                         <div className="flex items-center gap-1">
                             <button
                                 onClick={handleClearChat}
-                                className="p-2 rounded-lg hover:bg-white/15 transition-colors text-white/70 hover:text-white"
+                                className="p-2 rounded-lg hover:bg-[#222]/15 transition-colors text-white/70 hover:text-white"
                                 title="Xóa cuộc trò chuyện"
                             >
                                 <Trash2 size={16} />
                             </button>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-2 rounded-lg hover:bg-white/15 transition-colors text-white/70 hover:text-white"
+                                className="p-2 rounded-lg hover:bg-[#222]/15 transition-colors text-white/70 hover:text-white"
                             >
                                 <X size={18} />
                             </button>
@@ -205,7 +205,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                     className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                                         msg.role === 'user'
                                             ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-md shadow-md shadow-indigo-500/20'
-                                            : 'bg-white text-slate-700 rounded-bl-md border border-slate-100 shadow-sm'
+                                            : 'bg-[#222] text-slate-200 rounded-bl-md border border-[#333] shadow-sm'
                                     }`}
                                 >
                                     <div dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }} />
@@ -222,7 +222,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shrink-0">
                                     <Bot size={16} className="text-white" />
                                 </div>
-                                <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 border border-slate-100 shadow-sm">
+                                <div className="bg-[#222] rounded-2xl rounded-bl-md px-4 py-3 border border-[#333] shadow-sm">
                                     <div className="flex items-center gap-2">
                                         <div className="flex gap-1">
                                             <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -242,7 +242,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                     {showScrollBtn && (
                         <button
                             onClick={scrollToBottom}
-                            className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors z-10"
+                            className="absolute bottom-[140px] left-1/2 -translate-x-1/2 w-8 h-8 bg-[#222] rounded-full shadow-lg border border-[#333] flex items-center justify-center hover:bg-[#1c1c1c] transition-colors z-10"
                         >
                             <ChevronDown size={16} className="text-slate-600" />
                         </button>
@@ -266,7 +266,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                     <button
                                         key={i}
                                         onClick={() => handleSend(q.text)}
-                                        className="text-xs bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 rounded-full px-3 py-1.5 border border-slate-200 hover:border-indigo-200 transition-all duration-200 font-medium whitespace-nowrap"
+                                        className="text-xs bg-[#1c1c1c] hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 rounded-full px-3 py-1.5 border border-[#333] hover:border-indigo-200 transition-all duration-200 font-medium whitespace-nowrap"
                                     >
                                         {q.icon} {q.text}
                                     </button>
@@ -276,7 +276,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                     )}
 
                     {/* Input Area */}
-                    <div className="p-3 border-t border-slate-100 bg-white shrink-0">
+                    <div className="p-3 border-t border-[#333] bg-[#222] shrink-0">
                         <div className="flex items-end gap-2">
                             {/* Toggle Suggestions Button */}
                             <button
@@ -284,7 +284,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 border ${
                                     showSuggestions
                                         ? 'bg-amber-50 text-amber-500 border-amber-200'
-                                        : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-amber-50 hover:text-amber-500 hover:border-amber-200'
+                                        : 'bg-[#1c1c1c] text-slate-400 border-[#333] hover:bg-amber-50 hover:text-amber-500 hover:border-amber-200'
                                 }`}
                                 title={showSuggestions ? 'Ẩn gợi ý' : 'Hiện câu hỏi gợi ý'}
                             >
@@ -296,7 +296,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                 onChange={handleInputChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Hỏi về công việc, tiến độ, nhân sự..."
-                                className="flex-1 resize-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all min-h-[44px] max-h-[120px] leading-snug"
+                                className="flex-1 resize-none bg-[#1c1c1c] border border-[#333] rounded-xl px-4 py-3 text-sm text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all min-h-[44px] max-h-[120px] leading-snug"
                                 rows={1}
                                 disabled={isLoading}
                             />
@@ -306,7 +306,7 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 ${
                                     input.trim() && !isLoading
                                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/40 active:scale-95'
-                                        : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                                        : 'bg-[#2a2a2a] text-slate-300 cursor-not-allowed'
                                 }`}
                             >
                                 <Send size={18} />

@@ -123,26 +123,26 @@ export default function CustomerList() {
       case 'Báo giá': return 'bg-orange-100 text-orange-700';
       case 'Chốt': return 'bg-emerald-100 text-emerald-700';
       case 'Mất': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      default: return 'bg-[#2a2a2a] text-slate-200';
     }
   };
 
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">Danh sách Khách hàng</h2>
+        <h2 className="text-2xl font-bold text-slate-50">Danh sách Khách hàng</h2>
         
         <div className="flex items-center gap-3">
-          <div className="bg-gray-100 p-1 rounded-lg flex">
+          <div className="bg-[#2a2a2a] p-1 rounded-lg flex">
             <button 
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'list' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-50'}`}
               onClick={() => setViewMode('list')}
             >
               List
             </button>
             <Link 
               to="/customers/kanban"
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-50'}`}
             >
               Kanban
             </Link>
@@ -157,17 +157,17 @@ export default function CustomerList() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
+      <div className="bg-[#222] rounded-xl border border-[#333] shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1c1c1c]/50">
           <div className="relative w-full sm:w-96">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
               placeholder="Tìm kiếm khách hàng, số điện thoại..." 
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-[#222] border border-[#333] rounded-lg text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors">
             <Filter className="w-4 h-4" />
             Bộ lọc
           </button>
@@ -175,7 +175,7 @@ export default function CustomerList() {
 
         <div className="overflow-x-auto min-h-[400px]">
           {/* Mobile Card View */}
-          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-[#1c1c1c]/30">
             {customers.map((customer) => (
               <SmartCard
                 key={customer.id}
@@ -193,20 +193,20 @@ export default function CustomerList() {
           {/* Desktop Table View */}
           <table className="hidden md:table w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[250px]">Khách hàng</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[200px]">Nhu cầu dự án</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[250px]">Định hướng thiết kế</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider min-w-[200px]">Ghi chú & Tiến trình</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
+              <tr className="bg-[#1c1c1c] border-b border-[#333]">
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[250px]">Khách hàng</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[200px]">Nhu cầu dự án</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[250px]">Định hướng thiết kế</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider min-w-[200px]">Ghi chú & Tiến trình</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Trạng thái</th>
                 <th className="px-6 py-3 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {customers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50 transition-colors group align-top">
+                <tr key={customer.id} className="hover:bg-[#1c1c1c] transition-colors group align-top">
                   <td className="px-6 py-4">
-                    <div className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                    <div className="font-bold text-slate-50 mb-1 flex items-center gap-2">
                       {customer.namePhone}
                       <a href={`tel:${customer.namePhone.split('-')[1]?.trim()}`} className="p-1 bg-green-100 text-green-600 hover:bg-green-200 rounded-full transition-colors" title="Gọi điện">
                         <Phone className="w-3 h-3" />
@@ -225,7 +225,7 @@ export default function CustomerList() {
                       )}
                     </div>
                     {customer.address && (
-                      <div className="text-xs text-gray-500 mt-1 truncate max-w-[200px]" title={customer.address}>
+                      <div className="text-xs text-slate-400 mt-1 truncate max-w-[200px]" title={customer.address}>
                         📍 {customer.address}
                       </div>
                     )}
@@ -233,15 +233,15 @@ export default function CustomerList() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{customer.propertyType}</span>
+                        <span className="font-medium text-slate-50">{customer.propertyType}</span>
                         <span className="text-gray-300">•</span>
                         <span className="text-gray-600">{customer.serviceCategory}</span>
                       </div>
-                      <div className="text-gray-500 text-xs">
-                        DT: <span className="font-medium text-gray-700">{customer.area} m²</span> | 
+                      <div className="text-slate-400 text-xs">
+                        DT: <span className="font-medium text-slate-200">{customer.area} m²</span> | 
                         Ngân sách: <span className="font-medium text-emerald-600">{customer.budget}</span>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
                         ⏱ {customer.timing} <span className="text-gray-300">•</span> {customer.source}
                       </div>
                     </div>
@@ -252,19 +252,19 @@ export default function CustomerList() {
                         <>
                           {customer.style && customer.style !== 'Chưa xác định' && (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-gray-500 w-12">Style:</span>
-                              <span className="font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{customer.style}</span>
+                              <span className="text-slate-400 w-12">Style:</span>
+                              <span className="font-medium text-slate-50 bg-[#2a2a2a] px-2 py-0.5 rounded">{customer.style}</span>
                             </div>
                           )}
                           {customer.colorTone && customer.colorTone !== 'Chưa xác định' && (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-gray-500 w-12">Tone:</span>
-                              <span className="font-medium text-gray-900 bg-gray-100 px-2 py-0.5 rounded">{customer.colorTone}</span>
+                              <span className="text-slate-400 w-12">Tone:</span>
+                              <span className="font-medium text-slate-50 bg-[#2a2a2a] px-2 py-0.5 rounded">{customer.colorTone}</span>
                             </div>
                           )}
                           {customer.keyConcern && customer.keyConcern !== 'Chưa xác định' && (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-gray-500 w-12">Ưu tiên:</span>
+                              <span className="text-slate-400 w-12">Ưu tiên:</span>
                               <span className="font-medium text-pink-600 bg-pink-50 px-2 py-0.5 rounded">{customer.keyConcern}</span>
                             </div>
                           )}
@@ -288,12 +288,12 @@ export default function CustomerList() {
                               style={{ width: `${(customer.checklist.length / 5) * 100}%` }}
                             ></div>
                           </div>
-                          <span className="text-[10px] font-medium text-gray-500">{customer.checklist.length}/5</span>
+                          <span className="text-[10px] font-medium text-slate-400">{customer.checklist.length}/5</span>
                         </div>
                       )}
                       {customer.activityLog && customer.activityLog.length > 0 && (
-                        <div className="text-[10px] text-gray-500 truncate mt-1" title={customer.activityLog[0].content}>
-                          <span className="font-medium text-gray-700">Mới nhất:</span> {customer.activityLog[0].content}
+                        <div className="text-[10px] text-slate-400 truncate mt-1" title={customer.activityLog[0].content}>
+                          <span className="font-medium text-slate-200">Mới nhất:</span> {customer.activityLog[0].content}
                         </div>
                       )}
                     </div>
@@ -315,7 +315,7 @@ export default function CustomerList() {
                       </button>
                       <button 
                         onClick={() => handleOpenModal(customer)}
-                        className="text-gray-500 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 transition-colors"
+                        className="text-slate-400 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 transition-colors"
                         title="Chỉnh sửa"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -335,12 +335,12 @@ export default function CustomerList() {
           </table>
         </div>
         
-        <div className="p-4 border-t border-gray-200 flex items-center justify-between text-sm text-gray-500 bg-gray-50/50">
+        <div className="p-4 border-t border-[#333] flex items-center justify-between text-sm text-slate-400 bg-[#1c1c1c]/50">
           <div>Hiển thị 1 đến {customers.length} của {customers.length} khách hàng</div>
           <div className="flex gap-1">
-            <button className="px-3 py-1 border border-gray-200 rounded-md hover:bg-white disabled:opacity-50 transition-colors">Trước</button>
+            <button className="px-3 py-1 border border-[#333] rounded-md hover:bg-[#222] disabled:opacity-50 transition-colors">Trước</button>
             <button className="px-3 py-1 bg-indigo-600 text-white rounded-md font-medium shadow-sm">1</button>
-            <button className="px-3 py-1 border border-gray-200 rounded-md hover:bg-white transition-colors">Sau</button>
+            <button className="px-3 py-1 border border-[#333] rounded-md hover:bg-[#222] transition-colors">Sau</button>
           </div>
         </div>
       </div>

@@ -418,18 +418,18 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
     return (
         <div className="fixed inset-0 z-[60]" onClick={onClose}>
             <div
-                className="absolute right-6 top-20 w-[390px] bg-white rounded-2xl shadow-2xl z-[70] animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col border border-slate-200 h-[600px] max-h-[82vh]"
+                className="absolute right-6 top-20 w-[390px] bg-[#222] rounded-2xl shadow-2xl z-[70] animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col border border-[#333] h-[600px] max-h-[82vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ── Header ── */}
-                <div className="border-b border-slate-100 bg-white shrink-0">
+                <div className="border-b border-[#333] bg-[#222] shrink-0">
                     <div className="px-4 pt-3 pb-0 flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeTab === 'ai' ? 'bg-teal-50 text-teal-600' : activeTab === 'dm' ? 'bg-purple-50 text-purple-600' : 'bg-indigo-50 text-indigo-600'}`}>
                                 {activeTab === 'ai' ? <Bot size={16} /> : activeTab === 'dm' ? <MessageCircle size={16} /> : <MessageSquare size={16} />}
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-800 text-sm">
+                                <h3 className="font-bold text-slate-100 text-sm">
                                     {activeTab === 'ai' ? 'Trợ Lý AI' : activeTab === 'dm' ? (dmPartner ? dmPartner.full_name : 'Tin Nhắn Riêng') : 'Chat Chung'}
                                 </h3>
                                 <p className="text-[10px] text-slate-400">
@@ -439,11 +439,11 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                         </div>
                         <div className="flex items-center gap-1">
                             {activeTab === 'dm' && dmPartner && (
-                                <button onClick={() => { setDmPartner(null); setDmMessages([]); }} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
+                                <button onClick={() => { setDmPartner(null); setDmMessages([]); }} className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-[#1c1c1c] rounded-xl transition-colors">
                                     <ChevronLeft size={16} />
                                 </button>
                             )}
-                            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+                            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-[#1c1c1c] rounded-xl transition-colors">
                                 <X size={16} />
                             </button>
                         </div>
@@ -487,7 +487,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                             {/* Avatar */}
                                             <div className="shrink-0 w-7 mt-0.5">
                                                 {!isGrouped ? (
-                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${isMe ? 'bg-indigo-500 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${isMe ? 'bg-indigo-500 text-white' : 'bg-slate-300 text-slate-200'}`}>
                                                         {(msg.profiles?.full_name || '?').charAt(0).toUpperCase()}
                                                     </div>
                                                 ) : <div className="w-7" />}
@@ -504,15 +504,15 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
 
                                                 {/* Reply quote */}
                                                 {repliedMsg && (
-                                                    <div className="mb-1 px-2.5 py-1.5 rounded-xl border-l-[3px] border-indigo-400 bg-white shadow-sm max-w-full">
+                                                    <div className="mb-1 px-2.5 py-1.5 rounded-xl border-l-[3px] border-indigo-400 bg-[#222] shadow-sm max-w-full">
                                                         <span className="text-[10px] font-bold text-indigo-500 block">{repliedMsg.user_id === currentUserProfile?.id ? 'Bạn' : repliedMsg.profiles?.full_name}</span>
-                                                        <span className="text-[11px] text-slate-500 line-clamp-1">{repliedMsg.image_url && !repliedMsg.content ? '📷 Hình ảnh' : repliedMsg.content}</span>
+                                                        <span className="text-[11px] text-slate-400 line-clamp-1">{repliedMsg.image_url && !repliedMsg.content ? '📷 Hình ảnh' : repliedMsg.content}</span>
                                                     </div>
                                                 )}
 
                                                 {/* Image */}
                                                 {msg.image_url && (
-                                                    <div className={`mb-1 rounded-xl overflow-hidden border border-slate-200 shadow-sm max-w-[200px] ${isMe ? 'ml-auto' : ''}`}>
+                                                    <div className={`mb-1 rounded-xl overflow-hidden border border-[#333] shadow-sm max-w-[200px] ${isMe ? 'ml-auto' : ''}`}>
                                                         <img src={msg.image_url} alt="" className="w-full h-auto cursor-pointer hover:opacity-95" onClick={() => window.open(msg.image_url!, '_blank')} />
                                                     </div>
                                                 )}
@@ -526,29 +526,29 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                                                 value={editContent}
                                                                 onChange={e => setEditContent(e.target.value)}
                                                                 onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') { setEditingMsgId(null); } }}
-                                                                className="flex-1 bg-white border border-indigo-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                                className="flex-1 bg-[#222] border border-indigo-300 rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
                                                             />
                                                             <button onClick={handleSaveEdit} className="p-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 shrink-0"><Check size={12} /></button>
                                                             <button onClick={() => setEditingMsgId(null)} className="p-1.5 bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 shrink-0"><X size={12} /></button>
                                                         </div>
                                                     ) : msg.content ? (
                                                         <>
-                                                            <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${isMe ? 'bg-indigo-500 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'}`}>
+                                                            <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${isMe ? 'bg-indigo-500 text-white rounded-tr-sm' : 'bg-[#222] border border-[#333] text-slate-100 rounded-tl-sm shadow-sm'}`}>
                                                                 <p className="whitespace-pre-wrap break-words">{isMe ? msg.content : renderContent(msg.content)}</p>
                                                                 {msg.is_edited && <span className={`text-[10px] ${isMe ? 'text-indigo-200' : 'text-slate-400'}`}> · đã sửa</span>}
                                                             </div>
                                                             <div className="flex items-center gap-0.5 opacity-0 group-hover/msg:opacity-100 transition-opacity shrink-0">
-                                                                <button onClick={() => { setReplyingTo(msg); setTimeout(() => textareaRef.current?.focus(), 50); }} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-500" title="Trả lời"><CornerUpLeft size={13} /></button>
-                                                                {canEdit && <button onClick={() => handleStartEdit(msg)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-amber-500" title="Sửa"><Pencil size={13} /></button>}
-                                                                {canDelete && <button onClick={() => handleDeleteMsg(msg.id)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-500" title="Xóa"><Trash2 size={13} /></button>}
+                                                                <button onClick={() => { setReplyingTo(msg); setTimeout(() => textareaRef.current?.focus(), 50); }} className="p-1 rounded-lg hover:bg-[#2a2a2a] text-slate-400 hover:text-indigo-500" title="Trả lời"><CornerUpLeft size={13} /></button>
+                                                                {canEdit && <button onClick={() => handleStartEdit(msg)} className="p-1 rounded-lg hover:bg-[#2a2a2a] text-slate-400 hover:text-amber-500" title="Sửa"><Pencil size={13} /></button>}
+                                                                {canDelete && <button onClick={() => handleDeleteMsg(msg.id)} className="p-1 rounded-lg hover:bg-[#2a2a2a] text-slate-400 hover:text-red-500" title="Xóa"><Trash2 size={13} /></button>}
                                                             </div>
                                                         </>
                                                     ) : null}
                                                     {/* Image-only: reply + delete */}
                                                     {msg.image_url && !msg.content && editingMsgId !== msg.id && (
                                                         <div className="flex items-center gap-0.5 opacity-0 group-hover/msg:opacity-100 transition-opacity">
-                                                            <button onClick={() => { setReplyingTo(msg); setTimeout(() => textareaRef.current?.focus(), 50); }} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-500"><CornerUpLeft size={13} /></button>
-                                                            {canDelete && <button onClick={() => handleDeleteMsg(msg.id)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-500"><Trash2 size={13} /></button>}
+                                                            <button onClick={() => { setReplyingTo(msg); setTimeout(() => textareaRef.current?.focus(), 50); }} className="p-1 rounded-lg hover:bg-[#2a2a2a] text-slate-400 hover:text-indigo-500"><CornerUpLeft size={13} /></button>
+                                                            {canDelete && <button onClick={() => handleDeleteMsg(msg.id)} className="p-1 rounded-lg hover:bg-[#2a2a2a] text-slate-400 hover:text-red-500"><Trash2 size={13} /></button>}
                                                         </div>
                                                     )}
                                                 </div>
@@ -561,14 +561,14 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                         </div>
 
                         {/* Input */}
-                        <div className="px-3 py-3 bg-white border-t border-slate-100 shrink-0">
+                        <div className="px-3 py-3 bg-[#222] border-t border-[#333] shrink-0">
                             {replyingTo && (
                                 <div className="flex items-center justify-between bg-indigo-50 border border-indigo-100 rounded-xl px-3 py-2 mb-2">
                                     <div className="flex items-center gap-2 min-w-0">
                                         <CornerUpLeft size={12} className="text-indigo-400 shrink-0" />
                                         <div className="min-w-0">
                                             <span className="text-[10px] font-bold text-indigo-500">Trả lời {replyingTo.user_id === currentUserProfile?.id ? 'chính mình' : replyingTo.profiles?.full_name}</span>
-                                            <p className="text-[11px] text-slate-500 truncate">{replyingTo.image_url && !replyingTo.content ? '📷 Hình ảnh' : replyingTo.content}</p>
+                                            <p className="text-[11px] text-slate-400 truncate">{replyingTo.image_url && !replyingTo.content ? '📷 Hình ảnh' : replyingTo.content}</p>
                                         </div>
                                     </div>
                                     <button onClick={() => setReplyingTo(null)} className="p-1 text-slate-400 hover:text-slate-600 shrink-0"><X size={12} /></button>
@@ -576,23 +576,23 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                             )}
                             {pendingImagePreview && (
                                 <div className="relative inline-block mb-2">
-                                    <img src={pendingImagePreview} alt="" className="h-14 rounded-lg border border-slate-200 object-cover" />
+                                    <img src={pendingImagePreview} alt="" className="h-14 rounded-lg border border-[#333] object-cover" />
                                     <button onClick={() => clearImage(setPendingImage, setPendingImagePreview, pendingImagePreview)} className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center"><XCircle size={10} /></button>
                                 </div>
                             )}
                             {showMentions && filteredMentionProfiles.length > 0 && (
-                                <div ref={mentionsRef} className="mb-2 bg-white border border-slate-200 rounded-xl shadow-xl max-h-32 overflow-y-auto">
+                                <div ref={mentionsRef} className="mb-2 bg-[#222] border border-[#333] rounded-xl shadow-xl max-h-32 overflow-y-auto">
                                     {filteredMentionProfiles.map(p => (
                                         <div key={p.id} className="px-3 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2 text-sm transition-colors" onClick={() => insertMention(p)}>
-                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold">{p.full_name.charAt(0)}</div>
-                                            <span className="font-medium text-slate-700">@{p.full_name}</span>
+                                            <div className="w-6 h-6 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[9px] font-bold">{p.full_name.charAt(0)}</div>
+                                            <span className="font-medium text-slate-200">@{p.full_name}</span>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             <form onSubmit={handleSendMessage} className="flex items-end gap-2">
                                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={makeFileHandler(setPendingImage, setPendingImagePreview)} />
-                                <button type="button" onClick={() => fileInputRef.current?.click()} className="w-8 h-8 shrink-0 bg-slate-50 border border-slate-200 text-slate-400 hover:text-indigo-600 rounded-xl flex items-center justify-center transition-colors">
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="w-8 h-8 shrink-0 bg-[#1c1c1c] border border-[#333] text-slate-400 hover:text-indigo-600 rounded-xl flex items-center justify-center transition-colors">
                                     <ImageIcon size={15} />
                                 </button>
                                 <textarea
@@ -601,7 +601,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                     onChange={handleTextareaChange}
                                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !showMentions) { e.preventDefault(); handleSendMessage(); } }}
                                     placeholder="Nhập tin nhắn... (@ để tag)"
-                                    className="flex-1 max-h-[80px] min-h-[36px] bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-400 focus:bg-white resize-none custom-scrollbar"
+                                    className="flex-1 max-h-[80px] min-h-[36px] bg-[#1c1c1c] border border-[#333] text-slate-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-indigo-400 focus:bg-[#222] resize-none custom-scrollbar"
                                     rows={1}
                                 />
                                 <button type="submit" disabled={(!newMessage.trim() && !pendingImage) || uploadingImage} className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 transition-all shrink-0">
@@ -614,19 +614,19 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
 
                 {/* ── DM – USER LIST ── */}
                 {activeTab === 'dm' && !dmPartner && (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#222]">
                         <div className="px-4 py-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-50">Thành viên</div>
                         {profiles.filter(p => p.id !== currentUserProfile?.id).map(p => {
                             const unread = unreadByUser[p.id] || 0;
                             return (
                                 <div key={p.id} onClick={() => { setDmPartner(p); setDmMessages([]); }}
-                                    className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-50/80">
+                                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#1c1c1c] cursor-pointer transition-colors border-b border-slate-50/80">
                                     <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold shrink-0">
                                         {p.full_name.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between">
-                                            <span className={`text-sm ${unread > 0 ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>{p.full_name}</span>
+                                            <span className={`text-sm ${unread > 0 ? 'font-bold text-slate-50' : 'font-semibold text-slate-200'}`}>{p.full_name}</span>
                                             {unread > 0 && <span className="w-5 h-5 bg-indigo-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">{unread}</span>}
                                         </div>
                                         <span className="text-xs text-slate-400">{p.role}</span>
@@ -657,7 +657,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                         <div key={msg.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''} ${isGrouped ? 'mt-[3px]' : 'mt-4'}`}>
                                             <div className="shrink-0 w-7 mt-0.5">
                                                 {!isGrouped ? (
-                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${isMe ? 'bg-purple-500 text-white' : 'bg-slate-300 text-slate-700'}`}>
+                                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${isMe ? 'bg-purple-500 text-white' : 'bg-slate-300 text-slate-200'}`}>
                                                         {isMe ? (currentUserProfile.full_name || '?').charAt(0).toUpperCase() : dmPartner.full_name.charAt(0).toUpperCase()}
                                                     </div>
                                                 ) : <div className="w-7" />}
@@ -670,12 +670,12 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                                     </div>
                                                 )}
                                                 {msg.image_url && (
-                                                    <div className="mb-1 rounded-xl overflow-hidden border border-slate-200 shadow-sm max-w-[200px]">
+                                                    <div className="mb-1 rounded-xl overflow-hidden border border-[#333] shadow-sm max-w-[200px]">
                                                         <img src={msg.image_url} alt="" className="w-full h-auto cursor-pointer" onClick={() => window.open(msg.image_url!, '_blank')} />
                                                     </div>
                                                 )}
                                                 {msg.content && (
-                                                    <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${isMe ? 'bg-purple-500 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'}`}>
+                                                    <div className={`px-3.5 py-2 rounded-2xl text-[13px] leading-relaxed ${isMe ? 'bg-purple-500 text-white rounded-tr-sm' : 'bg-[#222] border border-[#333] text-slate-100 rounded-tl-sm shadow-sm'}`}>
                                                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                                                     </div>
                                                 )}
@@ -686,16 +686,16 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                             )}
                             <div ref={dmEndRef} />
                         </div>
-                        <div className="px-3 py-3 bg-white border-t border-slate-100 shrink-0">
+                        <div className="px-3 py-3 bg-[#222] border-t border-[#333] shrink-0">
                             {dmPendingPreview && (
                                 <div className="relative inline-block mb-2">
-                                    <img src={dmPendingPreview} alt="" className="h-14 rounded-lg border border-slate-200 object-cover" />
+                                    <img src={dmPendingPreview} alt="" className="h-14 rounded-lg border border-[#333] object-cover" />
                                     <button onClick={() => clearImage(setDmPendingImage, setDmPendingPreview, dmPendingPreview)} className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center"><XCircle size={10} /></button>
                                 </div>
                             )}
                             <form onSubmit={handleSendDM} className="flex items-center gap-2">
                                 <input ref={dmFileRef} type="file" accept="image/*" className="hidden" onChange={makeFileHandler(setDmPendingImage, setDmPendingPreview)} />
-                                <button type="button" onClick={() => dmFileRef.current?.click()} className="w-8 h-8 shrink-0 bg-slate-50 border border-slate-200 text-slate-400 hover:text-purple-600 rounded-xl flex items-center justify-center">
+                                <button type="button" onClick={() => dmFileRef.current?.click()} className="w-8 h-8 shrink-0 bg-[#1c1c1c] border border-[#333] text-slate-400 hover:text-purple-600 rounded-xl flex items-center justify-center">
                                     <ImageIcon size={15} />
                                 </button>
                                 <input
@@ -703,7 +703,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                     onChange={e => setDmNewMsg(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSendDM(); } }}
                                     placeholder={`Nhắn tin cho ${dmPartner.full_name}...`}
-                                    className="flex-1 bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400 focus:bg-white"
+                                    className="flex-1 bg-[#1c1c1c] border border-[#333] text-slate-200 text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-purple-400 focus:bg-[#222]"
                                 />
                                 <button type="submit" disabled={(!dmNewMsg.trim() && !dmPendingImage) || dmUploading} className="w-8 h-8 bg-purple-600 text-white rounded-xl flex items-center justify-center hover:bg-purple-700 disabled:opacity-40 shrink-0">
                                     {dmUploading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
@@ -716,7 +716,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                 {/* ── AI ── */}
                 {activeTab === 'ai' && (
                     <>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1c1c1c] custom-scrollbar">
                             {aiLoading && aiMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center gap-3 text-teal-600">
                                     <Sparkles size={28} className="animate-spin" />
@@ -726,7 +726,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                 aiMessages.map((msg, i) => (
                                     <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                                         {msg.role === 'assistant' && <div className="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-0.5"><Bot size={14} className="text-teal-600" /></div>}
-                                        <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'}`}>
+                                        <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-[13px] leading-relaxed ${msg.role === 'user' ? 'bg-teal-600 text-white rounded-tr-sm' : 'bg-[#222] border border-[#333] text-slate-100 rounded-tl-sm shadow-sm'}`}>
                                             <p className="whitespace-pre-wrap">{msg.content}</p>
                                         </div>
                                     </div>
@@ -735,16 +735,16 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                             {aiLoading && aiMessages.length > 0 && <div className="flex items-center gap-2 text-teal-600 text-xs font-semibold"><Sparkles size={12} className="animate-spin" /> AI đang soạn...</div>}
                             <div ref={aiEndRef} />
                         </div>
-                        <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+                        <div className="p-3 bg-[#222] border-t border-[#333] shrink-0">
                             <div className="flex flex-wrap gap-1.5 mb-2.5">
                                 {getQuickQuestions(currentUserProfile?.role).map((q, i) => (
-                                    <button key={i} onClick={() => handleSendAI(q.text)} className="text-[11px] bg-slate-50 text-slate-600 hover:bg-teal-50 hover:text-teal-700 px-2.5 py-1.5 rounded-full border border-slate-200 transition-colors">
+                                    <button key={i} onClick={() => handleSendAI(q.text)} className="text-[11px] bg-[#1c1c1c] text-slate-600 hover:bg-teal-50 hover:text-teal-700 px-2.5 py-1.5 rounded-full border border-[#333] transition-colors">
                                         {q.icon} {q.text}
                                     </button>
                                 ))}
                             </div>
                             <div className="flex items-center gap-2">
-                                <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendAI()} placeholder="Hỏi về task, KPI, lương..." className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-teal-400" />
+                                <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendAI()} placeholder="Hỏi về task, KPI, lương..." className="flex-1 bg-[#1c1c1c] border border-[#333] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-teal-400" />
                                 <button onClick={() => handleSendAI()} disabled={!aiInput.trim() || aiLoading} className="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50 hover:bg-teal-700">
                                     <Send size={15} />
                                 </button>

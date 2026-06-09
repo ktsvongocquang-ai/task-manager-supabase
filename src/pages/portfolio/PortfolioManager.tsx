@@ -110,8 +110,8 @@ export function PortfolioManager() {
         <div className="p-6 max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Portfolio Share</h1>
-                    <p className="text-gray-500 text-sm mt-1">Tạo link chia sẻ Landing Page an toàn cho khách hàng</p>
+                    <h1 className="text-2xl font-bold text-slate-50">Quản lý Portfolio Share</h1>
+                    <p className="text-slate-400 text-sm mt-1">Tạo link chia sẻ Landing Page an toàn cho khách hàng</p>
                 </div>
                 <button 
                     onClick={() => setShowModal(true)}
@@ -127,11 +127,11 @@ export function PortfolioManager() {
                     const isExpired = new Date(share.expires_at) < new Date();
                     const link = getLink(share.token);
                     return (
-                        <div key={share.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                        <div key={share.id} className="bg-[#222] rounded-xl shadow-sm border border-[#333] overflow-hidden flex flex-col">
                             <div className="p-5 flex-1">
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-gray-900 line-clamp-1 mb-1" title={share.title}>{share.title}</h3>
+                                        <h3 className="font-bold text-slate-50 line-clamp-1 mb-1" title={share.title}>{share.title}</h3>
                                         {share.construction_projects?.name && (
                                             <div className="text-[10px] text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded font-semibold inline-block">
                                                 Dự án: {share.construction_projects.name}
@@ -143,7 +143,7 @@ export function PortfolioManager() {
                                             <Shield size={14} /> PIN
                                         </div>
                                     ) : (
-                                        <div className="text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs font-medium flex items-center gap-1 shrink-0 ml-2" title="Không dùng mã PIN">
+                                        <div className="text-slate-400 bg-[#2a2a2a] px-2 py-1 rounded text-xs font-medium flex items-center gap-1 shrink-0 ml-2" title="Không dùng mã PIN">
                                             <ShieldOff size={14} /> Public
                                         </div>
                                     )}
@@ -157,8 +157,8 @@ export function PortfolioManager() {
                                         </span>
                                     </div>
                                     {share.passcode && (
-                                        <div className="bg-gray-50 p-2 rounded border border-gray-100 flex justify-between items-center">
-                                            <span className="text-xs text-gray-500">Mã PIN:</span>
+                                        <div className="bg-[#1c1c1c] p-2 rounded border border-[#333] flex justify-between items-center">
+                                            <span className="text-xs text-slate-400">Mã PIN:</span>
                                             <span className="font-mono font-medium tracking-widest">{share.passcode}</span>
                                         </div>
                                     )}
@@ -169,20 +169,20 @@ export function PortfolioManager() {
                                         type="text" 
                                         readOnly 
                                         value={link}
-                                        className="bg-gray-50 border border-gray-200 text-xs px-2 py-1.5 rounded flex-1 outline-none text-gray-500"
+                                        className="bg-[#1c1c1c] border border-[#333] text-xs px-2 py-1.5 rounded flex-1 outline-none text-slate-400"
                                     />
-                                    <button onClick={() => copyToClipboard(link)} className="p-1.5 text-gray-500 hover:text-primary hover:bg-blue-50 rounded transition-colors" title="Copy Link">
+                                    <button onClick={() => copyToClipboard(link)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-blue-50 rounded transition-colors" title="Copy Link">
                                         <Copy size={16} />
                                     </button>
                                 </div>
                             </div>
                             
-                            <div className="border-t border-gray-100 p-4 bg-gray-50 flex items-center justify-between">
+                            <div className="border-t border-[#333] p-4 bg-[#1c1c1c] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                                    <div className="bg-[#222] p-1 rounded-lg border border-[#333] shadow-sm">
                                         <QRCodeSVG value={link} size={48} level="M" />
                                     </div>
-                                    <div className="text-xs text-gray-500 font-medium leading-tight">
+                                    <div className="text-xs text-slate-400 font-medium leading-tight">
                                         Quét QR<br/>để xem
                                     </div>
                                 </div>
@@ -200,24 +200,24 @@ export function PortfolioManager() {
             </div>
 
             {shares.length === 0 && !loading && (
-                <div className="text-center py-20 bg-white rounded-xl border border-gray-200 border-dashed">
+                <div className="text-center py-20 bg-[#222] rounded-xl border border-[#333] border-dashed">
                     <LinkIcon size={48} className="mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">Chưa có link chia sẻ nào</h3>
-                    <p className="text-gray-500 text-sm">Tạo link chia sẻ bảo mật để gửi cho khách hàng xem Landing Page.</p>
+                    <h3 className="text-lg font-medium text-slate-50 mb-1">Chưa có link chia sẻ nào</h3>
+                    <p className="text-slate-400 text-sm">Tạo link chia sẻ bảo mật để gửi cho khách hàng xem Landing Page.</p>
                 </div>
             )}
 
             {/* Create Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                            <h3 className="font-bold text-lg text-gray-900">Tạo Link Chia Sẻ</h3>
+                    <div className="bg-[#222] rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                        <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center">
+                            <h3 className="font-bold text-lg text-slate-50">Tạo Link Chia Sẻ</h3>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">&times;</button>
                         </div>
                         <form onSubmit={handleCreate} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Tên khách hàng / Dự án</label>
+                                <label className="block text-sm font-medium text-slate-200 mb-1">Tên khách hàng / Dự án</label>
                                 <input 
                                     type="text" 
                                     required
@@ -236,7 +236,7 @@ export function PortfolioManager() {
                                         onChange={e => setUsePasscode(e.target.checked)}
                                         className="rounded text-primary focus:ring-primary h-4 w-4"
                                     />
-                                    <span className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><Shield size={14} className="text-primary"/> Bảo vệ bằng Mã PIN</span>
+                                    <span className="text-sm font-medium text-slate-100 flex items-center gap-1.5"><Shield size={14} className="text-primary"/> Bảo vệ bằng Mã PIN</span>
                                 </label>
                                 
                                 {usePasscode && (
@@ -252,7 +252,7 @@ export function PortfolioManager() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian hiệu lực</label>
+                                <label className="block text-sm font-medium text-slate-200 mb-1">Thời gian hiệu lực</label>
                                 <select 
                                     value={expireDays}
                                     onChange={e => setExpireDays(Number(e.target.value))}
@@ -267,11 +267,11 @@ export function PortfolioManager() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Liên kết dự án thực tế (Không bắt buộc)</label>
+                                <label className="block text-sm font-medium text-slate-200 mb-1">Liên kết dự án thực tế (Không bắt buộc)</label>
                                 <select 
                                     value={selectedProjectId}
                                     onChange={e => setSelectedProjectId(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-[#222]"
                                 >
                                     <option value="">-- Không liên kết (Chế độ mô phỏng) --</option>
                                     {projects.map(proj => (
@@ -284,7 +284,7 @@ export function PortfolioManager() {
                                 <button 
                                     type="button" 
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm font-medium transition-colors"
+                                    className="px-4 py-2 text-gray-600 hover:bg-[#2a2a2a] rounded-lg text-sm font-medium transition-colors"
                                 >
                                     Hủy
                                 </button>

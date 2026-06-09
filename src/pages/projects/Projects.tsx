@@ -364,7 +364,7 @@ export const Projects = () => {
         if (status === 'Đang thực hiện') return 'bg-blue-100 text-blue-700 border-blue-200'
         if (status === 'Thi công') return 'bg-purple-100 text-purple-700 border-purple-200'
         if (status === 'Tạm dừng') return 'bg-amber-100 text-amber-700 border-amber-200'
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-[#2a2a2a] text-slate-200 border-[#333]'
     }
 
     const getTrafficLight = (project: Project) => {
@@ -399,7 +399,7 @@ export const Projects = () => {
     const renderTrafficLight = (project: Project) => {
         const light = getTrafficLight(project);
         return (
-            <div className="flex gap-1 bg-slate-100 border border-slate-200 p-1.5 rounded-full shadow-inner items-center ml-2" title={light === 'green' ? 'Ổn định' : light === 'yellow' ? 'Cảnh báo chậm/vượt ngân sách' : light === 'red' ? 'Rủi ro cao' : ''}>
+            <div className="flex gap-1 bg-[#2a2a2a] border border-[#333] p-1.5 rounded-full shadow-inner items-center ml-2" title={light === 'green' ? 'Ổn định' : light === 'yellow' ? 'Cảnh báo chậm/vượt ngân sách' : light === 'red' ? 'Rủi ro cao' : ''}>
                 <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'red' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
                 <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'yellow' ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
                 <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all ${light === 'green' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse' : 'bg-slate-300'}`}></div>
@@ -418,17 +418,17 @@ export const Projects = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3 shrink-0">
-                    <h1 className="text-xl font-bold text-slate-800">Quản lý dự án</h1>
-                    <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+                    <h1 className="text-xl font-bold text-slate-100">Quản lý dự án</h1>
+                    <div className="flex bg-[#2a2a2a] rounded-xl p-1 gap-1">
                         <button
                             onClick={() => setProjectViewMode('cards')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'cards' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'cards' ? 'bg-[#222] text-indigo-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
                         >
                             <LayoutGrid size={14} /> Dự án
                         </button>
                         <button
                             onClick={() => setProjectViewMode('list')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'list' ? 'bg-[#222] text-indigo-700 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
                         >
                             <List size={14} /> Danh sách
                         </button>
@@ -442,7 +442,7 @@ export const Projects = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Tìm kiếm dự án..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            className="w-full pl-10 pr-4 py-2 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                     </div>
                     <button
@@ -460,17 +460,17 @@ export const Projects = () => {
                     <button
                         key={status}
                         onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-                        className={`bg-white border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-slate-100 hover:border-slate-200'
+                        className={`bg-[#222] border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-[#333] hover:border-[#333]'
                             }`}
                     >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
                             status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
                                 status === 'Thi công' ? 'bg-purple-50 text-purple-600' :
-                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
+                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-[#1c1c1c] text-slate-600'
                             }`}>
                             {count}
                         </div>
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{status}</span>
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{status}</span>
                     </button>
                 ))}
             </div>
@@ -495,26 +495,26 @@ export const Projects = () => {
                                 <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
                             </div>
                         </div>
-                        <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
+                        <h3 className="text-lg font-black text-slate-100 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
                         <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
-                        <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
-                        <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
+                        <p className="text-xs text-slate-400 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
+                        <div className="space-y-3 mb-6 bg-[#1c1c1c]/50 p-3 rounded-2xl border border-[#333]/50">
                             <div className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-emerald-500" /><span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-rose-500" /><span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
                             </div>
                             <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
                         </div>
-                        <div className="pt-3 border-t border-slate-100 mt-2">
-                            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 py-2 px-3 rounded-2xl">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ</span>
-                                <div className="flex-1 mx-3 bg-white rounded-full h-2 ring-1 ring-slate-200 overflow-hidden shadow-inner">
+                        <div className="pt-3 border-t border-[#333] mt-2">
+                            <div className="flex justify-between items-center bg-[#1c1c1c] border border-[#333] py-2 px-3 rounded-2xl">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiến độ</span>
+                                <div className="flex-1 mx-3 bg-[#222] rounded-full h-2 ring-1 ring-slate-200 overflow-hidden shadow-inner">
                                     <div className={`h-full rounded-full transition-all duration-700 ${getProjectProgress(project.id) >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`} style={{ width: `${getProjectProgress(project.id)}%` }}></div>
                                 </div>
-                                <span className="text-xs font-black text-slate-700">{getProjectProgress(project.id)}%</span>
+                                <span className="text-xs font-black text-slate-200">{getProjectProgress(project.id)}%</span>
                             </div>
                             <div className="flex justify-end mt-3">
-                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
+                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#222] text-slate-600 border border-[#333] hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
                                     <List size={14} className="text-indigo-400" />
                                     {allTasks.filter(t => t.project_id === project.id && !t.parent_id).length} nhiệm vụ
                                 </button>
@@ -527,11 +527,11 @@ export const Projects = () => {
 
             {/* List View - Tasks grouped by project */}
             {projectViewMode === 'list' && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm overflow-hidden">
                 {filteredProjects.map(project => {
                     const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
                     return (
-                        <div key={project.id} className="border-b border-slate-100 last:border-0">
+                        <div key={project.id} className="border-b border-[#333] last:border-0">
                             {(() => {
                                 const activeTasks = projTasks.filter(t => t.status !== 'Hoàn thành')
                                 const doneTasks = projTasks.filter(t => t.status === 'Hoàn thành')
@@ -542,21 +542,21 @@ export const Projects = () => {
                                     const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
                                     const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
                                     return (
-                                        <div className={`border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
+                                        <div className={`border-b border-slate-50 hover:bg-[#1c1c1c]/50 ${isDone ? 'opacity-60' : ''}`}>
                                             <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center">
-                                                <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
-                                                <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
+                                                <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-100 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                                <div className="text-[11px] text-slate-400 truncate">{(t as any).description || '—'}</div>
                                                 <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
                                                 <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
                                                 <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-[#2a2a2a] text-slate-600'}`}>{t.status}</span>
                                             </div>
                                             <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
                                                 <div className="flex justify-between items-start gap-2">
-                                                    <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                                    <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-100'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-[#2a2a2a] text-slate-600'}`}>{t.status}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                                                <div className="flex justify-between items-center text-[11px] text-slate-400">
                                                     <span className="truncate max-w-[150px]">👤 {assignee}</span>
                                                     <div className="flex items-center gap-3 font-semibold">
                                                         <span className={isLate ? 'text-red-600' : ''}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
@@ -570,10 +570,10 @@ export const Projects = () => {
 
                                 return (
                                     <>
-                                        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 sticky top-0 z-10">
+                                        <div className="flex items-center justify-between px-5 py-3 bg-[#1c1c1c] sticky top-0 z-10">
                                             <div className="flex items-center gap-3">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
-                                                <span className="text-sm font-bold text-slate-800">{project.name}</span>
+                                                <span className="text-sm font-bold text-slate-100">{project.name}</span>
                                                 <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
                                                 <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{activeTasks.length}</span>
                                             </div>
@@ -583,7 +583,7 @@ export const Projects = () => {
                                             <div className="px-5 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
                                         ) : (
                                             <div>
-                                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-1.5 bg-slate-50/50 border-b border-slate-100">
+                                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-1.5 bg-[#1c1c1c]/50 border-b border-[#333]">
                                                     {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
                                                 </div>
                                                 {activeTasks.map(t => <TaskRow key={t.id} t={t} />)}
@@ -591,10 +591,10 @@ export const Projects = () => {
                                                     <>
                                                         <button
                                                             onClick={() => toggleDoneProject(project.id)}
-                                                            className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-100"
+                                                            className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-[#1c1c1c] transition-colors border-t border-[#333]"
                                                         >
                                                             <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${isDoneOpen ? '' : '-rotate-90'}`} />
-                                                            <span className="text-xs text-slate-500">Đã hoàn tất {doneTasks.length} mục</span>
+                                                            <span className="text-xs text-slate-400">Đã hoàn tất {doneTasks.length} mục</span>
                                                         </button>
                                                         {isDoneOpen && doneTasks.map(t => <TaskRow key={t.id} t={t} />)}
                                                     </>

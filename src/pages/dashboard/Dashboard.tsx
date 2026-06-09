@@ -260,14 +260,14 @@ export const Dashboard = () => {
         if (s?.includes('Hoàn thành')) return 'bg-emerald-100 text-emerald-700'
         if (s?.includes('Đang')) return 'bg-blue-100 text-blue-700'
         if (s?.includes('Tạm dừng')) return 'bg-amber-100 text-amber-700'
-        return 'bg-slate-100 text-slate-600'
+        return 'bg-[#2a2a2a] text-slate-600'
     }
 
     const getPriorityBadge = (p: string) => {
         if (p === 'Khẩn cấp') return 'bg-red-500 text-white shadow-sm'
         if (p === 'Cao') return 'bg-orange-500 text-white shadow-sm'
         if (p === 'Trung bình') return 'bg-yellow-100 text-yellow-700 border border-yellow-200 shadow-sm'
-        return 'bg-slate-100 text-slate-600 border border-slate-200'
+        return 'bg-[#2a2a2a] text-slate-600 border border-[#333]'
     }
 
     // Popup helpers
@@ -349,11 +349,11 @@ export const Dashboard = () => {
             {/* Dashboard Filter */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-slate-700">Lọc chủ trì:</span>
+                    <span className="text-sm font-bold text-slate-200">Lọc chủ trì:</span>
                     <select
                         value={assigneeFilter}
                         onChange={(e) => setAssigneeFilter(e.target.value)}
-                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 max-w-[200px]"
+                        className="px-4 py-2 bg-[#222] border border-[#333] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 max-w-[200px]"
                     >
                         <option value="">Tất cả / Từng nhân sự</option>
                         {allProfiles.map(p => (
@@ -363,12 +363,12 @@ export const Dashboard = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-slate-700">Tháng:</span>
+                    <span className="text-sm font-bold text-slate-200">Tháng:</span>
                     <input
                         type="month"
                         value={monthFilter}
                         onChange={(e) => setMonthFilter(e.target.value)}
-                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-600 uppercase"
+                        className="px-4 py-2 bg-[#222] border border-[#333] rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-600 uppercase"
                     />
                 </div>
 
@@ -393,22 +393,22 @@ export const Dashboard = () => {
                                 <FolderKanban size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalProjects}</span>
-                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng dự án</span>
+                                <span className="text-xl md:text-3xl font-black text-slate-50 tracking-tight leading-none block truncate">{stats.totalProjects}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-wider mt-1 block truncate">Tổng dự án</span>
                             </div>
                         </div>
                         <div className="space-y-2 md:space-y-3 mt-auto">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                                     <CheckSquare size={10} />
                                 </div>
-                                <span>Hoàn thành: <strong className="text-gray-900">{stats.completedTasks}</strong></span>
+                                <span>Hoàn thành: <strong className="text-slate-50">{stats.completedTasks}</strong></span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                                     <Clock size={10} />
                                 </div>
-                                <span>Tỷ lệ: <strong className="text-gray-900">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                                <span>Tỷ lệ: <strong className="text-slate-50">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
                             </div>
                         </div>
                     </div>
@@ -423,22 +423,22 @@ export const Dashboard = () => {
                                 <CheckSquare size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
-                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng NV</span>
+                                <span className="text-xl md:text-3xl font-black text-slate-50 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-wider mt-1 block truncate">Tổng NV</span>
                             </div>
                         </div>
                         <div className="space-y-2 md:space-y-3 mt-auto">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
                                     <CheckSquare size={10} />
                                 </div>
-                                <span>Hoàn thành: <strong className="text-gray-900">{stats.completedTasks}</strong></span>
+                                <span>Hoàn thành: <strong className="text-slate-50">{stats.completedTasks}</strong></span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                                     <Clock size={10} />
                                 </div>
-                                <span>Tỷ lệ: <strong className="text-gray-900">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                                <span>Tỷ lệ: <strong className="text-slate-50">{stats.totalTasks > 0 ? Math.round(stats.completedTasks / stats.totalTasks * 100) : 0}%</strong></span>
                             </div>
                         </div>
                     </div>
@@ -453,22 +453,22 @@ export const Dashboard = () => {
                                 <Clock size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.ongoingTasks}</span>
-                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Đang làm</span>
+                                <span className="text-xl md:text-3xl font-black text-slate-50 tracking-tight leading-none block truncate">{stats.ongoingTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-wider mt-1 block truncate">Đang làm</span>
                             </div>
                         </div>
                         <div className="space-y-2 md:space-y-3 mt-auto">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
-                                <div className="w-4 h-4 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-[#2a2a2a] flex items-center justify-center text-gray-600">
                                     <Clock size={10} />
                                 </div>
-                                <span>Chưa bắt đầu: <strong className="text-gray-900">{stats.notStartedTasks}</strong></span>
+                                <span>Chưa bắt đầu: <strong className="text-slate-50">{stats.notStartedTasks}</strong></span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                                     <Clock size={10} />
                                 </div>
-                                <span>Tạm dừng: <strong className="text-gray-900">{stats.pausedTasks}</strong></span>
+                                <span>Tạm dừng: <strong className="text-slate-50">{stats.pausedTasks}</strong></span>
                             </div>
                         </div>
                     </div>
@@ -483,22 +483,22 @@ export const Dashboard = () => {
                                 <AlertTriangle size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.overdueTasks}</span>
-                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Quá hạn</span>
+                                <span className="text-xl md:text-3xl font-black text-slate-50 tracking-tight leading-none block truncate">{stats.overdueTasks}</span>
+                                <span className="text-[10px] md:text-sm font-bold text-slate-400 uppercase tracking-wider mt-1 block truncate">Quá hạn</span>
                             </div>
                         </div>
                         <div className="space-y-2 md:space-y-3 mt-auto">
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
                                 <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                                     <AlertTriangle size={10} />
                                 </div>
-                                <span>Cần xử lý: <strong className="text-gray-900">GẤP</strong></span>
+                                <span>Cần xử lý: <strong className="text-slate-50">GẤP</strong></span>
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
-                                <div className="w-4 h-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
+                                <div className="w-4 h-4 rounded-full bg-[#2a2a2a] flex items-center justify-center text-slate-600">
                                     <AlertTriangle size={10} />
                                 </div>
-                                <span>Tỷ lệ lỗi: <strong className="text-gray-900 text-rose-600">{stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}%</strong></span>
+                                <span>Tỷ lệ lỗi: <strong className="text-slate-50 text-rose-600">{stats.totalTasks > 0 ? Math.round(stats.overdueTasks / stats.totalTasks * 100) : 0}%</strong></span>
                             </div>
                         </div>
                     </div>
@@ -509,8 +509,8 @@ export const Dashboard = () => {
             {/* Activities & Urgent Tasks Row */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-2 glass-card">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Hoạt động gần đây</h3>
+                    <div className="px-6 py-4 border-b border-[#333] flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Hoạt động gần đây</h3>
                         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                     </div>
                     <div className="p-6 max-h-[440px] overflow-y-auto custom-scrollbar">
@@ -529,15 +529,15 @@ export const Dashboard = () => {
                                     return (
                                         <div
                                             key={a.id}
-                                            className="flex gap-4 group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition-colors"
+                                            className="flex gap-4 group cursor-pointer hover:bg-[#1c1c1c] p-2 -mx-2 rounded-xl transition-colors"
                                             onClick={() => handleActivityClick(a)}
                                         >
                                             <div className="flex flex-col items-center">
                                                 <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all focus:outline-none"></div>
-                                                <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
+                                                <div className="w-px flex-1 bg-[#2a2a2a] group-last:bg-transparent"></div>
                                             </div>
                                             <div className="flex-1 pb-4">
-                                                <p className="text-xs font-bold text-slate-800 leading-snug flex items-center gap-1.5 flex-wrap">
+                                                <p className="text-xs font-bold text-slate-100 leading-snug flex items-center gap-1.5 flex-wrap">
                                                     <span className={actionColor}>{a.action}</span>
                                                     <span className="text-slate-300">|</span>
                                                     <span>{userName}</span>
@@ -548,7 +548,7 @@ export const Dashboard = () => {
                                                         </>
                                                     )}
                                                 </p>
-                                                <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
+                                                <div className="mt-1.5 bg-[#1c1c1c] border border-[#333] p-2.5 rounded-xl text-[11px] text-slate-400 leading-relaxed font-medium">
                                                     {a.details}
                                                 </div>
                                                 <p className="text-[10px] text-slate-400 mt-1.5 font-bold flex items-center gap-1">
@@ -564,8 +564,8 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="lg:col-span-3 glass-card">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Nhiệm vụ ưu tiên cao</h3>
+                    <div className="px-6 py-4 border-b border-[#333] flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Nhiệm vụ ưu tiên cao</h3>
                         <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-rose-100">CẦN XỬ LÝ</span>
                     </div>
                     <div className="p-4 max-h-[440px] overflow-y-auto custom-scrollbar">
@@ -574,13 +574,13 @@ export const Dashboard = () => {
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {urgentTasks.map((task: any) => (
-                                    <div key={task.id} onClick={() => openEditTask(task)} className="border border-slate-100 rounded-[20px] p-4 hover:shadow-xl transition-all duration-300 bg-white group ring-1 ring-black/5 hover:ring-indigo-100 transform hover:-translate-y-1 cursor-pointer">
+                                    <div key={task.id} onClick={() => openEditTask(task)} className="border border-[#333] rounded-[20px] p-4 hover:shadow-xl transition-all duration-300 bg-[#222] group ring-1 ring-black/5 hover:ring-indigo-100 transform hover:-translate-y-1 cursor-pointer">
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-[10px] font-bold text-slate-400 tracking-widest">{task.task_code}</span>
                                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${getPriorityBadge(task.priority)}`}>{task.priority}</span>
                                         </div>
-                                        <h4 className="text-sm font-bold text-slate-800 line-clamp-2 mb-3 leading-tight group-hover:text-indigo-600 transition-colors uppercase italic tracking-tight">{task.name}</h4>
-                                        <div className="flex items-center justify-between text-[10px] text-slate-500 mb-4 font-bold uppercase">
+                                        <h4 className="text-sm font-bold text-slate-100 line-clamp-2 mb-3 leading-tight group-hover:text-indigo-600 transition-colors uppercase italic tracking-tight">{task.name}</h4>
+                                        <div className="flex items-center justify-between text-[10px] text-slate-400 mb-4 font-bold uppercase">
                                             <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${getStatusBadge(task.status)}`}>{task.status}</span>
                                             <span className="text-slate-400">HẠN: {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : 'N/A'}</span>
                                         </div>
@@ -589,7 +589,7 @@ export const Dashboard = () => {
                                                 <span>TIẾN ĐỘ</span>
                                                 <span className="text-emerald-500">{task.completion_pct || 0}%</span>
                                             </div>
-                                            <div className="bg-slate-50 rounded-full h-1.5 ring-1 ring-black/5">
+                                            <div className="bg-[#1c1c1c] rounded-full h-1.5 ring-1 ring-black/5">
                                                 <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 h-1.5 rounded-full shadow-sm" style={{ width: `${task.completion_pct || 0}%` }}></div>
                                             </div>
                                         </div>
@@ -736,7 +736,7 @@ export const Dashboard = () => {
                     <div className="relative">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input type="text" value={searchProjects} onChange={e => setSearchProjects(e.target.value)}
-                            placeholder="Tìm kiếm dự án..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                            placeholder="Tìm kiếm dự án..." className="w-full pl-10 pr-4 py-3 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                 </div>
                 
@@ -754,7 +754,7 @@ export const Dashboard = () => {
                                 title={p.name}
                                 subtitle={p.project_code}
                                 status={p.status}
-                                statusColor={p.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : p.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                statusColor={p.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : p.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-[#2a2a2a] text-slate-600'}
                                 progress={pct}
                                 state="medium"
                                 onClick={() => openProjectDetail(p)}
@@ -782,10 +782,10 @@ export const Dashboard = () => {
                         <div className="space-y-6">
                             {/* Back Button & Code */}
                             <div className="flex items-center gap-3 mb-2">
-                                <button onClick={() => setActivePopup('projectList')} className="text-slate-400 hover:text-slate-600 p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors">
+                                <button onClick={() => setActivePopup('projectList')} className="text-slate-400 hover:text-slate-600 p-2 bg-[#1c1c1c] hover:bg-[#2a2a2a] rounded-xl transition-colors">
                                     <ArrowLeft size={18} />
                                 </button>
-                                <span className="text-xs font-bold text-slate-500 tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                                <span className="text-xs font-bold text-slate-400 tracking-widest bg-[#1c1c1c] px-3 py-1.5 rounded-lg border border-[#333]">
                                     {selectedProject.project_code}
                                 </span>
                             </div>
@@ -811,12 +811,12 @@ export const Dashboard = () => {
                             </div>
 
                             {/* Progress Bar */}
-                            <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-sm">
+                            <div className="bg-[#222] border border-[#333] p-4 rounded-2xl shadow-sm">
                                 <div className="flex justify-between items-center mb-3">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tiến độ dự án</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tiến độ dự án</span>
                                     <span className="text-sm font-bold text-indigo-600">{pct}%</span>
                                 </div>
-                                <div className="bg-slate-100 rounded-full h-3 ring-1 ring-black/5">
+                                <div className="bg-[#2a2a2a] rounded-full h-3 ring-1 ring-black/5">
                                     <div className={`h-3 rounded-full transition-all duration-700 shadow-sm ${pct >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-blue-500'}`}
                                         style={{ width: `${pct}%` }}></div>
                                 </div>
@@ -825,14 +825,14 @@ export const Dashboard = () => {
                             {/* Task List */}
                             <div>
                                 <div className="flex justify-between items-center mb-4">
-                                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Danh sách nhiệm vụ</h4>
+                                    <h4 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Danh sách nhiệm vụ</h4>
                                     <button onClick={() => openCreateTask(selectedProject.id)}
                                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm">
                                         <Plus size={14} /> Thêm việc
                                     </button>
                                 </div>
                                 {projTasks.length === 0 ? (
-                                    <div className="text-center py-8 text-slate-400 text-xs italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">Chưa có nhiệm vụ nào.</div>
+                                    <div className="text-center py-8 text-slate-400 text-xs italic bg-[#1c1c1c] rounded-2xl border border-dashed border-[#333]">Chưa có nhiệm vụ nào.</div>
                                 ) : (
                                     <div className="space-y-0 relative">
                                         {projTasks.map(t => (
@@ -842,7 +842,7 @@ export const Dashboard = () => {
                                                 title={t.name}
                                                 subtitle={t.task_code}
                                                 status={t.status}
-                                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-[#2a2a2a] text-slate-600'}
                                                 progress={t.completion_pct}
                                                 avatarInitials={getAssigneeName(t.assignee_id).substring(0, 2).toUpperCase()}
                                                 state="medium"
@@ -867,7 +867,7 @@ export const Dashboard = () => {
                     <div className="relative">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input type="text" value={searchTasks} onChange={e => setSearchTasks(e.target.value)}
-                            placeholder="Tìm kiếm nhiệm vụ..." className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                            placeholder="Tìm kiếm nhiệm vụ..." className="w-full pl-10 pr-4 py-3 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                 </div>
                 <div className="space-y-0 relative pb-12">
@@ -882,7 +882,7 @@ export const Dashboard = () => {
                                 title={t.name}
                                 subtitle={`${t.task_code} ${proj ? `• ${proj.project_code}` : ''}`}
                                 status={t.status}
-                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}
+                                statusColor={t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-700' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-700' : 'bg-[#2a2a2a] text-slate-600'}
                                 progress={t.completion_pct}
                                 deadline={t.due_date ? format(parseISO(t.due_date), 'dd/MM/yyyy') : 'N/A'}
                                 avatarInitials={getAssigneeName(t.assignee_id).substring(0, 2).toUpperCase()}

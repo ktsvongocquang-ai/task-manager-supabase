@@ -36,12 +36,12 @@ export const BottomTabBar = () => {
     const projectTab = getDynamicProjectTab();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-[60] lg:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#222] border-t border-[#333] z-[60] lg:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
             <div className="flex justify-around items-center h-16 px-2">
                 {/* 1. Dashboard / Home Tab */}
                 <NavLink 
                     to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=dashboard' : '/dashboard'} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=dashboard')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=dashboard')) ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-50'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingHomeMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=dashboard');
@@ -59,7 +59,7 @@ export const BottomTabBar = () => {
                 {/* 2. Dynamic Action Tab (Công việc / CRM / Thi công...) */}
                 <NavLink 
                     to={actionTab.path} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${(isActive && !window.location.search.includes('tab=')) || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${(isActive && !window.location.search.includes('tab=')) || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban')) ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-50'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingActionMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=kanban');
@@ -75,7 +75,7 @@ export const BottomTabBar = () => {
                 {/* 2.5. Calendar Shortcut */}
                 <NavLink 
                     to="/schedule" 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-50'}`}
                 >
                     {({ isActive }) => (
                         <>
@@ -88,7 +88,7 @@ export const BottomTabBar = () => {
                 {/* 3. Dynamic Project Tab (Dự án / Tổng hợp bài đăng...) */}
                 <NavLink 
                     to={projectTab.path} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=progress')) ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-50'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingProjectMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=posts');
@@ -104,7 +104,7 @@ export const BottomTabBar = () => {
                 {/* 4. Profile Tab */}
                 <NavLink 
                     to={profile?.role?.trim() === 'Marketing' ? '/marketing?tab=guidelines' : (profile?.role === 'Admin' ? '/users' : '/profile')} 
-                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-900'}`}
+                    className={({ isActive }) => `flex flex-col items-center justify-center w-1/5 h-full space-y-1 transition-colors ${isActive || (profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines')) ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-50'}`}
                 >
                     {({ isActive }) => {
                         const isMarketingProfileMatch = profile?.role?.trim() === 'Marketing' && window.location.search.includes('tab=guidelines');

@@ -248,11 +248,11 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-[#222] rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-start bg-gray-50/50 shrink-0">
+                <div className="px-6 py-4 border-b border-[#333] flex justify-between items-start bg-[#1c1c1c]/50 shrink-0">
                     <div className="flex-1 mr-4">
-                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
+                        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2 mb-2">
                             <Calendar className="text-indigo-500" />
                             Cập nhật Dự án & Mốc quay
                         </h2>
@@ -263,7 +263,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     type="text" 
                                     value={form.project_code} 
                                     onChange={e => setForm({...form, project_code: e.target.value})}
-                                    className="w-full bg-slate-50 border border-gray-200 rounded-lg text-sm font-mono font-bold p-2 focus:ring-1 focus:ring-indigo-500 text-indigo-600"
+                                    className="w-full bg-[#1c1c1c] border border-[#333] rounded-lg text-sm font-mono font-bold p-2 focus:ring-1 focus:ring-indigo-500 text-indigo-600"
                                     placeholder="DA001"
                                 />
                             </div>
@@ -273,7 +273,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     type="text" 
                                     value={form.name} 
                                     onChange={e => setForm({...form, name: e.target.value})}
-                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-bold p-2 focus:ring-1 focus:ring-indigo-500"
+                                    className="w-full bg-[#222] border border-[#333] rounded-lg text-sm font-bold p-2 focus:ring-1 focus:ring-indigo-500"
                                     placeholder="Tên dự án..."
                                 />
                             </div>
@@ -283,7 +283,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     type="text" 
                                     value={form.address} 
                                     onChange={e => setForm({...form, address: e.target.value})}
-                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
+                                    className="w-full bg-[#222] border border-[#333] rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
                                     placeholder="Địa chỉ công trình..."
                                 />
                             </div>
@@ -293,36 +293,36 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     type="text" 
                                     value={form.supervisor_phone} 
                                     onChange={e => setForm({...form, supervisor_phone: e.target.value})}
-                                    className="w-full bg-white border border-gray-200 rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
+                                    className="w-full bg-[#222] border border-[#333] rounded-lg text-sm font-medium p-2 focus:ring-1 focus:ring-indigo-500"
                                     placeholder="Số điện thoại giám sát..."
                                 />
                             </div>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-white rounded-xl transition-colors">
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-slate-200 hover:bg-[#222] rounded-xl transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 custom-scrollbar flex flex-col md:flex-row gap-8">
+                <div className="flex-1 overflow-y-auto p-6 bg-[#1c1c1c]/30 custom-scrollbar flex flex-col md:flex-row gap-8">
                     {/* Left Column: Timeline Inputs -> Width 50% */}
                     <div className="w-full md:w-1/2 flex flex-col gap-6">
                         
                         {/* Timeline Settings */}
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4 uppercase tracking-wider">
+                        <div className="bg-[#222] p-5 rounded-2xl shadow-sm border border-[#333]">
+                            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 mb-4 uppercase tracking-wider">
                                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                 Thiết lập thời gian (Ngày)
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Ngày Khởi công (Thực tế)</label>
+                                    <label className="block text-xs font-bold text-slate-400 mb-1">Ngày Khởi công (Thực tế)</label>
                                     <input 
                                         type="date" 
                                         value={form.actual_start_date} 
                                         onChange={e => setForm({...form, actual_start_date: e.target.value})}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium p-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                                        className="w-full bg-[#1c1c1c] border border-[#333] rounded-lg text-sm font-medium p-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                                     />
                                 </div>
                                 
@@ -331,7 +331,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-l-xl"></div>
                                         <label className="block text-xs font-bold text-indigo-700 mb-1 pl-2">Thiết kế</label>
                                         <div className="flex items-center gap-2 pl-2">
-                                            <input type="number" min="0" value={form.design_days} onChange={e => setForm({...form, design_days: Number(e.target.value)})} className="w-full bg-white border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-indigo-500" />
+                                            <input type="number" min="0" value={form.design_days} onChange={e => setForm({...form, design_days: Number(e.target.value)})} className="w-full bg-[#222] border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-indigo-500" />
                                             <span className="text-xs text-indigo-400 font-medium">ngày</span>
                                         </div>
                                     </div>
@@ -339,7 +339,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 rounded-l-xl"></div>
                                         <label className="block text-xs font-bold text-orange-700 mb-1 pl-2">Thi công Thô</label>
                                         <div className="flex items-center gap-2 pl-2">
-                                            <input type="number" min="0" value={form.rough_construction_days} onChange={e => setForm({...form, rough_construction_days: Number(e.target.value)})} className="w-full bg-white border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-orange-500" />
+                                            <input type="number" min="0" value={form.rough_construction_days} onChange={e => setForm({...form, rough_construction_days: Number(e.target.value)})} className="w-full bg-[#222] border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-orange-500" />
                                             <span className="text-xs text-orange-400 font-medium">ngày</span>
                                         </div>
                                     </div>
@@ -347,7 +347,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-xl"></div>
                                         <label className="block text-xs font-bold text-blue-700 mb-1 pl-2">Hoàn thiện</label>
                                         <div className="flex items-center gap-2 pl-2">
-                                            <input type="number" min="0" value={form.finishing_days} onChange={e => setForm({...form, finishing_days: Number(e.target.value)})} className="w-full bg-white border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-blue-500" />
+                                            <input type="number" min="0" value={form.finishing_days} onChange={e => setForm({...form, finishing_days: Number(e.target.value)})} className="w-full bg-[#222] border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-blue-500" />
                                             <span className="text-xs text-blue-400 font-medium">ngày</span>
                                         </div>
                                     </div>
@@ -355,14 +355,14 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-xl"></div>
                                         <label className="block text-xs font-bold text-emerald-700 mb-1 pl-2">Thi công Nội thất</label>
                                         <div className="flex items-center gap-2 pl-2">
-                                            <input type="number" min="0" value={form.interior_days} onChange={e => setForm({...form, interior_days: Number(e.target.value)})} className="w-full bg-white border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-emerald-500" />
+                                            <input type="number" min="0" value={form.interior_days} onChange={e => setForm({...form, interior_days: Number(e.target.value)})} className="w-full bg-[#222] border-none rounded py-1 px-2 text-sm font-bold shadow-sm focus:ring-1 focus:ring-emerald-500" />
                                             <span className="text-xs text-emerald-400 font-medium">ngày</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-gray-100">
-                                    <label className="block text-xs font-bold text-gray-500 mb-1">Ngày Bàn giao (Dự kiến / Thực tế)</label>
+                                <div className="pt-2 border-t border-[#333]">
+                                    <label className="block text-xs font-bold text-slate-400 mb-1">Ngày Bàn giao (Dự kiến / Thực tế)</label>
                                     <div className="flex items-center gap-2">
                                         <input 
                                             type="date" 
@@ -384,9 +384,9 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                         </div>
 
                         {/* Shooting Milestones */}
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-rose-100 flex-1 flex flex-col">
+                        <div className="bg-[#222] p-5 rounded-2xl shadow-sm border border-rose-100 flex-1 flex flex-col">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wider">
+                                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 uppercase tracking-wider">
                                     <Video size={16} className="text-rose-500" />
                                     Mốc quay Phim (Marketing)
                                 </h3>
@@ -399,12 +399,12 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                         type="date" 
                                         value={newMsDate}
                                         onChange={e => setNewMsDate(e.target.value)}
-                                        className="sm:w-32 w-full bg-white border border-gray-200 text-xs font-bold text-gray-700 p-2 focus:ring-1 focus:ring-rose-400 rounded-lg"
+                                        className="sm:w-32 w-full bg-[#222] border border-[#333] text-xs font-bold text-slate-200 p-2 focus:ring-1 focus:ring-rose-400 rounded-lg"
                                     />
                                     <select
                                         value={newMsTaskId}
                                         onChange={e => setNewMsTaskId(e.target.value)}
-                                        className="flex-1 bg-white border border-gray-200 rounded-lg text-xs p-2 focus:ring-1 focus:ring-rose-400 font-bold text-slate-700"
+                                        className="flex-1 bg-[#222] border border-[#333] rounded-lg text-xs p-2 focus:ring-1 focus:ring-rose-400 font-bold text-slate-200"
                                     >
                                         <option value="" disabled className="text-gray-400">--- Chọn Task để gắn lịch ---</option>
                                         {projectTasks.map(t => (
@@ -422,13 +422,13 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     <div className="text-center text-gray-400 text-xs italic py-6">Chưa có mốc quay nào.</div>
                                 ) : (
                                     milestones.map(ms => (
-                                        <div key={ms.id} className="bg-white border border-gray-200 p-3 rounded-xl hover:border-rose-300 transition-colors shadow-sm group">
+                                        <div key={ms.id} className="bg-[#222] border border-[#333] p-3 rounded-xl hover:border-rose-300 transition-colors shadow-sm group">
                                             <div className="flex gap-2">
                                                 <input 
                                                     type="date" 
                                                     value={ms.milestone_date}
                                                     onChange={e => handleUpdateMilestone(ms.id, 'milestone_date', e.target.value)}
-                                                    className="w-32 bg-transparent border-none text-xs font-bold text-gray-700 p-0 focus:ring-0"
+                                                    className="w-32 bg-transparent border-none text-xs font-bold text-slate-200 p-0 focus:ring-0"
                                                 />
                                                 <select 
                                                     value={ms.status}
@@ -447,7 +447,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                             <select
                                                 value={ms.task_id || ''}
                                                 onChange={e => handleUpdateMilestone(ms.id, 'task_id', e.target.value)}
-                                                className="w-full mt-2 bg-white border border-rose-200 rounded text-sm p-1.5 focus:bg-rose-50 focus:ring-1 focus:ring-rose-400 font-medium text-slate-700"
+                                                className="w-full mt-2 bg-[#222] border border-rose-200 rounded text-sm p-1.5 focus:bg-rose-50 focus:ring-1 focus:ring-rose-400 font-medium text-slate-200"
                                             >
                                                 <option value="" disabled className="text-gray-400">--- Gắn với nội dung Task ---</option>
                                                 {projectTasks.map(t => (
@@ -463,20 +463,20 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                     </div>
 
                     {/* Right Column: Daily Logs -> Width 50% */}
-                    <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-                            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wider">
+                    <div className="w-full md:w-1/2 flex flex-col bg-[#222] rounded-2xl shadow-sm border border-[#333] overflow-hidden">
+                        <div className="p-4 border-b border-[#333] bg-[#1c1c1c]/50">
+                            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2 uppercase tracking-wider">
                                 <FileText size={16} className="text-blue-500" />
                                 Nhật ký Công trình
                             </h3>
                         </div>
                         
                         {/* Add Log Form */}
-                        <div className="p-4 border-b border-gray-100 bg-white">
+                        <div className="p-4 border-b border-[#333] bg-[#222]">
                             <textarea 
                                 value={newLogContent}
                                 onChange={e => setNewLogContent(e.target.value)}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors custom-scrollbar"
+                                className="w-full bg-[#1c1c1c] border border-[#333] rounded-xl p-3 text-sm focus:bg-[#222] focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-colors custom-scrollbar"
                                 placeholder="Cập nhật tình hình hôm nay..."
                                 rows={2}
                             />
@@ -485,7 +485,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                     type="text" 
                                     value={newLogMedia}
                                     onChange={e => setNewLogMedia(e.target.value)}
-                                    className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs focus:bg-white focus:ring-1 focus:ring-blue-400"
+                                    className="flex-1 bg-[#1c1c1c] border border-[#333] rounded-lg p-2 text-xs focus:bg-[#222] focus:ring-1 focus:ring-blue-400"
                                     placeholder="Link ảnh/video (Drive/Zalo)..."
                                 />
                                 <button 
@@ -499,7 +499,7 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                         </div>
 
                         {/* Logs List - Vertical Timeline */}
-                        <div className="flex-1 overflow-y-auto p-4 bg-gray-50/30 custom-scrollbar relative">
+                        <div className="flex-1 overflow-y-auto p-4 bg-[#1c1c1c]/30 custom-scrollbar relative">
                             {dailyLogs.length === 0 ? (
                                 <div className="text-center text-gray-400 text-xs italic py-10">Chưa có nhật ký nào.</div>
                             ) : (
@@ -511,13 +511,13 @@ export const TimelineUpdateModal: React.FC<TimelineUpdateModalProps> = ({
                                             </div>
                                             
                                             {/* Card */}
-                                            <div className="w-[calc(100%-3rem)] md:w-[calc(50%-1.5rem)] p-4 rounded-xl shadow-sm bg-white border border-gray-100 hover:shadow-md transition-shadow">
+                                            <div className="w-[calc(100%-3rem)] md:w-[calc(50%-1.5rem)] p-4 rounded-xl shadow-sm bg-[#222] border border-[#333] hover:shadow-md transition-shadow">
                                                 <div className="flex justify-between items-start mb-1">
-                                                    <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
+                                                    <span className="text-[10px] font-bold text-gray-400 bg-[#2a2a2a] px-2 py-0.5 rounded-md">
                                                         {format(parseISO(log.log_date), 'dd/MM/yyyy')}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{log.content}</p>
+                                                <p className="text-sm text-slate-200 mt-2 whitespace-pre-wrap">{log.content}</p>
                                                 {log.media_link && (
                                                     <a href={log.media_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 mt-3 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors">
                                                         <Camera size={12} /> Xem tư liệu

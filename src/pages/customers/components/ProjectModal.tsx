@@ -79,7 +79,7 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title={initialData ? 'Chi tiết Dự án' : 'Thêm Dự án mới'}>
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-white shrink-0 h-full max-h-full relative">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#222] shrink-0 h-full max-h-full relative">
         {initialData && (
           <div className="absolute top-4 right-6 z-10">
             <button 
@@ -98,39 +98,39 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
               {/* Left Column: Info & Status */}
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-50 border-b border-[#333] pb-2 flex items-center gap-2">
                     <FileText className="w-4 h-4 text-indigo-500" /> Thông tin chung
                   </h3>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tên dự án</label>
-                    <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                    <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Khách hàng</label>
-                    <input required type="text" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                    <input required type="text" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Trạng thái Hợp đồng / Thiết kế</label>
-                    <select value={formData.contractStatus} onChange={e => setFormData({...formData, contractStatus: e.target.value})} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    <select value={formData.contractStatus} onChange={e => setFormData({...formData, contractStatus: e.target.value})} className="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                       {CONTRACT_STATUSES.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                 </div>
 
                 <div className="space-y-4 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-                  <h3 className="text-sm font-bold text-gray-900 border-b border-emerald-200 pb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-50 border-b border-emerald-200 pb-2 flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-emerald-500" /> Tiến độ thanh toán (Kế toán)
                   </h3>
                   <div className="space-y-2">
                     {PAYMENT_STAGES.map(stage => (
-                      <label key={stage.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-gray-200">
+                      <label key={stage.id} className="flex items-center gap-3 p-2 hover:bg-[#222] rounded-lg cursor-pointer transition-colors border border-transparent hover:border-[#333]">
                         <input 
                           type="checkbox" 
                           checked={formData.payments.includes(stage.id)}
                           onChange={() => togglePayment(stage.id)}
                           className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                         />
-                        <span className={`text-sm font-medium ${formData.payments.includes(stage.id) ? 'text-gray-900 line-through opacity-60' : 'text-gray-700'}`}>
+                        <span className={`text-sm font-medium ${formData.payments.includes(stage.id) ? 'text-slate-50 line-through opacity-60' : 'text-slate-200'}`}>
                           {stage.name}
                         </span>
                       </label>
@@ -142,21 +142,21 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
               {/* Right Column: Feedback & Logs */}
               <div className="space-y-6">
                 <div className="space-y-4 bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                  <h3 className="text-sm font-bold text-gray-900 border-b border-orange-200 pb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-50 border-b border-orange-200 pb-2 flex items-center gap-2">
                     <MessageSquare className="w-4 h-4 text-orange-500" /> Phản hồi thiết kế
                   </h3>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Số lần khách yêu cầu sửa đổi:</span>
+                    <span className="text-sm font-medium text-slate-200">Số lần khách yêu cầu sửa đổi:</span>
                     <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => setFormData({...formData, feedbackRounds: Math.max(0, formData.feedbackRounds - 1)})} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50">-</button>
+                      <button type="button" onClick={() => setFormData({...formData, feedbackRounds: Math.max(0, formData.feedbackRounds - 1)})} className="w-8 h-8 rounded-full bg-[#222] border border-[#333] flex items-center justify-center hover:bg-[#1c1c1c]">-</button>
                       <span className="font-bold text-lg w-4 text-center">{formData.feedbackRounds}</span>
-                      <button type="button" onClick={() => setFormData({...formData, feedbackRounds: formData.feedbackRounds + 1})} className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:bg-gray-50">+</button>
+                      <button type="button" onClick={() => setFormData({...formData, feedbackRounds: formData.feedbackRounds + 1})} className="w-8 h-8 rounded-full bg-[#222] border border-[#333] flex items-center justify-center hover:bg-[#1c1c1c]">+</button>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-gray-900 border-b border-gray-200 pb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-50 border-b border-[#333] pb-2 flex items-center gap-2">
                     <ListPlus className="w-4 h-4 text-purple-500" /> Nhật ký dự án
                   </h3>
                   
@@ -167,7 +167,7 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
                       onChange={e => setNewLog(e.target.value)}
                       onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), handleAddLog())}
                       placeholder="VD: Đã gửi phương án mặt bằng..." 
-                      className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                      className="flex-1 px-3 py-2 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                     />
                     <button 
                       type="button"
@@ -183,10 +183,10 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
                       <div className="text-center text-xs text-gray-400 py-4 italic">Chưa có nhật ký nào</div>
                     ) : (
                       formData.activityLog.map((log, idx) => (
-                        <div key={idx} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm relative pl-4">
+                        <div key={idx} className="bg-[#222] p-3 rounded-lg border border-[#333] shadow-sm relative pl-4">
                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-200 rounded-l-lg"></div>
                           <div className="text-[10px] text-gray-400 font-medium mb-1">{log.date}</div>
-                          <div className="text-sm text-gray-700">{log.content}</div>
+                          <div className="text-sm text-slate-200">{log.content}</div>
                         </div>
                       ))
                     )}
@@ -214,11 +214,11 @@ export default function ProjectModal({ isOpen, onClose, onSave, initialData }: P
       </div>
 
       {/* Fixed Footer within BottomSheet content area */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-[#333] bg-[#222] flex items-center justify-end gap-3 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <button 
           type="button" 
           onClick={onClose}
-          className="flex-1 sm:flex-none px-5 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+          className="flex-1 sm:flex-none px-5 py-3 text-sm font-medium text-slate-200 bg-[#2a2a2a] hover:bg-gray-200 rounded-xl transition-colors"
         >
           Đóng
         </button>

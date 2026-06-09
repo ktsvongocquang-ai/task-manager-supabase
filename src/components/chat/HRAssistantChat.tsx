@@ -87,11 +87,11 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
             </button>
 
             {isOpen && (
-                <div className="fixed z-[99] bottom-36 md:bottom-40 left-3 md:left-6 w-[calc(100vw-24px)] md:w-[400px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[550px] max-h-[70vh] animate-in fade-in slide-in-from-bottom-5">
+                <div className="fixed z-[99] bottom-36 md:bottom-40 left-3 md:left-6 w-[calc(100vw-24px)] md:w-[400px] bg-[#222] rounded-2xl shadow-2xl border border-[#333] overflow-hidden flex flex-col h-[550px] max-h-[70vh] animate-in fade-in slide-in-from-bottom-5">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex justify-between items-center text-white shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+                            <div className="w-9 h-9 bg-[#222]/20 rounded-xl flex items-center justify-center backdrop-blur-md">
                                 <UserCheck size={18} />
                             </div>
                             <div>
@@ -99,13 +99,13 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
                                 <p className="text-xs text-white/80">Tính KPI & Lương Năng Suất</p>
                             </div>
                         </div>
-                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-[#222]/20 rounded-lg transition-colors">
                             <X size={18} />
                         </button>
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 relative custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#1c1c1c] relative custom-scrollbar">
                          {messages.map((msg, i) => (
                             <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                 {msg.role === 'assistant' && (
@@ -116,7 +116,7 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
                                 <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                                     msg.role === 'user'
                                         ? 'bg-teal-600 text-white rounded-tr-sm'
-                                        : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'
+                                        : 'bg-[#222] border border-[#333] text-slate-100 rounded-tl-sm shadow-sm'
                                 }`}>
                                      <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\\n/g, '<br/>') }} />
                                 </div>
@@ -131,14 +131,14 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
                     </div>
 
                     {/* Suggestion & Input */}
-                    <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+                    <div className="p-3 bg-[#222] border-t border-[#333] shrink-0">
                         {showSuggestions && !isLoading && (
                             <div className="flex flex-wrap gap-1.5 mb-3">
                                 {HR_QUESTIONS.map((q, i) => (
                                     <button
                                         key={i}
                                         onClick={() => handleSend(q.text)}
-                                        className="text-[11px] bg-slate-50 text-slate-600 hover:bg-teal-50 hover:text-teal-700 px-3 py-1.5 rounded-full border border-slate-200"
+                                        className="text-[11px] bg-[#1c1c1c] text-slate-600 hover:bg-teal-50 hover:text-teal-700 px-3 py-1.5 rounded-full border border-[#333]"
                                     >
                                         {q.icon} {q.text}
                                     </button>
@@ -152,7 +152,7 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                                 placeholder="Hỏi về lương và task của bạn..."
-                                className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-teal-500"
+                                className="flex-1 bg-[#1c1c1c] border border-[#333] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-teal-500"
                             />
                             <button
                                 onClick={() => handleSend()}

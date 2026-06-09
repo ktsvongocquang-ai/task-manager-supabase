@@ -26,8 +26,8 @@ interface AddEditUserModalProps {
 export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, constructionProjects = [] }: AddEditUserModalProps) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center sm:p-4">
-            <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200 border border-border-main max-h-[75dvh] sm:max-h-[92dvh] flex flex-col">
-                <div className="px-5 py-4 border-b border-border-main flex justify-between items-center bg-gray-50/50 shrink-0">
+            <div className="bg-[#222] rounded-t-2xl sm:rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200 border border-border-main max-h-[75dvh] sm:max-h-[92dvh] flex flex-col">
+                <div className="px-5 py-4 border-b border-border-main flex justify-between items-center bg-[#1c1c1c]/50 shrink-0">
                     <h3 className="text-base font-semibold text-text-main">
                         {isEditing ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên'}
                     </h3>
@@ -38,45 +38,45 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, co
                 <div className="p-5 space-y-4 overflow-y-auto flex-1">
                     {!isEditing && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Mã nhân viên</label>
-                            <input value={form.staff_id} disabled className="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed" />
+                            <label className="block text-sm font-medium text-slate-200 mb-1.5">Mã nhân viên</label>
+                            <input value={form.staff_id} disabled className="w-full px-4 py-2 bg-[#2a2a2a] border border-[#333] rounded-lg text-sm text-slate-400 cursor-not-allowed" />
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Họ tên <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1.5">Họ tên <span className="text-red-500">*</span></label>
                         <input
                             value={form.full_name}
                             onChange={e => setForm({ ...form, full_name: e.target.value })}
-                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             placeholder="Nhập họ tên..."
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Email <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1.5">Email <span className="text-red-500">*</span></label>
                         <input
                             type="email"
                             value={form.email}
                             onChange={e => setForm({ ...form, email: e.target.value })}
-                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             placeholder="example@email.com"
                             disabled={false}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Chức vụ</label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1.5">Chức vụ</label>
                         <input
                             value={form.position}
                             onChange={e => setForm({ ...form, position: e.target.value })}
-                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             placeholder="Vị trí công việc..."
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Phân quyền</label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1.5">Phân quyền</label>
                         <select
                             value={form.role}
                             onChange={e => setForm({ ...form, role: e.target.value })}
-                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         >
                             <option value="Admin">Admin</option>
                             <option value="Quản lý thiết kế">Quản lý thiết kế</option>
@@ -90,13 +90,13 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, co
                     </div>
                     {form.role === 'Khách hàng' && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label className="block text-sm font-medium text-slate-200 mb-1.5">
                                 Công trình phụ trách <span className="text-red-500">*</span>
                             </label>
                             <select
                                 value={form.construction_project_id || ''}
                                 onChange={e => setForm({ ...form, construction_project_id: e.target.value || null })}
-                                className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             >
                                 <option value="">-- Chọn công trình --</option>
                                 {constructionProjects.map(p => (
@@ -108,18 +108,18 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, co
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Mật khẩu {!isEditing && <span className="text-red-500">*</span>}</label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1.5">Mật khẩu {!isEditing && <span className="text-red-500">*</span>}</label>
                         <input
                             type="password"
                             value={form.password || ''}
                             onChange={e => setForm({ ...form, password: e.target.value })}
-                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            className="w-full px-4 py-2 bg-[#222] border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             placeholder="••••••••"
                         />
                     </div>
                 </div>
-                <div className="px-5 py-4 bg-gray-50/50 border-t border-border-main flex gap-3 shrink-0" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
-                    <button onClick={onClose} className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">Hủy</button>
+                <div className="px-5 py-4 bg-[#1c1c1c]/50 border-t border-border-main flex gap-3 shrink-0" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
+                    <button onClick={onClose} className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-[#333]">Hủy</button>
                     <button onClick={onSave} className="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
                         {isEditing ? 'Cập nhật' : 'Thêm nhân viên'}
                     </button>

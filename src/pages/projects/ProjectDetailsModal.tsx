@@ -93,7 +93,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
         if (isOverdue) return { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-600' };
         if (t.status?.includes('Đang')) return { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-600' };
         if (t.status?.includes('Tạm dừng')) return { border: 'border-amber-500', bg: 'bg-amber-50', text: 'text-amber-600' };
-        return { border: 'border-slate-300', bg: 'bg-slate-50', text: 'text-slate-600' };
+        return { border: 'border-slate-300', bg: 'bg-[#1c1c1c]', text: 'text-slate-600' };
     }
 
     return (
@@ -105,8 +105,8 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
 
                 {/* Header */}
                 <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 relative bg-[#EAEAEA]/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800 pr-8">
-                        Chi tiết dự án: {project.name} <span className="text-sm sm:text-base text-slate-500 font-normal">({project.project_code})</span>
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-100 pr-8">
+                        Chi tiết dự án: {project.name} <span className="text-sm sm:text-base text-slate-400 font-normal">({project.project_code})</span>
                     </h2>
                     <button onClick={onClose} className="absolute top-4 sm:top-6 right-3 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-200 rounded-full">
                         <X size={24} />
@@ -118,29 +118,29 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                        <div className="bg-white rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-2xl sm:text-3xl font-black text-slate-700 mb-1">{stats.total}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Tổng nhiệm vụ</span>
+                        <div className="bg-[#222] rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
+                            <span className="text-2xl sm:text-3xl font-black text-slate-200 mb-1">{stats.total}</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-400 text-center">Tổng nhiệm vụ</span>
                         </div>
                         <div className="bg-emerald-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
                             <span className="text-2xl sm:text-3xl font-black text-emerald-600 mb-1">{stats.completed}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Hoàn thành</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-400 text-center">Hoàn thành</span>
                         </div>
                         <div className="bg-blue-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
                             <span className="text-2xl sm:text-3xl font-black text-blue-600 mb-1">{stats.inProgress}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Đang thực hiện</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-400 text-center">Đang thực hiện</span>
                         </div>
                         <div className="bg-red-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
                             <span className="text-2xl sm:text-3xl font-black text-red-600 mb-1">{stats.overdue}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Quá hạn</span>
+                            <span className="text-[11px] sm:text-sm font-medium text-slate-400 text-center">Quá hạn</span>
                         </div>
                     </div>
 
                     {/* Progress */}
                     <div className="space-y-3">
                         <div className="flex justify-between items-end">
-                            <h3 className="text-base font-bold text-slate-700">Tiến độ dự án</h3>
-                            <span className="text-lg font-black text-slate-800">{overallProgress}%</span>
+                            <h3 className="text-base font-bold text-slate-200">Tiến độ dự án</h3>
+                            <span className="text-lg font-black text-slate-100">{overallProgress}%</span>
                         </div>
                         <div className="w-full bg-slate-200 rounded-full h-3">
                             <div
@@ -152,7 +152,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
 
                     {/* Task List Grouped by Phase */}
                     <div className="space-y-6">
-                        <h3 className="text-lg font-bold text-slate-800">Danh sách nhiệm vụ ({stats.total})</h3>
+                        <h3 className="text-lg font-bold text-slate-100">Danh sách nhiệm vụ ({stats.total})</h3>
 
                         {[
                             { key: 'concept', name: 'Concept', icon: '💡', color: 'indigo' },
@@ -170,19 +170,19 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 px-1 gap-2 sm:gap-0">
                                         <div className="flex items-center gap-2">
                                             <span className="text-base sm:text-lg">{phase.icon}</span>
-                                            <span className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider">{phase.name}</span>
+                                            <span className="text-xs sm:text-sm font-black text-slate-200 uppercase tracking-wider">{phase.name}</span>
                                             <span className="bg-slate-200 text-slate-600 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">{phaseTasks.length} task</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="flex-1 sm:w-20 sm:flex-none h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[80px]">
                                                 <div className={`h-full rounded-full transition-all duration-300 ${phasePct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${phasePct}%` }}></div>
                                             </div>
-                                            <span className="text-[11px] sm:text-xs font-bold text-slate-500 w-8 text-right">{phaseCompleted}/{phaseTasks.length}</span>
+                                            <span className="text-[11px] sm:text-xs font-bold text-slate-400 w-8 text-right">{phaseCompleted}/{phaseTasks.length}</span>
                                         </div>
                                     </div>
 
                                     {phaseTasks.length === 0 ? (
-                                        <div className="text-xs text-slate-400 italic bg-white/50 rounded-xl py-3 px-4 border border-dashed border-slate-200 mb-2">Chưa có nhiệm vụ nào trong giai đoạn này</div>
+                                        <div className="text-xs text-slate-400 italic bg-[#222]/50 rounded-xl py-3 px-4 border border-dashed border-[#333] mb-2">Chưa có nhiệm vụ nào trong giai đoạn này</div>
                                     ) : (
                                         <div className="space-y-3 mb-2">
                                             {phaseTasks.map(task => {
@@ -191,7 +191,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                     <div
                                                         key={task.id}
                                                         onClick={() => onEditTask(task)}
-                                                        className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                                        className={`bg-[#222] rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
                                                     >
                                                         <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
                                                             <div className="flex gap-3 w-full sm:w-auto">
@@ -203,7 +203,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                                     disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)}
                                                                 />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <h4 className="text-sm sm:text-base font-bold text-slate-800 mb-1.5">
+                                                                    <h4 className="text-sm sm:text-base font-bold text-slate-100 mb-1.5">
                                                                         {task.name} <span className="text-slate-400 font-medium text-xs sm:text-sm">({task.task_code})</span>
                                                                     </h4>
                                                                     <div className="flex gap-2">
@@ -220,14 +220,14 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                                             {task.completedSub}<span className="text-base sm:text-lg text-slate-400">/{task.totalSub}</span>
                                                                         </div>
                                                                     )}
-                                                                    <div className="flex flex-row sm:flex-col items-center border border-blue-600 rounded text-xs bg-white px-2 py-1 sm:px-1.5 sm:py-1 shadow-sm shrink-0 min-w-[90px] gap-2 sm:gap-0">
-                                                                        <div className="flex items-center gap-1 font-bold text-slate-700">
+                                                                    <div className="flex flex-row sm:flex-col items-center border border-blue-600 rounded text-xs bg-[#222] px-2 py-1 sm:px-1.5 sm:py-1 shadow-sm shrink-0 min-w-[90px] gap-2 sm:gap-0">
+                                                                        <div className="flex items-center gap-1 font-bold text-slate-200">
                                                                             <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
                                                                                 {getAssigneeName(task.assignee_id).charAt(0)}
                                                                             </div>
                                                                             <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
                                                                         </div>
-                                                                        <div className="text-[9px] sm:text-[10px] font-semibold text-slate-500 sm:mt-0.5">
+                                                                        <div className="text-[9px] sm:text-[10px] font-semibold text-slate-400 sm:mt-0.5">
                                                                             🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
                                                                         </div>
                                                                     </div>
@@ -247,10 +247,10 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         </div>
                                                         <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
                                                             <span className="text-xs font-bold text-slate-400">Tiến độ</span>
-                                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
+                                                            <div className="flex-1 bg-[#2a2a2a] rounded-full h-2">
                                                                 <div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div>
                                                             </div>
-                                                            <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                                            <span className="text-sm font-black text-slate-200">{task.displayPct}%</span>
                                                         </div>
                                                     </div>
                                                 )
@@ -279,25 +279,25 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                 <div
                                                     key={task.id}
                                                     onClick={() => onEditTask(task)}
-                                                    className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                                    className={`bg-[#222] rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
                                                 >
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="flex gap-3">
                                                             <input type="checkbox" checked={task.status?.includes('Hoàn thành')} onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }} className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)} />
                                                             <div>
-                                                                <h4 className="text-base font-bold text-slate-800 mb-2">{task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span></h4>
+                                                                <h4 className="text-base font-bold text-slate-100 mb-2">{task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span></h4>
                                                                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>{task.status}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
-                                                            <div className="flex items-center gap-1 font-bold text-slate-700"><div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">{getAssigneeName(task.assignee_id).charAt(0)}</div><span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span></div>
-                                                            <div className="text-[10px] font-semibold text-slate-500 mt-0.5">🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}</div>
+                                                        <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-[#222] px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
+                                                            <div className="flex items-center gap-1 font-bold text-slate-200"><div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">{getAssigneeName(task.assignee_id).charAt(0)}</div><span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span></div>
+                                                            <div className="text-[10px] font-semibold text-slate-400 mt-0.5">🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}</div>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
                                                         <span className="text-xs font-bold text-slate-400">Tiến độ</span>
-                                                        <div className="flex-1 bg-slate-100 rounded-full h-2"><div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div></div>
-                                                        <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                                        <div className="flex-1 bg-[#2a2a2a] rounded-full h-2"><div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div></div>
+                                                        <span className="text-sm font-black text-slate-200">{task.displayPct}%</span>
                                                     </div>
                                                 </div>
                                             )
@@ -331,7 +331,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                     </button>
                     <button
                         onClick={onClose}
-                        className="bg-slate-300 hover:bg-slate-400 text-slate-700 px-6 sm:px-8 py-2.5 rounded-xl text-sm font-bold transition-all"
+                        className="bg-slate-300 hover:bg-slate-400 text-slate-200 px-6 sm:px-8 py-2.5 rounded-xl text-sm font-bold transition-all"
                     >
                         Đóng
                     </button>

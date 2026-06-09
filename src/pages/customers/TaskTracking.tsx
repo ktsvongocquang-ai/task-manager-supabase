@@ -22,7 +22,7 @@ export default function TaskTracking() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">Theo dõi Công việc (Task)</h2>
+        <h2 className="text-2xl font-bold text-slate-50">Theo dõi Công việc (Task)</h2>
         <button className="bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 w-fit">
           <Plus className="w-4 h-4" />
           Tạo Task mới
@@ -32,8 +32,8 @@ export default function TaskTracking() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Chart & Summary */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Thống kê trạng thái</h3>
+          <div className="bg-[#222] p-6 rounded-xl border border-[#333] shadow-sm">
+            <h3 className="text-lg font-bold text-slate-50 mb-4">Thống kê trạng thái</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -59,8 +59,8 @@ export default function TaskTracking() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Tổng quan hôm nay</h3>
+          <div className="bg-[#222] p-6 rounded-xl border border-[#333] shadow-sm">
+            <h3 className="text-lg font-bold text-slate-50 mb-4">Tổng quan hôm nay</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                 <div className="flex items-center gap-3">
@@ -88,19 +88,19 @@ export default function TaskTracking() {
         </div>
 
         {/* Right: Data Table */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col">
-          <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h3 className="text-lg font-bold text-gray-900">Danh sách công việc</h3>
+        <div className="lg:col-span-2 bg-[#222] rounded-xl border border-[#333] shadow-sm flex flex-col">
+          <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-lg font-bold text-slate-50">Danh sách công việc</h3>
             <div className="flex items-center gap-3">
               <div className="relative w-full sm:w-64">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input 
                   type="text" 
                   placeholder="Tìm task..." 
-                  className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                  className="w-full pl-9 pr-4 py-1.5 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                 />
               </div>
-              <button className="p-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">
+              <button className="p-1.5 border border-[#333] rounded-lg text-slate-400 hover:bg-[#1c1c1c] transition-colors">
                 <Filter className="w-4 h-4" />
               </button>
             </div>
@@ -108,7 +108,7 @@ export default function TaskTracking() {
 
           <div className="flex-1 overflow-x-auto min-h-[400px]">
             {/* Mobile Card View */}
-            <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+            <div className="md:hidden flex flex-col p-4 gap-4 bg-[#1c1c1c]/30">
               {mockTasks.map((task) => (
                 <SmartCard
                   key={task.id}
@@ -120,7 +120,7 @@ export default function TaskTracking() {
                     task.status === 'Hoàn thành' ? 'bg-green-100 text-green-800 border-green-200' :
                     task.status === 'Đang xử lý' ? 'bg-blue-100 text-blue-800 border-blue-200' :
                     task.status === 'Quá hạn' ? 'bg-red-100 text-red-800 border-red-200' :
-                    'bg-gray-100 text-gray-800 border-gray-200'
+                    'bg-[#2a2a2a] text-slate-100 border-[#333]'
                   }
                   avatarInitials={task.assignee.charAt(0)}
                   deadline={`Hạn: ${task.dueDate}`}
@@ -130,20 +130,20 @@ export default function TaskTracking() {
 
             <table className="hidden md:table w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Task</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Liên quan đến</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Người phụ trách</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hạn chót</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                <tr className="bg-[#1c1c1c] border-b border-[#333]">
+                  <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Task</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Liên quan đến</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Người phụ trách</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Hạn chót</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Trạng thái</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {mockTasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={task.id} className="hover:bg-[#1c1c1c] transition-colors">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-900">{task.title}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{task.id}</div>
+                      <div className="font-medium text-slate-50">{task.title}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">{task.id}</div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{task.lead}</td>
                     <td className="px-4 py-3">
@@ -151,7 +151,7 @@ export default function TaskTracking() {
                         <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold">
                           {task.assignee.charAt(0)}
                         </div>
-                        <span className="text-sm text-gray-700">{task.assignee}</span>
+                        <span className="text-sm text-slate-200">{task.assignee}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{task.dueDate}</td>
@@ -160,7 +160,7 @@ export default function TaskTracking() {
                         task.status === 'Hoàn thành' ? 'bg-green-100 text-green-800' :
                         task.status === 'Đang xử lý' ? 'bg-blue-100 text-blue-800' :
                         task.status === 'Quá hạn' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-[#2a2a2a] text-slate-100'
                       }`}>
                         {task.status}
                       </span>
@@ -171,7 +171,7 @@ export default function TaskTracking() {
             </table>
           </div>
           
-          <div className="p-4 border-t border-gray-200 flex items-center justify-center">
+          <div className="p-4 border-t border-[#333] flex items-center justify-center">
             <button className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
               Xem tất cả công việc
             </button>

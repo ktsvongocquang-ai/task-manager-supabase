@@ -52,13 +52,13 @@ const STATUS_MAP: Record<string, { label: string; bg: string; text: string }> = 
     'Hoàn thành':     { label: 'Hoàn thành',     bg: 'bg-emerald-100', text: 'text-emerald-700' },
     'Đang thực hiện': { label: 'Đang thực hiện', bg: 'bg-blue-100',    text: 'text-blue-700'    },
     'Chờ duyệt':      { label: 'Chờ duyệt',      bg: 'bg-amber-100',   text: 'text-amber-700'   },
-    'Cần làm':        { label: 'Cần làm',         bg: 'bg-slate-100',   text: 'text-slate-600'   },
-    'Chưa bắt đầu':   { label: 'Chưa bắt đầu',   bg: 'bg-slate-100',   text: 'text-slate-600'   },
+    'Cần làm':        { label: 'Cần làm',         bg: 'bg-[#2a2a2a]',   text: 'text-slate-600'   },
+    'Chưa bắt đầu':   { label: 'Chưa bắt đầu',   bg: 'bg-[#2a2a2a]',   text: 'text-slate-600'   },
     'Tạm dừng':       { label: 'Tạm dừng',        bg: 'bg-orange-100',  text: 'text-orange-700'  },
 }
 
 function getStatusBadge(status: string) {
-    return STATUS_MAP[status] || { label: status, bg: 'bg-slate-100', text: 'text-slate-600' }
+    return STATUS_MAP[status] || { label: status, bg: 'bg-[#2a2a2a]', text: 'text-slate-600' }
 }
 
 function getPctColor(p: number) {
@@ -284,11 +284,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const uniqueProjects  = [...new Set(weekTasks.map(t => t.project_id).filter(Boolean))]
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+        <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm overflow-hidden w-full">
 
             {/* ── Header ── */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 md:px-5 py-3 md:py-4 border-b border-slate-100">
-                <div className="font-semibold text-slate-800 text-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 md:px-5 py-3 md:py-4 border-b border-[#333]">
+                <div className="font-semibold text-slate-100 text-sm">
                     Tuần {wn} — {fmtShort(mon)} đến {fmtShort(sun)}/{sun.getFullYear()}
                 </div>
                 <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar-hide">
@@ -301,27 +301,27 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         </button>
                     )}
                     <button onClick={() => setWeekOffset(o => o - 1)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#333] hover:bg-[#1c1c1c] text-slate-600 transition-colors shrink-0">
                         <ChevronLeft size={15} />
                     </button>
                     <button onClick={() => setWeekOffset(0)}
-                        className="px-3 h-7 text-xs font-medium rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors whitespace-nowrap shrink-0">
+                        className="px-3 h-7 text-xs font-medium rounded-lg border border-[#333] hover:bg-[#1c1c1c] text-slate-600 transition-colors whitespace-nowrap shrink-0">
                         Tuần này
                     </button>
                     <button onClick={() => setWeekOffset(o => o + 1)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shrink-0">
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#333] hover:bg-[#1c1c1c] text-slate-600 transition-colors shrink-0">
                         <ChevronRight size={15} />
                     </button>
                 </div>
             </div>
 
             {/* ── Stats ── */}
-            <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
+            <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-[#333]">
                 {[
-                    { label: 'Tổng task',     value: stats.total,   color: 'text-slate-800' },
+                    { label: 'Tổng task',     value: stats.total,   color: 'text-slate-100' },
                     { label: 'Hoàn thành',    value: stats.done,    color: 'text-emerald-600' },
                     { label: 'Đang làm',      value: stats.inprog,  color: 'text-blue-600' },
-                    { label: 'Chưa bắt đầu',  value: stats.pending, color: 'text-slate-500' },
+                    { label: 'Chưa bắt đầu',  value: stats.pending, color: 'text-slate-400' },
                     { label: 'Trễ hạn',       value: stats.overdue, color: 'text-red-600' },
                 ].map(s => (
                     <div key={s.label} className="px-4 py-3 text-center">
@@ -332,11 +332,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Filters + Sort ── */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 flex-wrap">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-[#333] flex-wrap">
                 <select
                     value={filterPerson}
                     onChange={e => setFilterPerson(e.target.value)}
-                    className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+                    className="h-8 text-xs px-2 rounded-lg border border-[#333] bg-[#222] focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
                 >
                     <option value="">Tất cả nhân sự</option>
                     {uniquePersonIds.map(id => {
@@ -348,7 +348,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 <select
                     value={filterProject}
                     onChange={e => setFilterProject(e.target.value)}
-                    className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+                    className="h-8 text-xs px-2 rounded-lg border border-[#333] bg-[#222] focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
                 >
                     <option value="">Tất cả dự án</option>
                     {uniqueProjects.map(id => (
@@ -368,7 +368,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                 className={`px-3 h-7 text-xs font-medium rounded-lg border transition-colors ${
                                     sortMode === key
                                         ? (isAlert ? 'bg-red-50 border-red-300 text-red-700' : 'bg-indigo-50 border-indigo-300 text-indigo-700')
-                                        : (isAlert ? 'bg-white border-red-200 text-red-500 hover:border-red-300 hover:bg-red-50' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300')
+                                        : (isAlert ? 'bg-[#222] border-red-200 text-red-500 hover:border-red-300 hover:bg-red-50' : 'bg-[#222] border-[#333] text-slate-400 hover:border-slate-300')
                                 }`}>
                                 {label}
                             </button>
@@ -377,7 +377,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 </div>
             </div>
 
-            <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
+            <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 bg-[#1c1c1c] border-b border-[#333]">
                 {['Nhiệm vụ', 'Mô tả', 'Hạn chót', 'Tiến độ', 'Phụ trách', 'Trạng thái'].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{h}</span>
                 ))}
@@ -396,16 +396,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         return (
                             <div key={group.key} className="mb-1">
                                 {/* Group Header */}
-                                <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-100 border-slate-200 text-slate-800'} border-y sticky top-0 z-10 shadow-sm`}>
+                                <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : 'bg-[#2a2a2a] border-[#333] text-slate-100'} border-y sticky top-0 z-10 shadow-sm`}>
                                     <div 
                                         className="flex items-center gap-2 cursor-pointer flex-1 select-none"
                                         onClick={() => toggleGroup(group.key)}
                                     >
                                         <ChevronDown size={16} className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''} ${group.isLateGroup ? 'text-red-400' : 'text-slate-400'}`} />
-                                        <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : 'text-slate-700'}`}>
+                                        <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : 'text-slate-200'}`}>
                                             {group.label}
                                         </span>
-                                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500">
+                                        <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#222] border border-[#333] text-slate-400">
                                             {group.tasks.filter(t => t.status !== 'Hoàn thành').length}
                                         </span>
                                     </div>
@@ -422,7 +422,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
 
                                 {/* Group Tasks - smooth collapse */}
                                 <div
-                                    className="bg-white overflow-hidden transition-all duration-200 ease-in-out"
+                                    className="bg-[#222] overflow-hidden transition-all duration-200 ease-in-out"
                                     style={{ maxHeight: isCollapsed ? '0px' : '9999px', opacity: isCollapsed ? 0 : 1 }}
                                 >
                                         {(() => {
@@ -438,28 +438,28 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                 const assigneeName = getAssigneeName(t.assignee_id)
                                                 const badge = getStatusBadge(t.status)
                                                 return (
-                                                    <div className={`border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors ${isDone ? 'opacity-60' : ''}`}>
+                                                    <div className={`border-b border-slate-50 last:border-0 hover:bg-[#1c1c1c]/50 transition-colors ${isDone ? 'opacity-60' : ''}`}>
                                                         {/* Mobile */}
                                                         <div className="md:hidden flex items-start gap-3 px-4 py-2">
                                                             <div className="w-6 h-6 shrink-0 mt-0.5"><Avatar name={assigneeName} /></div>
                                                             <div className="flex-1 min-w-0">
-                                                                <div className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate cursor-pointer`} onClick={() => onEditTask?.(t)}>
+                                                                <div className={`text-xs font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-100'} truncate cursor-pointer`} onClick={() => onEditTask?.(t)}>
                                                                     {t.name || t.task_code || 'Chưa có tên'}
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
                                                                     {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${cls}`}>{label}</span> })()}
-                                                                    <span className="text-[9px] font-semibold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded truncate max-w-[120px]">{getProjectName(t.project_id)}</span>
-                                                                    <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-500'}`}>{fmtShort(d)}</span>
+                                                                    <span className="text-[9px] font-semibold bg-[#2a2a2a] text-slate-400 px-1.5 py-0.5 rounded truncate max-w-[120px]">{getProjectName(t.project_id)}</span>
+                                                                    <span className={`text-[10px] font-medium ${isLate ? 'text-red-600' : 'text-slate-400'}`}>{fmtShort(d)}</span>
                                                                     <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[9px] font-medium px-1.5 py-0.5 rounded border-0 ${badge.bg} ${badge.text} cursor-pointer focus:outline-none`}>
                                                                         {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                                     </select>
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-1.5">
-                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">−</button>
-                                                                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
-                                                                    <span className="text-[10px] text-slate-500 w-6 text-right">{pct}%</span>
-                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-5 h-5 text-xs rounded border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600">+</button>
+                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-5 h-5 text-xs rounded border border-[#333] hover:bg-[#1c1c1c] flex items-center justify-center text-slate-600">−</button>
+                                                                    <div className="flex-1 h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
+                                                                    <span className="text-[10px] text-slate-400 w-6 text-right">{pct}%</span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-5 h-5 text-xs rounded border border-[#333] hover:bg-[#1c1c1c] flex items-center justify-center text-slate-600">+</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -468,23 +468,23 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
-                                                                    <div className={`text-xs font-semibold truncate min-w-0 flex-1 cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`} onClick={() => onEditTask?.(t)}>
+                                                                    <div className={`text-xs font-semibold truncate min-w-0 flex-1 cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-100 hover:text-indigo-600 hover:underline'}`} onClick={() => onEditTask?.(t)}>
                                                                         {t.name || t.task_code || 'Chưa có tên'}
                                                                     </div>
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getProjectName(t.project_id)}</div>
                                                             </div>
-                                                            <div className="text-[11px] text-slate-500 truncate">{(t as any).description || <span className="text-slate-300 italic">—</span>}</div>
+                                                            <div className="text-[11px] text-slate-400 truncate">{(t as any).description || <span className="text-slate-300 italic">—</span>}</div>
                                                             <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{fmtShort(d)}</span>
                                                             <div>
                                                                 <div className="flex items-center gap-1 mb-1">
-                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">−</button>
-                                                                    <span className="text-[10px] font-semibold text-slate-700 w-6 text-center">{saving[t.id] ? '...' : `${pct}%`}</span>
-                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">+</button>
+                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-4 h-4 text-[10px] rounded border border-[#333] hover:bg-[#2a2a2a] flex items-center justify-center text-slate-600">−</button>
+                                                                    <span className="text-[10px] font-semibold text-slate-200 w-6 text-center">{saving[t.id] ? '...' : `${pct}%`}</span>
+                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-4 h-4 text-[10px] rounded border border-[#333] hover:bg-[#2a2a2a] flex items-center justify-center text-slate-600">+</button>
                                                                 </div>
-                                                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
+                                                                <div className="h-1 bg-[#2a2a2a] rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                             </div>
-                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
+                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-[#333] rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
                                                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
@@ -492,7 +492,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
                                                             {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-2 py-0.5 rounded text-center ${cls}`}>{label}</span> })()}
-                                                            <button onClick={() => openGoogleCalendar(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors" title="Thêm vào Google Calendar">
+                                                            <button onClick={() => openGoogleCalendar(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-[#333] bg-[#222] hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors" title="Thêm vào Google Calendar">
                                                                 <Calendar size={13} />
                                                             </button>
                                                         </div>
@@ -510,10 +510,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         <>
                                                             <button
                                                                 onClick={() => toggleDone(group.key)}
-                                                                className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-100"
+                                                                className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-[#1c1c1c] transition-colors border-t border-[#333]"
                                                             >
                                                                 <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${isDoneOpen ? '' : '-rotate-90'}`} />
-                                                                <span className="text-xs text-slate-500">Đã hoàn tất {doneTasks.length} mục</span>
+                                                                <span className="text-xs text-slate-400">Đã hoàn tất {doneTasks.length} mục</span>
                                                             </button>
                                                             {isDoneOpen && doneTasks.map(t => <TaskRow key={t.id} t={t} />)}
                                                         </>

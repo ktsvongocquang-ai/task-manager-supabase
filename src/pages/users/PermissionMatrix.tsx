@@ -89,9 +89,9 @@ export const PermissionMatrix = () => {
     }
 
     return (
-        <div className="bg-white border border-border-main rounded-xl shadow-sm flex flex-col">
-            <div className="px-4 py-3 border-b border-border-main flex items-center justify-between bg-gray-50/50 shrink-0 rounded-t-xl">
-                <div className="text-gray-900 font-semibold flex items-center gap-2 text-sm">
+        <div className="bg-[#222] border border-border-main rounded-xl shadow-sm flex flex-col">
+            <div className="px-4 py-3 border-b border-border-main flex items-center justify-between bg-[#1c1c1c]/50 shrink-0 rounded-t-xl">
+                <div className="text-slate-50 font-semibold flex items-center gap-2 text-sm">
                     <Info size={16} className="text-primary" />
                     Bảng Quản lý Phân Quyền Động
                 </div>
@@ -120,10 +120,10 @@ export const PermissionMatrix = () => {
                 ) : (
                     <table className="text-sm" style={{ minWidth: '700px', width: '100%' }}>
                         <thead className="sticky top-0 z-20 shadow-sm">
-                            <tr className="border-b border-border-main bg-gray-50">
-                                <th className="text-left py-3 px-4 font-semibold text-gray-500 w-[160px] min-w-[140px] bg-gray-50 z-30 border-r border-slate-200 sticky left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">Chức năng</th>
+                            <tr className="border-b border-border-main bg-[#1c1c1c]">
+                                <th className="text-left py-3 px-4 font-semibold text-slate-400 w-[160px] min-w-[140px] bg-[#1c1c1c] z-30 border-r border-[#333] sticky left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">Chức năng</th>
                                 {ROLE_KEYS.map((rk) => (
-                                    <th key={rk.key} className={`text-center py-3 px-2 font-semibold ${rk.color} bg-gray-50 min-w-[80px] w-[90px]`}>
+                                    <th key={rk.key} className={`text-center py-3 px-2 font-semibold ${rk.color} bg-[#1c1c1c] min-w-[80px] w-[90px]`}>
                                         <div className="flex flex-col items-center justify-center gap-1"><rk.icon size={16} /><span className="text-[11px]">{rk.key}</span></div>
                                     </th>
                                 ))}
@@ -132,8 +132,8 @@ export const PermissionMatrix = () => {
                         <tbody>
                             {Object.entries(DEFAULT_PERMISSIONS).map(([category, perms]) => (
                                 <React.Fragment key={category}>
-                                    <tr className="bg-gray-100">
-                                        <td colSpan={7} className="py-2 px-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-gray-100 z-10 border-y border-gray-200">
+                                    <tr className="bg-[#2a2a2a]">
+                                        <td colSpan={7} className="py-2 px-4 text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-[#2a2a2a] z-10 border-y border-[#333]">
                                             <div className="flex items-center gap-2">
                                                 {category.includes('DỰ ÁN') ? <FolderKanban size={16} /> : category.includes('TRUY CẬP') ? <LayoutTemplate size={16} /> : <CheckSquare size={16} />}
                                                 {category}
@@ -141,8 +141,8 @@ export const PermissionMatrix = () => {
                                         </td>
                                     </tr>
                                     {perms.map((p, i) => (
-                                        <tr key={i} className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors">
-                                            <td className="py-2.5 px-4 text-xs font-semibold text-gray-700 sticky left-0 bg-white border-r border-slate-100 shadow-[2px_0_4px_rgba(0,0,0,0.06)] z-10 leading-snug">
+                                        <tr key={i} className="border-b border-[#333] hover:bg-blue-50/30 transition-colors">
+                                            <td className="py-2.5 px-4 text-xs font-semibold text-slate-200 sticky left-0 bg-[#222] border-r border-[#333] shadow-[2px_0_4px_rgba(0,0,0,0.06)] z-10 leading-snug">
                                                 {p.name}
                                             </td>
                                             {ROLE_KEYS.map((rk, idx) => {
@@ -156,7 +156,7 @@ export const PermissionMatrix = () => {
                                                             <button
                                                                 onClick={() => canEditThisCell && togglePermission(p.name, rk.key)}
                                                                 disabled={!canEditThisCell}
-                                                                className={`p-1 rounded-lg transition-all ${canEditThisCell ? 'hover:bg-slate-100 active:scale-90 cursor-pointer' : 'cursor-default'}`}
+                                                                className={`p-1 rounded-lg transition-all ${canEditThisCell ? 'hover:bg-[#2a2a2a] active:scale-90 cursor-pointer' : 'cursor-default'}`}
                                                                 title={canEditThisCell ? 'Nhấn để thay đổi' : ''}
                                                             >
                                                                 {isAllowed
@@ -177,7 +177,7 @@ export const PermissionMatrix = () => {
                 )}
             </div>
             {!isAdmin && (
-                <div className="p-3 text-center text-xs text-gray-500 bg-gray-50/50 border-t border-slate-100">
+                <div className="p-3 text-center text-xs text-slate-400 bg-[#1c1c1c]/50 border-t border-[#333]">
                     Chỉ Admin mới có quyền lưu thay đổi bảng phân quyền.
                 </div>
             )}

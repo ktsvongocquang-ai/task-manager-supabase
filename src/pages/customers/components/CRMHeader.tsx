@@ -18,10 +18,10 @@ export default function CRMHeader({ toggleSidebar }: CRMHeaderProps) {
   ];
 
   return (
-    <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 shrink-0">
+    <header className="bg-[#222] border-b border-[#333] h-16 flex items-center justify-between px-4 md:px-6 shrink-0">
       <div className="flex items-center gap-4 md:gap-8">
         <button 
-          className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          className="md:hidden p-2 text-gray-600 hover:bg-[#2a2a2a] rounded-lg"
           onClick={toggleSidebar}
         >
           <Menu className="w-5 h-5" />
@@ -36,7 +36,7 @@ export default function CRMHeader({ toggleSidebar }: CRMHeaderProps) {
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 location.pathname === tab.path || (tab.path === '/customers' && location.pathname === '/customers')
                   ? 'bg-indigo-50 text-indigo-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  : 'text-gray-600 hover:bg-[#1c1c1c] hover:text-slate-50'
               }`}
             >
               {tab.name}
@@ -51,16 +51,16 @@ export default function CRMHeader({ toggleSidebar }: CRMHeaderProps) {
           <input 
             type="text" 
             placeholder="Tìm kiếm..." 
-            className="pl-9 pr-4 py-1.5 bg-gray-100 border-transparent rounded-full text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none w-48 lg:w-64"
+            className="pl-9 pr-4 py-1.5 bg-[#2a2a2a] border-transparent rounded-full text-sm focus:bg-[#222] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none w-48 lg:w-64"
           />
         </div>
         
-        <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 relative">
+        <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-[#2a2a2a] relative">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
         </button>
         
-        <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 hidden sm:block">
+        <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-[#2a2a2a] hidden sm:block">
           <Settings className="w-5 h-5" />
         </button>
         

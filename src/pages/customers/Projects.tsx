@@ -112,7 +112,7 @@ export default function Projects() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">Quản lý Dự án</h2>
+        <h2 className="text-2xl font-bold text-slate-50">Quản lý Dự án</h2>
         
         <div className="flex items-center gap-3">
           <button 
@@ -125,17 +125,17 @@ export default function Projects() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/50">
+      <div className="bg-[#222] rounded-xl border border-[#333] shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#1c1c1c]/50">
           <div className="relative w-full sm:w-96">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
               placeholder="Tìm kiếm dự án, khách hàng..." 
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-[#222] border border-[#333] rounded-lg text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-[#222] border border-[#333] rounded-lg text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors">
             <Filter className="w-4 h-4" />
             Bộ lọc
           </button>
@@ -143,7 +143,7 @@ export default function Projects() {
 
         <div className="overflow-x-auto min-h-[400px]">
           {/* Mobile Card View */}
-          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-[#1c1c1c]/30">
             {projects.map((project) => (
               <SmartCard
                 key={project.id}
@@ -167,26 +167,26 @@ export default function Projects() {
 
           <table className="hidden md:table w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dự án</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Khách hàng</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái Hợp đồng</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Thanh toán</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nhân sự</th>
+              <tr className="bg-[#1c1c1c] border-b border-[#333]">
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Dự án</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Khách hàng</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Trạng thái Hợp đồng</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Thanh toán</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Nhân sự</th>
                 <th className="px-6 py-3 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {projects.map((project) => (
-                <tr key={project.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => handleOpenModal(project)}>
+                <tr key={project.id} className="hover:bg-[#1c1c1c] transition-colors group cursor-pointer" onClick={() => handleOpenModal(project)}>
                   <td className="px-6 py-4">
-                    <div className="font-bold text-gray-900 mb-1">{project.name}</div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="font-bold text-slate-50 mb-1">{project.name}</div>
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
                       <span className="text-gray-400">#{project.id.toString().padStart(4, '0')}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{project.client}</div>
+                    <div className="text-sm font-medium text-slate-50">{project.client}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col gap-1.5">

@@ -145,7 +145,7 @@ function ConstructionGantt({
   const TOTAL_LEFT = CL.action + CW.action;
 
   return (
-    <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
+    <div className="w-full border border-[#333] rounded-xl overflow-auto bg-[#222] shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
       <table className="border-collapse" style={{ minWidth: `${TOTAL_LEFT + days.length * 30}px` }}>
         <thead className="sticky top-0 z-40">
           {/* Row 1: Left headers (rowSpan=2) + Week headers */}
@@ -161,14 +161,14 @@ function ConstructionGantt({
             ))}
           </tr>
           {/* Row 2: Day numbers (left cols filled by rowSpan) */}
-          <tr className="h-8 bg-slate-50 text-slate-600">
+          <tr className="h-8 bg-[#1c1c1c] text-slate-600">
             {days.map((day, i) => {
               const isSun = day.getDay() === 0;
               const isSat = day.getDay() === 6;
               const isToday = startOfDay(day).getTime() === todayDate.getTime();
               return (
                 <th key={i} className={`border-r text-center font-normal relative
-                  ${isToday ? 'bg-red-500 text-white border-red-500' : isSun ? 'bg-red-50 text-red-400 border-slate-200' : isSat ? 'bg-orange-50 text-orange-400 border-slate-200' : 'border-slate-200'}`}
+                  ${isToday ? 'bg-red-500 text-white border-red-500' : isSun ? 'bg-red-50 text-red-400 border-[#333]' : isSat ? 'bg-orange-50 text-orange-400 border-[#333]' : 'border-[#333]'}`}
                   style={{ width: 30, minWidth: 30 }}>
                   <div className="text-[10px] font-bold">{day.getDate()}</div>
                   <div className="text-[8px] opacity-80">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
@@ -181,13 +181,13 @@ function ConstructionGantt({
           {Object.entries(grouped).map(([cat, catTasks], ci) => (
             <React.Fragment key={cat}>
               {/* Category header row */}
-              <tr className="h-8 bg-slate-100">
-                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
-                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+              <tr className="h-8 bg-[#2a2a2a]">
+                <td className="sticky z-30 bg-[#2a2a2a] border-r border-[#333] text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
+                <td className="sticky z-30 bg-[#2a2a2a] px-2 text-slate-200 font-bold text-xs uppercase tracking-wide max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
                   <div className="flex justify-between items-center pr-2">
                     <span>{cat}</span>
                     {!readOnly && onCreateTask && (
-                      <button onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }} className="print:hidden px-2 py-0.5 w-auto h-auto min-h-0 bg-white border border-slate-200 rounded text-[10px] text-slate-600 hover:bg-slate-50 flex items-center gap-1 shrink-0">
+                      <button onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }} className="print:hidden px-2 py-0.5 w-auto h-auto min-h-0 bg-[#222] border border-[#333] rounded text-[10px] text-slate-600 hover:bg-[#1c1c1c] flex items-center gap-1 shrink-0">
                         <Plus size={10} /> Thêm việc
                       </button>
                     )}
@@ -195,7 +195,7 @@ function ConstructionGantt({
                 </td>
                 {days.map((day, i) => {
                   const isToday = startOfDay(day).getTime() === todayDate.getTime();
-                  return <td key={i} className={`border-r relative ${isToday ? 'border-red-400 bg-red-100/40' : 'border-slate-200'}`}>
+                  return <td key={i} className={`border-r relative ${isToday ? 'border-red-400 bg-red-100/40' : 'border-[#333]'}`}>
                     {isToday && <div className="absolute inset-0 border-x-2 border-red-400/60 pointer-events-none" />}
                   </td>;
                 })}
@@ -208,7 +208,7 @@ function ConstructionGantt({
                 const sel = selectedId === task.id;
                 const isOverdue = task.status !== 'DONE' && te && startOfDay(te) < todayDate;
                 const barColor = isOverdue ? '#ef4444' : (STATUS_META[task.status]?.bar || '#94a3b8');
-                const cellBg = sel ? 'bg-indigo-50' : 'bg-white';
+                const cellBg = sel ? 'bg-indigo-50' : 'bg-[#222]';
                 stt++;
                 return (
                   <tr
@@ -219,28 +219,28 @@ function ConstructionGantt({
                     onDragLeave={() => setDragOverId(null)}
                     onDrop={() => handleDrop(task.id)}
                     onDragEnd={() => { setDragId(null); setDragOverId(null); }}
-                    className={`group h-9 border-b border-slate-100 cursor-pointer transition-colors
+                    className={`group h-9 border-b border-[#333] cursor-pointer transition-colors
                       ${dragOverId === task.id ? 'border-t-2 border-t-indigo-400 bg-indigo-50/60' : ''}
                       ${dragId === task.id ? 'opacity-40' : ''}
-                      ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
+                      ${sel ? 'bg-indigo-50' : 'hover:bg-[#1c1c1c]'}`}
                     onClick={() => onSelect(task.id)}
                   >
                     {/* STT */}
-                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-[#1c1c1c] border-r border-[#333] text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
                     {/* Name */}
-                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-[#1c1c1c] border-r border-[#333] px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         {!readOnly && <GripVertical size={12} className="text-slate-300 flex-none cursor-grab active:cursor-grabbing" />}
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
                         {readOnly ? (
-                          <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
+                          <span className="truncate text-slate-100" title={task.name}>{task.name}</span>
                         ) : (
-                          <input type="text" className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
+                          <input type="text" className="w-full h-8 text-slate-100 bg-transparent outline-none hover:bg-[#2a2a2a] focus:bg-[#222] focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
                         )}
                       </div>
                     </td>
                     {/* Start date */}
-                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.start }}>
+                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-[#1c1c1c] border-r border-[#333] p-0`} style={{ left: CL.start }}>
                       {readOnly ? (
                         <div className="w-full h-9 flex items-center justify-center text-slate-600">{ts ? format(ts, 'dd/MM/yy') : '--'}</div>
                       ) : (
@@ -248,7 +248,7 @@ function ConstructionGantt({
                       )}
                     </td>
                     {/* Duration */}
-                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.dur }}>
+                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-[#1c1c1c] border-r border-[#333] p-0`} style={{ left: CL.dur }}>
                       {readOnly ? (
                         <div className="w-full h-9 flex items-center justify-center text-slate-600">{dur || '--'}</div>
                       ) : (
@@ -256,9 +256,9 @@ function ConstructionGantt({
                       )}
                     </td>
                     {/* Progress */}
-                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden ${readOnly ? '' : 'border-r border-slate-100'}`} style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.08)' : 'none' }}>
+                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-[#1c1c1c] text-center px-1 print:hidden ${readOnly ? '' : 'border-r border-[#333]'}`} style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.08)' : 'none' }}>
                       <div className="flex items-center gap-1 justify-center">
-                        <div className="w-10 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="w-10 h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${task.progress || 0}%`, backgroundColor: barColor }} />
                         </div>
                         <span className="text-slate-400 w-6 text-right text-[9px]">{task.progress || 0}%</span>
@@ -266,7 +266,7 @@ function ConstructionGantt({
                     </td>
                     {/* Delete Action (only if not readonly) */}
                     {!readOnly && (
-                       <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden`} style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                       <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-[#1c1c1c] text-center px-1 print:hidden`} style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
                           <button onClick={(e) => { e.stopPropagation(); if(onDeleteTask) onDeleteTask(task.id); }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded mx-auto transition-colors" title="Xóa công tác">
                             <Trash2 size={12} />
                           </button>
@@ -288,7 +288,7 @@ function ConstructionGantt({
                       }
                       return (
                         <td key={i} className={`border-r p-0 relative
-                          ${isToday ? 'border-red-400 bg-red-50/40' : 'border-slate-100'}
+                          ${isToday ? 'border-red-400 bg-red-50/40' : 'border-[#333]'}
                           ${!inRange && !isToday && (isSun || isSat) ? 'bg-red-50/20' : ''}`}>
                           {isToday && (
                             <div className="absolute inset-0 border-x-2 border-red-400/60 pointer-events-none z-10" />
@@ -301,7 +301,7 @@ function ConstructionGantt({
                               }}
                             >
                               {(task.progress || 0) > 0 && (
-                                <div className="absolute left-0 top-0 h-full bg-white/25" style={{ width: `${task.progress}%` }} />
+                                <div className="absolute left-0 top-0 h-full bg-[#222]/25" style={{ width: `${task.progress}%` }} />
                               )}
                               {isFirst && task.checklist?.length > 0 && (
                                 <div className="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] text-white/80 font-bold">
@@ -395,7 +395,7 @@ function TaskDetailPanel({
   const totalCount = task.checklist?.length || 0;
 
   return (
-    <div className="border border-indigo-200 rounded-xl bg-white shadow-md overflow-hidden">
+    <div className="border border-indigo-200 rounded-xl bg-[#222] shadow-md overflow-hidden">
       <div className="bg-indigo-600 px-4 py-3 flex justify-between items-start">
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-white text-sm truncate">{task.name}</h3>
@@ -412,12 +412,12 @@ function TaskDetailPanel({
         {/* Checklist */}
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
               <CheckSquare className="w-3.5 h-3.5 text-indigo-500" />
               CHECKLIST NGHIỆM THU
             </h4>
             {totalCount > 0 && (
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${completedCount === totalCount ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${completedCount === totalCount ? 'bg-emerald-100 text-emerald-700' : 'bg-[#2a2a2a] text-slate-600'}`}>
                 {completedCount}/{totalCount}
               </span>
             )}
@@ -434,7 +434,7 @@ function TaskDetailPanel({
                       disabled={readOnly}
                       className="mt-0.5 w-4 h-4 accent-indigo-600 flex-none cursor-pointer"
                     />
-                    <span className={`flex-1 text-xs leading-relaxed ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                    <span className={`flex-1 text-xs leading-relaxed ${item.completed ? 'line-through text-slate-400' : 'text-slate-200'}`}>
                       {item.label}
                       {item.required && <span className="text-red-400 ml-1">*</span>}
                     </span>
@@ -444,12 +444,12 @@ function TaskDetailPanel({
                     )}
                   </div>
                 ))}
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <div className="flex justify-between text-[10px] text-slate-500 mb-1">
+                <div className="mt-3 pt-3 border-t border-[#333]">
+                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
                     <span>Nghiệm thu</span>
                     <span>{Math.round((completedCount / totalCount) * 100)}%</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#2a2a2a] rounded-full overflow-hidden">
                     <div className="h-full rounded-full bg-indigo-500 transition-all"
                       style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }} />
                   </div>
@@ -459,14 +459,14 @@ function TaskDetailPanel({
               <p className="text-xs text-slate-400 italic">Chưa có checklist nghiệm thu.</p>
             )}
             {!readOnly && (
-              <div className="flex gap-2 mt-2 pt-2 border-t border-dashed border-slate-200">
+              <div className="flex gap-2 mt-2 pt-2 border-t border-dashed border-[#333]">
                 <input
                   type="text"
                   value={newItem}
                   onChange={e => setNewItem(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addChecklistItem()}
                   placeholder="+ Thêm mục nghiệm thu..."
-                  className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 placeholder-slate-400"
+                  className="flex-1 text-xs px-2.5 py-1.5 border border-[#333] rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 placeholder-slate-400"
                 />
                 {newItem.trim() && (
                   <button onClick={addChecklistItem}
@@ -482,7 +482,7 @@ function TaskDetailPanel({
         {/* Progress + Status */}
         <div className="p-4 space-y-4">
           <div>
-            <h4 className="text-xs font-bold text-slate-700 mb-2">TIẾN ĐỘ THỰC TẾ</h4>
+            <h4 className="text-xs font-bold text-slate-200 mb-2">TIẾN ĐỘ THỰC TẾ</h4>
             <div className="flex items-center gap-3">
               <input
                 type="range" min={0} max={100} value={localProgress}
@@ -492,7 +492,7 @@ function TaskDetailPanel({
               />
               <span className="text-base font-bold text-blue-600 w-12 text-right">{localProgress}%</span>
             </div>
-            <div className="mt-1.5 w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="mt-1.5 w-full h-2.5 bg-[#2a2a2a] rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all"
                 style={{ width: `${localProgress}%`, backgroundColor: localProgress >= 100 ? '#16a34a' : '#2563eb' }} />
             </div>
@@ -501,11 +501,11 @@ function TaskDetailPanel({
           {!readOnly && (
             <>
               <div>
-                <h4 className="text-xs font-bold text-slate-700 mb-2">TRẠNG THÁI</h4>
+                <h4 className="text-xs font-bold text-slate-200 mb-2">TRẠNG THÁI</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {(Object.keys(STATUS_META) as TaskStatus[]).map(s => (
                     <button key={s} onClick={() => setLocalStatus(s)}
-                      className={`py-2 px-2 text-[11px] font-bold rounded-lg border-2 transition-all ${localStatus === s ? 'border-transparent text-white' : 'border-slate-200 text-slate-600 bg-white hover:border-slate-300'}`}
+                      className={`py-2 px-2 text-[11px] font-bold rounded-lg border-2 transition-all ${localStatus === s ? 'border-transparent text-white' : 'border-[#333] text-slate-600 bg-[#222] hover:border-slate-300'}`}
                       style={localStatus === s ? { backgroundColor: STATUS_META[s].bar } : {}}>
                       {STATUS_META[s].label}
                     </button>
@@ -522,7 +522,7 @@ function TaskDetailPanel({
 
           {readOnly && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-700">TRẠNG THÁI</h4>
+              <h4 className="text-xs font-bold text-slate-200">TRẠNG THÁI</h4>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white"
                 style={{ backgroundColor: STATUS_META[localStatus]?.bar }}>
                 {STATUS_META[localStatus]?.label}
@@ -764,7 +764,7 @@ export function ProjectManagementAIModule({
   }), [tasks]);
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64 text-slate-500">
+    <div className="flex items-center justify-center h-64 text-slate-400">
       <div className="text-center">
         <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-sm">Đang tải tiến độ thi công...</p>
@@ -777,7 +777,7 @@ export function ProjectManagementAIModule({
       <AlertCircle className="w-12 h-12 text-slate-200" />
       <div className="text-center">
         <p className="font-bold text-slate-600">Chưa có dữ liệu tiến độ</p>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           {readOnly
             ? 'Nhà thầu chưa nhập timeline thi công'
             : 'Nhập báo giá hoặc file PDF timeline để AI tạo tiến độ tự động'}
@@ -794,7 +794,7 @@ export function ProjectManagementAIModule({
   );
 
   return (
-    <div className="p-3 sm:p-5 space-y-4 print:p-0 print:m-0 print:absolute print:left-0 print:top-0 print:w-[130vw] print:bg-white print:z-[9999]" style={{"-webkit-print-color-adjust": "exact", "print-color-adjust": "exact"} as React.CSSProperties}>
+    <div className="p-3 sm:p-5 space-y-4 print:p-0 print:m-0 print:absolute print:left-0 print:top-0 print:w-[130vw] print:bg-[#222] print:z-[9999]" style={{"-webkit-print-color-adjust": "exact", "print-color-adjust": "exact"} as React.CSSProperties}>
       <style>{`
         @media print {
           @page { size: landscape; margin: 10mm; }
@@ -809,14 +809,14 @@ export function ProjectManagementAIModule({
       {/* Header */}
       <div className="flex flex-wrap justify-between items-start gap-3 print:mb-6">
         <div>
-          <h2 className="text-lg font-bold text-slate-800 print:text-2xl print:text-center print:w-full">TIẾN ĐỘ THI CÔNG - DỰ ÁN</h2>
-          <p className="text-xs text-slate-500 mt-0.5 print:mt-2 text-center">
+          <h2 className="text-lg font-bold text-slate-100 print:text-2xl print:text-center print:w-full">TIẾN ĐỘ THI CÔNG - DỰ ÁN</h2>
+          <p className="text-xs text-slate-400 mt-0.5 print:mt-2 text-center">
             {stats.total} hạng mục · Hoàn thành {stats.done} · Đang làm {stats.doing} · Chờ nghiệm thu {stats.review}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Legend */}
-          <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-500 mr-1">
+          <div className="hidden sm:flex items-center gap-3 text-[10px] text-slate-400 mr-1">
             {(Object.keys(STATUS_META) as TaskStatus[]).map(s => (
               <div key={s} className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: STATUS_META[s].bar }} />
@@ -827,7 +827,7 @@ export function ProjectManagementAIModule({
           {saveMsg && <span className="text-xs text-emerald-600 font-medium">{saveMsg}</span>}
           {/* Export PDF */}
           <button onClick={handleExportPDF} disabled={exporting}
-            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-60">
+            className="px-3 py-2 bg-[#2a2a2a] hover:bg-slate-200 text-slate-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-60">
             <Download className="w-3.5 h-3.5" />
             {exporting ? 'Đang xuất...' : 'Xuất PDF'}
           </button>
@@ -861,18 +861,18 @@ export function ProjectManagementAIModule({
       </div>
 
       {/* Overall progress */}
-      <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-4 print:hidden">
+      <div className="bg-[#222] border border-[#333] rounded-xl p-3 flex items-center gap-4 print:hidden">
         <div className="flex-1">
           <div className="flex justify-between text-xs text-slate-600 mb-1.5">
             <span className="font-bold">Tiến độ tổng thể</span>
             <span className="font-bold text-blue-600">{stats.avgProgress}%</span>
           </div>
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-full h-3 bg-[#2a2a2a] rounded-full overflow-hidden">
             <div className="h-full rounded-full transition-all"
               style={{ width: `${stats.avgProgress}%`, backgroundColor: stats.avgProgress >= 100 ? '#16a34a' : '#2563eb' }} />
           </div>
         </div>
-        <div className="text-right text-xs text-slate-500 shrink-0">
+        <div className="text-right text-xs text-slate-400 shrink-0">
           <div className="text-emerald-600 font-bold text-sm">{stats.done}/{stats.total}</div>
           <div>hoàn thành</div>
         </div>

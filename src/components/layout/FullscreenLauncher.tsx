@@ -123,16 +123,16 @@ export const FullscreenLauncher: React.FC<FullscreenLauncherProps> = ({ isOpen, 
             <button
               key={mod.id}
               onClick={() => handleNavigate(mod.path)}
-              className="group flex items-center text-left bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 w-full"
+              className="group flex items-center text-left bg-[#222] p-3 sm:p-4 rounded-2xl border border-[#333] shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 w-full"
             >
               <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center border transition-transform group-hover:scale-110 duration-300 shrink-0 ${mod.color}`}>
                 <mod.icon size={20} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
               </div>
               <div className="ml-3 sm:ml-4 flex-1 min-w-0">
-                <h3 className="font-bold text-slate-800 text-[14px] sm:text-base leading-tight group-hover:text-indigo-600 transition-colors truncate">{mod.name}</h3>
-                <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 sm:mt-1 truncate opacity-80">{mod.desc}</p>
+                <h3 className="font-bold text-slate-100 text-[14px] sm:text-base leading-tight group-hover:text-indigo-600 transition-colors truncate">{mod.name}</h3>
+                <p className="text-[11px] sm:text-xs text-slate-400 font-medium mt-0.5 sm:mt-1 truncate opacity-80">{mod.desc}</p>
               </div>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0 ml-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1c1c1c] text-slate-400 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shrink-0 ml-2">
                 <ChevronRight size={16} strokeWidth={3} />
               </div>
             </button>

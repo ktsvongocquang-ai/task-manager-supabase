@@ -90,21 +90,21 @@ export default function WorkflowProcessTable() {
             <button
               onClick={() => setShowFilter(!showFilter)}
               className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg border ${
-                filterRole ? "bg-purple-50 text-purple-700 border-purple-300" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                filterRole ? "bg-purple-50 text-purple-700 border-purple-300" : "bg-[#222] text-gray-600 border-[#333] hover:bg-[#1c1c1c]"
               }`}
             >
               <Filter size={12} />
               {filterRole || "Lọc vai trò"}
             </button>
             {showFilter && (
-              <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-20 min-w-[140px]">
+              <div className="absolute top-full left-0 mt-1 bg-[#222] border border-[#333] rounded-lg shadow-lg py-1 z-20 min-w-[140px]">
                 <button
                   onClick={() => { setFilterRole(null); setShowFilter(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-gray-50 ${!filterRole ? "font-semibold text-purple-700" : "text-gray-600"}`}
+                  className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#1c1c1c] ${!filterRole ? "font-semibold text-purple-700" : "text-gray-600"}`}
                 >Tất cả</button>
                 {allRoles.map((r) => (
                   <button key={r} onClick={() => { setFilterRole(r); setShowFilter(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-gray-50 ${filterRole === r ? "font-semibold text-purple-700" : "text-gray-600"}`}
+                    className={`w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#1c1c1c] ${filterRole === r ? "font-semibold text-purple-700" : "text-gray-600"}`}
                   >{r}</button>
                 ))}
               </div>
@@ -113,7 +113,7 @@ export default function WorkflowProcessTable() {
           <div className="relative">
             <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Tìm kiếm..."
-              className="pl-7 pr-2 py-1.5 text-[11px] border border-gray-200 rounded-lg w-40 focus:outline-none focus:ring-1 focus:ring-purple-200" />
+              className="pl-7 pr-2 py-1.5 text-[11px] border border-[#333] rounded-lg w-40 focus:outline-none focus:ring-1 focus:ring-purple-200" />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -134,27 +134,27 @@ export default function WorkflowProcessTable() {
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white font-bold text-[11px]"
                   style={{ backgroundColor: phase.color }}>{phase.code}</span>
-                <span className="font-bold text-[13px] text-gray-900">{phase.name}</span>
+                <span className="font-bold text-[13px] text-slate-50">{phase.name}</span>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-[11px] text-gray-600">{phase.phaseTask}</span>
-                <span className="text-[10px] font-semibold text-gray-700 bg-white/70 border border-gray-300 px-1.5 py-0.5 rounded whitespace-nowrap ml-2">{phase.totalDuration}</span>
+                <span className="text-[10px] font-semibold text-slate-200 bg-[#222]/70 border border-gray-300 px-1.5 py-0.5 rounded whitespace-nowrap ml-2">{phase.totalDuration}</span>
               </div>
             </div>
 
             {/* Step cards */}
             <div className="space-y-2 ml-2 pl-3 border-l-2" style={{ borderColor: phase.color + '60' }}>
               {phase.steps.map((step) => (
-                <div key={step.code} className="bg-white rounded-lg border border-gray-200 p-3">
+                <div key={step.code} className="bg-[#222] rounded-lg border border-[#333] p-3">
                   {/* Step code + Task */}
                   <div className="flex items-start gap-2 mb-2">
                     <span className="text-[10px] font-mono font-bold mt-0.5 flex-shrink-0" style={{ color: phase.color }}>{step.code}</span>
-                    <span className="text-[12px] font-medium text-gray-800 leading-snug">{step.task}</span>
+                    <span className="text-[12px] font-medium text-slate-100 leading-snug">{step.task}</span>
                   </div>
 
                   {/* Deliverable */}
                   {step.deliverable && step.deliverable !== "—" && (
-                    <p className="text-[10px] text-gray-500 mb-2 pl-5 leading-snug">→ {step.deliverable}</p>
+                    <p className="text-[10px] text-slate-400 mb-2 pl-5 leading-snug">→ {step.deliverable}</p>
                   )}
 
                   {/* Meta row: Roles + Form + Duration */}
@@ -162,9 +162,9 @@ export default function WorkflowProcessTable() {
                     <RoleBadge role={step.executor} />
                     {step.reviewer && step.reviewer !== "—" && <RoleBadge role={step.reviewer} />}
                     {step.form && step.form !== "—" && (
-                      <span className="text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">{step.form}</span>
+                      <span className="text-[9px] text-gray-400 bg-[#1c1c1c] px-1.5 py-0.5 rounded border border-[#333]">{step.form}</span>
                     )}
-                    <span className="text-[9px] text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 ml-auto">{step.duration}</span>
+                    <span className="text-[9px] text-gray-400 bg-[#1c1c1c] px-1.5 py-0.5 rounded border border-[#333] ml-auto">{step.duration}</span>
                   </div>
                 </div>
               ))}
@@ -175,7 +175,7 @@ export default function WorkflowProcessTable() {
 
       {/* ── DESKTOP: Table layout ───────────────────────────── */}
       <div className="hidden md:block">
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed', minWidth: '750px' }}>
               <colgroup>
@@ -205,37 +205,37 @@ export default function WorkflowProcessTable() {
                   <Fragment key={phase.code}>
                     {/* Phase header */}
                     <tr style={{ backgroundColor: phase.bgLight }}>
-                      <td className="px-2 py-2 border-b border-gray-200 align-top">
+                      <td className="px-2 py-2 border-b border-[#333] align-top">
                         <span className="inline-flex items-center justify-center w-6 h-6 rounded text-white font-bold text-[11px]"
                           style={{ backgroundColor: phase.color }}>{phase.code}</span>
                       </td>
-                      <td className="px-2 py-2 border-b border-gray-200 align-top">
-                        <span className="font-bold text-[11px] text-gray-900 leading-tight block">{phase.name}</span>
+                      <td className="px-2 py-2 border-b border-[#333] align-top">
+                        <span className="font-bold text-[11px] text-slate-50 leading-tight block">{phase.name}</span>
                       </td>
-                      <td className="px-2 py-2 border-b border-gray-200 text-[11px] font-medium text-gray-700 align-top leading-snug">{phase.phaseTask}</td>
-                      <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top leading-snug">{phase.phaseDeliverable}</td>
-                      <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseExecutor} /></td>
-                      <td className="px-2 py-2 border-b border-gray-200 align-top"><RoleBadge role={phase.phaseReviewer} /></td>
-                      <td className="px-2 py-2 border-b border-gray-200 text-[10px] text-gray-600 align-top">{phase.phaseForm}</td>
-                      <td className="px-2 py-2 border-b border-gray-200 text-center align-top">
-                        <span className="text-[10px] font-semibold text-gray-700 bg-white/70 border border-gray-300 px-1.5 py-0.5 rounded">{phase.totalDuration}</span>
+                      <td className="px-2 py-2 border-b border-[#333] text-[11px] font-medium text-slate-200 align-top leading-snug">{phase.phaseTask}</td>
+                      <td className="px-2 py-2 border-b border-[#333] text-[10px] text-gray-600 align-top leading-snug">{phase.phaseDeliverable}</td>
+                      <td className="px-2 py-2 border-b border-[#333] align-top"><RoleBadge role={phase.phaseExecutor} /></td>
+                      <td className="px-2 py-2 border-b border-[#333] align-top"><RoleBadge role={phase.phaseReviewer} /></td>
+                      <td className="px-2 py-2 border-b border-[#333] text-[10px] text-gray-600 align-top">{phase.phaseForm}</td>
+                      <td className="px-2 py-2 border-b border-[#333] text-center align-top">
+                        <span className="text-[10px] font-semibold text-slate-200 bg-[#222]/70 border border-gray-300 px-1.5 py-0.5 rounded">{phase.totalDuration}</span>
                       </td>
                     </tr>
                     {/* Steps */}
                     {phase.steps.map((step, idx) => (
                       <tr key={step.code}
-                        className={`hover:bg-gray-50/80 ${idx < phase.steps.length - 1 ? "border-b border-gray-100" : "border-b border-gray-200"}`}>
+                        className={`hover:bg-[#1c1c1c]/80 ${idx < phase.steps.length - 1 ? "border-b border-[#333]" : "border-b border-[#333]"}`}>
                         <td className="px-2 py-1.5">
                           <span className="text-[10px] font-mono font-bold" style={{ color: phase.color }}>{step.code}</span>
                         </td>
                         <td className="px-2 py-1.5" />
-                        <td className="px-2 py-1.5 text-[11px] text-gray-800 leading-snug">{step.task}</td>
+                        <td className="px-2 py-1.5 text-[11px] text-slate-100 leading-snug">{step.task}</td>
                         <td className="px-2 py-1.5 text-[10px] text-gray-600 leading-snug">{step.deliverable}</td>
                         <td className="px-2 py-1.5"><RoleBadge role={step.executor} /></td>
                         <td className="px-2 py-1.5"><RoleBadge role={step.reviewer} /></td>
-                        <td className="px-2 py-1.5 text-[10px] text-gray-500 leading-snug">{step.form}</td>
+                        <td className="px-2 py-1.5 text-[10px] text-slate-400 leading-snug">{step.form}</td>
                         <td className="px-2 py-1.5 text-center">
-                          <span className="text-[10px] text-gray-500 bg-gray-50 px-1 py-0.5 rounded">{step.duration}</span>
+                          <span className="text-[10px] text-slate-400 bg-[#1c1c1c] px-1 py-0.5 rounded">{step.duration}</span>
                         </td>
                       </tr>
                     ))}
@@ -253,7 +253,7 @@ export default function WorkflowProcessTable() {
         {DESIGN_PROCESS_TABLE.phases.map((p) => (
           <div key={p.code} className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: p.color }} />
-            <span className="text-[10px] text-gray-500">{p.code}. {p.name.split("—")[0].trim()}</span>
+            <span className="text-[10px] text-slate-400">{p.code}. {p.name.split("—")[0].trim()}</span>
           </div>
         ))}
       </div>

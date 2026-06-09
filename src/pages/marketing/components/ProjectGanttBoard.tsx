@@ -242,7 +242,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     setIsTimelineModalOpen(true);
                 }}
             >
-                <div className="absolute -top-5 left-0 text-[11px] font-bold text-gray-700 whitespace-nowrap bg-white/80 px-1 rounded shadow-sm">{project.name}</div>
+                <div className="absolute -top-5 left-0 text-[11px] font-bold text-slate-200 whitespace-nowrap bg-[#222]/80 px-1 rounded shadow-sm">{project.name}</div>
                 {segments}
             </div>
         );
@@ -263,8 +263,8 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     setIsTimelineModalOpen(true);
                 }}
             >
-                <div className="text-[11px] font-bold text-gray-500 whitespace-nowrap bg-white/80 px-1 rounded shadow-sm">{project.name} (Chưa setup)</div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-dashed border-indigo-300 rounded-full text-[10px] font-bold text-indigo-500 hover:bg-indigo-50 hover:border-indigo-500 transition-all shadow-sm">
+                <div className="text-[11px] font-bold text-slate-400 whitespace-nowrap bg-[#222]/80 px-1 rounded shadow-sm">{project.name} (Chưa setup)</div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#222] border border-dashed border-indigo-300 rounded-full text-[10px] font-bold text-indigo-500 hover:bg-indigo-50 hover:border-indigo-500 transition-all shadow-sm">
                     <Plus size={12} />
                     Thiết lập tiến độ
                 </div>
@@ -293,7 +293,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                     }}
                 >
                     <div className={`w-[2px] h-full ${isActive ? 'bg-rose-500' : 'bg-rose-300/50'} transition-colors absolute left-1/2 -translate-x-1/2 -z-10`}></div>
-                    <div className={`mt-1 w-6 h-6 rounded-full bg-white border-2 flex items-center justify-center shadow-md transition-all ${isActive ? 'scale-110 border-rose-600 text-rose-700 shadow-rose-200' : 'border-rose-500 text-rose-600'}`}>
+                    <div className={`mt-1 w-6 h-6 rounded-full bg-[#222] border-2 flex items-center justify-center shadow-md transition-all ${isActive ? 'scale-110 border-rose-600 text-rose-700 shadow-rose-200' : 'border-rose-500 text-rose-600'}`}>
                         <Video size={12} />
                     </div>
                     {/* Tooltip */}
@@ -325,15 +325,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
     const activeProjects = projects.filter((p: Project) => p.status !== 'Hoàn thành' && p.status !== 'Hủy bỏ');
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
+        <div className="bg-[#222] rounded-2xl shadow-sm border border-[#333] flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+            <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#1c1c1c]/50 shrink-0">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
                         <Calendar className="text-indigo-500" size={24} />
                         Tiến độ thi công & Lịch quay
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">Theo dõi tiến độ thực tế các công trình để lên lịch quay phù hợp.</p>
+                    <p className="text-sm text-slate-400 mt-1">Theo dõi tiến độ thực tế các công trình để lên lịch quay phù hợp.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     {canEdit && (
@@ -345,14 +345,14 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                             Dự Án Mới
                         </button>
                     )}
-                    <div className="flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                        <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 text-gray-600 transition-colors">
+                    <div className="flex bg-[#222] rounded-lg shadow-sm border border-[#333] overflow-hidden">
+                        <button onClick={handlePrevMonth} className="p-2 hover:bg-[#1c1c1c] text-gray-600 transition-colors">
                             <ChevronLeft size={20} />
                         </button>
-                        <div className="px-4 flex items-center font-bold text-sm text-gray-700 border-x border-gray-100 min-w-[140px] justify-center text-center capitalize">
+                        <div className="px-4 flex items-center font-bold text-sm text-slate-200 border-x border-[#333] min-w-[140px] justify-center text-center capitalize">
                             {format(currentDate, 'MMMM yyyy', { locale: vi })}
                         </div>
-                        <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 text-gray-600 transition-colors">
+                        <button onClick={handleNextMonth} className="p-2 hover:bg-[#1c1c1c] text-gray-600 transition-colors">
                             <ChevronRight size={20} />
                         </button>
                     </div>
@@ -361,15 +361,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
             {/* Single Scroll Container for Both Project List and Timeline */}
             <div 
-                className="flex-1 overflow-auto custom-scrollbar relative bg-gray-50/20"
+                className="flex-1 overflow-auto custom-scrollbar relative bg-[#1c1c1c]/20"
                 ref={ganttScrollRef}
             >
                 <div className="flex flex-col min-w-max">
                     {/* Header Row (Sticky Top) */}
-                    <div className="flex sticky top-0 z-[60] bg-white shadow-sm border-b border-gray-100 h-16">
+                    <div className="flex sticky top-0 z-[60] bg-[#222] shadow-sm border-b border-[#333] h-16">
                         {/* Top-Left Cell (Sticky Top & Left) - Highest visibility */}
-                        <div className="w-[280px] shrink-0 sticky left-0 z-[70] bg-gray-50 border-r border-gray-100 h-full flex items-end pb-3 px-6">
-                            <span className="font-bold text-sm text-gray-700 uppercase tracking-wider">Danh sách Dự án</span>
+                        <div className="w-[280px] shrink-0 sticky left-0 z-[70] bg-[#1c1c1c] border-r border-[#333] h-full flex items-end pb-3 px-6">
+                            <span className="font-bold text-sm text-slate-200 uppercase tracking-wider">Danh sách Dự án</span>
                         </div>
 
                         {/* Timeline Header (Sticky Top) */}
@@ -390,7 +390,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                             monthSpan++;
                                         } else {
                                             months.push(
-                                                <div key={`${currentMonthStr}-${i}`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
+                                                <div key={`${currentMonthStr}-${i}`} className="border-r border-[#333] relative bg-[#1c1c1c]/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
                                                     <div className="sticky left-[280px] px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
                                                         Tháng {currentMonthStr}
                                                     </div>
@@ -402,7 +402,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
 
                                         if (i === daysInterval.length - 1) {
                                             months.push(
-                                                <div key={`${currentMonthStr}-${i}-last`} className="border-r border-gray-100 relative bg-gray-50/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
+                                                <div key={`${currentMonthStr}-${i}-last`} className="border-r border-[#333] relative bg-[#1c1c1c]/50" style={{ width: `${monthSpan * DAY_WIDTH}px` }}>
                                                     <div className="sticky left-[280px] px-4 h-full flex items-center font-bold text-xs text-gray-600 w-max max-w-full truncate">
                                                         Tháng {currentMonthStr}
                                                     </div>
@@ -421,10 +421,10 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                     return (
                                         <div
                                             key={date.toISOString()}
-                                            className={`flex flex-col items-center justify-center border-r border-gray-100 shrink-0 relative ${isWeekend ? 'bg-gray-50/30' : ''}`}
+                                            className={`flex flex-col items-center justify-center border-r border-[#333] shrink-0 relative ${isWeekend ? 'bg-[#1c1c1c]/30' : ''}`}
                                             style={{ width: `${DAY_WIDTH}px` }}
                                         >
-                                            <span className={`text-[10px] font-medium ${isToday ? 'bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-gray-500'}`}>
+                                            <span className={`text-[10px] font-medium ${isToday ? 'bg-indigo-500 text-white rounded-full w-5 h-5 flex items-center justify-center' : 'text-slate-400'}`}>
                                                 {format(date, 'd')}
                                             </span>
                                         </div>
@@ -443,7 +443,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                 return (
                                     <div 
                                         key={`grid-${i}`} 
-                                        className={`border-r border-gray-100/50 h-full ${isWeekend ? 'bg-gray-50/30' : ''}`}
+                                        className={`border-r border-[#333]/50 h-full ${isWeekend ? 'bg-[#1c1c1c]/30' : ''}`}
                                         style={{ width: `${DAY_WIDTH}px` }}
                                     />
                                 );
@@ -464,17 +464,17 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                         {activeProjects.map(project => {
                             const isProjectActive = activeTooltip?.startsWith(project.id);
                             return (
-                                <div key={project.id} className="flex border-b border-gray-100/50 hover:bg-indigo-50/5 group relative h-20 items-stretch bg-white">
+                                <div key={project.id} className="flex border-b border-[#333]/50 hover:bg-indigo-50/5 group relative h-20 items-stretch bg-[#222]">
                                     {/* Project Card (Sticky Left) */}
                                     <div 
-                                        className={`w-[280px] shrink-0 sticky left-0 z-[50] bg-white pl-5 pr-3 h-full flex items-center justify-between transition-colors cursor-pointer border-r border-gray-100 ${isProjectActive ? 'bg-indigo-50/30' : ''}`}
+                                        className={`w-[280px] shrink-0 sticky left-0 z-[50] bg-[#222] pl-5 pr-3 h-full flex items-center justify-between transition-colors cursor-pointer border-r border-[#333] ${isProjectActive ? 'bg-indigo-50/30' : ''}`}
                                         onClick={() => {
                                             setSelectedProject(project);
                                             setIsTimelineModalOpen(true);
                                         }}
                                     >
                                     <div className="flex flex-col justify-center flex-1 min-w-0 pr-3">
-                                        <div className="font-bold text-sm text-gray-800 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
+                                        <div className="font-bold text-sm text-slate-100 truncate group-hover:text-indigo-600 transition-colors">{project.name}</div>
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 h-[18px] overflow-hidden">
                                             {(() => {
                                                 const start = project.actual_start_date ? parseISO(project.actual_start_date) : null;
@@ -482,7 +482,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                                 const today = new Date();
                                                 
                                                 let statusText = project.status || 'Chưa bắt đầu';
-                                                let statusColor = 'bg-gray-100 text-gray-600';
+                                                let statusColor = 'bg-[#2a2a2a] text-gray-600';
 
                                                 if (handover && today >= handover) {
                                                     statusText = 'Đã bàn giao';
@@ -589,15 +589,15 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
             {/* Quick Create Project Modal */}
             {isCreateModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <form onSubmit={handleCreateSubmit} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-lg font-bold text-gray-800">Thêm Dự Án Mới</h2>
-                            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 rounded-lg hover:bg-gray-200 transition-colors">
+                    <form onSubmit={handleCreateSubmit} className="bg-[#222] rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#1c1c1c]/50">
+                            <h2 className="text-lg font-bold text-slate-100">Thêm Dự Án Mới</h2>
+                            <button type="button" onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-slate-200 p-1 rounded-lg hover:bg-gray-200 transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-6">
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Tên dự án/công trình</label>
+                            <label className="block text-sm font-bold text-slate-200 mb-2">Tên dự án/công trình</label>
                             <input 
                                 autoFocus
                                 type="text" 
@@ -608,7 +608,7 @@ export const ProjectGanttBoard: React.FC<ProjectGanttBoardProps> = () => {
                                 required
                             />
                         </div>
-                        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+                        <div className="px-6 py-4 border-t border-[#333] flex justify-end gap-3 bg-[#1c1c1c]/50">
                             <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors">
                                 Hủy
                             </button>

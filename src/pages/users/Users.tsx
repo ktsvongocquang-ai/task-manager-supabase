@@ -149,6 +149,11 @@ export const Users = () => {
                     alert('Vui lòng nhập đầy đủ họ tên, email và mật khẩu.')
                     return
                 }
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                if (!emailRegex.test(form.email)) {
+                    alert('Email không hợp lệ. Vui lòng nhập đúng định dạng, ví dụ: ten@congty.com')
+                    return
+                }
 
                 let newUserId = '';
                 try {
@@ -231,7 +236,7 @@ export const Users = () => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Tìm kiếm nhân viên..."
-                        className="w-full bg-white border border-border-main pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+                        className="w-full bg-[#222] border border-border-main pl-10 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
                     />
                 </div>
                 {_profile?.role === 'Admin' && (
@@ -258,9 +263,9 @@ export const Users = () => {
                 <div className="rounded-xl border border-border-main shadow-sm">
                     <button
                         onClick={() => setShowMatrix(v => !v)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl"
+                        className="w-full flex items-center justify-between px-4 py-3 bg-[#1c1c1c] hover:bg-[#2a2a2a] transition-colors rounded-xl"
                     >
-                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
                             <ShieldCheck size={16} className="text-primary" />
                             Bảng Phân Quyền
                         </div>

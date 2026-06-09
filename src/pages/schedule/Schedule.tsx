@@ -179,7 +179,7 @@ export const Schedule = () => {
         if (status?.includes('Đang')) return 'bg-blue-100 text-blue-700 border-blue-200'
         if (status?.includes('Tạm dừng')) return 'bg-amber-100 text-amber-700 border-amber-200'
         if (status?.includes('Hủy')) return 'bg-red-100 text-red-700 border-red-200'
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-[#2a2a2a] text-slate-200 border-[#333]'
     }
 
     const getEventBg = (status: string) => {
@@ -187,7 +187,7 @@ export const Schedule = () => {
         if (status?.includes('Đang')) return 'bg-blue-50 hover:bg-blue-100 text-blue-800'
         if (status?.includes('Tạm dừng')) return 'bg-amber-50 hover:bg-amber-100 text-amber-800'
         if (status?.includes('Hủy')) return 'bg-red-50 hover:bg-red-100 text-red-800'
-        return 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+        return 'bg-[#1c1c1c] hover:bg-[#2a2a2a] text-slate-200'
     }
 
     // Auto scroll mobile calendar to selected date
@@ -204,25 +204,25 @@ export const Schedule = () => {
     return (
         <div className="min-h-0 flex flex-col h-full overflow-hidden">
             {/* Desktop Calendar Grid — full frame with inline header */}
-            <div className="hidden md:flex flex-1 bg-white overflow-hidden flex-col min-h-0">
+            <div className="hidden md:flex flex-1 bg-[#222] overflow-hidden flex-col min-h-0">
                 {/* Inline Header Bar */}
-                <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 shrink-0">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#333] shrink-0">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={goToToday}
-                            className="px-3 py-1.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                            className="px-3 py-1.5 text-sm font-semibold text-slate-200 bg-[#222] border border-slate-300 rounded-md hover:bg-[#1c1c1c] transition-colors"
                         >
                             Hôm nay
                         </button>
                         <div className="flex items-center">
-                            <button onClick={prevPeriod} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <button onClick={prevPeriod} className="p-1 text-slate-400 hover:bg-[#2a2a2a] rounded-full transition-colors">
                                 <ChevronLeft size={20} />
                             </button>
-                            <button onClick={nextPeriod} className="p-1 text-slate-500 hover:bg-slate-100 rounded-full transition-colors">
+                            <button onClick={nextPeriod} className="p-1 text-slate-400 hover:bg-[#2a2a2a] rounded-full transition-colors">
                                 <ChevronRight size={20} />
                             </button>
                         </div>
-                        <h2 className="text-lg font-semibold text-slate-800 capitalize">
+                        <h2 className="text-lg font-semibold text-slate-100 capitalize">
                             {viewMode === 'day' ? format(currentDate, 'EEEE, dd/MM/yyyy', { locale: vi }) : `Tháng ${format(currentDate, 'M, yyyy', { locale: vi })}`}
                         </h2>
                     </div>
@@ -230,7 +230,7 @@ export const Schedule = () => {
                         <select
                             value={viewMode}
                             onChange={(e) => setViewMode(e.target.value as any)}
-                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer"
+                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-[#222] hover:bg-[#1c1c1c] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer"
                         >
                             <option value="month">Tháng</option>
                             <option value="day">Ngày</option>
@@ -238,7 +238,7 @@ export const Schedule = () => {
                         <select
                             value={selectedProject}
                             onChange={(e) => setSelectedProject(e.target.value)}
-                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px]"
+                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-[#222] hover:bg-[#1c1c1c] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px]"
                         >
                             <option value="all">Tất cả dự án</option>
                             <option value="personal">Việc cá nhân</option>
@@ -266,9 +266,9 @@ export const Schedule = () => {
                 {viewMode === 'month' && (
                     <>
                         {/* Weekdays Header */}
-                <div className="grid grid-cols-7 border-b border-slate-200 shrink-0">
+                <div className="grid grid-cols-7 border-b border-[#333] shrink-0">
                     {WEEKDAYS.map((day, i) => (
-                        <div key={day} className={`py-2.5 text-center text-xs font-semibold tracking-wide uppercase ${i === 0 || i === 6 ? 'text-slate-400' : 'text-slate-500'}`}>
+                        <div key={day} className={`py-2.5 text-center text-xs font-semibold tracking-wide uppercase ${i === 0 || i === 6 ? 'text-slate-400' : 'text-slate-400'}`}>
                             {day}
                         </div>
                     ))}
@@ -293,8 +293,8 @@ export const Schedule = () => {
                             <div
                                 key={day.toString()}
                                 onDoubleClick={() => openAddModal(dateStr)}
-                                className={`border-b border-r border-slate-100 flex flex-col relative group overflow-hidden cursor-cell
-                                    ${!isCurrentMonth ? 'bg-slate-50/30' : isWeekend ? 'bg-slate-50/50' : 'bg-white'} 
+                                className={`border-b border-r border-[#333] flex flex-col relative group overflow-hidden cursor-cell
+                                    ${!isCurrentMonth ? 'bg-[#1c1c1c]/30' : isWeekend ? 'bg-[#1c1c1c]/50' : 'bg-[#222]'} 
                                     ${idx % 7 === 6 ? 'border-r-0' : ''}
                                     ${idx >= 35 ? 'border-b-0' : ''}
                                 `}
@@ -343,9 +343,9 @@ export const Schedule = () => {
                                     {showOverflow && (
                                         <div
                                             ref={overflowRef}
-                                            className="absolute left-1 right-1 top-8 z-50 bg-white border border-slate-200 rounded-lg shadow-xl p-2 max-h-[240px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
+                                            className="absolute left-1 right-1 top-8 z-50 bg-[#222] border border-[#333] rounded-lg shadow-xl p-2 max-h-[240px] overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
                                         >
-                                            <div className="text-xs font-bold text-slate-500 mb-2 px-1">
+                                            <div className="text-xs font-bold text-slate-400 mb-2 px-1">
                                                 {format(day, 'EEEE, dd/MM', { locale: vi })} — {dayTasks.length} nhiệm vụ
                                             </div>
                                             <div className="space-y-1">
@@ -381,19 +381,19 @@ export const Schedule = () => {
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-2">
-                        <button onClick={goToToday} className="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-md">
+                        <button onClick={goToToday} className="px-2.5 py-1 text-xs font-semibold text-slate-200 bg-[#222] border border-slate-300 rounded-md">
                             Hôm nay
                         </button>
-                        <button onClick={prevPeriod} className="p-1 text-slate-500"><ChevronLeft size={18} /></button>
-                        <button onClick={nextPeriod} className="p-1 text-slate-500"><ChevronRight size={18} /></button>
-                        <h2 className="text-sm font-semibold text-slate-800 capitalize truncate max-w-[120px]">
+                        <button onClick={prevPeriod} className="p-1 text-slate-400"><ChevronLeft size={18} /></button>
+                        <button onClick={nextPeriod} className="p-1 text-slate-400"><ChevronRight size={18} /></button>
+                        <h2 className="text-sm font-semibold text-slate-100 capitalize truncate max-w-[120px]">
                             {viewMode === 'day' ? format(currentDate, 'dd/MM/yyyy', { locale: vi }) : `Tháng ${format(currentDate, 'M, yyyy', { locale: vi })}`}
                         </h2>
                     </div>
                     <select
                         value={selectedProject}
                         onChange={(e) => setSelectedProject(e.target.value)}
-                        className="px-2 py-1 border border-slate-300 rounded-md text-xs font-medium text-slate-600 bg-white max-w-[120px] appearance-none"
+                        className="px-2 py-1 border border-slate-300 rounded-md text-xs font-medium text-slate-600 bg-[#222] max-w-[120px] appearance-none"
                     >
                         <option value="all">Tất cả</option>
                         <option value="personal">Cá nhân</option>
@@ -404,7 +404,7 @@ export const Schedule = () => {
                 </div>
 
                 {/* Mini Month Grid */}
-                <div className="bg-white p-3 pt-4 rounded-2xl border border-slate-200 shadow-sm shrink-0">
+                <div className="bg-[#222] p-3 pt-4 rounded-2xl border border-[#333] shadow-sm shrink-0">
                     {/* Weekdays Header */}
                     <div className="grid grid-cols-7 mb-3">
                         {WEEKDAYS.map(day => (
@@ -437,7 +437,7 @@ export const Schedule = () => {
                                     className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all
                                         ${isSelected ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105 z-10 font-bold' : 
                                           !isCurrentMonth ? 'text-slate-300 opacity-50' : 
-                                          isToday ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'}
+                                          isToday ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-200 hover:bg-[#1c1c1c] font-medium'}
                                     `}
                                 >
                                     <span className="text-[14px] leading-none mb-0.5">
@@ -472,8 +472,8 @@ export const Schedule = () => {
                         
                         if (dayTasks.length === 0) {
                             return (
-                                <div className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-3xl border border-slate-200 shadow-sm mt-2">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100 shadow-sm">
+                                <div className="py-24 flex flex-col items-center justify-center text-center bg-[#222] rounded-3xl border border-[#333] shadow-sm mt-2">
+                                    <div className="w-16 h-16 bg-[#1c1c1c] rounded-2xl flex items-center justify-center mb-4 border border-[#333] shadow-sm">
                                         <div className="text-3xl opacity-50">🏝️</div>
                                     </div>
                                     <p className="text-base font-bold text-slate-600 mb-1 tracking-tight">Không có nhiệm vụ</p>
@@ -486,30 +486,30 @@ export const Schedule = () => {
                             <div
                                 key={task.id}
                                 onClick={() => openEditModal(task)}
-                                className={`p-4 rounded-2xl cursor-pointer transition-all flex flex-col gap-3 hover:bg-slate-50 active:scale-[0.98] group bg-white border border-slate-200 shadow-sm relative overflow-hidden`}
+                                className={`p-4 rounded-2xl cursor-pointer transition-all flex flex-col gap-3 hover:bg-[#1c1c1c] active:scale-[0.98] group bg-[#222] border border-[#333] shadow-sm relative overflow-hidden`}
                             >
                                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${getDotColor(task.status || '')}`}></div>
                                 <div className="flex flex-col gap-2 pl-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
+                                            <span className="text-[10px] font-black text-slate-400 tracking-wider uppercase bg-[#2a2a2a] px-2 py-1 rounded-lg border border-[#333]">{task.task_code}</span>
                                             <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
                                                 {task.status}
                                             </span>
                                             {task.project_id && task.project_id !== 'personal' && (
-                                                <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1 uppercase tracking-wide px-2 py-1 bg-slate-50 rounded-lg border border-slate-100 max-w-[140px]">
+                                                <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1 uppercase tracking-wide px-2 py-1 bg-[#1c1c1c] rounded-lg border border-[#333] max-w-[140px]">
                                                     <Folder size={10} className="text-slate-400 shrink-0" />
                                                     <span className="truncate">{projects.find(p => p.id === task.project_id)?.name}</span>
                                                 </span>
                                             )}
                                         </div>
                                         {task.assignee_id && (
-                                            <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0 shadow-sm ml-2">
+                                            <div className="w-6 h-6 rounded-full bg-[#2a2a2a] border border-[#333] flex items-center justify-center text-[10px] font-bold text-slate-400 shrink-0 shadow-sm ml-2">
                                                 {profiles.find(p => p.id === task.assignee_id)?.full_name?.charAt(0) || 'U'}
                                             </div>
                                         )}
                                     </div>
-                                    <h4 className={`text-[15px] font-bold line-clamp-2 leading-snug transition-colors pr-2 ${task.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-indigo-600'}`}>
+                                    <h4 className={`text-[15px] font-bold line-clamp-2 leading-snug transition-colors pr-2 ${task.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-100 group-hover:text-indigo-600'}`}>
                                         {task.name}
                                     </h4>
                                 </div>

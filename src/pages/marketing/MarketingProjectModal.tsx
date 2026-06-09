@@ -222,13 +222,13 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 shrink-0">
+            <div className="bg-[#222] rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+                <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#1c1c1c]/50 shrink-0">
                     <div className="flex flex-col">
-                        <h3 className="text-xl font-bold text-slate-900">
+                        <h3 className="text-xl font-bold text-slate-50">
                             Form Cung Cấp Thông Tin Marketing
                         </h3>
-                        <p className="text-sm font-normal text-slate-500 mt-1">
+                        <p className="text-sm font-normal text-slate-400 mt-1">
                             Điền đầy đủ thông tin để team Marketing có chất liệu lên nội dung
                         </p>
                     </div>
@@ -238,7 +238,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 {onArchive && (
                                     <button 
                                         onClick={() => onArchive(editingProject.id, editingProject.name || '')}
-                                        className="text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
+                                        className="text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
                                         title="Lưu trữ dự án"
                                     >
                                         <Archive size={20} />
@@ -247,7 +247,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 {onDelete && currentUserProfile?.role === 'Admin' && (
                                     <button 
                                         onClick={() => onDelete(editingProject.id, editingProject.name || '')}
-                                        className="text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
+                                        className="text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-xl flex items-center justify-center"
                                         title="Xóa dự án"
                                     >
                                         <Trash2 size={20} />
@@ -256,33 +256,33 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 <div className="w-px h-6 bg-slate-200 mx-1"></div>
                             </>
                         )}
-                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-xl">
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-[#2a2a2a] rounded-xl">
                             <X size={24} />
                         </button>
                     </div>
                 </div>
                 
-                <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar bg-slate-50/30">
+                <div className="p-6 overflow-y-auto space-y-5 custom-scrollbar bg-[#1c1c1c]/30">
                     <div className="space-y-5">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                             <div className="sm:col-span-2">
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Tên công trình <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center gap-1">Tên công trình <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400 font-bold text-slate-900"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400 font-bold text-slate-50"
                                     placeholder="VD: Chung cư Palm Height"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1 uppercase tracking-tight">Mã công trình <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center gap-1 uppercase tracking-tight">Mã công trình <span className="text-red-500">*</span></label>
                                 <input
                                     type="text"
                                     value={form.project_code}
                                     onChange={(e) => setForm({ ...form, project_code: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all font-mono font-bold text-indigo-600"
+                                    className="w-full px-4 py-2.5 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all font-mono font-bold text-indigo-600"
                                     placeholder="DA001"
                                     required
                                 />
@@ -291,11 +291,11 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Loại công trình <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center gap-1">Loại công trình <span className="text-red-500">*</span></label>
                                 <select
                                     value={form.project_type}
                                     onChange={(e) => setForm({ ...form, project_type: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                     required
                                 >
                                     <option value="">Chọn loại công trình</option>
@@ -303,11 +303,11 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Trạng thái cập nhật hình ảnh</label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5">Trạng thái cập nhật hình ảnh</label>
                                 <select
                                     value={form.update_status}
                                     onChange={(e) => setForm({ ...form, update_status: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                 >
                                     <option value="">Chọn trạng thái</option>
                                     {UPDATE_STATUSES.map(us => <option key={us} value={us}>{us}</option>)}
@@ -315,13 +315,13 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-[#333]">
                              <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1">Tình trạng thi công <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex items-center gap-1">Tình trạng thi công <span className="text-red-500">*</span></label>
                                 <select
                                     value={form.status}
                                     onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm font-bold focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                     required
                                 >
                                     <option value="">Chọn tình trạng</option>
@@ -333,13 +333,13 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex justify-between items-center">
                                     <span>Có thể đến quay video không?</span>
                                 </label>
                                 <select
                                     value={form.can_shoot_video || 'Có thể'}
                                     onChange={(e) => setForm({ ...form, can_shoot_video: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                 >
                                     <option value="Có thể">Có thể</option>
                                     <option value="Không thể">Không thể</option>
@@ -350,43 +350,43 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ngày thi công</label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5">Ngày thi công</label>
                                 <input
                                     type="date"
                                     value={form.start_date}
                                     onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ngày hoàn thiện (dự kiến)</label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5">Ngày hoàn thiện (dự kiến)</label>
                                 <input
                                     type="date"
                                     value={form.end_date}
                                     onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Địa chỉ</label>
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5">Địa chỉ</label>
                             <input
                                 type="text"
                                 value={form.address || ''}
                                 onChange={(e) => setForm({ ...form, address: e.target.value })}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
                                 placeholder="Nhập địa chỉ công trình"
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-slate-100">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-4 border-t border-[#333]">
                              <div>
-                                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Phong cách</label>
+                                <label className="block text-sm font-semibold text-slate-200 mb-1.5">Phong cách</label>
                                 <select
                                     value={form.effect_type}
                                     onChange={(e) => setForm({ ...form, effect_type: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-700"
+                                    className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all text-slate-200"
                                 >
                                     <option value="">Chọn phong cách</option>
                                     {EFFECT_TYPES.map(effect => (
@@ -397,34 +397,34 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Điểm nhấn</label>
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5">Điểm nhấn</label>
                             <input
                                 type="text"
                                 value={form.effect_description || ''}
                                 onChange={(e) => setForm({ ...form, effect_description: e.target.value })}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
                                 placeholder="VD: Điểm nhấn không gian xanh, vật liệu mộc..."
                             />
                         </div>
                         
-                        <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                        <div className="pt-4 border-t border-[#333]">
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex justify-between items-center">
                                 <span>Mô tả về công trình</span>
                             </label>
-                            <p className="text-xs text-slate-500 mb-2">Công trình này có đặc điểm gì đặc biệt, tệp khách hàng là ai, phân khúc như thế nào...</p>
+                            <p className="text-xs text-slate-400 mb-2">Công trình này có đặc điểm gì đặc biệt, tệp khách hàng là ai, phân khúc như thế nào...</p>
                             <div className="relative group">
                                 <textarea
                                     value={form.description || ''}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                                     rows={6}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[120px] pb-12"
+                                    className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[120px] pb-12"
                                     placeholder="Nhập mô tả chi tiết..."
                                 />
                                 <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         type="button"
                                         onClick={() => handleSpeechToText('description')}
-                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'description' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'description' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-[#222] border-[#333] text-slate-400 hover:bg-[#1c1c1c] hover:text-indigo-600 hover:border-indigo-200'}`}
                                         title={isListening === 'description' ? "Đang nghe..." : "Nhập bằng giọng nói"}
                                     >
                                         {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
@@ -433,7 +433,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                         type="button"
                                         onClick={() => handleAIRefine('description')}
                                         disabled={isRefining === 'description'}
-                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        className="p-2 bg-[#222] border border-[#333] text-slate-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
                                         title="Làm mượt bằng AI"
                                     >
                                         {isRefining === 'description' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
@@ -443,23 +443,23 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex justify-between items-center">
                                 <span>Nội dung khai thác</span>
                             </label>
-                            <p className="text-xs text-slate-500 mb-2">Chủ đề muốn tập trung khai thác trong bài viết/video</p>
+                            <p className="text-xs text-slate-400 mb-2">Chủ đề muốn tập trung khai thác trong bài viết/video</p>
                             <div className="relative group">
                                 <textarea
                                     value={form.customer_problem || ''}
                                     onChange={(e) => setForm({ ...form, customer_problem: e.target.value })}
                                     rows={4}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
+                                    className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
                                     placeholder="Nhập nội dung khai thác..."
                                 />
                                 <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         type="button"
                                         onClick={() => handleSpeechToText('customer_problem')}
-                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'customer_problem' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'customer_problem' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-[#222] border-[#333] text-slate-400 hover:bg-[#1c1c1c] hover:text-indigo-600 hover:border-indigo-200'}`}
                                         title={isListening === 'customer_problem' ? "Đang nghe..." : "Nhập bằng giọng nói"}
                                     >
                                         {isListening === 'customer_problem' ? <MicOff size={16} /> : <Mic size={16} />}
@@ -468,7 +468,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                         type="button"
                                         onClick={() => handleAIRefine('customer_problem')}
                                         disabled={isRefining === 'customer_problem'}
-                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        className="p-2 bg-[#222] border border-[#333] text-slate-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
                                         title="Làm mượt bằng AI"
                                     >
                                         {isRefining === 'customer_problem' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
@@ -478,23 +478,23 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
 
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex justify-between items-center">
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5 flex justify-between items-center">
                                 <span>Giải pháp mà DQH mang lại</span>
                             </label>
-                            <p className="text-xs text-slate-500 mb-2">Càng chi tiết càng tốt</p>
+                            <p className="text-xs text-slate-400 mb-2">Càng chi tiết càng tốt</p>
                             <div className="relative group">
                                 <textarea
                                     value={form.dqh_solution || ''}
                                     onChange={(e) => setForm({ ...form, dqh_solution: e.target.value })}
                                     rows={4}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
+                                    className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400 min-h-[90px] pb-12"
                                     placeholder="Nhập giải pháp..."
                                 />
                                 <div className="absolute bottom-3 right-3 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button
                                         type="button"
                                         onClick={() => handleSpeechToText('dqh_solution')}
-                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'dqh_solution' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200'}`}
+                                        className={`p-2 rounded-lg border transition-all flex items-center justify-center ${isListening === 'dqh_solution' ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-[#222] border-[#333] text-slate-400 hover:bg-[#1c1c1c] hover:text-indigo-600 hover:border-indigo-200'}`}
                                         title={isListening === 'dqh_solution' ? "Đang nghe..." : "Nhập bằng giọng nói"}
                                     >
                                         {isListening === 'dqh_solution' ? <MicOff size={16} /> : <Mic size={16} />}
@@ -503,7 +503,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                                         type="button"
                                         onClick={() => handleAIRefine('dqh_solution')}
                                         disabled={isRefining === 'dqh_solution'}
-                                        className="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
+                                        className="p-2 bg-[#222] border border-[#333] text-slate-400 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all flex items-center justify-center disabled:opacity-50"
                                         title="Làm mượt bằng AI"
                                     >
                                         {isRefining === 'dqh_solution' ? <Loader2 size={16} className="animate-spin text-indigo-600" /> : <Sparkles size={16} />}
@@ -513,47 +513,47 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                         </div>
                         
                         <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Hình ảnh / Videos của công trình</label>
-                            <p className="text-xs text-slate-500 mb-2">Link bản thiết kế, video từng giai đoạn, tài liệu muốn truyền tải (Google Drive, Notion...)</p>
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5">Hình ảnh / Videos của công trình</label>
+                            <p className="text-xs text-slate-400 mb-2">Link bản thiết kế, video từng giai đoạn, tài liệu muốn truyền tải (Google Drive, Notion...)</p>
                             <input
                                 type="url"
                                 value={form.image_folder_link || ''}
                                 onChange={(e) => setForm({ ...form, image_folder_link: e.target.value })}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
                                 placeholder="https://drive.google.com/..."
                             />
                         </div>
                         
-                        <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brief / Doc Nội dung</label>
-                            <p className="text-xs text-slate-500 mb-2">Đường link tới tài liệu nội dung, kịch bản hoặc brief của dự án</p>
+                        <div className="pt-4 border-t border-[#333]">
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5">Brief / Doc Nội dung</label>
+                            <p className="text-xs text-slate-400 mb-2">Đường link tới tài liệu nội dung, kịch bản hoặc brief của dự án</p>
                             <input
                                 type="url"
                                 value={form.content_link || ''}
                                 onChange={(e) => setForm({ ...form, content_link: e.target.value })}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
+                                className="w-full px-4 py-2.5 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-400"
                                 placeholder="https://docs.google.com/..."
                             />
                         </div>
                         
-                        <div className="pt-4 border-t border-slate-100">
-                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ghi chú</label>
+                        <div className="pt-4 border-t border-[#333]">
+                            <label className="block text-sm font-semibold text-slate-200 mb-1.5">Ghi chú</label>
                             <textarea
                                 value={form.other_info || ''}
                                 onChange={(e) => setForm({ ...form, other_info: e.target.value })}
                                 rows={2}
-                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
+                                className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all resize-y placeholder:text-slate-400"
                                 placeholder="Nhập thêm thông tin..."
                             />
                         </div>
                         
                         {/* Hidden Manager ID & Project Code to keep the data model consistent */}
-                        <div className="pt-6 border-t border-slate-200 mt-6 bg-slate-100/30 p-4 rounded-xl">
-                             <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Quản lý dự án (Admin view)</label>
+                        <div className="pt-6 border-t border-[#333] mt-6 bg-[#2a2a2a]/30 p-4 rounded-xl">
+                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Quản lý dự án (Admin view)</label>
                              <select
                                  value={form.manager_id}
                                  onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
-                                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none"
+                                 className="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm focus:outline-none"
                                  disabled={currentUserProfile?.role !== 'Admin' && currentUserProfile?.role !== 'Quản lý'}
                              >
                                  <option value="">Chọn quản lý</option>
@@ -565,7 +565,7 @@ export const MarketingProjectModal: React.FC<MarketingProjectModalProps> = ({
                     </div>
                 </div>
                 
-                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+                <div className="px-6 py-4 bg-[#1c1c1c] border-t border-[#333] flex justify-end gap-3 shrink-0">
                     <button
                         type="button"
                         onClick={onClose}

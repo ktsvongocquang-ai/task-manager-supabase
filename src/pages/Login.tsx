@@ -67,31 +67,31 @@ export const Login = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-rose-50 to-red-100 flex items-center justify-center p-4">
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
+            <div className="bg-[#222]/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
                 <div className="text-center mb-10">
                     <img src="/dqh_logo.png" alt="DQH Logo" className="h-32 mx-auto mb-6 object-contain" />
-                    <p className="text-slate-500 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
+                    <p className="text-slate-400 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Email đăng nhập</label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1">Email đăng nhập</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
+                            className="w-full rounded-lg border-slate-300 bg-[#222]/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
                             placeholder="VD: admin@congty.com"
                             required
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Mật khẩu</label>
+                        <label className="block text-sm font-medium text-slate-200 mb-1">Mật khẩu</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 bg-white/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
+                            className="w-full rounded-lg border-slate-300 bg-[#222]/50 px-4 py-2.5 text-sm focus:border-[#7A1216] focus:ring-2 focus:ring-red-200 outline-none transition-all shadow-sm"
                             placeholder="••••••••"
                             required
                         />
@@ -117,7 +117,7 @@ export const Login = () => {
                                 <div className="w-full border-t border-gray-300"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white/80 text-gray-500">Hoặc tiếp tục với</span>
+                                <span className="px-2 bg-[#222]/80 text-slate-400">Hoặc tiếp tục với</span>
                             </div>
                         </div>
 
@@ -126,7 +126,7 @@ export const Login = () => {
                                 type="button"
                                 onClick={handleGoogleLogin}
                                 disabled={loading}
-                                className="w-full flex justify-center items-center gap-3 py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                                className="w-full flex justify-center items-center gap-3 py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-[#222] text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                     <path

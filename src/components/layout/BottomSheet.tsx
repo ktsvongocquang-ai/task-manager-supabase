@@ -35,15 +35,15 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
 
       {/* Sheet Content */}
       <div 
-        className={`bg-white w-full max-w-2xl mx-auto rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transition-all duration-300 ease-out transform ${isOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
+        className={`bg-[#222] w-full max-w-2xl mx-auto rounded-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transition-all duration-300 ease-out transform ${isOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}
       >
 
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+        <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#222] sticky top-0 z-10 shrink-0">
+          <h3 className="text-xl font-bold text-slate-100">{title}</h3>
           <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="w-8 h-8 rounded-full bg-[#1c1c1c] flex items-center justify-center text-slate-400 hover:bg-[#2a2a2a] hover:text-slate-600 transition-colors"
           >
             <X size={20} />
           </button>

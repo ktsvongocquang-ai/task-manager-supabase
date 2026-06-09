@@ -615,6 +615,22 @@ function useReveal(threshold = 0.12) {
   return [ref, visible] as const;
 }
 
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const [ref, visible] = useReveal();
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // ── ARCHITECTURAL VECTOR FALLBACK CARDS FOR BLOCKED IMAGE URLS ──
 const BlueprintFallback = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
@@ -1113,7 +1129,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   if (!authenticated) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F5F0] text-[#2C2920] font-sans px-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-[#2C2920]/10 text-center">
+        <div className="max-w-md w-full bg-[#222] p-8 rounded-2xl shadow-sm border border-[#2C2920]/10 text-center">
           <div className="w-16 h-16 bg-[#F8F5F0] rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-[#C4C0B8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           </div>
@@ -1695,7 +1711,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               <p className="text-xs text-[#C4C0B8] leading-relaxed max-w-sm font-sans pt-4">
                 DQH số hóa toàn bộ tiêu chuẩn kỹ thuật thiết kế và thi công vào ứng dụng quản lý. Mọi chi tiết thiết kế và hạng mục hoàn thiện đều được nhân sự kiểm tra chéo theo checklist nghiêm ngặt dưới đây.
               </p>
-              <div className="bg-white/5 border border-white/10 p-4 rounded-sm max-w-sm">
+              <div className="bg-[#222]/5 border border-white/10 p-4 rounded-sm max-w-sm">
                 <span className="text-[9px] font-mono tracking-widest text-[#B8913A] uppercase font-bold block mb-1">MẬT ĐỘ BẢO MẬT</span>
                 <p className="text-[11px] text-gray-400 leading-relaxed">Bộ tiêu chuẩn hiển thị dưới dạng <strong>Teaser rút gọn</strong> để bảo vệ tài sản trí tuệ DQH. Liên hệ KTS để đăng ký tài khoản chính thức xem bản Full.</p>
               </div>
@@ -1725,7 +1741,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             {/* Interactive Standard Tabs Layout (Elegant photography & clean list) */}
             <div className="lg:col-span-7 space-y-10 flex flex-col justify-between h-full pl-0 lg:pl-10">
               
-              <div className="aspect-[21/9] rounded-sm overflow-hidden bg-white/5 border border-white/10 relative group">
+              <div className="aspect-[21/9] rounded-sm overflow-hidden bg-[#222]/5 border border-white/10 relative group">
                 <img 
                   src="https://images.unsplash.com/photo-1600585155256-990dced4db0d?w=800&q=80" 
                   alt="Detail Craftsmanship" 
@@ -1784,7 +1800,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
  
                   {activeTab === 'CHECKLIST' && (
                     <div className="space-y-4">
-                      <div className="text-[10px] text-gray-500 italic font-sans mb-3">Bấm để đánh dấu nghiệm thu thử nghiệm:</div>
+                      <div className="text-[10px] text-slate-400 italic font-sans mb-3">Bấm để đánh dấu nghiệm thu thử nghiệm:</div>
                       <div className="grid grid-cols-1 gap-2.5">
                         {TECHNICAL_STANDARDS.checklist.map((item, i) => {
                           const isChecked = !!checkedItems[i];
@@ -1795,7 +1811,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                               className={`flex gap-3 items-start p-3.5 rounded-sm border transition-all cursor-pointer ${
                                 isChecked 
                                   ? 'bg-[#B8913A]/5 border-[#B8913A]/30 text-[#FAF8F4]' 
-                                  : 'bg-white/5 border-white/5 text-[#C4C0B8] hover:border-white/10'
+                                  : 'bg-[#222]/5 border-white/5 text-[#C4C0B8] hover:border-white/10'
                               }`}
                             >
                               <div className={`w-4 h-4 rounded-sm border flex items-center justify-center shrink-0 mt-0.5 transition-all ${
@@ -2241,7 +2257,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-medium text-stone-300 tracking-wide text-xs uppercase">Xem trước Portfolio</span>
           </div>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-[#222]/10" />
           <button 
             onClick={() => setShowShareManager(true)}
             className="bg-[#B8913A] hover:bg-[#B8913A]/85 active:scale-95 text-white px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer"
@@ -2264,7 +2280,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 document.getElementById('section-3')?.scrollIntoView({ behavior: 'smooth' });
                 setExpandedStep(4); // Step 5: Thi công thô
               }}
-              className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
+              className="bg-[#222]/5 hover:bg-[#222]/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
             >
               <span>1. Quy trình &amp; Phạt trễ hạn</span>
               <ChevronRight size={10} className="text-[#B8913A] group-hover:translate-x-1 transition-transform" />
@@ -2274,7 +2290,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 document.getElementById('section-4')?.scrollIntoView({ behavior: 'smooth' });
                 setActiveTab('CHECKLIST');
               }}
-              className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
+              className="bg-[#222]/5 hover:bg-[#222]/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
             >
               <span>2. Nghiệm thu 120 điểm gỗ</span>
               <ChevronRight size={10} className="text-[#B8913A] group-hover:translate-x-1 transition-transform" />
@@ -2283,7 +2299,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               onClick={() => {
                 document.getElementById('section-5')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
+              className="bg-[#222]/5 hover:bg-[#222]/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
             >
               <span>3. Minh bạch BOQ &amp; Chi phí</span>
               <ChevronRight size={10} className="text-[#B8913A] group-hover:translate-x-1 transition-transform" />
@@ -2293,7 +2309,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 document.getElementById('section-6')?.scrollIntoView({ behavior: 'smooth' });
                 setActiveDiaryTab('DIARY');
               }}
-              className="bg-white/5 hover:bg-white/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
+              className="bg-[#222]/5 hover:bg-[#222]/10 text-left px-2.5 py-1.5 rounded transition-all flex items-center justify-between group cursor-pointer text-[#C4C0B8] hover:text-[#FAF8F4]"
             >
               <span>4. Nhật ký chống thấm 72h</span>
               <ChevronRight size={10} className="text-[#B8913A] group-hover:translate-x-1 transition-transform" />
@@ -2305,7 +2321,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       {/* ── SHARING MANAGER PANEL MODAL ── */}
       {isPreview && showShareManager && (
         <div className="fixed inset-0 bg-[#1A1814]/90 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative">
+          <div className="bg-[#222] rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative">
             <button 
               onClick={() => setShowShareManager(false)}
               className="absolute top-4 right-4 text-stone-400 hover:text-stone-900 text-2xl font-bold bg-stone-100 hover:bg-stone-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors z-10 cursor-pointer"
@@ -2322,13 +2338,13 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       {/* ── LARK SUITE DOCS MODAL ── */}
       {showLarkModal && (
         <div className="fixed inset-0 bg-[#1A1814]/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#F8F9FA] rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden text-slate-800 font-sans relative">
+          <div className="bg-[#F8F9FA] rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden text-slate-100 font-sans relative">
             {/* Lark Header */}
-            <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
+            <div className="bg-[#222] border-b border-[#333] px-6 py-4 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-lg shadow-sm">L</div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-800 leading-tight">BIÊN BẢN NGHIỆM THU NỘI BỘ - THE HORIZON HOUSE</h3>
+                  <h3 className="font-bold text-sm text-slate-100 leading-tight">BIÊN BẢN NGHIỆM THU NỘI BỘ - THE HORIZON HOUSE</h3>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] text-slate-400">Tài liệu đám mây (Lark Suite)</span>
                     <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.2 rounded font-bold">
@@ -2342,13 +2358,13 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   onClick={() => {
                     alert("Tải tài liệu PDF đang được khởi tạo...");
                   }}
-                  className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="bg-[#222] hover:bg-[#1c1c1c] text-slate-200 border border-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   Xuất PDF
                 </button>
                 <button 
                   onClick={() => setShowLarkModal(false)}
-                  className="text-slate-400 hover:text-slate-600 text-2xl font-bold bg-slate-100 hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                  className="text-slate-400 hover:text-slate-600 text-2xl font-bold bg-[#2a2a2a] hover:bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
                 >
                   &times;
                 </button>
@@ -2356,7 +2372,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </div>
 
             {/* Lark Toolbar simulator */}
-            <div className="bg-slate-50 border-b border-slate-200 px-6 py-2 flex items-center gap-4 text-slate-400 text-xs overflow-x-auto shrink-0 select-none">
+            <div className="bg-[#1c1c1c] border-b border-[#333] px-6 py-2 flex items-center gap-4 text-slate-400 text-xs overflow-x-auto shrink-0 select-none">
               <span>Font: System Sans</span>
               <div className="h-4 w-px bg-slate-300" />
               <div className="flex gap-2 text-slate-600 font-bold">
@@ -2370,12 +2386,12 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </div>
 
             {/* Lark Body */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-100/50">
-              <div className="max-w-3xl mx-auto bg-white border border-slate-200 shadow-sm rounded-lg p-6 md:p-12 space-y-8 min-h-[1000px]">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#2a2a2a]/50">
+              <div className="max-w-3xl mx-auto bg-[#222] border border-[#333] shadow-sm rounded-lg p-6 md:p-12 space-y-8 min-h-[1000px]">
                 {/* Brand Header */}
-                <div className="flex justify-between items-center border-b border-slate-200 pb-6">
+                <div className="flex justify-between items-center border-b border-[#333] pb-6">
                   <div>
-                    <h1 className="font-serif text-2xl font-bold text-slate-900 tracking-wide">DQH <span className="text-[#B8913A] italic font-light">Signature</span></h1>
+                    <h1 className="font-serif text-2xl font-bold text-slate-50 tracking-wide">DQH <span className="text-[#B8913A] italic font-light">Signature</span></h1>
                     <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">INTERIOR DESIGN & BUILD STUDIO</p>
                   </div>
                   <div className="text-right text-xs text-slate-400 space-y-0.5">
@@ -2386,51 +2402,51 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
                 {/* Doc Title */}
                 <div className="text-center space-y-2">
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 uppercase tracking-wide">BIÊN BẢN NGHIỆM THU NỘI BỘ</h2>
-                  <p className="text-xs text-slate-500 italic">Áp dụng cho quy chuẩn kiểm tra defect 120 điểm trước bàn giao</p>
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-100 uppercase tracking-wide">BIÊN BẢN NGHIỆM THU NỘI BỘ</h2>
+                  <p className="text-xs text-slate-400 italic">Áp dụng cho quy chuẩn kiểm tra defect 120 điểm trước bàn giao</p>
                 </div>
 
                 {/* Metadata Table */}
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-[#1c1c1c] rounded-xl p-4 border border-[#333] text-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-slate-400 uppercase font-bold text-[9px]">DỰ ÁN XÂY DỰNG</p>
-                    <p className="font-bold text-slate-700 mt-1">Biệt thự The Horizon House</p>
-                    <p className="text-slate-500 mt-0.5">Lô B2, KĐT Thủ Đức, TP. Hồ Chí Minh</p>
+                    <p className="font-bold text-slate-200 mt-1">Biệt thự The Horizon House</p>
+                    <p className="text-slate-400 mt-0.5">Lô B2, KĐT Thủ Đức, TP. Hồ Chí Minh</p>
                   </div>
                   <div>
                     <p className="text-slate-400 uppercase font-bold text-[9px]">CHỦ ĐẦU TƯ</p>
-                    <p className="font-bold text-slate-700 mt-1">Anh Minh & Chị Nhung</p>
-                    <p className="text-slate-500 mt-0.5">Điện thoại liên hệ: 0903 xxx xxx</p>
+                    <p className="font-bold text-slate-200 mt-1">Anh Minh & Chị Nhung</p>
+                    <p className="text-slate-400 mt-0.5">Điện thoại liên hệ: 0903 xxx xxx</p>
                   </div>
                   <div>
                     <p className="text-slate-400 uppercase font-bold text-[9px]">GIÁM SÁT NGHIỆM THU</p>
-                    <p className="font-bold text-slate-700 mt-1">KTS. Đỗ Quang Hải (Founder)</p>
-                    <p className="text-slate-500 mt-0.5">KS. Lê Văn Khoa (PM thi công hiện trường)</p>
+                    <p className="font-bold text-slate-200 mt-1">KTS. Đỗ Quang Hải (Founder)</p>
+                    <p className="text-slate-400 mt-0.5">KS. Lê Văn Khoa (PM thi công hiện trường)</p>
                   </div>
                   <div>
                     <p className="text-slate-400 uppercase font-bold text-[9px]">TIÊU CHUẨN ÁP DỤNG</p>
                     <p className="font-bold text-[#B8913A] mt-1">DQH Quality Standards Engine v1.2</p>
-                    <p className="text-slate-500 mt-0.5">Bộ tiêu chuẩn 120 hạng mục chi tiết</p>
+                    <p className="text-slate-400 mt-0.5">Bộ tiêu chuẩn 120 hạng mục chi tiết</p>
                   </div>
                 </div>
 
                 {/* Section I: MEP */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">I. NGHIỆM THU PHẦN THÔ & MEP (ĐIỆN NƯỚC)</h3>
+                  <h3 className="text-sm font-bold text-slate-100 border-b border-[#333] pb-2">I. NGHIỆM THU PHẦN THÔ & MEP (ĐIỆN NƯỚC)</h3>
                   <div className="space-y-3 text-xs">
                     {[
                       { item: 'Ngâm nước chống thấm sàn vệ sinh và ban công 72h', date: '3 ngày trước', detail: 'Đã bơm ngập nước 5cm, ngâm trong 72 giờ. Sàn bê tông và trần thạch cao tầng dưới khô ráo, không thấm nước.', result: 'ĐẠT' },
                       { item: 'Test áp lực đường ống PPR cấp nước sinh hoạt', date: '5 ngày trước', detail: 'Bơm áp lực 8 bar liên tục trong 24 giờ. Đồng hồ giữ nguyên chỉ số, không phát hiện rò rỉ tại các khớp nối.', result: 'ĐẠT' },
                       { item: 'Đóng lưới mắt cáo chống nứt tường vây', date: '10 ngày trước', detail: 'Đóng lưới thép mắt cáo 100% các điểm giao đà bê tông và tường gạch trước khi tiến hành tô vữa trát.', result: 'ĐẠT' }
                     ].map((row, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-[#1c1c1c] rounded-lg border border-[#333]">
                         <div className="w-5 h-5 bg-emerald-500 text-white flex items-center justify-center rounded-full shrink-0 font-bold text-[10px] mt-0.5">✓</div>
                         <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-center">
-                            <h4 className="font-bold text-slate-700">{row.item}</h4>
+                            <h4 className="font-bold text-slate-200">{row.item}</h4>
                             <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold font-mono">{row.result}</span>
                           </div>
-                          <p className="text-slate-500">{row.detail}</p>
+                          <p className="text-slate-400">{row.detail}</p>
                           <span className="text-[9px] text-slate-400 block font-mono">Nghiệm thu ngày: {row.date}</span>
                         </div>
                       </div>
@@ -2440,21 +2456,21 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
                 {/* Section II: Gỗ nội thất */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-2">II. NGHIỆM THU HOÀN THIỆN ĐỒ GỖ NỘI THẤT (JOINERY)</h3>
+                  <h3 className="text-sm font-bold text-slate-100 border-b border-[#333] pb-2">II. NGHIỆM THU HOÀN THIỆN ĐỒ GỖ NỘI THẤT (JOINERY)</h3>
                   <div className="space-y-3 text-xs">
                     {[
                       { item: 'Kiểm tra đường cạnh dán ABS góc tủ bếp và tủ quần áo', date: 'Hôm qua', detail: 'Cạnh gỗ ép chỉ nhiệt ABS phẳng khít. Sai lệch mép chỉ mỏng hơn 0.3mm, không có keo thừa hay bong mép.', result: 'ĐẠT' },
                       { item: 'Shadow line khe hở bóng tối 3mm giáp trần và vách tủ', date: 'Hôm qua', detail: 'Khe co giãn rộng đều tăm tắp 3mm dọc các mép tủ kịch trần, tạo hiệu ứng bóng tối tự nhiên.', result: 'ĐẠT' },
                       { item: 'Đóng mở bản lề và ray hộc tủ âm Häfele', date: 'Hôm nay', detail: 'Toàn bộ bản lề hơi tự động giảm chấn đóng êm ái góc 30 độ. Không phát ra tiếng kêu, hộc kéo chịu tải 30kg kéo nhẹ nhàng.', result: 'ĐẠT' }
                     ].map((row, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-[#1c1c1c] rounded-lg border border-[#333]">
                         <div className="w-5 h-5 bg-emerald-500 text-white flex items-center justify-center rounded-full shrink-0 font-bold text-[10px] mt-0.5">✓</div>
                         <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-center">
-                            <h4 className="font-bold text-slate-700">{row.item}</h4>
+                            <h4 className="font-bold text-slate-200">{row.item}</h4>
                             <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold font-mono">{row.result}</span>
                           </div>
-                          <p className="text-slate-500">{row.detail}</p>
+                          <p className="text-slate-400">{row.detail}</p>
                           <span className="text-[9px] text-slate-400 block font-mono">Nghiệm thu ngày: {row.date}</span>
                         </div>
                       </div>
@@ -2463,23 +2479,23 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 </div>
 
                 {/* Section III: Signatures */}
-                <div className="pt-8 border-t border-slate-200">
-                  <p className="text-center text-xs text-slate-500 italic mb-8">
+                <div className="pt-8 border-t border-[#333]">
+                  <p className="text-center text-xs text-slate-400 italic mb-8">
                     "Các thành viên nghiệm thu xác nhận công trình đạt chuẩn 100% theo checklist 120 điểm của DQH Signature, sẵn sàng bàn giao chìa khóa."
                   </p>
                   <div className="grid grid-cols-2 text-center text-xs font-sans">
                     <div className="space-y-12">
-                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">GIÁM SÁT HIỆN TRƯỜNG</p>
+                      <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">GIÁM SÁT HIỆN TRƯỜNG</p>
                       <div className="space-y-1">
-                        <p className="font-serif italic text-base font-bold text-slate-700">Le Van Khoa</p>
-                        <p className="font-bold text-slate-700">KS. Lê Văn Khoa</p>
+                        <p className="font-serif italic text-base font-bold text-slate-200">Le Van Khoa</p>
+                        <p className="font-bold text-slate-200">KS. Lê Văn Khoa</p>
                       </div>
                     </div>
                     <div className="space-y-12 relative flex flex-col items-center">
-                      <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">KTS TRƯỜNG & FOUNDER</p>
+                      <p className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">KTS TRƯỜNG & FOUNDER</p>
                       <div className="space-y-1 z-10">
-                        <p className="font-serif italic text-base font-bold text-slate-700">Do Quang Hai</p>
-                        <p className="font-bold text-slate-700">KTS. Đỗ Quang Hải</p>
+                        <p className="font-serif italic text-base font-bold text-slate-200">Do Quang Hai</p>
+                        <p className="font-bold text-slate-200">KTS. Đỗ Quang Hải</p>
                       </div>
                       {/* Red stamp */}
                       <div className="absolute bottom-[-15px] opacity-80 border border-red-500 text-red-500 rounded-full w-24 h-24 flex flex-col items-center justify-center font-bold text-[9px] tracking-tighter transform rotate-12 select-none pointer-events-none uppercase">
@@ -2500,13 +2516,13 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       {/* ── EXCEL SPREADSHEET MODAL ── */}
       {showExcelModal && (
         <div className="fixed inset-0 bg-[#1A1814]/80 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#f3f2f1] rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden font-sans text-slate-700 relative">
+          <div className="bg-[#f3f2f1] rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden font-sans text-slate-200 relative">
             
             {/* Excel Top bar */}
             <div className="bg-[#107c41] text-white px-5 py-3.5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 {/* Excel icon block */}
-                <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#107c41] font-black text-sm shadow">X</div>
+                <div className="w-7 h-7 bg-[#222] rounded flex items-center justify-center text-[#107c41] font-black text-sm shadow">X</div>
                 <div>
                   <h3 className="font-bold text-sm text-white leading-tight">DQH_Quality_Checklist_120_Points.xlsx</h3>
                   <p className="text-[10px] text-emerald-100 opacity-90 mt-0.5">Bảng tính kiểm soát lỗi thi công và hoàn thiện chi tiết</p>
@@ -2534,13 +2550,13 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                     link.click();
                     document.body.removeChild(link);
                   }}
-                  className="bg-white hover:bg-emerald-50 text-[#107c41] text-xs font-bold px-3 py-1.5 rounded shadow transition-all cursor-pointer"
+                  className="bg-[#222] hover:bg-emerald-50 text-[#107c41] text-xs font-bold px-3 py-1.5 rounded shadow transition-all cursor-pointer"
                 >
                   Tải file .xlsx mẫu
                 </button>
                 <button 
                   onClick={() => setShowExcelModal(false)}
-                  className="text-white/80 hover:text-white text-2xl font-bold bg-white/10 hover:bg-white/20 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer"
+                  className="text-white/80 hover:text-white text-2xl font-bold bg-[#222]/10 hover:bg-[#222]/20 w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer"
                 >
                   &times;
                 </button>
@@ -2550,19 +2566,19 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             {/* Excel Ribbon Toolbar Menu */}
             <div className="bg-[#f3f2f1] border-b border-slate-300 px-4 py-1.5 flex gap-5 text-[11px] text-slate-600 select-none overflow-x-auto shrink-0">
               <span className="font-bold border-b-2 border-[#107c41] text-[#107c41] pb-1 cursor-pointer">Trang chủ</span>
-              <span className="hover:text-slate-900 cursor-pointer">Chèn</span>
-              <span className="hover:text-slate-900 cursor-pointer">Vẽ</span>
-              <span className="hover:text-slate-900 cursor-pointer">Bố trí Trang</span>
-              <span className="hover:text-slate-900 cursor-pointer">Công thức</span>
-              <span className="hover:text-slate-900 cursor-pointer">Dữ liệu</span>
-              <span className="hover:text-slate-900 cursor-pointer">Xem lại</span>
+              <span className="hover:text-slate-50 cursor-pointer">Chèn</span>
+              <span className="hover:text-slate-50 cursor-pointer">Vẽ</span>
+              <span className="hover:text-slate-50 cursor-pointer">Bố trí Trang</span>
+              <span className="hover:text-slate-50 cursor-pointer">Công thức</span>
+              <span className="hover:text-slate-50 cursor-pointer">Dữ liệu</span>
+              <span className="hover:text-slate-50 cursor-pointer">Xem lại</span>
             </div>
 
             {/* Excel Grid Header Columns A B C */}
-            <div className="bg-slate-50 border-b border-slate-300 px-4 py-2 flex gap-4 text-xs font-mono text-slate-400 select-none overflow-x-auto shrink-0 items-center">
+            <div className="bg-[#1c1c1c] border-b border-slate-300 px-4 py-2 flex gap-4 text-xs font-mono text-slate-400 select-none overflow-x-auto shrink-0 items-center">
               <span className="font-bold text-[#107c41] bg-[#107c41]/10 px-2 py-0.5 rounded">A1</span>
               <div className="h-4 w-px bg-slate-300" />
-              <span className="italic text-slate-500">fx = BẢNG KIỂM SOÁT DEFECT CHUẨN 120 ĐIỂM HOÀN THIỆN DQH</span>
+              <span className="italic text-slate-400">fx = BẢNG KIỂM SOÁT DEFECT CHUẨN 120 ĐIỂM HOÀN THIỆN DQH</span>
             </div>
 
             {/* Excel Sheet Tabs */}
@@ -2577,8 +2593,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   onClick={() => setExcelActiveTab(tab.id as any)}
                   className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-t cursor-pointer border-t border-x transition-all ${
                     excelActiveTab === tab.id 
-                      ? 'bg-white text-[#107c41] border-slate-300 font-black shadow-sm' 
-                      : 'bg-transparent text-slate-600 border-transparent hover:bg-white/30'
+                      ? 'bg-[#222] text-[#107c41] border-slate-300 font-black shadow-sm' 
+                      : 'bg-transparent text-slate-600 border-transparent hover:bg-[#222]/30'
                   }`}
                 >
                   {tab.label}
@@ -2587,10 +2603,10 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </div>
 
             {/* Spreadsheet Table grid area */}
-            <div className="flex-1 bg-white overflow-auto p-4 custom-scrollbar">
+            <div className="flex-1 bg-[#222] overflow-auto p-4 custom-scrollbar">
               <table className="w-full text-left text-xs font-sans border-collapse border border-slate-300">
                 <thead>
-                  <tr className="bg-slate-100 text-slate-500 font-mono text-[10px] border-b border-slate-300">
+                  <tr className="bg-[#2a2a2a] text-slate-400 font-mono text-[10px] border-b border-slate-300">
                     <th className="p-1 border border-slate-300 text-center w-8 select-none bg-slate-200/50">Row</th>
                     <th className="p-2 border border-slate-300 w-12 text-center">Col A (STT)</th>
                     <th className="p-2 border border-slate-300">Col B (Hạng mục chi tiết)</th>
@@ -2603,15 +2619,15 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 <tbody>
                   {/* Title Row */}
                   <tr className="bg-[#107c41]/5 font-bold border-b border-slate-300">
-                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">1</td>
+                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-[#1c1c1c]">1</td>
                     <td colSpan={6} className="p-2.5 text-center text-[#107c41] uppercase tracking-wide">
                       BẢNG KIỂM SOÁT DEFECT 120 ĐIỂM NGHIỆM THU NỘI BỘ - DQH SIGNATURE ({excelActiveTab === 'MEP' ? 'HẠNG MỤC CƠ ĐIỆN & MEP' : excelActiveTab === 'WALL' ? 'HẠNG MỤC TRẦN & TƯỜNG' : 'HẠNG MỤC JOINERY ĐỒ GỖ HOÀN THIỆN'})
                     </td>
                   </tr>
 
                   {/* Metadata Row */}
-                  <tr className="bg-slate-50 border-b border-slate-300 italic text-[11px] text-slate-500">
-                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">2</td>
+                  <tr className="bg-[#1c1c1c] border-b border-slate-300 italic text-[11px] text-slate-400">
+                    <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-[#1c1c1c]">2</td>
                     <td className="p-2 border border-slate-300 text-center font-mono">-</td>
                     <td colSpan={2} className="p-2 border border-slate-300">Dự án: The Horizon House (Biệt thự Quận 2)</td>
                     <td colSpan={3} className="p-2 border border-slate-300">Giám sát hiện trường: KS. Lê Văn Khoa | Ngày nghiệm thu: {new Date().toLocaleDateString('vi-VN')}</td>
@@ -2624,12 +2640,12 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                     { stt: 3, item: 'Kiểm tra độ dốc thoát nước sàn toilet', method: 'Thả bóng cao su tại 4 góc sàn toilet và dội nước chảy', std: 'Bóng cao su lăn thẳng về hướng phễu thu sàn, không đọng vũng', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
                     { stt: 4, item: 'Nghiệm thu điện trở cách điện hệ thống MEP', method: 'Đo điện trở cách điện ruột dẫn điện với vỏ bọc bảo vệ', std: 'Chỉ số đo bằng Megohmmeter đạt >= 10 Megaohm', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' }
                   ].map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
-                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                    <tr key={idx} className="hover:bg-[#1c1c1c] border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-[#1c1c1c]">{idx + 3}</td>
                       <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
-                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-100">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.std}</td>
                       <td className="p-2 border border-slate-300 text-center">
                         <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
                       </td>
@@ -2643,12 +2659,12 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                     { stt: 3, item: 'Kiểm tra độ vuông góc các góc cạnh tường trong nhà', method: 'Sử dụng thước vuông eke thép áp sát góc tường', std: 'Sai lệch góc vuông eke <= 1.0mm, cạnh tường đứng thẳng', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' },
                     { stt: 4, item: 'Tạo khe co giãn Shadow Line thạch cao tại vị trí giáp tường', method: 'Thiết kế nẹp nhôm shadow line khe rộng 12mm chạy âm viền', std: 'Đường khe chạy thẳng tắp, rộng đều đúng 12mm, không cong xéo', res: 'ĐẠT', inspector: 'KS. Lê Văn Khoa' }
                   ].map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
-                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                    <tr key={idx} className="hover:bg-[#1c1c1c] border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-[#1c1c1c]">{idx + 3}</td>
                       <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
-                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-100">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.std}</td>
                       <td className="p-2 border border-slate-300 text-center">
                         <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
                       </td>
@@ -2662,12 +2678,12 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                     { stt: 3, item: 'Nghiệm thu bản lề hơi giảm chấn Häfele', method: 'Mở rộng cửa tủ góc 45 độ rồi thả tự do cho cửa tự khép lại', std: 'Cánh tủ đóng khép êm ái góc 30 độ, tự động hít khít đều, không kêu', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' },
                     { stt: 4, item: 'Kiểm tra độ thẳng phẳng cánh tủ kịch trần (lớn hơn 2m)', method: 'Áp thước nhôm 2m kiểm tra dọc theo bề mặt cánh tủ gỗ', std: 'Độ cong vênh bề mặt cánh tủ không vượt quá 1.5mm trên 2m chiều cao', res: 'ĐẠT', inspector: 'KTS. Đỗ Quang Hải' }
                   ].map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 border-b border-slate-300">
-                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-slate-50">{idx + 3}</td>
+                    <tr key={idx} className="hover:bg-[#1c1c1c] border-b border-slate-300">
+                      <td className="p-1 border border-slate-300 text-center font-mono text-slate-400 select-none bg-[#1c1c1c]">{idx + 3}</td>
                       <td className="p-2 border border-slate-300 text-center font-mono">{row.stt}</td>
-                      <td className="p-2 border border-slate-300 font-medium text-slate-800">{row.item}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.method}</td>
-                      <td className="p-2 border border-slate-300 text-slate-500">{row.std}</td>
+                      <td className="p-2 border border-slate-300 font-medium text-slate-100">{row.item}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.method}</td>
+                      <td className="p-2 border border-slate-300 text-slate-400">{row.std}</td>
                       <td className="p-2 border border-slate-300 text-center">
                         <span className="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-bold text-[10px]">{row.res}</span>
                       </td>
@@ -2983,7 +2999,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                                       {selectedCaseStudy.material.samples.map((samp: any, sampIdx: number) => {
                                         const failed = !samp.img || imageErrors[samp.img];
                                         return (
-                                          <div key={sampIdx} className="bg-white p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2.5 items-center">
+                                          <div key={sampIdx} className="bg-[#222] p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2.5 items-center">
                                             <div className="w-9 h-9 rounded-sm overflow-hidden shrink-0 bg-stone-100 flex items-center justify-center relative">
                                               {!failed ? (
                                                 <img src={samp.img} className="w-full h-full object-cover" alt={samp.name} onError={() => setImageErrors(prev => ({ ...prev, [samp.img]: true }))} />
@@ -3009,7 +3025,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                                     </span>
                                     <div className="grid grid-cols-1 gap-1">
                                       {stg.detailsItems.map((det: any, dIdx: number) => (
-                                        <div key={dIdx} className="flex items-center gap-3 bg-white p-1.5 border border-[#2C2920]/5 rounded-sm">
+                                        <div key={dIdx} className="flex items-center gap-3 bg-[#222] p-1.5 border border-[#2C2920]/5 rounded-sm">
                                           <div className="w-4.5 h-4.5 rounded-full bg-[#1A1814] text-white flex items-center justify-center font-sans text-[8px] font-bold shrink-0">
                                             {det.num}
                                           </div>
@@ -3026,7 +3042,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                                   </span>
                                   <div className="space-y-2">
                                     {stg.techChecklist.map((item: any, cIdx: number) => (
-                                      <div key={cIdx} className="bg-white p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
+                                      <div key={cIdx} className="bg-[#222] p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
                                         <span className="font-sans font-bold text-[9px] text-[#1A1814] uppercase tracking-wide">
                                           {item.label}
                                         </span>
