@@ -212,18 +212,17 @@ export default function PinMapView({
   }, [handleZoom]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (mode === 'pin') return;
     setIsPanning(true);
     setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  }, [mode, pan.x, pan.y]);
+  }, [pan.x, pan.y]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isPanning || mode === 'pin') return;
+    if (!isPanning) return;
     setPan({
       x: e.clientX - panStart.x,
       y: e.clientY - panStart.y
     });
-  }, [isPanning, mode, panStart.x, panStart.y]);
+  }, [isPanning, panStart.x, panStart.y]);
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
@@ -237,7 +236,6 @@ export default function PinMapView({
   };
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (mode === 'pin') return;
     isTouchingRef.current = true;
     if (e.touches.length === 1) {
       touchStartRef.current.x = e.touches[0].clientX;
@@ -248,10 +246,10 @@ export default function PinMapView({
       touchStartRef.current.dist = getPinchDistance(e.touches);
       touchStartRef.current.zoom = zoom;
     }
-  }, [mode, pan.x, pan.y, zoom]);
+  }, [pan.x, pan.y, zoom]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isTouchingRef.current || mode === 'pin') return;
+    if (!isTouchingRef.current) return;
     if (e.touches.length === 1) {
       const dx = e.touches[0].clientX - touchStartRef.current.x;
       const dy = e.touches[0].clientY - touchStartRef.current.y;
@@ -264,7 +262,7 @@ export default function PinMapView({
       const zoomFactor = newDist / touchStartRef.current.dist;
       setZoom(Math.max(0.05, Math.min(touchStartRef.current.zoom * zoomFactor, 10)));
     }
-  }, [mode]);
+  }, []);
 
   const handleTouchEnd = useCallback(() => {
     isTouchingRef.current = false;
