@@ -534,6 +534,80 @@ export default function MarkerDetailSidebar({
                   })}
                 </div>
               </div>
+
+              {/* 2-Level Category Selector */}
+              {(() => {
+                const categories = [
+                  { id: 'interior', label: 'Nội thất', icon: '🪑', subs: ['Vách', 'Tủ', 'Sàn gỗ', 'Cửa', 'Kính', 'Rèm', 'Nệm/Ghế', 'Khác'] },
+                  { id: 'structure', label: 'Kết cấu', icon: '🏗️', subs: ['Móng', 'Đà', 'Dầm', 'Cầu thang', 'Cột', 'Sàn', 'Tường xây', 'Khác'] },
+                  { id: 'mep', label: 'MEP', icon: '⚡', subs: ['Đèn', 'Ống cấp', 'Ống thoát', 'Hệ thống điện', 'Điều hòa', 'PCCC', 'Thông gió', 'Khác'] },
+                  { id: 'tiling', label: 'Ốp lát', icon: '🧱', subs: ['Gạch sàn', 'Gạch tường', 'Đá ốp', 'Chân tường', 'Ron/Mạch', 'Khác'] },
+                  { id: 'finishing', label: 'Hoàn thiện', icon: '🎨', subs: ['Sơn', 'Bả matit', 'Khe co giãn', 'Silicone', 'Chống thấm', 'Khác'] },
+                  { id: 'ceiling', label: 'Trần & Đèn', icon: '💡', subs: ['Trần thạch cao', 'Đèn âm', 'Đèn thả', 'Khe gió', 'La phông', 'Khác'] },
+                ];
+                const tags = marker.tags || [];
+                const currentCat = categories.find(c => tags.includes(c.label));
+                const currentSub = currentCat ? currentCat.subs.find(s => tags.includes(s)) : null;
+
+                const updateCategoryTags = (catLabel: string, subLabel?: string) => {
+                  // Remove old category/sub tags, keep status + page tags
+                  const allCatLabels = categories.map(c => c.label);
+                  const allSubLabels = categories.flatMap(c => c.subs);
+                  let newTags = tags.filter(t => !allCatLabels.includes(t) && !allSubLabels.includes(t));
+                  newTags.push(catLabel);
+                  if (subLabel) newTags.push(subLabel);
+                  onUpdateMarker({ ...marker, tags: newTags });
+                };
+
+                return (
+                  <div className="flex flex-col gap-2 mt-3 pt-2 border-t border-slate-100">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Hạng mục:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {categories.map(cat => {
+                        const isActive = currentCat?.id === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => updateCategoryTags(cat.label)}
+                            className={`text-[10px] px-2 py-1 border rounded-lg font-bold transition-all cursor-pointer ${
+                              isActive
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50'
+                            }`}
+                          >
+                            {cat.icon} {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Sub-category */}
+                    {currentCat && (
+                      <div className="flex flex-col gap-1.5 mt-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Chi tiết {currentCat.icon} {currentCat.label}:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {currentCat.subs.map(sub => {
+                            const isSubActive = currentSub === sub;
+                            return (
+                              <button
+                                key={sub}
+                                onClick={() => updateCategoryTags(currentCat.label, sub)}
+                                className={`text-[10px] px-2 py-0.5 border rounded-md font-bold transition-all cursor-pointer ${
+                                  isSubActive
+                                    ? 'bg-indigo-500 text-white border-indigo-500'
+                                    : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                                }`}
+                              >
+                                {sub}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* UNIFIED FORM - Photo + Voice + Notes (merged from tabs) */}
