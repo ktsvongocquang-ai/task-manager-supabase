@@ -60,18 +60,10 @@ export default function App() {
   const [undoStack, setUndoStack] = useState<WhiteboardAnnotation[][]>([]);
   const [redoStack, setRedoStack] = useState<WhiteboardAnnotation[][]>([]);
 
-  // Simulation Concurrency User Roles (Satisfying Moro / Miro screenshots of DQH Architects)
+  // 2 vai trò chính: Giám sát & Quản lý
   const userRolesList: UserRoleProfile[] = [
-    { id: 'role-1', name: 'Thắng', role: 'Quản Lý', email: 'thang@dqh.vn', tag: 'QUẢN LÝ THIẾT KẾ', color: '#1d4ed8' },
-    { id: 'role-2', name: 'Admin', role: 'Admin', email: 'admin@dqh.vn', tag: 'ADMIN', color: '#f97316' },
-    { id: 'role-3', name: 'QUANG', role: 'Quản trị viên', email: 'vongocquangarc@gmail.com', tag: 'ADMIN', color: '#ea580c' },
-    { id: 'role-4', name: 'Minh', role: 'Thiết kế', email: 'minhnhox200022@gmail.com', tag: 'THIẾT KẾ', color: '#475569' },
-    { id: 'role-5', name: 'Vy', role: 'Thiết kế', email: 'vy@dqh.vn', tag: 'THIẾT KẾ', color: '#64748b' },
-    { id: 'role-6', name: 'Hậu', role: 'Nhân viên', email: 'hau@dqh.vn', tag: 'MARKETING', color: '#8b5cf6' },
-    { id: 'role-7', name: 'Khoa', role: 'Thiết kế', email: 'khoa@dqh.vn', tag: 'THIẾT KẾ', color: '#0284c7' },
-    { id: 'role-8', name: 'Mụi Ngô', role: 'Quản Lý Thiết Kế', email: 'Thanhthi.tknt@gmail.com', tag: 'QUẢN LÝ THIẾT KẾ', color: '#06b6d4' },
-    { id: 'role-9', name: 'trung test', role: 'giam sat', email: 'trung@dqh.vn', tag: 'QUẢN LÝ THI CÔNG', color: '#4f46e5' },
-    { id: 'role-10', name: 'KHÁCH HÀNG DUYỆT', role: 'Khách Hàng', email: 'ai.dqharchitects@gmail.com', tag: 'KHÁCH HÀNG', hasConstruction: true, color: '#10b981' }
+    { id: 'role-gs', name: 'Giám sát', role: 'Giám sát', email: 'giamsat@dqh.vn', tag: 'GIÁM SÁT', color: '#f97316' },
+    { id: 'role-ql', name: 'Quản lý', role: 'Quản lý', email: 'quanly@dqh.vn', tag: 'QUẢN LÝ', color: '#3b82f6' },
   ];
   const [activeUserRole, setActiveUserRole] = useState<UserRoleProfile>(userRolesList[0]);
 
@@ -1783,26 +1775,7 @@ export default function App() {
         </div>
       )}
 
-      {/* CEO COMMAND CENTER OVERLAY */}
-      {showCEODashboard && (
-        <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-sm overflow-y-auto">
-          <CEODashboard
-            projects={projects}
-            floorPlans={floorPlans}
-            markerNotes={markerNotes}
-            onOpenProject={(projectId) => {
-              setActiveProjectId(projectId);
-              const related = floorPlans.filter(fp => fp.projectId === projectId);
-              if (related.length > 0) setActiveFloorPlanId(related[0].id);
-              localStorage.setItem('last_active_project_id_v2', projectId);
-              setWorkspaceView('profile');
-              setCurrentView('workspace');
-              setShowCEODashboard(false);
-            }}
-            onClose={() => setShowCEODashboard(false)}
-          />
-        </div>
-      )}
+      {/* CEO Dashboard removed — replaced by XUDashboard for Quản lý */}
 
       {/* 2. MAIN LAYOUT DECK CONTAINER */}
       {currentView === 'workspace' && workspaceView === 'profile' ? (
@@ -1829,7 +1802,7 @@ export default function App() {
             currentTab="projects"
             onTabChange={(tab) => {
               if (tab === 'projects') setCurrentView('dashboard');
-              if (tab === 'progress') setShowCEODashboard(true);
+              if (tab === 'progress') setShowXUDashboard(true);
               if (tab === 'profile') setShowXUDashboard(true);
               if (tab === 'notifications') {
                 // Toggle notification panel visibility using a local state or just show it
