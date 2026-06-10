@@ -2339,14 +2339,15 @@ export default function App() {
         <GlobalPinSelectorModal
           projects={projects}
           floorPlans={floorPlans}
+          activeProjectId={activeProjectId}
           onClose={() => setIsGlobalPinSelectorOpen(false)}
           onSelectDestination={(projectId, floorPlanId) => {
             setIsGlobalPinSelectorOpen(false);
             setActiveProjectId(projectId);
             setActiveFloorPlanId(floorPlanId);
             setCurrentView('workspace');
-            setWorkspaceView('miro');
-            // User is now on the floor plan! They just need to tap to pin.
+            setWorkspaceView('pinmap');
+            // User is now on the pin map! They just need to tap to pin.
           }}
         />
       )}

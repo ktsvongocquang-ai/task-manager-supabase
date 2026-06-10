@@ -6,12 +6,13 @@ import { Project, FloorPlan } from '../types';
 interface GlobalPinSelectorModalProps {
   projects: Project[];
   floorPlans: FloorPlan[];
+  activeProjectId?: string | null;
   onSelectDestination: (projectId: string, floorPlanId: string) => void;
   onClose: () => void;
 }
 
-export default function GlobalPinSelectorModal({ projects, floorPlans, onSelectDestination, onClose }: GlobalPinSelectorModalProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+export default function GlobalPinSelectorModal({ projects, floorPlans, activeProjectId, onSelectDestination, onClose }: GlobalPinSelectorModalProps) {
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(activeProjectId || null);
 
   const activeProjects = projects.filter(p => p.status === 'active');
   const projectPlans = selectedProjectId ? floorPlans.filter(p => p.projectId === selectedProjectId) : [];
