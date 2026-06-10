@@ -1802,21 +1802,18 @@ export default function App() {
             currentTab="projects"
             onTabChange={(tab) => {
               if (tab === 'projects') setCurrentView('dashboard');
-              if (tab === 'progress') setShowXUDashboard(true);
-              if (tab === 'profile') setShowXUDashboard(true);
-              if (tab === 'notifications') {
-                // Toggle notification panel visibility using a local state or just show it
-                // Actually, NotificationPanel is controlled by hovering or clicking in the top header.
-                // But the user wants it to be triggered here. 
-                // Wait, NotificationPanel in App.tsx is just rendered as an icon. Let's see if we can trigger a click on it.
-                const btn = document.getElementById('notification-bell-btn');
-                if (btn) btn.click();
+              if (tab === 'defects') setShowXUDashboard(true);
+              if (tab === 'library') setShowLessonsModal(true);
+              if (tab === 'roles') {
+                // Show role selector inline
+                setShowXUDashboard(true);
               }
             }}
             onActionClick={() => {
               setUploadTargetPlanType('perspective');
               if (fileInputRef.current) fileInputRef.current.click();
             }}
+            activeRole={activeUserRole.role}
           />
         </>
       ) : currentView === 'workspace' && workspaceView === 'report' ? (
