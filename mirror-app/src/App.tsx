@@ -1858,6 +1858,7 @@ export default function App() {
       ) : currentView === 'workspace' && workspaceView === 'pinmap' ? (
         <>
         <PinMapView
+          initialPinMode={!!globalDraftFault}
           floorPlans={projectFloorPlans}
           activeFloorPlanId={activeFloorPlanId}
           setActiveFloorPlanId={setActiveFloorPlanId}

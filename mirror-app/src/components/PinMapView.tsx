@@ -39,6 +39,7 @@ interface PinMapViewProps {
   userRolesList?: UserRoleProfile[];
   onSetActiveUserRole?: (role: UserRoleProfile) => void;
   onClose?: () => void;
+  initialPinMode?: boolean;
 }
 
 export default function PinMapView({
@@ -58,14 +59,15 @@ export default function PinMapView({
   activeUserRole,
   userRolesList,
   onSetActiveUserRole,
-  onClose
+  onClose,
+  initialPinMode
 }: PinMapViewProps) {
   // State
   const activePlanId = activeFloorPlanId || floorPlans[0]?.id || null;
   const setLocalActivePlanId = (id: string) => setActiveFloorPlanId(id);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [mode, setMode] = useState<'pan' | 'pin'>('pan');
+  const [mode, setMode] = useState<'pan' | 'pin'>(initialPinMode ? 'pin' : 'pan');
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [showPlanSelector, setShowPlanSelector] = useState(false);
