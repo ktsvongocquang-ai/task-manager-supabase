@@ -621,10 +621,14 @@ export default function PinMapView({
           {mode === 'pin' && (
             <div className="absolute inset-0 pointer-events-none z-40 flex items-center justify-center">
               <div className="relative flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border-2 border-rose-500/50" />
-                <div className="absolute w-16 h-px bg-[#2a1114]0/50" />
-                <div className="absolute h-16 w-px bg-[#2a1114]0/50" />
-                <div className="absolute w-2 h-2 bg-[#2a1114]0 rounded-full" />
+                {/* Outer glow ring */}
+                <div className="w-16 h-16 rounded-full border-2 border-rose-500 animate-pulse" style={{ boxShadow: '0 0 20px rgba(225,29,72,0.4)' }} />
+                {/* Horizontal cross line */}
+                <div className="absolute w-24 h-[2px] bg-rose-500" style={{ opacity: 0.7 }} />
+                {/* Vertical cross line */}
+                <div className="absolute h-24 w-[2px] bg-rose-500" style={{ opacity: 0.7 }} />
+                {/* Center dot */}
+                <div className="absolute w-3 h-3 bg-rose-500 rounded-full" style={{ boxShadow: '0 0 8px rgba(225,29,72,0.8)' }} />
               </div>
             </div>
           )}
