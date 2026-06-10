@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { FloorPlan, MarkerNote, WhiteboardAnnotation, UserRoleProfile, Project } from './types';
+import { FloorPlan, MarkerNote, WhiteboardAnnotation, UserRoleProfile, Project } from '../../types';
 import { 
   getFloorPlans, saveFloorPlan, deleteFloorPlan, getFloorPlanById,
   getMarkerNotes, saveMarkerNote, deleteMarkerNote,
   saveAnnotation, getAnnotations, deleteAnnotation,
   getProjects, saveProject, deleteProject
-} from './lib/db';
-import { getDemoFloorPlan, getMockProjectFloorPlan, getFlavorFloorPlan } from './lib/demoPlan';
+} from '../../lib/db';
+import { getDemoFloorPlan, getMockProjectFloorPlan, getFlavorFloorPlan } from '../../lib/demoPlan';
 import { 
   Camera, Mic, Plus, FileText, Trash2, Printer, Download, BookOpen, 
   Map, LayoutDashboard, Share2, Upload, Sparkles, Check, CheckCircle2, 
@@ -14,32 +14,33 @@ import {
   FolderArchive, Award, Briefcase, FileSignature, CheckSquare2, FileCheck, Layers3, RefreshCw,
   Search, Star, ArrowLeft, ExternalLink, Calendar, Grid, List as ListIcon, Hammer, AlertCircle
 } from 'lucide-react';
-import { BottomNavBar } from './components/BottomNavBar';
-import CameraModal from './components/CameraModal';
-import FloorPlanViewer from './components/FloorPlanViewer';
-import MarkerDetailSidebar from './components/MarkerDetailSidebar';
-import OpsMapModal from './components/OpsMapModal';
-import ShareProjModal from './components/ShareProjModal';
-import LessonsLearnedModal from './components/LessonsLearnedModal';
-import ProjectProfile from './components/ProjectProfile';
-import DarkDashboard from './components/DarkDashboard';
-import ReportLayout from './components/ReportLayout';
-import PinMapView from './components/PinMapView';
-import NotificationPanel from './components/NotificationPanel';
-import CEODashboard from './components/CEODashboard';
-import XUDashboard from './components/XUDashboard';
-import { MarkerDetailModal } from './components/MarkerDetailModal';
-import GlobalCaptureModal from './components/GlobalCaptureModal';
-import GlobalPinSelectorModal from './components/GlobalPinSelectorModal';
-import { getPdfPageCount, compressThumbnailDataUrl, renderPdfPageToImage, compressImageToBlob } from './utils/pdfUtils';
-import { uploadFileWithTus } from './utils/uploadUtils';
-import { supabase } from './lib/supabase';
-import { notify, requestNotificationPermission, subscribeToNotifications, markRead, markAllRead, DQHNotification } from './lib/notifications';
+import { BottomNavBar } from '../../components/BottomNavBar';
+import CameraModal from '../../components/CameraModal';
+import FloorPlanViewer from '../../components/FloorPlanViewer';
+import MarkerDetailSidebar from '../../components/MarkerDetailSidebar';
+import OpsMapModal from '../../components/OpsMapModal';
+import ShareProjModal from '../../components/ShareProjModal';
+import LessonsLearnedModal from '../../components/LessonsLearnedModal';
+import ProjectProfile from '../../components/ProjectProfile';
+import ReportLayout from '../../components/ReportLayout';
+import PinMapView from '../../components/PinMapView';
+import NotificationPanel from '../../components/NotificationPanel';
+import CEODashboard from '../../components/CEODashboard';
+import XUDashboard from '../../components/XUDashboard';
+import GlobalCaptureModal from '../../components/GlobalCaptureModal';
+import GlobalPinSelectorModal from '../../components/GlobalPinSelectorModal';
+import { getPdfPageCount, compressThumbnailDataUrl, renderPdfPageToImage, compressImageToBlob } from '../../utils/pdfUtils';
+import { uploadFileWithTus } from '../../utils/uploadUtils';
+import { supabase } from '../../services/supabase';
+import { notify, requestNotificationPermission, subscribeToNotifications, markRead, markAllRead, DQHNotification } from '../../lib/notifications';
 
 const INITIAL_PROJECTS: Project[] = [];
 
 
-export default function App() {
+import { useParams, useNavigate } from 'react-router-dom';
+export const PrototypeBoard = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
@@ -113,9 +114,8 @@ export default function App() {
   const [isZenMode, setIsZenMode] = useState<boolean>(false);
 
   // Miro Dashboard states
-  const [currentView, setCurrentView] = useState<'dashboard' | 'workspace'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'workspace'>('workspace');
   const [workspaceView, setWorkspaceView] = useState<'profile' | 'pinmap' | 'miro' | 'report'>('profile');
-  const prevWorkspaceViewRef = useRef<'profile' | 'pinmap' | 'miro' | 'report'>('profile');
   const [favoriteProjectIds, setFavoriteProjectIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('dqh_starred_projects');
     return saved ? JSON.parse(saved) : ['proj-1', 'proj-3', 'proj-8']; // default favorite projects matching screen
@@ -138,12 +138,6 @@ export default function App() {
   const [newProjectAddress, setNewProjectAddress] = useState('');
 
   // Auto-open right details panel when drawing or defect element is focused
-  useEffect(() => {
-    if (workspaceView !== 'pinmap' && workspaceView !== prevWorkspaceViewRef.current) {
-      prevWorkspaceViewRef.current = workspaceView;
-    }
-  }, [workspaceView]);
-
   useEffect(() => {
     if (selectedMarkerId || selectedAnnotationId) {
       setIsRightSidebarOpen(true);
@@ -314,8 +308,17 @@ export default function App() {
   }
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData().then(() => {
+      if (id) {
+        setActiveProjectId(id);
+        const projs = localStorage.getItem('dqh_prototype_projects') ? JSON.parse(localStorage.getItem('dqh_prototype_projects') || '[]') : [];
+        if (!projs.find(p => p.id === id)) {
+           // If this is a project from Supabase not in IndexedDB, maybe create a stub?
+           // For now, let it be.
+        }
+      }
+    });
+  }, [id]);
 
   const fetchedPdfDataIds = useRef<Set<string>>(new Set());
 
@@ -1158,31 +1161,6 @@ export default function App() {
   // Render the Miro-Style Project Dashboard (Vùng cổng vào)
   // ==========================================
   if (currentView === 'dashboard') {
-    return <DarkDashboard 
-       projects={projects}
-       floorPlans={floorPlans}
-       markerNotes={markerNotes}
-       favoriteProjectIds={favoriteProjectIds}
-       dbSearchQuery={dbSearchQuery}
-       setDbSearchQuery={setDbSearchQuery}
-       dashboardLayout={dashboardLayout}
-       setDashboardLayout={setDashboardLayout}
-       setShowNewProjectModal={setShowNewProjectModal}
-       toggleFavoriteProject={toggleFavoriteProject}
-       handleDeleteProject={handleDeleteProject}
-       onEnterBoard={(id) => {
-         setActiveProjectId(id);
-         const related = floorPlans.filter(fp => fp.projectId === id);
-         if (related.length > 0) setActiveFloorPlanId(related[0].id);
-         localStorage.setItem('last_active_project_id_v2', id);
-         setWorkspaceView('profile');
-         setCurrentView('workspace');
-       }}
-       onRefresh={loadData}
-       onOpenLessonsModal={() => setShowLessonsModal(true)}
-     />;
-    
-    // Original old dashboard code (unreachable but kept for reference)
     const sortedAndFiltered = [...projects].filter(p => {
       const q = dbSearchQuery.toLowerCase();
       const matchSearch = p.name.toLowerCase().includes(q) || 
@@ -1756,172 +1734,8 @@ export default function App() {
   return (
     <div className="h-screen bg-[#1c1c1c] flex flex-col font-sans text-white selection:bg-emerald-500/15 selection:text-emerald-300 relative overflow-hidden">
       
-      {/* 1. BRAND PLATFORM HEADER (Vùng 1 - Tinh gọn tối đa) */}
-      {isHeaderOpen && workspaceView !== 'profile' && (
-        <header className="bg-slate-950 border-b border-[#333] py-2 px-3 md:px-5 shadow-lg flex items-center justify-between z-30 shrink-0 select-none w-full min-w-0">
-          {/* Logo & Compact Project Switcher in one unit */}
-          <div className="flex items-center gap-3 shrink min-w-0">
-            <button
-              onClick={() => setCurrentView('dashboard')}
-              className="flex items-center gap-1.5 shrink-0 cursor-pointer hover:opacity-80 transition-opacity outline-none"
-              title="Quay lại Dashboard Thiết Kế"
-            >
-              <div className="p-1.5 bg-gradient-to-tr from-emerald-500 to-indigo-600 rounded-lg text-white shadow-inner flex items-center justify-center shrink-0">
-                <Layout className="w-4 h-4" />
-              </div>
-              <h1 className="text-xs font-black tracking-tight text-white flex items-center leading-none hidden md:flex">
-                Site Board
-              </h1>
-            </button>
+      {/* 1. BRAND PLATFORM HEADER (Vùng 1) - Removed per user request to clean up UI */}
 
-            {/* Figma-like Project Dropdown Picker */}
-            <div className="h-6 w-[1.5px] bg-[#333] hidden sm:inline-block" />
-
-            <div className="flex items-center gap-1.5">
-              <select
-                value={activeProjectId || ''}
-                onChange={(e) => {
-                  const nextProjId = e.target.value;
-                  setActiveProjectId(nextProjId);
-                  localStorage.setItem('last_active_project_id_v2', nextProjId);
-                  const related = floorPlans.filter(p => p.projectId === nextProjId);
-                  if (related.length > 0) {
-                    setActiveFloorPlanId(related[0].id);
-                  }
-                }}
-                className="bg-[#222] hover:bg-slate-850 border border-[#444] rounded-xl px-2 py-1 text-[11px] font-bold text-[#e0e0e0] focus:outline-none cursor-pointer transition-colors"
-                title="Chọn dự án đang chạy"
-              >
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>
-                    🏢 {p.name.length > 25 ? `${p.name.substring(0, 25)}...` : p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Overlapping Hoverable Team Avatars row */}
-          <div className="hidden lg:flex items-center gap-3">
-            <span className="text-[10px] text-[#888] font-bold uppercase tracking-wider flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-indigo-400" />
-              Đa vai trò:
-            </span>
-            <div className="flex items-center -space-x-1.5 overflow-hidden transition-all">
-              {userRolesList.map((profile) => {
-                const isActive = activeUserRole.id === profile.id;
-                const initials = profile.name === 'Mụi Ngô' ? 'MN' : profile.name === 'trung test' ? 'TT' : profile.name === 'KHÁCH HÀNG DUYỆT' ? 'KH' : profile.name.charAt(0).toUpperCase();
-                return (
-                  <button
-                    key={profile.id}
-                    onClick={() => {
-                      setActiveUserRole(profile);
-                      setCurrentColor(profile.color);
-                    }}
-                    className={`w-6 h-6 rounded-full text-[8.5px] font-black border text-white flex items-center justify-center shrink-0 shadow transition-all hover:scale-115 active:scale-90 cursor-pointer relative z-10 ${
-                      isActive 
-                        ? 'ring-2 ring-indigo-400 border-white font-black z-25 scale-110' 
-                        : 'border-[#444] opacity-60 hover:opacity-100'
-                    }`}
-                    style={{ backgroundColor: profile.color }}
-                    title={`Chuyển vai: ${profile.name} (${profile.role})`}
-                  >
-                    {initials}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* SitePin-style 3-tab Navigation */}
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar shrink min-w-0">
-            {currentView === 'workspace' && (
-              <>
-                <div className="flex bg-[#333] rounded-lg p-1 w-max">
-                  {[
-                    { id: 'profile', label: 'HỒ SƠ DỰ ÁN' },
-                    { id: 'pinmap', label: 'GIM LỖI' },
-                    // { id: 'miro', label: 'MIRO' },
-                    { id: 'report', label: 'DÀN LỖI' }
-                  ].map(tab => (
-                    <button
-                      key={tab.id}
-                      onClick={() => { setWorkspaceView(tab.id as any); setShowReportPreview(false); }}
-                      className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-md transition-all whitespace-nowrap ${
-                        workspaceView === tab.id
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-700'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="h-4 w-[1px] bg-[#333] mx-1" />
-
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95"
-                  title="Chia sẻ dự án"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Chia sẻ</span>
-                </button>
-              </>
-            )}
-
-            {/* XU Dashboard Button */}
-            <button
-              onClick={() => setShowXUDashboard(v => !v)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95 ${
-                showXUDashboard
-                  ? 'bg-orange-500 hover:bg-orange-400 text-white'
-                  : 'bg-[#333] hover:bg-slate-700 text-orange-400 border border-orange-500/30'
-              }`}
-              title="Việc của tôi — Xem việc cần làm hôm nay"
-              id="xu-dashboard-btn"
-            >
-              <Hammer className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Xưởng</span>
-            </button>
-
-            {/* CEO Dashboard Button */}
-            <button
-              onClick={() => setShowCEODashboard(v => !v)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95 ${
-                showCEODashboard
-                  ? 'bg-amber-500 hover:bg-amber-400 text-black'
-                  : 'bg-[#333] hover:bg-slate-700 text-amber-400 border border-amber-500/30'
-              }`}
-              title="CEO Command Center — Tổng quan toàn bộ dự án"
-              id="ceo-dashboard-btn"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">CEO</span>
-            </button>
-
-            {/* Notification Bell */}
-            <NotificationPanel
-              currentProjectName={activeProject?.name}
-            />
-          </div>
-        </header>
-      )}
-
-      {!isHeaderOpen && workspaceView !== 'profile' && (
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 z-40 select-none">
-          <button
-            onClick={() => {
-              setIsHeaderOpen(true);
-            }}
-            className="px-3.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-b-lg shadow-lg border-x border-b border-indigo-400 cursor-pointer flex items-center gap-1 transition-all"
-            title="Hiện lại thanh menu"
-          >
-            <span>↕ Hiện Menu</span>
-          </button>
-        </div>
-      )}
 
       {/* XU DASHBOARD OVERLAY */}
       {showXUDashboard && (
@@ -1977,34 +1791,9 @@ export default function App() {
               setUploadTargetPlanType(planType);
               if (fileInputRef.current) fileInputRef.current.click();
             }}
-            onOpenPinMap={(planId, markerId) => {
+            onOpenPinMap={(planId) => {
               setActiveFloorPlanId(planId);
-              if (markerId) {
-                setSelectedMarkerId(markerId);
-                setIsRightSidebarOpen(true);
-              }
               setWorkspaceView('pinmap');
-            }}
-            onQuickCapture={() => setIsGlobalCaptureOpen(true)}
-          />
-          <BottomNavBar 
-            currentTab="projects"
-            onTabChange={(tab) => {
-              if (tab === 'projects') setCurrentView('dashboard');
-              if (tab === 'progress') setShowCEODashboard(true);
-              if (tab === 'profile') setShowXUDashboard(true);
-              if (tab === 'notifications') {
-                // Toggle notification panel visibility using a local state or just show it
-                // Actually, NotificationPanel is controlled by hovering or clicking in the top header.
-                // But the user wants it to be triggered here. 
-                // Wait, NotificationPanel in App.tsx is just rendered as an icon. Let's see if we can trigger a click on it.
-                const btn = document.getElementById('notification-bell-btn');
-                if (btn) btn.click();
-              }
-            }}
-            onActionClick={() => {
-              setUploadTargetPlanType('perspective');
-              if (fileInputRef.current) fileInputRef.current.click();
             }}
           />
         </>
@@ -2019,19 +1808,16 @@ export default function App() {
             setWorkspaceView('pinmap');
             setIsRightSidebarOpen(true);
           }}
+          onClose={() => setWorkspaceView('profile')}
         />
       ) : currentView === 'workspace' && workspaceView === 'pinmap' ? (
-        <>
         <PinMapView
           floorPlans={projectFloorPlans}
           activeFloorPlanId={activeFloorPlanId}
           setActiveFloorPlanId={setActiveFloorPlanId}
           markers={projectMarkerNotes}
           onNavigateToReport={() => {
-            setWorkspaceView(prevWorkspaceViewRef.current);
-          }}
-          onClose={() => {
-            setWorkspaceView(prevWorkspaceViewRef.current);
+            setWorkspaceView('report');
           }}
           onAddMarker={async (fpId, x, y, pageIndex) => {
             const initialTags = ['Chưa sửa'];
@@ -2115,21 +1901,8 @@ export default function App() {
           onDeleteMarker={handleDeleteMarker}
           onTriggerCamera={() => setShowCameraModal(true)}
           selectedMarkerId={selectedMarkerId}
+          onClose={() => setWorkspaceView('profile')}
         />
-        {/* RENDER MODAL FOR PINMAP */}
-        {selectedMarker && (
-          <MarkerDetailModal
-            marker={selectedMarker}
-            onUpdate={handleUpdateMarker}
-            onDelete={(id) => {
-              handleDeleteMarker(id);
-              setSelectedMarkerId(null);
-            }}
-            onTriggerCamera={() => setShowCameraModal(true)}
-            onClose={() => setSelectedMarkerId(null)}
-          />
-        )}
-        </>
       ) : showReportPreview && activePlan ? (
         /* =========================================================
            REPORT PREVIEW & PRINT SUITE VIEW
@@ -2422,7 +2195,6 @@ export default function App() {
         onImportJSONBackup={handleImportJSONBackup}
       />
 
-      {/* Global Hidden File Uploader */}
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -2431,6 +2203,21 @@ export default function App() {
         multiple 
         onChange={handleGlobalFileChange} 
       />
+      
+      {/* Global Bottom Navigation Bar (Always visible on mobile) */}
+      <div className="md:hidden">
+        <BottomNavBar 
+          currentTab="projects"
+          onTabChange={(tab) => {
+            if (tab === 'projects') navigate('/projects');
+          }}
+          onActionClick={() => {
+            setUploadTargetPlanType('perspective');
+            if (fileInputRef.current) fileInputRef.current.click();
+          }}
+        />
+      </div>
+
       {/* Compression Prompt Modal */}
       {showCompressPrompt.show && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { FloorPlan, MarkerNote, UserRoleProfile, CommentReply } from '../types';
+import { FloorPlan, MarkerNote, UserRoleProfile, CommentReply } from '../types/floorplan';
 import {
   ZoomIn, ZoomOut, Maximize, MapPin, Move, Camera, X,
   ChevronDown, MessageSquare, Search, Loader2, Mic, Play, Pause, Send,
@@ -292,20 +292,9 @@ export default function PinMapView({
       if (imgW > 0 && imgH > 0 && containerW > 0 && containerH > 0) {
         const scaleX = (containerW - 40) / imgW;
         const scaleY = (containerH - 40) / imgH;
-        let fitScale = Math.min(scaleX, scaleY);
-        let startPanY = 0;
-
-        // Special case for very tall images (like vertical PDFs)
-        if (imgH / imgW > 1.8) {
-          fitScale = scaleX; // fit by width instead
-          // Align top: Since origin is center, top of image is at -(imgH/2)*scale.
-          // Top of container is at -(containerH/2).
-          // We want to translate Y so top of image + 20px padding = top of container
-          startPanY = (imgH * fitScale - containerH) / 2 + 20;
-        }
-
+        const fitScale = Math.min(scaleX, scaleY);
         setZoom(Math.max(fitScale, 0.05));
-        setPan({ x: 0, y: startPanY });
+        setPan({ x: 0, y: 0 });
       } else {
         setZoom(1);
       }
@@ -442,23 +431,33 @@ export default function PinMapView({
       {/* RIGHT: Main Canvas Area */}
       <div className="flex-1 flex flex-col relative bg-[#141414]">
         {/* Top Header */}
-        <div className="h-14 bg-[#1a1a1a] border-b border-[#333] flex items-center justify-between px-4 z-40 shrink-0 shadow-sm">
-          <div className="flex items-center gap-3">
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#666] hover:bg-[#222] hover:text-[#ccc] transition-colors">
+        <div className="h-14 bg-[#1a1a1a] border-b border-[#333] flex items-center justify-between px-3 md:px-4 z-40 shrink-0 shadow-sm">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#666] hover:bg-[#222] hover:text-[#ccc] transition-colors" title="Về Hồ Sơ Dự Án">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="h-4 w-px bg-[#333]" />
-            <h2 className="font-bold text-white text-sm truncate max-w-[200px] md:max-w-[400px]">
+            <h2 className="font-bold text-white text-xs md:text-sm truncate max-w-[120px] sm:max-w-[200px] md:max-w-[400px]">
               {activePlan?.name || 'Đang tải...'}
             </h2>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 md:gap-2">
             <button
               onClick={handleFit}
-              className="px-3 py-1.5 text-xs font-bold text-[#aaa] bg-[#222] hover:bg-[#333] rounded-lg transition-colors cursor-pointer"
+              className="px-2 py-1.5 md:px-3 text-[10px] md:text-xs font-bold text-[#aaa] bg-[#222] hover:bg-[#333] rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
-              FIT VỪA MÀN HÌNH
+              <Maximize className="w-3.5 h-3.5 inline-block md:hidden mr-1" />
+              <span className="hidden md:inline">FIT VỪA MÀN HÌNH</span>
+              <span className="md:hidden">FIT</span>
+            </button>
+            
+            <button
+              onClick={onNavigateToReport}
+              className="px-3 py-1.5 text-[10px] md:text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>DÀN LỖI</span>
             </button>
           </div>
         </div>
@@ -492,7 +491,7 @@ export default function PinMapView({
               }}
             >
               {/* Floor Plan Page */}
-              <div className="relative bg-[#1a1a1a] shadow-lg border border-[#333] rounded-lg overflow-hidden shrink-0">
+              <div className="relative bg-[#1a1a1a] shadow-lg border border-[#333] rounded-lg overflow-hidden">
                 <img
                   ref={imageRef}
                   src={currentCanvasImage}

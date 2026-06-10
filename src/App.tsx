@@ -24,6 +24,7 @@ import { ConstructionProvider } from './contexts/ConstructionContext'
 import { ClientView } from './pages/client/ClientView'
 import { PortfolioLanding } from './pages/portfolio/PortfolioLanding'
 import { PortfolioManager } from './pages/portfolio/PortfolioManager'
+import { PrototypeBoard } from './pages/projects/PrototypeBoard'
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
           <Route path="gantt" element={<Gantt />} />
           <Route path="kanban" element={<Kanban />} />
           <Route path="projects" element={<Projects />} />
+          <Route path="projects/:id/board" element={<PrototypeBoard />} />
           <Route path="tasks" element={<Tasks />} />
           <Route path="schedule" element={<Schedule />} />
           <Route path="users" element={<Users />} />

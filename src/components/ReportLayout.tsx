@@ -1,8 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { Project, FloorPlan, MarkerNote } from '../types';
+import { Project, FloorPlan, MarkerNote } from '../types/floorplan';
 import { Camera, MapPin } from 'lucide-react';
-
-let savedScrollTop = 0;
 
 const parseImages = (photoData: string | null): string[] => {
   if (!photoData) return [];
@@ -20,23 +17,10 @@ interface ReportLayoutProps {
   floorPlans: FloorPlan[];
   markers: MarkerNote[];
   onNavigateToPin: (floorPlanId: string, markerId: string) => void;
+  onClose?: () => void;
 }
 
-export default function ReportLayout({ project, floorPlans, markers, onNavigateToPin }: ReportLayoutProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = savedScrollTop;
-    }
-  }, []);
-
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      savedScrollTop = scrollRef.current.scrollTop;
-    }
-  };
-
+export default function ReportLayout({ project, floorPlans, markers, onNavigateToPin, onClose }: ReportLayoutProps) {
   if (!project) {
     return (
       <div className="flex-1 flex items-center justify-center text-slate-400 text-sm p-8">
@@ -74,10 +58,81 @@ export default function ReportLayout({ project, floorPlans, markers, onNavigateT
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-100 print:bg-white">
-      <div className="max-w-3xl mx-auto bg-white shadow-sm print:shadow-none">
+    <div className="flex-1 overflow-y-auto bg-slate-100 print:bg-white pb-24">
+      <div className="max-w-3xl mx-auto bg-white shadow-sm print:shadow-none min-h-screen">
+        
+        {/* Top Header Navigation */}
+        <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 sticky top-0 z-40 print:hidden">
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+            title="Quay lại"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div className="font-bold text-slate-800 text-sm">Danh Sách Dàn Lỗi</div>
+          <div className="w-8"></div>
+        </div>
 
+        {/* PAGE 1: Cover */}
+        <div className="p-6 md:p-10 border-b border-slate-200">
+          {/* Phase Badge */}
+          <div className="inline-block bg-amber-400 text-slate-900 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded mb-4 mt-2">
+            Giai đoạn: Hoàn thiện
+          </div>
 
+          {/* Title */}
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-8">
+            BÁO CÁO NHẬN DIỆN<br />
+            SỰ CỐ THI CÔNG & LẮP ĐẶT
+          </h1>
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-8">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-0.5">Dự án công trình</label>
+              <p className="text-sm font-bold text-slate-900">{project.name}</p>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-0.5">Khách hàng / Đại diện</label>
+              <p className="text-sm font-bold text-slate-900">{project.client}</p>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-0.5">Địa chỉ thi công</label>
+              <p className="text-sm text-slate-700">{project.address}</p>
+            </div>
+            <div />
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-0.5">Cán bộ giám sát lập hồ sơ</label>
+              <p className="text-sm font-bold text-slate-900">{project.leader}</p>
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-0.5">Ngày hoàn thiện tài liệu</label>
+              <p className="text-sm text-slate-900">{new Date().toLocaleDateString('vi-VN')}</p>
+            </div>
+          </div>
+
+          {/* Stats Summary */}
+          <div className="border border-slate-200 rounded-xl p-5">
+            <h3 className="text-[10px] uppercase tracking-widest font-black text-slate-500 text-center mb-4">
+              Tóm tắt hiện trạng sự cố
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {stats.map((s, i) => (
+                <div key={i} className={`border ${s.border} rounded-lg p-3 text-center`}>
+                  <div className={`text-2xl font-black ${s.color}`}>{s.value}</div>
+                  <div className="text-[9px] text-slate-500 font-semibold mt-1 uppercase tracking-wide">{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Page footer */}
+          <div className="flex items-center justify-between text-[9px] text-slate-400 mt-6 pt-3 border-t border-slate-100">
+            <span>Bản lập hồ sơ lên Site Board — Bản quyền KS. DQH Architects</span>
+            <span>Trang 1 / {Math.ceil(markers.length / 2) + 1}</span>
+          </div>
+        </div>
 
         {/* PAGE 2+: Defect Details */}
         {markers.length === 0 ? (
