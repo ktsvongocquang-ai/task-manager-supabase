@@ -60,10 +60,11 @@ export default function App() {
   const [undoStack, setUndoStack] = useState<WhiteboardAnnotation[][]>([]);
   const [redoStack, setRedoStack] = useState<WhiteboardAnnotation[][]>([]);
 
-  // 2 vai trò chính: Giám sát & Quản lý
+  // 3 vai trò: Admin, Giám sát, Quản lý thi công
   const userRolesList: UserRoleProfile[] = [
+    { id: 'role-admin', name: 'Admin', role: 'Admin', email: 'admin@dqh.vn', tag: 'ADMIN', color: '#8b5cf6' },
     { id: 'role-gs', name: 'Giám sát', role: 'Giám sát', email: 'giamsat@dqh.vn', tag: 'GIÁM SÁT', color: '#f97316' },
-    { id: 'role-ql', name: 'Quản lý', role: 'Quản lý', email: 'quanly@dqh.vn', tag: 'QUẢN LÝ', color: '#3b82f6' },
+    { id: 'role-ql', name: 'Quản lý TC', role: 'Quản lý thi công', email: 'quanly@dqh.vn', tag: 'QUẢN LÝ TC', color: '#3b82f6' },
   ];
   const [activeUserRole, setActiveUserRole] = useState<UserRoleProfile>(userRolesList[0]);
 
@@ -1500,6 +1501,7 @@ export default function App() {
                           >
                             <span>Vào Board</span>
                           </button>
+                          {activeUserRole.role === 'Admin' && (
                           <button
                             onClick={() => handleDeleteProject(p.id)}
                             className="p-1.5 text-[#888] hover:text-rose-400 bg-slate-950/20 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 rounded-lg transition-colors cursor-pointer"
@@ -1507,6 +1509,7 @@ export default function App() {
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1615,6 +1618,7 @@ export default function App() {
                                   <span>Vào Board</span>
                                   <ExternalLink className="w-3.5 h-3.5" />
                                 </button>
+                                {activeUserRole.role === 'Admin' && (
                                 <button
                                   onClick={() => handleDeleteProject(p.id)}
                                   className="p-1 px-2 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/15 rounded-lg cursor-pointer transition-colors"
@@ -1622,6 +1626,7 @@ export default function App() {
                                 >
                                   Xoá
                                 </button>
+                                )}
                               </div>
                             </td>
                           </tr>
