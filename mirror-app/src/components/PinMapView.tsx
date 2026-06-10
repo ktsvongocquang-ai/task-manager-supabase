@@ -355,7 +355,7 @@ export default function PinMapView({
         (m.assignee && m.assignee.toLowerCase().includes(q))
       );
     }
-    return list.sort((a, b) => b.createdAt - a.createdAt);
+    return list.sort((a, b) => a.createdAt - b.createdAt);
   }, [markers, activePlanId, searchQuery]);
 
   const getStatus = (m: any) => m.tags?.[0] || 'Chưa xử lý';
