@@ -35,6 +35,7 @@ import { getPdfPageCount, compressThumbnailDataUrl, renderPdfPageToImage, compre
 import { uploadFileWithTus } from './utils/uploadUtils';
 import { supabase } from './lib/supabase';
 import { notify, requestNotificationPermission, subscribeToNotifications, markRead, markAllRead, DQHNotification } from './lib/notifications';
+import DefectCategorySelector, { DefectCategory, DEFECT_CATEGORIES } from './components/DefectCategorySelector';
 
 const INITIAL_PROJECTS: Project[] = [];
 
@@ -92,6 +93,8 @@ export default function App() {
   const [isGlobalCaptureOpen, setIsGlobalCaptureOpen] = useState<boolean>(false);
   const [globalDraftFault, setGlobalDraftFault] = useState<Partial<MarkerNote> | null>(null);
   const [isGlobalPinSelectorOpen, setIsGlobalPinSelectorOpen] = useState<boolean>(false);
+  const [isDefectCategorySelectorOpen, setIsDefectCategorySelectorOpen] = useState<boolean>(false);
+  const [selectedDefectCategory, setSelectedDefectCategory] = useState<{category: string, subcategory: string, planType: string} | null>(null);
 
   // Subscribe to notifications for the dashboard feed
   useEffect(() => {
@@ -1874,15 +1877,23 @@ export default function App() {
             if (pageIndex !== undefined) {
               initialTags.push(`page:${pageIndex}`);
             }
+            // Add category tags from capture flow
+            if (selectedDefectCategory) {
+              initialTags.push(selectedDefectCategory.category);
+              initialTags.push(selectedDefectCategory.subcategory);
+            }
+            const titleParts = selectedDefectCategory 
+              ? `${selectedDefectCategory.category} — ${selectedDefectCategory.subcategory} #${projectMarkerNotes.length + 1}`
+              : `Sự cố #${projectMarkerNotes.length + 1}`;
             const newMarker: MarkerNote = {
               id: `marker-${Date.now()}`,
               floorPlanId: fpId,
               x, y,
-              title: `Sự cố #${projectMarkerNotes.length + 1}`,
-              photoData: null,
-              audioData: null,
-              transcription: '',
-              textNotes: '',
+              title: titleParts,
+              photoData: globalDraftFault?.photoData || null,
+              audioData: globalDraftFault?.audioData || null,
+              transcription: globalDraftFault?.transcription || '',
+              textNotes: globalDraftFault?.textNotes || '',
               createdAt: Date.now(),
               comments: [],
               tags: initialTags,
@@ -1891,6 +1902,9 @@ export default function App() {
               await saveMarkerNote(newMarker);
               setMarkerNotes(prev => [...prev, newMarker]);
               setSelectedMarkerId(newMarker.id);
+              // Clear draft after successful pin
+              setGlobalDraftFault(null);
+              setSelectedDefectCategory(null);
             } catch (e) { console.error(e); }
           }}
           onSelectMarker={setSelectedMarkerId}
@@ -2329,13 +2343,38 @@ export default function App() {
           onCaptureComplete={(draft) => {
             setGlobalDraftFault(draft);
             setIsGlobalCaptureOpen(false);
-            setIsGlobalPinSelectorOpen(true); // Open the fast selector immediately!
+            setIsDefectCategorySelectorOpen(true); // Step 2: Pick category
           }}
           onClose={() => setIsGlobalCaptureOpen(false)}
         />
       )}
 
-      {/* Global Pin Selector Modal (Fast Track) */}
+      {/* Defect Category Selector (Step 2 of capture flow) */}
+      {isDefectCategorySelectorOpen && (
+        <DefectCategorySelector
+          onClose={() => setIsDefectCategorySelectorOpen(false)}
+          onSelect={(category, subcategory) => {
+            setIsDefectCategorySelectorOpen(false);
+            setSelectedDefectCategory({ category: category.label, subcategory, planType: category.planType });
+            
+            // Auto-find matching floor plan in current project
+            const projectPlans = floorPlans.filter(fp => fp.projectId === activeProjectId);
+            const matchingPlan = projectPlans.find(fp => fp.planType === category.planType);
+            
+            if (matchingPlan) {
+              // Found matching plan → go straight to pinmap!
+              setActiveFloorPlanId(matchingPlan.id);
+              setCurrentView('workspace');
+              setWorkspaceView('pinmap');
+            } else {
+              // No matching plan → fallback to manual selection
+              setIsGlobalPinSelectorOpen(true);
+            }
+          }}
+        />
+      )}
+
+      {/* Global Pin Selector Modal (Fallback when no matching plan found) */}
       {isGlobalPinSelectorOpen && (
         <GlobalPinSelectorModal
           projects={projects}
@@ -2348,7 +2387,6 @@ export default function App() {
             setActiveFloorPlanId(floorPlanId);
             setCurrentView('workspace');
             setWorkspaceView('pinmap');
-            // User is now on the pin map! They just need to tap to pin.
           }}
         />
       )}
