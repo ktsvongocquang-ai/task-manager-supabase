@@ -2326,16 +2326,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Global Draft Banner */}
-      {globalDraftFault && (
-        <div className="fixed top-0 left-0 right-0 bg-amber-500 text-slate-950 z-[70] px-4 py-3 flex items-center justify-center shadow-lg font-bold text-xs gap-4 cursor-pointer" onClick={() => {}}>
-          <AlertCircle className="w-5 h-5 animate-pulse shrink-0" />
-          <span className="text-center">📌 BẠN ĐANG CÓ 1 LỖI CHƯA GHIM VÀO BẢN VẼ!<br/>Hãy mở 1 Bản vẽ bất kỳ và click vào bản đồ để thả ghim lỗi vừa chụp nhé!</span>
-          <button onClick={(e) => { e.stopPropagation(); setGlobalDraftFault(null); }} className="px-3 py-1.5 bg-slate-950 text-white rounded-lg hover:bg-[#333] transition-colors ml-4 shrink-0">
-            Hủy ghim
-          </button>
-        </div>
-      )}
+
 
       {/* Global Capture Modal */}
       {isGlobalCaptureOpen && (
