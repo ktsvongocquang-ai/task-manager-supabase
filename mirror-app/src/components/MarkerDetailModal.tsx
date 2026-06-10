@@ -164,15 +164,24 @@ export const MarkerDetailModal: React.FC<MarkerDetailModalProps> = ({
           {marker.photoData && (
              <div className="mt-2">
                {/* Handles both array of urls and legacy single url */}
-               {Array.isArray(JSON.parse(marker.photoData || '[]')) ? (
-                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                   {JSON.parse(marker.photoData).map((url: string, i: number) => (
-                     <img key={i} src={url} alt={`Photo ${i}`} className="h-20 w-auto rounded-lg object-cover border border-[#444]" />
-                   ))}
-                 </div>
-               ) : (
-                 <img src={marker.photoData} alt="Photo" className="h-20 w-auto rounded-lg object-cover border border-[#444]" />
-               )}
+               {(() => {
+                 let urls: string[] = [];
+                 try {
+                   const parsed = JSON.parse(marker.photoData);
+                   urls = Array.isArray(parsed) ? parsed : [marker.photoData];
+                 } catch {
+                   urls = [marker.photoData];
+                 }
+                 return urls.length > 1 ? (
+                   <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                     {urls.map((url: string, i: number) => (
+                       <img key={i} src={url} alt={`Photo ${i}`} className="h-20 w-auto rounded-lg object-cover border border-[#444]" referrerPolicy="no-referrer" />
+                     ))}
+                   </div>
+                 ) : (
+                   <img src={urls[0]} alt="Photo" className="h-20 w-auto rounded-lg object-cover border border-[#444]" referrerPolicy="no-referrer" />
+                 );
+               })()}
              </div>
           )}
 
