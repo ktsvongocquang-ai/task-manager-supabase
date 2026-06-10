@@ -166,58 +166,118 @@ export default function XUDashboard({
 
         {tab === 'fix' && (
           <>
-            {/* Urgent: Chưa sửa */}
-            {needFix.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <AlertTriangle className="w-4 h-4 text-rose-400" />
-                  <span className="text-xs font-black text-rose-400 uppercase tracking-wider">
-                    Cần sửa ngay — {needFix.length} việc
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {needFix.map(item => (
-                    <WorkCard
-                      key={item.marker.id}
-                      item={item}
-                      statusColor="rose"
-                      updating={updatingId === item.marker.id}
-                      onStart={() => setStatus(item, 'Đang sửa')}
-                      onOpenProject={() => onOpenProject(item.projectId)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Category filter chips */}
+            {(() => {
+              const allCategories = ['Tất cả', 'Nội thất', 'Kết cấu', 'MEP', 'Ốp lát', 'Hoàn thiện', 'Trần & Đèn'];
+              const getCategory = (item: WorkItem) => {
+                const tags = item.marker.tags || [];
+                return allCategories.find(c => c !== 'Tất cả' && tags.includes(c)) || 'Chưa phân loại';
+              };
+              const getSubcategory = (item: WorkItem) => {
+                const tags = item.marker.tags || [];
+                const catIdx = tags.findIndex(t => allCategories.includes(t));
+                return catIdx >= 0 && catIdx + 1 < tags.length ? tags[catIdx + 1] : '';
+              };
+              const categoryIcons: Record<string, string> = {
+                'Nội thất': '🪑', 'Kết cấu': '🏗️', 'MEP': '⚡',
+                'Ốp lát': '🧱', 'Hoàn thiện': '🎨', 'Trần & Đèn': '💡', 'Chưa phân loại': '📌'
+              };
 
-            {/* In progress: Đang sửa */}
-            {inProg.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2 px-1 mt-4">
-                  <Clock className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">
-                    Đang sửa — {inProg.length} việc
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {inProg.map(item => (
-                    <WorkCard
-                      key={item.marker.id}
-                      item={item}
-                      statusColor="amber"
-                      updating={updatingId === item.marker.id}
-                      onDone={() => setStatus(item, 'Đã duyệt')}
-                      onOpenProject={() => onOpenProject(item.projectId)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+              const allItems = [...needFix, ...inProg];
+              const categoryCounts = allCategories.reduce((acc, cat) => {
+                acc[cat] = cat === 'Tất cả' ? allItems.length : allItems.filter(i => getCategory(i) === cat).length;
+                return acc;
+              }, {} as Record<string, number>);
 
-            {/* Done today */}
+              return (
+                <>
+                  <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-none">
+                    {allCategories.filter(c => categoryCounts[c] > 0).map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => (window as any).__catFilter = (window as any).__catFilter === cat ? 'Tất cả' : cat}
+                        className="shrink-0 px-3 py-1.5 rounded-full text-[11px] font-black border transition-all active:scale-95 cursor-pointer bg-slate-800 border-slate-700 text-slate-300 hover:border-indigo-500"
+                      >
+                        {cat !== 'Tất cả' && categoryIcons[cat]} {cat} ({categoryCounts[cat]})
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Group by category */}
+                  {allCategories.filter(c => c !== 'Tất cả' && categoryCounts[c] > 0).map(cat => {
+                    const catNeedFix = needFix.filter(i => getCategory(i) === cat);
+                    const catInProg = inProg.filter(i => getCategory(i) === cat);
+                    if (catNeedFix.length === 0 && catInProg.length === 0) return null;
+                    return (
+                      <div key={cat} className="mt-4">
+                        <div className="flex items-center gap-2 mb-2 px-1">
+                          <span className="text-lg">{categoryIcons[cat]}</span>
+                          <span className="text-xs font-black text-white uppercase tracking-wider">{cat}</span>
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
+                            {catNeedFix.length + catInProg.length}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {catNeedFix.map(item => (
+                            <WorkCard
+                              key={item.marker.id}
+                              item={item}
+                              statusColor="rose"
+                              updating={updatingId === item.marker.id}
+                              onStart={() => setStatus(item, 'Đang sửa')}
+                              onOpenProject={() => onOpenProject(item.projectId)}
+                              subcategory={getSubcategory(item)}
+                            />
+                          ))}
+                          {catInProg.map(item => (
+                            <WorkCard
+                              key={item.marker.id}
+                              item={item}
+                              statusColor="amber"
+                              updating={updatingId === item.marker.id}
+                              onDone={() => setStatus(item, 'Đã duyệt')}
+                              onOpenProject={() => onOpenProject(item.projectId)}
+                              subcategory={getSubcategory(item)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Uncategorized */}
+                  {(() => {
+                    const uncatNeedFix = needFix.filter(i => getCategory(i) === 'Chưa phân loại');
+                    const uncatInProg = inProg.filter(i => getCategory(i) === 'Chưa phân loại');
+                    if (uncatNeedFix.length === 0 && uncatInProg.length === 0) return null;
+                    return (
+                      <div className="mt-4">
+                        <div className="flex items-center gap-2 mb-2 px-1">
+                          <span className="text-lg">📌</span>
+                          <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Chưa phân loại</span>
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
+                            {uncatNeedFix.length + uncatInProg.length}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {uncatNeedFix.map(item => (
+                            <WorkCard key={item.marker.id} item={item} statusColor="rose" updating={updatingId === item.marker.id} onStart={() => setStatus(item, 'Đang sửa')} onOpenProject={() => onOpenProject(item.projectId)} />
+                          ))}
+                          {uncatInProg.map(item => (
+                            <WorkCard key={item.marker.id} item={item} statusColor="amber" updating={updatingId === item.marker.id} onDone={() => setStatus(item, 'Đã duyệt')} onOpenProject={() => onOpenProject(item.projectId)} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              );
+            })()}
+
+            {/* Done */}
             {done.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2 px-1 mt-4">
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-2 px-1">
                   <CheckCheck className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
                     Đã hoàn thành — {done.length} việc
@@ -310,7 +370,7 @@ export default function XUDashboard({
 
 function WorkCard({
   item, statusColor, updating,
-  onStart, onDone, onOpenProject
+  onStart, onDone, onOpenProject, subcategory
 }: {
   item: WorkItem;
   statusColor: 'rose' | 'amber';
@@ -318,6 +378,7 @@ function WorkCard({
   onStart?: () => void;
   onDone?: () => void;
   onOpenProject: () => void;
+  subcategory?: string;
 }) {
   const colors = {
     rose:  { bg: 'bg-rose-500/5',  border: 'border-rose-900/40', badge: 'bg-rose-500/15 text-rose-400', hover: 'hover:border-rose-500/40' },
@@ -336,6 +397,13 @@ function WorkCard({
         <span className="text-slate-700">·</span>
         <span className="text-[10px] text-slate-600">{item.floorPlanName}</span>
       </div>
+
+      {/* Subcategory badge */}
+      {subcategory && (
+        <span className="inline-block text-[10px] font-black text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded-full mb-1.5">
+          {subcategory}
+        </span>
+      )}
 
       {/* Title */}
       <p className="text-white font-black text-base leading-tight mb-1">
