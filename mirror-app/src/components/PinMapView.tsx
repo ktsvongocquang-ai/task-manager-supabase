@@ -397,7 +397,7 @@ export default function PinMapView({
               {filteredMarkers.map((m, idx) => {
                 const status = getStatus(m);
                 const isDone = status === 'Đã duyệt' || status === 'Đã sửa';
-                const bgColor = isDone ? 'bg-emerald-500' : status === 'Đang sửa' ? 'bg-amber-500' : 'bg-[#2a1114]0';
+                const bgColor = isDone ? 'bg-emerald-500' : status === 'Đang sửa' ? 'bg-amber-500' : 'bg-rose-600';
                 const isActive = selectedMarkerId === m.id;
                 
                 return (
@@ -509,7 +509,8 @@ export default function PinMapView({
                   const status = getStatus(m);
                   const isActive = selectedMarkerId === m.id;
                   const isDone = status === 'Đã duyệt' || status === 'Đã sửa';
-                  const bgColor = isDone ? 'bg-emerald-500' : status === 'Đang sửa' ? 'bg-amber-500' : 'bg-[#2a1114]0';
+                  const pinColor = isDone ? '#10b981' : status === 'Đang sửa' ? '#f59e0b' : '#e11d48';
+                  const bgColor = isDone ? 'bg-emerald-500' : status === 'Đang sửa' ? 'bg-amber-500' : 'bg-rose-600';
                   return (
                     <div
                       key={m.id}
@@ -517,8 +518,44 @@ export default function PinMapView({
                       style={{ left: `${m.x}%`, top: `${m.y}%` }}
                       onClick={(e) => { e.stopPropagation(); onSelectMarker(m.id); }}
                     >
-                      {isActive && <div className="absolute -inset-2 rounded-full bg-[#1a1a1a]/40 animate-ping" />}
-                      <div className={`w-7 h-7 rounded-full ${bgColor} text-white text-[11px] font-black flex items-center justify-center shadow-lg border-[1.5px] border-white relative z-10`}>
+                      {/* Ripple wave rings when selected */}
+                      {isActive && (
+                        <>
+                          <div
+                            className="absolute rounded-full animate-ping"
+                            style={{
+                              inset: '-8px',
+                              backgroundColor: pinColor,
+                              opacity: 0.4,
+                            }}
+                          />
+                          <div
+                            className="absolute rounded-full animate-pulse"
+                            style={{
+                              inset: '-14px',
+                              border: `2px solid ${pinColor}`,
+                              opacity: 0.6,
+                            }}
+                          />
+                          <div
+                            className="absolute rounded-full"
+                            style={{
+                              inset: '-20px',
+                              border: `1.5px solid ${pinColor}`,
+                              opacity: 0.25,
+                              animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite 0.3s',
+                            }}
+                          />
+                        </>
+                      )}
+                      <div
+                        className={`w-8 h-8 rounded-full ${bgColor} text-white text-[12px] font-black flex items-center justify-center relative z-10`}
+                        style={{
+                          boxShadow: isActive
+                            ? `0 0 0 3px white, 0 0 16px ${pinColor}80, 0 4px 12px rgba(0,0,0,0.5)`
+                            : `0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.4)`,
+                        }}
+                      >
                         {idx + 1}
                       </div>
                     </div>
