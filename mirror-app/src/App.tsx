@@ -495,29 +495,6 @@ export default function App() {
     }
   }
 
-  async function handleDeleteFloorPlan(planId: string) {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bản vẽ này? Mọi ghim lỗi trên bản vẽ cũng sẽ bị xóa.')) {
-      try {
-        await deleteFloorPlan(planId);
-        setFloorPlans(prev => prev.filter(fp => fp.id !== planId));
-        
-        // Clean up orphaned markers
-        const relatedMarkers = markerNotes.filter(m => m.floorPlanId === planId);
-        for (const m of relatedMarkers) {
-          await deleteMarkerNote(m.id);
-        }
-        setMarkerNotes(prev => prev.filter(m => m.floorPlanId !== planId));
-
-        if (activeFloorPlanId === planId) {
-          setActiveFloorPlanId(null);
-        }
-      } catch (e: any) {
-        console.error(e);
-        alert('Lỗi khi xóa bản vẽ: ' + e.message);
-      }
-    }
-  }
-
   function toggleFavoriteProject(id: string) {
     const list = favoriteProjectIds.includes(id)
       ? favoriteProjectIds.filter(item => item !== id)
