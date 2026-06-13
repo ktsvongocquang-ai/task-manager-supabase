@@ -1169,7 +1169,8 @@ export default function App() {
   // Render the Miro-Style Project Dashboard (Vùng cổng vào)
   // ==========================================
   if (currentView === 'dashboard') {
-    return <DarkDashboard 
+    return <>
+      <DarkDashboard 
        projects={projects}
        floorPlans={floorPlans}
        markerNotes={markerNotes}
@@ -1191,7 +1192,98 @@ export default function App() {
        }}
        onRefresh={loadData}
        onOpenLessonsModal={() => setShowLessonsModal(true)}
-     />;
+      />
+
+      {/* Modal Tạo dự án mới - PHẢI nằm cùng cấp với DarkDashboard để render được */}
+      {showNewProjectModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 select-none">
+          <div className="bg-[#1a1a1a] border border-[#444] rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+            <h2 className="text-base font-black text-white flex items-center gap-2 mb-2">
+              🏛️ Khởi tạo dự án thiết kế mới
+            </h2>
+            <p className="text-xs text-[#aaa] mb-5">Hồ sơ dự án sẽ tự động sinh các mặt bản vẽ Sàn ốp lát, Trực trạng gạch khảo sát...</p>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!newProjectName.trim()) {
+                alert('Vui lòng nhập tên công trình dự án!');
+                return;
+              }
+              handleCreateProject(newProjectName, newProjectLeader, newProjectClient, newProjectAddress);
+              setShowNewProjectModal(false);
+            }} className="flex flex-col gap-4">
+              
+              {/* 1. Name */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold text-slate-450">Tên dự án thiết kế <span className="text-rose-400">*</span></label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Shophouse Sala Đại Quang Minh,..."
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="bg-[#222] border border-slate-850 focus:border-indigo-500 px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* 2. Leader KTS */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold text-slate-450">KTS Chủ Trì Thiết Kế</label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: KTS. Võ Ngọc Quang"
+                  value={newProjectLeader}
+                  onChange={(e) => setNewProjectLeader(e.target.value)}
+                  className="bg-[#222] border border-slate-850 focus:border-indigo-500 px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* 3. Client */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold text-slate-450">Khách Hàng Chủ Đầu Tư</label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Chị Vy Nguyễn, Anh Tuấn..."
+                  value={newProjectClient}
+                  onChange={(e) => setNewProjectClient(e.target.value)}
+                  className="bg-[#222] border border-slate-850 focus:border-indigo-500 px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none transition-colors"
+                />
+              </div>
+
+              {/* 4. Address */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold text-slate-450">Địa Điểm Công Trình</label>
+                <textarea
+                  rows={2}
+                  placeholder="Ví dụ: Khu Sala, Mai Chí Thọ, Quận 2, TPHCM"
+                  value={newProjectAddress}
+                  onChange={(e) => setNewProjectAddress(e.target.value)}
+                  className="bg-[#222] border border-slate-850 focus:border-indigo-500 px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none resize-none transition-colors"
+                />
+              </div>
+
+              {/* Submit & Close Buttons */}
+              <div className="flex items-center justify-end gap-2.5 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowNewProjectModal(false)}
+                  className="px-4 py-2 bg-[#222] border border-slate-850 hover:bg-[#333] rounded-xl text-xs font-bold text-[#aaa] transition-colors cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-black rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                  Khởi tạo Board
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      )}
+    </>;
     
     // Original old dashboard code (unreachable but kept for reference)
     const sortedAndFiltered = [...projects].filter(p => {
