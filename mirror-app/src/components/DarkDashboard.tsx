@@ -277,6 +277,13 @@ export default function DarkDashboard({
                                     >
                                         <LayoutGrid size={14} /> Board
                                     </button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id) }} 
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--tx3)] hover:text-[var(--red)] hover:bg-[var(--redb)] transition-colors ml-2"
+                                        title="Xóa dự án"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
                                 </div>
                             </div>
                         )

@@ -3,7 +3,7 @@ import { FloorPlan, MarkerNote, UserRoleProfile, CommentReply } from '../types';
 import {
   ZoomIn, ZoomOut, Maximize, MapPin, Move, Camera, X,
   ChevronDown, MessageSquare, Search, Loader2, Mic, Play, Pause, Send,
-  ChevronLeft, Target
+  ChevronLeft, Target, Upload
 } from 'lucide-react';
 import { renderPdfPageToImage, renderPdfPageFromArrayBuffer, getPdfDocumentFromArrayBuffer, renderPdfPageFromDocument } from '../utils/pdfUtils';
 import VoiceNoteRecorder from './VoiceNoteRecorder';
@@ -40,6 +40,7 @@ interface PinMapViewProps {
   onSetActiveUserRole?: (role: UserRoleProfile) => void;
   onClose?: () => void;
   initialPinMode?: boolean;
+  onTriggerUpload?: () => void;
 }
 
 export default function PinMapView({
@@ -60,7 +61,8 @@ export default function PinMapView({
   userRolesList,
   onSetActiveUserRole,
   onClose,
-  initialPinMode
+  initialPinMode,
+  onTriggerUpload
 }: PinMapViewProps) {
   // State
   const activePlanId = activeFloorPlanId || floorPlans[0]?.id || null;
@@ -448,9 +450,58 @@ export default function PinMapView({
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="h-4 w-px bg-[#333]" />
-            <h2 className="font-bold text-white text-sm truncate max-w-[200px] md:max-w-[400px]">
-              {activePlan?.name || 'Đang tải...'}
-            </h2>
+            <div className="relative">
+              <button 
+                onClick={() => setShowPlanSelector(!showPlanSelector)}
+                className="flex items-center gap-2 font-bold text-white text-sm hover:text-indigo-400 transition-colors"
+              >
+                <span className="truncate max-w-[200px] md:max-w-[400px]">
+                  {activePlan?.name || 'Đang tải...'}
+                </span>
+                <ChevronDown className="w-4 h-4 text-[#888]" />
+              </button>
+              
+              {showPlanSelector && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowPlanSelector(false)} />
+                  <div className="absolute top-full left-0 mt-3 w-72 bg-[#1a1a1a] border border-[#333] rounded-xl shadow-2xl py-2 z-50">
+                    <div className="px-3 pb-2 mb-2 border-b border-[#333] flex justify-between items-center">
+                       <span className="text-[10px] font-black text-[#888] uppercase tracking-wider">Chọn bản vẽ để ghim</span>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                      {groupedPlans.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setLocalActivePlanId(p.id);
+                            setShowPlanSelector(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-xs transition-colors truncate flex items-center gap-2 ${
+                            activePlanId === p.id ? 'bg-indigo-500/10 text-indigo-400 font-bold border-l-2 border-indigo-500' : 'text-[#ccc] hover:bg-[#222] border-l-2 border-transparent'
+                          }`}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full bg-current shrink-0 opacity-50" />
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                    {onTriggerUpload && (
+                      <div className="border-t border-[#333] mt-2 pt-2 px-2">
+                        <button
+                          onClick={() => {
+                            setShowPlanSelector(false);
+                            onTriggerUpload();
+                          }}
+                          className="w-full px-3 py-2.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg flex items-center justify-center gap-2 transition-colors border border-emerald-500/20"
+                        >
+                           <Upload className="w-4 h-4" /> TẢI LÊN BẢN VẼ / PDF MỚI
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-2">

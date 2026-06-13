@@ -12,46 +12,46 @@ export interface DefectCategory {
 
 export const DEFECT_CATEGORIES: DefectCategory[] = [
   {
-    id: 'interior',
-    label: 'Nội thất',
-    icon: '🪑',
-    planType: 'layout',
-    subcategories: ['Vách', 'Tủ', 'Sàn gỗ', 'Cửa', 'Kính', 'Rèm', 'Nệm/Ghế', 'Khác']
+    id: 'perspective',
+    label: 'Phối cảnh',
+    icon: '🖼️',
+    planType: 'perspective',
+    subcategories: ['Sai màu sắc', 'Sai vật liệu', 'Không giống 3D', 'Khác']
   },
   {
-    id: 'structure',
-    label: 'Kết cấu',
-    icon: '🏗️',
-    planType: 'existing',
-    subcategories: ['Móng', 'Đà', 'Dầm', 'Cầu thang', 'Cột', 'Sàn', 'Tường xây', 'Khác']
+    id: 'material_spec',
+    label: 'Vật liệu',
+    icon: '🪨',
+    planType: 'material_spec',
+    subcategories: ['Sai mẫu', 'Chất lượng kém', 'Thiếu hụt', 'Khác']
   },
   {
-    id: 'mep',
-    label: 'MEP',
-    icon: '⚡',
-    planType: 'mep',
-    subcategories: ['Đèn', 'Ống cấp', 'Ống thoát', 'Hệ thống điện', 'Điều hòa', 'PCCC', 'Thông gió', 'Khác']
-  },
-  {
-    id: 'tiling',
-    label: 'Ốp lát',
-    icon: '🧱',
-    planType: 'tiling',
-    subcategories: ['Gạch sàn', 'Gạch tường', 'Đá ốp', 'Chân tường', 'Ron/Mạch', 'Khác']
+    id: 'equipment',
+    label: 'Thiết bị',
+    icon: '⚙️',
+    planType: 'equipment',
+    subcategories: ['Lỗi kỹ thuật', 'Thiếu phụ kiện', 'Sai mã', 'Khuyết tật', 'Khác']
   },
   {
     id: 'finishing',
     label: 'Hoàn thiện',
     icon: '🎨',
-    planType: 'existing',
-    subcategories: ['Sơn', 'Bả matit', 'Khe co giãn', 'Silicone', 'Chống thấm', 'Khác']
+    planType: 'rough_construction',
+    subcategories: ['Ốp lát', 'Trần thạch cao', 'Đèn/Chiếu sáng', 'Sơn bả', 'Chống thấm', 'Silicone', 'Khác']
   },
   {
-    id: 'ceiling',
-    label: 'Trần & Đèn',
-    icon: '💡',
-    planType: 'layout',
-    subcategories: ['Trần thạch cao', 'Đèn âm', 'Đèn thả', 'Khe gió', 'La phông', 'Khác']
+    id: 'interior',
+    label: 'Nội thất',
+    icon: '🪑',
+    planType: 'interior_detail',
+    subcategories: ['Bố trí', 'Vách', 'Tủ', 'Sàn gỗ', 'Cửa', 'Kính', 'Rèm', 'Nệm/Ghế', 'Khác']
+  },
+  {
+    id: 'kc_mep',
+    label: 'KC-MEP',
+    icon: '🏗️',
+    planType: 'kc_me',
+    subcategories: ['Móng', 'Dầm/Cột', 'Sàn/Tường xây', 'Điện', 'Nước', 'Điều hòa', 'PCCC', 'Khác']
   }
 ];
 

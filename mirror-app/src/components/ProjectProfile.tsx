@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Project, FloorPlan, MarkerNote } from '../types';
-import { Grid, Image as ImageIcon, Box, CheckCircle2, ChevronRight, Upload, Bell, FileText, ClipboardList, Circle, Camera } from 'lucide-react';
+import { Grid, Image as ImageIcon, Box, CheckCircle2, ChevronRight, Upload, Bell, FileText, ClipboardList, Circle, Camera, Target, Trash2 } from 'lucide-react';
 import PinMapPreview from './PinMapPreview';
 import VoiceNoteRecorder from './VoiceNoteRecorder';
 import FileUploader from './FileUploader';
 import ReportLayout from './ReportLayout';
 
 let savedProjectScrollTop = 0;
+let savedActiveTab: 'design' | 'construction' = 'design';
+let savedConstructionTab: 'issues' | 'diary' = 'issues';
+let savedSelectedFilter: string | null = null;
 
 interface ProjectProfileProps {
   project: Project | null;
@@ -15,21 +18,28 @@ interface ProjectProfileProps {
   onUploadFile: (planType: FloorPlan['planType']) => void;
   onOpenPinMap?: (planId: string, markerId?: string) => void;
   onQuickCapture?: () => void;
+  onTogglePinTarget?: (planId: string, isPinTarget: boolean) => void;
+  onDeleteFloorPlan?: (planId: string) => void;
 }
 
 const DOC_CATEGORIES = [
   { type: 'perspective',        label: 'File Phối Cảnh',            shortLabel: 'Phối cảnh',   icon: CheckCircle2, color: 'text-indigo-500 border-indigo-200' },
   { type: 'material_spec',      label: 'File Spec Vật Liệu',        shortLabel: 'Vật liệu',    icon: CheckCircle2, color: 'text-amber-500 border-amber-200'  },
   { type: 'equipment',          label: 'File Thiết Bị',             shortLabel: 'Thiết bị',    icon: CheckCircle2, color: 'text-rose-500 border-rose-200'   },
-  { type: 'rough_construction', label: 'Triển Khai Thô Hoàn Thiện', shortLabel: 'Hoàn thi...', icon: CheckCircle2, color: 'text-slate-500 border-slate-200'  },
+  { type: 'rough_construction', label: 'Triển Khai Hoàn Thiện',     shortLabel: 'Hoàn thiện',  icon: CheckCircle2, color: 'text-slate-500 border-slate-200'  },
   { type: 'interior_detail',    label: 'Triển Khai Nội Thất',       shortLabel: 'Nội thất',    icon: CheckCircle2, color: 'text-emerald-500 border-emerald-200'    },
-  { type: 'kc_me',              label: 'Bản vẽ KC-MEP',             shortLabel: 'KC-MEP',      icon: Circle,       color: 'text-slate-300 border-slate-100' },
+  { type: 'kc_me',              label: 'Bản vẽ KC-MEP',             shortLabel: 'KC-MEP',      icon: CheckCircle2, color: 'text-slate-300 border-slate-100' },
 ] as const;
 
-export default function ProjectProfile({ project, floorPlans, markers, onUploadFile, onOpenPinMap, onQuickCapture }: ProjectProfileProps) {
-  const [activeTab, setActiveTab] = useState<'design' | 'construction'>('design');
-  const [constructionTab, setConstructionTab] = useState<'issues' | 'diary'>('issues');
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+export default function ProjectProfile({ project, floorPlans, markers, onUploadFile, onOpenPinMap, onQuickCapture, onTogglePinTarget, onDeleteFloorPlan }: ProjectProfileProps) {
+  const [activeTab, setActiveTab] = useState<'design' | 'construction'>(savedActiveTab);
+  const [constructionTab, setConstructionTab] = useState<'issues' | 'diary'>(savedConstructionTab);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(savedSelectedFilter);
+
+  useEffect(() => { savedActiveTab = activeTab; }, [activeTab]);
+  useEffect(() => { savedConstructionTab = constructionTab; }, [constructionTab]);
+  useEffect(() => { savedSelectedFilter = selectedFilter; }, [selectedFilter]);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -140,16 +150,21 @@ export default function ProjectProfile({ project, floorPlans, markers, onUploadF
               
               {/* Filter Chips */}
               <div className="flex flex-wrap gap-2 pb-1">
-                {DOC_CATEGORIES.map(cat => (
-                  <button 
-                    key={cat.type}
-                    onClick={() => setSelectedFilter(selectedFilter === cat.type ? null : cat.type)}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-[12px] font-bold whitespace-nowrap transition-all shrink-0 ${selectedFilter === cat.type ? 'bg-slate-800 border-slate-800 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50'}`}
-                  >
-                    <cat.icon size={14} className={selectedFilter === cat.type ? 'text-white' : 'text-slate-400'} />
-                    {cat.shortLabel}
-                  </button>
-                ))}
+                {DOC_CATEGORIES.map(cat => {
+                  const hasPinnedPlan = floorPlans.some(fp => fp.projectId === project.id && fp.planType === cat.type && fp.isPinTarget);
+                  const Icon = hasPinnedPlan ? CheckCircle2 : Circle;
+                  
+                  return (
+                    <button 
+                      key={cat.type}
+                      onClick={() => setSelectedFilter(selectedFilter === cat.type ? null : cat.type)}
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-[12px] font-bold whitespace-nowrap transition-all shrink-0 ${selectedFilter === cat.type ? 'bg-slate-800 border-slate-800 text-white shadow-md' : 'border-slate-200 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50'}`}
+                    >
+                      <Icon size={14} className={selectedFilter === cat.type ? 'text-white' : (hasPinnedPlan ? 'text-emerald-500' : 'text-slate-400')} />
+                      {cat.shortLabel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -197,27 +212,35 @@ export default function ProjectProfile({ project, floorPlans, markers, onUploadF
                                 <CatIcon size={32} className="text-slate-300" />
                               </div>
                             )}
-                            
                             {/* Badges */}
-                            <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#1A1A1A]/90 backdrop-blur-sm text-white text-[12px] font-bold rounded-lg shadow-sm">
-                              v{Math.floor(Math.random() * 3) + 1}.0
+                            <div className="absolute top-2 left-2">
+                              <div className="px-2.5 py-1 bg-[#1A1A1A]/90 backdrop-blur-sm text-white text-[12px] font-bold rounded-lg shadow-sm">
+                                v1.0
+                              </div>
                             </div>
                             
-                            <div className="absolute top-2 right-2">
-                              {status === 'approved' && (
-                                <div className="px-2.5 py-1 bg-emerald-500/90 backdrop-blur-sm text-white text-[12px] font-bold rounded-lg flex items-center gap-1 shadow-sm">
-                                  <CheckCircle2 size={12} /> Đã duyệt
-                                </div>
+                            <div className="absolute top-2 right-2 flex items-center gap-1.5">
+                              {onDeleteFloorPlan && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); onDeleteFloorPlan(plan.id); }}
+                                  className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#1A1A1A]/70 text-slate-300 hover:text-rose-400 hover:bg-[#1A1A1A]/90 transition-all backdrop-blur-sm shadow-sm"
+                                  title="Xóa bản vẽ"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
                               )}
-                              {status === 'rejected' && (
-                                <div className="px-2.5 py-1 bg-rose-500/90 backdrop-blur-sm text-white text-[12px] font-bold rounded-lg flex items-center gap-1 shadow-sm">
-                                  <span className="text-[12px]">✕</span> Từ chối
-                                </div>
-                              )}
-                              {status === 'pending' && (
-                                <div className="px-2.5 py-1 bg-amber-500/90 backdrop-blur-sm text-white text-[12px] font-bold rounded-lg shadow-sm">
-                                  Chờ duyệt
-                                </div>
+                              {onTogglePinTarget && (
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); onTogglePinTarget(plan.id, !plan.isPinTarget); }}
+                                  className={`px-2.5 py-1 text-[12px] font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-all backdrop-blur-sm ${
+                                    plan.isPinTarget 
+                                      ? 'bg-emerald-500/90 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)] hover:bg-emerald-600/90' 
+                                      : 'bg-[#1A1A1A]/70 text-white hover:bg-[#1A1A1A]/90'
+                                  }`}
+                                >
+                                  <Target size={12} />
+                                  {plan.isPinTarget ? 'Đã ghim' : 'Chọn ghim'}
+                                </button>
                               )}
                             </div>
                           </div>
@@ -367,13 +390,36 @@ export default function ProjectProfile({ project, floorPlans, markers, onUploadF
           <span className="text-[13px] tracking-wide uppercase">Chụp lỗi</span>
         </button>
       ) : (
-        <button 
-          onClick={() => onUploadFile('perspective')}
-          className="fixed bottom-20 right-4 flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-[0_8px_16px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 transition-transform z-40"
-        >
-          <Upload size={16} strokeWidth={2.5} />
-          <span className="text-xs">Tải bản vẽ</span>
-        </button>
+        <div className="fixed bottom-20 right-4 z-40 flex flex-col items-end gap-2">
+          {showUploadMenu && (
+            <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 mb-2 w-56 flex flex-col gap-1 origin-bottom-right animate-in fade-in zoom-in duration-150">
+              <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                <span className="text-[10px] font-black text-slate-500 uppercase">Chọn thư mục tải lên</span>
+              </div>
+              <div className="max-h-64 overflow-y-auto custom-scrollbar">
+                {DOC_CATEGORIES.map(cat => (
+                  <button 
+                    key={cat.type}
+                    onClick={() => {
+                      onUploadFile(cat.type);
+                      setShowUploadMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg font-bold transition-colors"
+                  >
+                    {cat.shortLabel}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <button 
+            onClick={() => setShowUploadMenu(!showUploadMenu)}
+            className="flex items-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-[0_8px_16px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 transition-transform"
+          >
+            <Upload size={16} strokeWidth={2.5} />
+            <span className="text-xs">Tải bản vẽ</span>
+          </button>
+        </div>
       )}
 
     </div>

@@ -28,6 +28,10 @@ import PinMapView from './components/PinMapView';
 import NotificationPanel from './components/NotificationPanel';
 import CEODashboard from './components/CEODashboard';
 import XUDashboard from './components/XUDashboard';
+import ProgressView from './components/ProgressView';
+import DefectListView from './components/DefectListView';
+import KnowledgeHub from './components/KnowledgeHub';
+import ProfileView from './components/ProfileView';
 import { MarkerDetailModal } from './components/MarkerDetailModal';
 import GlobalCaptureModal from './components/GlobalCaptureModal';
 import GlobalPinSelectorModal from './components/GlobalPinSelectorModal';
@@ -123,6 +127,11 @@ export default function App() {
   const [dashboardLayout, setDashboardLayout] = useState<'grid' | 'list'>('list'); // Miro board view defaults to List (table-like as requested)
   const [showCEODashboard, setShowCEODashboard] = useState(false);
   const [showXUDashboard, setShowXUDashboard] = useState(false);
+  const [showProgressView, setShowProgressView] = useState(false);
+  const [showDefectList, setShowDefectList] = useState(false);
+  const [showKnowledgeHub, setShowKnowledgeHub] = useState(false);
+  const [showProfileView, setShowProfileView] = useState(false);
+  const [activeBottomTab, setActiveBottomTab] = useState<'projects' | 'progress' | 'notifications' | 'profile'>('projects');
 
   // Request browser notification permission on first load
   useEffect(() => { requestNotificationPermission(); }, []);
@@ -486,6 +495,29 @@ export default function App() {
     }
   }
 
+  async function handleDeleteFloorPlan(planId: string) {
+    if (window.confirm('Bạn có chắc chắn muốn xóa bản vẽ này? Mọi ghim lỗi trên bản vẽ cũng sẽ bị xóa.')) {
+      try {
+        await deleteFloorPlan(planId);
+        setFloorPlans(prev => prev.filter(fp => fp.id !== planId));
+        
+        // Clean up orphaned markers
+        const relatedMarkers = markerNotes.filter(m => m.floorPlanId === planId);
+        for (const m of relatedMarkers) {
+          await deleteMarkerNote(m.id);
+        }
+        setMarkerNotes(prev => prev.filter(m => m.floorPlanId !== planId));
+
+        if (activeFloorPlanId === planId) {
+          setActiveFloorPlanId(null);
+        }
+      } catch (e: any) {
+        console.error(e);
+        alert('Lỗi khi xóa bản vẽ: ' + e.message);
+      }
+    }
+  }
+
   function toggleFavoriteProject(id: string) {
     const list = favoriteProjectIds.includes(id)
       ? favoriteProjectIds.filter(item => item !== id)
@@ -618,6 +650,12 @@ export default function App() {
       setUploadProgress(null);
       setUploadTargetPlanType(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      
+      // Auto-redirect to pinmap if we are in the middle of capturing a defect
+      if (globalDraftFault) {
+        setCurrentView('workspace');
+        setWorkspaceView('pinmap');
+      }
     }
   }
 
@@ -1782,6 +1820,69 @@ export default function App() {
 
       {/* CEO Dashboard removed — replaced by XUDashboard for Quản lý */}
 
+      {/* PROGRESS VIEW OVERLAY */}
+      {showProgressView && (
+        <ProgressView
+          projects={projects}
+          floorPlans={floorPlans}
+          markerNotes={markerNotes}
+          onOpenProject={(projectId) => {
+            setActiveProjectId(projectId);
+            const related = floorPlans.filter(fp => fp.projectId === projectId);
+            if (related.length > 0) setActiveFloorPlanId(related[0].id);
+            localStorage.setItem('last_active_project_id_v2', projectId);
+            setWorkspaceView('profile');
+            setCurrentView('workspace');
+            setShowProgressView(false);
+            setActiveBottomTab('projects');
+          }}
+          onClose={() => { setShowProgressView(false); setActiveBottomTab('projects'); }}
+        />
+      )}
+
+      {/* DEFECT LIST VIEW OVERLAY */}
+      {showDefectList && (
+        <DefectListView
+          projects={projects}
+          floorPlans={floorPlans}
+          markerNotes={markerNotes}
+          onUpdateMarker={handleUpdateMarker}
+          onOpenProject={(projectId) => {
+            setActiveProjectId(projectId);
+            const related = floorPlans.filter(fp => fp.projectId === projectId);
+            if (related.length > 0) setActiveFloorPlanId(related[0].id);
+            localStorage.setItem('last_active_project_id_v2', projectId);
+            setWorkspaceView('pinmap');
+            setCurrentView('workspace');
+            setShowDefectList(false);
+            setActiveBottomTab('projects');
+          }}
+          onClose={() => setShowDefectList(false)}
+        />
+      )}
+
+      {/* KNOWLEDGE HUB OVERLAY */}
+      {showKnowledgeHub && (
+        <KnowledgeHub
+          projects={projects}
+          floorPlans={floorPlans}
+          markerNotes={markerNotes}
+          onClose={() => { setShowKnowledgeHub(false); setActiveBottomTab('projects'); }}
+        />
+      )}
+
+      {/* PROFILE VIEW OVERLAY */}
+      {showProfileView && (
+        <ProfileView
+          activeUserRole={activeUserRole}
+          userRolesList={userRolesList}
+          projects={projects}
+          markerNotes={markerNotes}
+          onSetActiveUserRole={setActiveUserRole}
+          onClose={() => { setShowProfileView(false); setActiveBottomTab('projects'); }}
+        />
+      )}
+
       {/* 2. MAIN LAYOUT DECK CONTAINER */}
       {currentView === 'workspace' && workspaceView === 'profile' ? (
         <>
@@ -1789,9 +1890,21 @@ export default function App() {
             project={activeProject || null}
             floorPlans={projectFloorPlans}
             markers={projectMarkerNotes}
+            onDeleteFloorPlan={handleDeleteFloorPlan}
             onUploadFile={(planType) => {
               setUploadTargetPlanType(planType);
               if (fileInputRef.current) fileInputRef.current.click();
+            }}
+            onTogglePinTarget={async (planId, isPinTarget) => {
+              setFloorPlans(prev => prev.map(p => p.id === planId ? { ...p, isPinTarget } : p));
+              const planToUpdate = floorPlans.find(p => p.id === planId);
+              if (planToUpdate) {
+                try {
+                  await saveFloorPlan({ ...planToUpdate, isPinTarget });
+                } catch (e) {
+                  console.error('Failed to save pin target state', e);
+                }
+              }
             }}
             onOpenPinMap={(planId, markerId) => {
               setActiveFloorPlanId(planId);
@@ -1804,20 +1917,20 @@ export default function App() {
             onQuickCapture={() => setIsGlobalCaptureOpen(true)}
           />
           <BottomNavBar 
-            currentTab="projects"
+            currentTab={activeBottomTab}
             onTabChange={(tab) => {
-              if (tab === 'projects') setCurrentView('dashboard');
-              if (tab === 'defects') setShowXUDashboard(true);
-              if (tab === 'library') setShowLessonsModal(true);
-              if (tab === 'roles') {
-                // Show role selector inline
-                setShowXUDashboard(true);
+              setActiveBottomTab(tab);
+              if (tab === 'projects') {
+                setCurrentView('dashboard');
+                setShowProgressView(false);
+                setShowKnowledgeHub(false);
+                setShowProfileView(false);
               }
+              if (tab === 'progress') setShowProgressView(true);
+              if (tab === 'notifications') setShowKnowledgeHub(true);
+              if (tab === 'profile') setShowProfileView(true);
             }}
-            onActionClick={() => {
-              setUploadTargetPlanType('perspective');
-              if (fileInputRef.current) fileInputRef.current.click();
-            }}
+            onActionClick={() => setShowDefectList(true)}
             activeRole={activeUserRole.role}
           />
         </>
@@ -2325,7 +2438,14 @@ export default function App() {
             
             // Auto-find matching floor plan in current project
             const projectPlans = floorPlans.filter(fp => fp.projectId === activeProjectId);
-            const matchingPlan = projectPlans.find(fp => fp.planType === category.planType);
+            
+            // Prefer pinned plan of this category
+            let matchingPlan = projectPlans.find(fp => fp.planType === category.planType && fp.isPinTarget);
+            
+            // Fallback to any plan of this category if no pinned plan exists
+            if (!matchingPlan) {
+              matchingPlan = projectPlans.find(fp => fp.planType === category.planType);
+            }
             
             if (matchingPlan) {
               // Found matching plan → go straight to pinmap!
@@ -2353,6 +2473,12 @@ export default function App() {
             setActiveFloorPlanId(floorPlanId);
             setCurrentView('workspace');
             setWorkspaceView('pinmap');
+          }}
+          onTriggerUpload={(projectId) => {
+            setActiveProjectId(projectId);
+            setUploadTargetPlanType(selectedDefectCategory?.planType || 'perspective');
+            if (fileInputRef.current) fileInputRef.current.click();
+            setIsGlobalPinSelectorOpen(false);
           }}
         />
       )}

@@ -8,7 +8,7 @@ export interface FloorPlan {
   canvasX?: number; // Manual coordinate on whiteboard canvas
   canvasY?: number; // Manual coordinate on whiteboard canvas
   projectId?: string; // Parent project reference ID
-  planType?: 'perspective' | 'material_spec' | 'equipment' | 'rough_construction' | 'interior_detail'; // Strict categorization
+  planType?: string; // Strict categorization
   isPinned?: boolean; // Pinned to the top navigation dashboard bar
   documentGroupId?: string; // Grouping ID for multi-page documents (like PDFs) - deprecated but kept for backwards compatibility
   pageIndex?: number; // 0-based page index within the document - deprecated
@@ -17,6 +17,7 @@ export interface FloorPlan {
   canvasScale?: number; // Scale factor for resizing on canvas (default 1.0)
   isLocked?: boolean; // Lock movement and editing
   zIndex?: number; // Layering order (Bring to front/Send to back)
+  isPinTarget?: boolean; // Mark as a preferred target for pinning defects
 }
 
 export interface Project {

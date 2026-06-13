@@ -52,3 +52,41 @@ CREATE TABLE IF NOT EXISTS whiteboard_annotations (
 ALTER TABLE floor_plans DISABLE ROW LEVEL SECURITY;
 ALTER TABLE marker_notes DISABLE ROW LEVEL SECURITY;
 ALTER TABLE whiteboard_annotations DISABLE ROW LEVEL SECURITY;
+
+-- 4. B?ng D? án
+CREATE TABLE IF NOT EXISTS projects (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  client TEXT,
+  leader TEXT,
+  address TEXT,
+  status TEXT,
+  progress INTEGER,
+  created_at BIGINT NOT NULL
+);
+
+ALTER TABLE projects DISABLE ROW LEVEL SECURITY;
+
+-- C?p nh?t c?t cho b?ng floor_plans
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS canvas_x REAL;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS canvas_y REAL;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS canvas_scale REAL;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN DEFAULT false;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS document_group_id TEXT;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS page_index INTEGER;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS page_count INTEGER;
+ALTER TABLE floor_plans ADD COLUMN IF NOT EXISTS pdf_data TEXT;
+
+-- C?p nh?t c?t cho b?ng marker_notes
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS status TEXT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS author TEXT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS priority TEXT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS assigned_to TEXT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS due_date BIGINT;
+ALTER TABLE marker_notes ADD COLUMN IF NOT EXISTS images TEXT[];
+
+-- C?p nh?t c?t cho b?ng whiteboard_annotations
+ALTER TABLE whiteboard_annotations ADD COLUMN IF NOT EXISTS stroke_width REAL;
+ALTER TABLE whiteboard_annotations ADD COLUMN IF NOT EXISTS points JSONB;
+ALTER TABLE whiteboard_annotations ADD COLUMN IF NOT EXISTS text TEXT;

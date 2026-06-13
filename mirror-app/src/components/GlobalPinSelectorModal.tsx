@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Map, Folder, ChevronRight, AlertCircle, MapPin } from 'lucide-react';
+import { X, Map, Folder, ChevronRight, AlertCircle, MapPin, Upload, Target } from 'lucide-react';
 import { Project, FloorPlan } from '../types';
 
 interface GlobalPinSelectorModalProps {
@@ -8,14 +8,19 @@ interface GlobalPinSelectorModalProps {
   floorPlans: FloorPlan[];
   activeProjectId?: string | null;
   onSelectDestination: (projectId: string, floorPlanId: string) => void;
+  onTriggerUpload: (projectId: string) => void;
   onClose: () => void;
 }
 
-export default function GlobalPinSelectorModal({ projects, floorPlans, activeProjectId, onSelectDestination, onClose }: GlobalPinSelectorModalProps) {
+export default function GlobalPinSelectorModal({ projects, floorPlans, activeProjectId, onSelectDestination, onTriggerUpload, onClose }: GlobalPinSelectorModalProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(activeProjectId || null);
 
   const activeProjects = projects.filter(p => p.status === 'active');
-  const projectPlans = selectedProjectId ? floorPlans.filter(p => p.projectId === selectedProjectId) : [];
+  const allProjectPlans = selectedProjectId ? floorPlans.filter(p => p.projectId === selectedProjectId) : [];
+  
+  // Prioritize pinned targets, otherwise show all
+  const pinnedPlans = allProjectPlans.filter(p => p.isPinTarget);
+  const projectPlans = pinnedPlans.length > 0 ? pinnedPlans : allProjectPlans;
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
@@ -35,7 +40,7 @@ export default function GlobalPinSelectorModal({ projects, floorPlans, activePro
           </button>
         </div>
 
-        <div className="p-5 flex flex-col gap-4 overflow-y-auto">
+        <div className="p-5 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
           {!selectedProjectId ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-amber-400 text-xs font-bold bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
@@ -82,7 +87,15 @@ export default function GlobalPinSelectorModal({ projects, floorPlans, activePro
                 <span>Chọn 1 bản vẽ thuộc công trình này để mở ra và thả ghim!</span>
               </div>
               
-              <span className="text-xs font-bold text-slate-400 uppercase mt-2">Bản vẽ & Mặt bằng</span>
+              <span className="text-xs font-bold text-slate-400 uppercase mt-2 flex justify-between items-center">
+                <span>{pinnedPlans.length > 0 ? "Bản vẽ Mục Tiêu Ghim" : "Bản vẽ & Mặt bằng"}</span>
+                <button 
+                  onClick={() => onTriggerUpload(selectedProjectId)}
+                  className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-2 py-1 rounded text-[10px] uppercase font-bold transition-colors"
+                >
+                  <Upload className="w-3 h-3" /> TẢI LÊN MỚI
+                </button>
+              </span>
               <div className="flex flex-col gap-2">
                 {projectPlans.map(plan => (
                   <button
@@ -90,8 +103,13 @@ export default function GlobalPinSelectorModal({ projects, floorPlans, activePro
                     onClick={() => onSelectDestination(selectedProjectId, plan.id)}
                     className="flex items-center gap-3 p-3 bg-slate-900 border border-slate-800 rounded-2xl hover:border-emerald-500 hover:bg-emerald-500/5 transition-all text-left group"
                   >
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-slate-800">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-slate-800 relative">
                       <img src={plan.imageData} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                      {plan.isPinTarget && (
+                        <div className="absolute top-1 left-1 p-0.5 bg-rose-500 rounded text-white shadow-sm">
+                          <Target className="w-3 h-3" />
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-col flex-1">
                       <span className="font-bold text-sm text-slate-200 line-clamp-2">{plan.name}</span>
@@ -100,9 +118,14 @@ export default function GlobalPinSelectorModal({ projects, floorPlans, activePro
                   </button>
                 ))}
                 {projectPlans.length === 0 && (
-                  <div className="text-center p-5 text-slate-500 text-xs border border-dashed border-slate-800 rounded-2xl">
-                    Công trình này chưa có bản vẽ nào.<br/>
-                    Vui lòng quay lại chọn công trình khác.
+                  <div className="text-center p-5 text-slate-500 flex flex-col items-center justify-center gap-3 border border-dashed border-slate-800 rounded-2xl">
+                    <span className="text-xs">Công trình này chưa có bản vẽ nào.</span>
+                    <button 
+                      onClick={() => onTriggerUpload(selectedProjectId)}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-2 transition-transform active:scale-95 shadow-md"
+                    >
+                      <Upload className="w-4 h-4" /> Tải lên Bản vẽ / PDF
+                    </button>
                   </div>
                 )}
               </div>
