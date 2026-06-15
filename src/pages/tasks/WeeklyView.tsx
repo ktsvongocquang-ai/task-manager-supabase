@@ -194,16 +194,28 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
 
     const groupedTasks = useMemo(() => {
         const sourceList = sortMode === 'alert' ? alerts : weekTasks;
-        let groups: { key: string, label: string, tasks: Task[], isLateGroup?: boolean, defaultValues?: any }[] = [];
+        let groups: { key: string, label: string, tasks: Task[], isLateGroup?: boolean, isTodayGroup?: boolean, defaultValues?: any }[] = [];
 
         if (sortMode === 'time' || sortMode === 'alert') {
             const lateTasks = sourceList.filter(t => new Date(t.due_date!) < mon);
-            if (lateTasks.length > 0) {
-                groups.push({ key: 'Trễ hạn', label: 'Trễ hạn', tasks: lateTasks.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||'')), isLateGroup: true });
+            const todayStr = format(TODAY, 'yyyy-MM-dd');
+            let hasToday = false;
+
+            if (TODAY >= mon && TODAY <= sun) {
+                const todayTasks = sourceList.filter(t => {
+                    const tDate = new Date(t.due_date!);
+                    if (tDate < mon) return false;
+                    return t.due_date!.substring(0, 10) === todayStr;
+                }).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
+                groups.push({ key: 'Hôm nay', label: 'Hôm nay', tasks: todayTasks, isTodayGroup: true, defaultValues: { start_date: todayStr, due_date: todayStr } });
+                hasToday = true;
             }
+
             for (let i = 0; i < 7; i++) {
                 const d = new Date(mon); d.setDate(mon.getDate() + i);
                 const dStr = format(d, 'yyyy-MM-dd');
+                if (hasToday && dStr === todayStr) continue;
+
                 const key = `${DAY_FULL[d.getDay()]} ${fmtShort(d)}`;
                 const dayTasks = sourceList.filter(t => {
                     const tDate = new Date(t.due_date!);
@@ -212,6 +224,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 }).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
                 
                 groups.push({ key, label: key, tasks: dayTasks, defaultValues: { start_date: dStr, due_date: dStr } });
+            }
+
+            if (lateTasks.length > 0) {
+                groups.push({ key: 'Trễ hạn', label: 'Trễ hạn', tasks: lateTasks.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||'')), isLateGroup: true });
             }
         } else if (sortMode === 'project') {
             const projectIds = Array.from(new Set(sourceList.map(t => t.project_id)));
@@ -336,7 +352,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 <select
                     value={filterPerson}
                     onChange={e => setFilterPerson(e.target.value)}
-                    className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
                 >
                     <option value="">Tất cả nhân sự</option>
                     {uniquePersonIds.map(id => {
@@ -348,7 +364,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 <select
                     value={filterProject}
                     onChange={e => setFilterProject(e.target.value)}
-                    className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
                 >
                     <option value="">Tất cả dự án</option>
                     {uniqueProjects.map(id => (
@@ -396,13 +412,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         return (
                             <div key={group.key} className="mb-1">
                                 {/* Group Header */}
-                                <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-100 border-slate-200 text-slate-800'} border-y sticky top-0 z-10 shadow-sm`}>
+                                <div className={`flex items-center justify-between px-5 py-2 ${group.isLateGroup ? 'bg-red-50 border-red-200 text-red-700' : group.isTodayGroup ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-slate-100 border-slate-200 text-slate-800'} border-y sticky top-0 z-10 shadow-sm`}>
                                     <div 
                                         className="flex items-center gap-2 cursor-pointer flex-1 select-none"
                                         onClick={() => toggleGroup(group.key)}
                                     >
-                                        <ChevronDown size={16} className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''} ${group.isLateGroup ? 'text-red-400' : 'text-slate-400'}`} />
-                                        <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : 'text-slate-700'}`}>
+                                        <ChevronDown size={16} className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''} ${group.isLateGroup ? 'text-red-400' : group.isTodayGroup ? 'text-indigo-400' : 'text-slate-400'}`} />
+                                        <span className={`text-sm font-bold uppercase tracking-wide ${group.isLateGroup ? 'text-red-700' : group.isTodayGroup ? 'text-indigo-700' : 'text-slate-700'}`}>
                                             {group.label}
                                         </span>
                                         <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500">
