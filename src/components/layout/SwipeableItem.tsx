@@ -49,7 +49,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
   return (
     <div className="relative overflow-hidden rounded-2xl mb-3">
         {/* Swipe Action Backgrounds */}
-        <div className="absolute inset-0 flex justify-between items-center px-6 rounded-2xl bg-[#2a2a2a]">
+        <div className="absolute inset-0 flex justify-between items-center px-6 rounded-2xl bg-slate-100">
             {/* Left Action (Swipe Right) */}
             <div className={`flex items-center gap-2 text-rose-500 font-bold opacity-0 transition-opacity ${swipeOffset > 20 ? 'opacity-100' : ''}`}>
                {swipeRightIcon} {swipeRightLabel}
@@ -64,7 +64,7 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
         <div 
             {...handlers}
             style={{ transform: `translateX(${swipeOffset}px)` }}
-            className={`relative bg-[#222] rounded-2xl border border-[#333] shadow-sm cursor-pointer ${isSwiping ? 'transition-none' : 'transition-transform duration-300'} hover:border-indigo-300 hover:shadow-md h-full flex flex-col`}
+            className={`relative bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer ${isSwiping ? 'transition-none' : 'transition-transform duration-300'} hover:border-indigo-300 hover:shadow-md h-full flex flex-col`}
         >
             {children}
         </div>

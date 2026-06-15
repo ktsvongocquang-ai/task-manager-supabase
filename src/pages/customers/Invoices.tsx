@@ -13,24 +13,24 @@ export default function Invoices() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-slate-50">Quản lý Hóa đơn</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Quản lý Hóa đơn</h2>
         <button className="bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Tạo Hóa đơn mới
         </button>
       </div>
 
-      <div className="bg-[#222] rounded-xl border border-[#333] shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-96">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
               placeholder="Tìm kiếm hóa đơn..." 
-              className="w-full pl-9 pr-4 py-2 bg-[#1c1c1c] border border-[#333] rounded-lg text-sm focus:bg-[#222] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-[#333] rounded-lg text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             <Filter className="w-4 h-4" />
             Bộ lọc
           </button>
@@ -38,7 +38,7 @@ export default function Invoices() {
 
         <div className="overflow-x-auto min-h-[400px]">
           {/* Mobile Card View */}
-          <div className="md:hidden flex flex-col p-4 gap-4 bg-[#1c1c1c]/30">
+          <div className="md:hidden flex flex-col p-4 gap-4 bg-gray-50/30">
             {mockInvoices.map((invoice) => (
               <SmartCard
                 key={invoice.id}
@@ -50,7 +50,7 @@ export default function Invoices() {
                   invoice.status === 'Đã thanh toán' ? 'bg-green-100 text-green-800 border-green-200' :
                   invoice.status === 'Chờ thanh toán' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                   invoice.status === 'Quá hạn' ? 'bg-red-100 text-red-800 border-red-200' :
-                  'bg-[#2a2a2a] text-slate-100 border-[#333]'
+                  'bg-gray-100 text-gray-800 border-gray-200'
                 }
                 avatarInitials={invoice.client.charAt(0)}
                 deadline={`Hạn: ${invoice.dueDate}`}
@@ -60,29 +60,29 @@ export default function Invoices() {
 
           <table className="hidden md:table w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#1c1c1c] border-b border-[#333]">
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Mã Hóa đơn</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Khách hàng</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Số tiền</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Ngày xuất</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Hạn thanh toán</th>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mã Hóa đơn</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Số tiền</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ngày xuất</th>
+                <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Hạn thanh toán</th>
                 <th className="px-6 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {mockInvoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-[#1c1c1c] transition-colors group">
+                <tr key={invoice.id} className="hover:bg-gray-50 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-gray-400" />
                       <span className="font-medium text-indigo-600 hover:text-indigo-800 cursor-pointer">{invoice.id}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-50 font-medium">
+                  <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                     {invoice.client}
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-50 font-semibold">
+                  <td className="px-6 py-4 text-sm text-gray-900 font-semibold">
                     {invoice.amount}
                   </td>
                   <td className="px-6 py-4">
@@ -90,7 +90,7 @@ export default function Invoices() {
                       invoice.status === 'Đã thanh toán' ? 'bg-green-100 text-green-800' :
                       invoice.status === 'Chờ thanh toán' ? 'bg-yellow-100 text-yellow-800' :
                       invoice.status === 'Quá hạn' ? 'bg-red-100 text-red-800' :
-                      'bg-[#2a2a2a] text-slate-100'
+                      'bg-gray-100 text-gray-800'
                     }`}>
                       {invoice.status}
                     </span>
@@ -106,7 +106,7 @@ export default function Invoices() {
                       <button className="text-gray-400 hover:text-indigo-600 p-1 rounded-md hover:bg-indigo-50" title="Tải xuống">
                         <Download className="w-4 h-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-[#2a2a2a]">
+                      <button className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100">
                         <MoreVertical className="w-5 h-5" />
                       </button>
                     </div>

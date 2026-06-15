@@ -318,14 +318,14 @@ const fmt = (n: number) => new Intl.NumberFormat("vi-VN").format(Math.round(n));
 const LoadingSpinner = ({ text = "Đang tải..." }: { text?: string }) => (
   <div className="flex flex-col items-center justify-center py-16 gap-3">
     <Loader2 size={28} className="text-purple-500 animate-spin" />
-    <span className="text-sm text-slate-400">{text}</span>
+    <span className="text-sm text-gray-500">{text}</span>
   </div>
 );
 
 const EmptyState = ({ text = "Chưa có nội dung" }: { text?: string }) => (
   <div className="text-center py-16">
     <BookOpen size={40} className="mx-auto text-gray-300 mb-3" />
-    <p className="text-sm text-slate-400">{text}</p>
+    <p className="text-sm text-gray-500">{text}</p>
   </div>
 );
 
@@ -351,7 +351,7 @@ const Checklist = ({ items }: { items: string[] }) => (
     </div>
     <ul className="space-y-2">
       {items.map((c, i) => (
-        <li key={i} className="flex items-start gap-2 text-sm text-slate-200">
+        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
           <CheckCircle2 size={15} className="text-purple-500 flex-shrink-0 mt-0.5" />
           {c}
         </li>
@@ -392,14 +392,14 @@ const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; bo
               <th className="w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-100 bg-[#222]">
+          <tbody className="divide-y divide-purple-100 bg-white">
             {items.map((item, j) => (
               <tr key={j}>
                 <td className="px-2 py-2 align-top">
-                  <textarea value={item.title} onChange={e => handleTitleChange(j, e.target.value)} rows={2} className="w-full text-sm font-semibold text-slate-50 border border-[#333] rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                  <textarea value={item.title} onChange={e => handleTitleChange(j, e.target.value)} rows={2} className="w-full text-sm font-semibold text-gray-900 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
                 </td>
                 <td className="px-2 py-2 align-top">
-                  <textarea value={item.body} onChange={e => handleBodyChange(j, e.target.value)} rows={3} className="w-full text-sm text-slate-200 border border-[#333] rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                  <textarea value={item.body} onChange={e => handleBodyChange(j, e.target.value)} rows={3} className="w-full text-sm text-gray-700 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
                 </td>
                 <td className="px-2 py-2 text-center align-top">
                   <button onClick={() => removeItem(j)} className="text-red-500 hover:text-red-700 p-1 mt-1"><Trash2 size={16}/></button>
@@ -408,7 +408,7 @@ const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; bo
             ))}
           </tbody>
         </table>
-        <div className="p-3 bg-[#1c1c1c] border-t border-purple-100">
+        <div className="p-3 bg-gray-50 border-t border-purple-100">
           <button onClick={addItem} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
             <Plus size={16} /> Thêm hạng mục
           </button>
@@ -418,18 +418,18 @@ const ItemsBlock = ({ items, isEditing, onChange }: { items: { title: string; bo
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#333] shadow-sm">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
       <table className="w-full text-sm text-left">
-        <thead className="bg-[#1c1c1c] border-b border-[#333]">
+        <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-1/3">Hạng mục</th>
-            <th className="px-4 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Chi tiết</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider w-1/3">Hạng mục</th>
+            <th className="px-4 py-3 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Chi tiết</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-[#222]">
+        <tbody className="divide-y divide-gray-100 bg-white">
           {items.map((item, j) => (
-            <tr key={j} className="hover:bg-[#1c1c1c] transition-colors">
-              <td className="px-4 py-3 font-semibold text-slate-50 align-top">{item.title}</td>
+            <tr key={j} className="hover:bg-gray-50 transition-colors">
+              <td className="px-4 py-3 font-semibold text-gray-900 align-top">{item.title}</td>
               <td className="px-4 py-3 text-gray-600 align-top leading-relaxed whitespace-pre-wrap">{item.body}</td>
             </tr>
           ))}
@@ -478,18 +478,18 @@ const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: bo
             <tr>
               {headers.map((h: string, i: number) => (
                 <th key={i} className="px-2 py-2">
-                  <input value={h} onChange={e => handleHeaderChange(i, e.target.value)} className="w-full text-xs font-semibold text-purple-900 bg-[#222] border border-purple-200 rounded px-2 py-1" />
+                  <input value={h} onChange={e => handleHeaderChange(i, e.target.value)} className="w-full text-xs font-semibold text-purple-900 bg-white border border-purple-200 rounded px-2 py-1" />
                 </th>
               ))}
               <th className="w-10"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-purple-100 bg-[#222]">
+          <tbody className="divide-y divide-purple-100 bg-white">
             {rows.map((row: string[], i: number) => (
               <tr key={i}>
                 {row.map((cell: string, j: number) => (
                   <td key={j} className="px-2 py-2">
-                    <textarea value={cell} onChange={e => handleCellChange(i, j, e.target.value)} rows={2} className="w-full text-sm text-slate-100 border border-[#333] rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
+                    <textarea value={cell} onChange={e => handleCellChange(i, j, e.target.value)} rows={2} className="w-full text-sm text-gray-800 border border-gray-200 rounded px-2 py-1 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />
                   </td>
                 ))}
                 <td className="px-2 py-2 text-center">
@@ -499,7 +499,7 @@ const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: bo
             ))}
           </tbody>
         </table>
-        <div className="p-3 bg-[#1c1c1c] border-t border-purple-100">
+        <div className="p-3 bg-gray-50 border-t border-purple-100">
           <button onClick={addRow} className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-800 font-medium">
             <Plus size={16} /> Thêm dòng
           </button>
@@ -509,20 +509,20 @@ const TableBlock = ({ table, isEditing, onChange }: { table: any, isEditing?: bo
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[#333]">
+    <div className="overflow-x-auto rounded-lg border border-gray-200">
       <table className="w-full text-sm">
-        <thead className="bg-[#1c1c1c]">
+        <thead className="bg-gray-50">
           <tr>
             {headers.map((h: string, i: number) => (
               <th key={i} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">{h}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100 bg-[#222]">
+        <tbody className="divide-y divide-gray-100 bg-white">
           {rows.map((row: string[], i: number) => (
-            <tr key={i} className="hover:bg-[#1c1c1c]">
+            <tr key={i} className="hover:bg-gray-50">
               {row.map((cell: string, j: number) => (
-                <td key={j} className={`px-4 py-3 ${j === 0 ? "font-medium text-slate-50" : "font-mono text-gray-600"} whitespace-pre-wrap`}>{cell}</td>
+                <td key={j} className={`px-4 py-3 ${j === 0 ? "font-medium text-gray-900" : "font-mono text-gray-600"} whitespace-pre-wrap`}>{cell}</td>
               ))}
             </tr>
           ))}
@@ -551,32 +551,32 @@ const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: s
     return (
       <div className="border border-purple-200 rounded-lg overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[1fr_1fr_32px] bg-[#2a2a2a] border-b border-[#333]">
+        <div className="grid grid-cols-[1fr_1fr_32px] bg-gray-100 border-b border-gray-200">
           <div className="px-3 py-1.5 text-[11px] font-bold text-red-600 uppercase flex items-center gap-1">
             <AlertTriangle size={11} /> Lỗi sai
           </div>
-          <div className="px-3 py-1.5 text-[11px] font-bold text-green-600 uppercase flex items-center gap-1 border-l border-[#333]">
+          <div className="px-3 py-1.5 text-[11px] font-bold text-green-600 uppercase flex items-center gap-1 border-l border-gray-200">
             <CheckCircle2 size={11} /> Chuẩn DQH
           </div>
           <div></div>
         </div>
         {/* Rows */}
         {mistakes.map((m, j) => (
-          <div key={j} className="grid grid-cols-[1fr_1fr_32px] border-b border-[#333] hover:bg-[#1c1c1c]/50">
+          <div key={j} className="grid grid-cols-[1fr_1fr_32px] border-b border-gray-100 hover:bg-gray-50/50">
             <div className="p-1.5">
               <textarea
                 value={m.wrong}
                 onChange={e => handleWrongChange(j, e.target.value)}
                 rows={2}
-                className="w-full text-[12px] text-slate-100 border border-red-100 bg-red-50/50 rounded px-2 py-1 focus:border-red-400 focus:ring-1 focus:ring-red-400 outline-none resize-y"
+                className="w-full text-[12px] text-gray-800 border border-red-100 bg-red-50/50 rounded px-2 py-1 focus:border-red-400 focus:ring-1 focus:ring-red-400 outline-none resize-y"
               />
             </div>
-            <div className="p-1.5 border-l border-[#333]">
+            <div className="p-1.5 border-l border-gray-100">
               <textarea
                 value={m.right}
                 onChange={e => handleRightChange(j, e.target.value)}
                 rows={2}
-                className="w-full text-[12px] text-slate-100 border border-green-100 bg-green-50/50 rounded px-2 py-1 focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none resize-y"
+                className="w-full text-[12px] text-gray-800 border border-green-100 bg-green-50/50 rounded px-2 py-1 focus:border-green-400 focus:ring-1 focus:ring-green-400 outline-none resize-y"
               />
             </div>
             <div className="flex items-center justify-center">
@@ -584,7 +584,7 @@ const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: s
             </div>
           </div>
         ))}
-        <div className="p-2 bg-[#1c1c1c] border-t border-[#333]">
+        <div className="p-2 bg-gray-50 border-t border-gray-200">
           <button onClick={addMistake} className="flex items-center gap-1 text-[12px] text-purple-600 hover:text-purple-800 font-medium">
             <Plus size={14} /> Thêm lỗi mới
           </button>
@@ -596,18 +596,18 @@ const MistakesBlock = ({ mistakes, isEditing, onChange }: { mistakes: { wrong: s
   return (
     <div className="space-y-3">
       {mistakes.map((m, j) => (
-        <div key={j} className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden border border-[#333]">
+        <div key={j} className="grid grid-cols-1 md:grid-cols-2 gap-px rounded-lg overflow-hidden border border-gray-200">
           <div className="bg-red-50 p-4">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 mb-2 uppercase tracking-wide">
               <AlertTriangle size={13} /> Lỗi sai
             </div>
-            <p className="text-sm text-slate-200">{m.wrong}</p>
+            <p className="text-sm text-gray-700">{m.wrong}</p>
           </div>
           <div className="bg-green-50 p-4">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">
               <CheckCircle2 size={13} /> Chuẩn DQH
             </div>
-            <p className="text-sm text-slate-200">{m.right}</p>
+            <p className="text-sm text-gray-700">{m.right}</p>
           </div>
         </div>
       ))}
@@ -640,18 +640,18 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
     <div>
       {/* Quiz header */}
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4 border border-purple-100">
-        <h3 className="font-bold text-base text-slate-50">{quiz?.title || "Bài kiểm tra"}</h3>
+        <h3 className="font-bold text-base text-gray-900">{quiz?.title || "Bài kiểm tra"}</h3>
         {quiz?.description && <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>}
         <div className="flex flex-wrap gap-3 mt-3">
-          <span className="text-xs bg-[#222] px-2.5 py-1 rounded-full border border-[#333] text-gray-600">
+          <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
             📝 {totalQ} câu hỏi
           </span>
           {quiz?.timeLimit && (
-            <span className="text-xs bg-[#222] px-2.5 py-1 rounded-full border border-[#333] text-gray-600">
+            <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
               ⏱ {quiz.timeLimit} phút
             </span>
           )}
-          <span className="text-xs bg-[#222] px-2.5 py-1 rounded-full border border-[#333] text-gray-600">
+          <span className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-200 text-gray-600">
             🎯 Đạt: ≥{quiz?.passingScore || 70}%
           </span>
         </div>
@@ -680,7 +680,7 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
       {/* Progress bar */}
       {!submitted && (
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
             <span>Đã trả lời: {answeredCount}/{totalQ}</span>
             <span>{Math.round((answeredCount / totalQ) * 100)}%</span>
           </div>
@@ -702,8 +702,8 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
             <div key={q.id}
               className={`rounded-xl border p-4 transition-colors ${
                 submitted
-                  ? isCorrect ? 'border-green-300 bg-green-50/50' : isWrong ? 'border-red-300 bg-red-50/50' : 'border-[#333]'
-                  : selected !== undefined ? 'border-purple-300 bg-purple-50/30' : 'border-[#333] hover:border-gray-300'
+                  ? isCorrect ? 'border-green-300 bg-green-50/50' : isWrong ? 'border-red-300 bg-red-50/50' : 'border-gray-200'
+                  : selected !== undefined ? 'border-purple-300 bg-purple-50/30' : 'border-gray-200 hover:border-gray-300'
               }`}>
               <div className="flex gap-2 mb-3">
                 <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -711,7 +711,7 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
                     ? isCorrect ? 'bg-green-500 text-white' : isWrong ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
                     : selected !== undefined ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-600'
                 }`}>{idx + 1}</span>
-                <p className="text-sm font-medium text-slate-100 pt-1 leading-relaxed">{q.question}</p>
+                <p className="text-sm font-medium text-gray-800 pt-1 leading-relaxed">{q.question}</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ml-9">
@@ -731,7 +731,7 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
                           ? 'bg-red-100 border-red-400 text-red-800 line-through'
                           : isSelected
                           ? 'bg-purple-100 border-purple-400 text-purple-800 font-medium'
-                          : 'bg-[#222] border-[#333] text-slate-200 hover:border-purple-300 hover:bg-purple-50'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300 hover:bg-purple-50'
                       }`}>
                       {opt}
                     </button>
@@ -747,7 +747,7 @@ const QuizBlock = ({ quiz }: { quiz: any }) => {
                     {showExplanation[q.id] ? '▾ Ẩn giải thích' : '▸ Xem giải thích'}
                   </button>
                   {showExplanation[q.id] && (
-                    <p className="text-xs text-gray-600 mt-1 bg-[#222] p-2 rounded border border-[#333] leading-relaxed">
+                    <p className="text-xs text-gray-600 mt-1 bg-white p-2 rounded border border-gray-200 leading-relaxed">
                       💡 {q.explanation}
                     </p>
                   )}
@@ -791,7 +791,7 @@ const ContentBlock = ({ block, isEditing, onUpdate }: { block: any, isEditing?: 
     if (block.content_type === "quiz" && meta.quiz) return <QuizBlock quiz={meta.quiz} />;
     if (block.content_type === "text" && block.content) {
       if (isEditing) {
-        return <textarea value={block.content} onChange={e => onUpdate?.(block.id, { ...meta, content: e.target.value })} rows={4} className="w-full text-sm text-slate-100 border-2 border-purple-200 rounded px-3 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />;
+        return <textarea value={block.content} onChange={e => onUpdate?.(block.id, { ...meta, content: e.target.value })} rows={4} className="w-full text-sm text-gray-800 border-2 border-purple-200 rounded px-3 py-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none resize-y" />;
       }
       return <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{block.content}</p>;
     }
@@ -836,7 +836,7 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
   // If only 1 section → show content directly without sidebar
   if (sections.length === 1) {
     return (
-      <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <SectionContent section={sections[0]} useDB={useDB} />
       </div>
     );
@@ -845,10 +845,10 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
   const selected = sections.find(s => s.id === activeSection);
 
   return (
-    <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
       {/* Mobile: horizontal scrollable tabs */}
       <div className="md:hidden">
-        <div className="px-3 py-2 border-b border-[#333] bg-[#1c1c1c]/50">
+        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50/50">
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
             {sections.map((s) => {
               const Icon = getIcon(s.icon);
@@ -860,7 +860,7 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                     isActive
                       ? "bg-purple-600 text-white shadow-sm"
-                      : "bg-[#2a2a2a] text-gray-600 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   <Icon size={13} />
@@ -883,8 +883,8 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
       {/* Desktop: sidebar + content */}
       <div className="hidden md:flex gap-0" style={{ minHeight: '500px' }}>
         {/* LEFT — Section sidebar */}
-        <div className="w-[260px] flex-shrink-0 border-r border-[#333] bg-[#1c1c1c]/50">
-          <div className="px-4 py-3 border-b border-[#333]">
+        <div className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+          <div className="px-4 py-3 border-b border-gray-200">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Danh mục</span>
           </div>
           <div className="divide-y divide-gray-100">
@@ -897,22 +897,22 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
                   onClick={() => setActiveSection(s.id)}
                   className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
                     isActive
-                      ? "bg-[#222] border-l-3 border-l-purple-600 shadow-sm"
-                      : "hover:bg-[#222]/80 border-l-3 border-l-transparent"
+                      ? "bg-white border-l-3 border-l-purple-600 shadow-sm"
+                      : "hover:bg-white/80 border-l-3 border-l-transparent"
                   }`}
                 >
                   <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                    isActive ? "bg-purple-100 text-purple-700" : "bg-[#2a2a2a] text-slate-400"
+                    isActive ? "bg-purple-100 text-purple-700" : "bg-gray-100 text-gray-500"
                   }`}>
                     <Icon size={14} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                        isActive ? "text-purple-600 bg-purple-50" : "text-gray-400 bg-[#2a2a2a]"
+                        isActive ? "text-purple-600 bg-purple-50" : "text-gray-400 bg-gray-100"
                       }`}>{s.number}</span>
                       <span className={`text-[13px] font-medium truncate ${
-                        isActive ? "text-slate-50" : "text-gray-600"
+                        isActive ? "text-gray-900" : "text-gray-600"
                       }`}>{s.title}</span>
                     </div>
                   </div>
@@ -923,7 +923,7 @@ const SectionModule = ({ moduleId, moduleColor, useDB }: { moduleId: string; mod
         </div>
 
         {/* RIGHT — Content area */}
-        <div className="flex-1 bg-[#1c1c1c]/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+        <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
           {selected ? (
             <SectionContent section={selected} useDB={useDB} />
           ) : (
@@ -976,23 +976,23 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <SectionBadge label={section.number} />
-          <h2 className="text-lg font-bold text-slate-50">{section.title}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{section.title}</h2>
         </div>
         {useDB && (
-          <button onClick={() => setIsEditing(!isEditing)} className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-[#222] text-gray-600 hover:bg-[#1c1c1c] border-[#333]"}`}>
+          <button onClick={() => setIsEditing(!isEditing)} className={`inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}>
             {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
           </button>
         )}
       </div>
       {lead && (
-        <p className="text-sm text-slate-400 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
+        <p className="text-sm text-gray-500 italic mb-4 border-l-3 border-purple-300 pl-3">{lead}</p>
       )}
 
       {/* Special: 2.2 links to standalone DQH Signature tab */}
       {section.slug === 'design-language' ? (
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 text-center">
           <Sparkles size={32} className="mx-auto text-amber-500 mb-3" />
-          <h3 className="text-lg font-bold text-slate-50 mb-2">DQH Signature — Design Language</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">DQH Signature — Design Language</h3>
           <p className="text-sm text-gray-600 mb-4">Xem toàn bộ ngôn ngữ thiết kế DQH trong giao diện trình chiếu chuyên nghiệp.</p>
           <button
             onClick={() => {
@@ -1010,7 +1010,7 @@ const SectionContent = ({ section, useDB }: { section: Section; useDB: boolean }
         <div className="space-y-8">
           {subsections.map((block: any, i: number) => (
             <div key={i}>
-              <h3 className="text-sm font-semibold text-slate-100 mb-3 pb-2 border-b border-[#333]">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
                 {block.title || block.heading}
               </h3>
               <ContentBlock block={block} isEditing={isEditing} onUpdate={handleUpdate} />
@@ -1032,7 +1032,7 @@ const TabbedSubsections = ({ subsections, isEditing, onUpdate }: { subsections: 
   return (
     <div>
       {/* Tab bar — scrollable row */}
-      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 border-b border-[#333]">
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-4 border-b border-gray-200">
         {subsections.map((sub: any, i: number) => (
           <button
             key={i}
@@ -1040,7 +1040,7 @@ const TabbedSubsections = ({ subsections, isEditing, onUpdate }: { subsections: 
             className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all whitespace-nowrap ${
               i === activeIdx
                 ? "bg-purple-600 text-white shadow-sm"
-                : "bg-[#2a2a2a] text-gray-600 hover:bg-gray-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {sub.heading || sub.title}
@@ -1051,7 +1051,7 @@ const TabbedSubsections = ({ subsections, isEditing, onUpdate }: { subsections: 
       {/* Active tab content */}
       {active && (
         <div>
-          <h3 className="text-base font-bold text-slate-50 mb-4">
+          <h3 className="text-base font-bold text-gray-900 mb-4">
             {active.heading || active.title}
           </h3>
           <ContentBlock block={active} isEditing={isEditing} onUpdate={onUpdate} />
@@ -1088,10 +1088,10 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
   if (workflows.length === 0) return <EmptyState text="Chưa có quy trình nào." />;
 
   return (
-    <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden" style={{ minHeight: '500px' }}>
       {/* Mobile: horizontal scrollable tabs */}
       <div className="md:hidden">
-        <div className="px-3 py-2 border-b border-[#333] bg-[#1c1c1c]/50">
+        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50/50">
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
             {workflows.map((w) => {
               const isActive = w.id === activeWorkflow;
@@ -1102,7 +1102,7 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium whitespace-nowrap transition-all flex-shrink-0 ${
                     isActive
                       ? "bg-amber-500 text-white shadow-sm"
-                      : "bg-[#2a2a2a] text-gray-600 hover:bg-gray-200"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   <span>{w.number}</span>
@@ -1123,8 +1123,8 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
       {/* Desktop: sidebar + content */}
       <div className="hidden md:flex gap-0" style={{ minHeight: '500px' }}>
         {/* LEFT — Workflow sidebar */}
-        <div className="w-[210px] flex-shrink-0 border-r border-[#333] bg-[#1c1c1c]/50">
-          <div className="px-4 py-3 border-b border-[#333]">
+        <div className="w-[210px] flex-shrink-0 border-r border-gray-200 bg-gray-50/50">
+          <div className="px-4 py-3 border-b border-gray-200">
             <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Quy trình</span>
           </div>
           <div className="divide-y divide-gray-100">
@@ -1137,23 +1137,23 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
                   onClick={() => setActiveWorkflow(w.id)}
                   className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-all ${
                     isActive
-                      ? "bg-[#222] border-l-3 border-l-amber-500 shadow-sm"
-                      : "hover:bg-[#222]/80 border-l-3 border-l-transparent"
+                      ? "bg-white border-l-3 border-l-amber-500 shadow-sm"
+                      : "hover:bg-white/80 border-l-3 border-l-transparent"
                   }`}
                 >
                   <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${
-                    isActive ? "bg-amber-100 text-amber-700" : "bg-[#2a2a2a] text-slate-400"
+                    isActive ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-500"
                   }`}>
                     <Icon size={14} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                        isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-[#2a2a2a]"
+                        isActive ? "text-amber-600 bg-amber-50" : "text-gray-400 bg-gray-100"
                       }`}>{w.number}</span>
                     </div>
                     <span className={`text-[13px] font-medium block truncate ${
-                      isActive ? "text-slate-50" : "text-gray-600"
+                      isActive ? "text-gray-900" : "text-gray-600"
                     }`}>{w.title}</span>
                   </div>
                 </button>
@@ -1163,7 +1163,7 @@ const WorkflowModule = ({ moduleId, useDB }: { moduleId: string; useDB: boolean 
         </div>
 
         {/* RIGHT — Content area */}
-        <div className="flex-1 bg-[#1c1c1c]/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
+        <div className="flex-1 bg-gray-50/30 overflow-y-auto" style={{ maxHeight: '75vh' }}>
           {activeWorkflow ? (
             <WorkflowContent workflowId={activeWorkflow} useDB={useDB} />
           ) : (
@@ -1198,12 +1198,12 @@ const StepActionsEditor = ({ stepId, actions, useDB, onUpdate }: {
 
   return (
     <div>
-      <p className="text-[11px] font-semibold text-slate-400 mb-1.5">Nội dung bước (mỗi dòng = 1 gạch đầu dòng)</p>
+      <p className="text-[11px] font-semibold text-gray-500 mb-1.5">Nội dung bước (mỗi dòng = 1 gạch đầu dòng)</p>
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
         onBlur={save}
-        className="w-full border border-[#333] rounded-lg p-3 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-[#1c1c1c]"
+        className="w-full border border-gray-200 rounded-lg p-3 text-sm min-h-[80px] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gray-50"
         placeholder="Nhập nội dung..."
       />
     </div>
@@ -1266,14 +1266,14 @@ const StepDocsEditor = ({ stepId, workflowId, docs, useDB, onUpdate }: {
           value={newLabel}
           onChange={e => setNewLabel(e.target.value)}
           placeholder="Tên tài liệu..."
-          className="flex-1 px-2.5 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
+          className="flex-1 px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
         />
         <input
           type="text"
           value={newUrl}
           onChange={e => setNewUrl(e.target.value)}
           placeholder="https://link..."
-          className="flex-[2] px-2.5 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
+          className="flex-[2] px-2.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-purple-400"
         />
         <button
           onClick={addDoc}
@@ -1373,19 +1373,19 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <SectionBadge label={workflow.number} />
-          <h2 className="text-lg font-bold text-slate-50">{workflow.title}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{workflow.title}</h2>
         </div>
         {useDB && (
           <button 
             onClick={handleToggleEdit} 
-            className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-[#222] text-gray-600 hover:bg-[#1c1c1c] border-[#333]"}`}
+            className={`hidden md:inline-flex px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border ${isEditing ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-white text-gray-600 hover:bg-gray-50 border-gray-200"}`}
           >
             {isEditing ? "Tắt chỉnh sửa (Đã lưu)" : "Chỉnh sửa nội dung"}
           </button>
         )}
       </div>
       {workflow.lead_quote && (
-        <p className="text-sm text-slate-400 italic mb-6 border-l-3 border-amber-300 pl-3">{workflow.lead_quote}</p>
+        <p className="text-sm text-gray-500 italic mb-6 border-l-3 border-amber-300 pl-3">{workflow.lead_quote}</p>
       )}
 
       {isEditing && (
@@ -1428,14 +1428,14 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
           {steps.map((step, i) => {
             const docs: { label: string; url: string }[] = (step.metadata as any)?.docs || [];
             return (
-            <div key={step.id} className="bg-[#222] border border-[#333] rounded-xl overflow-hidden">
-              <div className="px-5 py-3 bg-[#1c1c1c] border-b border-[#333] flex items-center justify-between">
+            <div key={step.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                  <span className="font-semibold text-sm text-slate-50">{step.phase}</span>
+                  <span className="font-semibold text-sm text-gray-900">{step.phase}</span>
                 </div>
                 {step.owner && (
-                  <span className="text-xs text-slate-400 bg-[#222] border border-[#333] rounded px-2 py-0.5">{step.owner}</span>
+                  <span className="text-xs text-gray-500 bg-white border border-gray-200 rounded px-2 py-0.5">{step.owner}</span>
                 )}
               </div>
               {isEditing ? (
@@ -1452,7 +1452,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
               ) : (
                 <ul className="px-5 py-4 space-y-2">
                   {(step.actions || []).map((a: string, j: number) => (
-                    <li key={j} className="flex items-start gap-2.5 text-sm text-slate-200">
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-gray-700">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 flex-shrink-0 mt-2" />
                       {a}
                     </li>
@@ -1502,7 +1502,7 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       {/* Storage tree (workflow 6) */}
       {isStorage && !useDB && (
         <div className="mb-6">
-          <h3 className="font-semibold text-sm text-slate-100 mb-3">Cấu trúc folder chuẩn</h3>
+          <h3 className="font-semibold text-sm text-gray-800 mb-3">Cấu trúc folder chuẩn</h3>
           <pre className="bg-gray-900 text-green-400 rounded-xl p-5 text-xs leading-relaxed overflow-x-auto font-mono whitespace-pre">
             {FALLBACK_STORAGE_TREE}
           </pre>
@@ -1513,13 +1513,13 @@ const WorkflowContent = ({ workflowId, useDB }: { workflowId: string; useDB: boo
       {isStandards && !useDB && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {FALLBACK_STANDARDS_TIERS.map((tier, i) => (
-            <div key={i} className="bg-[#222] border-2 rounded-xl overflow-hidden" style={{ borderColor: tier.color }}>
+            <div key={i} className="bg-white border-2 rounded-xl overflow-hidden" style={{ borderColor: tier.color }}>
               <div className="px-4 py-3" style={{ backgroundColor: tier.color }}>
                 <h3 className="font-semibold text-sm text-white">{tier.name}</h3>
               </div>
               <ul className="p-4 space-y-2">
                 {tier.deliverables.map((d, j) => (
-                  <li key={j} className="flex items-start gap-2 text-sm text-slate-200">
+                  <li key={j} className="flex items-start gap-2 text-sm text-gray-700">
                     <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" style={{ color: tier.color }} />
                     {d}
                   </li>
@@ -1608,36 +1608,36 @@ const EstimationModule = () => {
     e.target.value = "";
   };
 
-  const inputCls = "w-full px-2.5 py-1.5 text-sm border border-[#333] rounded-lg focus:outline-none focus:border-purple-400 bg-[#222]";
+  const inputCls = "w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 bg-white";
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-50">Estimation Tool</h2>
-        <p className="text-sm text-slate-400 mt-1">Dự toán sơ bộ chi phí nội thất theo phân khúc & phong cách. Nhập tay hoặc import Excel.</p>
+        <h2 className="text-xl font-bold text-gray-900">Estimation Tool</h2>
+        <p className="text-sm text-gray-500 mt-1">Dự toán sơ bộ chi phí nội thất theo phân khúc & phong cách. Nhập tay hoặc import Excel.</p>
       </div>
 
       {/* Project info */}
-      <div className="bg-[#222] border border-[#333] rounded-xl p-5 mb-4">
-        <h3 className="text-sm font-semibold text-slate-200 mb-4">Thông tin dự án</h3>
+      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">Thông tin dự án</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Tên dự án", field: "name", placeholder: "VD: Verosa F11 Townhouse" },
             { label: "Khách hàng", field: "client", placeholder: "VD: Anh Nguyễn" },
           ].map(({ label, field, placeholder }) => (
             <div key={field}>
-              <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
               <input value={(info as any)[field]} onChange={e => setInfo({ ...info, [field]: e.target.value })} placeholder={placeholder} className={inputCls} />
             </div>
           ))}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Phân khúc</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Phân khúc</label>
             <select value={info.tier} onChange={e => setInfo({ ...info, tier: e.target.value })} className={inputCls}>
               {Object.entries(TIER_MULTIPLIER).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1">Phong cách</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Phong cách</label>
             <select value={info.style} onChange={e => setInfo({ ...info, style: e.target.value })} className={inputCls}>
               <option value="quiet-luxury">Quiet Luxury / Japandi</option>
               <option value="modern-luxury">Modern Luxury</option>
@@ -1653,20 +1653,20 @@ const EstimationModule = () => {
         <button onClick={addItem} className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
           <Plus size={15} /> Thêm hạng mục
         </button>
-        <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-slate-200 text-sm font-medium rounded-lg hover:bg-[#1c1c1c] transition-colors">
+        <button onClick={() => fileRef.current?.click()} className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
           <Upload size={15} /> Import Excel
         </button>
         <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={importExcel} className="hidden" />
-        <button onClick={exportExcel} className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-slate-200 text-sm font-medium rounded-lg hover:bg-[#1c1c1c] transition-colors">
+        <button onClick={exportExcel} className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
           <Download size={15} /> Export Excel
         </button>
       </div>
 
       {/* Table */}
-      <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden mb-4">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#1c1c1c] border-b border-[#333]">
+            <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 {["Khu vực", "Hạng mục", "Dài (mm)", "Rộng (mm)", "Cao (mm)", "Đv", "Vật liệu", "KL", "Thành tiền", ""].map((h, i) => (
                   <th key={i} className={`px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap ${i >= 7 ? "text-right" : ""}`}>{h}</th>
@@ -1677,30 +1677,30 @@ const EstimationModule = () => {
               {items.map((item) => {
                 const { area, cost } = calcItem(item);
                 return (
-                  <tr key={item.id} className="hover:bg-[#1c1c1c]">
+                  <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-2 py-2">
-                      <select value={item.category} onChange={e => update(item.id, "category", e.target.value)} className="w-36 px-2 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:border-purple-400 bg-[#222]">
+                      <select value={item.category} onChange={e => update(item.id, "category", e.target.value)} className="w-36 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 bg-white">
                         {Object.keys(BASE_RATES).map(k => <option key={k}>{k}</option>)}
                       </select>
                     </td>
                     <td className="px-2 py-2">
-                      <input value={item.name} onChange={e => update(item.id, "name", e.target.value)} placeholder="Tên hạng mục" className="w-40 px-2 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:border-purple-400" />
+                      <input value={item.name} onChange={e => update(item.id, "name", e.target.value)} placeholder="Tên hạng mục" className="w-40 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400" />
                     </td>
                     {["length", "width", "height"].map(f => (
                       <td key={f} className="px-2 py-2">
-                        <input type="number" value={(item as any)[f] || ""} onChange={e => update(item.id, f, parseFloat(e.target.value) || 0)} className="w-20 px-2 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:border-purple-400 font-mono" />
+                        <input type="number" value={(item as any)[f] || ""} onChange={e => update(item.id, f, parseFloat(e.target.value) || 0)} className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400 font-mono" />
                       </td>
                     ))}
                     <td className="px-2 py-2">
-                      <select value={item.unit} onChange={e => update(item.id, "unit", e.target.value)} className="w-16 px-1.5 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:border-purple-400">
+                      <select value={item.unit} onChange={e => update(item.id, "unit", e.target.value)} className="w-16 px-1.5 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400">
                         <option>m²</option><option>md</option><option>cái</option>
                       </select>
                     </td>
                     <td className="px-2 py-2">
-                      <input value={item.material} onChange={e => update(item.id, "material", e.target.value)} placeholder="Vật liệu" className="w-40 px-2 py-1.5 text-xs border border-[#333] rounded-lg focus:outline-none focus:border-purple-400" />
+                      <input value={item.material} onChange={e => update(item.id, "material", e.target.value)} placeholder="Vật liệu" className="w-40 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-purple-400" />
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-xs text-slate-400">{area.toFixed(2)}</td>
-                    <td className="px-3 py-2 text-right font-mono text-xs font-semibold text-slate-50 whitespace-nowrap">{fmt(cost)} ₫</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs text-gray-500">{area.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-right font-mono text-xs font-semibold text-gray-900 whitespace-nowrap">{fmt(cost)} ₫</td>
                     <td className="px-2 py-2 text-right">
                       <button onClick={() => removeItem(item.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={14} />
@@ -1798,7 +1798,7 @@ export default function TrainingHub() {
     // DQH Signature — full-screen design language slides
     if (activeModuleSlug === 'dqh-signature') {
       return (
-        <div className="relative rounded-xl overflow-hidden border border-[#333] shadow-lg" style={{ height: 'calc(100vh - 160px)', minHeight: '600px' }}>
+        <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-lg" style={{ height: 'calc(100vh - 160px)', minHeight: '600px' }}>
           <iframe
             src="/design-language.html"
             title="DQH Signature — Design Language"
@@ -1823,20 +1823,20 @@ export default function TrainingHub() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1c1c1c] flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner text="Đang tải Training Hub..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1c1c1c]">
+    <div className="min-h-screen bg-gray-50">
       {/* Page header */}
-      <div className="bg-[#222] border-b border-[#333] px-4 md:px-6 py-3 md:py-4">
+      <div className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-50">Đào tạo & Thư viện</h1>
-            <p className="text-xs md:text-sm text-slate-400 mt-0.5">Kiến thức nội bộ · Quy trình · Công cụ</p>
+            <h1 className="text-lg md:text-2xl font-bold text-gray-900">Đào tạo & Thư viện</h1>
+            <p className="text-xs md:text-sm text-gray-500 mt-0.5">Kiến thức nội bộ · Quy trình · Công cụ</p>
           </div>
           {useDB && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
@@ -1847,7 +1847,7 @@ export default function TrainingHub() {
       </div>
 
       {/* Tab nav — modules + DQH Signature */}
-      <div className="bg-[#222] border-b border-[#333] px-3 md:px-6">
+      <div className="bg-white border-b border-gray-200 px-3 md:px-6">
         <div className="flex gap-0 overflow-x-auto scrollbar-hide">
           {modules.map((m, index) => {
             const Icon = getIcon(m.icon);
@@ -1858,7 +1858,7 @@ export default function TrainingHub() {
                   className={`inline-flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-3 md:py-3.5 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                     activeModuleSlug === m.slug
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-slate-400 hover:text-slate-200"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
                   <Icon size={16} />

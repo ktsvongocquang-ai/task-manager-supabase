@@ -49,26 +49,26 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
 
     return (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-[#222] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#333]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
                             <QrCode size={16} className="text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-100">QR Khách Hàng</p>
+                            <p className="text-sm font-bold text-slate-800">QR Khách Hàng</p>
                             <p className="text-[11px] text-slate-400 truncate max-w-[180px]">{profile.full_name}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a]">
+                    <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100">
                         <X size={16} className="text-slate-400" />
                     </button>
                 </div>
 
                 {/* QR Code */}
                 <div className="flex flex-col items-center gap-4 px-5 py-6">
-                    <div className="p-4 bg-[#222] border-2 border-[#333] rounded-2xl shadow-sm">
+                    <div className="p-4 bg-white border-2 border-slate-100 rounded-2xl shadow-sm">
                         {loadingToken ? (
                             <div className="w-[180px] h-[180px] flex items-center justify-center">
                                 <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
@@ -83,7 +83,7 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                         ) : (
                             <div className="w-[180px] h-[180px] flex flex-col items-center justify-center gap-2 text-center">
                                 <AlertTriangle size={32} className="text-amber-400" />
-                                <p className="text-[11px] text-slate-400">Chưa gắn công trình</p>
+                                <p className="text-[11px] text-slate-500">Chưa gắn công trình</p>
                             </div>
                         )}
                     </div>
@@ -94,8 +94,8 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">KHÁCH HÀNG</span>
                             {projectId && <span className="text-[10px] text-teal-600 font-medium">Đã gắn công trình</span>}
                         </div>
-                        <p className="text-xs font-bold text-slate-200">{profile.full_name}</p>
-                        <p className="text-[11px] text-slate-400">{profile.email}</p>
+                        <p className="text-xs font-bold text-slate-700">{profile.full_name}</p>
+                        <p className="text-[11px] text-slate-500">{profile.email}</p>
                         {!projectId && (
                             <p className="text-[10px] text-amber-600 font-medium mt-1">
                                 ⚠️ Chưa gắn công trình — vào Sửa để chọn
@@ -104,15 +104,15 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                     </div>
 
                     {/* Instructions */}
-                    <div className="w-full bg-[#1c1c1c] rounded-xl p-3 border border-[#333]">
+                    <div className="w-full bg-slate-50 rounded-xl p-3 border border-slate-100">
                         <p className="text-[11px] font-bold text-slate-600 mb-1.5">Hướng dẫn khách hàng:</p>
-                        <ol className="text-[11px] text-slate-400 space-y-1 list-decimal list-inside">
+                        <ol className="text-[11px] text-slate-500 space-y-1 list-decimal list-inside">
                             <li>Quét QR Code hoặc truy cập link bên dưới</li>
                             <li>Nhập mã truy cập được cấp</li>
                             <li>Xem tiến độ công trình của mình</li>
                         </ol>
                         {currentPassword && (
-                            <div className="mt-2 pt-2 border-t border-[#333]">
+                            <div className="mt-2 pt-2 border-t border-slate-200">
                                 <p className="text-[10px] text-slate-400">Mã hiện tại: <span className="font-bold text-slate-600">{currentPassword}</span></p>
                             </div>
                         )}
@@ -123,7 +123,7 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
 
                     {/* Link + actions */}
                     <div className="w-full flex gap-2">
-                        <div className="flex-1 px-3 py-2 bg-[#1c1c1c] border border-[#333] rounded-xl text-[11px] text-slate-400 truncate font-mono">
+                        <div className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 truncate font-mono">
                             {clientUrl ? clientUrl.replace(/^https?:\/\//, '') : '— chưa có công trình —'}
                         </div>
                         <button
@@ -138,7 +138,7 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
                     {clientUrl && (
                         <button
                             onClick={() => window.open(clientUrl, '_blank')}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 border border-[#333] text-slate-600 text-xs font-bold rounded-xl hover:bg-[#1c1c1c] transition-all"
+                            className="w-full flex items-center justify-center gap-2 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all"
                         >
                             <ExternalLink size={13} /> Mở thử trang khách hàng
                         </button>
@@ -160,8 +160,8 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
         if (role === 'Sale') return { color: 'bg-pink-500', text: 'text-pink-500', badge: 'bg-pink-50 text-pink-600 border border-pink-200' }
         if (role === 'Marketing') return { color: 'bg-violet-500', text: 'text-violet-500', badge: 'bg-violet-50 text-violet-600 border border-violet-200' }
         if (role === 'Khách hàng') return { color: 'bg-emerald-500', text: 'text-emerald-500', badge: 'bg-emerald-50 text-emerald-600 border border-emerald-200' }
-        if (role === 'Thiết kế') return { color: 'bg-[#1c1c1c]0', text: 'text-slate-400', badge: 'bg-[#1c1c1c] text-slate-600 border border-[#333]' }
-        return { color: 'bg-[#1c1c1c]0', text: 'text-slate-400', badge: 'bg-[#1c1c1c] text-slate-600 border border-[#333]' }
+        if (role === 'Thiết kế') return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' }
+        return { color: 'bg-slate-500', text: 'text-slate-500', badge: 'bg-slate-50 text-slate-600 border border-slate-200' }
     }
 
     const getInitials = (name: string) => {
@@ -176,7 +176,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
                     const brand = getRoleBrand(p.role)
                     const hasProject = !!(p as any).construction_project_id
                     return (
-                        <div key={p.id} className="bg-[#222] border border-border-main rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-center flex flex-col group relative">
+                        <div key={p.id} className="bg-white border border-border-main rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-center flex flex-col group relative">
                             {/* Avatar */}
                             <div className={`w-14 h-14 mx-auto rounded-full ${brand.color} text-white flex items-center justify-center text-lg font-bold mb-4 shadow-sm`}>
                                 {getInitials(p.full_name)}
@@ -184,7 +184,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
 
                             {/* Info */}
                             <h4 className="text-[15px] font-semibold text-text-main mb-1 truncate">{p.full_name}</h4>
-                            <p className="text-xs text-slate-400 mb-1 truncate">{p.position || 'Chức vụ'}</p>
+                            <p className="text-xs text-gray-500 mb-1 truncate">{p.position || 'Chức vụ'}</p>
                             <p className="text-xs text-gray-400 mb-3 truncate">{p.email}</p>
 
                             {/* Construction project badge for Khách hàng */}
@@ -202,7 +202,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
 
                                 {/* Actions */}
                                 {currentUserRole === 'Admin' && (
-                                    <div className="flex items-center justify-center gap-2 mt-5 border-t border-[#333] pt-4 w-full">
+                                    <div className="flex items-center justify-center gap-2 mt-5 border-t border-gray-100 pt-4 w-full">
                                         {/* QR button — only for Khách hàng */}
                                         {p.role === 'Khách hàng' && (
                                             <button

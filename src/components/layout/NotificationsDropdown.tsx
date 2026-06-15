@@ -72,27 +72,27 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
             case 'assignment': return <CheckCircle2 className="text-emerald-500" size={16} />
             case 'overdue': return <AlertCircle className="text-red-500" size={16} />
             case 'due_today': return <Clock className="text-amber-500" size={16} />
-            default: return <Bell className="text-slate-400" size={16} />
+            default: return <Bell className="text-gray-500" size={16} />
         }
     }
 
     const getBgColor = (type: string, isRead: boolean) => {
-        if (isRead) return 'bg-[#222] hover:bg-[#1c1c1c]'
+        if (isRead) return 'bg-white hover:bg-slate-50'
         switch (type) {
             case 'overdue': return 'bg-red-50 hover:bg-red-100'
             case 'due_today': return 'bg-amber-50 hover:bg-amber-100'
             case 'assignment': return 'bg-emerald-50 hover:bg-emerald-100'
             case 'mention': return 'bg-blue-50 hover:bg-blue-100'
-            default: return 'bg-[#1c1c1c] hover:bg-[#2a2a2a]'
+            default: return 'bg-slate-50 hover:bg-slate-100'
         }
     }
 
     return (
         <div className="absolute right-0 mt-2 w-80 md:w-96 glass-card shadow-2xl z-[70] animate-in fade-in zoom-in duration-200 origin-top-right overflow-hidden flex flex-col max-h-[500px] border border-white/40" onClick={(e) => e.stopPropagation()}>
-            <div className="p-4 border-b border-[#333]/50 flex justify-between items-center bg-[#222]/80 backdrop-blur-md">
+            <div className="p-4 border-b border-gray-100/50 flex justify-between items-center bg-white/80 backdrop-blur-md">
                 <div className="flex items-center gap-2">
                     <Bell className="text-yellow-500 fill-yellow-500" size={18} />
-                    <h3 className="font-bold text-slate-50 text-sm">Thông báo</h3>
+                    <h3 className="font-bold text-gray-900 text-sm">Thông báo</h3>
                 </div>
                 {unreadCount > 0 && (
                     <button
@@ -104,19 +104,19 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-[#1c1c1c]/30 backdrop-blur-sm custom-scrollbar">
+            <div className="flex-1 overflow-y-auto bg-slate-50/30 backdrop-blur-sm custom-scrollbar">
                 {loading ? (
-                    <div className="p-8 text-center text-slate-400 text-xs flex flex-col items-center">
+                    <div className="p-8 text-center text-slate-500 text-xs flex flex-col items-center">
                         <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                         Đang tải thông báo...
                     </div>
                 ) : notifications.length === 0 ? (
                     <div className="p-10 text-center flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 bg-[#2a2a2a] rounded-full flex items-center justify-center mb-3">
+                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
                             <Inbox className="text-slate-400" size={24} />
                         </div>
                         <p className="text-sm font-semibold text-slate-600">Tuyệt vời!</p>
-                        <p className="text-xs text-slate-400 mt-1">Bạn không có thông báo nào mới.</p>
+                        <p className="text-xs text-slate-500 mt-1">Bạn không có thông báo nào mới.</p>
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100/50">
@@ -161,12 +161,12 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                             >
                                 <div className="flex gap-3">
                                     <div className="flex-shrink-0 mt-0.5">
-                                        <div className="w-8 h-8 rounded-full bg-[#222] shadow-sm flex items-center justify-center">
+                                        <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center">
                                             {getIcon(notif.type)}
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-xs ${notif.is_read ? 'text-slate-600 font-medium' : 'text-slate-100 font-bold'} leading-relaxed`}>
+                                        <p className={`text-xs ${notif.is_read ? 'text-slate-600 font-medium' : 'text-slate-800 font-bold'} leading-relaxed`}>
                                             {notif.content}
                                         </p>
                                         <div className="flex items-center justify-between mt-2">
@@ -194,10 +194,10 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                 )}
             </div>
 
-            <div className="p-3 border-t border-[#333]/50 bg-[#222]/80 text-center">
+            <div className="p-3 border-t border-gray-100/50 bg-white/80 text-center">
                 <button
                     onClick={onClose}
-                    className="text-xs font-semibold text-slate-400 hover:text-slate-200"
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-700"
                 >
                     Đóng
                 </button>

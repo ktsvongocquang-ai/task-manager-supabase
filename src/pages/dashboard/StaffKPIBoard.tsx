@@ -150,8 +150,8 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
     return (
         <div className="glass-card overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#333] flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                     <Award size={16} className="text-indigo-500" />
                     Bảng đánh giá hiệu quả nhân sự
                     {monthFilter && <span className="text-indigo-500 ml-1">({monthFilter})</span>}
@@ -164,8 +164,8 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
             <div className="overflow-x-auto">
                 <table className="w-full text-[11px]">
                     <thead>
-                        <tr className="bg-[#1c1c1c] border-b border-[#333]">
-                            <th className="text-left px-4 py-2.5 font-bold text-slate-400 sticky left-0 bg-[#1c1c1c] z-10 min-w-[120px]">Nhân sự</th>
+                        <tr className="bg-slate-50 border-b border-slate-100">
+                            <th className="text-left px-4 py-2.5 font-bold text-slate-500 sticky left-0 bg-slate-50 z-10 min-w-[120px]">Nhân sự</th>
                             <th className="text-center px-2 py-2.5 font-bold text-indigo-500" title="Dự án">DA</th>
                             <th className="text-center px-2 py-2.5 font-bold text-emerald-500" title="Hoàn thành / Tổng">HT</th>
                             <th className="text-center px-2 py-2.5 font-bold text-emerald-500" title="Đúng hạn">✓</th>
@@ -184,11 +184,11 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                             return (
                                 <React.Fragment key={row.id}>
                                     <tr
-                                        className={`border-b border-slate-50 cursor-pointer transition-colors ${isCurrentUser ? 'bg-indigo-50/50 hover:bg-indigo-50' : 'hover:bg-[#1c1c1c]'}`}
+                                        className={`border-b border-slate-50 cursor-pointer transition-colors ${isCurrentUser ? 'bg-indigo-50/50 hover:bg-indigo-50' : 'hover:bg-slate-50'}`}
                                         onClick={() => setExpandedRow(isExpanded ? null : row.id)}
                                     >
                                         {/* Name */}
-                                        <td className={`px-4 py-3 font-bold text-slate-100 sticky left-0 z-10 ${isCurrentUser ? 'bg-indigo-50/50' : idx % 2 === 0 ? 'bg-[#222]' : 'bg-slate-25'}`}>
+                                        <td className={`px-4 py-3 font-bold text-slate-800 sticky left-0 z-10 ${isCurrentUser ? 'bg-indigo-50/50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0 ${isCurrentUser ? 'bg-indigo-500' : 'bg-slate-400'}`}>
                                                     {row.name.split(' ').pop()?.charAt(0) || '?'}
@@ -218,7 +218,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                             return (
                                                 <td key={ph.key} className="text-center px-2 py-2.5">
                                                     {count > 0
-                                                        ? <span className="font-bold text-slate-200">{count}</span>
+                                                        ? <span className="font-bold text-slate-700">{count}</span>
                                                         : <span className="text-slate-300">—</span>}
                                                 </td>
                                             );
@@ -228,7 +228,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                     {/* ── Expanded: Phase breakdown + project KPI ── */}
                                     {isExpanded && (
                                         <tr>
-                                            <td colSpan={9} className="bg-[#1c1c1c]/80 px-4 py-4 border-b border-[#333]">
+                                            <td colSpan={9} className="bg-slate-50/80 px-4 py-4 border-b border-slate-100">
                                                 {/* Per-project KPI */}
                                                 {row.projectSummaries.length > 0 && (
                                                     <div className="mb-4">
@@ -237,18 +237,18 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                             {row.projectSummaries.map((ps, i) => {
                                                                 const pct = ps.kpiDays > 0 ? Math.min(100, Math.round((ps.daysUsed / ps.kpiDays) * 100)) : 0;
                                                                 return (
-                                                                    <div key={i} className="bg-[#222] rounded-xl p-3 border border-[#333] shadow-sm">
+                                                                    <div key={i} className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm">
                                                                         <div className="flex items-center justify-between mb-1.5">
-                                                                            <span className="text-xs font-black text-slate-100">{ps.name} <span className="text-slate-400 font-normal">({ps.code})</span></span>
+                                                                            <span className="text-xs font-black text-slate-800">{ps.name} <span className="text-slate-400 font-normal">({ps.code})</span></span>
                                                                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${ps.status === 'over' ? 'bg-rose-50 text-rose-600 border border-rose-200' : ps.status === 'warn' ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                                                                                 {ps.status === 'over' ? `Vượt ${Math.abs(ps.remaining)} ng` : `Còn ${ps.remaining} ng`}
                                                                             </span>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <div className="flex-1 bg-[#2a2a2a] rounded-full h-1.5 overflow-hidden">
+                                                                            <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
                                                                                 <div className={`h-full rounded-full ${ps.status === 'over' ? 'bg-rose-500' : ps.status === 'warn' ? 'bg-amber-400' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }}></div>
                                                                             </div>
-                                                                            <span className="text-[10px] font-bold text-slate-400">{ps.daysUsed}/{ps.kpiDays}</span>
+                                                                            <span className="text-[10px] font-bold text-slate-500">{ps.daysUsed}/{ps.kpiDays}</span>
                                                                         </div>
                                                                     </div>
                                                                 );
@@ -267,7 +267,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                                 <div className="flex items-center gap-2 mb-1.5">
                                                                     <span>{ph.icon}</span>
                                                                     <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">{ph.label}</span>
-                                                                    <span className="bg-slate-200 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{tasks.length}</span>
+                                                                    <span className="bg-slate-200 text-slate-500 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{tasks.length}</span>
                                                                 </div>
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                                                                     {tasks.map(t => {
@@ -275,15 +275,15 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                                         const isDone = t.status?.includes('Hoàn thành');
                                                                         const isLate = !isDone && t.due_date && new Date(t.due_date) < new Date();
                                                                         return (
-                                                                            <div key={t.id} className={`flex items-center justify-between bg-[#222] rounded-lg px-3 py-2 border shadow-sm ${isDone ? 'border-emerald-100' : isLate ? 'border-rose-100' : 'border-[#333]'}`}>
+                                                                            <div key={t.id} className={`flex items-center justify-between bg-white rounded-lg px-3 py-2 border shadow-sm ${isDone ? 'border-emerald-100' : isLate ? 'border-rose-100' : 'border-slate-100'}`}>
                                                                                 <div className="flex items-center gap-2 min-w-0">
                                                                                     <div className={`w-2 h-2 rounded-full shrink-0 ${isDone ? 'bg-emerald-500' : isLate ? 'bg-rose-500' : t.status?.includes('Đang') ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
-                                                                                    <span className={`text-xs font-bold truncate ${isDone ? 'text-slate-400 line-through' : 'text-slate-200'}`}>{t.name}</span>
+                                                                                    <span className={`text-xs font-bold truncate ${isDone ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{t.name}</span>
                                                                                     <span className="text-[9px] text-slate-400 shrink-0">({t.task_code})</span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-2 shrink-0 ml-2">
                                                                                     {proj && <span className="text-[9px] text-indigo-500 font-medium truncate max-w-[80px]">{proj.name}</span>}
-                                                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isDone ? 'bg-emerald-50 text-emerald-600' : isLate ? 'bg-rose-50 text-rose-500' : 'bg-[#1c1c1c] text-slate-400'}`}>
+                                                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isDone ? 'bg-emerald-50 text-emerald-600' : isLate ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-500'}`}>
                                                                                         {isDone ? '✓' : isLate ? 'Trễ' : t.status?.includes('Đang') ? 'Đang' : 'Chờ'}
                                                                                     </span>
                                                                                 </div>
@@ -307,9 +307,9 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                                 {row.tasksByPhase[''].map(t => {
                                                                     const isDone = t.status?.includes('Hoàn thành');
                                                                     return (
-                                                                        <div key={t.id} className="flex items-center gap-2 bg-[#222] rounded-lg px-3 py-2 border border-amber-100 shadow-sm">
+                                                                        <div key={t.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-amber-100 shadow-sm">
                                                                             <div className={`w-2 h-2 rounded-full shrink-0 ${isDone ? 'bg-emerald-500' : 'bg-amber-400'}`}></div>
-                                                                            <span className="text-xs font-bold text-slate-200 truncate">{t.name}</span>
+                                                                            <span className="text-xs font-bold text-slate-700 truncate">{t.name}</span>
                                                                             <span className="text-[9px] text-slate-400">({t.task_code})</span>
                                                                         </div>
                                                                     );
@@ -321,7 +321,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
 
                                                 {/* Performance bar */}
                                                 {row.completed > 0 && (
-                                                    <div className="mt-3 flex items-center gap-3 pt-3 border-t border-[#333]/60">
+                                                    <div className="mt-3 flex items-center gap-3 pt-3 border-t border-slate-200/60">
                                                         <span className="text-[10px] font-bold text-slate-400 uppercase">Hiệu suất:</span>
                                                         <div className="flex-1 bg-slate-200 h-1.5 rounded-full overflow-hidden">
                                                             <div
@@ -346,7 +346,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
 
             {/* Footer */}
             {isManagerOrAdmin && staffData.length > 6 && (
-                <div className="px-6 py-3 border-t border-[#333] flex justify-center">
+                <div className="px-6 py-3 border-t border-slate-100 flex justify-center">
                     <button
                         type="button"
                         onClick={() => setShowAll(!showAll)}

@@ -63,14 +63,14 @@ export const DayView = ({ currentDate, tasks, onTaskClick, onEmptyClick }: Props
     }
 
     return (
-        <div className="flex flex-col h-full bg-[#222] overflow-hidden">
+        <div className="flex flex-col h-full bg-white overflow-hidden">
             {/* Header / All Day Section */}
-            <div className="flex border-b border-[#333] shrink-0">
-                <div className="w-16 border-r border-[#333] shrink-0 bg-[#1c1c1c] flex flex-col items-center py-2">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">{format(currentDate, 'EE')}</span>
-                    <span className="text-xl font-bold text-slate-100 leading-none mt-1">{format(currentDate, 'dd')}</span>
+            <div className="flex border-b border-slate-200 shrink-0">
+                <div className="w-16 border-r border-slate-200 shrink-0 bg-slate-50 flex flex-col items-center py-2">
+                    <span className="text-xs font-semibold text-slate-500 uppercase">{format(currentDate, 'EE')}</span>
+                    <span className="text-xl font-bold text-slate-800 leading-none mt-1">{format(currentDate, 'dd')}</span>
                 </div>
-                <div className="flex-1 p-2 bg-[#1c1c1c] overflow-y-auto max-h-[120px] flex flex-wrap gap-1 content-start">
+                <div className="flex-1 p-2 bg-slate-50 overflow-y-auto max-h-[120px] flex flex-wrap gap-1 content-start">
                     {allDayTasks.map(t => (
                         <div 
                             key={t.id} 
@@ -91,7 +91,7 @@ export const DayView = ({ currentDate, tasks, onTaskClick, onEmptyClick }: Props
                 <div className="flex min-h-[1440px] relative"> {/* 24h * 60px = 1440px */}
                     
                     {/* Time Labels */}
-                    <div className="w-16 border-r border-[#333] bg-[#222] shrink-0 relative">
+                    <div className="w-16 border-r border-slate-200 bg-white shrink-0 relative">
                         {HOURS.map(hour => (
                             <div key={hour} className="h-[60px] relative">
                                 {hour > 0 && (
@@ -104,12 +104,12 @@ export const DayView = ({ currentDate, tasks, onTaskClick, onEmptyClick }: Props
                     </div>
 
                     {/* Grid Columns */}
-                    <div className="flex-1 relative bg-[#222]">
+                    <div className="flex-1 relative bg-white">
                         {/* Horizontal Lines */}
                         {HOURS.map(hour => (
                             <div 
                                 key={hour} 
-                                className="h-[60px] border-b border-[#333] w-full relative group"
+                                className="h-[60px] border-b border-slate-100 w-full relative group"
                                 onDoubleClick={() => onEmptyClick(dateStr, `${hour.toString().padStart(2, '0')}:00`)}
                             >
                                 <div className="hidden group-hover:block absolute top-0 left-0 text-[10px] text-slate-300 p-1">+ Tạo việc lúc {hour.toString().padStart(2, '0')}:00</div>

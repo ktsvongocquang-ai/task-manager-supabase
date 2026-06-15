@@ -127,7 +127,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
             {/* Toolbar dạng pill nổi theo vùng chọn */}
             {showToolbar && (
                 <div 
-                    className="absolute flex items-center gap-0.5 p-1 bg-[#222] border border-[#333] shadow-lg rounded-lg z-[100] transition-all duration-200"
+                    className="absolute flex items-center gap-0.5 p-1 bg-white border border-slate-200 shadow-lg rounded-lg z-[100] transition-all duration-200"
                     style={{ 
                         top: `${toolbarPos.top}px`, 
                         left: `${toolbarPos.left}px`,
@@ -138,20 +138,20 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
                     <button 
                         type="button"
                         onMouseDown={(e) => { e.preventDefault(); handleFormat('bold'); }}
-                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#2a2a2a] text-slate-200 font-bold text-sm transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 font-bold text-sm transition-colors"
                         title="Bôi đậm (Ctrl+B)"
                     >B</button>
                     <button 
                         type="button"
                         onMouseDown={(e) => { e.preventDefault(); handleFormat('italic'); }}
-                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#2a2a2a] text-slate-200 italic font-medium text-sm transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded hover:bg-slate-100 text-slate-700 italic font-medium text-sm transition-colors"
                         title="In nghiêng (Ctrl+I)"
                     >I</button>
                     <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
                     <button 
                         type="button"
                         onMouseDown={(e) => { e.preventDefault(); handleFormat('hiliteColor', 'yellow'); }}
-                        className="w-8 h-8 flex items-center justify-center rounded bg-[#FFD700] hover:bg-[#FFC000] text-slate-50 font-bold text-sm transition-colors shadow-sm"
+                        className="w-8 h-8 flex items-center justify-center rounded bg-[#FFD700] hover:bg-[#FFC000] text-slate-900 font-bold text-sm transition-colors shadow-sm"
                         title="Bôi vàng"
                     >A</button>
                     <div className="w-px h-4 bg-slate-200 mx-0.5"></div>
@@ -167,7 +167,7 @@ const RichTextEditor = ({ value, onChange, placeholder }: { value: string, onCha
             <div
                 ref={editorRef}
                 contentEditable
-                className="w-full bg-transparent border-none outline-none p-1 text-slate-200 text-[13px] leading-relaxed min-h-[100px] focus:ring-0 whitespace-pre-wrap relative z-0"
+                className="w-full bg-transparent border-none outline-none p-1 text-slate-700 text-[13px] leading-relaxed min-h-[100px] focus:ring-0 whitespace-pre-wrap relative z-0"
                 onInput={(e) => onChange(e.currentTarget.innerHTML)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => {
@@ -208,30 +208,30 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
     const currentSections = (sections && sections.length > 0) ? sections : defaultSections;
 
     return (
-        <div className="w-full border border-[#333] rounded-xl overflow-hidden bg-[#222]">
+        <div className="w-full border border-slate-200 rounded-xl overflow-hidden bg-white">
             {/* Desktop Table Header - Hidden on Mobile */}
-            <div className="hidden lg:grid grid-cols-[5%_15%_40%_20%_20%] bg-[#f8fafc] text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-[#333] shadow-sm">
-                <div className="p-3 text-center border-r border-[#333]">STT</div>
-                <div className="p-3 border-r border-[#333]">Nội dung</div>
-                <div className="p-3 border-r border-[#333]">Kịch bản</div>
-                <div className="p-3 border-r border-[#333]">Source clip</div>
+            <div className="hidden lg:grid grid-cols-[5%_15%_40%_20%_20%] bg-[#f8fafc] text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 shadow-sm">
+                <div className="p-3 text-center border-r border-slate-200">STT</div>
+                <div className="p-3 border-r border-slate-200">Nội dung</div>
+                <div className="p-3 border-r border-slate-200">Kịch bản</div>
+                <div className="p-3 border-r border-slate-200">Source clip</div>
                 <div className="p-3">Chú thích & minh họa</div>
             </div>
 
             {/* Body */}
             <div className="text-sm">
                 {currentSections.map((sec: any, index: number) => (
-                    <div key={sec.id} className="border-b border-[#333] hover:bg-[#1c1c1c]/50 transition-colors flex flex-col lg:grid lg:grid-cols-[5%_15%_40%_20%_20%]">
+                    <div key={sec.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors flex flex-col lg:grid lg:grid-cols-[5%_15%_40%_20%_20%]">
                         
                         {/* Ngăn cách giữa các Card trên Mobile */}
-                        {index > 0 && <div className="h-2 bg-[#1c1c1c] lg:hidden w-full"></div>}
+                        {index > 0 && <div className="h-2 bg-slate-50 lg:hidden w-full"></div>}
 
                         {/* STT & Nội dung (Gộp chung trên mobile cho gọn) */}
-                        <div className="p-4 lg:p-0 lg:col-span-2 flex lg:grid lg:grid-cols-[25%_75%] border-b lg:border-b-0 border-[#333] bg-[#1c1c1c]/30 lg:bg-transparent">
-                            <div className="hidden lg:flex p-4 align-top justify-center text-slate-400 font-bold border-r border-[#333]">
+                        <div className="p-4 lg:p-0 lg:col-span-2 flex lg:grid lg:grid-cols-[25%_75%] border-b lg:border-b-0 border-slate-100 bg-slate-50/30 lg:bg-transparent">
+                            <div className="hidden lg:flex p-4 align-top justify-center text-slate-400 font-bold border-r border-slate-100">
                                 {index + 1}
                             </div>
-                            <div className="flex-1 lg:p-4 align-top border-r-0 lg:border-r border-[#333]">
+                            <div className="flex-1 lg:p-4 align-top border-r-0 lg:border-r border-slate-100">
                                 <div className="flex flex-col items-start gap-1">
                                     <div className="flex items-center gap-2">
                                         <span className="lg:hidden text-slate-400 font-bold text-xs">#{index + 1}</span>
@@ -239,13 +239,13 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                             {sec.label}
                                         </div>
                                     </div>
-                                    <div className="text-slate-100 font-semibold text-xs mt-1">{sec.description}</div>
+                                    <div className="text-slate-800 font-semibold text-xs mt-1">{sec.description}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Kịch bản (Chiếm full width trên mobile) */}
-                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-[#333] relative group/kb border-transparent hover:border-indigo-100 hover:bg-[#222] rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
+                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-slate-100 relative group/kb border-transparent hover:border-indigo-100 hover:bg-white rounded transition-colors focus-within:bg-indigo-50/20 focus-within:border-indigo-200 border">
                             <RichTextEditor 
                                 placeholder="Viết kịch bản..."
                                 value={sec.kich_ban || ''}
@@ -258,7 +258,7 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                         </div>
 
                         {/* Source Clip */}
-                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-[#333] bg-[#1c1c1c]/30 lg:bg-transparent">
+                        <div className="p-3 align-top border-b lg:border-b-0 lg:border-r border-slate-100 bg-slate-50/30 lg:bg-transparent">
                             <div className="lg:hidden text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Source clip</div>
                             <div className="flex flex-col gap-1.5">
                                 {(sec.source_clips || []).map((clip: any, i: number) => {
@@ -267,10 +267,10 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                     const desc = isObj ? clip.desc : '';
                                     const href = url?.startsWith('http') ? url : `https://${url}`;
                                     return (
-                                        <div key={i} className="flex items-start gap-1.5 p-1.5 border border-[#333] rounded-md bg-[#222] text-[11px] text-slate-600 shadow-sm">
+                                        <div key={i} className="flex items-start gap-1.5 p-1.5 border border-slate-200 rounded-md bg-white text-[11px] text-slate-600 shadow-sm">
                                             <div className="w-1.5 h-1.5 rounded-full bg-[#E24B4A] shrink-0 mt-1"></div>
                                             <div className="flex-1 min-w-0">
-                                                {desc && <div className="font-semibold text-slate-200 text-[11px] leading-tight mb-0.5">{desc}</div>}
+                                                {desc && <div className="font-semibold text-slate-700 text-[11px] leading-tight mb-0.5">{desc}</div>}
                                                 <a
                                                     href={href}
                                                     target="_blank"
@@ -292,7 +292,7 @@ const MarketingSectionTable = ({ sections, onChange }: { sections: any[], onChan
                                     );
                                 })}
                                 <button 
-                                    className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-[#1c1c1c]"
+                                    className="text-[11px] font-medium text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-md p-1.5 text-center cursor-pointer transition-colors hover:bg-slate-50"
                                     onClick={() => {
                                         const url = prompt('Nhập link Video/Clip:');
                                         if (!url) return;
@@ -996,14 +996,14 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
     return (
         <>
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
-                <div className="bg-[#222] rounded-3xl shadow-2xl w-full max-w-[1020px] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
+                <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[1020px] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh] my-auto">
 
                     {/* Header */}
-                    <div className="px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-start bg-[#222] shrink-0 border-b border-[#333] sm:border-none">
+                    <div className="px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-start bg-white shrink-0 border-b border-slate-100 sm:border-none">
                         <div className="flex-1 min-w-0 pr-2">
                             <div className="flex items-center gap-2 sm:gap-3">
                                 {/* Icon trang trí */}
-                                <div className="hidden sm:block bg-[#2a2a2a] p-2.5 rounded-xl text-slate-400 shrink-0">
+                                <div className="hidden sm:block bg-slate-100 p-2.5 rounded-xl text-slate-500 shrink-0">
                                     <AlignLeft size={20} />
                                 </div>
                                 {editingTask ? (
@@ -1012,7 +1012,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-lg sm:text-2xl font-bold text-slate-100 bg-transparent border-b border-transparent hover:border-[#333] focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 w-full min-w-0 transition-colors truncate focus:truncate-none"
+                                            className="text-lg sm:text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 w-full min-w-0 transition-colors truncate focus:truncate-none"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
                                         <div className="flex gap-1 ml-1 sm:ml-2 shrink-0">
@@ -1034,7 +1034,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </div>
                                     </>
                                 ) : (
-                                    <h2 className="text-2xl font-bold text-slate-100">
+                                    <h2 className="text-2xl font-bold text-slate-800">
                                         Tạo Công Việc Mới
                                     </h2>
                                 )}
@@ -1044,15 +1044,15 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         type="text"
                                         value={form.task_code}
                                         onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="text-sm font-medium text-slate-400 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-24 sm:w-48 transition-colors shrink-0"
+                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-24 sm:w-48 transition-colors shrink-0"
                                         placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                     />
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className={`bg-transparent border border-[#333] rounded-md text-xs font-bold focus:ring-1 focus:ring-slate-300 outline-none cursor-pointer px-2 py-0.5 shadow-sm ${form.priority === 'Khẩn cấp' ? 'text-red-600 bg-red-50 border-red-200' :
+                                        className={`bg-transparent border border-slate-200 rounded-md text-xs font-bold focus:ring-1 focus:ring-slate-300 outline-none cursor-pointer px-2 py-0.5 shadow-sm ${form.priority === 'Khẩn cấp' ? 'text-red-600 bg-red-50 border-red-200' :
                                             form.priority === 'Cao' ? 'text-orange-600 bg-orange-50 border-orange-200' :
-                                                form.priority === 'Trung bình' ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-slate-600 bg-[#1c1c1c] border-[#333]'
+                                                form.priority === 'Trung bình' ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-slate-600 bg-slate-50 border-slate-200'
                                             }`}
                                         disabled={shouldDisableTopFields()}
                                     >
@@ -1065,7 +1065,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                         <div className="flex items-center gap-2">
                             {editingTask && (currentUserProfile?.role === 'Admin' || (Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id.includes(currentUserProfile?.id) : editingTask.assignee_id === currentUserProfile?.id)) && (
-                                <div className="flex bg-[#2a2a2a] rounded-xl overflow-hidden mr-2 items-center">
+                                <div className="flex bg-slate-100 rounded-xl overflow-hidden mr-2 items-center">
                                     <button 
                                       type="button"
                                       onClick={async () => {
@@ -1081,7 +1081,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             }
                                         }
                                       }}
-                                      className="px-3 py-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-200 transition-colors text-xs font-bold whitespace-nowrap"
+                                      className="px-3 py-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-200 transition-colors text-xs font-bold whitespace-nowrap"
                                       title="Lưu trữ công việc (Đưa vào mục Archive)"
                                     >
                                         Lưu Trữ
@@ -1105,7 +1105,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </button>
                                 </div>
                             )}
-                            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-200 hover:bg-[#2a2a2a] rounded-xl transition-colors cursor-pointer">
+                            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
                                 <X size={20} />
                             </button>
                         </div>
@@ -1120,7 +1120,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full text-xl font-bold text-slate-100 placeholder:text-slate-300 border-none focus:ring-0 p-0"
+                                    className="w-full text-xl font-bold text-slate-800 placeholder:text-slate-300 border-none focus:ring-0 p-0"
                                     placeholder="Nhập tiêu đề công việc..."
                                     disabled={shouldDisableTopFields()}
                                     autoFocus
@@ -1136,7 +1136,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <select
                                     value={form.project_id}
                                     onChange={(e) => handleProjectChange(e.target.value)}
-                                    className="w-full bg-[#1c1c1c] border border-[#333] rounded-xl text-sm font-medium text-slate-200 py-3 px-4 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 cursor-pointer transition-all"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 py-3 px-4 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 cursor-pointer transition-all"
                                     disabled={shouldDisableTopFields()}
                                 >
                                     <option value="">Chọn dự án...</option>
@@ -1145,13 +1145,13 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
 
                             <div className="sm:px-8 mt-4 mb-6 relative z-10">
-                                <div className="grid grid-cols-2 lg:flex border border-[#333] rounded-xl bg-[#222] shadow-sm overflow-hidden">
-                                    <div className="p-3 border-r border-b lg:border-b-0 border-[#333] lg:flex-1">
+                                <div className="grid grid-cols-2 lg:flex border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                                    <div className="p-3 border-r border-b lg:border-b-0 border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Trạng thái</div>
                                         <select
                                             value={form.status}
                                             onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-100 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="IDEA">Idea</option>
@@ -1166,16 +1166,16 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="REJECTED">Từ chối / Để sau</option>
                                         </select>
                                     </div>
-                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-[#333] lg:flex-1 relative group/assignee dropdown-container">
+                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-slate-200 lg:flex-1 relative group/assignee dropdown-container">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Người thực hiện</div>
-                                        <div className="cursor-pointer text-[13px] font-semibold text-slate-100 truncate" onClick={(e) => { e.stopPropagation(); document.getElementById('assignee-dropdown-popup2')?.classList.toggle('hidden'); }}>
+                                        <div className="cursor-pointer text-[13px] font-semibold text-slate-800 truncate" onClick={(e) => { e.stopPropagation(); document.getElementById('assignee-dropdown-popup2')?.classList.toggle('hidden'); }}>
                                             {form.assignee_id.length > 0
                                                 ? form.assignee_id.map(id => profiles.find(p => p.id === id)?.full_name).filter(Boolean).join(', ')
                                                 : 'Chọn người...'}
                                         </div>
-                                        <div id="assignee-dropdown-popup2" className="hidden absolute top-full left-0 mt-1 w-56 bg-[#222] border border-[#333] shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto py-2">
+                                        <div id="assignee-dropdown-popup2" className="hidden absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 shadow-xl rounded-xl z-50 max-h-60 overflow-y-auto py-2">
                                             {profiles.map(p => (
-                                                <label key={p.id} className="flex items-center gap-3 px-4 py-2 hover:bg-[#1c1c1c] cursor-pointer transition-colors">
+                                                <label key={p.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
                                                     <input type="checkbox" checked={form.assignee_id.includes(p.id)} onChange={(e) => {
                                                         const checked = e.target.checked;
                                                         setForm(prev => ({
@@ -1183,17 +1183,17 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                             assignee_id: checked ? [...prev.assignee_id, p.id] : prev.assignee_id.filter(id => id !== p.id)
                                                         }));
                                                     }} className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" />
-                                                    <span className="text-[13px] font-medium text-slate-200">{p.full_name}</span>
+                                                    <span className="text-[13px] font-medium text-slate-700">{p.full_name}</span>
                                                 </label>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="p-3 border-r border-b lg:border-b-0 border-[#333] lg:flex-1">
+                                    <div className="p-3 border-r border-b lg:border-b-0 border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Nền tảng</div>
                                         <select
                                             value={form.platform || ''}
                                             onChange={(e) => setForm({ ...form, platform: e.target.value })}
-                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-100 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="">Chọn nền tảng...</option>
@@ -1202,12 +1202,12 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <option value="YouTube">YouTube</option>
                                         </select>
                                     </div>
-                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-[#333] lg:flex-1">
+                                    <div className="p-3 border-b lg:border-b-0 lg:border-r border-slate-200 lg:flex-1">
                                         <div className="text-[10px] uppercase font-bold text-slate-400 mb-1">Định dạng</div>
                                         <select
                                             value={form.format || ''}
                                             onChange={(e) => setForm({ ...form, format: e.target.value })}
-                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-100 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="">Chọn định dạng...</option>
@@ -1223,7 +1223,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="date"
                                             value={form.due_date}
                                             onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-100 p-0 focus:ring-0 cursor-pointer"
+                                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 p-0 focus:ring-0 cursor-pointer"
                                             disabled={shouldDisableTopFields()}
                                         />
                                     </div>
@@ -1243,16 +1243,16 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                             {/* Tabs Section */}
                             <div className="mt-8 pl-4 sm:pl-14 pr-4">
-                                <div className="flex gap-6 border-b border-[#333] mb-6">
+                                <div className="flex gap-6 border-b border-slate-200 mb-6">
                                     <button
                                         onClick={() => setActiveTab('subtasks')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
-                                        <ListTodo size={16} /> Subtasks <span className="bg-[#2a2a2a] text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
+                                        <ListTodo size={16} /> Subtasks <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('comments')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
                                         <MessageSquare size={16} /> Comments
                                     </button>
@@ -1263,7 +1263,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             ? 'border-indigo-500 text-indigo-600'
                                             : form.result_links
                                                 ? 'border-transparent text-indigo-500 hover:border-slate-300 hover:text-indigo-600'
-                                                : 'border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200'
+                                                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                                             }`}
                                     >
                                         <LinkIcon size={16} /> Đính kèm / Link
@@ -1276,7 +1276,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         {isLoadingSubtasks ? (
                                             <div className="text-center py-4 text-slate-400 text-sm">Đang tải nhiệm vụ con...</div>
                                         ) : subTasks.length === 0 && !editingTask?.id ? (
-                                            <div className="text-center py-6 text-slate-400 bg-[#1c1c1c]/50 rounded-xl border border-dashed border-[#333] text-sm font-medium">
+                                            <div className="text-center py-6 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-sm font-medium">
                                                 Vui lòng lưu công việc chính trước khi thêm nhiệm vụ con.
                                             </div>
                                         ) : (
@@ -1293,11 +1293,11 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                 <div
                                                                                     ref={provided.innerRef}
                                                                                     {...provided.draggableProps}
-                                                                                    className={`flex items-center gap-3 bg-[#222] border border-[#333] rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors
+                                                                                    className={`flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors
                                                                                     ${snapshot.isDragging ? 'shadow-lg border-indigo-400 rotate-1 z-50' : ''}
                                                                                 `}
                                                                                 >
-                                                                                    <div {...provided.dragHandleProps} className="text-slate-300 hover:text-slate-400 cursor-grab px-1">
+                                                                                    <div {...provided.dragHandleProps} className="text-slate-300 hover:text-slate-500 cursor-grab px-1">
                                                                                         <GripVertical size={16} />
                                                                                     </div>
                                                                                     <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
@@ -1313,7 +1313,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                     </div>
                                                                                     <button
                                                                                         onClick={() => handleOpenDeepLink(st.id)}
-                                                                                        className={`flex-1 text-sm font-medium text-left transition-colors hover:text-indigo-600 focus:outline-none ${isCompleted ? 'line-through text-slate-400' : 'text-slate-100'}`}
+                                                                                        className={`flex-1 text-sm font-medium text-left transition-colors hover:text-indigo-600 focus:outline-none ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}
                                                                                     >
                                                                                         {st.name}
                                                                                     </button>
@@ -1321,7 +1321,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         value={Array.isArray(st.assignee_id) ? ((st.assignee_id as any[])[0] || '') : (st.assignee_id || '')}
                                                                                         onChange={(e) => updateSubTaskAssignee(st.id, e.target.value)}
                                                                                         onClick={(e) => e.stopPropagation()}
-                                                                                        className="text-[10px] font-bold bg-[#1c1c1c] hover:bg-indigo-50 border border-[#333] rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
+                                                                                        className="text-[10px] font-bold bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
                                                                                         title="Chỉ định người thực hiện"
                                                                                     >
                                                                                         <option value="">--</option>
@@ -1332,19 +1332,19 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         value={st.task_code || ''}
                                                                                         onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
                                                                                         onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
-                                                                                        className="text-[10px] font-mono text-slate-400 bg-[#2a2a2a] hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 min-w-[140px] transition-colors cursor-text"
+                                                                                        className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 min-w-[140px] transition-colors cursor-text"
                                                                                         placeholder="Mã..."
                                                                                     />
                                                                                     <button
                                                                                         onClick={() => handleOpenDeepLink(st.id)}
-                                                                                        className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-[#1c1c1c] hover:bg-[#222] border border-transparent shadow-sm hover:border-[#333] hover:shadow rounded-lg ml-2"
+                                                                                        className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-slate-50 hover:bg-white border border-transparent shadow-sm hover:border-slate-200 hover:shadow rounded-lg ml-2"
                                                                                         title="Mở chi tiết (Cửa sổ mới)"
                                                                                     >
                                                                                         <ExternalLink size={16} />
                                                                                     </button>
                                                                                     <button
                                                                                         onClick={() => removeSubTask(st.id)}
-                                                                                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-1 bg-[#1c1c1c] hover:bg-red-50 rounded-lg"
+                                                                                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-1 bg-slate-50 hover:bg-red-50 rounded-lg"
                                                                                         title="Xóa Subtask"
                                                                                     >
                                                                                         <Trash2 size={16} />
@@ -1369,13 +1369,13 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                 onChange={(e) => setNewSubtaskName(e.target.value)}
                                                                 onKeyDown={handleAddSubtask}
                                                                 placeholder="Nhập nhiệm vụ con và nhấn Enter..."
-                                                                className="w-full py-3 pl-12 pr-4 bg-[#1c1c1c] border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
+                                                                className="w-full py-3 pl-12 pr-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
                                                             />
                                                             <Plus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                                         </div>
                                                         <button
                                                             onClick={() => handleSpeechToText('subtask')}
-                                                            className={`p-2.5 rounded-xl transition-all border ${isListening === 'subtask' ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-[#1c1c1c] text-slate-400 border-[#333] hover:text-indigo-600 hover:border-indigo-300 hover:bg-[#222] shadow-sm'}`}
+                                                            className={`p-2.5 rounded-xl transition-all border ${isListening === 'subtask' ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white shadow-sm'}`}
                                                             title="Ghi âm nhiệm vụ con"
                                                         >
                                                             {isListening === 'subtask' ? <MicOff size={20} /> : <Mic size={20} />}
@@ -1389,7 +1389,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                                 {/* Tab Content: Comments */}
                                 {activeTab === 'comments' && (
-                                    <div className="animate-in fade-in duration-200 bg-[#1c1c1c]/50 rounded-xl p-4 border border-[#333]">
+                                    <div className="animate-in fade-in duration-200 bg-slate-50/50 rounded-xl p-4 border border-slate-100">
                                         {editingTask?.id ? (
                                             <CommentSection
                                                 taskId={editingTask.id}
@@ -1409,14 +1409,14 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 {/* Tab Content: Links */}
                                 {activeTab === 'links' && (
                                     <div className="animate-in fade-in duration-200">
-                                        <div className="bg-[#1c1c1c] p-4 rounded-xl border border-[#333]">
-                                            <label className="block text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                            <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
                                                 <LinkIcon size={16} /> Đường dẫn kết quả / File Google Drive
                                             </label>
                                             <textarea
                                                 value={form.result_links}
                                                 onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                                className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[100px] resize-none"
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[100px] resize-none"
                                                 placeholder="Paste link Figma, Google Drive, Docs vào đây..."
                                             />
                                         </div>
@@ -1428,7 +1428,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="px-4 sm:px-8 py-4 sm:py-5 bg-[#222] border-t border-[#333] flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
+                    <div className="px-4 sm:px-8 py-4 sm:py-5 bg-white border-t border-slate-100 flex justify-between gap-3 shrink-0 rounded-b-3xl items-center">
                         <div>
                             {editingTask && (currentUserProfile?.role === 'Admin' || (Array.isArray(editingTask.assignee_id) ? editingTask.assignee_id.includes(currentUserProfile?.id) : editingTask.assignee_id === currentUserProfile?.id)) && (
                                 <button
@@ -1454,7 +1454,7 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         <div className="flex justify-end gap-3 items-center">
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 border-0 hover:bg-[#2a2a2a] bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
+                                className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
                             >
                                 Hủy
                             </button>

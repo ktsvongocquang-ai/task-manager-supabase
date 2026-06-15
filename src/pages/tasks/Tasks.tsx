@@ -154,7 +154,7 @@ export const Tasks = () => {
     }
 
     const getDueDateStyle = (dueDate: string | null | undefined, status: string | undefined): string => {
-        if (!dueDate || status?.includes('Hoàn thành')) return 'text-slate-400';
+        if (!dueDate || status?.includes('Hoàn thành')) return 'text-slate-500';
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const due = parseISO(dueDate);
@@ -166,7 +166,7 @@ export const Tasks = () => {
         if (due < today) {
             return 'text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200';
         }
-        return 'text-slate-400';
+        return 'text-slate-500';
     };
 
     const openGoogleCalendar = (task: Task) => {
@@ -190,7 +190,7 @@ export const Tasks = () => {
     const getPriorityBadge = (priority: string) => {
         if (priority === 'JUX') return 'bg-red-50 text-red-600 border-red-100'
         if (priority === 'DQH') return 'bg-blue-50 text-blue-600 border-blue-100'
-        return 'bg-[#1c1c1c] text-slate-400 border-[#333]'
+        return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
     const generateNextTaskCode = async (projectId: string) => {
@@ -381,18 +381,18 @@ export const Tasks = () => {
         <div className="space-y-4 w-full">
             {/* Mobile Header (Lark style) */}
             <div className="md:hidden flex items-center justify-between mt-[-10px] mb-2 px-1 gap-2">
-                <button className="w-10 h-10 flex items-center justify-center bg-[#1c1c1c] text-slate-400 rounded-full hover:bg-[#2a2a2a] transition-colors shrink-0">
+                <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-colors shrink-0">
                     <List size={22} />
                 </button>
-                <div className="flex bg-[#2a2a2a]/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-[#333]/50">
+                <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
                     <button 
-                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-[#222] text-[#5B5FC7] shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         onClick={() => setAssigneeFilter('')}
                     >
                         Tất cả
                     </button>
                     <button 
-                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-[#222] text-[#5B5FC7] shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         onClick={() => setAssigneeFilter(profile?.id || '')}
                     >
                         Của tôi
@@ -425,17 +425,17 @@ export const Tasks = () => {
                     <button
                         key={status}
                         onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-                        className={`bg-[#222] border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-[#333] hover:border-[#333]'
+                        className={`bg-white border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-slate-100 hover:border-slate-200'
                             }`}
                     >
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
                             status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
                                 status === 'Chờ duyệt' ? 'bg-indigo-50 text-indigo-600' :
-                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-[#1c1c1c] text-slate-600'
+                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
                             }`}>
                             {count}
                         </div>
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{status}</span>
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{status}</span>
                     </button>
                 ))}
             </div>
@@ -447,17 +447,17 @@ export const Tasks = () => {
                     const isExpanded = expandedProjects.has(projectId)
 
                     return (
-                        <div key={projectId} className="bg-[#222] border border-[#333] rounded-2xl shadow-sm overflow-hidden">
+                        <div key={projectId} className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                             {/* Project Header Accordion */}
                             <div
                                 onClick={() => toggleProject(projectId)}
-                                className="px-5 py-4 bg-[#1c1c1c]/50 border-b border-[#333] flex items-center justify-between cursor-pointer hover:bg-[#2a2a2a]/50 transition-colors"
+                                className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between cursor-pointer hover:bg-slate-100/50 transition-colors"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="text-slate-400">
                                         {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                                     </div>
-                                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-3">
+                                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-3">
                                         {project?.name} ({project?.project_code})
                                         {project?.start_date && project?.end_date && (() => {
                                             const start = parseISO(project.start_date);
@@ -469,12 +469,12 @@ export const Tasks = () => {
                                             const remainingDays = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
                                             return (
-                                                <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400 bg-[#222] px-2.5 py-1 rounded-lg border border-[#333]">
+                                                <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
                                                     <span className="text-indigo-600 font-bold">{format(start, 'dd/MM/yyyy')}</span>
                                                     <span>→</span>
                                                     <span className="text-rose-600 font-bold">{format(end, 'dd/MM/yyyy')}</span>
                                                     <span className="mx-1 text-slate-300">|</span>
-                                                    <span>Tổng: <strong className="text-slate-200">{totalDays} ngày</strong></span>
+                                                    <span>Tổng: <strong className="text-slate-700">{totalDays} ngày</strong></span>
                                                     <span className="mx-1 text-slate-300">|</span>
                                                     <span>Còn lại: <strong className={remainingDays < 0 ? 'text-red-500' : remainingDays <= 3 ? 'text-orange-500' : 'text-emerald-500'}>{remainingDays} ngày</strong></span>
                                                 </div>
@@ -500,7 +500,7 @@ export const Tasks = () => {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="bg-[#1c1c1c]/30 border-b border-[#333] text-slate-400 uppercase font-bold tracking-wider">
+                                            <tr className="bg-slate-50/30 border-b border-slate-100 text-slate-500 uppercase font-bold tracking-wider">
                                                 <th className="px-5 py-3 text-left w-[40px] min-w-[40px]"></th>
                                                 <th className="px-5 py-3 text-left w-[40px] min-w-[40px]">
                                                     <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
@@ -559,7 +559,7 @@ export const Tasks = () => {
                                                             : (totalSub > 0 ? Math.round((completedSub / totalSub) * 100) : t.completion_pct);
 
                                                         return (
-                                                            <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-[#1c1c1c]/50 transition-colors cursor-pointer group bg-[#222] border-b border-slate-50`}>
+                                                            <tr key={t.id} onClick={() => openEditModal(t)} className={`hover:bg-slate-50/50 transition-colors cursor-pointer group bg-white border-b border-slate-50`}>
                                                                 <td className="px-2 py-3 w-[40px] min-w-[40px]"></td>
                                                                 <td className="px-5 py-3 w-[40px] min-w-[40px]" onClick={(e) => e.stopPropagation()}>
                                                                     <input
@@ -573,7 +573,7 @@ export const Tasks = () => {
                                                                 <td className={`px-4 py-3 min-w-[250px]`}>
                                                                     <div>
                                                                         <div className="flex items-center gap-2 mb-0.5">
-                                                                            <p className={`font-bold leading-tight ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-100'}`}>{t.name}</p>
+                                                                            <p className={`font-bold leading-tight ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t.name}</p>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
                                                                             <p className="text-[10px] text-slate-400 font-medium">{t.task_code}</p>
@@ -587,7 +587,7 @@ export const Tasks = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3 text-slate-600 font-medium w-[150px] min-w-[150px]">
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="w-6 h-6 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[10px] font-bold text-slate-400 shrink-0">
+                                                                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                             {getAssigneeName(t.assignee_id).charAt(0)}
                                                                         </div>
                                                                         <select
@@ -631,13 +631,13 @@ export const Tasks = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[140px] min-w-[140px]">
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="w-16 bg-[#2a2a2a] rounded-full h-1.5 flex-1">
+                                                                        <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1">
                                                                             <div
                                                                                 className={`h-1.5 rounded-full ${displayPct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`}
                                                                                 style={{ width: `${displayPct}%` }}
                                                                             ></div>
                                                                         </div>
-                                                                        <span className="font-bold text-slate-400 min-w-[3ch]">{displayPct}%</span>
+                                                                        <span className="font-bold text-slate-500 min-w-[3ch]">{displayPct}%</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[100px] min-w-[100px]">
@@ -647,7 +647,7 @@ export const Tasks = () => {
                                                                         </a>
                                                                     ) : <span className="text-slate-400">---</span>}
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-400 font-medium whitespace-nowrap w-[120px] min-w-[120px]">
+                                                                <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap w-[120px] min-w-[120px]">
                                                                     <div className="flex flex-col gap-1 items-start">
                                                                         {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
                                                                         {t.start_date && t.due_date && (
@@ -744,8 +744,8 @@ export const Tasks = () => {
                                                                                         ref={provided.innerRef}
                                                                                         {...provided.draggableProps}
                                                                                         onClick={() => openEditModal(child)}
-                                                                                        className={`group cursor-pointer hover:bg-[#1c1c1c]/50 hover:shadow-sm transition-all duration-200 border-b border-slate-50 last:border-none relative
-                                                                                        ${snapshot.isDragging ? 'bg-indigo-50 shadow-lg border-indigo-200 z-50 rounded-xl' : 'bg-[#1c1c1c]/30'}
+                                                                                        className={`group cursor-pointer hover:bg-slate-50/50 hover:shadow-sm transition-all duration-200 border-b border-slate-50 last:border-none relative
+                                                                                        ${snapshot.isDragging ? 'bg-indigo-50 shadow-lg border-indigo-200 z-50 rounded-xl' : 'bg-slate-50/30'}
                                                                                     `}
                                                                                         style={{ ...provided.draggableProps.style }}
                                                                                     >
@@ -753,7 +753,7 @@ export const Tasks = () => {
                                                                                         <td className="px-2 py-3 relative z-10 w-[40px] min-w-[40px]">
                                                                                             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-slate-200 group-hover:bg-indigo-300 transition-colors z-0 pointer-events-none"></div>
                                                                                             <div className="flex justify-center relative z-10 w-full h-full">
-                                                                                                <div {...provided.dragHandleProps} className="text-slate-300 group-hover:text-slate-400 cursor-grab px-1">
+                                                                                                <div {...provided.dragHandleProps} className="text-slate-300 group-hover:text-slate-500 cursor-grab px-1">
                                                                                                     <GripVertical size={14} />
                                                                                                 </div>
                                                                                             </div>
@@ -775,7 +775,7 @@ export const Tasks = () => {
                                                                                             <div className="pl-6">
                                                                                                 <div className="flex items-center gap-2 mb-0.5 relative">
                                                                                                     <div className="absolute -left-4 top-1/2 -mt-1 w-3 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl shrink-0"></div>
-                                                                                                    <p className={`font-bold leading-tight ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-200'}`}>{child.name}</p>
+                                                                                                    <p className={`font-bold leading-tight ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{child.name}</p>
                                                                                                 </div>
                                                                                                 <div className="flex items-center gap-2">
                                                                                                     <p className="text-[10px] text-slate-400 font-medium">{child.task_code}</p>
@@ -786,7 +786,7 @@ export const Tasks = () => {
                                                                                         {/* 4. Assignee */}
                                                                                         <td className="px-4 py-3 text-slate-600 font-medium relative z-10 w-[150px] min-w-[150px]">
                                                                                             <div className="flex items-center gap-2">
-                                                                                                <div className="w-6 h-6 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[10px] font-bold text-slate-400 shrink-0">
+                                                                                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.assignee_id).charAt(0)}
                                                                                                 </div>
                                                                                                 <select
@@ -837,13 +837,13 @@ export const Tasks = () => {
                                                                                         {/* 7. Progress */}
                                                                                         <td className="px-4 py-3 relative z-10 w-[140px] min-w-[140px]">
                                                                                             <div className="flex items-center gap-2">
-                                                                                                <div className="w-16 bg-[#2a2a2a] rounded-full h-1.5 flex-1 max-w-[80px]">
+                                                                                                <div className="w-16 bg-slate-100 rounded-full h-1.5 flex-1 max-w-[80px]">
                                                                                                     <div
                                                                                                         className={`h-1.5 rounded-full ${child.completion_pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`}
                                                                                                         style={{ width: `${child.completion_pct}%` }}
                                                                                                     ></div>
                                                                                                 </div>
-                                                                                                <span className="font-bold text-slate-400 min-w-[3ch]">{child.completion_pct}%</span>
+                                                                                                <span className="font-bold text-slate-500 min-w-[3ch]">{child.completion_pct}%</span>
                                                                                             </div>
                                                                                         </td>
 
@@ -856,7 +856,7 @@ export const Tasks = () => {
                                                                                             ) : <span className="text-slate-400">---</span>}
                                                                                         </td>
 
-                                                                                        <td className="px-4 py-3 text-slate-400 font-medium relative z-10 whitespace-nowrap w-[120px] min-w-[120px]">
+                                                                                        <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap w-[120px] min-w-[120px]">
                                                                                             <div className="flex flex-col gap-1 items-start">
                                                                                                 {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
                                                                                                 {child.start_date && child.due_date && (
@@ -929,21 +929,21 @@ export const Tasks = () => {
             {/* End Desktop UI */}
 
             {/* Mobile Accordion Task List (Lark style) */}
-            <div className="md:hidden pb-24 border-y border-[#333] mt-2 bg-[#222]">
+            <div className="md:hidden pb-24 border-y border-slate-200 mt-2 bg-white">
                 {mobileGroups.map((group, index) => {
                     const isExpanded = expandedMobileGroups.has(group.id);
                     const isLast = index === mobileGroups.length - 1;
                     return (
-                        <div key={group.id} className={`bg-[#222] overflow-hidden flex flex-col ${!isLast ? 'border-b border-[#333]' : ''}`}>
+                        <div key={group.id} className={`bg-white overflow-hidden flex flex-col ${!isLast ? 'border-b border-slate-100' : ''}`}>
                             {/* Accordion Header */}
                             <div 
                                 onClick={() => toggleMobileGroup(group.id)}
-                                className={`p-4 flex items-center justify-between bg-[#222] cursor-pointer active:bg-[#1c1c1c] transition-colors ${isExpanded ? 'border-b border-[#333]' : ''}`}
+                                className={`p-4 flex items-center justify-between bg-white cursor-pointer active:bg-slate-50 transition-colors ${isExpanded ? 'border-b border-slate-100' : ''}`}
                             >
                                 <div className="flex items-center gap-2">
-                                    <h3 className="font-bold text-slate-200">{group.label}</h3>
+                                    <h3 className="font-bold text-slate-700">{group.label}</h3>
                                     {group.items.length > 0 && (
-                                        <span className="bg-[#2a2a2a] text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">{group.items.length}</span>
+                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">{group.items.length}</span>
                                     )}
                                 </div>
                                 <span className="text-slate-400 shrink-0">
@@ -964,13 +964,13 @@ export const Tasks = () => {
                                                 <div 
                                                     key={task.id} 
                                                     onClick={() => openEditModal(task)}
-                                                    className="bg-[#222] p-4 rounded-xl shadow-sm border border-[#333] transition-all cursor-pointer group flex gap-3 hover:border-[#5B5FC7]/30 hover:shadow-md active:scale-[0.98]"
+                                                    className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition-all cursor-pointer group flex gap-3 hover:border-[#5B5FC7]/30 hover:shadow-md active:scale-[0.98]"
                                                 >
                                                     {/* Quick Complete - iOS style radio */}
                                                     <div className="pt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                                                         <div 
                                                             onClick={() => toggleComplete(task)}
-                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-[#1c1c1c]'}`}
+                                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${isCompleted ? 'bg-[#5B5FC7] border-[#5B5FC7]' : 'border-slate-300 hover:border-[#5B5FC7] bg-slate-50'}`}
                                                         >
                                                             {isCompleted && <div className="w-5 h-5 rounded-full text-white flex items-center justify-center"><CheckCircle2 size={16} strokeWidth={3} /></div>}
                                                         </div>
@@ -978,7 +978,7 @@ export const Tasks = () => {
                                                     
                                                     {/* Task Info */}
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className={`text-[14px] font-bold leading-tight line-clamp-2 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-100 flex-1 group-hover:text-[#5B5FC7] transition-colors'}`}>
+                                                        <h4 className={`text-[14px] font-bold leading-tight line-clamp-2 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 flex-1 group-hover:text-[#5B5FC7] transition-colors'}`}>
                                                             {task.name}
                                                         </h4>
                                                         {(task.task_code || task.priority) && (
@@ -987,7 +987,7 @@ export const Tasks = () => {
                                                                 {task.priority && (
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'JUX' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                     task.priority === 'DQH' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                                    'bg-[#1c1c1c] text-slate-400 border-[#333]'
+                                                                    'bg-slate-50 text-slate-500 border-slate-100'
                                                                     }`}>
                                                                         {task.priority}
                                                                     </span>
@@ -1003,7 +1003,7 @@ export const Tasks = () => {
                                     {/* Add Task Button per group */}
                                     <div 
                                         onClick={() => openAddModal()}
-                                        className="p-3 w-full border-2 border-dashed border-[#333] rounded-xl text-center text-[14px] font-bold text-slate-400 hover:text-[#5B5FC7] hover:border-[#5B5FC7]/30 hover:bg-indigo-50/50 cursor-pointer transition-colors"
+                                        className="p-3 w-full border-2 border-dashed border-slate-200 rounded-xl text-center text-[14px] font-bold text-slate-400 hover:text-[#5B5FC7] hover:border-[#5B5FC7]/30 hover:bg-indigo-50/50 cursor-pointer transition-colors"
                                     >
                                         + Thêm nhiệm vụ
                                     </div>

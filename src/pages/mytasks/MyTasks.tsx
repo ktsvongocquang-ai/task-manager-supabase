@@ -48,7 +48,7 @@ interface Note {
 }
 
 const NOTE_COLORS = [
-  'bg-[#222]',
+  'bg-white',
   'bg-red-50',
   'bg-orange-50',
   'bg-amber-50',
@@ -62,7 +62,7 @@ const NOTE_COLORS = [
 
 const SUGGESTED_ICONS = ['📌', '💼', '✈️', '🛒', '🍔', '🐶', '🎨', '🎵', '🧘‍♀️', '🚗'];
 const SUGGESTED_COLORS = [
-  'bg-[#2a2a2a] text-slate-200',
+  'bg-gray-100 text-gray-700',
   'bg-red-100 text-red-700',
   'bg-orange-100 text-orange-700',
   'bg-amber-100 text-amber-700',
@@ -152,13 +152,13 @@ const NoteCard = ({
       className={`rounded-xl border shadow-sm overflow-hidden flex flex-col transition-all duration-200 ${note.color} ${
         isDragging ? 'opacity-40 scale-95 border-dashed border-indigo-300 rotate-1' : ''
       } ${
-        isDragOver ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02] shadow-lg' : 'border-[#333]'
+        isDragOver ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02] shadow-lg' : 'border-gray-200'
       }`}
       style={{ cursor: isDragging ? 'grabbing' : 'default' }}
     >
       <div className="p-4 flex items-start justify-between group">
         <div 
-          className="mt-1 mr-2 cursor-grab active:cursor-grabbing p-1 rounded-md text-gray-300 hover:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+          className="mt-1 mr-2 cursor-grab active:cursor-grabbing p-1 rounded-md text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
           onMouseDown={(e) => { /* Allow drag from grip */ }}
         >
           <GripVertical className="w-4 h-4" />
@@ -168,7 +168,7 @@ const NoteCard = ({
           value={note.title}
           onChange={(e) => updateNoteTitle(note.id, e.target.value)}
           onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
-          className="font-bold text-slate-100 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
+          className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
           placeholder="Tiêu đề..."
         />
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -212,7 +212,7 @@ const NoteCard = ({
                   }}
                   rows={1}
                   placeholder="Mục danh sách..."
-                  className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-slate-200 text-sm resize-none overflow-hidden leading-snug outline-none py-1 min-w-0"
+                  className="flex-1 bg-transparent border-none focus:ring-0 p-0 text-gray-700 text-sm resize-none overflow-hidden leading-snug outline-none py-1 min-w-0"
                   style={{ minHeight: '24px', maxHeight: isExpanded ? 'none' : '44px', overflow: 'hidden' }}
                   ref={(el) => {
                     if (!el) return;
@@ -226,7 +226,7 @@ const NoteCard = ({
                 />
                 <button
                   onClick={() => toggleItemExpand(item.id)}
-                  className="mt-1 shrink-0 text-gray-300 hover:text-slate-400 transition-colors"
+                  className="mt-1 shrink-0 text-gray-300 hover:text-gray-500 transition-colors"
                   title={isExpanded ? 'Thu gọn' : 'Mở rộng'}
                 >
                   <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
@@ -236,7 +236,7 @@ const NoteCard = ({
             );
           })}
           <div className="flex items-center gap-2 pt-2">
-            <button onClick={() => addNoteItem(note.id)} className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200">
+            <button onClick={() => addNoteItem(note.id)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
               <Plus className="w-4 h-4" /> Thêm mục
             </button>
           </div>
@@ -246,7 +246,7 @@ const NoteCard = ({
           <div className="mt-4 pt-4 border-t border-black/5">
             <button 
               onClick={() => setShowCompleted(!showCompleted)}
-              className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-200 mb-2"
+              className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-700 mb-2"
             >
               <span className={`transform transition-transform ${showCompleted ? 'rotate-90' : ''}`}>›</span>
               Đã hoàn tất {completedItems.length} mục
@@ -258,7 +258,7 @@ const NoteCard = ({
                     <button onClick={() => toggleNoteItem(note.id, item.id)} className="mt-1 text-gray-600 shrink-0">
                       <CheckSquare className="w-4 h-4" />
                     </button>
-                    <span className="flex-1 text-sm text-slate-200 line-through break-words whitespace-pre-wrap pt-0.5">{item.text}</span>
+                    <span className="flex-1 text-sm text-gray-700 line-through break-words whitespace-pre-wrap pt-0.5">{item.text}</span>
                   </div>
                 ))}
               </div>
@@ -625,7 +625,7 @@ export default function MyTasks() {
         user_id: profile.id,
         label: newCategoryName.trim(),
         icon: '📌',
-        color: 'bg-[#2a2a2a] text-slate-200'
+        color: 'bg-gray-100 text-gray-700'
       }]).select().single();
 
       if (error) throw error;
@@ -922,7 +922,7 @@ export default function MyTasks() {
 
     if (isEditing) {
       return (
-        <div key={task.id} className={`group bg-[#222] rounded-lg border border-emerald-300 shadow-md transition-all duration-200 px-4 py-3 flex flex-col`}>
+        <div key={task.id} className={`group bg-white rounded-lg border border-emerald-300 shadow-md transition-all duration-200 px-4 py-3 flex flex-col`}>
            <div className="flex justify-between items-start mb-1.5 gap-2">
                <div className={`mt-0.5 cursor-grab p-0.5 rounded-md text-gray-400 opacity-40 lg:opacity-0 lg:group-hover:opacity-40 transition-opacity ${isKanban ? '-ml-2' : ''}`}>
                   <GripVertical className="w-4 h-4" />
@@ -932,7 +932,7 @@ export default function MyTasks() {
                  <input 
                    autoFocus
                    type="text"
-                   className={`w-full font-[600] text-slate-50 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400 ${isKanban ? 'text-[14px]' : 'text-base'}`}
+                   className={`w-full font-[600] text-gray-900 border-none bg-transparent p-0 focus:ring-0 placeholder-gray-400 ${isKanban ? 'text-[14px]' : 'text-base'}`}
                    value={task.title}
                    onChange={(e) => updateTaskField(task.id, 'title', e.target.value, 'title')}
                    onKeyDown={(e) => { if (e.key === 'Enter') setEditingTaskId(null); }}
@@ -950,7 +950,7 @@ export default function MyTasks() {
                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); setEditingTaskId(null); } }}
                    ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
                  />
-                 <div className="absolute right-0 bottom-0 opacity-0 group-hover/editdesc:opacity-100 transition-opacity flex gap-1 bg-[#222]/90 backdrop-blur-sm p-1 rounded-md">
+                 <div className="absolute right-0 bottom-0 opacity-0 group-hover/editdesc:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-md">
                     <button
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSpeechToText('editDesc'); }}
                       className={`p-1 rounded-md transition-colors ${isListening === 'editDesc' ? 'text-red-500 bg-red-50 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
@@ -969,7 +969,7 @@ export default function MyTasks() {
                  </div>
                </div>
                
-               <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-slate-50 hover:bg-[#2a2a2a] rounded-md transition-colors" title="Đóng">
+               <button onClick={() => setEditingTaskId(null)} className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors" title="Đóng">
                  <MoreVertical className="w-4 h-4" />
                </button>
            </div>
@@ -977,7 +977,7 @@ export default function MyTasks() {
            <div className={`flex items-center gap-1.5 flex-wrap pt-2 pb-0.5 border-t border-slate-50 mt-1 ${isKanban ? 'pl-[26px]' : ''}`}>
               <button 
                 onClick={() => updateTaskField(task.id, 'dueDate', todayStr, 'due_date')}
-                className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded border text-[11px] font-medium hover:bg-[#1c1c1c] transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-slate-100 bg-[#1c1c1c] shadow-sm' : 'bg-transparent border-[#333] text-slate-400'}`}
+                className={`shrink-0 whitespace-nowrap px-2.5 py-1 rounded border text-[11px] font-medium hover:bg-gray-50 transition-colors ${task.dueDate === todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500'}`}
               >Hôm nay</button>
               <div className="relative shrink-0 flex items-center">
                 <input 
@@ -986,7 +986,7 @@ export default function MyTasks() {
                   value={task.dueDate || ''}
                   onChange={(e) => updateTaskField(task.id, 'dueDate', e.target.value || null, 'due_date')}
                 />
-                <button className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr ? 'border-gray-400 text-slate-100 bg-[#1c1c1c] shadow-sm' : 'border-[#333] text-slate-400 hover:bg-[#1c1c1c]'}`}>
+                <button className={`w-6 h-6 rounded border flex items-center justify-center transition-colors ${task.dueDate && task.dueDate !== todayStr ? 'border-gray-400 text-gray-800 bg-gray-50 shadow-sm' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
                   <CalendarIcon className="w-3 h-3" />
                 </button>
               </div>
@@ -1009,17 +1009,17 @@ export default function MyTasks() {
            if ((e.target as HTMLElement).closest('button, select, input')) return;
            setEditingTaskId(task.id);
         }}
-        className={`group bg-[#222] rounded-lg border transition-all duration-200 cursor-pointer ${
-          task.status === 'done' ? 'border-[#333] bg-[#1c1c1c]/50 opacity-75' : 'border-[#333] hover:border-emerald-300 hover:shadow-md'
+        className={`group bg-white rounded-lg border transition-all duration-200 cursor-pointer ${
+          task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
         } px-4 py-3 flex flex-col`}
       >
         <div className="flex justify-between items-start mb-1.5 gap-2">
-            <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-[#2a2a2a] p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
+            <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
                <GripVertical className="w-4 h-4" />
             </div>
             
             <h4 className={`font-[600] transition-all group-hover:text-emerald-600 line-clamp-2 leading-tight flex-1 ${
-              task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-slate-100'
+              task.status === 'done' || task.status === 'archived' ? 'text-gray-400 line-through' : 'text-gray-800'
             } ${isKanban ? 'text-[14px]' : 'text-base'}`}>
               {task.title}
             </h4>
@@ -1028,14 +1028,14 @@ export default function MyTasks() {
                 task.priority === 'high' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
                 task.priority === 'medium' ? 'bg-orange-50 text-orange-600 border-orange-100' :
                 task.priority === 'low' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                'bg-[#1c1c1c] text-slate-400 border-[#333]'
+                'bg-slate-50 text-slate-500 border-slate-100'
             }`}>
                 {task.priority === 'high' ? 'Khẩn cấp' : task.priority === 'medium' ? 'Cao' : task.priority === 'low' ? 'Thấp' : 'Trung bình'}
             </span>
         </div>
         
         {task.description && (
-           <p className={`text-[12px] text-slate-400 line-clamp-2 mb-2 break-words ${isKanban ? 'pl-[26px]' : ''}`}>
+           <p className={`text-[12px] text-gray-500 line-clamp-2 mb-2 break-words ${isKanban ? 'pl-[26px]' : ''}`}>
               {task.description}
            </p>
         )}
@@ -1043,14 +1043,14 @@ export default function MyTasks() {
         <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
             <div className={`flex items-center gap-2 flex-wrap ${isKanban ? 'pl-[26px]' : ''}`}>
                 {task.dueDate && (
-                    <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${isOverdue ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-400 bg-[#1c1c1c] border-[#333]'}`}>
+                    <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${isOverdue ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-500 bg-slate-50 border-slate-200'}`}>
                         <CalendarIcon size={10} className={isOverdue ? 'text-red-500' : 'text-slate-400'} />
                         {task.dueDate === todayStr ? 'Hôm nay' : new Date(task.dueDate).toLocaleDateString('vi-VN')}
                     </div>
                 )}
                 
                 {!isKanban && (
-                  <div className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#333] text-[10px] font-bold ${cat?.color || 'bg-[#1c1c1c] text-slate-400'} hover:opacity-80 transition-opacity cursor-pointer`}>
+                  <div className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-slate-200 text-[10px] font-bold ${cat?.color || 'bg-gray-50 text-gray-500'} hover:opacity-80 transition-opacity cursor-pointer`}>
                     <span>{cat?.icon}</span>
                     <select 
                       value={task.category}
@@ -1069,7 +1069,7 @@ export default function MyTasks() {
             
             <button 
               onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
-              className="flex-shrink-0 transition-transform active:scale-90 flex items-center justify-center p-1 hover:bg-[#2a2a2a] rounded-full z-10"
+              className="flex-shrink-0 transition-transform active:scale-90 flex items-center justify-center p-1 hover:bg-gray-100 rounded-full z-10"
               title={task.status === 'done' ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}
             >
               {task.status === 'done' ? (
@@ -1090,7 +1090,7 @@ export default function MyTasks() {
     return (
       <div className="space-y-8 pb-12">
         {/* Add Note Form */}
-        <form onSubmit={handleAddNote} className="max-w-2xl mx-auto bg-[#222] rounded-2xl shadow-sm border border-[#333] p-4">
+        <form onSubmit={handleAddNote} className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center gap-3">
             <Plus className="w-5 h-5 text-gray-400" />
             <input 
@@ -1106,11 +1106,11 @@ export default function MyTasks() {
                   key={color}
                   type="button"
                   onClick={() => setNewNoteColor(color)}
-                  className={`w-5 h-5 rounded-full border border-[#333] ${color} ${newNoteColor === color ? 'ring-2 ring-offset-1 ring-emerald-500' : ''}`}
+                  className={`w-5 h-5 rounded-full border border-gray-200 ${color} ${newNoteColor === color ? 'ring-2 ring-offset-1 ring-emerald-500' : ''}`}
                 />
               ))}
             </div>
-            <button type="submit" className="px-4 py-1.5 bg-[#2a2a2a] hover:bg-gray-200 text-slate-200 text-sm font-medium rounded-lg transition-colors">
+            <button type="submit" className="px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
               Tạo
             </button>
           </div>
@@ -1119,7 +1119,7 @@ export default function MyTasks() {
         {/* Pinned Notes */}
         {pinnedNotes.length > 0 && (
           <div>
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Được ghim</h3>
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Được ghim</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {pinnedNotes.map(note => (
                 <NoteCard 
@@ -1147,7 +1147,7 @@ export default function MyTasks() {
         {/* Other Notes */}
         {unpinnedNotes.length > 0 && (
           <div>
-            {pinnedNotes.length > 0 && <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Khác</h3>}
+            {pinnedNotes.length > 0 && <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Khác</h3>}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {unpinnedNotes.map(note => (
                 <NoteCard 
@@ -1192,10 +1192,10 @@ export default function MyTasks() {
     const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
     const renderDesktopGrid = () => (
-      <div className="hidden md:flex flex-1 bg-[#222] border border-[#333] rounded-2xl shadow-sm overflow-hidden flex-col min-h-[600px] mt-4">
-          <div className="grid grid-cols-7 border-b border-[#333] bg-[#1c1c1c]/50 shrink-0">
+      <div className="hidden md:flex flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex-col min-h-[600px] mt-4">
+          <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50/50 shrink-0">
               {WEEKDAYS.map(day => (
-                  <div key={day} className="py-3 text-center text-xs font-bold text-slate-400">{day}</div>
+                  <div key={day} className="py-3 text-center text-xs font-bold text-gray-500">{day}</div>
               ))}
           </div>
           <div className="grid grid-cols-7 grid-rows-6 flex-1 h-0">
@@ -1209,14 +1209,14 @@ export default function MyTasks() {
                       <div
                           key={day.toString()}
                           onClick={() => { setCalendarAddingDate(dateStr); setSelectedCalendarDate(day); }}
-                          className={`border-b border-r border-[#333] p-2 transition-colors flex flex-col gap-1 overflow-hidden cursor-pointer
-                              ${!isCurMonth ? 'bg-[#1c1c1c]/50' : 'bg-[#222] hover:bg-[#1c1c1c]'} 
+                          className={`border-b border-r border-gray-100 p-2 transition-colors flex flex-col gap-1 overflow-hidden cursor-pointer
+                              ${!isCurMonth ? 'bg-gray-50/50' : 'bg-white hover:bg-gray-50'} 
                               ${idx % 7 === 6 ? 'border-r-0' : ''}
                               ${idx >= 35 ? 'border-b-0' : ''}
                           `}
                       >
                           <div className="flex items-center justify-between mb-1">
-                              <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-emerald-500 text-white' : !isCurMonth ? 'text-gray-400' : 'text-slate-200'}`}>
+                              <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-emerald-500 text-white' : !isCurMonth ? 'text-gray-400' : 'text-gray-700'}`}>
                                   {format(day, 'd')}
                               </span>
                           </div>
@@ -1225,7 +1225,7 @@ export default function MyTasks() {
                               {calendarAddingDate === dateStr && (
                                 <input 
                                   autoFocus type="text"
-                                  className="w-full text-[10px] border border-emerald-300 rounded px-1.5 py-1 mb-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-100"
+                                  className="w-full text-[10px] border border-emerald-300 rounded px-1.5 py-1 mb-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 text-gray-800"
                                   placeholder="Việc mới..."
                                   value={calendarNewTaskTitle}
                                   onChange={e => setCalendarNewTaskTitle(e.target.value)}
@@ -1256,8 +1256,8 @@ export default function MyTasks() {
                                       onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task.id); }}
                                       className={`text-[10px] px-2 py-1.5 rounded truncate border shadow-sm transition-all
                                           ${task.status === 'done' 
-                                            ? 'bg-[#2a2a2a]/80 text-gray-400 line-through border-[#333]' 
-                                            : `${categories[task.category]?.color?.replace('bg-', 'bg-').replace('text-', 'text-') || 'bg-[#222] text-slate-200'} border-emerald-100 hover:shadow`}
+                                            ? 'bg-gray-100/80 text-gray-400 line-through border-gray-100' 
+                                            : `${categories[task.category]?.color?.replace('bg-', 'bg-').replace('text-', 'text-') || 'bg-white text-gray-700'} border-emerald-100 hover:shadow`}
                                       `}
                                       title={task.title}
                                   >
@@ -1274,7 +1274,7 @@ export default function MyTasks() {
 
     const renderMobileGrid = () => (
       <div className="md:hidden flex flex-col space-y-4 w-full mt-4">
-          <div className="bg-[#222] p-3 pt-4 rounded-2xl border border-[#333] shadow-sm shrink-0">
+          <div className="bg-white p-3 pt-4 rounded-2xl border border-gray-200 shadow-sm shrink-0">
               <div className="grid grid-cols-7 mb-3">
                   {WEEKDAYS.map(day => (
                       <div key={day} className="text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">{day}</div>
@@ -1296,7 +1296,7 @@ export default function MyTasks() {
                               className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all
                                   ${isSelected ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200 scale-105 z-10 font-bold' : 
                                     !isCurMonth ? 'text-gray-300 opacity-50' : 
-                                    isToday ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-200 hover:bg-[#1c1c1c] font-medium'}
+                                    isToday ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-gray-700 hover:bg-gray-50 font-medium'}
                               `}
                           >
                               <span className="text-[14px] leading-none mb-0.5">{format(day, 'd')}</span>
@@ -1319,7 +1319,7 @@ export default function MyTasks() {
 
           <div className="flex-1 space-y-3 pb-8">
               <div className="flex items-center justify-between mb-2 px-1">
-                  <h3 className="font-bold text-slate-100 flex items-center gap-2">
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2">
                       <CalendarIcon className="w-4 h-4 text-emerald-500" />
                       {format(selectedCalendarDate, 'dd/MM/yyyy')}
                   </h3>
@@ -1332,11 +1332,11 @@ export default function MyTasks() {
               </div>
 
               {calendarAddingDate === format(selectedCalendarDate, 'yyyy-MM-dd') && (
-                  <div className="bg-[#222] p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
+                  <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-sm mb-3">
                       <input 
                         autoFocus type="text" 
                         placeholder="Tên công việc mới..." 
-                        className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-slate-100"
+                        className="w-full text-sm border-none bg-transparent focus:ring-0 p-0 text-gray-800"
                         value={calendarNewTaskTitle}
                         onChange={e => setCalendarNewTaskTitle(e.target.value)}
                         onKeyDown={e => {
@@ -1367,9 +1367,9 @@ export default function MyTasks() {
                   
                   if (dayTasks.length === 0 && !calendarAddingDate) {
                       return (
-                          <div className="py-12 flex flex-col items-center justify-center text-center bg-[#222] rounded-2xl border border-dashed border-[#333]">
+                          <div className="py-12 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-dashed border-gray-200">
                               <Coffee className="w-8 h-8 text-gray-300 mb-2" />
-                              <p className="text-sm font-medium text-slate-400">Trống việc ngày này!</p>
+                              <p className="text-sm font-medium text-gray-500">Trống việc ngày này!</p>
                           </div>
                       )
                   }
@@ -1381,21 +1381,21 @@ export default function MyTasks() {
 
     return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between bg-[#222] px-5 py-3 rounded-2xl border border-[#333] shadow-sm shrink-0">
+        <div className="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-gray-200 shadow-sm shrink-0">
           <div className="flex items-center gap-2">
-            <button onClick={prevMonth} className="p-2 bg-[#1c1c1c] text-gray-600 rounded-xl hover:bg-[#2a2a2a] transition-colors border border-[#333]">
+            <button onClick={prevMonth} className="p-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
                 <ChevronLeft size={20} />
             </button>
-            <button onClick={nextMonth} className="p-2 bg-[#1c1c1c] text-gray-600 rounded-xl hover:bg-[#2a2a2a] transition-colors border border-[#333]">
+            <button onClick={nextMonth} className="p-2 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
                 <ChevronRight size={20} />
             </button>
-            <h2 className="text-base sm:text-lg font-bold text-slate-100 ml-2 sm:ml-4 capitalize">
+            <h2 className="text-base sm:text-lg font-bold text-gray-800 ml-2 sm:ml-4 capitalize">
                 Tháng {format(currentMonth, 'M, yyyy', { locale: vi })}
             </h2>
           </div>
           <button 
               onClick={() => { setCurrentMonth(new Date()); setSelectedCalendarDate(new Date()); }}
-              className="px-4 py-2 text-sm font-medium bg-[#1c1c1c] hover:bg-[#2a2a2a] text-slate-200 rounded-xl transition-colors border border-[#333]"
+              className="px-4 py-2 text-sm font-medium bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl transition-colors border border-gray-200"
           >
               Hôm nay
           </button>
@@ -1430,32 +1430,32 @@ export default function MyTasks() {
     return (
       <div className="space-y-6 pb-12">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h3 className="text-slate-400 text-sm font-medium mb-1">Hoàn thành hôm nay</h3>
-            <div className="text-3xl font-bold text-slate-50">{completedToday}</div>
+            <h3 className="text-gray-500 text-sm font-medium mb-1">Hoàn thành hôm nay</h3>
+            <div className="text-3xl font-bold text-gray-900">{completedToday}</div>
           </div>
-          <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3">
               <CalendarIcon className="w-6 h-6" />
             </div>
-            <h3 className="text-slate-400 text-sm font-medium mb-1">Hoàn thành tuần này</h3>
-            <div className="text-3xl font-bold text-slate-50">{completedThisWeek}</div>
+            <h3 className="text-gray-500 text-sm font-medium mb-1">Hoàn thành tuần này</h3>
+            <div className="text-3xl font-bold text-gray-900">{completedThisWeek}</div>
           </div>
-          <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-center">
             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mb-3">
               <BarChart2 className="w-6 h-6" />
             </div>
-            <h3 className="text-slate-400 text-sm font-medium mb-1">Hoàn thành tháng này</h3>
-            <div className="text-3xl font-bold text-slate-50">{completedThisMonth}</div>
+            <h3 className="text-gray-500 text-sm font-medium mb-1">Hoàn thành tháng này</h3>
+            <div className="text-3xl font-bold text-gray-900">{completedThisMonth}</div>
           </div>
         </div>
 
-        <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm">
+        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-slate-50">Tiến độ theo danh mục</h3>
+            <h3 className="text-lg font-bold text-gray-900">Tiến độ theo danh mục</h3>
             {!showDashboardAddCat && (
               <button 
                 onClick={() => setShowDashboardAddCat(true)}
@@ -1467,7 +1467,7 @@ export default function MyTasks() {
           </div>
 
           {showDashboardAddCat && (
-            <div className="mb-6 bg-[#1c1c1c] p-4 rounded-xl border border-[#333] animate-in fade-in slide-in-from-top-2">
+            <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
                 <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-xl shadow-sm ${dashboardCatColor}`}>
                   {dashboardCatIcon}
@@ -1478,7 +1478,7 @@ export default function MyTasks() {
                   value={dashboardCatName}
                   onChange={e => setDashboardCatName(e.target.value)}
                   placeholder="Nhập tên danh mục mới..."
-                  className="flex-1 bg-[#222] border border-[#333] text-sm text-slate-50 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="flex-1 bg-white border border-gray-200 text-sm text-gray-900 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   onKeyDown={e => {
                     if (e.key === 'Enter') { e.preventDefault(); handleDashboardAddCat(); }
                     if (e.key === 'Escape') setShowDashboardAddCat(false);
@@ -1490,14 +1490,14 @@ export default function MyTasks() {
                 </div>
               </div>
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-1.5 bg-[#222] p-2 rounded-lg border border-[#333]">
+                <div className="flex flex-wrap items-center gap-1.5 bg-white p-2 rounded-lg border border-gray-200">
                   {SUGGESTED_ICONS.map(icon => (
-                    <button key={icon} onClick={() => setDashboardCatIcon(icon)} className={`w-8 h-8 flex items-center justify-center rounded-md hover:bg-[#2a2a2a] transition-colors ${dashboardCatIcon === icon ? 'bg-[#2a2a2a] scale-110 shadow-sm' : ''}`}>
+                    <button key={icon} onClick={() => setDashboardCatIcon(icon)} className={`w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors ${dashboardCatIcon === icon ? 'bg-gray-100 scale-110 shadow-sm' : ''}`}>
                       {icon}
                     </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 bg-[#222] p-2.5 rounded-lg border border-[#333]">
+                <div className="flex flex-wrap items-center gap-2 bg-white p-2.5 rounded-lg border border-gray-200">
                   {SUGGESTED_COLORS.map(color => (
                     <button key={color} onClick={() => setDashboardCatColor(color)} className={`w-6 h-6 rounded-full border-2 transition-transform ${dashboardCatColor === color ? 'border-gray-400 scale-110 shadow-sm' : 'border-transparent'} ${color.split(' ')[0]}`} />
                   ))}
@@ -1508,12 +1508,12 @@ export default function MyTasks() {
 
           <div className="space-y-6">
             {categoryStats.length === 0 ? (
-              <p className="text-center text-slate-400 py-4">Chưa có dữ liệu công việc.</p>
+              <p className="text-center text-gray-500 py-4">Chưa có dữ liệu công việc.</p>
             ) : (
               categoryStats.map(stat => (
                 <div key={stat.id} className="group">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="font-medium flex items-center gap-2 text-slate-200">
+                    <span className="font-medium flex items-center gap-2 text-gray-700">
                       <span>{stat.icon}</span> {stat.label}
                     </span>
                     <div className="flex items-center gap-3">
@@ -1524,10 +1524,10 @@ export default function MyTasks() {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      <span className="text-slate-400 font-medium whitespace-nowrap">{stat.completed} / {stat.total}</span>
+                      <span className="text-gray-500 font-medium whitespace-nowrap">{stat.completed} / {stat.total}</span>
                     </div>
                   </div>
-                  <div className="w-full bg-[#2a2a2a] rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${stat.color.split(' ')[0]} transition-all duration-1000`} 
                       style={{ width: `${stat.total === 0 ? 0 : (stat.completed / stat.total) * 100}%` }}
@@ -1545,7 +1545,7 @@ export default function MyTasks() {
   return (
     <div className="h-full flex flex-col bg-[#F8FAFC]">
       {/* Hero Section - The "Hook" */}
-      <div className="bg-[#222] border-b border-[#333] px-4 sm:px-8 py-6 sm:py-8 flex-shrink-0 relative overflow-hidden">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-8 py-6 sm:py-8 flex-shrink-0 relative overflow-hidden">
         {/* Decorative background */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none"></div>
         
@@ -1553,28 +1553,28 @@ export default function MyTasks() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <greeting.icon className={`w-5 h-5 ${greeting.color}`} />
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">{greeting.text}</span>
+              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{greeting.text}</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-50 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
               Hôm nay của bạn thế nào?
             </h1>
-            <p className="text-slate-400 mt-2 flex items-center gap-2">
+            <p className="text-gray-500 mt-2 flex items-center gap-2">
               <Lock className="w-4 h-4" /> Không gian riêng tư. Dữ liệu được bảo mật.
             </p>
           </div>
 
           {/* Gamification Progress */}
-          <div className="flex items-center gap-4 bg-[#222] p-4 rounded-2xl border border-[#333] shadow-sm">
+          <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
             <div className="relative w-14 h-14 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#F1F5F9" strokeWidth="3" />
                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10B981" strokeWidth="3" strokeDasharray={`${progressPercent}, 100`} className="transition-all duration-1000 ease-out" />
               </svg>
-              <span className="absolute text-sm font-bold text-slate-200">{progressPercent}%</span>
+              <span className="absolute text-sm font-bold text-gray-700">{progressPercent}%</span>
             </div>
             <div>
-              <div className="text-sm font-bold text-slate-50">Tiến độ hôm nay</div>
-              <div className="text-xs text-slate-400">{completedToday} / {todayTasks.length} công việc hoàn thành</div>
+              <div className="text-sm font-bold text-gray-900">Tiến độ hôm nay</div>
+              <div className="text-xs text-gray-500">{completedToday} / {todayTasks.length} công việc hoàn thành</div>
             </div>
           </div>
         </div>
@@ -1587,7 +1587,7 @@ export default function MyTasks() {
           <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto">
             <button 
               onClick={() => setViewMode('focus')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'focus' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Star className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
@@ -1597,7 +1597,7 @@ export default function MyTasks() {
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <LayoutGrid className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
@@ -1608,7 +1608,7 @@ export default function MyTasks() {
 
             <button 
               onClick={() => setViewMode('dashboard')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <BarChart2 className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
@@ -1618,7 +1618,7 @@ export default function MyTasks() {
             </button>
             <button 
               onClick={() => setViewMode('notes')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'notes' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <FileText className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
@@ -1628,7 +1628,7 @@ export default function MyTasks() {
             </button>
             <button 
               onClick={() => setViewMode('news')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'news' ? 'bg-[#222] text-slate-50 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'news' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Globe className="w-5 h-5 sm:w-4 sm:h-4" /> 
               <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
@@ -1641,7 +1641,7 @@ export default function MyTasks() {
 
         {/* Smart Quick Add */}
         {viewMode === 'focus' && (
-          <form onSubmit={handleAddTask} className="bg-[#222] p-2 sm:p-3 rounded-2xl shadow-sm border border-[#333] flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-8">
+          <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-8">
             <div className="flex-1 flex items-center gap-3 w-full px-2">
               <Plus className="w-5 h-5 text-gray-400" />
               <input
@@ -1649,10 +1649,10 @@ export default function MyTasks() {
                 placeholder="Thêm việc mới (VD: Mua hoa tặng vợ...)"
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="w-full py-2 bg-transparent text-slate-50 placeholder-gray-400 focus:outline-none text-base"
+                className="w-full py-2 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-base"
               />
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-[#333] pt-3 sm:pt-0 sm:pl-3">
+            <div className="flex items-center gap-2 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-gray-100 pt-3 sm:pt-0 sm:pl-3">
               {showAddCategory ? (
                 <div className="flex items-center gap-1 flex-1 sm:flex-none">
                   <input 
@@ -1661,21 +1661,21 @@ export default function MyTasks() {
                     value={newCategoryName}
                     onChange={e => setNewCategoryName(e.target.value)}
                     placeholder="Tên danh mục..."
-                    className="w-28 sm:w-32 bg-[#1c1c1c] border border-[#333] text-sm text-gray-600 rounded-lg py-1.5 px-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-28 sm:w-32 bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg py-1.5 px-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     onKeyDown={e => {
                       if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); }
                       if (e.key === 'Escape') setShowAddCategory(false);
                     }}
                   />
                   <button type="button" onClick={handleAddCategory} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md"><CheckCircle2 className="w-4 h-4"/></button>
-                  <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-gray-400 hover:bg-[#2a2a2a] rounded-md"><X className="w-4 h-4"/></button>
+                  <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-md"><X className="w-4 h-4"/></button>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 flex-1 sm:flex-none">
                   <select 
                     value={newTaskCategory}
                     onChange={(e) => setNewTaskCategory(e.target.value)}
-                    className="w-full bg-[#1c1c1c] border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
+                    className="w-full bg-gray-50 border-none text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-0 cursor-pointer"
                   >
                     {Object.values(categories).map((cat: CategoryItem) => (
                       <option key={cat.id} value={cat.id}>{cat.icon} {cat.label}</option>
@@ -1695,7 +1695,7 @@ export default function MyTasks() {
                 type="date"
                 value={newTaskDate}
                 onChange={(e) => setNewTaskDate(e.target.value)}
-                className="flex-1 sm:flex-none bg-[#1c1c1c] border border-[#333] text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+                className="flex-1 sm:flex-none bg-gray-50 border border-gray-200 text-sm text-gray-600 rounded-lg py-2 px-3 focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               />
               <button 
                 type="submit"
@@ -1719,16 +1719,16 @@ export default function MyTasks() {
           <div className="space-y-8 pb-12">
             {/* Today's Focus */}
             <div>
-              <h2 className="text-lg font-bold text-slate-50 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Star className="w-5 h-5 text-amber-500 fill-amber-100" /> Tiêu điểm hôm nay
               </h2>
               {todayTasks.length === 0 ? (
-                <div className="bg-[#222] border border-dashed border-gray-300 rounded-2xl p-8 text-center">
-                  <div className="w-16 h-16 bg-[#1c1c1c] rounded-full flex items-center justify-center mx-auto mb-3">
+                <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Coffee className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-slate-50 font-medium">Hôm nay bạn rảnh rỗi!</h3>
-                  <p className="text-slate-400 text-sm mt-1">Hãy dành thời gian nghỉ ngơi hoặc thêm việc mới nhé.</p>
+                  <h3 className="text-gray-900 font-medium">Hôm nay bạn rảnh rỗi!</h3>
+                  <p className="text-gray-500 text-sm mt-1">Hãy dành thời gian nghỉ ngơi hoặc thêm việc mới nhé.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1739,13 +1739,13 @@ export default function MyTasks() {
 
             {/* Upcoming / Other */}
             <div>
-              <h2 className="text-lg font-bold text-slate-50 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-500" /> Sắp tới & Khác
               </h2>
               <div className="space-y-3">
                 {filteredTasks.filter(t => t.dueDate !== todayStr).map(task => renderTaskCard(task, false))}
                 {filteredTasks.filter(t => t.dueDate !== todayStr).length === 0 && (
-                  <p className="text-sm text-slate-400 italic">Không có công việc nào khác.</p>
+                  <p className="text-sm text-gray-500 italic">Không có công việc nào khác.</p>
                 )}
               </div>
             </div>
@@ -1785,25 +1785,25 @@ export default function MyTasks() {
                 }
               };
 
-              const headerBgColor = cat.color?.replace('text-', 'bg-').replace('600', '100') || 'bg-[#2a2a2a]';
-              const headerTextColor = cat.color || 'text-slate-100';
+              const headerBgColor = cat.color?.replace('text-', 'bg-').replace('600', '100') || 'bg-gray-100';
+              const headerTextColor = cat.color || 'text-gray-800';
 
               return (
                 <div 
                   key={cat.id}
-                  className={`w-[85vw] sm:w-[300px] md:w-[320px] flex-shrink-0 flex flex-col rounded-3xl border border-[#333] bg-[#1c1c1c]/30 shadow-sm`}
+                  className={`w-[85vw] sm:w-[300px] md:w-[320px] flex-shrink-0 flex flex-col rounded-3xl border border-gray-200 bg-gray-50/30 shadow-sm`}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDropCategory(e, cat.id)}
                 >
                   {/* Column Header */}
-                  <div className={`p-4 sm:p-5 flex items-center justify-between rounded-t-3xl border-b border-[#333]/50 ${headerBgColor} bg-opacity-50`}>
+                  <div className={`p-4 sm:p-5 flex items-center justify-between rounded-t-3xl border-b border-gray-200/50 ${headerBgColor} bg-opacity-50`}>
                     <div className="flex items-center gap-3">
-                       <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg bg-[#222] shadow-sm border border-[#333] ${headerTextColor}`}>
+                       <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg bg-white shadow-sm border border-gray-100 ${headerTextColor}`}>
                          {cat.icon}
                        </span>
                        <div className="flex items-center gap-2">
                          <h3 className={`font-extrabold text-[15px] uppercase tracking-wide ${headerTextColor}`}>{cat.label}</h3>
-                         <span className="bg-slate-200/60 text-slate-200 px-2.5 py-0.5 rounded-full text-[13px] font-bold shadow-sm ml-1 border border-slate-300/30">
+                         <span className="bg-slate-200/60 text-slate-700 px-2.5 py-0.5 rounded-full text-[13px] font-bold shadow-sm ml-1 border border-slate-300/30">
                            {activeTasks.length}
                          </span>
                        </div>
@@ -1817,17 +1817,17 @@ export default function MyTasks() {
                      {!kanbanAddingCategory || kanbanAddingCategory !== cat.id ? (
                         <button 
                           onClick={() => setKanbanAddingCategory(cat.id)}
-                          className="w-full py-3 flex items-center gap-2 text-[15px] font-semibold text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-dashed border-gray-300 hover:border-emerald-300"
+                          className="w-full py-3 flex items-center gap-2 text-[15px] font-semibold text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-dashed border-gray-300 hover:border-emerald-300"
                         >
                           <Plus className="w-5 h-5 ml-2" /> Thêm việc cần làm
                         </button>
                      ) : (
-                        <div className="bg-[#222] p-3 rounded-xl border border-emerald-400 shadow-sm mb-3 focus-within:ring-2 focus-within:ring-emerald-100 transition-shadow">
+                        <div className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3 focus-within:ring-2 focus-within:ring-emerald-100 transition-shadow">
                           <input 
                             autoFocus
                             type="text" 
                             placeholder="Tên công việc..." 
-                            className="w-full text-base border-none bg-transparent focus:ring-0 p-0 text-slate-50 font-bold mb-2 placeholder-gray-400"
+                            className="w-full text-base border-none bg-transparent focus:ring-0 p-0 text-gray-900 font-bold mb-2 placeholder-gray-400"
                             value={kanbanNewTaskTitle}
                             onChange={e => setKanbanNewTaskTitle(e.target.value)}
                             onKeyDown={e => {
@@ -1858,7 +1858,7 @@ export default function MyTasks() {
                                  e.target.style.height = `${e.target.scrollHeight}px`;
                               }}
                             />
-                            <div className="absolute right-0 bottom-0 opacity-0 group-hover/adddesc:opacity-100 transition-opacity flex gap-1 bg-[#222]/90 backdrop-blur-sm p-1 rounded-md">
+                            <div className="absolute right-0 bottom-0 opacity-0 group-hover/adddesc:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-md">
                               <button
                                 onClick={(e) => { e.preventDefault(); handleSpeechToText('kanbanDesc'); }}
                                 className={`p-1 rounded-md transition-colors ${isListening === 'kanbanDesc' ? 'text-red-500 bg-red-50 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
@@ -1879,7 +1879,7 @@ export default function MyTasks() {
                           <div className="flex items-center gap-2">
                              <button 
                                onClick={() => setKanbanNewTaskDate(todayStr)}
-                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors ${kanbanNewTaskDate === todayStr ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-transparent border-[#333] text-gray-600'}`}
+                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors ${kanbanNewTaskDate === todayStr ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-transparent border-gray-200 text-gray-600'}`}
                              >
                                Hôm nay
                              </button>
@@ -1889,7 +1889,7 @@ export default function MyTasks() {
                                  tmr.setDate(tmr.getDate() + 1);
                                  setKanbanNewTaskDate(tmr.toISOString().split('T')[0]);
                                }}
-                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors ${kanbanNewTaskDate && kanbanNewTaskDate !== todayStr ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-[#333] text-gray-600'}`}
+                               className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors ${kanbanNewTaskDate && kanbanNewTaskDate !== todayStr ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-transparent border-gray-200 text-gray-600'}`}
                              >
                                Ngày mai
                              </button>
@@ -1899,7 +1899,7 @@ export default function MyTasks() {
                                  className="absolute opacity-0 inset-0 cursor-pointer w-full h-full"
                                  onChange={(e) => setKanbanNewTaskDate(e.target.value)}
                                />
-                               <button className="w-7 h-7 rounded-full border border-[#333] flex items-center justify-center text-slate-400 hover:bg-[#1c1c1c] transition-colors">
+                               <button className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
                                  <CalendarIcon className="w-3.5 h-3.5" />
                                </button>
                              </div>
@@ -1911,7 +1911,7 @@ export default function MyTasks() {
                                  setKanbanNewTaskDesc('');
                                  setKanbanNewTaskDate(null);
                                }}
-                               className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#2a2a2a] text-gray-400 transition-colors"
+                               className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
                              >
                                <X className="w-4 h-4" />
                              </button>
@@ -1931,10 +1931,10 @@ export default function MyTasks() {
                      
                      {/* Done Tasks Accordion */}
                      {doneTasks.length > 0 && (
-                        <div className="mt-6 pt-3 border-t border-[#333]/60">
+                        <div className="mt-6 pt-3 border-t border-gray-200/60">
                            <button 
                              onClick={() => setExpandedDoneCols(prev => ({...prev, [cat.id]: !prev[cat.id]}))}
-                             className="w-full flex items-center gap-2 py-2 px-1 text-sm font-bold text-gray-600 hover:text-slate-50 transition-colors rounded-lg group"
+                             className="w-full flex items-center gap-2 py-2 px-1 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors rounded-lg group"
                            >
                               <ChevronRight className={`w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-transform ${isDoneExpanded ? 'rotate-90' : ''}`} />
                               Đã hoàn thành ({doneTasks.length})

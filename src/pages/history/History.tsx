@@ -81,12 +81,12 @@ export const History = () => {
     const uniqueActions = ['Tất cả', ...Array.from(new Set(logs.map(l => l.action.split(' ')[0])))]
 
     return (
-        <div className="min-h-screen bg-[#1c1c1c] text-slate-100 p-8 font-inter">
+        <div className="min-h-screen bg-slate-50 text-slate-800 p-8 font-inter">
             <div className="max-w-7xl mx-auto space-y-6">
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-100 tracking-wide">Lịch Sử Hoạt Động</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-wide">Lịch Sử Hoạt Động</h1>
                 </div>
 
                 {/* Filters */}
@@ -99,7 +99,7 @@ export const History = () => {
                                 type="date"
                                 value={dateFilter}
                                 onChange={(e) => setDateFilter(e.target.value)}
-                                className="w-full bg-[#222] border border-[#333] text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 appearance-none font-medium shadow-sm"
+                                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 appearance-none font-medium shadow-sm"
                             />
                         </div>
                     </div>
@@ -110,7 +110,7 @@ export const History = () => {
                         <select
                             value={actionFilter}
                             onChange={(e) => setActionFilter(e.target.value)}
-                            className="w-full bg-[#222] border border-[#333] text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
                         >
                             {uniqueActions.map((action, idx) => (
                                 <option key={idx} value={action}>{action}</option>
@@ -124,7 +124,7 @@ export const History = () => {
                         <select
                             value={userFilter}
                             onChange={(e) => setUserFilter(e.target.value)}
-                            className="w-full bg-[#222] border border-[#333] text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
+                            className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none font-medium shadow-sm"
                         >
                             <option value="Tất cả">Tất cả</option>
                             {profiles.map(p => (
@@ -142,18 +142,18 @@ export const History = () => {
                                 placeholder="Nhập từ khóa..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                className="w-full bg-[#222] border border-[#333] text-slate-100 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 font-medium shadow-sm"
+                                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder-slate-400 font-medium shadow-sm"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Table */}
-                <div className="bg-[#222] border border-[#333] rounded-xl overflow-hidden shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-[#333] bg-[#1c1c1c]">
+                                <tr className="border-b border-slate-200 bg-slate-50">
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Ngày giờ</th>
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-32 uppercase tracking-wider">Thao tác</th>
                                     <th className="py-4 px-6 text-xs font-semibold text-slate-600 w-48 uppercase tracking-wider">Chủ trì</th>
@@ -164,22 +164,22 @@ export const History = () => {
                             <tbody className="divide-y divide-slate-100">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-slate-400 text-sm font-medium">Đang tải dữ liệu...</td>
+                                        <td colSpan={5} className="py-8 text-center text-slate-500 text-sm font-medium">Đang tải dữ liệu...</td>
                                     </tr>
                                 ) : filteredLogs.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-slate-400 text-sm font-medium">Không tìm thấy lịch sử hoạt động phù hợp.</td>
+                                        <td colSpan={5} className="py-8 text-center text-slate-500 text-sm font-medium">Không tìm thấy lịch sử hoạt động phù hợp.</td>
                                     </tr>
                                 ) : (
                                     filteredLogs.map(log => (
-                                        <tr key={log.id} className="hover:bg-[#1c1c1c] transition-colors group">
-                                            <td className="py-3.5 px-6 text-sm text-slate-400 font-medium whitespace-nowrap">
+                                        <tr key={log.id} className="hover:bg-slate-50 transition-colors group">
+                                            <td className="py-3.5 px-6 text-sm text-slate-500 font-medium whitespace-nowrap">
                                                 {log.created_at ? format(parseISO(log.created_at), 'yyyy-MM-dd HH:mm') : '-'}
                                             </td>
                                             <td className={`py-3.5 px-6 text-sm font-bold capitalize whitespace-nowrap ${getActionColor(log.action)}`}>
                                                 {log.action}
                                             </td>
-                                            <td className="py-3.5 px-6 text-sm font-semibold text-slate-200 whitespace-nowrap">
+                                            <td className="py-3.5 px-6 text-sm font-semibold text-slate-700 whitespace-nowrap">
                                                 {getProfileName(log.user_id)}
                                             </td>
                                             <td className="py-3.5 px-6 text-sm font-semibold text-indigo-600 max-w-[200px] truncate" title={getProjectName(log.project_id)}>

@@ -15,7 +15,7 @@ export default function LeadStatusBadge({ status }: Props) {
   };
 
   return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-[#2a2a2a] text-slate-100'}`}>
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
       {status}
     </span>
   );

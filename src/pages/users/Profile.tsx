@@ -47,10 +47,10 @@ export const Profile = () => {
     };
 
     return (
-        <div className="flex-1 bg-[#1c1c1c]/50 min-h-full pb-24 md:pb-8">
+        <div className="flex-1 bg-slate-50/50 min-h-full pb-24 md:pb-8">
             <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
                 {/* Header Profile Section */}
-                <div className="bg-[#222] rounded-3xl shadow-sm border border-[#333]/60 overflow-hidden mb-6 sm:mb-8">
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden mb-6 sm:mb-8">
                     <div className="h-32 sm:h-48 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
                         {/* Abstract pattern overlay could go here */}
                     </div>
@@ -59,7 +59,7 @@ export const Profile = () => {
                             <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-3xl ${brand.color} border-4 border-white shadow-xl flex flex-col justify-center items-center transform transition-all hover:scale-105 duration-300`}>
                                 <span className="text-5xl sm:text-6xl text-white font-black tracking-tighter">{initials}</span>
                                 {profile?.role && (
-                                    <div className="absolute -bottom-3 bg-[#222] px-4 py-1.5 rounded-full shadow-lg border border-[#333] flex items-center gap-1.5">
+                                    <div className="absolute -bottom-3 bg-white px-4 py-1.5 rounded-full shadow-lg border border-slate-100 flex items-center gap-1.5">
                                         <Award size={14} className={brand.text} />
                                         <span className={`text-xs font-bold ${brand.text}`}>{profile.role}</span>
                                     </div>
@@ -67,8 +67,8 @@ export const Profile = () => {
                             </div>
                             
                             <div className="text-center sm:text-left pt-2 sm:pt-0 pb-2 flex-1">
-                                <h1 className="text-2xl sm:text-3xl font-black text-slate-50 tracking-tight mb-1">{profile?.full_name || 'Người dùng'}</h1>
-                                <p className="text-slate-400 font-medium flex items-center justify-center sm:justify-start gap-1.5 mb-3">
+                                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Người dùng'}</h1>
+                                <p className="text-slate-500 font-medium flex items-center justify-center sm:justify-start gap-1.5 mb-3">
                                     <Mail size={16} /> 
                                     {profile?.email}
                                 </p>
@@ -87,7 +87,7 @@ export const Profile = () => {
                                     <button 
                                         onClick={handleLinkGoogle}
                                         disabled={linking}
-                                        className="inline-flex items-center gap-2 bg-[#222] border border-slate-300 hover:bg-[#1c1c1c] text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+                                        className="inline-flex items-center gap-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
                                     >
                                         <Link size={14} className={linking ? "animate-spin" : ""} />
                                         {linking ? 'Đang liên kết...' : 'Liên kết tài khoản Google'}
@@ -101,23 +101,23 @@ export const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
                     {/* Left Column: Info */}
                     <div className="md:col-span-1 space-y-6">
-                        <div className="bg-[#222] rounded-2xl shadow-sm border border-[#333]/60 p-5">
-                            <h3 className="text-sm font-bold text-slate-50 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <User size={18} className="text-indigo-500" />
                                 Thông tin chung
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="text-xs text-slate-400 font-medium mb-1">Chức vụ / Phòng ban</p>
-                                    <p className="text-sm font-bold text-slate-50">{profile?.position || 'Chưa cập nhật'}</p>
+                                    <p className="text-xs text-slate-500 font-medium mb-1">Chức vụ / Phòng ban</p>
+                                    <p className="text-sm font-bold text-slate-900">{profile?.position || 'Chưa cập nhật'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-400 font-medium mb-1">Số điện thoại</p>
-                                    <p className="text-sm font-bold text-slate-50">{(profile as any)?.phone || 'Chưa cập nhật'}</p>
+                                    <p className="text-xs text-slate-500 font-medium mb-1">Số điện thoại</p>
+                                    <p className="text-sm font-bold text-slate-900">{(profile as any)?.phone || 'Chưa cập nhật'}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-400 font-medium mb-1">Cơ sở / Chi nhánh</p>
-                                    <p className="text-sm font-bold text-slate-50">{(profile as any)?.branch || 'Chưa cập nhật'}</p>
+                                    <p className="text-xs text-slate-500 font-medium mb-1">Cơ sở / Chi nhánh</p>
+                                    <p className="text-sm font-bold text-slate-900">{(profile as any)?.branch || 'Chưa cập nhật'}</p>
                                 </div>
                             </div>
                         </div>
@@ -125,8 +125,8 @@ export const Profile = () => {
 
                     {/* Right Column: Roles & Permissions */}
                     <div className="md:col-span-2 space-y-6">
-                        <div className="bg-[#222] rounded-2xl shadow-sm border border-[#333]/60 p-5 sm:p-6">
-                            <h3 className="text-base font-bold text-slate-50 mb-6 flex items-center gap-2">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 sm:p-6">
+                            <h3 className="text-base font-bold text-slate-900 mb-6 flex items-center gap-2">
                                 <ShieldAlert size={20} className="text-indigo-500" />
                                 Quyền hạn & Chức năng
                             </h3>
@@ -214,9 +214,9 @@ export const Profile = () => {
 
 const PermissionItem = ({ title, desc, type }: { title: string, desc: string, type: 'full' | 'read' | 'denied' }) => {
     return (
-        <div className={`p-4 rounded-xl border ${type === 'full' ? 'bg-indigo-50/50 border-indigo-100' : type === 'read' ? 'bg-amber-50/50 border-amber-100' : 'bg-[#1c1c1c] border-[#333] opacity-80'}`}>
-            <h4 className={`text-sm font-bold mb-1 ${type === 'full' ? 'text-indigo-900' : type === 'read' ? 'text-amber-900' : 'text-slate-400'}`}>{title}</h4>
-            <p className="text-xs text-slate-400">{desc}</p>
+        <div className={`p-4 rounded-xl border ${type === 'full' ? 'bg-indigo-50/50 border-indigo-100' : type === 'read' ? 'bg-amber-50/50 border-amber-100' : 'bg-slate-50 border-slate-100 opacity-80'}`}>
+            <h4 className={`text-sm font-bold mb-1 ${type === 'full' ? 'text-indigo-900' : type === 'read' ? 'text-amber-900' : 'text-slate-500'}`}>{title}</h4>
+            <p className="text-xs text-slate-500">{desc}</p>
         </div>
     )
 }

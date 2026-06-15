@@ -141,7 +141,7 @@ export const fmt = (n?: number | null) => {
 };
 
 export const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; border: string }> = {
-  TODO: { label: 'Cần làm', color: 'text-slate-600', bg: 'bg-[#1c1c1c]', border: 'border-[#333]' },
+  TODO: { label: 'Cần làm', color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-200' },
   DOING: { label: 'Đang làm', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   REVIEW: { label: 'Nghiệm thu', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   DONE: { label: 'Hoàn thành', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -152,12 +152,12 @@ export const catColors: Record<string, string> = {
   'MEP': 'bg-sky-100 text-sky-700 border-sky-200',
   'HOÀN THIỆN': 'bg-emerald-100 text-emerald-700 border-emerald-200',
   'NỘI THẤT': 'bg-purple-100 text-purple-700 border-purple-200',
-  'KHÁC': 'bg-[#2a2a2a] text-slate-600 border-[#333]',
+  'KHÁC': 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 export const weatherLabel: Record<WeatherType, { icon: string; label: string; color: string }> = {
   sunny: { icon: '☀️', label: 'Nắng', color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  cloudy: { icon: '⛅', label: 'Mây', color: 'bg-[#2a2a2a] text-slate-600 border-[#333]' },
+  cloudy: { icon: '⛅', label: 'Mây', color: 'bg-slate-100 text-slate-600 border-slate-200' },
   rainy: { icon: '🌧️', label: 'Mưa', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   storm: { icon: '⛈️', label: 'Bão', color: 'bg-rose-100 text-rose-700 border-rose-200' },
 };

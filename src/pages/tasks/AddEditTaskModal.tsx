@@ -697,14 +697,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
             <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
-                    <div className="relative transform bg-[#222] sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-3xl">
+                    <div className="relative transform bg-white sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-3xl">
 
                     {/* Header */}
-                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-[#222]/90 backdrop-blur-md sm:rounded-t-3xl border-b border-[#333]/50">
+                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white/90 backdrop-blur-md sm:rounded-t-3xl border-b border-slate-100/50">
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 {/* Nút delete nhỏ ở góc thay vì nằm cạnh title */}
-                                <div className="bg-[#2a2a2a] p-2.5 rounded-xl text-slate-400">
+                                <div className="bg-slate-100 p-2.5 rounded-xl text-slate-500">
                                     <AlignLeft size={20} />
                                 </div>
                                 {editingTask ? (
@@ -713,7 +713,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-2xl font-bold text-slate-100 bg-transparent border-b border-transparent hover:border-[#333] focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-[300px] transition-colors"
+                                            className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-[300px] transition-colors"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
                                         <div className="flex gap-1 ml-2">
@@ -735,7 +735,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         </div>
                                     </>
                                 ) : (
-                                    <h2 className="text-2xl font-bold text-slate-100">
+                                    <h2 className="text-2xl font-bold text-slate-800">
                                         Tạo Công Việc Mới
                                     </h2>
                                 )}
@@ -752,7 +752,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         type="text"
                                         value={form.task_code}
                                         onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="text-sm font-medium text-slate-400 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-48 sm:w-64 transition-colors"
+                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-48 sm:w-64 transition-colors"
                                         placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                     />
                                 </div>
@@ -778,7 +778,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <Trash2 size={18} />
                                 </button>
                             )}
-                            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-200 hover:bg-[#2a2a2a] rounded-xl transition-colors cursor-pointer">
+                            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
                                 <X size={20} />
                             </button>
                         </div>
@@ -793,7 +793,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     type="text"
                                     value={form.name}
                                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full text-xl font-bold text-slate-100 placeholder:text-slate-300 border-none focus:ring-0 p-0"
+                                    className="w-full text-xl font-bold text-slate-800 placeholder:text-slate-300 border-none focus:ring-0 p-0"
                                     placeholder="Nhập tiêu đề công việc..."
                                     disabled={shouldDisableTopFields()}
                                     autoFocus
@@ -807,11 +807,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 1: Dự án | Giai đoạn */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Dự án</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
                                     <select
                                         value={form.project_id}
                                         onChange={(e) => handleProjectChange(e.target.value)}
-                                        className={`w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-[#1c1c1c] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn dự án...</option>
@@ -820,11 +820,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Giai đoạn</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-[#1c1c1c] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn...</option>
@@ -839,11 +839,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 2: Trạng thái | Ưu tiên */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Trạng thái</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
                                     <select
                                         value={form.status}
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-[#1c1c1c] transition-colors"
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors"
                                     >
                                         <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                         <option value="Cần làm">Cần làm</option>
@@ -854,12 +854,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Ưu tiên</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Ưu tiên</label>
                                     <select
                                         value={form.priority}
                                         onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-[#222] border border-[#333] rounded-lg text-sm font-medium cursor-pointer hover:bg-[#1c1c1c] transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'JUX' ? 'text-red-600' : 'text-blue-600'
-                                            } ${shouldDisableTopFields() ? 'bg-[#1c1c1c] cursor-not-allowed opacity-70' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'JUX' ? 'text-red-600' : 'text-blue-600'
+                                            } ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="JUX">JUX</option>
@@ -871,36 +871,36 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 3: Bắt đầu | Hạn chót */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Bắt đầu</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
                                             value={form.start_date}
                                             onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-2 py-2 bg-[#222] border border-[#333] rounded-lg text-[13px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="w-full sm:w-2/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                         <input
                                             type="time"
                                             value={form.start_time}
                                             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                                            className="w-full sm:w-1/3 px-2 py-2 bg-[#222] border border-[#333] rounded-lg text-[13px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Hạn chót</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
                                             value={form.due_date}
                                             onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-2 py-2 bg-[#222] border border-[#333] rounded-lg text-[13px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="w-full sm:w-2/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                         <input
                                             type="time"
                                             value={form.due_time}
                                             onChange={(e) => setForm({ ...form, due_time: e.target.value })}
-                                            className="w-full sm:w-1/3 px-2 py-2 bg-[#222] border border-[#333] rounded-lg text-[13px] text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                     </div>
                                 </div>
@@ -909,8 +909,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 4: Số ngày */}
                             <div className="grid grid-cols-1">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Số ngày thực hiện</label>
-                                    <div className="flex items-center gap-2 bg-[#1c1c1c] px-3 py-2 rounded-lg border border-[#333] h-[38px] max-w-[150px]">
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày thực hiện</label>
+                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px] max-w-[150px]">
                                         <span className="text-sm font-bold text-indigo-600">
                                             {form.start_date && form.due_date
                                                 ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
@@ -923,7 +923,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 5: Chủ trì | Thực hiện */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Chủ trì</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
                                     <div className="flex gap-1.5 items-center">
                                         <select
                                             value={form.assignee_id}
@@ -947,7 +947,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Thực hiện</label>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Thực hiện</label>
                                     <select
                                         value={form.supporter_id}
                                         onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
@@ -962,20 +962,20 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                             {/* Description */}
                             <div className="flex items-start min-h-[40px] pt-2">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-400 shrink-0 mt-2">
+                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0 mt-2">
                                     <AlignLeft size={16} /> Mô tả
                                 </div>
                                 <div className="flex-1 relative group/desc">
                                     <textarea
                                         value={form.description}
                                         onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-[#1c1c1c]/50 border border-[#333] rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-[#222] transition-all min-h-[120px] resize-none"
+                                        className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all min-h-[120px] resize-none"
                                         placeholder="Thêm mô tả chi tiết cho nhiệm vụ này..."
                                     />
                                     <div className="absolute right-3 bottom-3 flex gap-2">
                                         <button
                                             onClick={() => handleSpeechToText('description')}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-[#222] text-slate-400 border border-[#333] hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
                                             title="Ghi âm mô tả"
                                         >
                                             {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
@@ -983,7 +983,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <button
                                             onClick={() => handleAIRefine('description')}
                                             disabled={isRefining === 'description'}
-                                            className="w-8 h-8 bg-[#222] border border-[#333] rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                            className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
                                             title="AI tinh chỉnh"
                                         >
                                             {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
@@ -992,20 +992,20 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
-                            <hr className="border-t border-[#333] my-6" />
+                            <hr className="border-t border-slate-100 my-6" />
 
                             {/* Tabs Section */}
                             <div className="mt-8">
-                                <div className="flex gap-6 border-b border-[#333] mb-6">
+                                <div className="flex gap-6 border-b border-slate-200 mb-6">
                                     <button
                                         onClick={() => setActiveTab('subtasks')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
-                                        <ListTodo size={16} /> Subtasks <span className="bg-[#2a2a2a] text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
+                                        <ListTodo size={16} /> Subtasks <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('comments')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
                                         <MessageSquare size={16} /> Comments
                                     </button>
@@ -1016,7 +1016,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             ? 'border-indigo-500 text-indigo-600'
                                             : form.result_links
                                                 ? 'border-transparent text-indigo-500 hover:border-slate-300 hover:text-indigo-600'
-                                                : 'border-transparent text-slate-400 hover:border-slate-300 hover:text-slate-200'
+                                                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                                             }`}
                                     >
                                         <LinkIcon size={16} /> Đính kèm / Link
@@ -1029,7 +1029,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         {isLoadingSubtasks ? (
                                             <div className="text-center py-4 text-slate-400 text-sm">Đang tải nhiệm vụ con...</div>
                                         ) : subTasks.length === 0 && !editingTask?.id ? (
-                                            <div className="text-center py-6 text-slate-400 bg-[#1c1c1c]/50 rounded-xl border border-dashed border-[#333] text-sm font-medium">
+                                            <div className="text-center py-6 text-slate-400 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 text-sm font-medium">
                                                 Vui lòng lưu công việc chính trước khi thêm nhiệm vụ con.
                                             </div>
                                         ) : (
@@ -1046,11 +1046,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                 <div
                                                                                     ref={provided.innerRef}
                                                                                     {...provided.draggableProps}
-                                                                                    className={`flex items-center gap-3 bg-[#222] border border-[#333] rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors
+                                                                                    className={`flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 shadow-sm group hover:border-indigo-300 transition-colors
                                                                                     ${snapshot.isDragging ? 'shadow-lg border-indigo-400 rotate-1 z-50' : ''}
                                                                                 `}
                                                                                 >
-                                                                                    <div {...provided.dragHandleProps} className="text-slate-300 hover:text-slate-400 cursor-grab px-1">
+                                                                                    <div {...provided.dragHandleProps} className="text-slate-300 hover:text-slate-500 cursor-grab px-1">
                                                                                         <GripVertical size={16} />
                                                                                     </div>
                                                                                     <div className="pt-0.5 shrink-0 relative flex items-center justify-center">
@@ -1066,7 +1066,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                     </div>
                                                                                     <button
                                                                                         onClick={() => handleOpenDeepLink(st.id)}
-                                                                                        className={`flex-1 text-sm font-medium text-left transition-colors hover:text-indigo-600 focus:outline-none ${isCompleted ? 'line-through text-slate-400' : 'text-slate-100'}`}
+                                                                                        className={`flex-1 text-sm font-medium text-left transition-colors hover:text-indigo-600 focus:outline-none ${isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}`}
                                                                                     >
                                                                                         {st.name}
                                                                                     </button>
@@ -1074,7 +1074,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         value={st.assignee_id || ''}
                                                                                         onChange={(e) => updateSubTaskAssignee(st.id, e.target.value)}
                                                                                         onClick={(e) => e.stopPropagation()}
-                                                                                        className="text-[10px] font-bold bg-[#1c1c1c] hover:bg-indigo-50 border border-[#333] rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
+                                                                                        className="text-[10px] font-bold bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer min-w-[80px] max-w-[100px] truncate appearance-none transition-colors"
                                                                                         title="Chỉ định người thực hiện"
                                                                                     >
                                                                                         <option value="">--</option>
@@ -1085,19 +1085,19 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         value={st.task_code || ''}
                                                                                         onChange={(e) => setSubTasks(prev => prev.map(item => item.id === st.id ? { ...item, task_code: e.target.value } : item))}
                                                                                         onBlur={(e) => updateSubTaskCode(st.id, e.target.value)}
-                                                                                        className="text-[10px] font-mono text-slate-400 bg-[#2a2a2a] hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 min-w-[140px] transition-colors cursor-text"
+                                                                                        className="text-[10px] font-mono text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded border-none focus:ring-1 focus:ring-indigo-300 min-w-[140px] transition-colors cursor-text"
                                                                                         placeholder="Mã..."
                                                                                     />
                                                                                     <button
                                                                                         onClick={() => handleOpenDeepLink(st.id)}
-                                                                                        className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-[#1c1c1c] hover:bg-[#222] border border-transparent shadow-sm hover:border-[#333] hover:shadow rounded-lg ml-2"
+                                                                                        className="text-slate-300 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-slate-50 hover:bg-white border border-transparent shadow-sm hover:border-slate-200 hover:shadow rounded-lg ml-2"
                                                                                         title="Mở chi tiết (Cửa sổ mới)"
                                                                                     >
                                                                                         <ExternalLink size={16} />
                                                                                     </button>
                                                                                     <button
                                                                                         onClick={() => removeSubTask(st.id)}
-                                                                                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-1 bg-[#1c1c1c] hover:bg-red-50 rounded-lg"
+                                                                                        className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-1 bg-slate-50 hover:bg-red-50 rounded-lg"
                                                                                         title="Xóa Subtask"
                                                                                     >
                                                                                         <Trash2 size={16} />
@@ -1122,13 +1122,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                 onChange={(e) => setNewSubtaskName(e.target.value)}
                                                                 onKeyDown={handleAddSubtask}
                                                                 placeholder="Nhập nhiệm vụ con và nhấn Enter..."
-                                                                className="w-full py-3 pl-12 pr-4 bg-[#1c1c1c] border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
+                                                                className="w-full py-3 pl-12 pr-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all placeholder:text-slate-400"
                                                             />
                                                             <Plus size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                                                         </div>
                                                         <button
                                                             onClick={() => handleSpeechToText('subtask')}
-                                                            className={`p-2.5 rounded-xl transition-all border ${isListening === 'subtask' ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-[#1c1c1c] text-slate-400 border-[#333] hover:text-indigo-600 hover:border-indigo-300 hover:bg-[#222] shadow-sm'}`}
+                                                            className={`p-2.5 rounded-xl transition-all border ${isListening === 'subtask' ? 'bg-red-500 text-white border-red-500 animate-pulse' : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white shadow-sm'}`}
                                                             title="Ghi âm nhiệm vụ con"
                                                         >
                                                             {isListening === 'subtask' ? <MicOff size={20} /> : <Mic size={20} />}
@@ -1142,7 +1142,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                                 {/* Tab Content: Comments */}
                                 {activeTab === 'comments' && (
-                                    <div className="animate-in fade-in duration-200 bg-[#1c1c1c]/50 rounded-xl p-4 border border-[#333]">
+                                    <div className="animate-in fade-in duration-200 bg-slate-50/50 rounded-xl p-4 border border-slate-100">
                                         {editingTask?.id ? (
                                             <CommentSection
                                                 taskId={editingTask.id}
@@ -1161,14 +1161,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 {/* Tab Content: Links */}
                                 {activeTab === 'links' && (
                                     <div className="animate-in fade-in duration-200">
-                                        <div className="bg-[#1c1c1c] p-4 rounded-xl border border-[#333]">
-                                            <label className="block text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                            <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
                                                 <LinkIcon size={16} /> Đường dẫn kết quả / File Google Drive
                                             </label>
                                             <textarea
                                                 value={form.result_links}
                                                 onChange={(e) => setForm({ ...form, result_links: e.target.value })}
-                                                className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[100px] resize-none"
+                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-h-[100px] resize-none"
                                                 placeholder="Paste link Figma, Google Drive, Docs vào đây..."
                                             />
                                         </div>
@@ -1180,10 +1180,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-[#222]/90 backdrop-blur-md border-t border-[#333] flex justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 border-0 hover:bg-[#2a2a2a] bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
+                            className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
                         >
                             Hủy
                         </button>

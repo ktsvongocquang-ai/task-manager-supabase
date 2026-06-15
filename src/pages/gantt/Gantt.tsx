@@ -453,7 +453,7 @@ export const Gantt = () => {
         <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
             {/* Top Toolbar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <Calendar size={20} className="text-blue-500" /> Sơ đồ Gantt
                 </h1>
 
@@ -479,7 +479,7 @@ export const Gantt = () => {
                         <select
                             value={selectedProjectId || ''}
                             onChange={(e) => setSelectedProjectId(e.target.value || null)}
-                            className="bg-[#222] border border-[#333] pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-48 appearance-none cursor-pointer hover:bg-[#1c1c1c] transition-colors font-medium text-slate-200"
+                            className="bg-white border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-48 appearance-none cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700"
                         >
                             <option value="">Tất cả dự án</option>
                             {projects.map(p => (
@@ -496,54 +496,54 @@ export const Gantt = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Tìm kiếm..."
-                            className="bg-[#222] border border-[#333] pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-40"
+                            className="bg-white border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-40"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Navigation Header */}
-            <div className="bg-[#222]/70 backdrop-blur-md border border-white/20 p-4 rounded-[2rem] shadow-xl flex items-center justify-center gap-12 group">
+            <div className="bg-white/70 backdrop-blur-md border border-white/20 p-4 rounded-[2rem] shadow-xl flex items-center justify-center gap-12 group">
                 <button
                     onClick={prevMonth}
-                    className="w-12 h-12 bg-[#222] text-slate-200 hover:text-blue-600 rounded-2xl shadow-lg border border-[#333] flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
+                    className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
                     <ChevronLeft size={24} />
                 </button>
                 <div className="flex flex-col items-center">
-                    <h2 className="text-2xl font-black text-slate-50 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl font-black text-gray-900 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {MONTHS_VI[month]} {year}
                     </h2>
                     <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1 opacity-20"></div>
                 </div>
                 <button
                     onClick={nextMonth}
-                    className="w-12 h-12 bg-[#222] text-slate-200 hover:text-blue-600 rounded-2xl shadow-lg border border-[#333] flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
+                    className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
                     <ChevronRight size={24} />
                 </button>
             </div>
 
             {/* Desktop Gantt Grid Container */}
-            <div className="hidden md:block bg-[#222] border border-[#333] rounded-3xl shadow-sm overflow-hidden">
+            <div className="hidden md:block bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
                 <div className="max-h-[600px] overflow-auto relative">
                     <div className="min-w-max">
                         {/* Day Headers - Themed background like screenshot */}
-                        <div className="flex border-b border-[#333] sticky top-0 z-30 bg-[#222] shadow-sm">
-                            <div className="flex sticky left-0 z-40 bg-[#1c1c1c] border-r border-[#333] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0 border-r border-[#333] flex items-center bg-[#1c1c1c]">
+                        <div className="flex border-b border-slate-200 sticky top-0 z-30 bg-white shadow-sm">
+                            <div className="flex sticky left-0 z-40 bg-slate-50 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                                     MÔ TẢ
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0 border-r border-[#333] flex items-center justify-center text-center bg-[#1c1c1c]">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0 border-r border-[#333] flex items-center justify-center text-center bg-[#1c1c1c]">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0 border-r border-[#333] flex items-center justify-center bg-[#1c1c1c]">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
                                     NGÀY
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-[#1c1c1c]">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
                                     TIẾN %
                                 </div>
                             </div>
@@ -551,11 +551,11 @@ export const Gantt = () => {
                                 <div
                                     key={day}
                                     style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
-                                    className={`text-center flex flex-col items-center justify-center py-2 border-r border-[#333] transition-colors ${isToday(day) ? 'bg-orange-500' :
-                                        isWeekend(day) ? 'bg-[#2a2a2a]/50' : 'bg-blue-50/50'
+                                    className={`text-center flex flex-col items-center justify-center py-2 border-r border-slate-100 transition-colors ${isToday(day) ? 'bg-orange-500' :
+                                        isWeekend(day) ? 'bg-slate-100/50' : 'bg-blue-50/50'
                                         }`}
                                 >
-                                    <div className={`text-[11px] font-black ${isToday(day) ? 'text-white' : 'text-slate-200'}`}>{day}</div>
+                                    <div className={`text-[11px] font-black ${isToday(day) ? 'text-white' : 'text-slate-700'}`}>{day}</div>
                                     <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(day) ? 'text-white/80' :
                                         isWeekend(day) ? 'text-red-400' : 'text-blue-400'
                                         }`}>
@@ -568,8 +568,8 @@ export const Gantt = () => {
                         {/* Chart Rows */}
                         <div className="">
                             {ganttItems.length === 0 ? (
-                                <div className="py-24 text-center bg-[#1c1c1c]/30">
-                                    <div className="w-16 h-16 bg-[#222] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                                <div className="py-24 text-center bg-slate-50/30">
+                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                                         <Calendar size={32} className="text-slate-300" />
                                     </div>
                                     <p className="text-sm font-bold text-slate-400">Không có dữ liệu hiển thị</p>
@@ -583,31 +583,31 @@ export const Gantt = () => {
                                     const progressAmount = item.task?.completion_pct || 0;
 
                                     return (
-                                        <div key={item.id} className={`flex border-b border-[#333] hover:bg-[#1c1c1c] transition-colors group/row ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-[#2a2a2a]' : 'bg-[#222]'}`}>
+                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors group/row ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
                                             {/* Left Column Data */}
-                                            <div className={`flex sticky left-0 z-20 transition-colors shrink-0 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db] group-hover/row:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-[#2a2a2a] group-hover/row:bg-slate-200' : 'bg-[#222] group-hover/row:bg-[#1c1c1c]'}`}>
+                                            <div className={`flex sticky left-0 z-20 transition-colors shrink-0 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db] group-hover/row:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 group-hover/row:bg-slate-200' : 'bg-white group-hover/row:bg-slate-50'}`}>
                                                 
                                                 {/* Tên Mô Tả */}
-                                                <div className="w-[300px] px-3 py-2 border-r border-[#333] flex-shrink-0 flex flex-col justify-center relative">
+                                                <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">
                                                     {item.type === 'project' ? (
                                                         <div
                                                             className="flex items-center gap-2 cursor-pointer w-full select-none"
                                                             onClick={() => toggleProject(item.id)}
                                                         >
-                                                            {item.isExpanded ? <ChevronDown size={14} className="text-slate-100 shrink-0" /> : <ChevronRight size={14} className="text-slate-100 shrink-0" />}
-                                                            <span className="text-xs font-black text-slate-100 truncate uppercase">{item.name}</span>
+                                                            {item.isExpanded ? <ChevronDown size={14} className="text-slate-800 shrink-0" /> : <ChevronRight size={14} className="text-slate-800 shrink-0" />}
+                                                            <span className="text-xs font-black text-slate-800 truncate uppercase">{item.name}</span>
                                                         </div>
                                                     ) : item.type === 'phase' ? (
                                                         <div
                                                             className="flex items-center justify-between cursor-pointer w-full select-none pl-4 pr-2"
                                                         >
                                                             <div className="flex items-center gap-2 flex-1 min-w-0" onClick={() => togglePhase(item.id)}>
-                                                                {item.isExpanded ? <ChevronDown size={14} className="text-slate-200 shrink-0" /> : <ChevronRight size={14} className="text-slate-200 shrink-0" />}
-                                                                <span className="text-xs font-bold text-slate-100 truncate uppercase">{item.name}</span>
+                                                                {item.isExpanded ? <ChevronDown size={14} className="text-slate-700 shrink-0" /> : <ChevronRight size={14} className="text-slate-700 shrink-0" />}
+                                                                <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
                                                             </div>
                                                             <button 
                                                                 onClick={(e) => handleQuickAdd(item.id, item.projectCode, e)}
-                                                                className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-400 hover:text-blue-600"
+                                                                className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-500 hover:text-blue-600"
                                                                 title="Thêm nhiệm vụ mới vào giai đoạn này"
                                                             >
                                                                 <Plus size={14} />
@@ -616,12 +616,12 @@ export const Gantt = () => {
                                                     ) : (
                                                         <div className="flex items-start gap-3 w-full pl-10 pr-6 relative group/task">
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="text-[11px] text-slate-200 cursor-pointer hover:text-blue-600 transition-colors line-clamp-2" title={item.name} onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
+                                                                <div className="text-[11px] text-slate-700 cursor-pointer hover:text-blue-600 transition-colors line-clamp-2" title={item.name} onClick={() => { setEditingTask(item.task); setIsEditModalOpen(true); }}>
                                                                     {item.name}
                                                                 </div>
                                                                 {/* Assignee if any */}
                                                                 <div 
-                                                                    className="text-[9px] text-slate-400 mt-0.5 flex items-center gap-1 cursor-pointer hover:bg-[#2a2a2a] px-1 -ml-1 rounded transition-colors"
+                                                                    className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1 cursor-pointer hover:bg-slate-100 px-1 -ml-1 rounded transition-colors"
                                                                     onDoubleClick={(e) => handleCellClick(item, 'assignee_id', item.task.assignee_id || '', e)}
                                                                 >
                                                                     <User size={10} /> 
@@ -632,7 +632,7 @@ export const Gantt = () => {
                                                                             onBlur={() => saveCellEdit(item)}
                                                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
                                                                             autoFocus
-                                                                            className="text-[9px] py-0 px-1 h-5 bg-[#222] border border-blue-400 rounded outline-none"
+                                                                            className="text-[9px] py-0 px-1 h-5 bg-white border border-blue-400 rounded outline-none"
                                                                             onClick={(e) => e.stopPropagation()}
                                                                         >
                                                                             <option value="">Chọn người gán</option>
@@ -648,7 +648,7 @@ export const Gantt = () => {
                                                             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity">
                                                                 <button 
                                                                     onClick={(e) => handleQuickAdd(item.task.parent_id, item.projectCode, e)}
-                                                                    className="hover:bg-blue-100 p-1 rounded-md transition-all text-blue-500 hover:text-blue-600 bg-[#222] shadow-sm"
+                                                                    className="hover:bg-blue-100 p-1 rounded-md transition-all text-blue-500 hover:text-blue-600 bg-white shadow-sm"
                                                                     title="Chèn nhiệm vụ mới"
                                                                 >
                                                                     <Plus size={12} />
@@ -661,7 +661,7 @@ export const Gantt = () => {
                                                                             setTasks(prev => prev.filter(t => t.id !== item.id));
                                                                         }
                                                                     }}
-                                                                    className="hover:bg-red-100 p-1 rounded-md transition-all text-red-500 hover:text-red-600 bg-[#222] shadow-sm"
+                                                                    className="hover:bg-red-100 p-1 rounded-md transition-all text-red-500 hover:text-red-600 bg-white shadow-sm"
                                                                     title="Xóa nhiệm vụ"
                                                                 >
                                                                     <Trash2 size={12} />
@@ -672,7 +672,7 @@ export const Gantt = () => {
 
                                                 {/* Bắt Đầu */}
                                                 <div 
-                                                    className={`w-[100px] px-2 py-2 border-r border-[#333] flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-100' : 'text-slate-600 hover:bg-[#2a2a2a]/50 cursor-pointer'}`}
+                                                    className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                                     onDoubleClick={(e) => handleCellClick(item, 'start_date', item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '', e)}
                                                 >
                                                     {editingCell?.id === item.id && editingCell?.field === 'start_date' ? (
@@ -683,7 +683,7 @@ export const Gantt = () => {
                                                             onBlur={() => saveCellEdit(item)}
                                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
                                                             autoFocus
-                                                            className="w-full text-[10px] bg-[#222] border border-blue-400 rounded px-1 outline-none text-center"
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
                                                             onClick={e => e.stopPropagation()}
                                                         />
                                                     ) : (
@@ -695,7 +695,7 @@ export const Gantt = () => {
 
                                                 {/* Kết Thúc */}
                                                 <div 
-                                                    className={`w-[100px] px-2 py-2 border-r border-[#333] flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-100' : 'text-slate-600 hover:bg-[#2a2a2a]/50 cursor-pointer'}`}
+                                                    className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                                     onDoubleClick={(e) => handleCellClick(item, 'end_date', item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '', e)}
                                                 >
                                                     {editingCell?.id === item.id && editingCell?.field === 'end_date' ? (
@@ -706,7 +706,7 @@ export const Gantt = () => {
                                                             onBlur={() => saveCellEdit(item)}
                                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
                                                             autoFocus
-                                                            className="w-full text-[10px] bg-[#222] border border-blue-400 rounded px-1 outline-none text-center"
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
                                                             onClick={e => e.stopPropagation()}
                                                         />
                                                     ) : (
@@ -718,7 +718,7 @@ export const Gantt = () => {
 
                                                 {/* Số Lượng Ngày */}
                                                 <div 
-                                                    className={`w-[50px] px-2 py-2 border-r border-[#333] flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-100' : 'text-slate-600 hover:bg-[#2a2a2a]/50 cursor-pointer'}`}
+                                                    className={`w-[50px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                                     onDoubleClick={(e) => handleCellClick(item, 'duration', totalDays.toString(), e)}
                                                 >
                                                     {editingCell?.id === item.id && editingCell?.field === 'duration' ? (
@@ -730,7 +730,7 @@ export const Gantt = () => {
                                                             onBlur={() => saveCellEdit(item)}
                                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCellEdit(item); if (e.key === 'Escape') setEditingCell(null); }}
                                                             autoFocus
-                                                            className="w-full text-[10px] bg-[#222] border border-blue-400 rounded px-1 outline-none text-center"
+                                                            className="w-full text-[10px] bg-white border border-blue-400 rounded px-1 outline-none text-center"
                                                             onClick={e => e.stopPropagation()}
                                                         />
                                                     ) : (
@@ -739,7 +739,7 @@ export const Gantt = () => {
                                                 </div>
 
                                                 {/* Tiến Độ % */}
-                                                <div className={`w-[50px] px-2 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-100' : 'text-slate-600'}`}>
+                                                <div className={`w-[50px] px-2 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                                                     {item.type !== 'project' ? `${progressAmount}%` : '0%'}
                                                 </div>
                                                 
@@ -786,7 +786,7 @@ export const Gantt = () => {
                                                         else if (item.type === 'phase') cellBgClass = "bg-[#4a80bc]"; // Xanh biển
                                                         else cellBgClass = "bg-[#71d9a2]"; // Xanh lá mạ
                                                     } else {
-                                                        if (isWeekend(day)) cellBgClass = "bg-[#2a2a2a]/50";
+                                                        if (isWeekend(day)) cellBgClass = "bg-slate-100/50";
                                                     }
                                                     
                                                     return (
@@ -797,7 +797,7 @@ export const Gantt = () => {
                                                                 minWidth: `${cellWidth}px`,
                                                                 left: `${(day - 1) * cellWidth}px`
                                                             }}
-                                                            className={`absolute top-0 bottom-0 border-r border-[#333]/50 flex flex-col justify-center items-center transition-colors group/cell ${cellBgClass}
+                                                            className={`absolute top-0 bottom-0 border-r border-slate-200/50 flex flex-col justify-center items-center transition-colors group/cell ${cellBgClass}
                                                                 ${isWithinRange && item.type !== 'project' ? 'hover:brightness-95 cursor-grab active:cursor-grabbing' : ''}
                                                             `}
                                                             onMouseDown={(e) => {
@@ -825,7 +825,7 @@ export const Gantt = () => {
                                                         >
                                                             {/* If it's the first day of the range, we can optionally show progress text */}
                                                             {day === logicalStartDay && isWithinRange && item.type !== 'project' && (
-                                                                <span className="text-[8px] font-bold text-slate-100 whitespace-nowrap z-10 select-none px-1 block truncate w-full text-center">
+                                                                <span className="text-[8px] font-bold text-slate-800 whitespace-nowrap z-10 select-none px-1 block truncate w-full text-center">
                                                                     {progressAmount > 0 ? `${progressAmount}%` : ''}
                                                                 </span>
                                                             )}
@@ -853,8 +853,8 @@ export const Gantt = () => {
             {/* Mobile List Timeline View */}
             <div className="md:hidden space-y-4 px-1">
                 {ganttItems.filter(item => item.type === 'project').length === 0 ? (
-                    <div className="py-24 text-center bg-[#1c1c1c]/30 rounded-3xl border border-[#333]">
-                        <div className="w-16 h-16 bg-[#222] rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <div className="py-24 text-center bg-slate-50/30 rounded-3xl border border-slate-200">
+                        <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center mx-auto mb-4 shadow-sm">
                             <Calendar size={32} className="text-slate-300" />
                         </div>
                         <p className="text-sm font-bold text-slate-400">Không có dữ liệu hiển thị</p>
@@ -867,42 +867,42 @@ export const Gantt = () => {
                         const totalDays = (item.startDate && item.endDate) ? Math.max(1, Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
                         
                         return (
-                            <div key={item.id} className="bg-[#222] rounded-[24px] shadow-sm border border-[#e0e4db] p-5">
+                            <div key={item.id} className="bg-white rounded-[24px] shadow-sm border border-[#e0e4db] p-5">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex-1 min-w-0 pr-3">
-                                        <h3 className="font-bold text-slate-100 text-sm md:text-base leading-tight uppercase truncate">{item.name}</h3>
-                                        <div className="text-[10px] text-slate-400 font-bold tracking-widest uppercase mt-1">Mã DA: {item.projectCode}</div>
+                                        <h3 className="font-bold text-slate-800 text-sm md:text-base leading-tight uppercase truncate">{item.name}</h3>
+                                        <div className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">Mã DA: {item.projectCode}</div>
                                     </div>
                                     <div className="bg-[#4a80bc]/10 text-[#4a80bc] px-2 py-1 rounded-lg text-[10px] font-black shrink-0 shadow-sm">
                                         {totalDays} ngày
                                     </div>
                                 </div>
                                 
-                                <div className="flex justify-between items-center text-[10px] font-black tracking-widest text-slate-400 mb-4">
+                                <div className="flex justify-between items-center text-[10px] font-black tracking-widest text-slate-500 mb-4">
                                     <div className="flex flex-col">
                                         <span className="text-slate-400 text-[8px] mb-0.5">BẮT ĐẦU</span>
-                                        <span className="text-slate-200">{formattedStart || '—'}</span>
+                                        <span className="text-slate-700">{formattedStart || '—'}</span>
                                     </div>
                                     <ArrowRight size={14} className="text-slate-300" />    
                                     <div className="flex flex-col items-end">
                                         <span className="text-slate-400 text-[8px] mb-0.5">KẾT THÚC</span>
-                                        <span className="text-slate-200">{formattedEnd || '—'}</span>
+                                        <span className="text-slate-700">{formattedEnd || '—'}</span>
                                     </div>
                                 </div>
                                 
                                 {/* Phased/Tasks summary */}
                                 {projectPhases.length > 0 && (
-                                    <div className="space-y-2 mt-2 pt-4 border-t border-[#333]">
+                                    <div className="space-y-2 mt-2 pt-4 border-t border-slate-100">
                                         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Các giai đoạn</h4>
                                         {projectPhases.map(phase => {
                                             const phaseStart = phase.startDate ? format(new Date(phase.startDate), 'dd/MM') : '';
                                             const phaseEnd = phase.endDate ? format(new Date(phase.endDate), 'dd/MM') : '';
                                             const isDone = phase.task?.status?.includes('Hoàn thành');
                                             return (
-                                                <div key={phase.id} className={`rounded-xl p-3 border transition-colors ${isDone ? 'bg-[#1c1c1c] border-[#333]' : 'bg-[#222] border-blue-100 shadow-sm ring-1 ring-blue-50'}`}>
+                                                <div key={phase.id} className={`rounded-xl p-3 border transition-colors ${isDone ? 'bg-slate-50 border-slate-100' : 'bg-white border-blue-100 shadow-sm ring-1 ring-blue-50'}`}>
                                                     <div className="flex justify-between items-center mb-2">
-                                                        <h4 className={`text-xs font-bold line-clamp-2 pr-2 ${isDone ? 'text-slate-400' : 'text-slate-200'}`}>{phase.name}</h4>
-                                                        <span className={`shrink-0 text-[9px] font-bold whitespace-nowrap px-1.5 py-0.5 rounded flex items-center gap-1 ${isDone ? 'text-slate-400 bg-[#222] border border-[#333]' : 'text-slate-600 bg-[#1c1c1c] border border-[#333]'}`}>
+                                                        <h4 className={`text-xs font-bold line-clamp-2 pr-2 ${isDone ? 'text-slate-500' : 'text-slate-700'}`}>{phase.name}</h4>
+                                                        <span className={`shrink-0 text-[9px] font-bold whitespace-nowrap px-1.5 py-0.5 rounded flex items-center gap-1 ${isDone ? 'text-slate-400 bg-white border border-slate-200' : 'text-slate-600 bg-slate-50 border border-slate-200'}`}>
                                                             {isDone && <CheckCircle2 size={10} className="text-emerald-500" />}
                                                             {phaseStart} - {phaseEnd}
                                                         </span>
@@ -922,19 +922,19 @@ export const Gantt = () => {
             {
                 taskToComplete && (
                     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                        <div className="bg-[#222] rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
                             <div className="p-8 pb-6 flex flex-col items-center text-center">
                                 <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
                                     <CheckCircle2 size={32} className="text-emerald-500" />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-100 mb-2">Hoàn thành nhiệm vụ?</h3>
-                                <p className="text-sm text-slate-400 mb-6">
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Hoàn thành nhiệm vụ?</h3>
+                                <p className="text-sm text-slate-500 mb-6">
                                     Bạn có chắc chắn muốn đánh dấu "{taskToComplete.name}" là đã hoàn thành không?
                                 </p>
                                 <div className="flex gap-3 w-full">
                                     <button
                                         onClick={() => setTaskToComplete(null)}
-                                        className="flex-1 py-2.5 rounded-xl bg-[#2a2a2a] text-slate-200 font-bold hover:bg-slate-200 transition-colors"
+                                        className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors"
                                     >
                                         Hủy bỏ
                                     </button>

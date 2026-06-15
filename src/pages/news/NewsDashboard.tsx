@@ -44,12 +44,12 @@ export const NewsDashboard = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
-       <div className="flex items-center justify-between bg-[#222] p-6 rounded-2xl shadow-sm border border-[#333]">
+       <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
-               <h1 className="text-2xl font-black text-slate-100 flex items-center gap-3">
+               <h1 className="text-2xl font-black text-slate-800 flex items-center gap-3">
                   <span className="text-3xl">📰</span> Bảng Tin Đầu Tư
                </h1>
-               <p className="text-sm text-slate-400 font-medium mt-1">
+               <p className="text-sm text-slate-500 font-medium mt-1">
                  Tự động 7h sáng · Bấm nút để cập nhật thêm bất kỳ lúc nào
                </p>
             </div>
@@ -74,20 +74,20 @@ export const NewsDashboard = () => {
        </div>
 
        {loading ? (
-           <p className="text-center text-slate-400 py-10 font-medium animate-pulse">Đang tải bản tin từ hệ thống...</p>
+           <p className="text-center text-slate-500 py-10 font-medium animate-pulse">Đang tải bản tin từ hệ thống...</p>
        ) : news.length === 0 ? (
-           <div className="text-center py-20 bg-[#222] rounded-2xl shadow-sm border border-[#333] border-dashed">
+           <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-200 border-dashed">
                <p className="text-5xl mb-4">📈</p>
-               <p className="text-slate-200 font-bold text-lg">Chưa có bản tin nào</p>
+               <p className="text-slate-700 font-bold text-lg">Chưa có bản tin nào</p>
                <p className="text-sm text-slate-400 mt-2 max-w-md mx-auto">Bấm nút <strong>"🚀 Tạo tin mới"</strong> ở trên để tạo bản tin đầu tiên, hoặc đợi hệ thống tự động tạo vào 7h sáng hàng ngày.</p>
            </div>
        ) : (
            <div className="space-y-6">
                {news.map((item) => (
-                   <div key={item.id} className="bg-[#222] rounded-2xl shadow-sm border border-[#333] p-6 sm:p-8 hover:shadow-md transition-shadow">
+                   <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 hover:shadow-md transition-shadow">
                        <h2 className="text-xl sm:text-2xl font-black text-[#7A1216] mb-3 leading-tight">{item.title}</h2>
                        <div className="flex items-center gap-3 mb-6 flex-wrap">
-                           <span className="px-3 py-1 bg-[#2a2a2a] text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                           <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
                                {item.category}
                            </span>
                            {item.ai_model && (
@@ -99,30 +99,30 @@ export const NewsDashboard = () => {
                                ⏱ {new Date(item.created_at).toLocaleString('vi-VN')}
                            </span>
                        </div>
-                       <hr className="border-[#333] mb-6" />
-                       <div className="text-slate-200 leading-relaxed">
+                       <hr className="border-slate-100 mb-6" />
+                       <div className="text-slate-700 leading-relaxed">
                            <ReactMarkdown
                                remarkPlugins={[remarkGfm]}
                                components={{
-                                   h1: ({node, ...props}) => <h1 className="text-2xl font-black text-slate-50 mt-8 mb-4 border-b border-[#333] pb-2" {...props} />,
+                                   h1: ({node, ...props}) => <h1 className="text-2xl font-black text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props} />,
                                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-indigo-900 mt-8 mb-4 flex items-center gap-2 before:content-[''] before:w-2 before:h-6 before:bg-indigo-500 before:rounded-full before:inline-block" {...props} />,
-                                   h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-100 mt-6 mb-3" {...props} />,
+                                   h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-800 mt-6 mb-3" {...props} />,
                                    ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-1.5 marker:text-indigo-400" {...props} />,
                                    ol: ({node, ...props}) => <ol className="list-decimal pl-6 mb-4 space-y-1.5 marker:text-indigo-400 font-medium" {...props} />,
-                                   li: ({node, ...props}) => <li className="text-slate-200" {...props} />,
-                                   p: ({node, ...props}) => <p className="mb-3 text-[15px] text-slate-200 leading-relaxed last:mb-0" {...props} />,
-                                   strong: ({node, ...props}) => <strong className="font-bold text-slate-50" {...props} />,
-                                   em: ({node, ...props}) => <em className="text-slate-400 italic" {...props} />,
+                                   li: ({node, ...props}) => <li className="text-slate-700" {...props} />,
+                                   p: ({node, ...props}) => <p className="mb-3 text-[15px] text-slate-700 leading-relaxed last:mb-0" {...props} />,
+                                   strong: ({node, ...props}) => <strong className="font-bold text-slate-900" {...props} />,
+                                   em: ({node, ...props}) => <em className="text-slate-500 italic" {...props} />,
                                    table: ({node, ...props}) => (
-                                     <div className="overflow-x-auto my-6 rounded-xl border border-[#333] shadow-sm">
+                                     <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm">
                                        <table className="w-full text-[14px] text-left" {...props} />
                                      </div>
                                    ),
                                    thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs uppercase tracking-wider" {...props} />,
                                    tbody: ({node, ...props}) => <tbody className="divide-y divide-slate-100" {...props} />,
-                                   tr: ({node, ...props}) => <tr className="hover:bg-indigo-50/50 transition-colors even:bg-[#1c1c1c]" {...props} />,
+                                   tr: ({node, ...props}) => <tr className="hover:bg-indigo-50/50 transition-colors even:bg-slate-50" {...props} />,
                                    th: ({node, ...props}) => <th className="px-4 py-3 font-bold whitespace-nowrap" {...props} />,
-                                   td: ({node, ...props}) => <td className="px-4 py-3 text-slate-200 align-middle [&>p]:mb-1 [&>p:last-child]:mb-0" {...props} />
+                                   td: ({node, ...props}) => <td className="px-4 py-3 text-slate-700 align-middle [&>p]:mb-1 [&>p:last-child]:mb-0" {...props} />
                                }}
                            >
                                {item.content_markdown}

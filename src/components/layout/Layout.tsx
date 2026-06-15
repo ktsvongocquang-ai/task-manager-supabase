@@ -358,7 +358,7 @@ export const Layout = () => {
     }
 
     return (
-        <div className="h-screen bg-[#1c1c1c] flex font-inter">
+        <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex font-inter">
             {/* Mobile Sidebar Backdrop */}
             {isMobileSidebarOpen && (
                 <div 
@@ -376,15 +376,15 @@ export const Layout = () => {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-[#7A1216] leading-none tracking-tight">DQH</h1>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
                         </div>
                     </button>
 
                     {/* User Profile Card */}
-                    <div className="bg-[#1c1c1c] rounded-xl p-4 border border-border-main mb-4">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-border-main mb-4">
                         <button 
                             onClick={() => navigate('/profile')}
-                            className="flex items-center space-x-3 w-full text-left hover:bg-[#2a2a2a] p-2 -mx-2 rounded-lg transition-colors group"
+                            className="flex items-center space-x-3 w-full text-left hover:bg-gray-100 p-2 -mx-2 rounded-lg transition-colors group"
                             title="Xem hồ sơ của bạn"
                         >
                             <div className={`w-10 h-10 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover:scale-105 transition-transform`}>
@@ -396,7 +396,7 @@ export const Layout = () => {
                             </div>
                         </button>
                         <div className="grid grid-cols-2 gap-2 mt-4">
-                            <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#222] text-xs font-semibold text-slate-200 rounded-lg border border-border-main hover:bg-[#2a2a2a] transition-colors">
+                            <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
                             </button>
                             <button onClick={() => setIsTelegramModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#0088cc]/10 text-xs font-semibold text-[#0088cc] rounded-lg border border-[#0088cc]/20 hover:bg-[#0088cc]/20 transition-colors">
@@ -415,7 +415,7 @@ export const Layout = () => {
                             </button>
                         )}
 
-                        <button onClick={handleSignOut} className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-[#222] text-xs font-semibold text-red-600 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
+                        <button onClick={handleSignOut} className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-red-600 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
                             <LogOut size={14} /> Đăng xuất
                         </button>
                     </div>
@@ -450,7 +450,7 @@ export const Layout = () => {
                                 className={() =>
                                     `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
-                                        : 'text-slate-400 hover:bg-[#2a2a2a] hover:text-slate-50'
+                                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                     } ${item.mobileChildren ? 'hidden lg:flex' : 'flex'}`
                                 }
                             >
@@ -478,18 +478,18 @@ export const Layout = () => {
                                             onClick={() => toggleNav(item.name)}
                                             className={`w-full group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${isAnyChildActive && !isExpanded
                                                 ? 'bg-blue-50 text-blue-700'
-                                                : 'text-slate-200 hover:bg-[#2a2a2a]'
+                                                : 'text-gray-700 hover:bg-gray-100'
                                             }`}
                                         >
                                             <div className="flex items-center">
-                                                <item.icon className={`mr-3 ${isAnyChildActive && !isExpanded ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-200'}`} size={18} />
+                                                <item.icon className={`mr-3 ${isAnyChildActive && !isExpanded ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`} size={18} />
                                                 <span>{item.name}</span>
                                             </div>
                                             <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                         </button>
                                         
                                         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                            <div className="pl-3 pr-1 space-y-1 mt-1 border-l-2 border-[#333] ml-4">
+                                            <div className="pl-3 pr-1 space-y-1 mt-1 border-l-2 border-slate-100 ml-4">
                                                 {item.mobileChildren.map((child: any) => {
                                                     const isChildMatch = (path: string) => {
                                                         if (child.matchPrefix) {
@@ -506,7 +506,7 @@ export const Layout = () => {
                                                             className={() =>
                                                                 `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isChildMatch(location.pathname)
                                                                     ? 'bg-primary text-white shadow-sm'
-                                                                    : 'text-slate-400 hover:bg-[#2a2a2a] hover:text-slate-50'
+                                                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                                                 }`
                                                             }
                                                         >
@@ -532,11 +532,11 @@ export const Layout = () => {
 
                 {/* Sidebar Footer */}
                 <div className="p-6">
-                    <div className="glass-card p-4 text-center flex flex-col items-center justify-center gap-1 hover:bg-[#222]/60 transition-colors">
-                        <div className="text-sm font-bold text-slate-200 tracking-tight">App QLDA DQH</div>
+                    <div className="glass-card p-4 text-center flex flex-col items-center justify-center gap-1 hover:bg-white/60 transition-colors">
+                        <div className="text-sm font-bold text-slate-700 tracking-tight">App QLDA DQH</div>
                         <div className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">version 1.3</div>
                         <div className="text-[10px] text-slate-400 mt-2 font-medium">
-                            © 2026 <a href="https://dqharchitects.vn" className="text-slate-400 font-bold hover:text-indigo-600 hover:underline transition-colors" target="_blank" rel="noreferrer">dqharchitects.vn</a>
+                            © 2026 <a href="https://dqharchitects.vn" className="text-slate-500 font-bold hover:text-indigo-600 hover:underline transition-colors" target="_blank" rel="noreferrer">dqharchitects.vn</a>
                         </div>
                     </div>
                 </div>
@@ -545,7 +545,7 @@ export const Layout = () => {
             {/* Main Content */}
             <main className="flex-1 lg:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0 min-w-0">
                 {/* Header */}
-                <header className="sticky top-0 bg-[#222] border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
+                <header className="sticky top-0 bg-white border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex flex-col gap-3">
                         {/* Top Row: Title & Actions */}
                         <div className="flex items-center justify-between gap-2">
@@ -553,14 +553,14 @@ export const Layout = () => {
                                 <button onClick={() => setIsMobileSidebarOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
                                     <Menu className="text-white" size={16} />
                                 </button>
-                                <h2 className="text-lg sm:text-xl font-bold text-slate-50 truncate">{currentTitle()}</h2>
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{currentTitle()}</h2>
                             </div>
 
                             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
                                 {/* Refresh Button */}
                                 <button
                                     onClick={handleRefresh}
-                                    className={`hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-[#222] text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-[#333] ${isRefreshing ? 'animate-spin' : ''}`}
+                                    className={`hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
                                     title="Làm mới dữ liệu"
                                 >
                                     <RefreshCw size={18} strokeWidth={2.5} />
@@ -573,7 +573,7 @@ export const Layout = () => {
                                             setIsNotifOpen(!isNotifOpen);
                                             if (isChatOpen) setIsChatOpen(false);
                                         }}
-                                        className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-[#333]/50"
+                                        className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                                     >
                                         <Bell size={18} strokeWidth={2.5} className="text-yellow-500 fill-yellow-500/20" />
                                         {unreadNotifCount > 0 && (
@@ -602,7 +602,7 @@ export const Layout = () => {
                                         setIsChatOpen(!isChatOpen);
                                         if (isNotifOpen) setIsNotifOpen(false);
                                     }}
-                                    className="hidden lg:flex relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-[#333]/50"
+                                    className="hidden lg:flex relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                                 >
                                     <MessageSquare size={18} strokeWidth={2.5} />
                                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
@@ -613,22 +613,22 @@ export const Layout = () => {
                         {/* Bottom Row: Horizontal Tabs for Task Views (removed and moved to sidebar, hidden on mobile) */}
                         <div className="hidden lg:block">
                             {['/kanban', '/tasks', '/gantt', '/projects', '/dashboard'].includes(location.pathname) && (
-                                <div className="flex items-center space-x-2 border border-[#333] p-1 rounded-xl bg-[#1c1c1c] overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
-                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}>
+                                <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                    <NavLink to="/tasks" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Mục tiêu tuần
                                     </NavLink>
-                                    <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}>
+                                    <NavLink to="/kanban" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Kanban
                                     </NavLink>
                                     {isManagerRole(profile?.role) && (
-                                    <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}>
+                                    <NavLink to="/gantt" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Sơ đồ Gantt
                                     </NavLink>
                                     )}
-                                    <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}>
+                                    <NavLink to="/projects" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Dự án
                                     </NavLink>
-                                    <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}>
+                                    <NavLink to="/dashboard" className={({ isActive }) => `px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}>
                                         Dashboard
                                     </NavLink>
                                 </div>
@@ -638,7 +638,7 @@ export const Layout = () => {
                         {/* Horizontal Tabs for CRM Views (hidden on mobile) */}
                         <div className="hidden lg:block">
                             {location.pathname === '/customers' && (
-                                <div className="flex items-center space-x-2 border border-[#333] p-1 rounded-xl bg-[#1c1c1c] overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
+                                <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
                                 {[
                                     { id: 'DASHBOARD', name: 'Tổng quan' },
                                     { id: 'CUSTOMERS', name: 'Khách hàng' },
@@ -655,7 +655,7 @@ export const Layout = () => {
                                         <button
                                             key={item.id}
                                             onClick={() => navigate(`/customers?tab=${item.id}`)}
-                                            className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-[#222] shadow-sm text-indigo-600 border border-[#333]/50' : 'text-slate-400 hover:text-slate-200'}`}
+                                            className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
                                         >
                                             {item.name}
                                         </button>
@@ -688,20 +688,20 @@ export const Layout = () => {
             {/* Password Change Modal */}
             {isPasswordModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-[#222] border border-[#333] rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
-                            <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">Đổi Mật Khẩu</h3>
-                            <button onClick={() => setIsPasswordModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-[#2a2a2a] rounded-full">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">Đổi Mật Khẩu</h3>
+                            <button onClick={() => setIsPasswordModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-6">
-                            <label className="block text-sm font-semibold text-slate-200 mb-2">Mật khẩu mới</label>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Mật khẩu mới</label>
                             <input
                                 type="password"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium mb-4"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium mb-4"
                                 placeholder="Nhập mật khẩu mới..."
                             />
                             <button
@@ -719,27 +719,27 @@ export const Layout = () => {
             {/* Telegram Chat ID Modal */}
             {isTelegramModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-[#222] border border-[#333] rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                        <div className="px-6 py-4 border-b border-[#333] flex justify-between items-center bg-[#222]">
-                            <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <Send className="text-[#0088cc]" size={20} />
                                 Cài đặt Telegram
                             </h3>
-                            <button onClick={() => setIsTelegramModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-[#2a2a2a] rounded-full">
+                            <button onClick={() => setIsTelegramModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full">
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="p-6 bg-[#1c1c1c]/50">
+                        <div className="p-6 bg-slate-50/50">
                             <p className="text-sm text-slate-600 mb-4 leading-relaxed">
                                 Nhận thông báo công việc tức thì qua Telegram.
                                 Để lấy ID của bạn, hãy lên Telegram tìm kiếm Bot <strong className="text-[#0088cc]">@JFLOW_Task_Bot</strong> (hoặc bot quản lý của bạn) và bấm <strong>START</strong>.
                             </p>
-                            <label className="block text-sm font-bold text-slate-200 mb-2">Telegram Chat ID</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Telegram Chat ID</label>
                             <input
                                 type="text"
                                 value={telegramChatId}
                                 onChange={(e) => setTelegramChatId(e.target.value)}
-                                className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-lg text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#0088cc]/20 focus:border-[#0088cc] transition-all font-medium mb-4 shadow-inner"
+                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0088cc]/20 focus:border-[#0088cc] transition-all font-medium mb-4 shadow-inner"
                                 placeholder="Ví dụ: 987654321..."
                             />
                             <button

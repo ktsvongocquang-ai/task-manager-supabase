@@ -94,24 +94,24 @@ export default function QuoteGenerator() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-[#2a2a2a] rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h2 className="text-2xl font-bold text-slate-50">Xuất Thư Báo Giá Tự Động</h2>
-            <p className="text-sm text-slate-400">Thiết lập thông tin và in báo giá theo chuẩn A4</p>
+            <h2 className="text-2xl font-bold text-gray-900">Xuất Thư Báo Giá Tự Động</h2>
+            <p className="text-sm text-gray-500">Thiết lập thông tin và in báo giá theo chuẩn A4</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-[#222] border border-gray-300 rounded-xl text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <Printer className="w-4 h-4" />
             In Báo Giá
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[#222] border border-gray-300 rounded-xl text-sm font-medium text-slate-200 hover:bg-[#1c1c1c] transition-colors shadow-sm">
+          <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
             <Download className="w-4 h-4" />
             Lưu PDF
           </button>
@@ -126,82 +126,82 @@ export default function QuoteGenerator() {
         {/* Editor Panel */}
         <div className="xl:col-span-5 space-y-6 print:hidden">
           {/* General Info */}
-          <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm p-6">
-            <h3 className="font-bold text-slate-50 mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
               <span className="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
               Thông tin chung
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Tên công trình</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Tên công trình</label>
                 <input 
                   type="text" 
                   value={quoteInfo.projectName}
                   onChange={(e) => setQuoteInfo({...quoteInfo, projectName: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Khách hàng</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Khách hàng</label>
                 <input 
                   type="text" 
                   value={quoteInfo.clientName}
                   onChange={(e) => setQuoteInfo({...quoteInfo, clientName: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Loại hình</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Loại hình</label>
                 <input 
                   type="text" 
                   value={quoteInfo.constructionType}
                   onChange={(e) => setQuoteInfo({...quoteInfo, constructionType: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Địa điểm</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Địa điểm</label>
                 <input 
                   type="text" 
                   value={quoteInfo.projectLocation}
                   onChange={(e) => setQuoteInfo({...quoteInfo, projectLocation: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Đại diện CĐT</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Đại diện CĐT</label>
                 <input 
                   type="text" 
                   value={quoteInfo.clientCompany}
                   onChange={(e) => setQuoteInfo({...quoteInfo, clientCompany: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Số báo giá</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Số báo giá</label>
                 <input 
                   type="text" 
                   value={quoteInfo.quoteNumber}
                   onChange={(e) => setQuoteInfo({...quoteInfo, quoteNumber: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Ngày báo giá</label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Ngày báo giá</label>
                 <input 
                   type="text" 
                   value={quoteInfo.quoteDate}
                   onChange={(e) => setQuoteInfo({...quoteInfo, quoteDate: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#333] rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Cost Items Editor */}
-          <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-50 flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-emerald-500 rounded-full"></span>
                 Bảng chi phí
               </h3>
@@ -214,7 +214,7 @@ export default function QuoteGenerator() {
             </div>
             <div className="space-y-4">
               {costItems.map((item) => (
-                <div key={item.id} className="p-4 bg-[#1c1c1c] rounded-xl border border-[#333] relative group">
+                <div key={item.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 relative group">
                   <button 
                     onClick={() => removeCostItem(item.id)}
                     className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -227,14 +227,14 @@ export default function QuoteGenerator() {
                       placeholder="Tên hạng mục"
                       value={item.name}
                       onChange={(e) => updateCostItem(item.id, 'name', e.target.value)}
-                      className="w-full px-3 py-1.5 border border-[#333] rounded-lg text-sm font-bold outline-none"
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-bold outline-none"
                     />
                     <input 
                       type="text" 
                       placeholder="Mô tả chi tiết"
                       value={item.description}
                       onChange={(e) => updateCostItem(item.id, 'description', e.target.value)}
-                      className="w-full px-3 py-1.5 border border-[#333] rounded-lg text-xs outline-none"
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none"
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -243,7 +243,7 @@ export default function QuoteGenerator() {
                           type="number" 
                           value={item.area}
                           onChange={(e) => updateCostItem(item.id, 'area', Number(e.target.value))}
-                          className="w-full px-3 py-1.5 border border-[#333] rounded-lg text-sm outline-none"
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none"
                         />
                       </div>
                       <div>
@@ -252,7 +252,7 @@ export default function QuoteGenerator() {
                           type="number" 
                           value={item.unitPrice}
                           onChange={(e) => updateCostItem(item.id, 'unitPrice', Number(e.target.value))}
-                          className="w-full px-3 py-1.5 border border-[#333] rounded-lg text-sm outline-none"
+                          className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm outline-none"
                         />
                       </div>
                     </div>
@@ -260,21 +260,21 @@ export default function QuoteGenerator() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-[#333] flex justify-between items-center">
-              <div className="text-xs font-bold text-slate-400">Thuế suất VAT (%)</div>
+            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+              <div className="text-xs font-bold text-gray-500">Thuế suất VAT (%)</div>
               <input 
                 type="number" 
                 value={quoteInfo.vatRate}
                 onChange={(e) => setQuoteInfo({...quoteInfo, vatRate: Number(e.target.value)})}
-                className="w-20 px-3 py-1.5 border border-[#333] rounded-lg text-sm text-right outline-none"
+                className="w-20 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-right outline-none"
               />
             </div>
           </div>
 
           {/* Payment Stages Editor */}
-          <div className="bg-[#222] rounded-2xl border border-[#333] shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-50 flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
                 <span className="w-1.5 h-6 bg-orange-500 rounded-full"></span>
                 Tiến độ thanh toán
               </h3>
@@ -287,7 +287,7 @@ export default function QuoteGenerator() {
             </div>
             <div className="space-y-3">
               {paymentStages.map((stage) => (
-                <div key={stage.id} className="flex items-center gap-3 p-3 bg-[#1c1c1c] rounded-xl border border-[#333] group">
+                <div key={stage.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group">
                   <div className="w-12">
                     <input 
                       type="text" 
@@ -311,7 +311,7 @@ export default function QuoteGenerator() {
                       placeholder="Ngày"
                       value={stage.days}
                       onChange={(e) => updatePaymentStage(stage.id, 'days', Number(e.target.value))}
-                      className="w-full bg-[#222] px-2 py-1 border border-[#333] rounded text-xs text-center outline-none"
+                      className="w-full bg-white px-2 py-1 border border-gray-200 rounded text-xs text-center outline-none"
                     />
                   </div>
                   <div className="w-16 flex items-center gap-1">
@@ -320,7 +320,7 @@ export default function QuoteGenerator() {
                       placeholder="%"
                       value={stage.percentage}
                       onChange={(e) => updatePaymentStage(stage.id, 'percentage', Number(e.target.value))}
-                      className="w-full bg-[#222] px-2 py-1 border border-[#333] rounded text-xs text-center outline-none"
+                      className="w-full bg-white px-2 py-1 border border-gray-200 rounded text-xs text-center outline-none"
                     />
                     <span className="text-[10px] font-bold">%</span>
                   </div>
@@ -337,10 +337,10 @@ export default function QuoteGenerator() {
         </div>
 
         {/* Preview Panel */}
-        <div className="xl:col-span-7 flex justify-center bg-[#2a2a2a] xl:bg-transparent p-4 xl:p-0 rounded-2xl print:p-0">
+        <div className="xl:col-span-7 flex justify-center bg-gray-100 xl:bg-transparent p-4 xl:p-0 rounded-2xl print:p-0">
           <div 
             ref={printRef}
-            className="bg-[#222] shadow-2xl xl:shadow-lg w-full max-w-[210mm] min-h-[297mm] p-10 sm:p-12 text-[12px] font-serif leading-relaxed text-black print:shadow-none print:p-0 print:max-w-none relative"
+            className="bg-white shadow-2xl xl:shadow-lg w-full max-w-[210mm] min-h-[297mm] p-10 sm:p-12 text-[12px] font-serif leading-relaxed text-black print:shadow-none print:p-0 print:max-w-none relative"
             style={{ 
               color: '#000',
               fontFamily: '"Times New Roman", Times, serif'
@@ -360,17 +360,17 @@ export default function QuoteGenerator() {
                   <div className="flex gap-8 mt-5 text-[11px]">
                     <div className="flex flex-col items-center">
                       <span>Website DQH Architects</span>
-                      <div className="w-12 h-12 border border-gray-400 mt-1 flex items-center justify-center bg-[#1c1c1c] text-[8px] text-gray-400">QR Code</div>
+                      <div className="w-12 h-12 border border-gray-400 mt-1 flex items-center justify-center bg-gray-50 text-[8px] text-gray-400">QR Code</div>
                     </div>
                     <div className="flex flex-col items-center">
                       <span>Facebook DQH Architects</span>
-                      <div className="w-12 h-12 border border-gray-400 mt-1 flex items-center justify-center bg-[#1c1c1c] text-[8px] text-gray-400">QR Code</div>
+                      <div className="w-12 h-12 border border-gray-400 mt-1 flex items-center justify-center bg-gray-50 text-[8px] text-gray-400">QR Code</div>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="text-right flex flex-col items-end">
-                <h2 className="text-[20px] font-bold text-slate-50 mb-1 uppercase tracking-wide">THƯ BÁO PHÍ THIẾT KẾ</h2>
+                <h2 className="text-[20px] font-bold text-gray-900 mb-1 uppercase tracking-wide">THƯ BÁO PHÍ THIẾT KẾ</h2>
                 <p className="text-[11px] mb-4">Ngày: {quoteInfo.quoteDate}</p>
                 <div className="flex text-left gap-4">
                   <div className="mt-1">
@@ -468,7 +468,7 @@ export default function QuoteGenerator() {
                       <td className="py-2 align-top">{index + 1}</td>
                       <td className="py-2 text-left px-2 align-top">
                         <div className="font-bold">{item.name}</div>
-                        <div className="italic text-slate-200">{item.description}</div>
+                        <div className="italic text-gray-700">{item.description}</div>
                       </td>
                       <td className="py-2 align-top">{item.area > 0 ? item.area.toLocaleString() : ''}</td>
                       <td className="py-2 align-top">{item.unitPrice > 0 ? item.unitPrice.toLocaleString() : ''}</td>

@@ -87,10 +87,10 @@ export const QuickTaskModal: React.FC<Props> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-            <div className="bg-[#222] rounded-2xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in fade-in zoom-in-95 duration-150">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[#333]">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                             {editingTask ? editingTask.task_code : 'Tạo nhiệm vụ'}
@@ -105,7 +105,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             {PRIORITY_OPTIONS.map(p => <option key={p}>{p}</option>)}
                         </select>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-[#2a2a2a] transition-colors">
+                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
                         <X size={18} />
                     </button>
                 </div>
@@ -120,7 +120,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                         onKeyDown={e => e.key === 'Enter' && handleSave()}
                         placeholder="Tên nhiệm vụ..."
-                        className="w-full text-base font-semibold text-slate-100 placeholder:text-slate-300 border-0 border-b border-[#333] focus:border-indigo-400 focus:ring-0 pb-1 px-0"
+                        className="w-full text-base font-semibold text-slate-800 placeholder:text-slate-300 border-0 border-b border-slate-200 focus:border-indigo-400 focus:ring-0 pb-1 px-0"
                     />
 
                     {/* Dự án + Giai đoạn */}
@@ -130,7 +130,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <select
                                 value={form.project_id}
                                 onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200"
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700"
                             >
                                 <option value="">-- Chọn dự án --</option>
                                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -141,7 +141,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <select
                                 value={form.target}
                                 onChange={e => setForm(f => ({ ...f, target: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200"
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700"
                             >
                                 <option value="">-- Giai đoạn --</option>
                                 {PHASE_OPTIONS.map(p => <option key={p}>{p}</option>)}
@@ -156,14 +156,14 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <select
                                 value={form.status}
                                 onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200"
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700"
                             >
                                 {STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">Số ngày</label>
-                            <div className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 text-indigo-600 font-bold bg-[#1c1c1c]">
+                            <div className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 text-indigo-600 font-bold bg-slate-50">
                                 {totalDays} ngày
                             </div>
                         </div>
@@ -175,13 +175,13 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">Bắt đầu</label>
                             <input type="date" value={form.start_date}
                                 onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200" />
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700" />
                         </div>
                         <div>
                             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">Hạn chót</label>
                             <input type="date" value={form.due_date}
                                 onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200" />
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700" />
                         </div>
                     </div>
 
@@ -191,7 +191,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">Chủ trì</label>
                             <select value={form.assignee_id}
                                 onChange={e => setForm(f => ({ ...f, assignee_id: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200">
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700">
                                 <option value="">Chọn người...</option>
                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                             </select>
@@ -200,7 +200,7 @@ export const QuickTaskModal: React.FC<Props> = ({
                             <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">Thực hiện</label>
                             <select value={form.supporter_id}
                                 onChange={e => setForm(f => ({ ...f, supporter_id: e.target.value }))}
-                                className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200">
+                                className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700">
                                 <option value="">Chọn người...</option>
                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
                             </select>
@@ -215,15 +215,15 @@ export const QuickTaskModal: React.FC<Props> = ({
                             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                             rows={2}
                             placeholder="Thêm mô tả..."
-                            className="w-full text-sm border border-[#333] rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-200 resize-none"
+                            className="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 text-slate-700 resize-none"
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-2 px-5 py-3 border-t border-[#333]">
+                <div className="flex justify-end gap-2 px-5 py-3 border-t border-slate-100">
                     <button onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                         Hủy
                     </button>
                     <button onClick={handleSave} disabled={saving || !form.name.trim()}

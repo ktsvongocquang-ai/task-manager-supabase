@@ -192,19 +192,19 @@ export const Kanban = () => {
         <div className="flex flex-col space-y-6 max-w-[1600px] mx-auto w-full min-h-0" style={{ height: 'calc(100vh - 120px)' }}>
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0 px-1 md:px-0">
-                <h1 className="text-xl font-bold text-slate-100 hidden md:block">Kanban Board</h1>
+                <h1 className="text-xl font-bold text-slate-800 hidden md:block">Kanban Board</h1>
                 <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                     {/* Date toggle */}
-                    <div className="flex bg-[#2a2a2a] p-1 rounded-xl shrink-0">
+                    <div className="flex bg-slate-100 p-1 rounded-xl shrink-0">
                         <button
                             onClick={() => setDateFilter('today')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-[#222] text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'today' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Hôm nay
                         </button>
                         <button
                             onClick={() => setDateFilter('all')}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-[#222] text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${dateFilter === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Tất cả
                         </button>
@@ -216,7 +216,7 @@ export const Kanban = () => {
                         <select
                             value={selectedAssignee}
                             onChange={(e) => setSelectedAssignee(e.target.value)}
-                            className="pl-8 pr-8 py-2 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-[#222] font-medium text-slate-200 h-[38px] w-44"
+                            className="pl-8 pr-8 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px] w-44"
                         >
                             <option value="all">Tất cả nhân sự</option>
                             {profiles.map(p => (
@@ -230,7 +230,7 @@ export const Kanban = () => {
                         <select
                             value={selectedProject}
                             onChange={(e) => setSelectedProject(e.target.value)}
-                            className="px-4 pr-8 py-2 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-[#222] font-medium text-slate-200 h-[38px] w-44"
+                            className="px-4 pr-8 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none bg-white font-medium text-slate-700 h-[38px] w-44"
                         >
                             <option value="all">Tất cả dự án</option>
                             {projects.map(p => (
@@ -247,7 +247,7 @@ export const Kanban = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Tìm kiếm nhiệm vụ..."
-                            className="pl-10 pr-4 py-2 border border-[#333] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-[38px] w-52"
+                            className="pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 h-[38px] w-52"
                         />
                     </div>
                 </div>
@@ -263,19 +263,19 @@ export const Kanban = () => {
                         return (
                                 <div
                                     key={column.id}
-                                    className="w-[90vw] sm:w-[300px] md:w-[320px] bg-[#f8fafc] rounded-2xl border border-[#333] flex flex-col shrink-0 h-full max-h-full"
+                                    className="w-[90vw] sm:w-[300px] md:w-[320px] bg-[#f8fafc] rounded-2xl border border-slate-200 flex flex-col shrink-0 h-full max-h-full"
                                 >
-                                <div className="p-4 border-b border-[#333] flex items-center justify-between bg-[#222] rounded-t-2xl shadow-sm shrink-0">
+                                <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl shadow-sm shrink-0">
                                     <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-slate-200">{column.title}</h3>
-                                        <span className="bg-[#2a2a2a] text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                                        <h3 className="font-bold text-slate-700">{column.title}</h3>
+                                        <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold">
                                             {colTasks.length}
                                         </span>
                                     </div>
                                     {canEdit && (
                                         <button
                                             onClick={() => openAddModalWithStatus()}
-                                            className="text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center w-11 h-11 md:w-8 md:h-8 hover:bg-[#1c1c1c] rounded-lg shrink-0"
+                                            className="text-slate-400 hover:text-indigo-600 transition-colors flex items-center justify-center w-11 h-11 md:w-8 md:h-8 hover:bg-slate-50 rounded-lg shrink-0"
                                             title={`Thêm nhiệm vụ "${column.title}"`}
                                         >
                                             <Plus size={20} className="md:w-[18px] md:h-[18px]" />
@@ -316,19 +316,19 @@ export const Kanban = () => {
                                                                         openEditModal(task);
                                                                     }
                                                                 }}
-                                                                className={`bg-[#222] p-4 rounded-xl shadow-sm border transition-all cursor-grab group flex flex-col
-                                                                    ${snapshot.isDragging ? 'shadow-xl border-[#5B5FC7] rotate-1 scale-[1.02] z-50 cursor-grabbing' : 'border-[#333] hover:border-[#5B5FC7]/30 hover:shadow-md'}
+                                                                className={`bg-white p-4 rounded-xl shadow-sm border transition-all cursor-grab group flex flex-col
+                                                                    ${snapshot.isDragging ? 'shadow-xl border-[#5B5FC7] rotate-1 scale-[1.02] z-50 cursor-grabbing' : 'border-slate-200 hover:border-[#5B5FC7]/30 hover:shadow-md'}
                                                                 `}
                                                                 style={provided.draggableProps.style}
                                                             >
                                                                 <div className="flex justify-between items-start mb-1.5 gap-2">
-                                                                    <h4 className="font-bold text-slate-100 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
+                                                                    <h4 className="font-bold text-slate-800 text-[14px] leading-tight group-hover:text-[#5B5FC7] transition-colors line-clamp-2 flex-1">
                                                                         {task.name}
                                                                     </h4>
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'Khẩn cấp' ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20' :
                                                                         task.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border-orange-100' :
                                                                             task.priority === 'Trung bình' ? 'bg-yellow-50 text-yellow-600 border-yellow-100' :
-                                                                                'bg-[#1c1c1c] text-slate-400 border-[#333]'
+                                                                                'bg-slate-50 text-slate-500 border-slate-100'
                                                                         }`}>
                                                                         {task.priority || 'Trung bình'}
                                                                     </span>
@@ -338,14 +338,14 @@ export const Kanban = () => {
                                                                     {task.task_code}
                                                                 </div>
 
-                                                                <div className="w-full bg-[#2a2a2a] rounded-full h-2 mb-3.5 overflow-hidden">
+                                                                <div className="w-full bg-slate-100 rounded-full h-2 mb-3.5 overflow-hidden">
                                                                     <div className="bg-[#5B5FC7] h-2 rounded-full transition-all" style={{ width: `${task.completion_pct || 0}%` }}></div>
                                                                 </div>
 
                                                                 <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
                                                                     <div className="flex items-center gap-2">
                                                                         {task.due_date && (
-                                                                            <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${overdue ? 'bg-red-50 text-red-600' : 'bg-[#1c1c1c] text-slate-400'}`}>
+                                                                            <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${overdue ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-500'}`}>
                                                                                 <Calendar size={10} className={overdue ? 'text-red-400' : 'text-slate-400'} />
                                                                                 {format(parseISO(task.due_date), 'dd/MM')}
                                                                             </div>
@@ -362,7 +362,7 @@ export const Kanban = () => {
                                                                         )}
                                                                     </div>
 
-                                                                    <div className="flex items-center gap-1.5 min-h-[32px] bg-[#1c1c1c] px-2 py-1 rounded-lg shrink-0">
+                                                                    <div className="flex items-center gap-1.5 min-h-[32px] bg-slate-50 px-2 py-1 rounded-lg shrink-0">
                                                                         <div className="w-5 h-5 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-[9px] font-bold text-indigo-700" title={assignee?.full_name || 'Chưa gán'}>
                                                                             {assignee?.full_name?.charAt(0) || '?'}
                                                                         </div>

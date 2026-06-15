@@ -59,13 +59,13 @@ export const Customers = () => {
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#222] p-4 sm:p-6 rounded-2xl shadow-sm border border-[#333]">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">Tổng quan CRM</h2>
-          <p className="text-sm text-slate-400 mt-1">Quản lý và theo dõi hoạt động chăm sóc khách hàng</p>
+          <h2 className="text-2xl font-bold text-slate-800">Tổng quan CRM</h2>
+          <p className="text-sm text-slate-500 mt-1">Quản lý và theo dõi hoạt động chăm sóc khách hàng</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-          <select className="flex-1 sm:flex-none bg-[#1c1c1c] border border-[#333] text-slate-200 py-2.5 px-4 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#2a2a2a] transition-colors cursor-pointer">
+          <select className="flex-1 sm:flex-none bg-slate-50 border border-slate-200 text-slate-700 py-2.5 px-4 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-slate-100 transition-colors cursor-pointer">
             <option>Tháng này</option>
             <option>Tháng trước</option>
             <option>Năm nay</option>
@@ -86,7 +86,7 @@ export const Customers = () => {
         ].map((kpi, i) => {
           const Icon = kpi.icon;
           return (
-            <div key={i} className={`bg-[#222] p-5 rounded-2xl border ${kpi.border} shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group`}>
+            <div key={i} className={`bg-white p-5 rounded-2xl border ${kpi.border} shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group`}>
                <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full ${kpi.bg} opacity-50 group-hover:scale-110 transition-transform duration-500`}></div>
               <div className="flex items-center justify-between mb-4 relative z-10">
                 <div className={`w-12 h-12 rounded-xl ${kpi.bg} flex items-center justify-center`}>
@@ -96,8 +96,8 @@ export const Customers = () => {
                   {kpi.change}
                 </span>
               </div>
-              <h3 className="text-slate-400 text-sm font-semibold mb-1 relative z-10">{kpi.title}</h3>
-              <p className="text-2xl font-black text-slate-100 relative z-10">{kpi.value}</p>
+              <h3 className="text-slate-500 text-sm font-semibold mb-1 relative z-10">{kpi.title}</h3>
+              <p className="text-2xl font-black text-slate-800 relative z-10">{kpi.value}</p>
             </div>
           );
         })}
@@ -106,8 +106,8 @@ export const Customers = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Performance */}
-        <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm lg:col-span-2 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-indigo-500" /> Hiệu suất Sales
           </h3>
           <div className="flex-1 min-h-[300px]">
@@ -130,8 +130,8 @@ export const Customers = () => {
         </div>
 
         {/* Conversion Rate */}
-        <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm flex flex-col">
-          <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
              <Target className="w-5 h-5 text-purple-500" /> Tỷ lệ chuyển đổi
           </h3>
           <div className="flex-1 min-h-[300px]">
@@ -162,8 +162,8 @@ export const Customers = () => {
         </div>
 
         {/* Trend Line */}
-        <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm lg:col-span-2 flex flex-col">
-          <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2 flex flex-col">
+          <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
              <LineChart className="w-5 h-5 text-emerald-500 inline" /> Xu hướng tăng trưởng
           </h3>
           <div className="flex-1 min-h-[300px]">
@@ -185,9 +185,9 @@ export const Customers = () => {
         </div>
 
         {/* Recent Activities */}
-        <div className="bg-[#222] p-6 rounded-2xl border border-[#333] shadow-sm">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-             <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-slate-400" /> Hoạt động gần đây
              </h3>
              <button className="text-sm text-indigo-600 font-bold hover:text-indigo-700">Xem tất cả</button>
@@ -204,8 +204,8 @@ export const Customers = () => {
                   <div className="w-4 h-4 rounded-full bg-current opacity-60"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-100 truncate group-hover:text-indigo-600 transition-colors cursor-pointer">{activity.title}</p>
-                  <p className="text-xs font-medium text-slate-400 mt-1">{activity.time}</p>
+                  <p className="text-sm font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors cursor-pointer">{activity.title}</p>
+                  <p className="text-xs font-medium text-slate-500 mt-1">{activity.time}</p>
                 </div>
               </div>
             ))}
@@ -216,19 +216,19 @@ export const Customers = () => {
   );
 
   const renderPlaceholder = (title: string) => (
-    <div className="flex flex-col items-center justify-center h-[60vh] bg-[#222] rounded-2xl border border-[#333] shadow-sm text-center p-8">
-      <div className="w-20 h-20 bg-[#1c1c1c] rounded-full flex items-center justify-center mb-6 border border-[#333] shadow-inner">
+    <div className="flex flex-col items-center justify-center h-[60vh] bg-white rounded-2xl border border-slate-200 shadow-sm text-center p-8">
+      <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 border border-slate-100 shadow-inner">
         <LayoutDashboard className="w-10 h-10 text-slate-400" />
       </div>
-      <h2 className="text-2xl font-bold text-slate-100 mb-2">{title}</h2>
-      <p className="text-slate-400 max-w-md">
+      <h2 className="text-2xl font-bold text-slate-800 mb-2">{title}</h2>
+      <p className="text-slate-500 max-w-md">
         Phân hệ {title.toLowerCase()} đang được phát triển theo giao diện Light Theme mới. Vui lòng quay lại Tổng quan.
       </p>
     </div>
   );
 
   return (
-    <div className="w-full bg-[#1c1c1c] font-sans">
+    <div className="w-full bg-slate-50 font-sans">
       {/* Content Area */}
       <div className="w-full p-4 sm:p-6 lg:p-8">
         <div className="max-w-[1600px] mx-auto space-y-6">
