@@ -417,6 +417,7 @@ export const Tasks = () => {
                     onRefresh={() => fetchAll(true)}
                     onAddTask={openQuickAddModal}
                     onEditTask={openEditModal}
+                    onDeleteTask={handleDelete}
                 />
 
             {/* Status Tabs - Hidden (list view moved to Projects) */}
@@ -1037,6 +1038,7 @@ export const Tasks = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 generateNextTaskCode={generateNextTaskCode}
+                onDeleteTask={(t) => { setShowModal(false); handleDelete(t); }}
             />
 
             <QuickAddTaskModal

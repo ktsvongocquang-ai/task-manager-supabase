@@ -24,6 +24,7 @@ interface AddEditTaskModalProps {
     profiles: any[];
     currentUserProfile: any;
     generateNextTaskCode?: (projectId: string) => Promise<string> | string;
+    onDeleteTask?: (task: Task) => void;
 }
 
 export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
@@ -35,7 +36,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     projects,
     profiles,
     currentUserProfile,
-    generateNextTaskCode
+    generateNextTaskCode,
+    onDeleteTask
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
@@ -1180,13 +1182,23 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
-                        >
-                            Hủy
-                        </button>
+                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
+                        <div className="flex items-center gap-2">
+                            {editingTask && onDeleteTask && (
+                                <button
+                                    onClick={() => { onDeleteTask(editingTask); onClose(); }}
+                                    className="px-4 py-2.5 border border-red-200 hover:bg-red-50 bg-white rounded-xl text-sm font-bold text-red-500 transition-colors flex items-center gap-1.5"
+                                >
+                                    <Trash2 size={15} /> Xóa
+                                </button>
+                            )}
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
+                            >
+                                Hủy
+                            </button>
+                        </div>
 
                         {editingTask && form.status === 'Chờ duyệt' && ['Admin', 'Quản lý', 'Giám đốc'].includes(currentUserProfile?.role?.trim() || '') && (
                             currentUserProfile?.role === 'Admin' ||

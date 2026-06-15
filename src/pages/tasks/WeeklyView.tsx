@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2 } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
@@ -11,6 +11,7 @@ interface Props {
     onRefresh: () => void
     onAddTask?: (defaultValues: any) => void
     onEditTask?: (task: Task) => void
+    onDeleteTask?: (task: Task) => void
 }
 
 const ALL_STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ duyệt', 'Tạm dừng', 'Hoàn thành']
@@ -104,7 +105,7 @@ function Avatar({ name }: { name: string }) {
 
 // ─── main component ───────────────────────────────────────────────────────────
 
-export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, onEditTask }: Props) => {
+export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, onEditTask, onDeleteTask }: Props) => {
     const [weekOffset, setWeekOffset] = useState(0)
     const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
@@ -479,8 +480,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        {/* Mobile delete */}
+                                                        {onDeleteTask && (
+                                                            <button onClick={() => onDeleteTask(t)} className="mr-3 mt-1 w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 md:hidden" title="Xóa">
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        )}
                                                         {/* Desktop */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_50px_32px] gap-2 px-5 py-2 items-center">
+                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_50px_32px_32px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
@@ -511,6 +518,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             <button onClick={() => openGoogleCalendar(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors" title="Thêm vào Google Calendar">
                                                                 <Calendar size={13} />
                                                             </button>
+                                                            {onDeleteTask && (
+                                                                <button onClick={() => onDeleteTask(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-500 transition-colors" title="Xóa">
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )
