@@ -409,8 +409,9 @@ export const Tasks = () => {
 
             {/* Desktop Header removed, button moved into WeeklyView */}
 
-            {/* Weekly View */}
-            <WeeklyView
+            {/* Weekly View - Desktop only, mobile uses Kanban accordion */}
+            <div className="hidden md:block">
+                <WeeklyView
                     tasks={baseFilteredTasks}
                     projects={projects}
                     profiles={profiles}
@@ -419,6 +420,7 @@ export const Tasks = () => {
                     onEditTask={openEditModal}
                     onDeleteTask={handleDelete}
                 />
+            </div>
 
             {/* Status Tabs - Hidden (list view moved to Projects) */}
             <div className="hidden">
