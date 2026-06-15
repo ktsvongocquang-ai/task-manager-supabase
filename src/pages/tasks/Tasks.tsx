@@ -409,9 +409,8 @@ export const Tasks = () => {
 
             {/* Desktop Header removed, button moved into WeeklyView */}
 
-            {/* Weekly View - Desktop only, mobile uses Kanban accordion */}
-            <div className="hidden md:block">
-                <WeeklyView
+            {/* Weekly View */}
+            <WeeklyView
                     tasks={baseFilteredTasks}
                     projects={projects}
                     profiles={profiles}
@@ -420,7 +419,6 @@ export const Tasks = () => {
                     onEditTask={openEditModal}
                     onDeleteTask={handleDelete}
                 />
-            </div>
 
             {/* Status Tabs - Hidden (list view moved to Projects) */}
             <div className="hidden">
@@ -931,8 +929,8 @@ export const Tasks = () => {
 
             {/* End Desktop UI */}
 
-            {/* Mobile Accordion Task List (Lark style) */}
-            <div className="md:hidden pb-24 border-y border-slate-200 mt-2 bg-white">
+            {/* Mobile Accordion Task List - belongs to Kanban tab, hidden here */}
+            <div className="hidden">
                 {mobileGroups.map((group, index) => {
                     const isExpanded = expandedMobileGroups.has(group.id);
                     const isLast = index === mobileGroups.length - 1;
