@@ -394,8 +394,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 </div>
             </div>
 
-            <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
-                {['Nhiệm vụ', 'Mô tả', 'Hạn chót', 'Tiến độ', 'Phụ trách', 'Trạng thái'].map(h => (
+            <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
+                {['Nhiệm vụ', 'Hạn chốt', 'Tiến độ', 'Phụ trách', 'Trạng thái', ''].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{h}</span>
                 ))}
             </div>
@@ -487,7 +487,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             </button>
                                                         )}
                                                         {/* Desktop */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_1fr_64px_90px_110px_110px_50px_32px_32px] gap-2 px-5 py-2 items-center">
+                                                        <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 items-center">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
@@ -497,15 +497,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getProjectName(t.project_id)}</div>
                                                             </div>
-                                                            <div className="text-[11px] text-slate-500 truncate">{(t as any).description || <span className="text-slate-300 italic">—</span>}</div>
                                                             <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{fmtShort(d)}</span>
-                                                            <div>
-                                                                <div className="flex items-center gap-1 mb-1">
-                                                                    <button onClick={() => updateProgress(t.id, -10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">−</button>
-                                                                    <span className="text-[10px] font-semibold text-slate-700 w-6 text-center">{saving[t.id] ? '...' : `${pct}%`}</span>
-                                                                    <button onClick={() => updateProgress(t.id, 10)} className="w-4 h-4 text-[10px] rounded border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-600">+</button>
-                                                                </div>
-                                                                <div className="h-1 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
+                                                                <span className="text-[10px] font-semibold text-slate-600 w-7 text-right">{saving[t.id] ? '...' : `${pct}%`}</span>
                                                             </div>
                                                             <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
@@ -514,15 +509,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none`}>
                                                                 {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                                                             </select>
-                                                            {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[9px] font-bold px-2 py-0.5 rounded text-center ${cls}`}>{label}</span> })()}
-                                                            <button onClick={() => openGoogleCalendar(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-400 hover:text-blue-500 transition-colors" title="Thêm vào Google Calendar">
-                                                                <Calendar size={13} />
-                                                            </button>
-                                                            {onDeleteTask && (
-                                                                <button onClick={() => onDeleteTask(t)} className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-500 transition-colors" title="Xóa">
-                                                                    <Trash2 size={13} />
+                                                            {onDeleteTask ? (
+                                                                <button onClick={() => onDeleteTask(t)} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Xóa">
+                                                                    <Trash2 size={14} />
                                                                 </button>
-                                                            )}
+                                                            ) : <div />}
                                                         </div>
                                                     </div>
                                                 )
