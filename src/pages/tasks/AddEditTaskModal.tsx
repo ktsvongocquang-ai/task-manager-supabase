@@ -821,12 +821,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
-                                <div>
+                                <div className="hidden md:block">
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chọn...</option>
@@ -839,7 +839,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
 
                             {/* Row 2: Trạng thái | Ưu tiên */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
                                     <select
@@ -855,7 +855,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <option value="Tạm dừng">Tạm dừng</option>
                                     </select>
                                 </div>
-                                <div>
+                                <div className="hidden md:block">
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Ưu tiên</label>
                                     <select
                                         value={form.priority}
@@ -885,7 +885,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="time"
                                             value={form.start_time}
                                             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                     </div>
                                 </div>
@@ -902,14 +902,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="time"
                                             value={form.due_time}
                                             onChange={(e) => setForm({ ...form, due_time: e.target.value })}
-                                            className="w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
+                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium text-center"
                                         />
                                     </div>
                                 </div>
                             </div>
                             
-                            {/* Row 4: Số ngày */}
-                            <div className="grid grid-cols-1">
+                            {/* Row 4: Số ngày - hidden on mobile */}
+                            <div className="hidden md:grid grid-cols-1">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày thực hiện</label>
                                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px] max-w-[150px]">
@@ -940,7 +940,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <button 
                                                 onClick={handleSendEmail}
                                                 disabled={isSendingEmail}
-                                                className="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm flex items-center justify-center disabled:opacity-50 shrink-0 h-[34px] w-[34px]"
+                                                className="hidden md:flex p-1.5 rounded-md text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm items-center justify-center disabled:opacity-50 shrink-0 h-[34px] w-[34px]"
                                                 title="Gửi Email Thông Báo Bằng AI"
                                             >
                                                 {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
