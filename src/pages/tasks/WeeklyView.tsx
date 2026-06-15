@@ -401,7 +401,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Task Rows ── */}
-            {weekTasks.length === 0 ? (
+            {groupedTasks.length === 0 && weekTasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-slate-400">
                     <CalendarDays size={32} className="mb-3 opacity-40" />
                     <div className="text-sm">Không có task trong tuần này</div>
