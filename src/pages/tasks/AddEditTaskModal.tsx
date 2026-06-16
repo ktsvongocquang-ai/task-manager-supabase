@@ -763,7 +763,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         type="text"
                                         value={form.task_code}
                                         onChange={(e) => setForm({ ...form, task_code: e.target.value })}
-                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-48 sm:w-64 transition-colors"
+                                        className="text-sm font-medium text-slate-500 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 w-full sm:w-64 transition-colors"
                                         placeholder="Mã dự án (Ví dụ: UX/UI-A1)"
                                     />
                                 </div>
@@ -941,11 +941,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
 
                             {/* Description */}
-                            <div className="flex items-start min-h-[40px] pt-2">
-                                <div className="w-36 flex items-center gap-2 text-sm font-medium text-slate-500 shrink-0 mt-2">
-                                    <AlignLeft size={16} /> Mô tả
+                            <div className="flex flex-col sm:flex-row sm:items-start min-h-[40px] pt-2">
+                                <div className="w-full sm:w-36 flex items-center gap-2 text-[11px] sm:text-sm font-semibold text-slate-500 uppercase tracking-wide sm:normal-case sm:tracking-normal shrink-0 mb-1 sm:mb-0 sm:mt-2">
+                                    <AlignLeft size={16} className="hidden sm:block"/> Mô tả
                                 </div>
-                                <div className="flex-1 relative group/desc">
+                                <div className="flex-1 w-full relative group/desc">
                                     <textarea
                                         value={form.description}
                                         onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -976,23 +976,23 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                             {/* Tabs Section */}
                             <div className="mt-8">
-                                <div className="flex gap-6 border-b border-slate-200 mb-6">
+                                <div className="flex gap-4 sm:gap-6 border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar-hide">
                                     <button
                                         onClick={() => setActiveTab('subtasks')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-1.5 transition-colors border-b-2 whitespace-nowrap shrink-0 ${activeTab === 'subtasks' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
                                         <ListTodo size={16} /> Subtasks <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-xs ml-1">{subTasks.length}</span>
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('comments')}
-                                        className={`pb-3 text-sm font-bold flex items-center gap-2 transition-colors border-b-2 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                                        className={`pb-3 text-sm font-bold flex items-center gap-1.5 transition-colors border-b-2 whitespace-nowrap shrink-0 ${activeTab === 'comments' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                                     >
                                         <MessageSquare size={16} /> Comments
                                     </button>
                                     {/* Attachments Tab */}
                                     <button
                                         onClick={() => setActiveTab('links')}
-                                        className={`flex items-center gap-2 pb-3 px-1 border-b-2 text-sm font-bold transition-colors ${activeTab === 'links'
+                                        className={`flex items-center gap-1.5 pb-3 px-1 border-b-2 text-sm font-bold transition-colors whitespace-nowrap shrink-0 ${activeTab === 'links'
                                             ? 'border-indigo-500 text-indigo-600'
                                             : form.result_links
                                                 ? 'border-transparent text-indigo-500 hover:border-slate-300 hover:text-indigo-600'
@@ -1160,19 +1160,19 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
-                        <div className="flex items-center gap-2">
+                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-between sm:justify-end gap-2 sm:gap-3 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)] overflow-x-auto custom-scrollbar-hide">
+                        <div className="flex items-center gap-2 shrink-0">
                             {editingTask && onDeleteTask && (
                                 <button
                                     onClick={() => { onDeleteTask(editingTask); onClose(); }}
-                                    className="px-4 py-2.5 border border-red-200 hover:bg-red-50 bg-white rounded-xl text-sm font-bold text-red-500 transition-colors flex items-center gap-1.5"
+                                    className="px-3 sm:px-4 py-2.5 border border-red-200 hover:bg-red-50 bg-white rounded-xl text-[13px] sm:text-sm font-bold text-red-500 transition-colors flex items-center gap-1.5 whitespace-nowrap"
                                 >
-                                    <Trash2 size={15} /> Xóa
+                                    <Trash2 size={15} /> <span className="hidden sm:inline">Xóa</span>
                                 </button>
                             )}
                             <button
                                 onClick={onClose}
-                                className="px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-sm font-bold text-slate-600 transition-colors"
+                                className="px-4 sm:px-6 py-2.5 border-0 hover:bg-slate-100 bg-transparent rounded-xl text-[13px] sm:text-sm font-bold text-slate-600 transition-colors whitespace-nowrap"
                             >
                                 Hủy
                             </button>
@@ -1202,15 +1202,15 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             alert('Lỗi khi duyệt nhiệm vụ.');
                                         }
                                     }}
-                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                                    className="px-4 sm:px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] sm:text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
                                 >
-                                    <CheckCircle2 size={18} /> Duyệt Hoàn Thành
+                                    <CheckCircle2 size={16} /> <span className="hidden sm:inline">Duyệt Hoàn Thành</span><span className="sm:hidden">Duyệt</span>
                                 </button>
                             )}
 
                         <button
                             onClick={handleSave}
-                            className="px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-2"
+                            className="px-6 sm:px-8 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-[13px] sm:text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shrink-0"
                         >
                             Lưu Lại
                         </button>
