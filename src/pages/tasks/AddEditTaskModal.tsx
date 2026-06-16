@@ -806,71 +806,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         {/* Form Grid Layout - Compact */}
                         <div className="ml-0 sm:ml-14 space-y-3">
 
-                            {/* Row 1: Dự án | Giai đoạn */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
-                                    <select
-                                        value={form.project_id}
-                                        onChange={(e) => handleProjectChange(e.target.value)}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="">Chọn dự án...</option>
-                                        <option value="personal">Việc cá nhân</option>
-                                        {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="hidden md:block">
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
-                                    <select
-                                        value={form.target || ''}
-                                        onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="">Chọn...</option>
-                                        <option value="concept">Concept</option>
-                                        <option value="3d">3D / Phối cảnh</option>
-                                        <option value="2d">2D / Triển khai</option>
-                                        <option value="construction">Construction / Hồ sơ TC</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Row 2: Trạng thái | Ưu tiên */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors"
-                                    >
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                        <option value="Cần làm">Cần làm</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Chờ duyệt">Chờ duyệt</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
-                                    </select>
-                                </div>
-                                <div className="hidden md:block">
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Ưu tiên</label>
-                                    <select
-                                        value={form.priority}
-                                        onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium cursor-pointer hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${form.priority === 'JUX' ? 'text-red-600' : 'text-blue-600'
-                                            } ${shouldDisableTopFields() ? 'bg-slate-50 cursor-not-allowed opacity-70' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="JUX">JUX</option>
-                                        <option value="DQH">DQH</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Row 3: Bắt đầu | Hạn chót */}
+                            {/* Row 1: Bắt đầu | Hạn chót (thời gian lên trước) */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
@@ -907,19 +843,52 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Row 4: Số ngày - hidden on mobile */}
-                            <div className="hidden md:grid grid-cols-1">
+
+                            {/* Row 2: Dự án | Trạng thái */}
+                            <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày thực hiện</label>
-                                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 h-[38px] max-w-[150px]">
-                                        <span className="text-sm font-bold text-indigo-600">
-                                            {form.start_date && form.due_date
-                                                ? Math.max(0, Math.ceil((new Date(form.due_date).getTime() - new Date(form.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1
-                                                : 0}
-                                        </span>
-                                    </div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
+                                    <select
+                                        value={form.project_id}
+                                        onChange={(e) => handleProjectChange(e.target.value)}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="">Chọn dự án...</option>
+                                        <option value="personal">Việc cá nhân</option>
+                                        {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                    </select>
                                 </div>
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
+                                    <select
+                                        value={form.status}
+                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors"
+                                    >
+                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                        <option value="Cần làm">Cần làm</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                        <option value="Chờ duyệt">Chờ duyệt</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                        <option value="Tạm dừng">Tạm dừng</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Hidden fields: Giai đoạn, Ưu tiên (giữ giá trị mặc định, ẩn khỏi giao diện) */}
+                            <div className="hidden">
+                                <select value={form.target || ''} onChange={(e) => setForm({ ...form, target: e.target.value })}>
+                                    <option value="">Chọn...</option>
+                                    <option value="concept">Concept</option>
+                                    <option value="3d">3D / Phối cảnh</option>
+                                    <option value="2d">2D / Triển khai</option>
+                                    <option value="construction">Construction / Hồ sơ TC</option>
+                                </select>
+                                <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
+                                    <option value="JUX">JUX</option>
+                                    <option value="DQH">DQH</option>
+                                </select>
                             </div>
 
                             {/* Row 5: Chủ trì | Thực hiện */}
