@@ -41,7 +41,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
-        supporter_id: '', status: 'Chưa bắt đầu', priority: 'DQH', start_date: '', start_time: '', due_date: '', due_time: '',
+        supporter_id: '', status: 'Cần làm', priority: 'DQH', start_date: '', start_time: '', due_date: '', due_time: '',
         result_links: '', notes: '', parent_id: '', target: ''
     });
 
@@ -237,7 +237,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     description: editingTask.description || '',
                     assignee_id: editingTask.assignee_id || currentUserProfile?.id || '', 
                     supporter_id: editingTask.supporter_id || '', 
-                    status: editingTask.status || 'Chưa bắt đầu', 
+                    status: editingTask.status || 'Cần làm', 
                     priority: editingTask.priority || 'Trung bình',
                     start_date: editingTask.start_date || today, 
                     start_time: editingTask.start_time || '',
@@ -280,7 +280,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     description: '',
                     assignee_id: initialData.assignee_id || currentUserProfile?.id || '',
                     supporter_id: '',
-                    status: 'Chưa bắt đầu',
+                    status: 'Cần làm',
                     priority: 'DQH',
                     start_date: initialData.start_date || today,
                     start_time: '',
@@ -569,7 +569,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         project_id: editingTask.project_id,
                         parent_id: editingTask.id,
                         task_code: finalSubCode,
-                        status: 'Chưa bắt đầu',
+                        status: 'Cần làm',
                         priority: 'DQH',
                         completion_pct: 0
                     }).select().single();
@@ -617,7 +617,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const toggleSubTask = async (id: string, isCompleted: boolean) => {
         // Optimistic update
-        const newStatus = isCompleted ? 'Hoàn thành' : 'Chưa bắt đầu';
+        const newStatus = isCompleted ? 'Hoàn thành' : 'Cần làm';
         const newPct = isCompleted ? 100 : 0;
 
         setSubTasks(prev => prev.map(st => st.id === id ? { ...st, status: newStatus, completion_pct: newPct } : st));
@@ -875,9 +875,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
                                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium cursor-pointer hover:bg-slate-50 transition-colors"
                                     >
-                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                        {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
+                                        {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                         <option value="Cần làm">Cần làm</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                         <option value="Hoàn thành">Hoàn thành</option>
                                         <option value="Tạm dừng">Tạm dừng</option>

@@ -36,7 +36,7 @@ export const QuickAddTaskModal = ({
         task_code: '',
         project_id: '',
         target: '',
-        status: 'Chưa bắt đầu',
+        status: 'Cần làm',
         start_date: today,
         due_date: today,
         days: 1,
@@ -55,7 +55,7 @@ export const QuickAddTaskModal = ({
                 task_code: initialData.task_code,
                 project_id: initialData.project_id,
                 target: '',
-                status: 'Chưa bắt đầu',
+                status: 'Cần làm',
                 start_date: st,
                 due_date: ed,
                 days,
@@ -200,12 +200,7 @@ export const QuickAddTaskModal = ({
                                 onChange={e => setForm({...form, status: e.target.value})}
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                             >
-                                <option value="Chưa bắt đầu">Chưa bắt đầu</option>
-                                <option value="Cần làm">Cần làm</option>
-                                <option value="Đang thực hiện">Đang thực hiện</option>
-                                <option value="Chờ duyệt">Chờ duyệt</option>
-                                <option value="Hoàn thành">Hoàn thành</option>
-                                <option value="Tạm dừng">Tạm dừng</option>
+                                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                         </div>
 

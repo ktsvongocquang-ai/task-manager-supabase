@@ -611,9 +611,9 @@ export const Tasks = () => {
                                                                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(t.status)}`}
                                                                         disabled={!canEdit}
                                                                     >
-                                                                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                                                        {t.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
+                                                                        {t.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                                                         <option value="Cần làm">Cần làm</option>
-                                                                        <option value="Đang thực hiện">Đang thực hiện</option>
                                                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                                                         <option value="Hoàn thành">Hoàn thành</option>
                                                                         <option value="Tạm dừng">Tạm dừng</option>
@@ -812,9 +812,9 @@ export const Tasks = () => {
                                                                                                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(child.status)}`}
                                                                                                 disabled={!canEdit}
                                                                                             >
-                                                                                                <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                                                                                                {child.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
+                                                                                                {child.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                                                                                 <option value="Cần làm">Cần làm</option>
-                                                                                                <option value="Đang thực hiện">Đang thực hiện</option>
                                                                                                 <option value="Hoàn thành">Hoàn thành</option>
                                                                                                 <option value="Tạm dừng">Tạm dừng</option>
                                                                                             </select>
