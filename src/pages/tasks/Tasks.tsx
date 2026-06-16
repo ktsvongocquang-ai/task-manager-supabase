@@ -30,9 +30,17 @@ export const Tasks = () => {
     const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['Chưa bắt đầu', 'Đang thực hiện']))
     const [viewMode, setViewMode] = useState<'list' | 'weekly'>('weekly')
 
+    const isAdmin = profile?.role?.trim() === 'Admin'
+
     useEffect(() => {
         fetchAll()
     }, [profile])
+
+    useEffect(() => {
+        if (profile && !isAdmin) {
+            setAssigneeFilter(profile.id)
+        }
+    }, [profile, isAdmin])
 
     const fetchAll = async (silent = false) => {
         try {
@@ -384,20 +392,28 @@ export const Tasks = () => {
                 <button className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-colors shrink-0">
                     <List size={22} />
                 </button>
-                <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
-                    <button 
-                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        onClick={() => setAssigneeFilter('')}
-                    >
-                        Tất cả
-                    </button>
-                    <button 
-                        className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        onClick={() => setAssigneeFilter(profile?.id || '')}
-                    >
-                        Của tôi
-                    </button>
-                </div>
+                {isAdmin ? (
+                    <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
+                        <button 
+                            className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            onClick={() => setAssigneeFilter('')}
+                        >
+                            Tất cả
+                        </button>
+                        <button 
+                            className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            onClick={() => setAssigneeFilter(profile?.id || '')}
+                        >
+                            Của tôi
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[120px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
+                        <div className="flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold bg-white text-[#5B5FC7] shadow-sm text-center">
+                            Của tôi
+                        </div>
+                    </div>
+                )}
                 <button 
                     onClick={() => navigate('/schedule')} 
                     className="w-10 h-10 flex items-center justify-center bg-indigo-50 text-[#5B5FC7] rounded-full hover:bg-indigo-100 transition-colors shadow-sm shrink-0"
