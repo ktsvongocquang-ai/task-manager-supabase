@@ -59,7 +59,7 @@ const PROJECTS = [
   { id: 4, num: "04", cat: "Boutique Resort · Đà Lạt", title: "Arden Boutique Resort", img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80", desc: "Công trình nghỉ dưỡng cao cấp hòa quyện với thiên nhiên sương mù, sử dụng limewash sơn vôi tự nhiên." },
 ];
 
-const PROJECT_CASE_STUDIES = [
+const DEFAULT_PROJECT_CASE_STUDIES = [
   {
     id: 1,
     title: "THE LUMÉ RESIDENCE",
@@ -900,7 +900,7 @@ const PhaseVisuals = ({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean }) {
-  const { token } = useParams<{ token: string }>();
+  const { token } = useParams<{ token?: string }>();
   const [loading, setLoading] = useState(!isPreview);
   const [portfolio, setPortfolio] = useState<any>(null);
   const [error, setError] = useState('');
@@ -908,6 +908,81 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [authenticated, setAuthenticated] = useState(isPreview);
   const [showShareManager, setShowShareManager] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // CMS State
+  const [dbProjects, setDbProjects] = useState<any[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+
+  // Fetch Projects from CMS
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const { data, err } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .eq('is_published', true)
+          .order('sort_order', { ascending: true });
+          
+        if (data && data.length > 0) {
+          const parsedProjects = data.map(p => ({
+            ...p,
+            content: typeof p.content === 'string' ? JSON.parse(p.content) : (p.content || {})
+          }));
+          setDbProjects(parsedProjects);
+        }
+      } catch (err) {
+        console.error('Lỗi tải dữ liệu CMS Portfolio:', err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const getProjectsData = () => {
+    if (dbProjects.length > 0) {
+      return dbProjects.map((p, index) => ({
+        id: p.id,
+        num: String(index + 1).padStart(2, '0'),
+        cat: `${p.style || ''} · ${p.location || ''}`,
+        title: p.title,
+        img: p.cover_image,
+        desc: p.intro_text,
+      }));
+    }
+    return PROJECTS;
+  };
+
+  const getCaseStudiesData = () => {
+    if (dbProjects.length > 0) {
+      return dbProjects.map(p => ({
+        id: p.id,
+        title: p.title,
+        subtitle: p.subtitle,
+        location: p.location,
+        area: p.area,
+        style: p.style,
+        studio: p.studio,
+        date: p.completion_date,
+        introText: p.intro_text,
+        palette: p.content?.palette || [],
+        coverImage: p.cover_image,
+        floorPlan: p.content?.floorPlan || {},
+        design3D: p.content?.design3D || {},
+        tailoring: p.content?.tailoring || {},
+        structural: p.content?.structural || {},
+        material: p.content?.material || {},
+        fixedInterior: p.content?.fixedInterior || {},
+        looseFurniture: p.content?.looseFurniture || {},
+        details: p.content?.details || {},
+        finalize: p.content?.finalize || {}
+      }));
+    }
+    return DEFAULT_PROJECT_CASE_STUDIES;
+  };
+
+  const currentProjects = getProjectsData();
+  const currentCaseStudies = getCaseStudiesData();
 
   // High-Tech Simulators State
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
@@ -963,7 +1038,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   };
 
   const handleOpenCaseStudy = (id: number) => {
-    const study = PROJECT_CASE_STUDIES.find(s => s.id === id);
+    const study = currentCaseStudies.find(s => s.id === id);
     if (study) {
       setSelectedCaseStudy(study);
       setActiveStage(0);
@@ -1295,7 +1370,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-24">
-            {PROJECTS.map((proj, idx) => (
+            {currentProjects.map((proj, idx) => (
               <div key={proj.id} className={`group transition-all duration-500 ${idx % 2 === 1 ? 'md:mt-24' : ''}`}>
                 <div 
                   onClick={() => handleOpenCaseStudy(proj.id)}

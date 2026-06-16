@@ -42,3 +42,23 @@ export const uploadFileWithTus = (bucketName: string, fileName: string, file: Fi
     upload.start();
   });
 };
+
+export const uploadFile = async (file: File | Blob, bucketName: string, path: string): Promise<string | null> => {
+    try {
+        const { data, error } = await supabase.storage.from(bucketName).upload(path, file, {
+            cacheControl: '3600',
+            upsert: false
+        });
+
+        if (error) {
+            console.error('Upload Error:', error);
+            return null;
+        }
+
+        const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(path);
+        return publicUrlData.publicUrl;
+    } catch (err) {
+        console.error('Upload Exception:', err);
+        return null;
+    }
+};

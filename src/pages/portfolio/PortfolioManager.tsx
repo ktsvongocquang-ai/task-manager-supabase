@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { QRCodeSVG } from 'qrcode.react';
-import { Plus, Link as LinkIcon, Trash2, Copy, Shield, ShieldOff, Clock } from 'lucide-react';
+import { Plus, Link as LinkIcon, Trash2, Copy, Shield, ShieldOff, Clock, LayoutGrid, Edit3 } from 'lucide-react';
+import { PortfolioProjectModal } from './PortfolioProjectModal';
 
 export function PortfolioManager() {
     const { profile } = useAuthStore();
+    const [activeTab, setActiveTab] = useState<'shares' | 'projects'>('shares');
     const [shares, setShares] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
+    const [portfolioProjects, setPortfolioProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [showProjectModal, setShowProjectModal] = useState(false);
+    const [editingProject, setEditingProject] = useState<any | null>(null);
     
     // Form state
     const [title, setTitle] = useState('');
@@ -22,7 +27,17 @@ export function PortfolioManager() {
     useEffect(() => {
         fetchShares();
         fetchProjects();
+        fetchPortfolioProjects();
     }, [profile]);
+
+    const fetchPortfolioProjects = async () => {
+        try {
+            const { data } = await supabase.from('portfolio_projects').select('*').order('sort_order', { ascending: true });
+            if (data) setPortfolioProjects(data);
+        } catch (err) {
+            console.error('Lỗi tải danh sách portfolio project:', err);
+        }
+    };
 
     const fetchProjects = async () => {
         try {
@@ -73,7 +88,7 @@ export function PortfolioManager() {
 
             if (error) throw error;
             
-            setShowModal(false);
+            setShowShareModal(false);
             setTitle('');
             setPasscode('');
             setSelectedProjectId('');
@@ -85,11 +100,21 @@ export function PortfolioManager() {
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const handleDeleteShare = async (id: string) => {
         if (!confirm('Bạn có chắc muốn xóa Link này không? Khách hàng sẽ không thể truy cập nữa.')) return;
         try {
             await supabase.from('portfolio_shares').delete().eq('id', id);
             fetchShares();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteProject = async (id: string) => {
+        if (!confirm('Bạn có chắc muốn xóa dự án này khỏi Portfolio không?')) return;
+        try {
+            await supabase.from('portfolio_projects').delete().eq('id', id);
+            fetchPortfolioProjects();
         } catch (err) {
             console.error(err);
         }
@@ -108,21 +133,45 @@ export function PortfolioManager() {
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Portfolio Share</h1>
-                    <p className="text-gray-500 text-sm mt-1">Tạo link chia sẻ Landing Page an toàn cho khách hàng</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Portfolio</h1>
+                    <p className="text-gray-500 text-sm mt-1">Quản lý nội dung dự án và link chia sẻ an toàn</p>
                 </div>
                 <button 
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        if (activeTab === 'shares') {
+                            setShowShareModal(true);
+                        } else {
+                            setEditingProject(null);
+                            setShowProjectModal(true);
+                        }
+                    }}
                     className="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
                 >
                     <Plus size={18} />
-                    Tạo Link Mới
+                    {activeTab === 'shares' ? 'Tạo Link Mới' : 'Thêm Dự Án'}
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="flex gap-4 border-b border-gray-200 mb-6">
+                <button 
+                    onClick={() => setActiveTab('shares')}
+                    className={`pb-3 px-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'shares' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                    Link Chia Sẻ
+                </button>
+                <button 
+                    onClick={() => setActiveTab('projects')}
+                    className={`pb-3 px-2 font-medium text-sm transition-colors border-b-2 ${activeTab === 'projects' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                >
+                    Nội Dung Dự Án
+                </button>
+            </div>
+
+            {activeTab === 'shares' && (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {shares.map(share => {
                     const isExpired = new Date(share.expires_at) < new Date();
                     const link = getLink(share.token);
@@ -187,7 +236,7 @@ export function PortfolioManager() {
                                     </div>
                                 </div>
                                 <button 
-                                    onClick={() => handleDelete(share.id)}
+                                    onClick={() => handleDeleteShare(share.id)}
                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     title="Xóa Link"
                                 >
@@ -199,21 +248,77 @@ export function PortfolioManager() {
                 })}
             </div>
 
-            {shares.length === 0 && !loading && (
+            {activeTab === 'shares' && shares.length === 0 && !loading && (
                 <div className="text-center py-20 bg-white rounded-xl border border-gray-200 border-dashed">
                     <LinkIcon size={48} className="mx-auto text-gray-300 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-1">Chưa có link chia sẻ nào</h3>
                     <p className="text-gray-500 text-sm">Tạo link chia sẻ bảo mật để gửi cho khách hàng xem Landing Page.</p>
                 </div>
             )}
+            </>
+            )}
+            
+            {activeTab === 'projects' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {portfolioProjects.map(proj => (
+                        <div key={proj.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                            {proj.cover_image ? (
+                                <img src={proj.cover_image} alt={proj.title} className="w-full h-32 object-cover" />
+                            ) : (
+                                <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
+                                    <LayoutGrid className="text-gray-300" size={32} />
+                                </div>
+                            )}
+                            <div className="p-4 flex-1">
+                                <h3 className="font-bold text-gray-900 mb-1">{proj.title}</h3>
+                                <p className="text-xs text-gray-500 mb-2">{proj.subtitle}</p>
+                                <div className="flex flex-wrap gap-1">
+                                    <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full">{proj.style}</span>
+                                    <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full">{proj.location}</span>
+                                </div>
+                            </div>
+                            <div className="border-t border-gray-100 p-3 bg-gray-50 flex items-center justify-between">
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${proj.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                                    {proj.is_published ? 'Đang xuất bản' : 'Bản nháp'}
+                                </span>
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => {
+                                            setEditingProject(proj);
+                                            setShowProjectModal(true);
+                                        }}
+                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                    >
+                                        <Edit3 size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeleteProject(proj.id)}
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            
+            {activeTab === 'projects' && portfolioProjects.length === 0 && !loading && (
+                <div className="text-center py-20 bg-white rounded-xl border border-gray-200 border-dashed">
+                    <LayoutGrid size={48} className="mx-auto text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">Chưa có dự án nào</h3>
+                    <p className="text-gray-500 text-sm">Thêm các dự án tiêu biểu để hiển thị trên Landing Page.</p>
+                </div>
+            )}
 
-            {/* Create Modal */}
-            {showModal && (
+            {/* Create Share Modal */}
+            {showShareModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                             <h3 className="font-bold text-lg text-gray-900">Tạo Link Chia Sẻ</h3>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">&times;</button>
+                            <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600">&times;</button>
                         </div>
                         <form onSubmit={handleCreate} className="p-6 space-y-4">
                             <div>
@@ -283,7 +388,7 @@ export function PortfolioManager() {
                             <div className="pt-4 flex justify-end gap-3">
                                 <button 
                                     type="button" 
-                                    onClick={() => setShowModal(false)}
+                                    onClick={() => setShowShareModal(false)}
                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm font-medium transition-colors"
                                 >
                                     Hủy
@@ -299,6 +404,18 @@ export function PortfolioManager() {
                         </form>
                     </div>
                 </div>
+            )}
+            
+            {showProjectModal && (
+                <PortfolioProjectModal
+                    isOpen={showProjectModal}
+                    onClose={() => setShowProjectModal(false)}
+                    project={editingProject}
+                    onSaved={() => {
+                        setShowProjectModal(false);
+                        fetchPortfolioProjects();
+                    }}
+                />
             )}
         </div>
     );
