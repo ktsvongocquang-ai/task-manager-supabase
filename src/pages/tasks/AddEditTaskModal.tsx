@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../services/supabase'
 import { type Task, type Project } from '../../types'
 import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Mail } from 'lucide-react'
@@ -52,6 +52,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     // Deep link state for subtasks
     const [drilledSubtask, setDrilledSubtask] = useState<Task | null>(null);
+
+    // Ref for auto-scroll after adding subtask
+    const subtaskInputRef = useRef<HTMLDivElement>(null);
 
     // AI & Speech states
     const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | null>(null);
@@ -597,7 +600,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         .eq('parent_id', editingTask.id)
                         .order('task_code', { ascending: true });
 
-                    if (updatedSubTasks) setSubTasks(updatedSubTasks as Task[]);
+                    if (updatedSubTasks) {
+                        setSubTasks(updatedSubTasks as Task[]);
+                        // Auto-scroll to subtask input after adding
+                        setTimeout(() => {
+                            subtaskInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
                 }
             } catch (err: any) {
                 console.error('Error adding subtask:', err);
@@ -1085,7 +1094,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                 </DragDropContext>
 
                                                 {editingTask?.id && (
-                                                    <div className="relative mt-4 flex items-center gap-2">
+                                                    <div ref={subtaskInputRef} className="relative mt-4 flex items-center gap-2">
                                                         <div className="relative flex-1">
                                                             <input
                                                                 type="text"
