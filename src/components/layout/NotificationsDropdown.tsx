@@ -77,13 +77,14 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
     }
 
     const getBgColor = (type: string, isRead: boolean) => {
-        if (isRead) return 'bg-white hover:bg-slate-50'
+        if (isRead) return 'bg-slate-50/50 hover:bg-slate-100/50 opacity-50 border-l-2 border-transparent'
         switch (type) {
-            case 'overdue': return 'bg-red-50 hover:bg-red-100'
-            case 'due_today': return 'bg-amber-50 hover:bg-amber-100'
-            case 'assignment': return 'bg-emerald-50 hover:bg-emerald-100'
-            case 'mention': return 'bg-blue-50 hover:bg-blue-100'
-            default: return 'bg-slate-50 hover:bg-slate-100'
+            case 'overdue': return 'bg-red-50/80 hover:bg-red-100 border-l-2 border-red-400'
+            case 'status_change': return 'bg-amber-50/80 hover:bg-amber-100 border-l-2 border-amber-400'
+            case 'assignment': return 'bg-emerald-50/80 hover:bg-emerald-100 border-l-2 border-emerald-400'
+            case 'comment':
+            case 'mention': return 'bg-blue-50/80 hover:bg-blue-100 border-l-2 border-blue-400'
+            default: return 'bg-amber-50/80 hover:bg-amber-100 border-l-2 border-amber-400'
         }
     }
 
@@ -166,9 +167,14 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-xs ${notif.is_read ? 'text-slate-600 font-medium' : 'text-slate-800 font-bold'} leading-relaxed`}>
-                                            {notif.content}
-                                        </p>
+                                        <div className="flex items-start justify-between gap-1">
+                                            <p className={`text-xs leading-relaxed ${notif.is_read ? 'text-slate-400 font-medium' : 'text-slate-800 font-bold'}`}>
+                                                {notif.content}
+                                            </p>
+                                            {!notif.is_read && (
+                                                <span className="w-2 h-2 bg-amber-400 rounded-full shrink-0 mt-1 animate-pulse shadow-sm shadow-amber-400/30" />
+                                            )}
+                                        </div>
                                         <div className="flex items-center justify-between mt-2">
                                             <span className="text-[10px] text-slate-400 font-medium">
                                                 {formatDistanceToNow(parseISO(notif.created_at), { addSuffix: true, locale: vi })}

@@ -184,27 +184,29 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
                   <div
                     key={n.id}
                     onClick={() => markRead(n.id)}
-                    className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors border-l-2 ${TYPE_COLOR[n.type]} ${
-                      n.read ? 'bg-transparent hover:bg-slate-800/30' : 'bg-indigo-500/5 hover:bg-indigo-500/10'
+                    className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-all duration-200 border-l-3 ${
+                      n.read 
+                        ? 'bg-slate-900/50 border-l-2 border-slate-700/30 opacity-50 hover:opacity-80 hover:bg-slate-800/30' 
+                        : 'bg-amber-500/10 border-l-2 border-amber-400 hover:bg-amber-500/15'
                     }`}
                   >
-                    <span className="text-base shrink-0 mt-0.5">{TYPE_ICON[n.type]}</span>
+                    <span className={`text-base shrink-0 mt-0.5 ${n.read ? 'grayscale opacity-50' : ''}`}>{TYPE_ICON[n.type]}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1">
-                        <p className={`text-[11px] font-bold leading-tight ${n.read ? 'text-slate-300' : 'text-white'}`}>
+                        <p className={`text-[11px] leading-tight ${n.read ? 'font-medium text-slate-500' : 'font-black text-white'}`}>
                           {n.title}
                         </p>
                         {!n.read && (
-                          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full shrink-0 mt-1" />
+                          <span className="w-2 h-2 bg-amber-400 rounded-full shrink-0 mt-1 animate-pulse shadow-sm shadow-amber-400/50" />
                         )}
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed line-clamp-2">
+                      <p className={`text-[10px] mt-0.5 leading-relaxed line-clamp-2 ${n.read ? 'text-slate-600' : 'text-slate-300'}`}>
                         {n.body}
                       </p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[9px] text-slate-500 font-mono">{timeAgo(n.timestamp)}</span>
+                        <span className={`text-[9px] font-mono ${n.read ? 'text-slate-600' : 'text-slate-400'}`}>{timeAgo(n.timestamp)}</span>
                         {n.projectName && (
-                          <span className="text-[9px] font-bold text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded-full">
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${n.read ? 'text-slate-600 bg-slate-800/50' : 'text-amber-300 bg-amber-500/15'}`}>
                             {n.projectName.length > 20 ? n.projectName.slice(0, 20) + '…' : n.projectName}
                           </span>
                         )}
