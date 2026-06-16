@@ -506,9 +506,9 @@ export const Dashboard = () => {
             </div>
 
 
-            {/* Activities & Urgent Tasks Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div className="hidden md:block lg:col-span-2 glass-card">
+            {/* Urgent Tasks */}
+            <div className="grid grid-cols-1 gap-6">
+                <div className="hidden glass-card">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Hoạt động gần đây</h3>
                         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
@@ -562,8 +562,7 @@ export const Dashboard = () => {
                         )}
                     </div>
                 </div>
-
-                <div className="lg:col-span-3 glass-card">
+                <div className="glass-card">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Nhiệm vụ ưu tiên cao</h3>
                         <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-rose-100">CẦN XỬ LÝ</span>
@@ -601,9 +600,9 @@ export const Dashboard = () => {
                 </div>
             </div>
 
-            {/* Charts Section - 6 Premium Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="hidden md:block glass-card p-6">
+            {/* Project Progress Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="hidden glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-emerald-500 rounded-full"></div> Trạng thái nhiệm vụ
                     </h3>
@@ -644,77 +643,6 @@ export const Dashboard = () => {
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
-                </div>
-
-                <div className="hidden md:block glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-amber-500 rounded-full"></div> Mức độ ưu tiên
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <PieChart>
-                            <Pie
-                                data={taskPriorityData}
-                                cx="50%" cy="50%"
-                                innerRadius={65} outerRadius={90}
-                                paddingAngle={5} dataKey="value"
-                                cornerRadius={6}
-                            >
-                                {taskPriorityData.map((_, i) => <Cell key={i} fill={COLORS_PRIORITY[i % COLORS_PRIORITY.length]} />)}
-                            </Pie>
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="hidden md:block glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-blue-500 rounded-full"></div> Hiệu suất nhân viên
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <BarChart data={employeeData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                            <Bar dataKey="Tổng số nhiệm vụ" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={12} />
-                            <Bar dataKey="Việc hoàn thành (%)" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="hidden md:block glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-purple-500 rounded-full"></div> Xu hướng hoàn thành
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <LineChart data={trendData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                            <Line type="monotone" dataKey="Hoàn thành" stroke="#8b5cf6" strokeWidth={3} dot={{ stroke: '#8b5cf6', strokeWidth: 2, r: 4, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="hidden md:block glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-sky-500 rounded-full"></div> So sánh trạng thái dự án
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <BarChart data={projectCompareData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none' }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                            <Bar dataKey="Đang thực hiện" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={12} />
-                            <Bar dataKey="Hoàn thành" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
             </div>
 
             {/* Staff KPI Evaluation Board */}
