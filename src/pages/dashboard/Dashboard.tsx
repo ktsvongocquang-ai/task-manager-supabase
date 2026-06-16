@@ -506,63 +506,8 @@ export const Dashboard = () => {
             </div>
 
 
-            {/* Urgent Tasks */}
-            <div className="grid grid-cols-1 gap-6">
-                <div className="hidden glass-card">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Hoạt động gần đây</h3>
-                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                    </div>
-                    <div className="p-6 max-h-[440px] overflow-y-auto custom-scrollbar">
-                        {recentActivities.length === 0 ? (
-                            <div className="text-center py-12 text-slate-400 text-xs italic">Chưa có hoạt động nào.</div>
-                        ) : (
-                            <div className="space-y-6">
-                                {recentActivities.map((a) => {
-                                    const prof = allProfiles.find(p => p.id === a.user_id);
-                                    const userName = prof?.full_name || 'Hệ thống';
-                                    const proj = allProjects.find(p => p.id === a.project_id);
-                                    const projName = proj ? proj.name : null;
-                                    const actionColor = a.action.toLowerCase().includes('thêm') ? 'text-emerald-500' :
-                                        a.action.toLowerCase().includes('sửa') ? 'text-amber-500' :
-                                            a.action.toLowerCase().includes('xóa') ? 'text-rose-500' : 'text-indigo-500';
-                                    return (
-                                        <div
-                                            key={a.id}
-                                            className="flex gap-4 group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition-colors"
-                                            onClick={() => handleActivityClick(a)}
-                                        >
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 z-10 ring-4 ring-indigo-50 group-hover:ring-indigo-100 transition-all focus:outline-none"></div>
-                                                <div className="w-px flex-1 bg-slate-100 group-last:bg-transparent"></div>
-                                            </div>
-                                            <div className="flex-1 pb-4">
-                                                <p className="text-xs font-bold text-slate-800 leading-snug flex items-center gap-1.5 flex-wrap">
-                                                    <span className={actionColor}>{a.action}</span>
-                                                    <span className="text-slate-300">|</span>
-                                                    <span>{userName}</span>
-                                                    {projName && (
-                                                        <>
-                                                            <span className="text-slate-300">|</span>
-                                                            <span className="text-slate-600 truncate max-w-[150px]" title={projName}>{projName}</span>
-                                                        </>
-                                                    )}
-                                                </p>
-                                                <div className="mt-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[11px] text-slate-500 leading-relaxed font-medium">
-                                                    {a.details}
-                                                </div>
-                                                <p className="text-[10px] text-slate-400 mt-1.5 font-bold flex items-center gap-1">
-                                                    <Clock size={10} /> {formatTimeAgo(a.created_at)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="glass-card">
+            {/* Nhiệm vụ ưu tiên cao */}
+            <div className="glass-card">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Nhiệm vụ ưu tiên cao</h3>
                         <span className="bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-rose-100">CẦN XỬ LÝ</span>
@@ -596,53 +541,30 @@ export const Dashboard = () => {
                                 ))}
                             </div>
                         )}
-                    </div>
                 </div>
             </div>
 
-            {/* Project Progress Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="hidden glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-emerald-500 rounded-full"></div> Trạng thái nhiệm vụ
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <PieChart>
-                            <Pie
-                                data={taskStatusData}
-                                cx="50%" cy="50%"
-                                innerRadius={65} outerRadius={90}
-                                paddingAngle={5} dataKey="value"
-                                cornerRadius={6}
-                            >
-                                {taskStatusData.map((_, i) => <Cell key={i} fill={COLORS_STATUS[i % COLORS_STATUS.length]} />)}
-                            </Pie>
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '10px' }} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className="glass-card p-6">
-                    <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-1 h-3 bg-indigo-500 rounded-full"></div> Tiến độ dự án (%)
-                    </h3>
-                    <ResponsiveContainer width="100%" height={240}>
-                        <BarChart data={projectProgressData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
-                            <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                            <Bar dataKey="Khối lượng" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
-                                <defs>
-                                    <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
-                                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0.8} />
-                                    </linearGradient>
-                                </defs>
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+            {/* Tiến độ dự án - chart duy nhất */}
+            <div className="glass-card p-6">
+                <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
+                    <div className="w-1 h-3 bg-indigo-500 rounded-full"></div> Tiến độ dự án (%)
+                </h3>
+                <ResponsiveContainer width="100%" height={240}>
+                    <BarChart data={projectProgressData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                        <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                        <Bar dataKey="Khối lượng" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
+                            <defs>
+                                <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
+                                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0.8} />
+                                </linearGradient>
+                            </defs>
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
             </div>
 
             {/* Staff KPI Evaluation Board */}
