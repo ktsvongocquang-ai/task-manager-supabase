@@ -165,11 +165,11 @@ export const QuickAddTaskModal = ({
                 </div>
 
                 {/* Body */}
-                <div className="p-5 overflow-y-auto max-h-[80vh]">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {/* Row 1 */}
+                <div className="p-4 sm:p-5 overflow-y-auto max-h-[80vh]">
+                    <div className="flex flex-col gap-3">
+                        {/* Row 1: Dự án */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Dự án</label>
+                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
                             <select 
                                 value={form.project_id}
                                 onChange={e => setForm({...form, project_id: e.target.value})}
@@ -179,98 +179,98 @@ export const QuickAddTaskModal = ({
                                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
                         </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Giai đoạn</label>
-                            <select 
-                                value={form.target}
-                                onChange={e => setForm({...form, target: e.target.value})}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            >
+
+                        {/* Hidden Target field */}
+                        <div className="hidden">
+                            <select value={form.target} onChange={e => setForm({...form, target: e.target.value})}>
                                 <option value="">Chọn...</option>
-                                <option value="concept">Concept</option>
-                                <option value="3d">3D / Phối cảnh</option>
-                                <option value="2d">2D / Triển khai</option>
-                                <option value="construction">Construction / Hồ sơ TC</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Trạng thái</label>
-                            <select 
-                                value={form.status}
-                                onChange={e => setForm({...form, status: e.target.value})}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            >
-                                {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
-                                {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
-                                <option value="Cần làm">Cần làm</option>
-                                <option value="Chờ duyệt">Chờ duyệt</option>
-                                <option value="Hoàn thành">Hoàn thành</option>
-                                <option value="Tạm dừng">Tạm dừng</option>
                             </select>
                         </div>
 
-                        {/* Row 2 */}
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Bắt đầu</label>
-                            <input 
-                                type="date"
-                                value={form.start_date}
-                                onChange={e => handleDateChange('start_date', e.target.value)}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Hạn chót</label>
-                            <input 
-                                type="date"
-                                value={form.due_date}
-                                onChange={e => handleDateChange('due_date', e.target.value)}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Số ngày</label>
-                            <input 
-                                type="number"
-                                min="1"
-                                value={form.days}
-                                onChange={e => handleDaysChange(e.target.value)}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            />
-                        </div>
-
-                        {/* Row 3 */}
-                        <div className="sm:col-span-1">
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Chủ trì</label>
-                            <select 
-                                value={form.assignee_id}
-                                onChange={e => setForm({...form, assignee_id: e.target.value})}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            >
-                                <option value="">Chọn người...</option>
-                                {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                            </select>
-                        </div>
-                        <div className="sm:col-span-2">
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Thực hiện</label>
-                            <select 
-                                value={form.supporter_id}
-                                onChange={e => setForm({...form, supporter_id: e.target.value})}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            >
-                                <option value="">Chọn người...</option>
-                                {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
-                            </select>
+                        {/* Row 2: Trạng thái & Số ngày */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
+                                <select 
+                                    value={form.status}
+                                    onChange={e => setForm({...form, status: e.target.value})}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
+                                    {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
+                                    <option value="Cần làm">Cần làm</option>
+                                    <option value="Chờ duyệt">Chờ duyệt</option>
+                                    <option value="Hoàn thành">Hoàn thành</option>
+                                    <option value="Tạm dừng">Tạm dừng</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Số ngày</label>
+                                <input 
+                                    type="number"
+                                    min="1"
+                                    value={form.days}
+                                    onChange={e => handleDaysChange(e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
                         </div>
 
-                        {/* Row 4 */}
-                        <div className="sm:col-span-3">
-                            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Mô tả</label>
+                        {/* Row 3: Bắt đầu & Hạn chót */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
+                                <input 
+                                    type="date"
+                                    value={form.start_date}
+                                    onChange={e => handleDateChange('start_date', e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
+                                <input 
+                                    type="date"
+                                    value={form.due_date}
+                                    onChange={e => handleDateChange('due_date', e.target.value)}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 4: Chủ trì & Thực hiện */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
+                                <select 
+                                    value={form.assignee_id}
+                                    onChange={e => setForm({...form, assignee_id: e.target.value})}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    <option value="">Chọn...</option>
+                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Thực hiện</label>
+                                <select 
+                                    value={form.supporter_id}
+                                    onChange={e => setForm({...form, supporter_id: e.target.value})}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    <option value="">Chọn...</option>
+                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Row 5: Mô tả */}
+                        <div>
                             <textarea 
                                 value={form.description}
                                 onChange={e => setForm({...form, description: e.target.value})}
                                 placeholder="Thêm mô tả..."
-                                rows={3}
+                                rows={2}
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
                             />
                         </div>
