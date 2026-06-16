@@ -36,7 +36,7 @@ import { getUnreadNotificationCount, checkScheduledNotifications } from '../../s
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
-import { AdminChatBot } from '../chat/AdminChatBot'
+// import { AdminChatBot } from '../chat/AdminChatBot'
 // import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
@@ -760,13 +760,7 @@ export const Layout = () => {
             )}
 
             {/* Global Modals Wrapper */}
-            {/* Admin AI Chatbot - Floating (Admin only) */}
-            {profile?.role?.trim() === 'Admin' && (
-                <AdminChatBot
-                    userRole={profile?.role}
-                    userName={profile?.full_name}
-                />
-            )}
+            {/* Admin AI Chatbot removed per request */}
 
             {/* HR AI Chatbot removed per request */}
 
