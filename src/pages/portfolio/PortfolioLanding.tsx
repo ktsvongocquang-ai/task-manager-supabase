@@ -750,7 +750,7 @@ const PhaseVisuals = ({
     }
 
     return (
-      <div className="w-full h-full grid grid-cols-3 gap-1 p-2 bg-[#161412]">
+      <div className="w-full h-full grid grid-cols-2 sm:grid-cols-3 gap-1 p-2 bg-[#161412]">
         {imgs.map((img: string, idx: number) => {
           const failed = !img || imageErrors[img];
           return (
@@ -1337,7 +1337,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-8 pt-12 border-t border-[#2C2920]/10 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 pt-12 border-t border-[#2C2920]/10 text-center">
             <div>
               <div className="font-sans font-bold text-3xl md:text-5xl text-[#2C2920] mb-2">4+</div>
               <div className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold">NĂM HOẠT ĐỘNG</div>

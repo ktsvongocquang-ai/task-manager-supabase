@@ -325,7 +325,7 @@ export default function PinMapView({
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-      onAddMarker(activePlanId, x, y);
+      onAddMarker(activePlanId, x, y, currentPageIndex);
       setMode('pan');
     }
   }, [mode, activePlanId, onAddMarker, isRenderingPdf]);
@@ -343,7 +343,7 @@ export default function PinMapView({
     const y = ((centerY - rect.top) / rect.height) * 100;
 
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-      onAddMarker(activePlanId, x, y);
+      onAddMarker(activePlanId, x, y, currentPageIndex);
       setMode('pan');
     }
   }, [mode, activePlanId, onAddMarker, isRenderingPdf]);
@@ -351,6 +351,21 @@ export default function PinMapView({
   const filteredMarkers = useMemo(() => {
     if (!activePlanId) return [];
     let list = markers.filter(m => m.floorPlanId === activePlanId);
+    
+    // Lọc theo trang PDF hiện tại (dựa vào tag page:N)
+    // Nếu có nhiều trang, chỉ hiển thị marker của trang đó
+    if (activePlan && (activePlan.pageCount || 1) > 1) {
+      list = list.filter(m => {
+        const pageTag = m.tags?.find(t => t.startsWith('page:'));
+        if (pageTag) {
+          const pageNum = parseInt(pageTag.replace('page:', ''), 10);
+          return pageNum === currentPageIndex;
+        }
+        // Fallback: nếu marker cũ không có tag page, cho hiện ở trang 0
+        return currentPageIndex === 0;
+      });
+    }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter(m => 
@@ -637,7 +652,7 @@ export default function PinMapView({
 
           {/* Pagination */}
           {activePlan && (activePlan.pageCount || 1) > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-[#111]/80 backdrop-blur-md border border-slate-700/50 p-2 rounded-full shadow-2xl z-40 select-none">
+            <div className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-4 bg-[#111]/80 backdrop-blur-md border border-slate-700/50 p-2 rounded-full shadow-2xl z-40 select-none transition-all ${mode === 'pin' ? 'bottom-28' : 'bottom-6'}`}>
               <button 
                 onClick={handlePrev} 
                 disabled={!hasPrev || isRenderingPdf}

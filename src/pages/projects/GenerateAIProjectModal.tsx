@@ -544,9 +544,9 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                 </div>
 
                 {/* Body */}
-                <div className="p-8 bg-[#151c2f]">
+                <div className="p-4 sm:p-8 bg-[#151c2f]">
                     {!showPreview ? (
-                        <div className="max-w-4xl mx-auto space-y-8 flex gap-8">
+                        <div className="max-w-4xl mx-auto space-y-8 flex flex-col sm:flex-row gap-4 sm:gap-8">
 
                             {/* Left Column: Form Inputs */}
                             <div className="flex-1 space-y-6">
@@ -629,8 +629,8 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                         Xác nhận Thông Tin Hành Chính
                                     </h4>
 
-                                    <div className="grid grid-cols-12 gap-5 mb-5">
-                                        <div className="col-span-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 mb-5">
+                                        <div className="sm:col-span-3">
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Mã Dự Án</label>
                                             <input
                                                 type="text"
@@ -640,7 +640,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                 placeholder="VD: AI-2655"
                                             />
                                         </div>
-                                        <div className="col-span-5">
+                                        <div className="sm:col-span-5">
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Dự Án</label>
                                             <input
                                                 type="text"
@@ -651,7 +651,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                                 autoFocus
                                             />
                                         </div>
-                                        <div className="col-span-4">
+                                        <div className="sm:col-span-4">
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Tên Khách Hàng</label>
                                             <input
                                                 type="text"
@@ -663,7 +663,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-5">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-1.5"><Calendar size={14} /> Bắt đầu</label>
                                             <input

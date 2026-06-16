@@ -491,7 +491,7 @@ function CostOverview({ tasks, project, milestones: milestonesFromDB }: { tasks:
       {/* EVA Card */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <h3 className="text-sm font-bold text-slate-700 mb-4">Earned Value Analysis</h3>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <p className="text-[10px] text-slate-400 font-bold uppercase">% Khối lượng xong</p>
             <p className="text-2xl font-bold text-indigo-600">{project.progress}%</p>

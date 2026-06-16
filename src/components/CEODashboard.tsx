@@ -273,7 +273,7 @@ function ProjectCard({ stats, onOpen }: { stats: ProjectStats; onOpen: () => voi
           <span className="text-xs text-slate-400 tracking-wider uppercase">Lỗi / Khiếm khuyết</span>
           <span className="text-xs font-black text-slate-300">{totalDefects} tổng</span>
         </div>
-        <div className="grid grid-cols-3 gap-2 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
           <div className="flex flex-col items-center bg-rose-500/10 rounded-lg py-1.5 border border-rose-500/20">
             <span className="text-base font-black text-rose-400">{unresolved}</span>
             <span className="text-[10px] text-rose-300/70 tracking-wide">Chưa sửa</span>
@@ -427,7 +427,7 @@ export default function CEODashboard({
           <p className="text-xs text-slate-500 font-semibold tracking-widest uppercase mb-3">
             Tổng quan hoạt động
           </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
               icon={<Folders className="w-5 h-5" />}
               label="Dự án đang chạy"

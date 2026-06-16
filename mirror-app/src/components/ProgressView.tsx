@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Project, FloorPlan, MarkerNote } from '../types';
 import {
   X,
@@ -10,6 +10,8 @@ import {
   Calendar,
   BarChart3,
   FileText,
+  Camera,
+  Filter
 } from 'lucide-react';
 
 // ─── Props ───────────────────────────────────────────────────────────────────
@@ -105,6 +107,7 @@ export default function ProgressView({
   onClose,
 }: ProgressViewProps) {
   const today = new Date();
+  const [defectFilter, setDefectFilter] = useState<'all' | 'unfixed' | 'fixed'>('unfixed');
 
   // Compute per-project info
   const projectInfos: ProjectProgressInfo[] = useMemo(() => {
@@ -118,6 +121,21 @@ export default function ProgressView({
       return { project, unfixed, fixed, totalMarkers: projectNotes.length };
     });
   }, [projects, floorPlans, markerNotes]);
+
+  // All defects for global list
+  const allDefects = useMemo(() => {
+    return markerNotes.map(m => {
+      const fp = floorPlans.find(f => f.id === m.floorPlanId);
+      const proj = projects.find(p => p.id === fp?.projectId);
+      return { ...m, projectName: proj?.name || 'Không rõ dự án', projectId: proj?.id };
+    }).sort((a, b) => b.createdAt - a.createdAt);
+  }, [markerNotes, floorPlans, projects]);
+
+  const filteredDefects = useMemo(() => {
+    if (defectFilter === 'all') return allDefects;
+    if (defectFilter === 'fixed') return allDefects.filter(m => m.tags?.[0] === 'Đã duyệt' || m.tags?.[0] === 'Đã sửa');
+    return allDefects.filter(m => m.tags?.[0] !== 'Đã duyệt' && m.tags?.[0] !== 'Đã sửa');
+  }, [allDefects, defectFilter]);
 
   // Summary KPIs
   const totalProjects = projects.length;
@@ -283,67 +301,92 @@ export default function ProgressView({
           )}
         </section>
 
-        {/* ── NHẬT KÝ CÔNG TRÌNH ── */}
+        {/* ── DANH SÁCH LỖI (TOÀN CÔNG TY) ── */}
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <FileText className="w-4 h-4 text-[#888]" />
-            <h2 className="text-xs font-bold text-[#aaa] tracking-widest uppercase">
-              Nhật ký công trình gần đây
-            </h2>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-[#888]" />
+              <h2 className="text-xs font-bold text-[#aaa] tracking-widest uppercase">
+                Danh sách lỗi ({filteredDefects.length})
+              </h2>
+            </div>
+            <div className="flex items-center gap-1 bg-[#222] p-1 rounded-lg border border-[#333]">
+              <button
+                onClick={() => setDefectFilter('unfixed')}
+                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-colors ${defectFilter === 'unfixed' ? 'bg-rose-500/20 text-rose-400' : 'text-[#888] hover:text-[#bbb]'}`}
+              >
+                Chưa sửa
+              </button>
+              <button
+                onClick={() => setDefectFilter('fixed')}
+                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-colors ${defectFilter === 'fixed' ? 'bg-emerald-500/20 text-emerald-400' : 'text-[#888] hover:text-[#bbb]'}`}
+              >
+                Đã sửa
+              </button>
+              <button
+                onClick={() => setDefectFilter('all')}
+                className={`px-3 py-1.5 text-[10px] font-bold rounded-md transition-colors ${defectFilter === 'all' ? 'bg-[#333] text-white' : 'text-[#888] hover:text-[#bbb]'}`}
+              >
+                Tất cả
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2.5">
-            {MOCK_DIARY.map((entry) => (
+            {filteredDefects.map(m => (
               <div
-                key={entry.id}
+                key={m.id}
                 className="bg-[#222] border border-[#333] rounded-2xl p-4 flex items-start gap-3"
               >
-                {/* Date column */}
-                <div className="flex flex-col items-center shrink-0 w-12">
-                  <Calendar className="w-4 h-4 text-[#666] mb-1" />
-                  <span className="text-[10px] text-[#888] font-semibold text-center leading-tight">
-                    {entry.date}
-                  </span>
+                {/* Photo */}
+                <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[#2a2a2a] border border-[#333] flex items-center justify-center">
+                  {m.photoData ? (
+                    <img src={m.photoData} alt="Defect" className="w-full h-full object-cover" />
+                  ) : (
+                    <Camera className="w-5 h-5 text-[#555]" />
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-xs font-bold text-white truncate">{entry.projectName}</h4>
+                    <h4 className="text-xs font-bold text-white truncate">{m.title}</h4>
                     <span
                       className={`shrink-0 text-[9px] font-semibold px-2 py-0.5 rounded-full ${
-                        entry.status === 'completed'
+                        m.tags?.[0] === 'Đã duyệt' || m.tags?.[0] === 'Đã sửa'
                           ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                          : 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+                          : 'bg-rose-500/15 text-rose-400 border border-rose-500/25'
                       }`}
                     >
-                      {entry.status === 'completed' ? 'Hoàn thành' : 'Đang tiến hành'}
+                      {m.tags?.[0] || 'Chưa sửa'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#999] leading-relaxed">{entry.description}</p>
+                  <p className="text-[11px] text-[#888] font-semibold truncate mb-1">Dự án: {m.projectName}</p>
+                  {m.transcription ? (
+                    <p className="text-[11px] text-[#aaa] leading-relaxed italic line-clamp-2">"{m.transcription}"</p>
+                  ) : m.textNotes ? (
+                    <p className="text-[11px] text-[#aaa] leading-relaxed line-clamp-2">{m.textNotes}</p>
+                  ) : null}
                 </div>
 
-                {/* Photo placeholder */}
-                {entry.hasPhoto && (
-                  <div className="shrink-0 w-12 h-12 rounded-xl bg-[#2a2a2a] border border-[#333] flex items-center justify-center">
-                    <FileText className="w-4 h-4 text-[#555]" />
-                  </div>
-                )}
+                {/* Action */}
+                <button
+                  onClick={() => {
+                    if (m.projectId) {
+                      onOpenProject(m.projectId);
+                      onClose();
+                    }
+                  }}
+                  className="shrink-0 flex items-center justify-center w-8 h-8 rounded-full bg-[#333] text-[#aaa] hover:bg-[#444] hover:text-white transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             ))}
+            {filteredDefects.length === 0 && (
+              <div className="text-center py-10 text-[#666] text-xs font-medium">Không có lỗi nào.</div>
+            )}
           </div>
-
-          {/* Add diary button (disabled) */}
-          <button
-            disabled
-            className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#1e1e1e] border border-[#333] text-[#555] text-xs font-semibold cursor-not-allowed opacity-60"
-          >
-            <FileText className="w-4 h-4" />
-            Thêm nhật ký hôm nay
-            <span className="text-[9px] bg-[#333] text-[#666] px-2 py-0.5 rounded-full ml-1">
-              Sắp ra mắt
-            </span>
-          </button>
         </section>
       </main>
     </div>

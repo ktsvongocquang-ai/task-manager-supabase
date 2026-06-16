@@ -641,7 +641,7 @@ export const Dashboard = () => {
                             </div>
 
                             {/* 4 Mini Stat Blocks */}
-                            <div className="grid grid-cols-4 gap-2 sm:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                                 <div className="bg-indigo-50 rounded-2xl p-3 sm:p-4 text-center">
                                     <div className="text-lg sm:text-2xl font-bold text-indigo-600">{projTasks.length}</div>
                                     <div className="text-[9px] sm:text-[10px] font-bold text-indigo-400 uppercase tracking-wider mt-1">Tổng việc</div>

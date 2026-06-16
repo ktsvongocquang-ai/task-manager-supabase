@@ -119,7 +119,7 @@ export default function XUDashboard({
         </div>
 
         {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-2 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
           <div className="bg-black/20 rounded-xl p-3 text-center">
             <p className="text-2xl font-black text-white">{needFix.length}</p>
             <p className="text-[10px] text-orange-200 font-bold uppercase tracking-wide">Cần sửa</p>

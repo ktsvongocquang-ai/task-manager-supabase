@@ -38,7 +38,7 @@ export function ManagerDashboard({
   return (
     <div className="space-y-6">
       {/* Finance Strip */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { label: 'Thu tháng này', value: fmt(finance.monthlyInflow), color: 'text-emerald-600', icon: <TrendingUp className="w-4 h-4 text-emerald-500" /> },
           { label: 'Chi tháng này', value: fmt(finance.monthlyOutflow), color: 'text-rose-600', icon: <TrendingUp className="w-4 h-4 text-rose-500 rotate-180" /> },
@@ -998,7 +998,7 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <h4 className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-4 pb-2 border-b border-slate-100">📸 Hình ảnh thực tế tại công trường</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {log.sitePhotos?.length > 0 ? log.sitePhotos.map((p: string, i: number) => (
                     <div key={i} className="aspect-square bg-slate-100 rounded-lg overflow-hidden border border-slate-200 cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all group">
                       <img src={p} alt={`Ảnh ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />

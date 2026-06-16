@@ -333,7 +333,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Stats ── */}
-            <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
+            <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
                 {[
                     { label: 'Tổng task',     value: stats.total,   color: 'text-slate-800' },
                     { label: 'Hoàn thành',    value: stats.done,    color: 'text-emerald-600' },

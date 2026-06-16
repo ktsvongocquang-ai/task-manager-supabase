@@ -92,6 +92,7 @@ export default function App() {
   const [isGlobalPinSelectorOpen, setIsGlobalPinSelectorOpen] = useState<boolean>(false);
   const [isDefectCategorySelectorOpen, setIsDefectCategorySelectorOpen] = useState<boolean>(false);
   const [selectedDefectCategory, setSelectedDefectCategory] = useState<{category: string, subcategory: string, planType: string} | null>(null);
+  const [quickSaveMsg, setQuickSaveMsg] = useState<string>('');
 
   // Subscribe to notifications for the dashboard feed
   useEffect(() => {
@@ -842,6 +843,25 @@ export default function App() {
     }
   }
 
+  // Auto-generate tên lỗi thông minh từ hạng mục + vị trí
+  function generateDefectTitle(
+    category?: string,
+    location?: string,
+    count?: number,
+    voiceText?: string
+  ): string {
+    const parts: string[] = [];
+    if (category) parts.push(category);
+    if (location) parts.push(location);
+    if (parts.length === 0 && voiceText) {
+      const words = voiceText.trim().split(/\s+/).slice(0, 5).join(' ');
+      if (words) parts.push(words);
+    }
+    if (parts.length === 0) parts.push('Sự cố mới');
+    const base = parts.join(' — ');
+    return count && count > 1 ? `${base} #${count}` : base;
+  }
+
   // Handle dropping a marker pin onto the board
   async function handleAddMarker(x: number, y: number) {
     if (!activeFloorPlanId) return;
@@ -851,34 +871,49 @@ export default function App() {
     
     const draft = globalDraftFault || {};
 
+    // Tên mặc định thông minh: Hạng mục — Vị trí (thay vì 'Chấm lỗi #N')
+    const autoTitle = generateDefectTitle(
+      selectedDefectCategory?.category,
+      (draft as any).location,
+      count,
+      draft.transcription
+    );
+
     const newMarker: MarkerNote = {
       id: newMarkerId,
       floorPlanId: activeFloorPlanId,
       x,
       y,
-      title: draft.title || `Chấm lỗi #${count} - Tên Lỗi Kỹ Thuật`,
+      title: draft.title || autoTitle,
       photoData: draft.photoData || null,
       audioData: draft.audioData || null,
       transcription: draft.transcription || '',
       textNotes: draft.textNotes || '',
       createdAt: draft.createdAt || Date.now(),
-      comments: []
+      comments: [],
+      tags: (draft as any).tags || undefined,
+      severity: (draft as any).severity || undefined
     };
 
     try {
       await saveMarkerNote(newMarker);
       setMarkerNotes(prev => [...prev, newMarker]);
-      setSelectedMarkerId(newMarkerId);
       setSelectedAnnotationId(null);
       // Fire notification
       const projName = projects.find(p => p.id === activeProjectId)?.name || 'Dự án';
       notify.defectNew(projName, newMarker.title || 'Lỗi mới');
       
       if (globalDraftFault) {
+        // Đã có đủ thông tin từ GlobalCaptureModal → KHÔNG mở sidebar dài dòng
+        // Chỉ lưu, hiện thông báo, và sẵn sàng cho lỗi tiếp theo
         setGlobalDraftFault(null);
-        setIsRightSidebarOpen(true);
+        setSelectedMarkerId(null);
+        // Hiện feedback nhanh
+        setQuickSaveMsg(`✅ Đã lưu "${newMarker.title}"`);
+        setTimeout(() => setQuickSaveMsg(''), 3000);
       } else {
-        // Auto open camera to take photo immediately for visual fluid workflow!
+        // Người dùng ghim trực tiếp (không qua capture) -> HIỆN camera -> CHI TIẾT
+        setSelectedMarkerId(newMarker.id);
         setShowCameraModal(true);
       }
     } catch (e) {
@@ -2000,6 +2035,7 @@ export default function App() {
               if (tab === 'profile') setShowProfileView(true);
             }}
             onActionClick={() => setShowDefectList(true)}
+            onCaptureClick={() => setIsGlobalCaptureOpen(true)}
             activeRole={activeUserRole.role}
           />
         </>
@@ -2058,10 +2094,19 @@ export default function App() {
             try {
               await saveMarkerNote(newMarker);
               setMarkerNotes(prev => [...prev, newMarker]);
-              setSelectedMarkerId(newMarker.id);
-              // Clear draft after successful pin
-              setGlobalDraftFault(null);
-              setSelectedDefectCategory(null);
+              
+              if (globalDraftFault || selectedDefectCategory) {
+                // Pinning via Quick Capture or Category flow -> Finish silently
+                setSelectedMarkerId(null);
+                setGlobalDraftFault(null);
+                setSelectedDefectCategory(null);
+                setQuickSaveMsg('📍 Đã chốt vị trí lỗi!');
+                setTimeout(() => setQuickSaveMsg(''), 3000);
+              } else {
+                // Direct pinning from map -> Show modal/camera
+                setSelectedMarkerId(newMarker.id);
+                setShowCameraModal(true);
+              }
             } catch (e) { console.error(e); }
           }}
           onSelectMarker={setSelectedMarkerId}
@@ -2127,7 +2172,15 @@ export default function App() {
         {selectedMarker && (
           <MarkerDetailModal
             marker={selectedMarker}
-            onUpdate={handleUpdateMarker}
+            defectIndex={markerNotes
+              .filter(m => m.floorPlanId === activeFloorPlanId)
+              .sort((a, b) => a.createdAt - b.createdAt)
+              .findIndex(m => m.id === selectedMarker.id)
+            }
+            onUpdate={(id, updates) => {
+              const existing = markerNotes.find(m => m.id === id);
+              if (existing) handleUpdateMarker({ ...existing, ...updates });
+            }}
             onDelete={(id) => {
               handleDeleteMarker(id);
               setSelectedMarkerId(null);
@@ -2269,8 +2322,53 @@ export default function App() {
            ========================================================= */
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
           
+          {/* BẢNG DANH SÁCH LỖI (Bên trái trên PC, Bên dưới trên Mobile) */}
+          <div className="flex lg:w-[300px] h-[35vh] lg:h-auto shrink-0 bg-[#0f111a] border-t lg:border-t-0 lg:border-r border-slate-800 flex-col relative z-20 overflow-hidden order-last lg:order-first">
+             <div className="p-3 lg:p-4 border-b border-slate-800/50 bg-[#151822]">
+               <h3 className="text-[11px] lg:text-xs font-black text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                 <AlertCircle className="w-4 h-4 text-rose-400" />
+                 Danh sách lỗi
+               </h3>
+             </div>
+             <div className="flex-1 overflow-y-auto p-2 lg:p-3 flex flex-col gap-2">
+               {projectMarkerNotes.filter(m => m.floorPlanId === activeFloorPlanId).length === 0 ? (
+                 <p className="text-xs text-slate-500 text-center mt-6 lg:mt-10">Chưa có lỗi nào.</p>
+               ) : (
+                 projectMarkerNotes.filter(m => m.floorPlanId === activeFloorPlanId).map(m => (
+                   <div 
+                     key={m.id}
+                     onClick={() => setSelectedMarkerId(m.id)}
+                     className={`p-2 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${
+                       selectedMarkerId === m.id 
+                         ? 'bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]' 
+                         : 'bg-[#151822] border-slate-800/60 hover:border-slate-600'
+                     }`}
+                   >
+                     {m.photoData ? (
+                       <img src={m.photoData} className="w-10 h-10 rounded-lg object-cover shrink-0 opacity-90" />
+                     ) : (
+                       <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center shrink-0">
+                         <Camera className="w-4 h-4 text-slate-500" />
+                       </div>
+                     )}
+                     <div className="flex-1 min-w-0">
+                        <h4 className="text-[11px] lg:text-xs font-bold text-slate-200 truncate">{m.title}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            m.tags?.[0] === 'Đã sửa' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                          }`}>
+                            {m.tags?.[0] || 'Chưa sửa'}
+                          </span>
+                        </div>
+                     </div>
+                   </div>
+                 ))
+               )}
+             </div>
+          </div>
+
           {/* MAIN CENTER WORKSPACE AREA */}
-          <main className="flex-1 p-1.5 bg-[#222]/10 flex flex-col gap-1.5 overflow-hidden relative min-h-0">
+          <main className="flex-1 p-0 lg:p-1.5 bg-[#222]/10 flex flex-col gap-1.5 overflow-hidden relative min-h-0 order-first lg:order-last">
             
             {/* Upload notifications banner */}
             {uploadProgress && (
@@ -2470,30 +2568,60 @@ export default function App() {
         </div>
       )}
 
-      {/* Global Capture FAB */}
-      {currentView === 'workspace' && workspaceView === 'report' && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
-          <button
-            onClick={() => setIsGlobalCaptureOpen(true)}
-            className="flex items-center gap-2 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-full shadow-[0_10px_30px_rgba(16,185,129,0.5)] transition-transform hover:scale-105 active:scale-95 border-2 border-emerald-400"
-          >
-            <Camera className="w-6 h-6" />
-            <span className="text-sm uppercase tracking-wide">📸 CHỤP LỖI NGAY</span>
-          </button>
-        </div>
-      )}
-
-
-
-      {/* Global Capture Modal */}
+      {/* Global Capture Modal — accessible từ mọi màn hình via BottomNavBar FAB */}
       {isGlobalCaptureOpen && (
         <GlobalCaptureModal
           onCaptureComplete={(draft) => {
             setGlobalDraftFault(draft);
             setIsGlobalCaptureOpen(false);
-            setIsDefectCategorySelectorOpen(true); // Step 2: Pick category
+            // Nếu draft đã có đầy đủ category → auto-route to pin
+            const draftTags = (draft as any).tags as string[] | undefined;
+            const draftCategory = draftTags?.find(t => 
+              ['Nội thất', 'Kết cấu', 'MEP', 'Ốp lát', 'Hoàn thiện', 'Trần & Đèn'].includes(t)
+            );
+            if (draftCategory) {
+              // Map category lỗi → planType bản vẽ (khớp với DOC_CATEGORIES)
+              const categoryPlanMap: Record<string, string> = {
+                'Nội thất': 'interior_detail',
+                'Kết cấu': 'structure',
+                'MEP': 'mep',
+                'Ốp lát': 'rough_construction',
+                'Hoàn thiện': 'rough_construction',
+                'Trần & Đèn': 'interior_detail'
+              };
+              const planType = categoryPlanMap[draftCategory] || 'interior_detail';
+              const categoryLabel: Record<string, string> = {
+                'interior_detail': 'Triển Khai Nội Thất',
+                'rough_construction': 'Triển Khai Hoàn Thiện',
+                'structure': 'Bản Vẽ Kết Cấu',
+                'mep': 'Bản Vẽ MEP',
+              };
+              setSelectedDefectCategory({ category: draftCategory, subcategory: '', planType });
+              
+              // Auto-find matching floor plan — chỉ lấy đúng loại
+              const projectPlans = floorPlans.filter(fp => fp.projectId === activeProjectId);
+              const matchingPlan = projectPlans.find(fp => fp.planType === planType && fp.isPinTarget)
+                || projectPlans.find(fp => fp.planType === planType);
+              
+              if (matchingPlan) {
+                setActiveFloorPlanId(matchingPlan.id);
+                setCurrentView('workspace');
+                setWorkspaceView('pinmap');
+              } else {
+                // Không tìm thấy bản vẽ phù hợp → thông báo rõ ràng
+                const planName = categoryLabel[planType] || planType;
+                setQuickSaveMsg(`⚠️ Chưa có bản vẽ "${planName}" để ghim lỗi ${draftCategory}. Hãy tải bản vẽ trước.`);
+                setTimeout(() => setQuickSaveMsg(''), 5000);
+                // Mở trang dự án để user upload bản vẽ
+                setCurrentView('workspace');
+                setWorkspaceView('report');
+              }
+            } else {
+              setIsDefectCategorySelectorOpen(true);
+            }
           }}
           onClose={() => setIsGlobalCaptureOpen(false)}
+          defaultProjectName={projects.find(p => p.id === activeProjectId)?.name}
         />
       )}
 
@@ -2522,8 +2650,18 @@ export default function App() {
               setCurrentView('workspace');
               setWorkspaceView('pinmap');
             } else {
-              // No matching plan → fallback to manual selection
-              setIsGlobalPinSelectorOpen(true);
+              // Không có bản vẽ phù hợp → thông báo rõ ràng
+              const labelMap: Record<string, string> = {
+                'interior_detail': 'Triển Khai Nội Thất',
+                'rough_construction': 'Triển Khai Hoàn Thiện',
+                'structure': 'Bản Vẽ Kết Cấu',
+                'mep': 'Bản Vẽ MEP',
+              };
+              const planName = labelMap[category.planType] || category.label;
+              setQuickSaveMsg(`⚠️ Chưa có bản vẽ "${planName}" để ghim. Hãy tải bản vẽ mặt bằng trước!`);
+              setTimeout(() => setQuickSaveMsg(''), 5000);
+              setCurrentView('workspace');
+              setWorkspaceView('report');
             }
           }}
         />
@@ -2550,6 +2688,19 @@ export default function App() {
             setIsGlobalPinSelectorOpen(false);
           }}
         />
+      )}
+
+      {/* Quick toast — success (✅) hoặc warning (⚠️) */}
+      {quickSaveMsg && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] animate-bounce-in px-4 max-w-md w-full">
+          <div className={`px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 border shadow-2xl ${
+            quickSaveMsg.includes('⚠️')
+              ? 'bg-amber-600 text-white border-amber-400/50 shadow-amber-500/40'
+              : 'bg-emerald-600 text-white border-emerald-400/50 shadow-emerald-500/40'
+          }`}>
+            <span>{quickSaveMsg}</span>
+          </div>
+        </div>
       )}
 
     </div>

@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Project, FloorPlan, MarkerNote } from '../types';
-import { Grid, Image as ImageIcon, Box, CheckCircle2, ChevronRight, Upload, Bell, FileText, ClipboardList, Circle, Camera, Target, Trash2 } from 'lucide-react';
+import { Grid, Image as ImageIcon, Box, CheckCircle2, ChevronRight, Upload, FileText, ClipboardList, Circle, Camera, Target, Trash2 } from 'lucide-react';
 import PinMapPreview from './PinMapPreview';
 import VoiceNoteRecorder from './VoiceNoteRecorder';
 import FileUploader from './FileUploader';
 import ReportLayout from './ReportLayout';
+import NotificationPanel from './NotificationPanel';
 
 let savedProjectScrollTop = 0;
 let savedActiveTab: 'design' | 'construction' = 'design';
@@ -23,12 +24,12 @@ interface ProjectProfileProps {
 }
 
 const DOC_CATEGORIES = [
-  { type: 'perspective',        label: 'File Phối Cảnh',            shortLabel: 'Phối cảnh',   icon: CheckCircle2, color: 'text-indigo-500 border-indigo-200' },
-  { type: 'material_spec',      label: 'File Spec Vật Liệu',        shortLabel: 'Vật liệu',    icon: CheckCircle2, color: 'text-amber-500 border-amber-200'  },
-  { type: 'equipment',          label: 'File Thiết Bị',             shortLabel: 'Thiết bị',    icon: CheckCircle2, color: 'text-rose-500 border-rose-200'   },
-  { type: 'rough_construction', label: 'Triển Khai Hoàn Thiện',     shortLabel: 'Hoàn thiện',  icon: CheckCircle2, color: 'text-slate-500 border-slate-200'  },
-  { type: 'interior_detail',    label: 'Triển Khai Nội Thất',       shortLabel: 'Nội thất',    icon: CheckCircle2, color: 'text-emerald-500 border-emerald-200'    },
-  { type: 'kc_me',              label: 'Bản vẽ KC-MEP',             shortLabel: 'KC-MEP',      icon: CheckCircle2, color: 'text-slate-300 border-slate-100' },
+  { type: 'perspective',        label: 'File Phối Cảnh',            shortLabel: 'Phối cảnh',       icon: CheckCircle2, color: 'text-indigo-500 border-indigo-200' },
+  { type: 'material_equipment', label: 'Vật Liệu & Thiết Bị',      shortLabel: 'VL & TB',         icon: CheckCircle2, color: 'text-amber-500 border-amber-200'  },
+  { type: 'rough_construction', label: 'Triển Khai Hoàn Thiện',     shortLabel: 'Hoàn thiện',      icon: CheckCircle2, color: 'text-slate-500 border-slate-200'  },
+  { type: 'interior_detail',    label: 'Triển Khai Nội Thất',       shortLabel: 'Nội thất',        icon: CheckCircle2, color: 'text-emerald-500 border-emerald-200' },
+  { type: 'structure',          label: 'Bản Vẽ Kết Cấu',           shortLabel: 'Kết cấu',         icon: CheckCircle2, color: 'text-rose-500 border-rose-200'   },
+  { type: 'mep',                label: 'Bản Vẽ MEP',               shortLabel: 'MEP',             icon: CheckCircle2, color: 'text-cyan-500 border-cyan-200'   },
 ] as const;
 
 export default function ProjectProfile({ project, floorPlans, markers, onUploadFile, onOpenPinMap, onQuickCapture, onTogglePinTarget, onDeleteFloorPlan }: ProjectProfileProps) {
@@ -112,9 +113,7 @@ export default function ProjectProfile({ project, floorPlans, markers, onUploadF
             <p className="text-[12px] text-slate-500 font-medium tracking-wide">Cải tạo · Giai đoạn Hoàn thiện</p>
           </div>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center bg-white rounded-full border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
-          <Bell size={18} className="text-slate-600" />
-        </button>
+        <NotificationPanel currentProjectName={project?.name} />
       </div>
 
       {/* Segmented Control */}
@@ -380,16 +379,8 @@ export default function ProjectProfile({ project, floorPlans, markers, onUploadF
         </div>
       )}
 
-      {/* Floating Action Button */}
-      {activeTab === 'construction' ? (
-        <button 
-          onClick={() => onQuickCapture && onQuickCapture()}
-          className="fixed bottom-20 right-4 flex items-center gap-2 px-5 py-3.5 bg-rose-500 hover:bg-rose-400 text-white rounded-full font-black shadow-[0_8px_20px_rgba(244,63,94,0.4)] active:scale-95 transition-all z-40 border-2 border-rose-400"
-        >
-          <Camera size={18} strokeWidth={2.5} />
-          <span className="text-[13px] tracking-wide uppercase">Chụp lỗi</span>
-        </button>
-      ) : (
+      {/* Floating Action Button — chỉ hiện "Tải bản vẽ" ở tab Hồ sơ thiết kế */}
+      {activeTab === 'design' && (
         <div className="fixed bottom-20 right-4 z-40 flex flex-col items-end gap-2">
           {showUploadMenu && (
             <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 mb-2 w-56 flex flex-col gap-1 origin-bottom-right animate-in fade-in zoom-in duration-150">

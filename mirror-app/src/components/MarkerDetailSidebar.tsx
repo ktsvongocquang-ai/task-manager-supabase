@@ -70,6 +70,10 @@ export default function MarkerDetailSidebar({
   const [showVoiceRecorder, setShowVoiceRecorder] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [playbackAudioUrl, setPlaybackAudioUrl] = useState<string | null>(null);
+  
+  // Inline Speech-to-Text for quick dictation into notes
+  const [isInlineSpeech, setIsInlineSpeech] = useState(false);
+  const inlineRecognitionRef = useRef<any>(null);
 
   // Concept & Analysis States
   const [activeTab, setActiveTab] = useState<'survey' | 'concept'>('survey');
@@ -93,6 +97,11 @@ export default function MarkerDetailSidebar({
       setIsEditingTitle(false);
       setShowVoiceRecorder(false);
       setIsPlayingAudio(false);
+      setIsInlineSpeech(false);
+      if (inlineRecognitionRef.current) {
+        try { inlineRecognitionRef.current.stop(); } catch(_) {}
+        inlineRecognitionRef.current = null;
+      }
 
       if (marker.audioData) {
         try {
@@ -161,6 +170,88 @@ export default function MarkerDetailSidebar({
       });
     }
   }
+
+  // Inline Speech-to-Text: bấm mic → đọc → tự gõ vào ô ghi chú
+  function toggleInlineSpeech() {
+    if (isInlineSpeech) {
+      // Dừng
+      if (inlineRecognitionRef.current) {
+        try { inlineRecognitionRef.current.stop(); } catch(_) {}
+        inlineRecognitionRef.current = null;
+      }
+      stopInlineSpeech();
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Trình duyệt không hỗ trợ nhận diện giọng nói. Hãy dùng Chrome hoặc Safari mới nhất.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false; // continuous=true lỗi trên iOS.
+    recognition.interimResults = true;
+    recognition.lang = 'vi-VN';
+    
+    recognition.onresult = (event: any) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setManualText(prev => {
+          const sep = prev.trim() ? '. ' : '';
+          let text = prev + sep + finalTranscript.trim();
+          text = text.charAt(0).toUpperCase() + text.slice(1);
+          return text;
+        });
+      }
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.warn('Speech error:', event.error);
+      if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+        setIsInlineSpeech(false);
+        alert('Vui lòng cấp quyền Microphone cho trình duyệt!');
+      }
+    };
+    
+    recognition.onend = () => {
+      if (inlineRecognitionRef.current) {
+        setTimeout(() => {
+          if (inlineRecognitionRef.current) {
+            try { recognition.start(); } catch(e) { console.log('restart failed', e) }
+          }
+        }, 300);
+      } else {
+        setIsInlineSpeech(false);
+      }
+    };
+    
+    inlineRecognitionRef.current = recognition;
+    try {
+      recognition.start();
+      setIsInlineSpeech(true);
+    } catch(e) { 
+      console.error(e); 
+      setIsInlineSpeech(false);
+    }
+  }
+
+  const stopInlineSpeech = () => {
+    if (inlineRecognitionRef.current) {
+      const rec = inlineRecognitionRef.current;
+      inlineRecognitionRef.current = null;
+      try { rec.stop(); } catch(_) {}
+    }
+    setIsInlineSpeech(false);
+    // Auto-save khi dừng
+    if (marker) {
+      onUpdateMarker({ ...marker, textNotes: manualText });
+    }
+  };
 
   function handleSaveConceptNotes() {
     if (marker) {
@@ -756,16 +847,39 @@ export default function MarkerDetailSidebar({
                   )}
                 </div>
 
-                {/* Manual text notes typed */}
+                {/* Manual text notes + inline Speech-to-Text */}
                 <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-3">
-                  <label className="text-xs font-bold text-slate-700">Ghi chú kỹ thuật:</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-700">Ghi chú kỹ thuật:</label>
+                    <button
+                      onClick={toggleInlineSpeech}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                        isInlineSpeech
+                          ? 'bg-rose-500 text-white animate-pulse shadow-md'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                      }`}
+                    >
+                      <Mic className="w-3 h-3" />
+                      {isInlineSpeech ? '⏹ Dừng đọc' : '🎙 Đọc lỗi'}
+                    </button>
+                  </div>
+                  {isInlineSpeech && (
+                    <div className="flex items-center gap-2 px-2 py-1.5 bg-rose-50 border border-rose-200 rounded-lg">
+                      <span className="w-2 h-2 bg-rose-500 rounded-full animate-ping"></span>
+                      <span className="text-[10px] text-rose-600 font-bold">Đang nghe... Hãy nói mô tả lỗi</span>
+                    </div>
+                  )}
                   <textarea
                     value={manualText}
                     onChange={(e) => setManualText(e.target.value)}
                     onBlur={handleSaveTextNote}
-                    placeholder="Ví dụ: Trần bê tông có vết ố ẩm mốc góc tường do thấm nước từ nhà vệ sinh tầng trên. Hệ MEP thô rỉ sét nhẹ..."
+                    placeholder={isInlineSpeech ? 'Đang chờ giọng nói...' : 'Ví dụ: Trần bê tông có vết ố ẩm mốc do thấm nước...'}
                     rows={3}
-                    className="w-full text-xs p-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-555/20 text-slate-800 shadow-inner resize-none font-sans"
+                    className={`w-full text-xs p-2.5 bg-white border rounded-xl focus:outline-none focus:ring-2 text-slate-800 shadow-inner resize-none font-sans transition-all ${
+                      isInlineSpeech
+                        ? 'border-emerald-400 ring-2 ring-emerald-400/30 bg-emerald-50/30'
+                        : 'border-slate-200 focus:ring-emerald-500/20'
+                    }`}
                   />
                   {manualText !== (marker.textNotes || '') && (
                     <div className="flex justify-end">

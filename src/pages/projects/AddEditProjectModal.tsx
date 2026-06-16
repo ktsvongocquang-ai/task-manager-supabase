@@ -91,7 +91,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     </button>
                 </div>
                 <div className="p-4 sm:p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mã dự án</label>
                             <input
@@ -127,7 +127,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                             required
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
                             <input
@@ -182,7 +182,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                             📐 Thông tin dự án
                         </p>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
                                 <input

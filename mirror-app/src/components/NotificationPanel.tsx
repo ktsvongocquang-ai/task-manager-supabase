@@ -49,19 +49,23 @@ function timeAgo(ts: number): string {
 
 export default function NotificationPanel({ currentProjectName }: NotificationPanelProps) {
   const [open, setOpen] = useState(false);
-  const [notifs, setNotifs] = useState<DQHNotification[]>([]);
-  const [unread, setUnread] = useState(0);
+  const [allNotifs, setAllNotifs] = useState<DQHNotification[]>([]);
   const [permStatus, setPermStatus] = useState(getPermissionStatus());
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Subscribe to notification store
   useEffect(() => {
     const unsub = subscribeToNotifications(ns => {
-      setNotifs(ns);
-      setUnread(ns.filter(n => !n.read).length);
+      setAllNotifs(ns);
     });
     return unsub;
   }, []);
+
+  // Lọc theo dự án hiện tại (nếu đang ở trong trang dự án)
+  const notifs = currentProjectName
+    ? allNotifs.filter(n => n.projectName === currentProjectName)
+    : allNotifs;
+  const unread = notifs.filter(n => !n.read).length;
 
   // Close on outside click
   useEffect(() => {
@@ -114,11 +118,16 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-slate-700/50">
-            <div className="flex items-center gap-2">
-              <BellRing className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-black text-white">Thông báo</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <BellRing className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span className="text-xs font-black text-white shrink-0">Thông báo</span>
+              {currentProjectName && (
+                <span className="text-[9px] font-bold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full truncate max-w-[120px]" title={currentProjectName}>
+                  {currentProjectName}
+                </span>
+              )}
               {unread > 0 && (
-                <span className="text-[9px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full">
+                <span className="text-[9px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full shrink-0">
                   {unread} mới
                 </span>
               )}

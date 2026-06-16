@@ -1,14 +1,15 @@
 import React from 'react';
-import { Layers, Clock, List, BookOpen, User } from 'lucide-react';
+import { Layers, Clock, BookOpen, User, Camera } from 'lucide-react';
 
 interface BottomNavBarProps {
   currentTab: 'projects' | 'progress' | 'notifications' | 'profile';
   onTabChange: (tab: 'projects' | 'progress' | 'notifications' | 'profile') => void;
   onActionClick: () => void;
+  onCaptureClick: () => void;
   activeRole?: string;
 }
 
-export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onTabChange, onActionClick, activeRole }) => {
+export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onTabChange, onActionClick, onCaptureClick, activeRole }) => {
   const tabs = [
     { id: 'projects' as const, label: 'Dự án', icon: Layers },
     { id: 'progress' as const, label: 'Tiến độ', icon: Clock },
@@ -23,10 +24,11 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentTab, onTabCha
           {idx === 2 && (
             <div className="relative -top-4 flex justify-center w-14">
               <button 
-                onClick={onActionClick}
-                className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-rose-600 to-orange-600 rounded-full border-2 border-rose-400/30 shadow-lg shadow-rose-500/20 text-white hover:from-rose-500 hover:to-orange-500 transition-all active:scale-95 cursor-pointer"
+                onClick={onCaptureClick}
+                className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-emerald-600 to-teal-500 rounded-full border-2 border-emerald-400/40 shadow-lg shadow-emerald-500/30 text-white hover:from-emerald-500 hover:to-teal-400 transition-all active:scale-95 cursor-pointer"
+                aria-label="Chụp lỗi nhanh"
               >
-                <List size={20} />
+                <Camera size={22} strokeWidth={2.5} />
               </button>
             </div>
           )}

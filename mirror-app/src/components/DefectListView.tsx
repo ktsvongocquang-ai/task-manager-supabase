@@ -9,12 +9,25 @@ import {
   Wrench,
   ChevronRight,
   Camera,
+  ImageOff,
   MapPin,
   CalendarDays,
   FolderOpen,
   ChevronDown,
 } from 'lucide-react';
 import type { Project, FloorPlan, MarkerNote } from '../types';
+
+// Lấy URL ảnh đầu tiên từ photoData (có thể là URL đơn hoặc JSON array)
+function getFirstPhoto(photoData: string | null): string | null {
+  if (!photoData) return null;
+  try {
+    const parsed = JSON.parse(photoData);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+  } catch {
+    // Không phải JSON — trả về URL gốc
+  }
+  return photoData;
+}
 
 interface DefectListViewProps {
   projects: Project[];
@@ -379,17 +392,23 @@ const DefectListView: React.FC<DefectListViewProps> = ({
                 >
                   <div className="flex items-start gap-3">
                     {/* Photo thumbnail */}
-                    {marker.photoData ? (
-                      <img
-                        src={marker.photoData}
-                        alt={marker.title}
-                        className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-                        <Camera size={16} className="text-[#555]" />
-                      </div>
-                    )}
+                    {(() => {
+                      const thumb = getFirstPhoto(marker.photoData);
+                      if (thumb) return (
+                        <img
+                          src={thumb}
+                          alt={marker.title}
+                          loading="lazy"
+                          className="w-[54px] h-[54px] rounded-xl object-cover flex-shrink-0 border border-[#333]"
+                        />
+                      );
+                      return (
+                        <div className="w-[54px] h-[54px] rounded-xl bg-[#2a2a2a] border border-dashed border-[#444] flex flex-col items-center justify-center flex-shrink-0 gap-0.5">
+                          <ImageOff size={14} className="text-[#555]" />
+                          <span className="text-[7px] text-[#555] leading-tight">Chưa có ảnh</span>
+                        </div>
+                      );
+                    })()}
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
