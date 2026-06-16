@@ -340,16 +340,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Stats ── */}
-            <div className="flex sm:grid sm:grid-cols-4 overflow-x-auto sm:divide-x divide-slate-100 border-b border-slate-100 p-3 sm:p-0 gap-2 sm:gap-0 custom-scrollbar-hide">
+            <div className="grid grid-cols-4 sm:divide-x divide-slate-100 border-b border-slate-100 p-2 sm:p-0 gap-1.5 sm:gap-0">
                 {[
                     { label: 'Tổng task',     value: stats.total,   color: 'text-slate-800', bg: 'bg-slate-100' },
                     { label: 'Hoàn thành',    value: stats.done,    color: 'text-emerald-700', bg: 'bg-emerald-50' },
                     { label: 'Cần làm',       value: stats.pending, color: 'text-blue-700', bg: 'bg-blue-50' },
                     { label: 'Trễ hạn',       value: stats.overdue, color: 'text-red-700', bg: 'bg-red-50' },
                 ].map(s => (
-                    <div key={s.label} className={`flex-none sm:flex-1 flex sm:flex-col items-center justify-center gap-1.5 sm:gap-0 px-3 py-1.5 sm:px-4 sm:py-3 text-center rounded-lg sm:rounded-none ${s.bg} sm:bg-transparent`}>
-                        <div className="text-[10px] text-slate-500 uppercase tracking-wide sm:mb-0.5 whitespace-nowrap">{s.label}</div>
-                        <div className={`text-[13px] sm:text-xl font-bold ${s.color}`}>{s.value}</div>
+                    <div key={s.label} className={`flex flex-col items-center justify-center py-1.5 sm:px-4 sm:py-3 text-center rounded-lg sm:rounded-none ${s.bg} sm:bg-transparent`}>
+                        <div className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wide mb-0.5 whitespace-nowrap">{s.label}</div>
+                        <div className={`text-sm sm:text-xl font-bold ${s.color}`}>{s.value}</div>
                     </div>
                 ))}
             </div>
