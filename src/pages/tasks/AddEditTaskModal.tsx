@@ -697,7 +697,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
         <>
         <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
                     <div className="relative transform bg-white sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-3xl">
 
@@ -715,7 +715,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-[300px] transition-colors"
+                                            className="text-xl sm:text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-0 w-full transition-colors"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
                                         <div className="flex gap-1 ml-2">
