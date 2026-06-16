@@ -99,7 +99,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     return (
         <div className="fixed inset-0 z-[9998]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
                     <div className="relative transform bg-[#EAEAEA] sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-4xl">
 

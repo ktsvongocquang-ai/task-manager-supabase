@@ -62,7 +62,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     return (
         <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
                     <div className="relative transform bg-white sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-lg">
                 <div className="sticky top-0 z-20 px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.03)]">

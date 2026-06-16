@@ -526,7 +526,7 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"></div>
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto custom-scrollbar">
+            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
                     <div className="relative transform bg-[#0f172a] sm:border border-slate-700/50 sm:rounded-2xl sm:shadow-2xl sm:shadow-slate-900/50 transition-all w-full sm:max-w-5xl">
 
