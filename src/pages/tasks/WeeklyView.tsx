@@ -182,8 +182,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const stats = {
         total:   weekTasks.length,
         done:    weekTasks.filter(t => t.status === 'Hoàn thành').length,
-        inprog:  weekTasks.filter(t => t.status === 'Đang thực hiện').length,
-        pending: weekTasks.filter(t => t.status === 'Chưa bắt đầu' || t.status === 'Cần làm').length,
+        pending: weekTasks.filter(t => t.status === 'Đang thực hiện' || t.status === 'Chưa bắt đầu' || t.status === 'Cần làm').length,
         overdue: weekTasks.filter(t => t.due_date && new Date(t.due_date) < TODAY && t.status !== 'Hoàn thành').length,
     }
 
@@ -341,12 +340,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Stats ── */}
-            <div className="flex sm:grid sm:grid-cols-5 overflow-x-auto sm:divide-x divide-slate-100 border-b border-slate-100 p-3 sm:p-0 gap-2 sm:gap-0 custom-scrollbar-hide">
+            <div className="flex sm:grid sm:grid-cols-4 overflow-x-auto sm:divide-x divide-slate-100 border-b border-slate-100 p-3 sm:p-0 gap-2 sm:gap-0 custom-scrollbar-hide">
                 {[
                     { label: 'Tổng task',     value: stats.total,   color: 'text-slate-800', bg: 'bg-slate-100' },
                     { label: 'Hoàn thành',    value: stats.done,    color: 'text-emerald-700', bg: 'bg-emerald-50' },
-                    { label: 'Đang làm',      value: stats.inprog,  color: 'text-blue-700', bg: 'bg-blue-50' },
-                    { label: 'Chưa bắt đầu',  value: stats.pending, color: 'text-slate-700', bg: 'bg-slate-50' },
+                    { label: 'Cần làm',       value: stats.pending, color: 'text-blue-700', bg: 'bg-blue-50' },
                     { label: 'Trễ hạn',       value: stats.overdue, color: 'text-red-700', bg: 'bg-red-50' },
                 ].map(s => (
                     <div key={s.label} className={`flex-none sm:flex-1 flex sm:flex-col items-center justify-center gap-1.5 sm:gap-0 px-3 py-1.5 sm:px-4 sm:py-3 text-center rounded-lg sm:rounded-none ${s.bg} sm:bg-transparent`}>
