@@ -1,8 +1,9 @@
 import { useState, useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2, CheckCircle2 } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
+import { triggerSuccessConfetti, triggerFireworks } from '../../utils/confetti'
 
 interface Props {
     tasks: Task[]
@@ -274,6 +275,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         if (!task) return
         const newPct = Math.min(100, Math.max(0, (task.completion_pct || 0) + delta))
         const newStatus = newPct === 100 ? 'Hoàn thành' : newPct === 0 ? 'Chưa bắt đầu' : 'Đang thực hiện'
+        if (newPct === 100 && task.completion_pct !== 100) {
+            triggerSuccessConfetti();
+        }
         setSaving(s => ({ ...s, [taskId]: true }))
         await supabase.from('tasks').update({ completion_pct: newPct, status: newStatus }).eq('id', taskId)
         setSaving(s => ({ ...s, [taskId]: false }))
@@ -281,7 +285,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     }
 
     const updateStatus = async (taskId: string, newStatus: string) => {
+        const task = tasks.find(t => t.id === taskId)
         const newPct = newStatus === 'Hoàn thành' ? 100 : undefined
+        if (newStatus === 'Hoàn thành' && task?.status !== 'Hoàn thành') {
+            triggerSuccessConfetti();
+        }
         const updates: any = { status: newStatus }
         if (newPct !== undefined) updates.completion_pct = newPct
         setSaving(s => ({ ...s, [taskId]: true }))
@@ -469,12 +477,17 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1.5 shrink-0">
+                                                                {!isDone && (
+                                                                    <button onClick={(e) => { e.stopPropagation(); updateStatus(t.id, 'Hoàn thành') }} className="w-6 h-6 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition-colors border border-emerald-100" title="Đánh dấu hoàn thành ngay">
+                                                                        <CheckCircle2 size={12} />
+                                                                    </button>
+                                                                )}
                                                                 <div className="w-8 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                                 <span className={`text-[10px] font-bold w-7 text-right ${pct === 100 ? 'text-emerald-600' : 'text-slate-500'}`}>{pct}%</span>
                                                             </div>
                                                         </div>
                                                         {/* Desktop */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 items-center">
+                                                        <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 items-center group relative">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
@@ -501,6 +514,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                     <Trash2 size={14} />
                                                                 </button>
                                                             ) : <div />}
+                                                            {!isDone && (
+                                                                <button onClick={(e) => { e.stopPropagation(); updateStatus(t.id, 'Hoàn thành') }} className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition-colors border border-emerald-100 opacity-0 group-hover:opacity-100 shadow-sm" title="Hoàn thành ngay">
+                                                                    <CheckCircle2 size={14} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )
