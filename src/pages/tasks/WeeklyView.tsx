@@ -227,7 +227,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 groups.push({ key, label: key, tasks: dayTasks, defaultValues: { start_date: dStr, due_date: dStr } });
             }
 
-            if (lateTasks.length > 0) {
+            if (lateTasks.length > 0 && sortMode === 'alert') {
                 groups.unshift({ key: 'Trễ hạn', label: 'Trễ hạn', tasks: lateTasks.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||'')), isLateGroup: true });
             }
         } else if (sortMode === 'project') {
