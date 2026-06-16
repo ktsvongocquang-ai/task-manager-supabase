@@ -37,7 +37,7 @@ import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
 import { AdminChatBot } from '../chat/AdminChatBot'
-import { HRAssistantChat } from '../chat/HRAssistantChat'
+// import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
@@ -768,14 +768,7 @@ export const Layout = () => {
                 />
             )}
 
-            {/* HR AI Chatbot - Floating for Employees */}
-            {profile?.role?.trim() !== 'Admin' && (
-                <HRAssistantChat
-                    userId={profile?.id}
-                    userRole={profile?.role}
-                    userName={profile?.full_name}
-                />
-            )}
+            {/* HR AI Chatbot removed per request */}
 
             <GlobalModals
                 isProjectModalOpen={isGlobalAddProjectOpen}
