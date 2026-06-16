@@ -39,6 +39,7 @@ import { GlobalChat } from '../chat/GlobalChat'
 import { AdminChatBot } from '../chat/AdminChatBot'
 import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
+import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
 import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
 
@@ -784,6 +785,7 @@ export const Layout = () => {
             />
 
             <BottomTabBar />
+            <PWAInstallPrompt />
         </div>
     )
 }
