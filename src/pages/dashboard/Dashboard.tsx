@@ -508,7 +508,7 @@ export const Dashboard = () => {
 
             {/* Activities & Urgent Tasks Row */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div className="lg:col-span-2 glass-card">
+                <div className="hidden md:block lg:col-span-2 glass-card">
                     <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Hoạt động gần đây</h3>
                         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
@@ -603,7 +603,7 @@ export const Dashboard = () => {
 
             {/* Charts Section - 6 Premium Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="glass-card p-6">
+                <div className="hidden md:block glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-emerald-500 rounded-full"></div> Trạng thái nhiệm vụ
                     </h3>
@@ -646,7 +646,7 @@ export const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="hidden md:block glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-amber-500 rounded-full"></div> Mức độ ưu tiên
                     </h3>
@@ -667,7 +667,7 @@ export const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="hidden md:block glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-blue-500 rounded-full"></div> Hiệu suất nhân viên
                     </h3>
@@ -684,7 +684,7 @@ export const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="hidden md:block glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-purple-500 rounded-full"></div> Xu hướng hoàn thành
                     </h3>
@@ -699,7 +699,7 @@ export const Dashboard = () => {
                     </ResponsiveContainer>
                 </div>
 
-                <div className="glass-card p-6">
+                <div className="hidden md:block glass-card p-6">
                     <h3 className="text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest flex items-center gap-2">
                         <div className="w-1 h-3 bg-sky-500 rounded-full"></div> So sánh trạng thái dự án
                     </h3>
