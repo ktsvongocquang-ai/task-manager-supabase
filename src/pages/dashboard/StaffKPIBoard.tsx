@@ -38,10 +38,8 @@ interface StaffRow {
     completed: number;
     onTime: number;
     late: number;
-    // Tasks grouped by phase
+    // Per-phase task counts
     tasksByPhase: Record<string, Task[]>;
-    // Per-project KPI summaries
-    projectSummaries: { name: string; code: string; kpiDays: number; daysUsed: number; remaining: number; status: string }[];
 }
 
 export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
@@ -92,41 +90,6 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                 else tasksByPhase[''].push(t);
             });
 
-            // Per-project KPI
-            const projectSummaries: StaffRow['projectSummaries'] = [];
-            leadProjectIds.forEach(projId => {
-                const proj = projectMap[projId];
-                if (!proj) return;
-                const revenue = proj.budget || 0;
-                if (revenue <= 0) return;
-
-                let otherInfo: any = {};
-                try { if (proj.other_info) otherInfo = JSON.parse(proj.other_info); } catch(e) {}
-                const kpiData = otherInfo.kpiData || {};
-                const projectType = otherInfo.project_type || '';
-                const pName = proj.name.toLowerCase();
-
-                let coeff = 1.0;
-                if (projectType.includes('Dịch vụ') || pName.includes('dịch vụ') || pName.includes('nhà hàng') || pName.includes('cafe')) coeff = 0.8;
-                else if (projectType.includes('Nhà ở') || pName.includes('nhà ở') || pName.includes('biệt thự')) coeff = 1.3;
-
-                const kpiDays = Math.round((revenue / 30000000) * 26 * coeff);
-                const phases = kpiData.phases || {};
-                const totalPhaseDays = Object.values(phases).reduce((a: number, p: any) => a + ((p as any).days_used || 0), 0);
-                const pausedDays = kpiData.paused_days || 0;
-                const daysUsed = totalPhaseDays + pausedDays;
-                const remaining = kpiDays - daysUsed;
-
-                projectSummaries.push({
-                    name: proj.name,
-                    code: proj.project_code,
-                    kpiDays,
-                    daysUsed,
-                    remaining,
-                    status: daysUsed > kpiDays ? 'over' : remaining <= 3 ? 'warn' : 'ok',
-                });
-            });
-
             rows.push({
                 id: profile.id,
                 name: profile.full_name || profile.email || 'N/A',
@@ -136,7 +99,6 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                 onTime,
                 late,
                 tasksByPhase,
-                projectSummaries,
             });
         });
 
@@ -229,33 +191,6 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                     {isExpanded && (
                                         <tr>
                                             <td colSpan={9} className="bg-slate-50/80 px-4 py-4 border-b border-slate-100">
-                                                {/* Per-project KPI */}
-                                                {row.projectSummaries.length > 0 && (
-                                                    <div className="mb-4">
-                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">📊 KPI Dự án</div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                            {row.projectSummaries.map((ps, i) => {
-                                                                const pct = ps.kpiDays > 0 ? Math.min(100, Math.round((ps.daysUsed / ps.kpiDays) * 100)) : 0;
-                                                                return (
-                                                                    <div key={i} className="bg-white rounded-xl p-3 border border-slate-100 shadow-sm">
-                                                                        <div className="flex items-center justify-between mb-1.5">
-                                                                            <span className="text-xs font-black text-slate-800">{ps.name} <span className="text-slate-400 font-normal">({ps.code})</span></span>
-                                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${ps.status === 'over' ? 'bg-rose-50 text-rose-600 border border-rose-200' : ps.status === 'warn' ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
-                                                                                {ps.status === 'over' ? `Vượt ${Math.abs(ps.remaining)} ng` : `Còn ${ps.remaining} ng`}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                                                                <div className={`h-full rounded-full ${ps.status === 'over' ? 'bg-rose-500' : ps.status === 'warn' ? 'bg-amber-400' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }}></div>
-                                                                            </div>
-                                                                            <span className="text-[10px] font-bold text-slate-500">{ps.daysUsed}/{ps.kpiDays}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                )}
 
                                                 {/* Tasks by Phase */}
                                                 <div className="space-y-3">

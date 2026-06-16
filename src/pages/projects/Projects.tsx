@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { ProjectDetailsModal } from './ProjectDetailsModal'
@@ -491,7 +491,7 @@ export const Projects = () => {
                             </div>
                             <div className="flex gap-1.5 translate-x-1 -translate-y-1">
                                 <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100" title="KPI"><Eye size={14} /></button>
+                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100" title="Thời gian"><Clock size={14} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
                                 <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>

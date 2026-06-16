@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { type Project, type Task } from '../../types';
 import { supabase } from '../../services/supabase';
 import { format, parseISO } from 'date-fns';
-import { X, Plus, Minus, ChevronDown, Play, PauseCircle } from 'lucide-react';
+import { X, Plus, Minus, ChevronDown, Play, PauseCircle, Clock } from 'lucide-react';
 
 // ── Phase definition ───────────────────────────────────────────────────────────
 const DEFAULT_PHASES = [
@@ -142,31 +142,9 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
         }));
     };
 
-    // ── Metrics from other_info ────────────────────────────────────────────────
-    let parsedInfo: any = {};
-    try { if (project.other_info) parsedInfo = JSON.parse(project.other_info); } catch(e) {}
-    
-    const revenue = parsedInfo.budget || 0;
-    const scaleStr = parsedInfo.scale || '';
-    const typeLabel = parsedInfo.project_type || '';
-    const projectNameStr = project.name.toLowerCase();
-
-    let coefficient = 1.0;
-    if (typeLabel.includes('Chung cư') || (!typeLabel && projectNameStr.includes('chung cư'))) coefficient = 1.0;
-    else if (typeLabel.includes('Dịch vụ') || (!typeLabel && (projectNameStr.includes('dịch vụ') || projectNameStr.includes('nhà hàng') || projectNameStr.includes('cafe')))) coefficient = 0.8;
-    else if (typeLabel.includes('Nhà ở') || (!typeLabel && (projectNameStr.includes('nhà ở') || projectNameStr.includes('biệt thự')))) coefficient = 1.3;
-
-    let area = 0;
-    if (scaleStr) { const m = String(scaleStr).match(/[\d.]+/); if (m) area = parseFloat(m[0]); }
-    const pricePerM2 = area > 0 ? (revenue / area) : 0;
-    const kpiBreakEven = revenue > 0 ? Math.round((revenue / 30000000) * 26 * coefficient) : 0;
-
+    // ── Time metrics ────────────────────────────────────────────────────────────
     const totalPhaseDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_used || 0), 0);
     const totalDaysUsed = totalPhaseDays + (kpiState.paused_days || 0);
-    const remainingDays = kpiBreakEven - totalDaysUsed;
-
-    // Calculate KPI days allocated per phase
-    const getPhaseKpiDays = (pct: number) => kpiBreakEven > 0 ? Math.round(kpiBreakEven * pct / 100) : 0;
 
     return (
         <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -177,42 +155,38 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                 {/* Header */}
                 <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 pb-2 relative flex justify-between items-start gap-2 bg-slate-50/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Clock size={20} className="text-indigo-500" />
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
+                        </div>
                         <p className="text-sm text-slate-500 font-medium mt-1">
                             {project.project_code} • Quản lý: {managerName || 'Chưa gán'} • Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}
                         </p>
-                        <div className="flex items-center gap-2 sm:gap-4 mt-2 text-[11px] sm:text-[13px] font-bold text-slate-600 flex-wrap">
-                            <span>Diện tích: <strong className="text-slate-800">{area > 0 ? `${area} m²` : 'N/A'}</strong></span>
-                            <span>Đơn giá: <strong className="text-slate-800">{pricePerM2 > 0 ? `${(pricePerM2/1000).toLocaleString('vi-VN')}k/m²` : 'N/A'}</strong></span>
-                            <span>Doanh thu: <strong className="text-indigo-600">{revenue > 0 ? `${(revenue/1000000).toLocaleString('vi-VN')}tr` : 'N/A'}</strong></span>
-                            <span className="bg-slate-200 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] uppercase text-slate-500">HỆ SỐ {coefficient}</span>
-                        </div>
                     </div>
                     <div className="text-right pr-6 sm:pr-10 shrink-0">
-                        <div className={`text-3xl sm:text-5xl font-black leading-none ${remainingDays >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{kpiBreakEven > 0 ? Math.abs(remainingDays) : '—'}</div>
-                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">ngày KPI {remainingDays >= 0 ? 'còn lại' : 'vượt lố'}</div>
-                        <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">đến mốc cần hoàn thành tiêu chuẩn</div>
+                        <div className="text-3xl sm:text-5xl font-black leading-none text-indigo-500">{totalDaysUsed}</div>
+                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">tổng ngày đã dùng</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">{totalPhaseDays} ngày làm + {kpiState.paused_days} ngày dừng</div>
                     </div>
                     <button onClick={onClose} className="absolute top-4 sm:top-6 right-2 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-200 rounded-full"><X size={20} className="sm:w-6 sm:h-6" /></button>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="px-4 sm:px-8 pb-4">
-                    <div className={`${totalDaysUsed > kpiBreakEven && kpiBreakEven > 0 ? 'bg-rose-50 border-rose-100' : 'bg-emerald-50 border-emerald-100'} border rounded-2xl p-3 sm:p-4 mt-2 sm:mt-4 shadow-sm`}>
-                        <h3 className="text-sm font-bold text-emerald-800 mb-3 flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 animate-pulse bg-emerald-500 rounded-full inline-block"></span>
-                            {kpiBreakEven > 0 ? `${totalPhaseDays} ngày làm + ${kpiState.paused_days} ngày dừng = ${totalDaysUsed}/${kpiBreakEven} ngày KPI.` : 'Chưa nhập thông tin KPI (Doanh thu, Diện tích). Hãy sửa dự án để bắt đầu.'}
+                    <div className="bg-indigo-50 border-indigo-100 border rounded-2xl p-3 sm:p-4 mt-2 sm:mt-4 shadow-sm">
+                        <h3 className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 animate-pulse bg-indigo-500 rounded-full inline-block"></span>
+                            {totalDaysUsed > 0 ? `${totalPhaseDays} ngày làm + ${kpiState.paused_days} ngày dừng = ${totalDaysUsed} ngày tổng cộng.` : 'Chưa ghi nhận ngày làm việc nào. Nhấn +/- ở từng giai đoạn để bắt đầu.'}
                         </h3>
-                        {kpiBreakEven > 0 && (
+                        {totalDaysUsed > 0 && (
                             <>
-                                <div className="h-4 bg-emerald-200/50 rounded-full overflow-hidden flex shadow-inner">
-                                    <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${Math.min(100, (totalPhaseDays / kpiBreakEven) * 100)}%` }}></div>
-                                    <div className="h-full bg-amber-400 opacity-60 flex-none" style={{ width: `${Math.min(100, (kpiState.paused_days / kpiBreakEven) * 100)}%` }}></div>
+                                <div className="h-4 bg-indigo-200/50 rounded-full overflow-hidden flex shadow-inner">
+                                    <div className="h-full bg-indigo-500 transition-all duration-500" style={{ width: `${totalDaysUsed > 0 ? Math.round((totalPhaseDays / totalDaysUsed) * 100) : 0}%` }}></div>
+                                    <div className="h-full bg-amber-400 opacity-60 flex-none" style={{ width: `${totalDaysUsed > 0 ? Math.round((kpiState.paused_days / totalDaysUsed) * 100) : 0}%` }}></div>
                                 </div>
                                 <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">
-                                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-emerald-500"></div> Ngày làm: {totalPhaseDays}</span>
+                                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-indigo-500"></div> Ngày làm: {totalPhaseDays}</span>
                                     <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-amber-400"></div> Tạm dừng: {kpiState.paused_days}</span>
-                                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-slate-300"></div> Còn lại: {remainingDays}</span>
                                 </div>
                             </>
                         )}
@@ -221,18 +195,18 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
 
                 <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-4">
                     {/* Value Metrics Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm col-span-2 sm:col-span-1">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">KPI hòa vốn</div>
-                            <div className="text-3xl font-black text-indigo-600">{kpiBreakEven > 0 ? `${kpiBreakEven} ng` : '—'}</div>
+                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày làm</div>
+                            <div className="text-3xl font-black text-indigo-600">{totalPhaseDays} ng</div>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Đã dùng (làm+dừng)</div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày dừng</div>
+                            <div className="text-3xl font-black text-amber-500">{kpiState.paused_days} ng</div>
+                        </div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Tổng cộng</div>
                             <div className="text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
-                        </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm relative overflow-hidden">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1 relative z-10 line-clamp-1">Ngày làm thực tế</div>
-                            <div className={`text-3xl font-black relative z-10 ${totalPhaseDays > kpiBreakEven && kpiBreakEven > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{totalPhaseDays} ng</div>
                         </div>
                     </div>
 
@@ -264,8 +238,6 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                         {DEFAULT_PHASES.map((phase) => {
                             const pState = kpiState.phases[phase.key] || { days_used: 0 };
                             const phaseTasks = tasksByPhase[phase.key] || [];
-                            const phaseKpiDays = getPhaseKpiDays(phase.kpiPct);
-                            const isOver = pState.days_used > phaseKpiDays;
                             const isActive = pState.days_used > 0 || phaseTasks.length > 0;
                             const isExpanded = expandedPhases[phase.key];
 
@@ -277,19 +249,16 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-bold text-slate-800 text-sm sm:text-base truncate">{phase.name}</h4>
                                                 <div className="text-[9px] sm:text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">
-                                                    KPI: {phaseKpiDays} ngày • Task: {phaseTasks.length}
+                                                    {pState.days_used} ngày • {phaseTasks.length} task
                                                 </div>
                                             </div>
                                             {/* Expand arrow on mobile logic: show here if flex-col is active and taking space, but actually it's easier to put at the very end of the row */}
                                         </div>
                                         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pl-5 sm:pl-0">
-                                            <div className="w-16 sm:w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden shrink-0 hidden sm:block">
-                                                <div className={`h-full rounded-full transition-all duration-300 ${isOver ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${phaseKpiDays > 0 ? Math.min(100, (pState.days_used / phaseKpiDays) * 100) : 0}%` }}></div>
-                                            </div>
                                             <div className="flex items-center gap-2">
-                                                <span className={`text-sm font-black w-10 text-right ${isOver ? 'text-rose-500' : 'text-indigo-600'}`}>{pState.days_used} ng</span>
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-12 text-center border ${pState.days_used === 0 ? 'bg-slate-50 text-slate-400 border-slate-200' : isOver ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}>
-                                                    {pState.days_used === 0 ? 'Chờ' : isOver ? 'Vượt' : 'Đang'}
+                                                <span className="text-sm font-black w-10 text-right text-indigo-600">{pState.days_used} ng</span>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-12 text-center border ${pState.days_used === 0 ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}>
+                                                    {pState.days_used === 0 ? 'Chờ' : 'Đang'}
                                                 </span>
                                             </div>
                                             <div className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}><ChevronDown size={18} /></div>
@@ -333,8 +302,8 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                             {/* Footer */}
                                             <div className="flex justify-between items-center text-xs text-slate-400 border-t border-slate-200/60 pt-3 font-bold">
                                                 <span>Tổng: {phaseTasks.length} task</span>
-                                                <span className={isOver ? 'text-rose-500' : 'text-indigo-400'}>
-                                                    KPI giai đoạn: {phaseKpiDays} ng (còn {Math.max(0, phaseKpiDays - pState.days_used)} ng)
+                                                <span className="text-indigo-400">
+                                                    Đã dùng: {pState.days_used} ngày
                                                 </span>
                                             </div>
                                         </div>

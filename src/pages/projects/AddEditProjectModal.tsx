@@ -177,22 +177,12 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                         />
                     </div>
 
-                    {/* KPI Fields */}
+                    {/* Project Info Fields */}
                     <div className="pt-1 border-t border-slate-100">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            📊 Thông tin KPI dự án
+                            📐 Thông tin dự án
                         </p>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Doanh thu (VNĐ)</label>
-                                <input
-                                    type="number"
-                                    value={form.budget || ''}
-                                    onChange={(e) => setForm({ ...form, budget: Number(e.target.value) || 0 })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
-                                    placeholder="30000000"
-                                />
-                            </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
                                 <input
@@ -211,9 +201,9 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                                     className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                                 >
                                     <option value="">Chọn loại hình</option>
-                                    <option value="Chung cư">Chung cư (Hệ số 1.0)</option>
-                                    <option value="Nhà ở">Nhà ở (Hệ số 1.3)</option>
-                                    <option value="Dịch vụ">Dịch vụ (Hệ số 0.8)</option>
+                                    <option value="Chung cư">Chung cư</option>
+                                    <option value="Nhà ở">Nhà ở</option>
+                                    <option value="Dịch vụ">Dịch vụ</option>
                                 </select>
                             </div>
                         </div>
