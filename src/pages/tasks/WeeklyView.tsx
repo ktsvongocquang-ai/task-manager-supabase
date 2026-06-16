@@ -463,10 +463,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 <div className={`text-[12px] font-bold leading-tight ${isDone ? 'line-through text-slate-400' : 'text-slate-800'} truncate`}>
                                                                     {t.name || t.task_code || 'Chưa có tên'}
                                                                 </div>
-                                                                <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                                                                    {getPhaseLabel((t as any).target) && <span className={`text-[8px] font-bold px-1 py-px rounded ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
-                                                                    {(() => { const { label, cls } = getPriority(t.priority); return <span className={`text-[8px] font-bold px-1 py-px rounded shrink-0 ${cls}`}>{label}</span> })()}
-                                                                    <span className="text-[8px] font-semibold text-slate-400 truncate max-w-[90px]">{getProjectName(t.project_id)}</span>
+                                                                <div className="flex items-center gap-1 mt-0.5">
+                                                                    <span className="text-[9px] font-semibold text-slate-400 truncate max-w-[140px]">{getProjectName(t.project_id)}</span>
                                                                     <span className={`text-[9px] font-medium ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{fmtShort(d)}</span>
                                                                 </div>
                                                             </div>
