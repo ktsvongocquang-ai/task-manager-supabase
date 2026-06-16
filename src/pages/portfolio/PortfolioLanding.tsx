@@ -615,6 +615,22 @@ function useReveal(threshold = 0.12) {
   return [ref, visible] as const;
 }
 
+function Reveal({ children, delay = 0, threshold = 0.12 }: { children: React.ReactNode; delay?: number; threshold?: number }) {
+  const [ref, visible] = useReveal(threshold);
+  return (
+    <div
+      ref={ref}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `opacity 1000ms cubic-bezier(0.25, 0.1, 0.25, 1) ${delay}ms, transform 1000ms cubic-bezier(0.25, 0.1, 0.25, 1) ${delay}ms`
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // ── ARCHITECTURAL VECTOR FALLBACK CARDS FOR BLOCKED IMAGE URLS ──
 const BlueprintFallback = () => (
   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
