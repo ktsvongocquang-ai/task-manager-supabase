@@ -7,6 +7,7 @@ import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { CommentSection } from '../../components/chat/CommentSection';
 import { format, parseISO } from 'date-fns';
+import { getAssignableProfiles } from '../../utils/profileUtils';
 
 interface AddEditTaskModalProps {
     isOpen: boolean;
@@ -55,6 +56,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     // Ref for auto-scroll after adding subtask
     const subtaskInputRef = useRef<HTMLDivElement>(null);
+
+    const assignableProfiles = React.useMemo(() => {
+        const currentAssignees = [form.assignee_id, form.supporter_id, ...subTasks.map(st => st.assignee_id)].filter(Boolean) as string[];
+        return getAssignableProfiles(profiles, form.target, currentAssignees);
+    }, [profiles, form.target, form.assignee_id, form.supporter_id, subTasks]);
 
     // AI & Speech states
     const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | null>(null);
@@ -894,7 +900,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
-                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                            {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                         </select>
                                         {form.assignee_id && (
                                             <button 
@@ -917,7 +923,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">+ Thêm người...</option>
-                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                        {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -1040,7 +1046,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                                                                         title="Chỉ định người thực hiện"
                                                                                     >
                                                                                         <option value="">--</option>
-                                                                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                                                                        {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                                                     </select>
                                                                                     <input
                                                                                         type="text"

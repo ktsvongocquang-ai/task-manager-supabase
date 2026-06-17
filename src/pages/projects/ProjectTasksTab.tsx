@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { type Project, type Task } from '../../types'
 import { openGoogleCalendar } from '../../utils/calendarUtils'
+import { getAssignableProfiles } from '../../utils/profileUtils'
 import { X, Copy, Edit3, Trash2, Plus, Check, ChevronDown, ChevronRight, Calendar } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
 
@@ -252,7 +253,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
                                                             <option value="">Chưa gán</option>
-                                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                            {getAssignableProfiles(profiles, phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                         </select>
                                                     </div>
                                                 </div>
