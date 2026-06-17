@@ -212,9 +212,10 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                         
                         const isDone = pState.days_used >= (pState.days_estimated || 1) && pState.days_used > 0;
                         const isActive = pState.days_used > 0 && !isDone;
+                        const isEmpty = phaseTasks.length === 0;
 
                         return (
-                            <div key={phase.key} className="bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm">
+                            <div key={phase.key} className={`bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm transition-all duration-300 ${isEmpty ? 'opacity-50 hover:opacity-100' : ''}`}>
                                 <div className="p-4 flex flex-col gap-3.5" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
                                     
                                     {/* Header Row */}
