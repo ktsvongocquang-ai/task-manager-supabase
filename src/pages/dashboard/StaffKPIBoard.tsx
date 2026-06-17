@@ -152,7 +152,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                         {/* Name */}
                                         <td className={`px-4 py-3 font-bold text-slate-800 sticky left-0 z-10 ${isCurrentUser ? 'bg-indigo-50/50' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
                                             <div className="flex items-center gap-2">
-                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0 ${isCurrentUser ? 'bg-indigo-500' : 'bg-slate-400'}`}>
+                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 ${isCurrentUser ? 'bg-indigo-500' : 'bg-slate-400'}`}>
                                                     {row.name.split(' ').pop()?.charAt(0) || '?'}
                                                 </div>
                                                 <div className="min-w-0">
@@ -201,7 +201,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                             <div key={ph.key}>
                                                                 <div className="flex items-center gap-2 mb-1.5">
                                                                     <span>{ph.icon}</span>
-                                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">{ph.label}</span>
+                                                                    <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{ph.label}</span>
                                                                     <span className="bg-slate-200 text-slate-500 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{tasks.length}</span>
                                                                 </div>
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
@@ -235,7 +235,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                         <div>
                                                             <div className="flex items-center gap-2 mb-1.5">
                                                                 <span>📋</span>
-                                                                <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Chưa gán giai đoạn</span>
+                                                                <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Chưa gán giai đoạn</span>
                                                                 <span className="bg-amber-100 text-amber-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full">{row.tasksByPhase[''].length}</span>
                                                             </div>
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
@@ -264,7 +264,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
                                                                 style={{ width: `${Math.round((row.onTime / row.completed) * 100)}%` }}
                                                             ></div>
                                                         </div>
-                                                        <span className={`text-xs font-black ${row.onTime / row.completed >= 0.8 ? 'text-emerald-600' : row.onTime / row.completed >= 0.5 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                                        <span className={`text-xs font-bold ${row.onTime / row.completed >= 0.8 ? 'text-emerald-600' : row.onTime / row.completed >= 0.5 ? 'text-amber-600' : 'text-rose-600'}`}>
                                                             {Math.round((row.onTime / row.completed) * 100)}%
                                                         </span>
                                                     </div>

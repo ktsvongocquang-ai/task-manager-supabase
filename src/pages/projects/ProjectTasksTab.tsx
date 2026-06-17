@@ -114,19 +114,19 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
             <div className="px-6 pb-4">
                 <div className="bg-white rounded-[1.25rem] p-3 flex justify-between items-center shadow-sm">
                     <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                        <span className="text-lg font-black text-slate-800 leading-none mb-1">{stats.total}</span>
+                        <span className="text-lg font-bold text-slate-800 leading-none mb-1">{stats.total}</span>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase">Tổng</span>
                     </div>
                     <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                        <span className="text-lg font-black text-emerald-500 leading-none mb-1">{stats.completed}</span>
+                        <span className="text-lg font-bold text-emerald-500 leading-none mb-1">{stats.completed}</span>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase">Xong</span>
                     </div>
                     <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                        <span className="text-lg font-black text-blue-500 leading-none mb-1">{stats.inProgress}</span>
+                        <span className="text-lg font-bold text-blue-500 leading-none mb-1">{stats.inProgress}</span>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase">Đang làm</span>
                     </div>
                     <div className="flex flex-col items-center flex-1">
-                        <span className="text-lg font-black text-rose-500 leading-none mb-1">{stats.overdue}</span>
+                        <span className="text-lg font-bold text-rose-500 leading-none mb-1">{stats.overdue}</span>
                         <span className="text-[10px] font-semibold text-slate-400 uppercase">Quá hạn</span>
                     </div>
                 </div>
@@ -146,7 +146,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                             <div className="flex items-center justify-between p-3 cursor-pointer select-none" onClick={() => togglePhase(phase.key)}>
                                 <div className="flex items-center gap-3">
                                     <div className="w-2.5 h-2.5 rounded-full bg-slate-400 ml-1"></div>
-                                    <span className="text-[15px] font-black text-slate-800">{phase.name}</span>
+                                    <span className="text-[15px] font-bold text-slate-800">{phase.name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -238,7 +238,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                             <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
                                                         )}
                                                     </div>
-                                                    <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
+                                                    <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
                                                         {getAssigneeInitials(task.assignee_id)}
                                                         <select 
                                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -270,7 +270,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                             <div className="flex items-center justify-between p-3 cursor-pointer select-none bg-amber-50/50" onClick={() => togglePhase('unassigned')}>
                                 <div className="flex items-center gap-3">
                                     <div className="w-2.5 h-2.5 rounded-full bg-amber-500 ml-1"></div>
-                                    <span className="text-[15px] font-black text-amber-800">Chưa gán</span>
+                                    <span className="text-[15px] font-bold text-amber-800">Chưa gán</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-[11px] font-bold text-amber-600 min-w-[20px] text-center">{unassigned.length}</span>
@@ -333,7 +333,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     <div className="hidden group-hover:flex gap-1.5 mr-1">
                                                         {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                     </div>
-                                                    <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
+                                                    <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
                                                         {getAssigneeInitials(task.assignee_id)}
                                                         <select 
                                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"

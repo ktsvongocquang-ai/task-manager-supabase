@@ -82,11 +82,11 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md relative shrink-0 gap-4">
                         <div className="flex items-start gap-3 md:gap-4 pr-12">
-                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-lg md:text-xl shrink-0">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-bold text-lg md:text-xl shrink-0">
                                 {project.name.charAt(0)}
                             </div>
                             <div className="min-w-0">
-                                <h2 className="text-lg md:text-2xl font-black text-slate-800 tracking-tight leading-tight truncate" title={project.name}>
+                                <h2 className="text-lg md:text-2xl font-bold text-slate-800 tracking-tight leading-tight truncate" title={project.name}>
                                     {project.name}
                                 </h2>
                                 <p className="text-xs md:text-sm font-bold text-slate-400 mt-0.5 truncate">

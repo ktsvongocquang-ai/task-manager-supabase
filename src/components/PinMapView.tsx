@@ -400,7 +400,7 @@ export default function PinMapView({
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-6 h-6 shrink-0 rounded-full ${bgColor} text-white text-[11px] font-black flex items-center justify-center shadow-sm`}>
+                      <div className={`w-6 h-6 shrink-0 rounded-full ${bgColor} text-white text-[11px] font-bold flex items-center justify-center shadow-sm`}>
                         {idx + 1}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -519,7 +519,7 @@ export default function PinMapView({
                       onClick={(e) => { e.stopPropagation(); onSelectMarker(m.id); }}
                     >
                       {isActive && <div className="absolute -inset-2 rounded-full bg-[#1a1a1a]/40 animate-ping" />}
-                      <div className={`w-7 h-7 rounded-full ${bgColor} text-white text-[11px] font-black flex items-center justify-center shadow-lg border-[1.5px] border-white relative z-10`}>
+                      <div className={`w-7 h-7 rounded-full ${bgColor} text-white text-[11px] font-bold flex items-center justify-center shadow-lg border-[1.5px] border-white relative z-10`}>
                         {idx + 1}
                       </div>
                     </div>
@@ -597,7 +597,7 @@ export default function PinMapView({
               <button
                 onClick={handleConfirmCenterPin}
                 disabled={isRenderingPdf}
-                className="bg-rose-600 hover:bg-[#2a1114]0 text-white px-8 py-3 rounded-full font-black shadow-[0_0_20px_rgba(225,29,72,0.4)] flex items-center gap-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
+                className="bg-rose-600 hover:bg-[#2a1114]0 text-white px-8 py-3 rounded-full font-bold shadow-[0_0_20px_rgba(225,29,72,0.4)] flex items-center gap-2 cursor-pointer transition-transform hover:scale-105 active:scale-95 disabled:opacity-50"
               >
                 <Target className="w-5 h-5" />
                 CHỐT PIN TẠI ĐÂY
@@ -613,7 +613,7 @@ export default function PinMapView({
                 className="w-14 h-14 bg-[#2a1114]0 hover:bg-rose-400 text-white rounded-full shadow-xl flex flex-col items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer"
               >
                 <Target className="w-5 h-5 mb-0.5" />
-                <span className="text-[9px] font-black uppercase">Chốt lỗi</span>
+                <span className="text-[9px] font-bold uppercase">Chốt lỗi</span>
               </button>
             )}
 

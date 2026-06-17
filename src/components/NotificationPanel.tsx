@@ -101,7 +101,7 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
           : <Bell className="w-4 h-4" />
         }
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce">
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-bounce">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -116,7 +116,7 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
           <div className="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-slate-700/50">
             <div className="flex items-center gap-2">
               <BellRing className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-black text-white">Thông báo</span>
+              <span className="text-xs font-bold text-white">Thông báo</span>
               {unread > 0 && (
                 <span className="text-[9px] font-bold bg-rose-500 text-white px-1.5 py-0.5 rounded-full">
                   {unread} mới
@@ -161,7 +161,7 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
               </div>
               <button
                 onClick={handleRequestPermission}
-                className="shrink-0 px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-black rounded-lg cursor-pointer transition-colors"
+                className="shrink-0 px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black text-[10px] font-bold rounded-lg cursor-pointer transition-colors"
               >
                 Bật
               </button>
@@ -193,7 +193,7 @@ export default function NotificationPanel({ currentProjectName }: NotificationPa
                     <span className={`text-base shrink-0 mt-0.5 ${n.read ? 'grayscale opacity-50' : ''}`}>{TYPE_ICON[n.type]}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-1">
-                        <p className={`text-[11px] leading-tight ${n.read ? 'font-medium text-slate-500' : 'font-black text-white'}`}>
+                        <p className={`text-[11px] leading-tight ${n.read ? 'font-medium text-slate-500' : 'font-bold text-white'}`}>
                           {n.title}
                         </p>
                         {!n.read && (

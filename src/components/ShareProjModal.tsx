@@ -96,7 +96,7 @@ Bạn có thể bấm vào liên kết dưới đây để xem trực tiếp, vi
               <Share2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-wider">Chia Sẻ & Nhập Dữ Liệu Khảo Sát</h3>
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Chia Sẻ & Nhập Dữ Liệu Khảo Sát</h3>
               <p className="text-[10px] text-slate-450 mt-0.5">Cung cấp quyền truy cập bản vẽ nghiệm thu cho khách thầu phụ hoặc chủ nhà</p>
             </div>
           </div>
@@ -124,7 +124,7 @@ Bạn có thể bấm vào liên kết dưới đây để xem trực tiếp, vi
 
           {/* Sharing URLs Options */}
           <div className="flex flex-col gap-3">
-            <label className="text-[10px] font-black uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+            <label className="text-[10px] font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5" />
               1. Liên Kết Chia Sẻ Trực Tuyến
             </label>
@@ -154,7 +154,7 @@ Bạn có thể bấm vào liên kết dưới đây để xem trực tiếp, vi
 
           {/* Quick Copy Message Template for Zalo / Viber / Email */}
           <div className="flex flex-col gap-3">
-            <label className="text-[10px] font-black uppercase text-pink-400 tracking-wider flex items-center gap-1.5">
+            <label className="text-[10px] font-bold uppercase text-pink-400 tracking-wider flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5" />
               2. Soạn Sẵn Tin Nhắn Gửi Khách Hàng / Đối Tác
             </label>
@@ -182,7 +182,7 @@ Bạn có thể bấm vào liên kết dưới đây để xem trực tiếp, vi
 
           {/* Import / Synced Collaboration via JSON */}
           <div className="flex flex-col gap-3 border-t border-slate-900 pt-5">
-            <label className="text-[10px] font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
+            <label className="text-[10px] font-bold uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
               <FileJson className="w-3.5 h-3.5" />
               3. Nhập Gói Dữ Liệu Tương Tác (.JSON) Từ Khách Hàng/Đối Tác
             </label>

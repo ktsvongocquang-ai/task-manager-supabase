@@ -437,7 +437,7 @@ export const Projects = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">Quản lý dự án</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Quản lý dự án</h1>
                     <div className="flex bg-slate-50/80 rounded-xl p-1 gap-1 border border-slate-100">
                         <button
                             onClick={() => setProjectViewMode('cards')}
@@ -487,7 +487,7 @@ export const Projects = () => {
                             onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
                             className={`bg-white border p-5 rounded-[20px] flex flex-col items-center justify-center gap-3 transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)] ${statusFilter === status ? 'border-[#5534FA] ring-2 ring-[#5534FA]/10' : 'border-slate-100 hover:border-slate-200'}`}
                         >
-                            <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center font-black text-[22px] ${
+                            <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center font-bold text-[22px] ${
                                 isCompleted ? 'bg-emerald-50 text-emerald-600' :
                                 isDoing ? 'bg-blue-50 text-blue-600' :
                                 isConstruct ? 'bg-fuchsia-50 text-fuchsia-600' :
@@ -518,7 +518,7 @@ export const Projects = () => {
                             {/* Top Actions */}
                             <div className="flex justify-between items-start mb-4 mt-2">
                                 <div className="flex items-center">
-                                    <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
+                                    <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-bold uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
                                         {project.status}
                                     </span>
                                     {renderTrafficLight(project)}
@@ -531,8 +531,8 @@ export const Projects = () => {
                                 </div>
                             </div>
                             
-                            <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
-                            <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
+                            <h3 className="text-lg font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
+                            <div className="text-[10px] font-bold text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
                             <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
                             
                             <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">

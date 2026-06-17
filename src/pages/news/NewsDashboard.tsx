@@ -46,7 +46,7 @@ export const NewsDashboard = () => {
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
        <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
-               <h1 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+               <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
                   <span className="text-3xl">📰</span> Bảng Tin Đầu Tư
                </h1>
                <p className="text-sm text-slate-500 font-medium mt-1">
@@ -85,7 +85,7 @@ export const NewsDashboard = () => {
            <div className="space-y-6">
                {news.map((item) => (
                    <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 hover:shadow-md transition-shadow">
-                       <h2 className="text-xl sm:text-2xl font-black text-[#7A1216] mb-3 leading-tight">{item.title}</h2>
+                       <h2 className="text-xl sm:text-2xl font-bold text-[#7A1216] mb-3 leading-tight">{item.title}</h2>
                        <div className="flex items-center gap-3 mb-6 flex-wrap">
                            <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider">
                                {item.category}
@@ -104,7 +104,7 @@ export const NewsDashboard = () => {
                            <ReactMarkdown
                                remarkPlugins={[remarkGfm]}
                                components={{
-                                   h1: ({node, ...props}) => <h1 className="text-2xl font-black text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props} />,
+                                   h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-slate-900 mt-8 mb-4 border-b border-slate-100 pb-2" {...props} />,
                                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-indigo-900 mt-8 mb-4 flex items-center gap-2 before:content-[''] before:w-2 before:h-6 before:bg-indigo-500 before:rounded-full before:inline-block" {...props} />,
                                    h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-800 mt-6 mb-3" {...props} />,
                                    ul: ({node, ...props}) => <ul className="list-disc pl-6 mb-4 space-y-1.5 marker:text-indigo-400" {...props} />,

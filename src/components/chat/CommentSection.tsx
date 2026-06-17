@@ -410,7 +410,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                                     </div>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-baseline gap-2 mb-1">
-                                            <span className="text-xs font-black text-slate-800">{getProfileName(activeThreadParent.user_id)}</span>
+                                            <span className="text-xs font-bold text-slate-800">{getProfileName(activeThreadParent.user_id)}</span>
                                             <span className="text-[10px] font-medium text-slate-400">{formatDistanceToNow(parseISO(activeThreadParent.created_at), { addSuffix: true, locale: vi })}</span>
                                         </div>
                                         {(activeThreadParent as any).image_url && (

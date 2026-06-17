@@ -460,7 +460,7 @@ export const Gantt = () => {
                 <div className="flex items-center gap-2">
                     {/* Zoom Control Group - Dark rounded rectangle like screenshot */}
                     <div className="flex items-center gap-2 bg-slate-800 px-4 py-1.5 rounded-xl shadow-lg">
-                        <span className="text-[10px] font-black text-white mr-2 uppercase tracking-tighter">Zoom: {zoom}%</span>
+                        <span className="text-[10px] font-bold text-white mr-2 uppercase tracking-tighter">Zoom: {zoom}%</span>
                         <button onClick={() => setZoom(Math.max(50, zoom - 10))} className="text-slate-400 hover:text-white transition-colors">
                             <ZoomOut size={16} />
                         </button>
@@ -511,7 +511,7 @@ export const Gantt = () => {
                     <ChevronLeft size={24} />
                 </button>
                 <div className="flex flex-col items-center">
-                    <h2 className="text-2xl font-black text-gray-900 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h2 className="text-2xl font-bold text-gray-900 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         {MONTHS_VI[month]} {year}
                     </h2>
                     <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1 opacity-20"></div>
@@ -531,19 +531,19 @@ export const Gantt = () => {
                         {/* Day Headers - Themed background like screenshot */}
                         <div className="flex border-b border-slate-200 sticky top-0 z-30 bg-white shadow-sm">
                             <div className="flex sticky left-0 z-40 bg-slate-50 border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                <div className="w-[300px] px-3 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
+                                <div className="w-[300px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                                     MÔ TẢ
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[100px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
+                                <div className="w-[100px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                                     THỜI GIAN
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
                                     NGÀY
                                 </div>
-                                <div className="w-[50px] px-2 py-4 text-[10px] font-black text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
+                                <div className="w-[50px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
                                     TIẾN %
                                 </div>
                             </div>
@@ -555,7 +555,7 @@ export const Gantt = () => {
                                         isWeekend(day) ? 'bg-slate-100/50' : 'bg-blue-50/50'
                                         }`}
                                 >
-                                    <div className={`text-[11px] font-black ${isToday(day) ? 'text-white' : 'text-slate-700'}`}>{day}</div>
+                                    <div className={`text-[11px] font-bold ${isToday(day) ? 'text-white' : 'text-slate-700'}`}>{day}</div>
                                     <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(day) ? 'text-white/80' :
                                         isWeekend(day) ? 'text-red-400' : 'text-blue-400'
                                         }`}>
@@ -595,7 +595,7 @@ export const Gantt = () => {
                                                             onClick={() => toggleProject(item.id)}
                                                         >
                                                             {item.isExpanded ? <ChevronDown size={14} className="text-slate-800 shrink-0" /> : <ChevronRight size={14} className="text-slate-800 shrink-0" />}
-                                                            <span className="text-xs font-black text-slate-800 truncate uppercase">{item.name}</span>
+                                                            <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
                                                         </div>
                                                     ) : item.type === 'phase' ? (
                                                         <div
@@ -873,12 +873,12 @@ export const Gantt = () => {
                                         <h3 className="font-bold text-slate-800 text-sm md:text-base leading-tight uppercase truncate">{item.name}</h3>
                                         <div className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-1">Mã DA: {item.projectCode}</div>
                                     </div>
-                                    <div className="bg-[#4a80bc]/10 text-[#4a80bc] px-2 py-1 rounded-lg text-[10px] font-black shrink-0 shadow-sm">
+                                    <div className="bg-[#4a80bc]/10 text-[#4a80bc] px-2 py-1 rounded-lg text-[10px] font-bold shrink-0 shadow-sm">
                                         {totalDays} ngày
                                     </div>
                                 </div>
                                 
-                                <div className="flex justify-between items-center text-[10px] font-black tracking-widest text-slate-500 mb-4">
+                                <div className="flex justify-between items-center text-[10px] font-bold tracking-widest text-slate-500 mb-4">
                                     <div className="flex flex-col">
                                         <span className="text-slate-400 text-[8px] mb-0.5">BẮT ĐẦU</span>
                                         <span className="text-slate-700">{formattedStart || '—'}</span>
@@ -893,7 +893,7 @@ export const Gantt = () => {
                                 {/* Phased/Tasks summary */}
                                 {projectPhases.length > 0 && (
                                     <div className="space-y-2 mt-2 pt-4 border-t border-slate-100">
-                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Các giai đoạn</h4>
+                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Các giai đoạn</h4>
                                         {projectPhases.map(phase => {
                                             const phaseStart = phase.startDate ? format(new Date(phase.startDate), 'dd/MM') : '';
                                             const phaseEnd = phase.endDate ? format(new Date(phase.endDate), 'dd/MM') : '';

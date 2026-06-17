@@ -195,7 +195,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                 <button
                     onClick={handleSubmit}
                     disabled={!form.name || !form.project_code}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-[15px] font-black uppercase tracking-widest shadow-md shadow-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest shadow-md shadow-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {editingProject ? 'Cập nhật dự án' : 'Lưu dự án mới'}
                 </button>

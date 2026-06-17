@@ -27,7 +27,7 @@ export default function GlobalPinSelectorModal({ projects, floorPlans, onSelectD
         <div className="px-5 py-4 bg-[#151930] border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-black text-slate-100 text-sm tracking-wide uppercase">Chọn vị trí Ghim Lỗi</h3>
+            <h3 className="font-bold text-slate-100 text-sm tracking-wide uppercase">Chọn vị trí Ghim Lỗi</h3>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-full text-slate-400">
             <X className="w-5 h-5" />

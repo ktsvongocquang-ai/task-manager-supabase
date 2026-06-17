@@ -492,8 +492,8 @@ export const Schedule = () => {
                                 <div className="flex flex-col gap-2 pl-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="text-[10px] font-black text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
-                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
+                                            <span className="text-[10px] font-bold text-slate-500 tracking-wider uppercase bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">{task.task_code}</span>
+                                            <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(task.status || '')}`}>
                                                 {task.status}
                                             </span>
                                             {task.project_id && task.project_id !== 'personal' && (

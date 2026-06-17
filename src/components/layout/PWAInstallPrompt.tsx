@@ -96,7 +96,7 @@ export const PWAInstallPrompt = () => {
                 <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/50 backdrop-blur-sm md:hidden" onClick={handleDismiss}>
                     <div className="bg-white rounded-t-3xl w-full max-w-md p-6 pb-10 animate-slide-up" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-lg font-black text-slate-800">Cài đặt trên iPhone</h3>
+                            <h3 className="text-lg font-bold text-slate-800">Cài đặt trên iPhone</h3>
                             <button onClick={handleDismiss} className="text-slate-400 hover:text-slate-600 p-1">
                                 <X size={20} />
                             </button>

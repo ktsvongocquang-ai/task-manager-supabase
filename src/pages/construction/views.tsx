@@ -326,7 +326,7 @@ export function ClientCountdown({ project, milestones, dailyLogs, phases, tasks 
       {/* Hero Countdown */}
       <div className="text-center py-6">
         <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Ngày bàn giao dự kiến</p>
-        <p className="text-5xl font-black text-indigo-600 mt-1">{daysLeft}</p>
+        <p className="text-5xl font-bold text-indigo-600 mt-1">{daysLeft}</p>
         <p className="text-sm text-slate-500 font-medium">ngày nữa</p>
         <div className="mt-4 mx-auto max-w-xs">
           <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -358,15 +358,15 @@ export function ClientCountdown({ project, milestones, dailyLogs, phases, tasks 
       <div className="grid grid-cols-3 gap-2 min-w-0">
         <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
           <p className="text-[10px] text-emerald-500 font-bold">Nhật ký</p>
-          <p className="text-2xl font-black text-emerald-600">{project.totalDiaryEntries}</p>
+          <p className="text-2xl font-bold text-emerald-600">{project.totalDiaryEntries}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
           <p className="text-[10px] text-amber-500 font-bold">Ngày nghỉ</p>
-          <p className="text-2xl font-black text-amber-600">{project.daysOff}</p>
+          <p className="text-2xl font-bold text-amber-600">{project.daysOff}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-3 text-center shadow-sm">
           <p className="text-[10px] text-indigo-500 font-bold">Hồ sơ</p>
-          <p className="text-2xl font-black text-indigo-600">{project.totalDocuments}</p>
+          <p className="text-2xl font-bold text-indigo-600">{project.totalDocuments}</p>
         </div>
       </div>
 
@@ -409,7 +409,7 @@ export function ClientCountdown({ project, milestones, dailyLogs, phases, tasks 
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isDone ? 'bg-emerald-500' : 'bg-amber-100 border-2 border-amber-400'}`}>
                         {isDone
                           ? <Check className="w-4 h-4 text-white" />
-                          : <span className="text-amber-500 text-xs font-black">!</span>
+                          : <span className="text-amber-500 text-xs font-bold">!</span>
                         }
                       </div>
                       <div className="flex-1 min-w-0">
@@ -954,7 +954,7 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
                 </div>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Tiến độ thi công</p>
-                  <p className="text-xl font-black text-indigo-600">{log.taskProgress || 0}%</p>
+                  <p className="text-xl font-bold text-indigo-600">{log.taskProgress || 0}%</p>
                   <div className="w-full bg-slate-200 rounded-full h-1.5 mt-2 overflow-hidden">
                     <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 rounded-full" style={{ width: `${log.taskProgress || 0}%` }} />
                   </div>
@@ -1107,7 +1107,7 @@ export function ProjectOverview({ project, subcontractors, milestones }: {
       {cards.map((c, i) => (
         <div key={i} className={`rounded-xl border border-slate-200 p-4 shadow-sm ${c.bg}`}>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{c.label}</p>
-          <p className={`text-2xl font-black mt-1 ${c.color}`}>{c.value}</p>
+          <p className={`text-2xl font-bold mt-1 ${c.color}`}>{c.value}</p>
         </div>
       ))}
     </div>

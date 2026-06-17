@@ -1734,7 +1734,7 @@ export default function FloorPlanViewer({
 
         <div className="flex items-center gap-2 text-slate-450 shrink-0 select-none">
           <Layers className="w-4 h-4 text-emerald-400" />
-          <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">Mặt bằng:</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Mặt bằng:</span>
         </div>
 
         <div className="flex-1 flex items-center gap-2 overflow-x-auto px-4 py-1 no-scrollbar scroll-smooth">
@@ -1950,7 +1950,7 @@ export default function FloorPlanViewer({
               <Camera className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="text-left font-sans">
-              <div className="text-[9px] font-black uppercase tracking-widest text-emerald-400 mb-0.5">Quy trình ghim lỗi hiện trường DQH</div>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">Quy trình ghim lỗi hiện trường DQH</div>
               <p className="text-xs font-bold leading-relaxed text-slate-100">
                 👉 Nhấp chuột vào bất cứ điểm có lỗi nào trên bản vẽ bên dưới để <span className="text-emerald-400 underline decoration-emerald-500/50 decoration-2">ghim vị trí</span>, sau đó hệ thống sẽ tự động mở <span className="text-yellow-400 font-extrabold">Webcam chụp ảnh hiện trạng</span> & <span className="text-cyan-400 font-extrabold font-mono">Ghi âm Voice mô tả</span> ngay lập tức!
               </p>
@@ -2029,7 +2029,7 @@ export default function FloorPlanViewer({
                 <div className="p-5 bg-indigo-600/20 border border-indigo-500/30 rounded-2xl text-indigo-400 mb-4 shadow-xl">
                   <Upload className="w-12 h-12 animate-bounce text-indigo-400" />
                 </div>
-                <h3 className="text-lg font-black text-white uppercase tracking-wider">Thả để chèn ảnh Pinterest hoặc PC</h3>
+                <h3 className="text-lg font-bold text-white uppercase tracking-wider">Thả để chèn ảnh Pinterest hoặc PC</h3>
                 <p className="text-xs text-indigo-300 mt-2 font-medium">Bản vẽ hoặc hình ảnh tham khảo sẽ xuất hiện ngay tại vị trí kéo thả</p>
               </div>
             )}
@@ -3046,7 +3046,7 @@ export default function FloorPlanViewer({
                         {/* Count Badge for Multi-Fault stacking */}
                         {closeGroup.length > 1 && (
                           <div 
-                            className="absolute -bottom-1 -right-1 bg-amber-500 border-2 border-slate-900 text-slate-950 text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg select-none z-50 animate-pulse" 
+                            className="absolute -bottom-1 -right-1 bg-amber-500 border-2 border-slate-900 text-slate-950 text-[9px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg select-none z-50 animate-pulse" 
                             title={`Có ${closeGroup.length} lỗi trùng lặp tại vị trí này!`}
                           >
                             {closeGroup.length}
@@ -3067,7 +3067,7 @@ export default function FloorPlanViewer({
                             onMouseDown={(e) => e.stopPropagation()}
                             className="absolute z-65 flex flex-col bg-[#0b0d19]/98 text-slate-100 rounded-3xl border-2 border-indigo-500/80 p-3.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] w-[300px] font-sans -translate-x-1/2 -translate-y-[calc(100%+14px)] transition-all duration-150 backdrop-blur-md cursor-default pointer-events-auto"
                           >
-                            <div className="text-[10px] font-black uppercase tracking-wider text-indigo-400 mb-2 flex items-center justify-between border-b border-slate-800 pb-1.5">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-2 flex items-center justify-between border-b border-slate-800 pb-1.5">
                               <span>📍 VỊ TRÍ: {closeGroup.length} LỖI GHI NHẬN</span>
                               <button
                                 onClick={(e) => {
@@ -3132,7 +3132,7 @@ export default function FloorPlanViewer({
                                         {item.transcription || item.textNotes || "Chưa có mô tả chi tiết..."}
                                       </p>
                                       <div className="flex items-center justify-between mt-1.5 text-[9px]">
-                                        <span className={`px-1.5 py-0.5 rounded border text-[8px] font-black ${tagStyles[itemStatus] || 'text-rose-400'}`}>
+                                        <span className={`px-1.5 py-0.5 rounded border text-[8px] font-bold ${tagStyles[itemStatus] || 'text-rose-400'}`}>
                                           {itemStatus}
                                         </span>
                                         <span className="text-slate-500 text-[8px] font-mono">
@@ -3145,7 +3145,7 @@ export default function FloorPlanViewer({
                               })}
                             </div>
 
-                            <div className="mt-2.5 pt-2 border-t border-slate-800 text-center text-[8.5px] text-indigo-400 font-black tracking-wider animate-pulse select-none">
+                            <div className="mt-2.5 pt-2 border-t border-slate-800 text-center text-[8.5px] text-indigo-400 font-bold tracking-wider animate-pulse select-none">
                               👉 CLICK DÒNG ĐỂ LỰA CHỌN XEM CHI TIẾT
                             </div>
                           </div>
@@ -3412,7 +3412,7 @@ export default function FloorPlanViewer({
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <button
                                     onClick={togglePopoverAudio}
-                                    className="w-8.5 h-8.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full flex items-center justify-center flex-shrink-0 transition-all font-black animate-pulse cursor-pointer"
+                                    className="w-8.5 h-8.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full flex items-center justify-center flex-shrink-0 transition-all font-bold animate-pulse cursor-pointer"
                                     title={isPopoverAudioPlaying ? "Tạm dừng" : "Phát voice note thuyết minh"}
                                   >
                                     {isPopoverAudioPlaying ? (
@@ -3422,7 +3422,7 @@ export default function FloorPlanViewer({
                                     )}
                                   </button>
                                   <div className="min-w-0 flex-1">
-                                    <div className="text-[8.5px] uppercase font-black text-emerald-400 tracking-wider leading-none mb-0.5">Thuyết Minh Giọng Nói</div>
+                                    <div className="text-[8.5px] uppercase font-bold text-emerald-400 tracking-wider leading-none mb-0.5">Thuyết Minh Giọng Nói</div>
                                     <p className="text-[10px] text-slate-200 font-sans italic truncate">
                                       {activeM.transcription || 'Nhấn nút để nghe ghi chú hiện trường...'}
                                     </p>
@@ -3443,7 +3443,7 @@ export default function FloorPlanViewer({
 
                             {/* Detailed Description and Voice transcription translation info */}
                             <div className="flex flex-col gap-1">
-                              <span className="text-[9px] uppercase font-black tracking-wider text-slate-400">Ghi chú hoặc Dịch thoại:</span>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400">Ghi chú hoặc Dịch thoại:</span>
                               <textarea
                                 value={activeM.textNotes || ''}
                                 onChange={(e) => {
@@ -3517,7 +3517,7 @@ export default function FloorPlanViewer({
 
                             {/* Rectifying detail texts direction guide */}
                             <div className="flex flex-col gap-1">
-                              <span className="text-[9px] uppercase font-black tracking-wider text-cyan-400">Chỉ bảo kỹ thuật / Hướng dẫn cách xử lý:</span>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-cyan-400">Chỉ bảo kỹ thuật / Hướng dẫn cách xử lý:</span>
                               <textarea
                                 value={activeM.conceptNotes || ''}
                                 onChange={(e) => {
@@ -3804,7 +3804,7 @@ export default function FloorPlanViewer({
                       
                       {/* Creator Profile Avatar bottom footer bar */}
                       {annot.type === 'sticky' && (
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-700 mt-2.5 border-t border-slate-950/10 pt-2 shrink-0">
+                        <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-700 mt-2.5 border-t border-slate-950/10 pt-2 shrink-0">
                           <span className="truncate max-w-[120px]">✐ {annot.userName}</span>
                           {isSelected && (
                             <button
@@ -3892,7 +3892,7 @@ export default function FloorPlanViewer({
             {/* Header */}
             <div className="p-4 bg-slate-900 border-b border-slate-800/60 flex items-center justify-between shadow-md">
               <div className="min-w-0 pr-4">
-                <span className="text-[10px] tracking-widest font-black uppercase text-indigo-400 block mb-0.5 animate-pulse">
+                <span className="text-[10px] tracking-widest font-bold uppercase text-indigo-400 block mb-0.5 animate-pulse">
                   ⚡ THUYẾT MINH KHÔNG GIAN DỰ ÁN ({currentSlideIndex + 1}/{activePlanMarkers.length})
                 </span>
                 <h3 className="text-xs font-bold text-white truncate">{currentSlideMarker.title}</h3>
@@ -4037,7 +4037,7 @@ export default function FloorPlanViewer({
                 <button
                   type="button"
                   onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                  className={`text-[9.5px] uppercase font-black px-2 py-0.5 mt-1 rounded-md transition-all cursor-pointer ${
+                  className={`text-[9.5px] uppercase font-bold px-2 py-0.5 mt-1 rounded-md transition-all cursor-pointer ${
                     isAutoPlaying 
                       ? 'bg-amber-500 text-slate-950 animate-pulse' 
                       : 'bg-slate-800 text-slate-405 hover:text-slate-200 border border-slate-700'
@@ -4090,7 +4090,7 @@ export default function FloorPlanViewer({
                       title={`Đổi màu ${c}`}
                     >
                       {selectedAnnotation.color === c && (
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white font-black">✓</span>
+                        <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold">✓</span>
                       )}
                     </button>
                   ))}
@@ -4616,7 +4616,7 @@ export default function FloorPlanViewer({
                   <div className="absolute left-[52px] top-1/2 -translate-y-1/2 bg-white text-slate-800 border border-slate-200 rounded-3xl w-64 shadow-2xl p-4 flex flex-col gap-1 z-50 pointer-events-auto no-pan-trigger animate-scale-up text-left whitespace-nowrap">
                     
                     {/* SECTION 1: LINES & CONNECTORS */}
-                    <div className="px-2 py-1 text-[9.5px] font-black uppercase text-slate-400 tracking-wider">Đường vẽ & Kết nối</div>
+                    <div className="px-2 py-1 text-[9.5px] font-bold uppercase text-slate-400 tracking-wider">Đường vẽ & Kết nối</div>
                     
                     <button
                       onClick={() => {
@@ -4690,7 +4690,7 @@ export default function FloorPlanViewer({
                     <hr className="border-slate-100 my-1.5 shrink-0" />
 
                     {/* SECTION 2: BASIC SHAPES */}
-                    <div className="px-2 py-1 text-[9.5px] font-black uppercase text-slate-400 tracking-wider mt-2">Hình học & Đánh dấu</div>
+                    <div className="px-2 py-1 text-[9.5px] font-bold uppercase text-slate-400 tracking-wider mt-2">Hình học & Đánh dấu</div>
 
                     <button
                       onClick={() => {
@@ -4825,7 +4825,7 @@ export default function FloorPlanViewer({
             {/* Modal Control Actions (no-print) */}
             <div className="no-print flex items-center justify-between border-b border-slate-800 pb-4 shrink-0">
               <div className="flex items-center gap-2">
-                <span className="p-1 px-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg text-[10px] font-black uppercase tracking-wider animate-pulse">
+                <span className="p-1 px-2.5 bg-indigo-500/10 text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-wider animate-pulse">
                   🖨️ PDF REPORT CREATOR
                 </span>
                 <h2 className="text-sm font-extrabold text-white">Xem Trước Bản In Báo Cáo Song Song</h2>
@@ -4855,7 +4855,7 @@ export default function FloorPlanViewer({
               {/* Document Header */}
               <div className="flex flex-col md:flex-row md:items-start justify-between border-b-4 border-slate-900 pb-6 mb-8 gap-6">
                 <div>
-                  <h1 className="text-xl font-black tracking-tight text-slate-950 uppercase select-none">
+                  <h1 className="text-xl font-bold tracking-tight text-slate-950 uppercase select-none">
                     ĐÀO QUỐC HUY ARCHITECTS & ASSOCIATES
                   </h1>
                   <p className="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase mt-1">
@@ -4866,7 +4866,7 @@ export default function FloorPlanViewer({
                   </p>
                 </div>
                 <div className="text-left md:text-right md:min-w-[200px]">
-                  <span className="text-[10px] bg-slate-100 text-slate-800 border border-slate-200 font-black px-2.5 py-1 rounded-md block w-fit md:ml-auto">
+                  <span className="text-[10px] bg-slate-100 text-slate-800 border border-slate-200 font-bold px-2.5 py-1 rounded-md block w-fit md:ml-auto">
                     MÃ PHIẾU: D_QH-{floorPlan ? floorPlan.id.substring(0,6).toUpperCase() : 'SURVEY'}
                   </span>
                   <p className="text-xs font-bold text-slate-900 mt-3">Ngày lập: {new Date().toLocaleDateString('vi-VN')}</p>
@@ -4876,7 +4876,7 @@ export default function FloorPlanViewer({
 
               {/* Title Section */}
               <div className="text-center mb-10 max-w-2xl mx-auto">
-                <h2 className="text-lg md:text-xl font-black text-slate-950 tracking-tight uppercase leading-tight">
+                <h2 className="text-lg md:text-xl font-bold text-slate-950 tracking-tight uppercase leading-tight">
                   BÁO CÁO SONG SONG KHẢO SÁT HIỆN TRẠNG & BIỆN PHÁP Ý TƯỞNG THIẾT KẾ CHUYÊN SÂU
                 </h2>
                 <div className="h-1.5 w-16 bg-indigo-600 mx-auto my-3 rounded-full"></div>
@@ -4913,7 +4913,7 @@ export default function FloorPlanViewer({
                           {mIdx + 1}
                         </span>
                         <div>
-                          <h4 className="text-xs font-black text-slate-950">{marker.title}</h4>
+                          <h4 className="text-xs font-bold text-slate-950">{marker.title}</h4>
                           <span className="text-[9.5px] text-slate-500 font-mono">Tọa độ ghim trên mặt bằng thiết kế: X: {Math.round(marker.x)}%, Y: {Math.round(marker.y)}%</span>
                         </div>
                       </div>
@@ -4953,7 +4953,7 @@ export default function FloorPlanViewer({
                         {/* Transcription */}
                         {marker.transcription && (
                           <div className="bg-emerald-50/20 border-l-2 border-emerald-500 rounded p-2.5">
-                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Bản dịch Thuyết Minh thoại hiện trường:</span>
+                            <span className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Bản dịch Thuyết Minh thoại hiện trường:</span>
                             <p className="text-[11px] italic text-slate-800 leading-relaxed font-sans font-medium">"{marker.transcription}"</p>
                           </div>
                         )}

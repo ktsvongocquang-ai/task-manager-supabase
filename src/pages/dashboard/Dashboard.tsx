@@ -393,7 +393,7 @@ export const Dashboard = () => {
                                 <FolderKanban size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalProjects}</span>
+                                <span className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none block truncate">{stats.totalProjects}</span>
                                 <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng dự án</span>
                             </div>
                         </div>
@@ -423,7 +423,7 @@ export const Dashboard = () => {
                                 <CheckSquare size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
+                                <span className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
                                 <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng NV</span>
                             </div>
                         </div>
@@ -453,7 +453,7 @@ export const Dashboard = () => {
                                 <Clock size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.ongoingTasks}</span>
+                                <span className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none block truncate">{stats.ongoingTasks}</span>
                                 <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Đang làm</span>
                             </div>
                         </div>
@@ -483,7 +483,7 @@ export const Dashboard = () => {
                                 <AlertTriangle size={20} className="md:w-[24px] md:h-[24px]" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-xl md:text-3xl font-black text-gray-900 tracking-tight leading-none block truncate">{stats.overdueTasks}</span>
+                                <span className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none block truncate">{stats.overdueTasks}</span>
                                 <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Quá hạn</span>
                             </div>
                         </div>

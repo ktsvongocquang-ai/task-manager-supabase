@@ -281,7 +281,7 @@ export default function InteriorQuote() {
         {summary.ngoaiTinhAmount > 0 && <div className="flex justify-between text-sm"><span>Ngoại tỉnh (4%):</span><span className="font-bold text-orange-600">+{formatVND(summary.ngoaiTinhAmount)}</span></div>}
         <div className="flex justify-between text-sm border-t border-indigo-200 pt-2"><span>Trước VAT:</span><span className="font-bold">{formatVND(summary.totalBeforeVAT)}</span></div>
         <div className="flex justify-between text-sm"><span>VAT (8%):</span><span className="font-bold">+{formatVND(summary.vat)}</span></div>
-        <div className="flex justify-between text-lg font-black border-t border-indigo-200 pt-3"><span>TỔNG SAU VAT:</span><span className="text-indigo-700">{formatVND(summary.totalAfterVAT)}</span></div>
+        <div className="flex justify-between text-lg font-bold border-t border-indigo-200 pt-3"><span>TỔNG SAU VAT:</span><span className="text-indigo-700">{formatVND(summary.totalAfterVAT)}</span></div>
       </div>
       <button onClick={() => setStep(3)} className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-sm">
         Xác nhận giá → Xuất Excel
@@ -293,11 +293,11 @@ export default function InteriorQuote() {
     <div className="space-y-6 text-center">
       <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-8">
         <FileSpreadsheet className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-        <h3 className="text-xl font-black text-slate-800 mb-2">Báo giá sẵn sàng!</h3>
+        <h3 className="text-xl font-bold text-slate-800 mb-2">Báo giá sẵn sàng!</h3>
         <p className="text-sm text-slate-600 mb-1"><strong>{project.name}</strong> — {project.clientName}</p>
         <p className="text-sm text-slate-600">{checkedItems.length} hạng mục • {project.tier.toUpperCase()} • {formatVND(summary.totalAfterVAT)}</p>
         <button onClick={() => exportToExcel(project, lineItems, summary)}
-          className="mt-6 inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-sm font-black hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 active:scale-95 transition-all">
+          className="mt-6 inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-sm font-bold hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 active:scale-95 transition-all">
           <Download className="w-5 h-5" /> Tải Excel (.xlsx)
         </button>
       </div>
@@ -310,7 +310,7 @@ export default function InteriorQuote() {
   return (
     <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 space-y-6 pb-24">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
             <DollarSign className="w-5 h-5 text-white" />
           </div>

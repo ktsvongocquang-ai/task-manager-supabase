@@ -720,7 +720,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-[22px] sm:text-2xl font-black text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-[#4F46E5] focus:outline-none focus:ring-0 p-0 flex-1 min-w-0 w-full transition-colors tracking-tight"
+                                            className="text-[22px] sm:text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-[#4F46E5] focus:outline-none focus:ring-0 p-0 flex-1 min-w-0 w-full transition-colors tracking-tight"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
                                         <div className="flex gap-1 ml-2 shrink-0">
@@ -755,7 +755,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                             {editingTask && form.task_code && (
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="px-4 py-1.5 bg-[#E0E7FF] text-[#4F46E5] text-[13px] font-black rounded-full">
+                                    <span className="px-4 py-1.5 bg-[#E0E7FF] text-[#4F46E5] text-[13px] font-bold rounded-full">
                                         {form.task_code}
                                     </span>
                                     <span className="text-xs font-bold text-slate-500">
@@ -813,7 +813,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 1: Bắt đầu | Hạn chót (thời gian lên trước) */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Bắt đầu</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Bắt đầu</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
@@ -830,7 +830,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Hạn chót</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Hạn chót</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
@@ -851,7 +851,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 2: Trạng thái | Giai đoạn */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Trạng thái</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Trạng thái</label>
                                     <select
                                         value={form.status}
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -866,7 +866,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Giai đoạn</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
@@ -885,12 +885,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 3: Chủ trì | Thực hiện */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
                                     <div className="flex gap-1.5 items-center">
                                         <select
                                             value={form.assignee_id}
                                             onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className={`flex-1 px-3 py-2 bg-[#F5F8FF] border border-[#E5EDFF] rounded-xl text-[13px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 font-black cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            className={`flex-1 px-3 py-2 bg-[#F5F8FF] border border-[#E5EDFF] rounded-xl text-[13px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 font-bold cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
@@ -909,11 +909,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
+                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
                                     <select
                                         value={form.supporter_id}
                                         onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 font-black cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 font-bold cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">+ Thêm người...</option>
@@ -1168,13 +1168,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             alert('Lỗi khi duyệt nhiệm vụ.');
                                         }
                                     }}
-                                    className="flex-1 py-3.5 bg-[#20B269] hover:bg-[#1a9356] text-white rounded-2xl text-[15px] font-black tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex-1 py-3.5 bg-[#20B269] hover:bg-[#1a9356] text-white rounded-2xl text-[15px] font-bold tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     ✓ Duyệt
                                 </button>
                                 <button
                                     onClick={handleSave}
-                                    className="flex-1 py-3.5 bg-[#1B2132] hover:bg-black text-white rounded-2xl text-[15px] font-black tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    className="flex-1 py-3.5 bg-[#1B2132] hover:bg-black text-white rounded-2xl text-[15px] font-bold tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
                                 >
                                     Lưu Lại
                                 </button>
@@ -1182,7 +1182,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         ) : (
                             <button
                                 onClick={handleSave}
-                                className="w-full py-3.5 bg-[#1B2132] hover:bg-black text-white rounded-2xl text-[15px] font-black tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                                className="w-full py-3.5 bg-[#1B2132] hover:bg-black text-white rounded-2xl text-[15px] font-bold tracking-wide shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
                             >
                                 Lưu Lại
                             </button>

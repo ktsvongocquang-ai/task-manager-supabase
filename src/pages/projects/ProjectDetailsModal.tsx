@@ -110,7 +110,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                         <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full bg-slate-200/50 hover:bg-slate-200">
                             <X size={16} strokeWidth={3} />
                         </button>
-                        <h2 className="text-xl font-black text-slate-800 pr-8 leading-tight tracking-tight">
+                        <h2 className="text-xl font-bold text-slate-800 pr-8 leading-tight tracking-tight">
                             DQH • {project.name.replace(/^DQH - |^DQH- /i, '')}
                         </h2>
                         <div className="text-xs text-slate-500 font-medium mt-1">
@@ -122,19 +122,19 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                     <div className="px-6 pb-4">
                         <div className="bg-white rounded-[1.25rem] p-3 flex justify-between items-center shadow-sm">
                             <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                                <span className="text-lg font-black text-slate-800 leading-none mb-1">{stats.total}</span>
+                                <span className="text-lg font-bold text-slate-800 leading-none mb-1">{stats.total}</span>
                                 <span className="text-[10px] font-semibold text-slate-400 uppercase">Tổng</span>
                             </div>
                             <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                                <span className="text-lg font-black text-emerald-500 leading-none mb-1">{stats.completed}</span>
+                                <span className="text-lg font-bold text-emerald-500 leading-none mb-1">{stats.completed}</span>
                                 <span className="text-[10px] font-semibold text-slate-400 uppercase">Xong</span>
                             </div>
                             <div className="flex flex-col items-center flex-1 border-r border-slate-100">
-                                <span className="text-lg font-black text-blue-500 leading-none mb-1">{stats.inProgress}</span>
+                                <span className="text-lg font-bold text-blue-500 leading-none mb-1">{stats.inProgress}</span>
                                 <span className="text-[10px] font-semibold text-slate-400 uppercase">Đang làm</span>
                             </div>
                             <div className="flex flex-col items-center flex-1">
-                                <span className="text-lg font-black text-rose-500 leading-none mb-1">{stats.overdue}</span>
+                                <span className="text-lg font-bold text-rose-500 leading-none mb-1">{stats.overdue}</span>
                                 <span className="text-[10px] font-semibold text-slate-400 uppercase">Quá hạn</span>
                             </div>
                         </div>
@@ -155,7 +155,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                     <div className="flex items-center justify-between p-3 cursor-pointer select-none" onClick={() => togglePhase(phase.key)}>
                                         <div className="flex items-center gap-3">
                                             <div className="text-lg bg-slate-50 w-8 h-8 rounded-xl flex items-center justify-center">{phase.icon}</div>
-                                            <span className="text-[15px] font-black text-slate-800">{phase.name}</span>
+                                            <span className="text-[15px] font-bold text-slate-800">{phase.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -247,7 +247,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                                     <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
                                                                 )}
                                                             </div>
-                                                            <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
+                                                            <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
                                                                 {getAssigneeInitials(task.assignee_id)}
                                                                 <select 
                                                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -280,7 +280,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                     <div className="flex items-center justify-between p-3 cursor-pointer select-none bg-amber-50/50" onClick={() => togglePhase('unassigned')}>
                                         <div className="flex items-center gap-3">
                                             <div className="text-lg bg-amber-100 w-8 h-8 rounded-xl flex items-center justify-center">📋</div>
-                                            <span className="text-[15px] font-black text-amber-800">Chưa gán</span>
+                                            <span className="text-[15px] font-bold text-amber-800">Chưa gán</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="text-[11px] font-bold text-amber-600 min-w-[20px] text-center">{unassigned.length}</span>
@@ -343,7 +343,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                             <div className="hidden group-hover:flex gap-1.5 mr-1">
                                                                 {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                             </div>
-                                                            <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
+                                                            <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
                                                                 {getAssigneeInitials(task.assignee_id)}
                                                                 <select 
                                                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -370,7 +370,7 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                     <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:inset-x-0 sm:bottom-0 p-4 bg-gradient-to-t from-[#F3F4F6] via-[#F3F4F6] to-transparent pointer-events-none rounded-b-3xl">
                         <button
                             onClick={onClose}
-                            className="w-full bg-[#E2E4E9] hover:bg-[#D1D5DB] text-slate-700 py-3.5 rounded-2xl text-[15px] font-black uppercase tracking-widest transition-colors shadow-sm pointer-events-auto active:scale-[0.98]"
+                            className="w-full bg-[#E2E4E9] hover:bg-[#D1D5DB] text-slate-700 py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest transition-colors shadow-sm pointer-events-auto active:scale-[0.98]"
                         >
                             Đóng
                         </button>

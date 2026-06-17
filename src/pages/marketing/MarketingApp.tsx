@@ -289,7 +289,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
              <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">HIỆU QUẢ CONTENT</h3>
              <div className="text-right">
                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TỔNG BÀI VIẾT</p>
-               <p className="text-2xl font-black text-slate-800 leading-none">{currentData.posts}</p>
+               <p className="text-2xl font-bold text-slate-800 leading-none">{currentData.posts}</p>
              </div>
           </div>
           
@@ -301,7 +301,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
               </div>
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT XEM</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.views.toLocaleString('vi-VN')}</p>
+                <p className="text-2xl font-bold text-slate-900 tracking-tight">{currentData.views.toLocaleString('vi-VN')}</p>
               </div>
             </div>
 
@@ -312,7 +312,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
               </div>
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT TƯƠNG TÁC</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.interactions.toLocaleString('vi-VN')}</p>
+                <p className="text-2xl font-bold text-slate-900 tracking-tight">{currentData.interactions.toLocaleString('vi-VN')}</p>
               </div>
             </div>
 
@@ -323,7 +323,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
               </div>
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT CHIA SẺ</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.shares.toLocaleString('vi-VN')}</p>
+                <p className="text-2xl font-bold text-slate-900 tracking-tight">{currentData.shares.toLocaleString('vi-VN')}</p>
               </div>
             </div>
 
@@ -334,7 +334,7 @@ const MarketingDashboard = ({ videos }: { videos: any[] }) => {
               </div>
               <div>
                 <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 mt-0.5">SỐ LƯỢT LƯU LẠI</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">{currentData.saves.toLocaleString('vi-VN')}</p>
+                <p className="text-2xl font-bold text-slate-900 tracking-tight">{currentData.saves.toLocaleString('vi-VN')}</p>
               </div>
             </div>
           </div>
@@ -2005,7 +2005,7 @@ const MarketingApp = () => {
                     <div className="px-6 pb-6 relative">
                         <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-12 sm:-mt-16 gap-4 sm:gap-6">
                             <div className={`w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-pink-500 border-4 border-white shadow-xl flex flex-col justify-center items-center`}>
-                                <span className="text-4xl sm:text-5xl text-white font-black tracking-tighter">
+                                <span className="text-4xl sm:text-5xl text-white font-bold tracking-tighter">
                                     {profile?.full_name?.substring(0, 2).toUpperCase() || 'MK'}
                                 </span>
                                 <div className="absolute -bottom-3 bg-white px-3 py-1 rounded-full shadow-lg border border-slate-100 flex items-center gap-1.5">
@@ -2015,7 +2015,7 @@ const MarketingApp = () => {
                             </div>
                             
                             <div className="text-center sm:text-left pt-2 flex-1">
-                                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Marketing Admin'}</h1>
+                                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Marketing Admin'}</h1>
                                 <p className="text-slate-500 text-sm font-medium flex items-center justify-center sm:justify-start gap-1.5">
                                     <Mail size={14} /> 
                                     {profile?.email || 'marketing@dqh.vn'}
@@ -2058,7 +2058,7 @@ const MarketingApp = () => {
             )}
 
             <div className="text-center pt-4 mb-8">
-              <h2 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-widest mb-2">QUY CHUẨN LÀM VIỆC</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-widest mb-2">QUY CHUẨN LÀM VIỆC</h2>
               <p className="text-gray-500">Quy trình phối hợp DQH & Team Coach Hiếu</p>
             </div>
 

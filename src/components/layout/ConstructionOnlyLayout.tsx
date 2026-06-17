@@ -72,7 +72,7 @@ export const ConstructionOnlyLayout = () => {
                             <HardHat size={16} className="text-white" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-black text-[#7A1216] leading-none tracking-tight">DQH</p>
+                            <p className="text-sm font-bold text-[#7A1216] leading-none tracking-tight">DQH</p>
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 inline-block ${getRoleBadgeColor(profile?.role)}`}>
                                 {profile?.role}
                             </span>
@@ -102,7 +102,7 @@ export const ConstructionOnlyLayout = () => {
                         {/* Avatar + dropdown */}
                         <div className="relative group">
                             <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
-                                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-black shadow-sm">
+                                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                     {getInitials(profile?.full_name)}
                                 </div>
                                 <span className="text-xs font-bold text-slate-700 max-w-[80px] truncate hidden sm:block">

@@ -150,7 +150,7 @@ export default function GlobalCaptureModal({ onCaptureComplete, onClose }: Globa
         <div className="px-5 py-4 bg-[#151930] border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-indigo-400" />
-            <h3 className="font-black text-slate-100 text-sm tracking-wide uppercase">Báo Cáo Lỗi Nhanh</h3>
+            <h3 className="font-bold text-slate-100 text-sm tracking-wide uppercase">Báo Cáo Lỗi Nhanh</h3>
           </div>
           <button onClick={() => { stopWebcam(); onClose(); }} className="p-1 hover:bg-slate-800 rounded-full text-slate-400">
             <X className="w-5 h-5" />
@@ -244,7 +244,7 @@ export default function GlobalCaptureModal({ onCaptureComplete, onClose }: Globa
 
                 <button 
                   onClick={handleFinish}
-                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-black rounded-xl text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] mt-2"
+                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 font-bold rounded-xl text-white shadow-[0_0_20px_rgba(79,70,229,0.4)] mt-2"
                 >
                   LƯU & CHỌN BẢN VẼ ĐỂ GHIM
                 </button>

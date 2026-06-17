@@ -172,7 +172,7 @@ export default function FacebookAdsAnalyzer() {
             .replace(/_(.*?)_/g, '<em>$1</em>')
             .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold mt-4 mb-2 text-slate-800">$1</h3>')
             .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-5 mb-3 text-indigo-700 border-b pb-1">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-black mt-6 mb-4 text-indigo-800">$1</h1>')
+            .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-4 text-indigo-800">$1</h1>')
             .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc marker:text-indigo-400">$1</li>')
             .replace(/\n/g, '<br />');
 

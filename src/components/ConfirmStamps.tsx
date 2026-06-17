@@ -109,7 +109,7 @@ export default function ConfirmStamps({ projectId, currentUserName }: ConfirmSta
       >
         <div className="flex items-center gap-3">
           <Stamp className="w-4 h-4 text-slate-400" />
-          <span className="text-sm font-black text-slate-200">Xác nhận tiến độ</span>
+          <span className="text-sm font-bold text-slate-200">Xác nhận tiến độ</span>
           <div className="flex items-center gap-1.5">
             <div className="h-1.5 w-20 bg-slate-800 rounded-full overflow-hidden">
               <div
@@ -136,7 +136,7 @@ export default function ConfirmStamps({ projectId, currentUserName }: ConfirmSta
                   <div className="flex items-start gap-2.5">
                     <span className="text-lg shrink-0 mt-0.5">{cfg.icon}</span>
                     <div>
-                      <p className={`text-sm font-black ${stamp ? 'text-white' : 'text-slate-300'}`}>
+                      <p className={`text-sm font-bold ${stamp ? 'text-white' : 'text-slate-300'}`}>
                         {cfg.label}
                       </p>
                       <p className="text-[10px] text-slate-500 mt-0.5">{cfg.sub}</p>
@@ -160,7 +160,7 @@ export default function ConfirmStamps({ projectId, currentUserName }: ConfirmSta
                   {!stamp ? (
                     <button
                       onClick={() => { setConfirmingType(cfg.type); setNoteInput(''); }}
-                      className={`shrink-0 px-3 py-1.5 ${c.btn} text-white text-[11px] font-black rounded-xl cursor-pointer transition-colors flex items-center gap-1`}
+                      className={`shrink-0 px-3 py-1.5 ${c.btn} text-white text-[11px] font-bold rounded-xl cursor-pointer transition-colors flex items-center gap-1`}
                     >
                       <CheckSquare2 className="w-3.5 h-3.5" />
                       Xác nhận
@@ -194,7 +194,7 @@ export default function ConfirmStamps({ projectId, currentUserName }: ConfirmSta
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleConfirm(cfg.type)}
-                        className={`flex-1 py-2 ${c.btn} text-white text-xs font-black rounded-xl cursor-pointer transition-colors`}
+                        className={`flex-1 py-2 ${c.btn} text-white text-xs font-bold rounded-xl cursor-pointer transition-colors`}
                       >
                         ✅ Xác nhận ngay
                       </button>

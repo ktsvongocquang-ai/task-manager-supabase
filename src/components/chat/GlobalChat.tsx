@@ -454,7 +454,7 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                         </button>
                         <button onClick={() => setActiveTab('dm')} className={`relative flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 transition-all ${activeTab === 'dm' ? 'border-purple-500 text-purple-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
                             <MessageCircle size={12} /> Riêng
-                            {totalUnread > 0 && <span className="absolute -top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-black">{totalUnread}</span>}
+                            {totalUnread > 0 && <span className="absolute -top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center font-bold">{totalUnread}</span>}
                         </button>
                         <button onClick={() => setActiveTab('ai')} className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold border-b-2 transition-all ${activeTab === 'ai' ? 'border-teal-500 text-teal-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
                             <Sparkles size={12} /> AI

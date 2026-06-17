@@ -107,7 +107,7 @@ export default function XUDashboard({
         <div className="flex items-start justify-between mb-1">
           <div>
             <p className="text-orange-100 text-xs font-bold opacity-80">{greet} 👷</p>
-            <h1 className="text-white text-xl font-black tracking-tight">VIỆC CỦA TÔI</h1>
+            <h1 className="text-white text-xl font-bold tracking-tight">VIỆC CỦA TÔI</h1>
             <p className="text-orange-100 text-[11px] mt-0.5 opacity-75">{dateStr}</p>
           </div>
           <button
@@ -121,15 +121,15 @@ export default function XUDashboard({
         {/* Quick stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4">
           <div className="bg-black/20 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-white">{needFix.length}</p>
+            <p className="text-2xl font-bold text-white">{needFix.length}</p>
             <p className="text-[10px] text-orange-200 font-bold uppercase tracking-wide">Cần sửa</p>
           </div>
           <div className="bg-black/20 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-white">{inProg.length}</p>
+            <p className="text-2xl font-bold text-white">{inProg.length}</p>
             <p className="text-[10px] text-orange-200 font-bold uppercase tracking-wide">Đang sửa</p>
           </div>
           <div className="bg-black/20 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-white">{approvedDrawings.length}</p>
+            <p className="text-2xl font-bold text-white">{approvedDrawings.length}</p>
             <p className="text-[10px] text-orange-200 font-bold uppercase tracking-wide">Bản vẽ OK</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function XUDashboard({
       <div className="flex bg-slate-900 border-b border-slate-800">
         <button
           onClick={() => setTab('fix')}
-          className={`flex-1 py-3 text-xs font-black tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-bold tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             tab === 'fix'
               ? 'text-amber-400 border-b-2 border-amber-400 bg-amber-400/5'
               : 'text-slate-500 hover:text-slate-300'
@@ -150,7 +150,7 @@ export default function XUDashboard({
         </button>
         <button
           onClick={() => setTab('draw')}
-          className={`flex-1 py-3 text-xs font-black tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer ${
+          className={`flex-1 py-3 text-xs font-bold tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer ${
             tab === 'draw'
               ? 'text-sky-400 border-b-2 border-sky-400 bg-sky-400/5'
               : 'text-slate-500 hover:text-slate-300'
@@ -171,7 +171,7 @@ export default function XUDashboard({
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
                   <AlertTriangle className="w-4 h-4 text-rose-400" />
-                  <span className="text-xs font-black text-rose-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">
                     Cần sửa ngay — {needFix.length} việc
                   </span>
                 </div>
@@ -195,7 +195,7 @@ export default function XUDashboard({
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1 mt-4">
                   <Clock className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-black text-amber-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
                     Đang sửa — {inProg.length} việc
                   </span>
                 </div>
@@ -219,7 +219,7 @@ export default function XUDashboard({
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1 mt-4">
                   <CheckCheck className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-black text-emerald-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
                     Đã hoàn thành — {done.length} việc
                   </span>
                 </div>
@@ -260,12 +260,12 @@ export default function XUDashboard({
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-black text-sky-400 bg-sky-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-[10px] font-bold text-sky-400 bg-sky-400/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                             ✅ Đã duyệt
                           </span>
                           <span className="text-[10px] font-mono text-slate-500">{d.version}</span>
                         </div>
-                        <p className="text-white font-black text-sm">{d.drawingType}</p>
+                        <p className="text-white font-bold text-sm">{d.drawingType}</p>
                         <div className="flex items-center gap-1 mt-1">
                           <Building2 className="w-3 h-3 text-slate-500" />
                           <p className="text-slate-400 text-[11px]">
@@ -283,7 +283,7 @@ export default function XUDashboard({
                       </div>
                       <button
                         onClick={() => onOpenProject(d.projectId)}
-                        className="shrink-0 px-3 py-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-xl text-sky-400 text-[11px] font-black cursor-pointer transition-colors flex items-center gap-1"
+                        className="shrink-0 px-3 py-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-xl text-sky-400 text-[11px] font-bold cursor-pointer transition-colors flex items-center gap-1"
                       >
                         Xem <ChevronRight className="w-3 h-3" />
                       </button>
@@ -338,7 +338,7 @@ function WorkCard({
       </div>
 
       {/* Title */}
-      <p className="text-white font-black text-base leading-tight mb-1">
+      <p className="text-white font-bold text-base leading-tight mb-1">
         {item.marker.title || 'Lỗi cần xử lý'}
       </p>
 
@@ -361,7 +361,7 @@ function WorkCard({
           <button
             onClick={onStart}
             disabled={updating}
-            className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black text-sm rounded-xl cursor-pointer transition-colors flex items-center justify-center gap-2 active:scale-95"
+            className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-bold text-sm rounded-xl cursor-pointer transition-colors flex items-center justify-center gap-2 active:scale-95"
           >
             {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Hammer className="w-4 h-4" />}
             Bắt đầu sửa
@@ -371,7 +371,7 @@ function WorkCard({
           <button
             onClick={onDone}
             disabled={updating}
-            className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-black text-sm rounded-xl cursor-pointer transition-colors flex items-center justify-center gap-2 active:scale-95"
+            className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-white font-bold text-sm rounded-xl cursor-pointer transition-colors flex items-center justify-center gap-2 active:scale-95"
           >
             {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
             Đã sửa xong

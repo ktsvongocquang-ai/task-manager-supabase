@@ -57,7 +57,7 @@ export const Profile = () => {
                     <div className="px-6 pb-6 relative">
                         <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 sm:-mt-20 mb-4 sm:mb-0 gap-4 sm:gap-6">
                             <div className={`w-32 h-32 sm:w-40 sm:h-40 rounded-3xl ${brand.color} border-4 border-white shadow-xl flex flex-col justify-center items-center transform transition-all hover:scale-105 duration-300`}>
-                                <span className="text-5xl sm:text-6xl text-white font-black tracking-tighter">{initials}</span>
+                                <span className="text-5xl sm:text-6xl text-white font-bold tracking-tighter">{initials}</span>
                                 {profile?.role && (
                                     <div className="absolute -bottom-3 bg-white px-4 py-1.5 rounded-full shadow-lg border border-slate-100 flex items-center gap-1.5">
                                         <Award size={14} className={brand.text} />
@@ -67,7 +67,7 @@ export const Profile = () => {
                             </div>
                             
                             <div className="text-center sm:text-left pt-2 sm:pt-0 pb-2 flex-1">
-                                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Người dùng'}</h1>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-1">{profile?.full_name || 'Người dùng'}</h1>
                                 <p className="text-slate-500 font-medium flex items-center justify-center sm:justify-start gap-1.5 mb-3">
                                     <Mail size={16} /> 
                                     {profile?.email}

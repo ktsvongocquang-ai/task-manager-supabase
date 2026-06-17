@@ -252,14 +252,14 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
+                        className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors uppercase tracking-wider"
                     >
                         Hủy bỏ
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={!form.name || !form.project_code}
-                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2 bg-[#A78BFA] hover:bg-[#8B5CF6] text-white rounded-2xl text-sm font-bold shadow-sm transition-all active:scale-95 uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {editingProject ? 'Cập nhật' : 'Lưu dự án'}
                     </button>

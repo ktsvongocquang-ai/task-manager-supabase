@@ -93,7 +93,7 @@ export const ClientView = () => {
           <div className="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center rounded-2xl mx-auto mb-4 shadow-lg shadow-indigo-200">
             <Lock size={24} className="text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">{project?.name || 'Dự Án DQH'}</h2>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{project?.name || 'Dự Án DQH'}</h2>
           <p className="text-xs text-slate-400 uppercase tracking-widest font-bold mt-2">XÁC THỰC KHÁCH HÀNG</p>
         </div>
 

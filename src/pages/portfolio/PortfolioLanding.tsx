@@ -1492,7 +1492,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             {DQH_VALUES.map((val, idx) => (
               <div key={idx} className="relative space-y-6 pt-16">
                 {/* Watermark letter */}
-                <div className="absolute -top-6 left-0 text-[13rem] font-serif font-black text-[#2C2920] opacity-[0.03] select-none pointer-events-none leading-none">
+                <div className="absolute -top-6 left-0 text-[13rem] font-serif font-bold text-[#2C2920] opacity-[0.03] select-none pointer-events-none leading-none">
                   {val.letter}
                 </div>
                 
@@ -1822,7 +1822,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   alt="Detail Craftsmanship" 
                   className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 filter grayscale"
                 />
-                <div className="absolute top-4 right-4 bg-[#B8913A] text-[#1A1814] text-[9px] font-mono uppercase font-black px-2.5 py-0.5 rounded shadow-sm">
+                <div className="absolute top-4 right-4 bg-[#B8913A] text-[#1A1814] text-[9px] font-mono uppercase font-bold px-2.5 py-0.5 rounded shadow-sm">
                   STANDARDS
                 </div>
               </div>
@@ -2597,7 +2597,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <div className="bg-[#107c41] text-white px-5 py-3.5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 {/* Excel icon block */}
-                <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#107c41] font-black text-sm shadow">X</div>
+                <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#107c41] font-bold text-sm shadow">X</div>
                 <div>
                   <h3 className="font-bold text-sm text-white leading-tight">DQH_Quality_Checklist_120_Points.xlsx</h3>
                   <p className="text-[10px] text-emerald-100 opacity-90 mt-0.5">Bảng tính kiểm soát lỗi thi công và hoàn thiện chi tiết</p>
@@ -2668,7 +2668,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   onClick={() => setExcelActiveTab(tab.id as any)}
                   className={`px-4 py-1.5 text-[10px] font-bold uppercase rounded-t cursor-pointer border-t border-x transition-all ${
                     excelActiveTab === tab.id 
-                      ? 'bg-white text-[#107c41] border-slate-300 font-black shadow-sm' 
+                      ? 'bg-white text-[#107c41] border-slate-300 font-bold shadow-sm' 
                       : 'bg-transparent text-slate-600 border-transparent hover:bg-white/30'
                   }`}
                 >

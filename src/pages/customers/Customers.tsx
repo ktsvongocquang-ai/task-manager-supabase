@@ -97,7 +97,7 @@ export const Customers = () => {
                 </span>
               </div>
               <h3 className="text-slate-500 text-sm font-semibold mb-1 relative z-10">{kpi.title}</h3>
-              <p className="text-2xl font-black text-slate-800 relative z-10">{kpi.value}</p>
+              <p className="text-2xl font-bold text-slate-800 relative z-10">{kpi.value}</p>
             </div>
           );
         })}

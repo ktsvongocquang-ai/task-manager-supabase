@@ -159,14 +159,14 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <Clock size={20} className="text-indigo-500" />
-                            <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
+                            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 uppercase tracking-tight truncate">{project.name}</h2>
                         </div>
                         <p className="text-sm text-slate-500 font-medium mt-1">
                             {project.project_code} • Quản lý: {managerName || 'Chưa gán'} • Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}
                         </p>
                     </div>
                     <div className="text-right pr-6 sm:pr-10 shrink-0">
-                        <div className="text-3xl sm:text-5xl font-black leading-none text-indigo-500">{totalDaysUsed}</div>
+                        <div className="text-3xl sm:text-5xl font-bold leading-none text-indigo-500">{totalDaysUsed}</div>
                         <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">tổng thực tế</div>
                         <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">{totalPhaseDays} ng làm + {kpiState.paused_days} ng dừng / Dự kiến {totalEstimatedDays} ng</div>
                     </div>
@@ -200,19 +200,19 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                         <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Dự kiến</div>
-                            <div className="text-2xl sm:text-3xl font-black text-slate-600">{totalEstimatedDays} ng</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-slate-600">{totalEstimatedDays} ng</div>
                         </div>
                         <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Thực tế làm</div>
-                            <div className="text-2xl sm:text-3xl font-black text-indigo-600">{totalPhaseDays} ng</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-indigo-600">{totalPhaseDays} ng</div>
                         </div>
                         <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày dừng</div>
-                            <div className="text-2xl sm:text-3xl font-black text-amber-500">{kpiState.paused_days} ng</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-amber-500">{kpiState.paused_days} ng</div>
                         </div>
                         <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Tổng cộng (TT)</div>
-                            <div className="text-2xl sm:text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
+                            <div className="text-2xl sm:text-3xl font-bold text-slate-800">{totalDaysUsed} ng</div>
                         </div>
                     </div>
 
@@ -263,7 +263,7 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pl-5 sm:pl-0">
                                             <div className="flex items-center gap-3">
                                                 <div className="flex flex-col items-end leading-none">
-                                                    <span className="text-sm font-black text-indigo-600">{pState.days_used || 0} <span className="text-[10px] font-semibold text-indigo-400">ng</span></span>
+                                                    <span className="text-sm font-bold text-indigo-600">{pState.days_used || 0} <span className="text-[10px] font-semibold text-indigo-400">ng</span></span>
                                                     <span className="text-[10px] font-bold text-slate-400">/ {pState.days_estimated || 0} dự kiến</span>
                                                 </div>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-12 text-center border ${pState.days_used === 0 ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}>

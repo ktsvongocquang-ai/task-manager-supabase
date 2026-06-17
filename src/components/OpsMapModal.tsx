@@ -199,7 +199,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
               <Cloud className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                 Cổng Đồng Bộ Đám Mây Mở Supabase DB
                 <span className="text-[9px] bg-emerald-500/15 text-emerald-400 font-extrabold px-1.5 py-0.5 rounded-full uppercase font-mono">Bản miễn phí</span>
               </h3>
@@ -249,7 +249,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
               {/* LEFT COLUMN: Setup form and credentials */}
               <div className="lg:col-span-7 flex flex-col gap-4">
                 <div className="bg-slate-900/55 border border-slate-900 rounded-2xl p-5 flex flex-col gap-4 shadow-inner">
-                  <h4 className="text-xs font-black text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
                     <Key className="w-4 h-4 text-emerald-400" />
                     Tham số kết nối Supabase của bạn
                   </h4>
@@ -289,11 +289,11 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang kiểm tra...
                         </span>
                       ) : isConnected ? (
-                        <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
+                        <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
                           ● ĐÃ KẾT NỐI CLOUD
                         </span>
                       ) : (
-                        <span className="text-[10px] font-black bg-rose-500/10 text-rose-450 border border-rose-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 text-rose-400">
+                        <span className="text-[10px] font-bold bg-rose-500/10 text-rose-450 border border-rose-500/20 px-2 py-0.5 rounded-md flex items-center gap-1 text-rose-400">
                           ○ NGOẠI TUYẾN / LOCAL ONLY
                         </span>
                       )}
@@ -310,7 +310,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
                       )}
                       <button
                         onClick={handleSaveCredentials}
-                        className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-black rounded-xl cursor-pointer shadow-md transition-all active:scale-95"
+                        className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-bold rounded-xl cursor-pointer shadow-md transition-all active:scale-95"
                       >
                         Lưu cấu hình
                       </button>
@@ -331,7 +331,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
               {/* RIGHT COLUMN: Action synchronization controls */}
               <div className="lg:col-span-5 flex flex-col gap-4">
                 <div className="bg-slate-900/55 border border-slate-900 rounded-2xl p-5 flex flex-col h-full gap-4">
-                  <h4 className="text-xs font-black text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
                     <RefreshCw className="w-4 h-4 text-emerald-400" />
                     Thao tác đồng bộ dữ liệu
                   </h4>
@@ -371,7 +371,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
 
                   {/* Sync status logs console */}
                   <div className="bg-slate-950 border border-slate-900 p-3 rounded-2xl text-left">
-                    <p className="text-[9px] uppercase font-black text-slate-500 tracking-wider">Hộp ký hoạt động đồng bộ:</p>
+                    <p className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Hộp ký hoạt động đồng bộ:</p>
                     <div className="mt-1.5 text-[10px] font-mono leading-relaxed h-[75px] overflow-y-auto text-slate-400">
                       {syncStatus === 'idle' && <span className="text-slate-500">○ Đang chờ lệnh từ KTS phụ trách...</span>}
                       {syncStatus === 'syncing' && <span className="text-amber-400 animate-pulse">● {syncMessage}</span>}
@@ -401,7 +401,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
                 <div className="absolute top-3 right-3 z-10">
                   <button
                     onClick={copySqlToClipboard}
-                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:text-white px-3 py-1.5 rounded-xl text-[10px] font-black cursor-pointer transition-colors"
+                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:text-white px-3 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer transition-colors"
                   >
                     {copiedSql ? (
                       <>
@@ -429,7 +429,7 @@ export default function OpsMapModal({ isOpen, onClose, onSyncReload }: OpsMapMod
                   href="https://supabase.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-white bg-emerald-500 hover:bg-emerald-400 text-[10px] font-black px-3.5 py-1.5 rounded-xl transition-all shadow"
+                  className="flex items-center gap-1 text-white bg-emerald-500 hover:bg-emerald-400 text-[10px] font-bold px-3.5 py-1.5 rounded-xl transition-all shadow"
                 >
                   Truy cập Supabase.com
                   <ExternalLink className="w-3 h-3" />

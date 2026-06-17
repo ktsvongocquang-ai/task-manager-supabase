@@ -156,8 +156,8 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                 {/* Stats Bar */}
                 <div className="bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100 mb-4">
                     <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-[12px] sm:text-[13px] font-black text-slate-500 uppercase tracking-wider">Tổng tiến độ (Ngày công)</h2>
-                        <div className="text-[32px] font-black text-slate-800 leading-none flex items-baseline gap-1">
+                        <h2 className="text-[12px] sm:text-[13px] font-bold text-slate-500 uppercase tracking-wider">Tổng tiến độ (Ngày công)</h2>
+                        <div className="text-[32px] font-bold text-slate-800 leading-none flex items-baseline gap-1">
                             {totalPhaseDays} <span className="text-[13px] font-bold text-slate-400">/{totalEstimatedDays} ng</span>
                         </div>
                     </div>
@@ -169,15 +169,15 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
 
                     <div className="grid grid-cols-3 gap-3">
                         <div className="bg-indigo-50/50 border border-indigo-50 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-black text-indigo-600 leading-none mb-1.5">{totalPhaseDays}</span>
+                            <span className="text-[20px] font-bold text-indigo-600 leading-none mb-1.5">{totalPhaseDays}</span>
                             <span className="text-[11px] font-semibold text-slate-500">Ngày làm</span>
                         </div>
                         <div className="bg-amber-50/50 border border-amber-50 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-black text-amber-500 leading-none mb-1.5">{kpiState.paused_days}</span>
+                            <span className="text-[20px] font-bold text-amber-500 leading-none mb-1.5">{kpiState.paused_days}</span>
                             <span className="text-[11px] font-semibold text-slate-500">Ngày dừng</span>
                         </div>
                         <div className="bg-slate-50 border border-slate-100 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-black text-slate-600 leading-none mb-1.5">{totalEstimatedDays}</span>
+                            <span className="text-[20px] font-bold text-slate-600 leading-none mb-1.5">{totalEstimatedDays}</span>
                             <span className="text-[11px] font-semibold text-slate-500">Dự kiến</span>
                         </div>
                     </div>
@@ -190,18 +190,18 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                             <PauseCircle size={16} fill="currentColor" className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className="text-[13px] font-black text-slate-800">Tạm dừng / chờ khách</h4>
+                            <h4 className="text-[13px] font-bold text-slate-800">Tạm dừng / chờ khách</h4>
                             <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">Gộp chờ khách + chuyển dự án</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                         <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
-                        <span className="font-black text-sm text-slate-800 w-5 text-center">{kpiState.paused_days}</span>
+                        <span className="font-bold text-sm text-slate-800 w-5 text-center">{kpiState.paused_days}</span>
                         <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
                     </div>
                 </div>
 
-                <h3 className="text-[13px] font-black text-slate-800 mb-3 px-1">Giai đoạn</h3>
+                <h3 className="text-[13px] font-bold text-slate-800 mb-3 px-1">Giai đoạn</h3>
 
                 {/* ── Phases with linked tasks ── */}
                 <div className="space-y-3">
@@ -221,9 +221,9 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className={`w-2.5 h-2.5 rounded-full ${isDone ? 'bg-emerald-500' : isActive ? 'bg-indigo-500' : 'bg-slate-400'}`}></div>
-                                            <h4 className="font-black text-slate-800 text-[15px]">{phase.name}</h4>
+                                            <h4 className="font-bold text-slate-800 text-[15px]">{phase.name}</h4>
                                         </div>
-                                        <span className={`px-2 py-0.5 rounded font-black text-[10px] tracking-wide uppercase ${isDone ? 'bg-emerald-50 text-emerald-600' : isActive ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                                        <span className={`px-2 py-0.5 rounded font-bold text-[10px] tracking-wide uppercase ${isDone ? 'bg-emerald-50 text-emerald-600' : isActive ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
                                             {isDone ? 'XONG' : isActive ? 'ĐANG' : 'CHỜ'}
                                         </span>
                                     </div>
@@ -231,14 +231,14 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     {/* Row 2: Subtext and Actual Days Buttons */}
                                     <div className={`flex items-center justify-between ${isExpanded ? 'border-b border-dashed border-slate-200 pb-3.5' : 'pb-1'}`}>
                                         <div className="text-[12px] font-semibold text-slate-500 flex items-center gap-1">
-                                            Làm <span className="text-slate-800 font-black">{pState.days_used || 0}</span><span className="text-indigo-500 font-black">/{pState.days_estimated || 0} ng</span> 
+                                            Làm <span className="text-slate-800 font-bold">{pState.days_used || 0}</span><span className="text-indigo-500 font-bold">/{pState.days_estimated || 0} ng</span> 
                                             <span className="text-indigo-500 ml-0.5">✏️</span>
                                             <span className="text-slate-300 mx-0.5">•</span> 
                                             {phaseTasks.length} task
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                                             <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
-                                            <span className="font-black text-sm text-slate-800 w-5 text-center">{pState.days_used || 0}</span>
+                                            <span className="font-bold text-sm text-slate-800 w-5 text-center">{pState.days_used || 0}</span>
                                             <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: (s.phases[phase.key]?.days_used || 0) + 1 } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
                                         </div>
                                     </div>
@@ -249,10 +249,10 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     <div className="px-4 pb-4 pt-1 flex flex-col gap-4">
                                             {/* Estimated days editor */}
                                             <div className="flex items-center justify-between">
-                                                <div className="text-[13px] font-black text-slate-800">Dự kiến giai đoạn này</div>
+                                                <div className="text-[13px] font-bold text-slate-800">Dự kiến giai đoạn này</div>
                                                 <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                                                     <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: Math.max(0, (s.phases[phase.key]?.days_estimated || 0) - 1) } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3}/></button>
-                                                    <span className="font-black text-sm text-slate-800 w-5 text-center">{pState.days_estimated || 0}</span>
+                                                    <span className="font-bold text-sm text-slate-800 w-5 text-center">{pState.days_estimated || 0}</span>
                                                     <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: (s.phases[phase.key]?.days_estimated || 0) + 1 } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3}/></button>
                                                     <span className="text-[11px] font-semibold text-slate-500 ml-1">ngày</span>
                                                 </div>
@@ -291,7 +291,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                     {/* Unassigned tasks */}
                     {(tasksByPhase['_unassigned'] || []).length > 0 && (
                         <div className="bg-amber-50 border border-amber-200 rounded-[1.25rem] p-4 shadow-sm mt-4">
-                            <h4 className="text-[11px] font-black text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                 ⚠ Nhiệm vụ chưa gán giai đoạn ({tasksByPhase['_unassigned'].length})
                             </h4>
                             <div className="space-y-2">

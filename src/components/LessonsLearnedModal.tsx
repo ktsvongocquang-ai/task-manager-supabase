@@ -464,14 +464,14 @@ export default function LessonsLearnedModal({
               <BookOpen className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider">Lịch sử sự cố</h3>
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Lịch sử sự cố</h3>
               <span className="text-[9px] font-bold text-amber-500 uppercase mt-0.5 block">Lessons Learned</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={exportToCSV}
-              className="p-2 md:px-3 md:py-1.5 bg-emerald-600/10 border border-emerald-500/20 hover:bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 rounded-lg cursor-pointer transition-all text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5"
+              className="p-2 md:px-3 md:py-1.5 bg-emerald-600/10 border border-emerald-500/20 hover:bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 rounded-lg cursor-pointer transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
               title="Xuất Excel"
             >
               <Download className="w-4 h-4 md:w-3.5 md:h-3.5" />
@@ -480,7 +480,7 @@ export default function LessonsLearnedModal({
 
             <button
               onClick={exportToJSON}
-              className="p-2 md:px-3 md:py-1.5 bg-indigo-600/10 border border-indigo-500/20 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 rounded-lg cursor-pointer transition-all text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5"
+              className="p-2 md:px-3 md:py-1.5 bg-indigo-600/10 border border-indigo-500/20 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 rounded-lg cursor-pointer transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
               title="Sao Lưu JSON"
             >
               <FolderArchive className="w-4 h-4 md:w-3.5 md:h-3.5" />
@@ -498,7 +498,7 @@ export default function LessonsLearnedModal({
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2 md:px-3 md:py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg cursor-pointer transition-all text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5"
+                  className="p-2 md:px-3 md:py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg cursor-pointer transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
                   title="Nạp Sao Lưu"
                 >
                   <Upload className="w-4 h-4 md:w-3.5 md:h-3.5" />
@@ -606,7 +606,7 @@ export default function LessonsLearnedModal({
                       
                       {/* Severity Badge */}
                       <div className="absolute top-2 left-2 flex gap-1">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase shadow-sm ${
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase shadow-sm ${
                           defect.severity === 'High' ? 'bg-rose-500 text-white' : 
                           defect.severity === 'Medium' ? 'bg-amber-500 text-slate-950' : 
                           'bg-slate-700 text-white'

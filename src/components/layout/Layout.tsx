@@ -578,7 +578,7 @@ export const Layout = () => {
                                     >
                                         <Bell size={18} strokeWidth={2.5} className="text-yellow-500 fill-yellow-500/20" />
                                         {unreadNotifCount > 0 && (
-                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">
+                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white shadow-sm">
                                                 {unreadNotifCount}
                                             </span>
                                         )}
@@ -606,7 +606,7 @@ export const Layout = () => {
                                     className="hidden lg:flex relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                                 >
                                     <MessageSquare size={18} strokeWidth={2.5} />
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-sm">0</span>
+                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white shadow-sm">0</span>
                                 </button>
                             </div>
                         </div>

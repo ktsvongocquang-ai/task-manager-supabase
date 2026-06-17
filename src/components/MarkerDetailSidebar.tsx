@@ -266,7 +266,7 @@ export default function MarkerDetailSidebar({
             <div className="p-1.5 bg-indigo-600 rounded-lg">
               <AlertCircle className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-xs font-black text-slate-900">
+            <span className="text-xs font-bold text-slate-900">
               Hồ sơ sự cố ({markersList.length})
             </span>
           </div>
@@ -443,7 +443,7 @@ export default function MarkerDetailSidebar({
           <div className="p-1.5 bg-indigo-600 text-white rounded-lg">
             <MessageSquare className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-black text-slate-900">
+          <span className="text-xs font-bold text-slate-900">
             {marker ? 'Chi tiết sự cố' : `Nhãn: ${selectedAnnotation?.type}`}
           </span>
         </div>
@@ -826,7 +826,7 @@ export default function MarkerDetailSidebar({
             onClick={() => {
               onAddMarker(marker.x, marker.y);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-black text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95 border border-emerald-500 hover:border-emerald-400"
+            className="flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95 border border-emerald-500 hover:border-emerald-400"
             title="Tạo thêm 1 lỗi khác chồng lên ngay tại vị trí này"
           >
             <span>➕ Thêm lỗi ở đây</span>

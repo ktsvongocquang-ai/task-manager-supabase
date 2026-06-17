@@ -183,7 +183,7 @@ function KpiCard({ icon, label, value, sub, accent, trend }: KpiCardProps) {
       </div>
       <div>
         <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-1">{label}</p>
-        <p className={`text-4xl font-black tabular-nums ${textMap[accent]}`}>{value}</p>
+        <p className={`text-4xl font-bold tabular-nums ${textMap[accent]}`}>{value}</p>
         {sub && (
           <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
             {trend === 'up' && <TrendingUp className="w-3 h-3 text-emerald-400" />}
@@ -251,7 +251,7 @@ function ProjectCard({ stats, onOpen }: { stats: ProjectStats; onOpen: () => voi
       <div>
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs text-slate-400 tracking-wider uppercase">Tiến độ</span>
-          <span className="text-xs font-black text-white">{project.progress}%</span>
+          <span className="text-xs font-bold text-white">{project.progress}%</span>
         </div>
         <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
           <div
@@ -271,19 +271,19 @@ function ProjectCard({ stats, onOpen }: { stats: ProjectStats; onOpen: () => voi
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-slate-400 tracking-wider uppercase">Lỗi / Khiếm khuyết</span>
-          <span className="text-xs font-black text-slate-300">{totalDefects} tổng</span>
+          <span className="text-xs font-bold text-slate-300">{totalDefects} tổng</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
           <div className="flex flex-col items-center bg-rose-500/10 rounded-lg py-1.5 border border-rose-500/20">
-            <span className="text-base font-black text-rose-400">{unresolved}</span>
+            <span className="text-base font-bold text-rose-400">{unresolved}</span>
             <span className="text-[10px] text-rose-300/70 tracking-wide">Chưa sửa</span>
           </div>
           <div className="flex flex-col items-center bg-amber-500/10 rounded-lg py-1.5 border border-amber-500/20">
-            <span className="text-base font-black text-amber-400">{inProgress}</span>
+            <span className="text-base font-bold text-amber-400">{inProgress}</span>
             <span className="text-[10px] text-amber-300/70 tracking-wide">Đang sửa</span>
           </div>
           <div className="flex flex-col items-center bg-emerald-500/10 rounded-lg py-1.5 border border-emerald-500/20">
-            <span className="text-base font-black text-emerald-400">{resolved}</span>
+            <span className="text-base font-bold text-emerald-400">{resolved}</span>
             <span className="text-[10px] text-emerald-300/70 tracking-wide">Đã duyệt</span>
           </div>
         </div>
@@ -374,7 +374,7 @@ export default function CEODashboard({
             <Activity className="w-5 h-5 text-sky-400" />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight text-white">
+            <h1 className="text-xl font-bold tracking-tight text-white">
               CEO Command Center
             </h1>
             <p className="text-xs text-slate-400 tracking-wider">{formatDate(now)}</p>
@@ -383,7 +383,7 @@ export default function CEODashboard({
 
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className="text-2xl font-black tabular-nums text-white tracking-tight">
+            <p className="text-2xl font-bold tabular-nums text-white tracking-tight">
               {formatTime(now)}
             </p>
             <p className="text-xs text-sky-400 font-semibold tracking-widest uppercase">
@@ -503,7 +503,7 @@ export default function CEODashboard({
               </div>
               <div>
                 <p className="text-xs text-slate-400 tracking-widest uppercase">Tiến độ trung bình</p>
-                <p className="text-3xl font-black text-white tabular-nums">{avgProgress}%</p>
+                <p className="text-3xl font-bold text-white tabular-nums">{avgProgress}%</p>
               </div>
             </div>
 

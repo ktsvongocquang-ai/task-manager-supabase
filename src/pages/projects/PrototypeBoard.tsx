@@ -1194,13 +1194,13 @@ export const PrototypeBoard = () => {
                 <Layout className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-sm font-black tracking-tight text-white block leading-none">Site Board</span>
+                <span className="text-sm font-bold tracking-tight text-white block leading-none">Site Board</span>
                 <span className="text-[9px] text-[#888] font-bold block mt-0.5 uppercase tracking-widest">DQH Architects</span>
               </div>
             </div>
             
             {/* Miro-Like "Free / Pro" Team Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-[#222] border border-slate-850 px-2.5 py-1 rounded-full text-[9px] font-black text-amber-400">
+            <div className="hidden lg:flex items-center gap-1.5 bg-[#222] border border-slate-850 px-2.5 py-1 rounded-full text-[9px] font-bold text-amber-400">
               <span className="bg-amber-400/10 px-1.5 py-0.5 rounded text-amber-400 font-extrabold">STUDIO DQH</span>
               <span className="text-[#888]">•</span>
               <span className="text-[#aaa] font-medium">Khảo Sát & Whiteboard Cộng Tác</span>
@@ -1218,7 +1218,7 @@ export const PrototypeBoard = () => {
               onClick={() => {
                 setShowLessonsModal(true);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black cursor-pointer shadow-md transition-all active:scale-95 duration-150 shrink-0"
+              className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold cursor-pointer shadow-md transition-all active:scale-95 duration-150 shrink-0"
               title="Quản lý các mẫu lỗi công trình thiết kế"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -1263,7 +1263,7 @@ export const PrototypeBoard = () => {
             {/* Notification Feed - 3/5 */}
             <div className="xl:col-span-3 bg-[#222] border border-[#333] rounded-3xl p-4 md:p-5 flex flex-col gap-3 select-none">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-black text-indigo-400 uppercase tracking-widest">
+                <h2 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
                   🔔 Thông báo gần đây
                 </h2>
                 {recentNotifs.filter(n => !n.read).length > 0 && (
@@ -1303,7 +1303,7 @@ export const PrototypeBoard = () => {
 
             {/* Team Activity - 2/5 */}
             <div className="xl:col-span-2 bg-[#222] border border-[#333] rounded-3xl p-4 md:p-5 flex flex-col gap-4 select-none">
-              <h2 className="text-xs font-black text-emerald-400 uppercase tracking-widest">📊 Hoạt động nhóm</h2>
+              <h2 className="text-xs font-bold text-emerald-400 uppercase tracking-widest">📊 Hoạt động nhóm</h2>
               <div className="grid grid-cols-2 gap-3">
                 {([[projects.filter(p => !p.status || p.status === "active").length, "Công trình đang chạy", "🏗️"],
                    [markerNotes.filter(m => !(m.tags?.[0] === "Đã duyệt")).length, "Lỗi chưa xử lý", "🔴"],
@@ -1313,7 +1313,7 @@ export const PrototypeBoard = () => {
                   <div key={label} className="bg-[#1a1a1a] rounded-2xl p-3 border border-[#333]">
                     <div className="flex items-center gap-1.5 mb-1">
                       <span className="text-base">{icon}</span>
-                      <span className="text-xl font-black text-white font-mono">{val}</span>
+                      <span className="text-xl font-bold text-white font-mono">{val}</span>
                     </div>
                     <p className="text-[10px] text-[#888] leading-tight">{label}</p>
                   </div>
@@ -1391,7 +1391,7 @@ export const PrototypeBoard = () => {
                     setNewProjectLeader('KTS. Võ Ngọc Quang');
                     setShowNewProjectModal(true);
                   }}
-                  className="h-8 pl-3 pr-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl cursor-pointer flex items-center gap-1 shadow-md transition-all active:scale-95"
+                  className="h-8 pl-3 pr-4 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1 shadow-md transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Tạo dự án mới</span>
@@ -1441,7 +1441,7 @@ export const PrototypeBoard = () => {
                         <div className="flex items-center gap-1.5 mb-2 text-[10px] text-[#999]">
                           <span className="font-extrabold text-indigo-400 uppercase tracking-widest">KTS: {p.leader ? p.leader.replace('KTS. ', '') : ''}</span>
                         </div>
-                        <h3 className="text-sm font-black text-white group-hover:text-indigo-400 transition-colors line-clamp-2 pr-6 mb-2" title={p.name}>
+                        <h3 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors line-clamp-2 pr-6 mb-2" title={p.name}>
                           {p.name}
                         </h3>
                         {(() => {
@@ -1479,7 +1479,7 @@ export const PrototypeBoard = () => {
                               setWorkspaceView('profile');
                               setCurrentView('workspace');
                             }}
-                            className="p-1 px-3 bg-indigo-500/10 hover:bg-indigo-500/25 border border-indigo-500/20 rounded-lg text-[9px] font-black text-indigo-300 transition-colors uppercase cursor-pointer flex items-center gap-1"
+                            className="p-1 px-3 bg-indigo-500/10 hover:bg-indigo-500/25 border border-indigo-500/20 rounded-lg text-[9px] font-bold text-indigo-300 transition-colors uppercase cursor-pointer flex items-center gap-1"
                           >
                             <span>Vào Board</span>
                           </button>
@@ -1593,7 +1593,7 @@ export const PrototypeBoard = () => {
                                     setWorkspaceView('profile');
                                     setCurrentView('workspace');
                                   }}
-                                  className="h-7 px-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-lg font-black text-[10px] tracking-wide shadow-sm transition-all cursor-pointer flex items-center gap-0.5 uppercase"
+                                  className="h-7 px-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-lg font-bold text-[10px] tracking-wide shadow-sm transition-all cursor-pointer flex items-center gap-0.5 uppercase"
                                 >
                                   <span>Vào Board</span>
                                   <ExternalLink className="w-3.5 h-3.5" />
@@ -1622,7 +1622,7 @@ export const PrototypeBoard = () => {
         {showNewProjectModal && (
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 select-none">
             <div className="bg-[#1a1a1a] border border-[#444] rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
-              <h2 className="text-base font-black text-white flex items-center gap-2 mb-2">
+              <h2 className="text-base font-bold text-white flex items-center gap-2 mb-2">
                 🏛️ Khởi tạo dự án thiết kế mới
               </h2>
               <p className="text-xs text-[#aaa] mb-5">Hồ sơ dự án sẽ tự động sinh các mặt bản vẽ Sàn ốp lát, Trực trạng gạch khảo sát...</p>
@@ -1697,7 +1697,7 @@ export const PrototypeBoard = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-black rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer"
+                    className="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-xl text-xs shadow-md transition-all active:scale-95 cursor-pointer"
                   >
                     Khởi tạo Board
                   </button>
@@ -1910,7 +1910,7 @@ export const PrototypeBoard = () => {
         <div className="flex-1 bg-white text-slate-900 max-w-4xl w-full mx-auto p-6 md:p-10 flex flex-col gap-6" id="printable-report-area">
           <div className="flex items-center justify-between border-b pb-4 border-slate-300">
             <div>
-              <h2 className="text-xl font-black text-slate-950 tracking-tight">BÁO CÁO KHẢO SÁT & WHITEBOARD COLLABORATION</h2>
+              <h2 className="text-xl font-bold text-slate-950 tracking-tight">BÁO CÁO KHẢO SÁT & WHITEBOARD COLLABORATION</h2>
               <p className="text-xs text-[#888] mt-1">
                 Tên dự án mặt bằng: <span className="font-bold text-slate-850">{activePlan.name}</span>
               </p>
@@ -1938,23 +1938,23 @@ export const PrototypeBoard = () => {
           <div className="grid grid-cols-3 gap-3.5">
             <div className="bg-slate-50 border rounded-xl p-3 shadow-sm">
               <span className="text-[9px] uppercase font-bold text-[#aaa] block leading-none">Chấm lỗi camera</span>
-              <p className="text-base font-black text-slate-900 mt-1">{projectMarkerNotes.length} ghim</p>
+              <p className="text-base font-bold text-slate-900 mt-1">{projectMarkerNotes.length} ghim</p>
             </div>
             <div className="bg-slate-50 border rounded-xl p-3 shadow-sm">
               <span className="text-[9px] uppercase font-bold text-[#aaa] block leading-none">Hình ảnh đính kèm</span>
-              <p className="text-base font-black text-slate-900 mt-1">
+              <p className="text-base font-bold text-slate-900 mt-1">
                 {projectMarkerNotes.filter(m => m.photoData).length} / {projectMarkerNotes.length} ảnh
               </p>
             </div>
             <div className="bg-slate-50 border rounded-xl p-3 shadow-sm">
               <span className="text-[9px] uppercase font-bold text-[#aaa] block leading-none">Whiteboard markup</span>
-              <p className="text-base font-black text-slate-900 mt-1">{projectAnnotations.length} hình vẽ</p>
+              <p className="text-base font-bold text-slate-900 mt-1">{projectAnnotations.length} hình vẽ</p>
             </div>
           </div>
 
           {/* Detailed Points List Loop */}
           <div className="flex flex-col gap-6 mt-2">
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest border-b pb-2">Danh sách chi tiết các lỗi & phản hồi</h3>
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest border-b pb-2">Danh sách chi tiết các lỗi & phản hồi</h3>
             {projectMarkerNotes.length === 0 ? (
               <div className="bg-slate-50 border border-dashed rounded-xl p-8 text-center text-[#888] text-xs italic">
                 Chưa có điểm ghim khảo sát nào được tạo.
@@ -1995,7 +1995,7 @@ export const PrototypeBoard = () => {
 
                     {m.transcription && (
                       <div className="bg-slate-50 p-2.5 rounded-xl border-l-[4px] border-l-emerald-500">
-                        <span className="text-[9px] uppercase font-black text-emerald-600 block leading-none">Thuyết minh Việt hoá:</span>
+                        <span className="text-[9px] uppercase font-bold text-emerald-600 block leading-none">Thuyết minh Việt hoá:</span>
                         <p className="text-xs text-slate-800 italic mt-1 leading-relaxed font-sans">
                           "{m.transcription}"
                         </p>
@@ -2012,7 +2012,7 @@ export const PrototypeBoard = () => {
                     {/* Threaded discussion comments in the index card */}
                     {m.comments && m.comments.length > 0 && (
                       <div className="border-t border-slate-100 pt-2.5 mt-1.5">
-                        <span className="text-[9px] uppercase font-black text-indigo-700 block mb-1">Thảo luận giải quyết lỗi ({m.comments.length}):</span>
+                        <span className="text-[9px] uppercase font-bold text-indigo-700 block mb-1">Thảo luận giải quyết lỗi ({m.comments.length}):</span>
                         <div className="flex flex-col gap-2">
                           {m.comments.map(c => (
                             <div key={c.id} className="text-[11px] bg-slate-50 border border-slate-150 p-2 rounded-xl">
@@ -2098,7 +2098,7 @@ export const PrototypeBoard = () => {
               <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 z-45 hidden lg:block">
                 <button
                   onClick={() => setIsRightSidebarOpen(false)}
-                  className="w-5 h-20 bg-slate-950 hover:bg-[#222] text-indigo-400 border border-r-0 border-[#444] rounded-l-2xl shadow-2xl font-black text-xs flex flex-col items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95 transition-all"
+                  className="w-5 h-20 bg-slate-950 hover:bg-[#222] text-indigo-400 border border-r-0 border-[#444] rounded-l-2xl shadow-2xl font-bold text-xs flex flex-col items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95 transition-all"
                   title="Thu gọn bảng phản hồi"
                 >
                   <span>▶</span>
@@ -2140,7 +2140,7 @@ export const PrototypeBoard = () => {
             <div className="absolute right-0 top-1/2 -translate-y-1/2 z-35 hidden lg:block">
               <button
                 onClick={() => setIsRightSidebarOpen(true)}
-                className="w-5 h-20 bg-slate-950 hover:bg-[#222] text-indigo-400 border border-r-0 border-[#444] rounded-l-2xl shadow-2xl font-black text-xs flex flex-col items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95"
+                className="w-5 h-20 bg-slate-950 hover:bg-[#222] text-indigo-400 border border-r-0 border-[#444] rounded-l-2xl shadow-2xl font-bold text-xs flex flex-col items-center justify-center gap-1 cursor-pointer hover:scale-105 active:scale-95"
                 title="Hiện bảng phản hồi bên phải"
               >
                 <span>◀</span>
@@ -2255,7 +2255,7 @@ export const PrototypeBoard = () => {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60]">
           <button
             onClick={() => setIsGlobalCaptureOpen(true)}
-            className="flex items-center gap-2 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-full shadow-[0_10px_30px_rgba(16,185,129,0.5)] transition-transform hover:scale-105 active:scale-95 border-2 border-emerald-400"
+            className="flex items-center gap-2 px-6 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-full shadow-[0_10px_30px_rgba(16,185,129,0.5)] transition-transform hover:scale-105 active:scale-95 border-2 border-emerald-400"
           >
             <Camera className="w-6 h-6" />
             <span className="text-sm uppercase tracking-wide">📸 CHỤP LỖI NGAY</span>
