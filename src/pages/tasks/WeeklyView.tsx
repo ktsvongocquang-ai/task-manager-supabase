@@ -235,7 +235,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             groups = projectIds.map(pid => {
                 const code = getProjectCode(pid);
                 const name = getProjectName(pid);
-                const label = code ? (name.includes(code) ? name : `${code} - ${name}`) : name;
+                const cleanCode = code.replace(/\s+/g, '').toLowerCase();
+                const cleanName = name.replace(/\s+/g, '').toLowerCase();
+                const label = code ? (cleanName.includes(cleanCode) ? name : `${code} - ${name}`) : name;
                 const tks = sourceList.filter(t => t.project_id === pid).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
                 return { key: pid, label, tasks: tks, defaultValues: { project_id: pid } };
             }).sort((a, b) => a.label.localeCompare(b.label));
@@ -379,7 +381,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     {uniqueProjects.map(id => {
                         const code = getProjectCode(id);
                         const name = getProjectName(id);
-                        const label = code ? (name.includes(code) ? name : `${code} - ${name}`) : name;
+                        const cleanCode = code.replace(/\s+/g, '').toLowerCase();
+                        const cleanName = name.replace(/\s+/g, '').toLowerCase();
+                        const label = code ? (cleanName.includes(cleanCode) ? name : `${code} - ${name}`) : name;
                         return <option key={id} value={id}>{label}</option>
                     })}
                 </select>
