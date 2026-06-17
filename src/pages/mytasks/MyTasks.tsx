@@ -1822,19 +1822,16 @@ export default function MyTasks() {
                           <Plus className="w-5 h-5 ml-2" /> Thêm việc cần làm
                         </button>
                      ) : (
-                        <div className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3 focus-within:ring-2 focus-within:ring-emerald-100 transition-shadow">
+                        <form onSubmit={(e) => { e.preventDefault(); handleKanbanInputConfirm(); }} className="bg-white p-3 rounded-xl border border-emerald-400 shadow-sm mb-3 focus-within:ring-2 focus-within:ring-emerald-100 transition-shadow">
                           <input 
                             autoFocus
                             type="text" 
-                            placeholder="Tên công việc..." 
+                            placeholder="Tên công việc (Bắt buộc)..." 
                             className="w-full text-base border-none bg-transparent focus:ring-0 p-0 text-gray-900 font-bold mb-2 placeholder-gray-400"
                             value={kanbanNewTaskTitle}
                             onChange={e => setKanbanNewTaskTitle(e.target.value)}
                             onKeyDown={e => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleKanbanInputConfirm();
-                              } else if (e.key === 'Escape') {
+                              if (e.key === 'Escape') {
                                 setKanbanAddingCategory(null);
                                 setKanbanNewTaskTitle('');
                                 setKanbanNewTaskDesc('');
@@ -1860,6 +1857,7 @@ export default function MyTasks() {
                             />
                             <div className="absolute right-0 bottom-0 opacity-0 group-hover/adddesc:opacity-100 transition-opacity flex gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-md">
                               <button
+                                type="button"
                                 onClick={(e) => { e.preventDefault(); handleSpeechToText('kanbanDesc'); }}
                                 className={`p-1 rounded-md transition-colors ${isListening === 'kanbanDesc' ? 'text-red-500 bg-red-50 animate-pulse' : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50'}`}
                                 title="Ghi âm chi tiết"
@@ -1867,6 +1865,7 @@ export default function MyTasks() {
                                 {isListening === 'kanbanDesc' ? <MicOff size={14} /> : <Mic size={14} />}
                               </button>
                               <button
+                                type="button"
                                 onClick={(e) => { e.preventDefault(); handleAIRefine('kanbanDesc'); }}
                                 disabled={isRefining === 'kanbanDesc' || !kanbanNewTaskDesc}
                                 className="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50"
@@ -1878,12 +1877,14 @@ export default function MyTasks() {
                           </div>
                           <div className="flex items-center gap-2">
                              <button 
+                               type="button"
                                onClick={() => setKanbanNewTaskDate(todayStr)}
                                className={`px-3 py-1 rounded-full border text-xs font-semibold hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-colors ${kanbanNewTaskDate === todayStr ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-transparent border-gray-200 text-gray-600'}`}
                              >
                                Hôm nay
                              </button>
                              <button 
+                               type="button"
                                onClick={() => {
                                  const tmr = new Date();
                                  tmr.setDate(tmr.getDate() + 1);
@@ -1899,12 +1900,13 @@ export default function MyTasks() {
                                  className="absolute opacity-0 inset-0 cursor-pointer w-full h-full"
                                  onChange={(e) => setKanbanNewTaskDate(e.target.value)}
                                />
-                               <button className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
+                               <button type="button" className="w-7 h-7 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
                                  <CalendarIcon className="w-3.5 h-3.5" />
                                </button>
                              </div>
                              <div className="flex-1"></div>
                              <button
+                               type="button"
                                onClick={() => {
                                  setKanbanAddingCategory(null);
                                  setKanbanNewTaskTitle('');
@@ -1916,14 +1918,14 @@ export default function MyTasks() {
                                <X className="w-4 h-4" />
                              </button>
                              <button
-                               onClick={handleKanbanInputConfirm}
+                               type="submit"
                                disabled={!kanbanNewTaskTitle.trim()}
                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
                              >
                                Thêm
                              </button>
                           </div>
-                        </div>
+                        </form>
                      )}
 
                      {/* Active Tasks */}
