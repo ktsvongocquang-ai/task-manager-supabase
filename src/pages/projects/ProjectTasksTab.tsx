@@ -100,19 +100,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     ];
 
     return (
-        <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl">
-            {/* Header */}
-            <div className="pt-6 pb-4 px-6 relative bg-[#F3F4F6]">
-                <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full bg-slate-200/50 hover:bg-slate-200">
-                    <X size={16} strokeWidth={3} />
-                </button>
-                <h2 className="text-xl font-black text-slate-800 pr-8 leading-tight tracking-tight">
-                    DQH • {project.name.replace(/^DQH - |^DQH- /i, '')}
-                </h2>
-                <div className="text-xs text-slate-500 font-medium mt-1">
-                    {project.project_code} · {project.project_type || 'Hồ sơ thiết kế'} · {stats.total} đầu việc
-                </div>
-            </div>
+        <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl pt-4">
 
             {/* Stats Bar */}
             <div className="px-6 pb-4">
@@ -362,15 +350,6 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                 })()}
             </div>
 
-            {/* Footer Close Button */}
-            <div className="p-4 bg-gradient-to-t from-[#F3F4F6] via-[#F3F4F6] to-transparent">
-                <button
-                    onClick={onClose}
-                    className="w-full bg-[#E2E4E9] hover:bg-[#D1D5DB] text-slate-700 py-3.5 rounded-2xl text-[15px] font-black uppercase tracking-widest transition-colors shadow-sm active:scale-[0.98]"
-                >
-                    Đóng
-                </button>
-            </div>
         </div>
     )
 }

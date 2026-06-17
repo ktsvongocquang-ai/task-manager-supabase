@@ -80,53 +80,51 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
             <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
                 <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden w-full max-w-5xl h-[90vh]">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md relative shrink-0">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-xl shrink-0">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md relative shrink-0 gap-4">
+                        <div className="flex items-start gap-3 md:gap-4 pr-12">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-black text-lg md:text-xl shrink-0">
                                 {project.name.charAt(0)}
                             </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-tight">
+                            <div className="min-w-0">
+                                <h2 className="text-lg md:text-2xl font-black text-slate-800 tracking-tight leading-tight truncate" title={project.name}>
                                     {project.name}
                                 </h2>
-                                <p className="text-sm font-bold text-slate-400 mt-0.5">
+                                <p className="text-xs md:text-sm font-bold text-slate-400 mt-0.5 truncate">
                                     {project.project_code} • {project.project_type || 'Dự án'}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center overflow-x-auto no-scrollbar pb-1 md:pb-0">
                             {/* Tab Switcher */}
-                            <div className="bg-slate-200/50 p-1.5 rounded-2xl flex gap-1">
+                            <div className="bg-slate-200/50 p-1.5 rounded-2xl flex gap-1 shrink-0">
                                 <button
                                     onClick={() => setActiveTab('tasks')}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'tasks' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                                    className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${activeTab === 'tasks' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                                 >
-                                    <CheckSquare size={16} strokeWidth={2.5} />
+                                    <CheckSquare size={14} strokeWidth={2.5} />
                                     Nhiệm vụ
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('timeline')}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'timeline' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                                    className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${activeTab === 'timeline' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                                 >
-                                    <Clock size={16} strokeWidth={2.5} />
+                                    <Clock size={14} strokeWidth={2.5} />
                                     Tiến độ
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('info')}
-                                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'info' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                                    className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${activeTab === 'info' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                                 >
-                                    <Info size={16} strokeWidth={2.5} />
+                                    <Info size={14} strokeWidth={2.5} />
                                     Thông tin
                                 </button>
                             </div>
-                            
-                            <div className="w-px h-8 bg-slate-200 mx-1"></div>
-
-                            <button onClick={onClose} className="p-2.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors bg-white shadow-sm border border-slate-100">
-                                <X size={20} strokeWidth={2.5} />
-                            </button>
                         </div>
+
+                        <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors bg-white shadow-sm border border-slate-100 z-10">
+                            <X size={18} strokeWidth={2.5} />
+                        </button>
                     </div>
 
                     {/* Tab Content Body */}
