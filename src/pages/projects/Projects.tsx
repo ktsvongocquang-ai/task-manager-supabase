@@ -300,6 +300,9 @@ export const Projects = () => {
     }
 
     const handleUpdateAssignee = async (taskId: string, assigneeId: string) => {
+        // Optimistic UI update
+        setAllTasks(prev => prev.map(t => t.id === taskId ? { ...t, assignee_id: assigneeId || null } : t));
+
         const { error } = await supabase.from('tasks').update({
             assignee_id: assigneeId || null
         }).eq('id', taskId)
@@ -308,6 +311,7 @@ export const Projects = () => {
         } else {
             console.error('Update Assignee Error:', error)
             alert('Lỗi khi gán người phụ trách: ' + error.message)
+            fetchTasks() // Revert on error
         }
     }
 
@@ -316,6 +320,9 @@ export const Projects = () => {
         const newStatus = isCompleted ? 'Đang thực hiện' : 'Hoàn thành'
         const newPct = isCompleted ? 50 : 100
         const newDate = !isCompleted ? new Date().toISOString().split('T')[0] : null
+
+        // Optimistic UI update
+        setAllTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus, completion_pct: newPct, completion_date: newDate } : t));
 
         const { error } = await supabase.from('tasks').update({
             status: newStatus,
@@ -328,8 +335,16 @@ export const Projects = () => {
 
     const handleDeleteTask = async (id: string) => {
         if (!confirm('Xóa nhiệm vụ này?')) return
-        await supabase.from('tasks').delete().eq('id', id)
-        fetchTasks()
+        // Optimistic UI update
+        setAllTasks(prev => prev.filter(t => t.id !== id));
+        
+        const { error } = await supabase.from('tasks').delete().eq('id', id)
+        if (!error) {
+            fetchTasks()
+        } else {
+            console.error('Delete Task Error:', error)
+            fetchTasks() // Revert on error
+        }
     }
 
     const generateNextTaskCode = (projectId: string) => {
