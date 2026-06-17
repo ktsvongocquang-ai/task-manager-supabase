@@ -558,8 +558,8 @@ export const Projects = () => {
                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
                             </div>
 
-                            <div className="mt-6">
-                                <button onClick={(e) => { e.stopPropagation(); openUnifiedModal(project, 'tasks'); }} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 text-sm font-bold transition-all shadow-sm hover:shadow">
+                            <div className="mt-6 flex justify-end">
+                                <button onClick={(e) => { e.stopPropagation(); openUnifiedModal(project, 'tasks'); }} className="w-full md:w-auto px-5 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 text-sm font-bold transition-all shadow-sm hover:shadow">
                                     <List size={16} /> {(() => {
                                         const pTasks = allTasks.filter(t => t.project_id === project.id);
                                         const doneCount = pTasks.filter(t => t.status === 'Hoàn thành').length;
