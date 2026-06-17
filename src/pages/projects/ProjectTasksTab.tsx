@@ -234,11 +234,9 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     {/* Hidden Action Buttons visible on hover */}
                                                     <div className="hidden group-hover:flex gap-1.5 animate-in fade-in mr-1">
+                                                            <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-1 text-slate-400 hover:text-blue-500 bg-white rounded shadow-sm border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
                                                         {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                            <>
-                                                                <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-1 text-slate-400 hover:text-blue-500 bg-white rounded shadow-sm border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
-                                                                <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1 text-slate-400 hover:text-indigo-600 bg-white rounded shadow-sm border border-slate-100" title="Sao chép"><Copy size={12} /></button>
-                                                            </>
+                                                            <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1 text-slate-400 hover:text-indigo-600 bg-white rounded shadow-sm border border-slate-100" title="Sao chép"><Copy size={12} /></button>
                                                         )}
                                                         {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
                                                             <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
