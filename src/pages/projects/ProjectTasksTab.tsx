@@ -263,6 +263,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                 {/* Unassigned Tasks */}
                 {(() => {
                     const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
+                    if (unassigned.length === 0) return null;
                     const isExpanded = expandedPhases['unassigned'];
                     
                     return (
