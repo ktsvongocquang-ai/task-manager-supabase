@@ -17,7 +17,7 @@ import {
     eachDayOfInterval
 } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { X, ChevronLeft, ChevronRight, Search, FileText, Download, Upload, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Search, FileText, Download, Upload, Plus, ChevronDown, ChevronUp, Folder } from 'lucide-react'
 
 const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 

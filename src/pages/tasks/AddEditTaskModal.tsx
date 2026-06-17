@@ -6,7 +6,7 @@ import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { CommentSection } from '../../components/chat/CommentSection';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import { getAssignableProfiles } from '../../utils/profileUtils';
 import { openGoogleCalendar } from '../../utils/calendarUtils';
 
@@ -246,9 +246,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     supporter_id: editingTask.supporter_id || '', 
                     status: editingTask.status || 'Cần làm', 
                     priority: editingTask.priority || 'Trung bình',
-                    start_date: editingTask.start_date || today, 
+                    start_date: editingTask.start_date ? editingTask.start_date.split('T')[0] : today, 
                     start_time: editingTask.start_time || '',
-                    due_date: editingTask.due_date || today, 
+                    due_date: editingTask.due_date ? editingTask.due_date.split('T')[0] : today, 
                     due_time: editingTask.due_time || '',
                     result_links: editingTask.result_links || '', 
                     notes: editingTask.notes || '',
@@ -831,52 +831,58 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         {/* Form Grid Layout - Compact */}
                         <div className="space-y-4">
 
-                            {/* Row 1: Bắt đầu | Hạn chót (thời gian lên trước) */}
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Row 1: Bắt đầu | Tổng số ngày | Hạn chót */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Bắt đầu</label>
-                                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Bắt đầu</label>
+                                    <input
+                                        type="date"
+                                        value={form.start_date}
+                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all shadow-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Tổng số ngày</label>
+                                    <div className="relative">
                                         <input
-                                            type="date"
-                                            value={form.start_date}
-                                            onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold transition-all shadow-sm"
+                                            type="number"
+                                            min="1"
+                                            value={(form.start_date && form.due_date) ? (differenceInDays(new Date(form.due_date), new Date(form.start_date)) + 1) : ''}
+                                            onChange={(e) => {
+                                                const days = parseInt(e.target.value, 10);
+                                                if (!isNaN(days) && days > 0 && form.start_date) {
+                                                    const newDueDate = addDays(new Date(form.start_date), days - 1);
+                                                    setForm({ ...form, due_date: format(newDueDate, 'yyyy-MM-dd') });
+                                                }
+                                            }}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all shadow-sm text-center font-semibold"
+                                            placeholder="Số ngày..."
                                         />
-                                        <input
-                                            type="time"
-                                            value={form.start_time}
-                                            onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold text-center transition-all shadow-sm"
-                                        />
+                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <span className="text-[11px] text-slate-400 font-semibold">ngày</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Hạn chót</label>
-                                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                                        <input
-                                            type="date"
-                                            value={form.due_date}
-                                            onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold transition-all shadow-sm"
-                                        />
-                                        <input
-                                            type="time"
-                                            value={form.due_time}
-                                            onChange={(e) => setForm({ ...form, due_time: e.target.value })}
-                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold text-center transition-all shadow-sm"
-                                        />
-                                    </div>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Hạn chót</label>
+                                    <input
+                                        type="date"
+                                        value={form.due_date}
+                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all shadow-sm"
+                                    />
                                 </div>
                             </div>
 
                             {/* Row 2: Trạng thái | Giai đoạn */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Trạng thái</label>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Trạng thái</label>
                                     <select
                                         value={form.status}
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm"
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm"
                                     >
                                         {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
                                         {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
@@ -887,11 +893,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Giai đoạn</label>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chưa gán</option>
@@ -906,12 +912,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 3: Chủ trì | Thực hiện */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
                                     <div className="flex gap-1.5 items-center">
                                         <select
                                             value={form.assignee_id}
                                             onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className={`flex-1 px-3 py-2 bg-[#F5F8FF] border border-[#E5EDFF] rounded-xl text-[13px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 font-bold cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            className={`flex-1 px-3 py-2 bg-[#F5F8FF] border border-[#E5EDFF] rounded-xl text-[13px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
@@ -930,11 +936,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
                                     <select
                                         value={form.supporter_id}
                                         onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 font-bold cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">+ Thêm người...</option>
