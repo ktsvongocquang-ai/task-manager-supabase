@@ -142,9 +142,11 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
                     const isExpanded = expandedPhases[phase.key];
                     const isEmpty = phaseTasks.length === 0;
+                    
+                    if (isEmpty) return null;
 
                     return (
-                        <div key={phase.key} className={`bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300 ${isEmpty ? 'opacity-50 hover:opacity-100' : ''}`}>
+                        <div key={phase.key} className="bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
                             {/* Phase Header */}
                             <div className="flex items-center justify-between p-3 cursor-pointer select-none" onClick={() => togglePhase(phase.key)}>
                                 <div className="flex items-center gap-3">
