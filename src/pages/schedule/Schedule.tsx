@@ -17,7 +17,7 @@ import {
     eachDayOfInterval
 } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Folder } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Search, FileText, Download, Upload, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 
 const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
@@ -26,9 +26,11 @@ export const Schedule = () => {
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [profiles, setProfiles] = useState<any[]>([])
+    const [isExporting, setIsExporting] = useState(false)
+    const [isCalendarExpanded, setIsCalendarExpanded] = useState(false)
     const [loading, setLoading] = useState(true)
 
-    // Calendar state
+    // Check if device is mobile
     const [currentDate, setCurrentDate] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState(new Date())
 
@@ -415,8 +417,8 @@ export const Schedule = () => {
                     </div>
 
                     {/* Days Grid */}
-                    <div className="grid grid-cols-7 gap-y-1">
-                        {calendarDays.map((day) => {
+                    <div className="grid grid-cols-7 gap-y-1 relative">
+                        {(isCalendarExpanded ? calendarDays : calendarDays.slice(Math.floor(calendarDays.findIndex(d => isSameDay(d, selectedDate)) / 7) * 7, Math.floor(calendarDays.findIndex(d => isSameDay(d, selectedDate)) / 7) * 7 + 7)).map((day) => {
                             const isSelected = isSameDay(day, selectedDate)
                             const isToday = isSameDay(day, new Date())
                             const isCurrentMonth = isSameMonth(day, currentDate)
@@ -436,7 +438,7 @@ export const Schedule = () => {
                                     onClick={() => setSelectedDate(day)}
                                     className={`relative flex flex-col items-center justify-center w-full aspect-square rounded-xl transition-all
                                         ${isSelected ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 scale-105 z-10 font-bold' : 
-                                          !isCurrentMonth ? 'text-slate-300 opacity-50' : 
+                                          !isCurrentMonth && isCalendarExpanded ? 'text-slate-300 opacity-50' : 
                                           isToday ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50 font-medium'}
                                     `}
                                 >
@@ -456,6 +458,16 @@ export const Schedule = () => {
                                 </button>
                             )
                         })}
+                    </div>
+                    
+                    {/* Toggle Collapse Button */}
+                    <div className="flex justify-center mt-2 -mb-2">
+                        <button 
+                            onClick={() => setIsCalendarExpanded(!isCalendarExpanded)}
+                            className="p-1 rounded-full bg-slate-50 text-slate-400 hover:text-slate-600"
+                        >
+                            {isCalendarExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
                     </div>
                 </div>
 
