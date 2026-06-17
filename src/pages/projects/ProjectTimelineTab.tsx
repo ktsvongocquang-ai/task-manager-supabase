@@ -150,7 +150,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
     const totalDaysUsed = totalPhaseDays + (kpiState.paused_days || 0);
 
     return (
-        <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl relative">
+        <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl relative">
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 custom-scrollbar">
                 
                 {/* Stats Bar */}

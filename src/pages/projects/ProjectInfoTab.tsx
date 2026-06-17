@@ -60,7 +60,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
     }
 
     return (
-        <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl">
+        <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl">
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 custom-scrollbar">
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
                 {/* Removed Header */}
@@ -195,7 +195,7 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                 <button
                     onClick={handleSubmit}
                     disabled={!form.name || !form.project_code}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest shadow-md shadow-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#C4B5FD] hover:bg-[#A78BFA] text-white py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {editingProject ? 'Cập nhật dự án' : 'Lưu dự án mới'}
                 </button>

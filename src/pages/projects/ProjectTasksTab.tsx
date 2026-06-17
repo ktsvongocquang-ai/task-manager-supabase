@@ -108,7 +108,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     ];
 
     return (
-        <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl pt-4">
+        <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl pt-4">
 
             {/* Stats Bar */}
             <div className="px-6 pb-4">

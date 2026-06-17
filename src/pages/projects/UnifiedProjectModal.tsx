@@ -128,7 +128,7 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                     </div>
 
                     {/* Tab Content Body */}
-                    <div className="flex-1 overflow-hidden relative bg-[#F3F4F6]">
+                    <div className="flex-1 overflow-hidden relative bg-white">
                         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'tasks' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
                             <ProjectTasksTab 
                                 isOpen={activeTab === 'tasks'}
