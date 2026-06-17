@@ -990,7 +990,24 @@ export default function MyTasks() {
                   <CalendarIcon className="w-3 h-3" />
                 </button>
               </div>
-              <button onClick={() => handleDeleteTask(task.id)} className="ml-auto p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
+              <button onClick={(e) => {
+                  e.stopPropagation();
+                  const title = encodeURIComponent(task.title || '');
+                  const details = encodeURIComponent(task.description || '');
+                  const startDate = (task.dueDate || '').substring(0, 10).replace(/-/g, '');
+                  const endDate = task.dueDate
+                      ? (() => { const d = new Date(task.dueDate); d.setDate(d.getDate() + 1); return d.toISOString().substring(0, 10).replace(/-/g, ''); })()
+                      : startDate;
+                  
+                  let url = `https://calendar.google.com/calendar/r/eventedit?text=${title}&details=${details}`;
+                  if (startDate) {
+                      url += `&dates=${startDate}/${endDate}`;
+                  }
+                  window.open(url, '_blank');
+              }} className="ml-auto p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Thêm vào Google Calendar">
+                <CalendarIcon className="w-4 h-4" />
+              </button>
+              <button onClick={() => handleDeleteTask(task.id)} className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
                 <Trash2 className="w-4 h-4" />
               </button>
            </div>
