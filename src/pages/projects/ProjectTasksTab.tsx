@@ -336,6 +336,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                 {/* Avatar / Actions */}
                                                 <div className="flex items-center gap-2 shrink-0">
                                                     <div className="hidden group-hover:flex gap-1.5 mr-1">
+                                                        <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-1 text-slate-400 hover:text-blue-500 bg-white rounded shadow-sm border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
                                                         {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                     </div>
                                                     <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
