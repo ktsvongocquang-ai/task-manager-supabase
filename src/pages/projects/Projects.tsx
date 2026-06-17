@@ -294,6 +294,18 @@ export const Projects = () => {
         }
     }
 
+    const handleUpdateAssignee = async (taskId: string, assigneeId: string) => {
+        const { error } = await supabase.from('tasks').update({
+            assignee_id: assigneeId || null
+        }).eq('id', taskId)
+        if (!error) {
+            fetchTasks()
+        } else {
+            console.error('Update Assignee Error:', error)
+            alert('Lỗi khi gán người phụ trách: ' + error.message)
+        }
+    }
+
     const handleToggleTaskComplete = async (task: Task) => {
         const isCompleted = task.status?.includes('Hoàn thành')
         const newStatus = isCompleted ? 'Đang thực hiện' : 'Hoàn thành'
@@ -637,6 +649,7 @@ export const Projects = () => {
                 onCopyTask={handleCopyTask}
                 onEditTask={openEditTaskModal}
                 onAddTask={openAddTaskModal}
+                onUpdateAssignee={handleUpdateAssignee}
             />
 
             {/* KPI Overlay */}

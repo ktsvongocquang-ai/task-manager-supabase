@@ -15,6 +15,7 @@ interface ProjectDetailsModalProps {
     onCopyTask: (task: Task) => void;
     onEditTask: (task: Task) => void;
     onAddTask: (projectId: string) => void;
+    onUpdateAssignee: (taskId: string, assigneeId: string) => void;
 }
 
 export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
@@ -28,7 +29,8 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     onDeleteTask,
     onCopyTask,
     onEditTask,
-    onAddTask
+    onAddTask,
+    onUpdateAssignee
 }) => {
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({
         'thiet-ke': true,
@@ -245,8 +247,17 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                                     <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
                                                                 )}
                                                             </div>
-                                                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shadow-sm border border-indigo-50">
+                                                            <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
                                                                 {getAssigneeInitials(task.assignee_id)}
+                                                                <select 
+                                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                    value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
+                                                                    onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <option value="">Chưa gán</option>
+                                                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -274,6 +285,12 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                         <div className="flex items-center gap-3">
                                             <span className="text-[11px] font-bold text-amber-600 min-w-[20px] text-center">{unassigned.length}</span>
                                             {isExpanded ? <ChevronDown size={14} className="text-amber-500" /> : <ChevronRight size={14} className="text-amber-500" />}
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
+                                                className="w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
+                                            >
+                                                <Plus size={16} strokeWidth={3} />
+                                            </button>
                                         </div>
                                     </div>
                                     
@@ -324,9 +341,20 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         {/* Avatar / Actions */}
                                                         <div className="flex items-center gap-2 shrink-0">
                                                             <div className="hidden group-hover:flex gap-1.5 mr-1">
-                                                                {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100"><Trash2 size={12} /></button>}
+                                                                {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                             </div>
-                                                            <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black flex items-center justify-center shadow-sm border border-amber-50">{getAssigneeInitials(task.assignee_id)}</div>
+                                                            <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
+                                                                {getAssigneeInitials(task.assignee_id)}
+                                                                <select 
+                                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                    value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
+                                                                    onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <option value="">Chưa gán</option>
+                                                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )
