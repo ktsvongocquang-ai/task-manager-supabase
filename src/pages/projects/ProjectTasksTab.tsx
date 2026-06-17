@@ -128,7 +128,6 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
             <div className="px-4 sm:px-6 pb-24 space-y-4">
                 {phases.map(phase => {
                     const phaseTasks = tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
-                    if (phaseTasks.length === 0) return null;
                     const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
                     const isExpanded = expandedPhases[phase.key];
@@ -256,7 +255,6 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                 {/* Unassigned Tasks */}
                 {(() => {
                     const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
-                    if (unassigned.length === 0) return null;
                     const isExpanded = expandedPhases['unassigned'];
                     
                     return (
