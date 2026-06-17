@@ -1,8 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { type Project, type Task } from '../../types'
-import { X, Copy, Edit3, Trash2, Plus } from 'lucide-react'
+import { X, Copy, Edit3, Trash2, Plus, Check, ChevronDown, ChevronRight } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
-import { CommentSection } from '../../components/chat/CommentSection'
 
 interface ProjectDetailsModalProps {
     isOpen: boolean;
@@ -31,6 +30,16 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     onEditTask,
     onAddTask
 }) => {
+    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({
+        'thiet-ke': true,
+        'trien-khai': true,
+        'unassigned': true,
+    });
+
+    const togglePhase = (phaseKey: string) => {
+        setExpandedPhases(prev => ({ ...prev, [phaseKey]: !prev[phaseKey] }));
+    }
+
     if (!isOpen || !project) return null;
 
     const projectTasks = tasks.filter(t => t.project_id === project.id && !t.parent_id);
@@ -45,16 +54,9 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
     }).sort((a, b) => {
         const aCode = a.task_code || '';
         const bCode = b.task_code || '';
-
-        // Extract numeric sequence after "PHASE-" or similar patterns if possible
         const aMatch = aCode.match(/(\d+)$/);
         const bMatch = bCode.match(/(\d+)$/);
-
-        if (aMatch && bMatch) {
-            return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
-        }
-
-        // Fallback to standard localeCompare with numeric sorting
+        if (aMatch && bMatch) return parseInt(aMatch[1], 10) - parseInt(bMatch[1], 10);
         return aCode.localeCompare(bCode, undefined, { numeric: true, sensitivity: 'base' });
     });
 
@@ -69,188 +71,262 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
         }).length
     };
 
-    const overallProgress = tasksWithProgress.length > 0
-        ? Math.round(tasksWithProgress.reduce((acc, t) => acc + t.displayPct, 0) / tasksWithProgress.length)
-        : 0;
-
-    const getAssigneeName = (id: string | string[] | null) => {
-        if (!id || (Array.isArray(id) && id.length === 0)) return 'Chưa gán'
-        if (Array.isArray(id)) {
-            return id.map(i => profiles.find(x => x.id === i)?.full_name).filter(Boolean).join(', ') || 'N/A'
-        }
-        const p = profiles.find(x => x.id === id)
-        return p?.full_name || 'N/A'
+    const getAssigneeInitials = (id: string | string[] | null) => {
+        if (!id || (Array.isArray(id) && id.length === 0)) return '?'
+        let targetId = Array.isArray(id) ? id[0] : id;
+        const p = profiles.find(x => x.id === targetId)
+        if (!p?.full_name) return '?';
+        const parts = p.full_name.trim().split(' ');
+        return parts[parts.length - 1].charAt(0).toUpperCase();
     }
 
-    const getStatusStyle = (t: any) => {
-        const isCompleted = t.status?.includes('Hoàn thành');
-        let isOverdue = false;
-        if (!isCompleted && t.due_date) {
-            isOverdue = isBefore(parseISO(t.due_date), today);
+    const phases = [
+        {
+            key: 'thiet-ke',
+            name: 'Thiết kế',
+            icon: '🎨',
+            colorClass: 'bg-rose-50',
+            matchTargets: ['concept', '3d'],
+        },
+        {
+            key: 'trien-khai',
+            name: 'Triển khai',
+            icon: '📐',
+            colorClass: 'bg-slate-100',
+            matchTargets: ['2d', 'construction'],
         }
-
-        if (isCompleted) return { border: 'border-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-600' };
-        if (isOverdue) return { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-600' };
-        if (t.status?.includes('Đang')) return { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-600' };
-        if (t.status?.includes('Tạm dừng')) return { border: 'border-amber-500', bg: 'bg-amber-50', text: 'text-amber-600' };
-        return { border: 'border-slate-300', bg: 'bg-slate-50', text: 'text-slate-600' };
-    }
+    ];
 
     return (
         <div className="fixed inset-0 z-[9998]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
-            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
-                    <div className="relative transform bg-[#EAEAEA] sm:rounded-3xl sm:shadow-2xl transition-all w-full sm:max-w-4xl">
-
-                {/* Header */}
-                <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 relative bg-[#EAEAEA]/90 backdrop-blur-md sm:rounded-t-3xl shadow-[0_10px_20px_rgba(0,0,0,0.02)]">
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800 pr-8">
-                        Chi tiết dự án: {project.name} <span className="text-sm sm:text-base text-slate-500 font-normal">({project.project_code})</span>
-                    </h2>
-                    <button onClick={onClose} className="absolute top-4 sm:top-6 right-3 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-200 rounded-full">
-                        <X size={24} />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                        <div className="bg-white rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-2xl sm:text-3xl font-black text-slate-700 mb-1">{stats.total}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Tổng nhiệm vụ</span>
-                        </div>
-                        <div className="bg-emerald-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-2xl sm:text-3xl font-black text-emerald-600 mb-1">{stats.completed}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Hoàn thành</span>
-                        </div>
-                        <div className="bg-blue-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-2xl sm:text-3xl font-black text-blue-600 mb-1">{stats.inProgress}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Đang thực hiện</span>
-                        </div>
-                        <div className="bg-red-50 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center shadow-sm">
-                            <span className="text-2xl sm:text-3xl font-black text-red-600 mb-1">{stats.overdue}</span>
-                            <span className="text-[11px] sm:text-sm font-medium text-slate-500 text-center">Quá hạn</span>
+            <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-[2px] transition-opacity" onClick={onClose}></div>
+            <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar flex justify-end sm:justify-center items-start sm:items-center">
+                <div className="relative transform bg-[#F3F4F6] sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-[440px] min-h-screen sm:min-h-0">
+                    
+                    {/* Header */}
+                    <div className="pt-6 pb-4 px-6 relative bg-[#F3F4F6] sm:rounded-t-3xl">
+                        <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full bg-slate-200/50 hover:bg-slate-200">
+                            <X size={16} strokeWidth={3} />
+                        </button>
+                        <h2 className="text-xl font-black text-slate-800 pr-8 leading-tight tracking-tight">
+                            DQH • {project.name.replace(/^DQH - |^DQH- /i, '')}
+                        </h2>
+                        <div className="text-xs text-slate-500 font-medium mt-1">
+                            {project.project_code} · {project.project_type || 'Hồ sơ thiết kế'} · {stats.total} đầu việc
                         </div>
                     </div>
 
-                    {/* Progress */}
-                    <div className="space-y-3">
-                        <div className="flex justify-between items-end">
-                            <h3 className="text-base font-bold text-slate-700">Tiến độ dự án</h3>
-                            <span className="text-lg font-black text-slate-800">{overallProgress}%</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-3">
-                            <div
-                                className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500"
-                                style={{ width: `${overallProgress}%` }}
-                            ></div>
+                    {/* Stats Bar */}
+                    <div className="px-6 pb-4">
+                        <div className="bg-white rounded-[1.25rem] p-3 flex justify-between items-center shadow-sm">
+                            <div className="flex flex-col items-center flex-1 border-r border-slate-100">
+                                <span className="text-lg font-black text-slate-800 leading-none mb-1">{stats.total}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase">Tổng</span>
+                            </div>
+                            <div className="flex flex-col items-center flex-1 border-r border-slate-100">
+                                <span className="text-lg font-black text-emerald-500 leading-none mb-1">{stats.completed}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase">Xong</span>
+                            </div>
+                            <div className="flex flex-col items-center flex-1 border-r border-slate-100">
+                                <span className="text-lg font-black text-blue-500 leading-none mb-1">{stats.inProgress}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase">Đang làm</span>
+                            </div>
+                            <div className="flex flex-col items-center flex-1">
+                                <span className="text-lg font-black text-rose-500 leading-none mb-1">{stats.overdue}</span>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase">Quá hạn</span>
+                            </div>
                         </div>
                     </div>
 
                     {/* Task List Grouped by Phase */}
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-bold text-slate-800">Danh sách nhiệm vụ ({stats.total})</h3>
-
-                        {[
-                            { key: 'concept', name: 'Concept', icon: '💡', color: 'indigo' },
-                            { key: '3d', name: '3D / Phối cảnh', icon: '🎨', color: 'violet' },
-                            { key: '2d', name: '2D / Triển khai', icon: '📐', color: 'blue' },
-                            { key: 'construction', name: 'Construction / Hồ sơ TC', icon: '🏗️', color: 'emerald' },
-                        ].map(phase => {
-                            const phaseTasks = tasksWithProgress.filter(t => (t.target || '').toLowerCase() === phase.key);
+                    <div className="px-4 sm:px-6 pb-24 space-y-4">
+                        {phases.map(phase => {
+                            const phaseTasks = tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
+                            if (phaseTasks.length === 0) return null;
                             const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
                             const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
+                            const isExpanded = expandedPhases[phase.key];
 
                             return (
-                                <div key={phase.key}>
+                                <div key={phase.key} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                                     {/* Phase Header */}
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 px-1 gap-2 sm:gap-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-base sm:text-lg">{phase.icon}</span>
-                                            <span className="text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider">{phase.name}</span>
-                                            <span className="bg-slate-200 text-slate-600 text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full">{phaseTasks.length} task</span>
+                                    <div className="flex items-center justify-between p-3 cursor-pointer select-none" onClick={() => togglePhase(phase.key)}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-lg bg-slate-50 w-8 h-8 rounded-xl flex items-center justify-center">{phase.icon}</div>
+                                            <span className="text-[15px] font-black text-slate-800">{phase.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex-1 sm:w-20 sm:flex-none h-1.5 bg-slate-200 rounded-full overflow-hidden min-w-[80px]">
-                                                <div className={`h-full rounded-full transition-all duration-300 ${phasePct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${phasePct}%` }}></div>
+                                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="h-full bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${phasePct}%` }}></div>
                                             </div>
-                                            <span className="text-[11px] sm:text-xs font-bold text-slate-500 w-8 text-right">{phaseCompleted}/{phaseTasks.length}</span>
+                                            <span className="text-[11px] font-bold text-slate-500 min-w-[20px] text-center">{phaseCompleted}/{phaseTasks.length}</span>
+                                            {isExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
+                                                className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
+                                            >
+                                                <Plus size={16} strokeWidth={3} />
+                                            </button>
                                         </div>
                                     </div>
 
-                                    {phaseTasks.length === 0 ? (
-                                        <div className="text-xs text-slate-400 italic bg-white/50 rounded-xl py-3 px-4 border border-dashed border-slate-200 mb-2">Chưa có nhiệm vụ nào trong giai đoạn này</div>
-                                    ) : (
-                                        <div className="space-y-3 mb-2">
-                                            {phaseTasks.map(task => {
-                                                const statusStyle = getStatusStyle(task);
+                                    {/* Phase Tasks */}
+                                    {isExpanded && (
+                                        <div className="border-t border-slate-50">
+                                            {phaseTasks.map((task, idx) => {
+                                                const isCompleted = task.status?.includes('Hoàn thành');
+                                                const isOverdue = !isCompleted && task.due_date && isBefore(parseISO(task.due_date), today);
+                                                const hasSubtasks = task.totalSub > 0;
+                                                const displayProgress = hasSubtasks ? Math.round((task.completedSub / task.totalSub) * 100) : task.displayPct;
+
+                                                let dotColor = isCompleted ? 'bg-emerald-500' : 'bg-blue-500';
+                                                if (isOverdue) dotColor = 'bg-rose-500';
+
                                                 return (
-                                                    <div
-                                                        key={task.id}
+                                                    <div 
+                                                        key={task.id} 
                                                         onClick={() => onEditTask(task)}
-                                                        className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
+                                                        className={`flex items-start gap-3 p-3.5 hover:bg-slate-50 transition-colors cursor-pointer group ${idx !== phaseTasks.length - 1 ? 'border-b border-slate-50' : ''}`}
                                                     >
-                                                        <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-3">
-                                                            <div className="flex gap-3 w-full sm:w-auto">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={task.status?.includes('Hoàn thành')}
-                                                                    onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }}
-                                                                    className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
-                                                                    disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)}
-                                                                />
-                                                                <div className="flex-1 min-w-0">
-                                                                    <h4 className="text-sm sm:text-base font-bold text-slate-800 mb-1.5">
-                                                                        {task.name} <span className="text-slate-400 font-medium text-xs sm:text-sm">({task.task_code})</span>
-                                                                    </h4>
-                                                                    <div className="flex gap-2">
-                                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>
-                                                                            {task.status}
-                                                                        </span>
-                                                                    </div>
+                                                        {/* Checkbox */}
+                                                        <div 
+                                                            className="mt-0.5 shrink-0" 
+                                                            onClick={(e) => { 
+                                                                e.stopPropagation(); 
+                                                                if (currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) {
+                                                                    onToggleComplete(task);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {isCompleted ? (
+                                                                <div className="w-[18px] h-[18px] rounded-[5px] bg-emerald-500 flex items-center justify-center shadow-sm">
+                                                                    <Check size={12} strokeWidth={4} className="text-white" />
                                                                 </div>
+                                                            ) : (
+                                                                <div className="w-[18px] h-[18px] rounded-[5px] border-2 border-slate-300 hover:border-emerald-400 transition-colors bg-white"></div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                {!isCompleted && <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`}></div>}
+                                                                <h4 className={`text-[13px] font-bold truncate leading-tight ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                                                                    {task.name}
+                                                                </h4>
+                                                                {task.status === 'Kiểm duyệt' && !isCompleted && (
+                                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-600 shrink-0 uppercase">Duyệt</span>
+                                                                )}
                                                             </div>
-                                                            <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-between w-full sm:w-auto gap-2 shrink-0">
-                                                                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-1.5">
-                                                                    {task.totalSub > 0 && (
-                                                                        <div className="text-xl sm:text-2xl font-black text-indigo-600 leading-none shadow-sm px-2 py-1 rounded-lg bg-indigo-50/50">
-                                                                            {task.completedSub}<span className="text-base sm:text-lg text-slate-400">/{task.totalSub}</span>
-                                                                        </div>
-                                                                    )}
-                                                                    <div className="flex flex-row sm:flex-col items-center border border-blue-600 rounded text-xs bg-white px-2 py-1 sm:px-1.5 sm:py-1 shadow-sm shrink-0 min-w-[90px] gap-2 sm:gap-0">
-                                                                        <div className="flex items-center gap-1 font-bold text-slate-700">
-                                                                            <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">
-                                                                                {getAssigneeName(task.assignee_id).charAt(0)}
-                                                                            </div>
-                                                                            <span className="truncate max-w-[80px] text-center">{getAssigneeName(task.assignee_id)}</span>
-                                                                        </div>
-                                                                        <div className="text-[9px] sm:text-[10px] font-semibold text-slate-500 sm:mt-0.5">
-                                                                            🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}
-                                                                        </div>
+                                                            <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-400">
+                                                                <span>{task.task_code}</span>
+                                                                <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                                                                <span className={isOverdue ? 'text-rose-500 font-bold' : ''}>{task.due_date ? format(parseISO(task.due_date), 'dd/MM') : 'N/A'}</span>
+                                                                <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                                                                
+                                                                {/* Task Progress Bar */}
+                                                                <div className="flex items-center gap-1.5 w-24">
+                                                                    <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                                        <div className={`h-full rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}`} style={{ width: `${displayProgress}%` }}></div>
                                                                     </div>
-                                                                </div>
-                                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity mt-auto pb-1">
-                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                                        <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 shadow-sm border border-emerald-50"><Copy size={14} /></button>
-                                                                    )}
-                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) && (
-                                                                        <button onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 shadow-sm border border-blue-50"><Edit3 size={14} /></button>
-                                                                    )}
-                                                                    {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
-                                                                        <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 shadow-sm border border-red-50"><Trash2 size={14} /></button>
-                                                                    )}
+                                                                    <span>{displayProgress}%</span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
-                                                            <span className="text-xs font-bold text-slate-400">Tiến độ</span>
-                                                            <div className="flex-1 bg-slate-100 rounded-full h-2">
-                                                                <div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div>
+
+                                                        {/* Right Side Avatar / Actions */}
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            {/* Hidden Action Buttons visible on hover */}
+                                                            <div className="hidden group-hover:flex gap-1.5 animate-in fade-in mr-1">
+                                                                {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
+                                                                    <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1 text-slate-400 hover:text-indigo-600 bg-white rounded shadow-sm border border-slate-100" title="Sao chép"><Copy size={12} /></button>
+                                                                )}
+                                                                {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
+                                                                    <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
+                                                                )}
                                                             </div>
-                                                            <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
+                                                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shadow-sm border border-indigo-50">
+                                                                {getAssigneeInitials(task.assignee_id)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })}
+
+                        {/* Unassigned Tasks */}
+                        {(() => {
+                            const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
+                            if (unassigned.length === 0) return null;
+                            const isExpanded = expandedPhases['unassigned'];
+                            
+                            return (
+                                <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-amber-100">
+                                    <div className="flex items-center justify-between p-3 cursor-pointer select-none bg-amber-50/50" onClick={() => togglePhase('unassigned')}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-lg bg-amber-100 w-8 h-8 rounded-xl flex items-center justify-center">📋</div>
+                                            <span className="text-[15px] font-black text-amber-800">Chưa gán</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[11px] font-bold text-amber-600 min-w-[20px] text-center">{unassigned.length}</span>
+                                            {isExpanded ? <ChevronDown size={14} className="text-amber-500" /> : <ChevronRight size={14} className="text-amber-500" />}
+                                        </div>
+                                    </div>
+                                    
+                                    {isExpanded && (
+                                        <div className="border-t border-amber-100/50">
+                                            {unassigned.map((task, idx) => {
+                                                const isCompleted = task.status?.includes('Hoàn thành');
+                                                const isOverdue = !isCompleted && task.due_date && isBefore(parseISO(task.due_date), today);
+                                                const displayProgress = task.totalSub > 0 ? Math.round((task.completedSub / task.totalSub) * 100) : task.displayPct;
+                                                let dotColor = isCompleted ? 'bg-emerald-500' : 'bg-amber-500';
+                                                if (isOverdue) dotColor = 'bg-rose-500';
+
+                                                return (
+                                                    <div key={task.id} onClick={() => onEditTask(task)} className={`flex items-start gap-3 p-3.5 hover:bg-slate-50 transition-colors cursor-pointer group ${idx !== unassigned.length - 1 ? 'border-b border-slate-50' : ''}`}>
+                                                        {/* Checkbox */}
+                                                        <div className="mt-0.5 shrink-0" onClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            if (currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) { onToggleComplete(task); }
+                                                        }}>
+                                                            {isCompleted ? (
+                                                                <div className="w-[18px] h-[18px] rounded-[5px] bg-emerald-500 flex items-center justify-center shadow-sm">
+                                                                    <Check size={12} strokeWidth={4} className="text-white" />
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-[18px] h-[18px] rounded-[5px] border-2 border-slate-300 hover:border-emerald-400 transition-colors bg-white"></div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1.5">
+                                                                {!isCompleted && <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`}></div>}
+                                                                <h4 className={`text-[13px] font-bold truncate leading-tight ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{task.name}</h4>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-400">
+                                                                <span>{task.task_code}</span><span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                                                                <span className={isOverdue ? 'text-rose-500 font-bold' : ''}>{task.due_date ? format(parseISO(task.due_date), 'dd/MM') : 'N/A'}</span>
+                                                                <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
+                                                                <div className="flex items-center gap-1.5 w-24">
+                                                                    <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                                        <div className={`h-full rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${displayProgress}%` }}></div>
+                                                                    </div>
+                                                                    <span>{displayProgress}%</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Avatar / Actions */}
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <div className="hidden group-hover:flex gap-1.5 mr-1">
+                                                                {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100"><Trash2 size={12} /></button>}
+                                                            </div>
+                                                            <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black flex items-center justify-center shadow-sm border border-amber-50">{getAssigneeInitials(task.assignee_id)}</div>
                                                         </div>
                                                     </div>
                                                 )
@@ -259,86 +335,21 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                     )}
                                 </div>
                             );
-                        })}
-
-                        {/* Unassigned tasks */}
-                        {(() => {
-                            const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
-                            if (unassigned.length === 0) return null;
-                            return (
-                                <div>
-                                    <div className="flex items-center gap-2 mb-3 px-1">
-                                        <span className="text-lg">📋</span>
-                                        <span className="text-sm font-black text-amber-700 uppercase tracking-wider">Chưa gán giai đoạn</span>
-                                        <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full">{unassigned.length} task</span>
-                                    </div>
-                                    <div className="space-y-3">
-                                        {unassigned.map(task => {
-                                            const statusStyle = getStatusStyle(task);
-                                            return (
-                                                <div
-                                                    key={task.id}
-                                                    onClick={() => onEditTask(task)}
-                                                    className={`bg-white rounded-2xl p-5 shadow-sm border-l-[6px] ${statusStyle.border} relative overflow-hidden group flex flex-col cursor-pointer hover:ring-2 hover:ring-indigo-500/20 active:scale-[0.99] transition-all`}
-                                                >
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <div className="flex gap-3">
-                                                            <input type="checkbox" checked={task.status?.includes('Hoàn thành')} onChange={(e) => { e.stopPropagation(); onToggleComplete(task); }} className="mt-1 w-5 h-5 rounded-md border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" disabled={!(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id)} />
-                                                            <div>
-                                                                <h4 className="text-base font-bold text-slate-800 mb-2">{task.name} <span className="text-slate-400 font-medium text-sm">({task.task_code})</span></h4>
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusStyle.bg} ${statusStyle.text}`}>{task.status}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex flex-col items-center border border-blue-600 rounded text-xs bg-white px-1.5 py-1 shadow-sm shrink-0 min-w-[90px]">
-                                                            <div className="flex items-center gap-1 font-bold text-slate-700"><div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[8px] text-slate-600">{getAssigneeName(task.assignee_id).charAt(0)}</div><span className="truncate max-w-[80px]">{getAssigneeName(task.assignee_id)}</span></div>
-                                                            <div className="text-[10px] font-semibold text-slate-500 mt-0.5">🗓 {task.due_date ? format(parseISO(task.due_date), 'dd/MM/yyyy') : '---'}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 mt-2 pt-4 border-t border-slate-50">
-                                                        <span className="text-xs font-bold text-slate-400">Tiến độ</span>
-                                                        <div className="flex-1 bg-slate-100 rounded-full h-2"><div className={`h-2 rounded-full ${task.displayPct >= 100 ? 'bg-emerald-500' : 'bg-emerald-400/80'}`} style={{ width: `${task.displayPct}%` }}></div></div>
-                                                        <span className="text-sm font-black text-slate-700">{task.displayPct}%</span>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            );
                         })()}
                     </div>
 
-                    {/* Chat & Comment Section */}
-                    {project?.id && (
-                        <div className="mt-8 pt-8 border-t border-slate-300">
-                            <CommentSection
-                                projectId={project.id}
-                                currentUserProfile={currentUserProfile}
-                                profiles={profiles}
-                                itemName={project.name}
-                            />
-                        </div>
-                    )}
-                </div>
+                    {/* Footer Close Button */}
+                    <div className="fixed bottom-0 left-0 right-0 sm:absolute sm:inset-x-0 sm:bottom-0 p-4 bg-gradient-to-t from-[#F3F4F6] via-[#F3F4F6] to-transparent pointer-events-none rounded-b-3xl">
+                        <button
+                            onClick={onClose}
+                            className="w-full bg-[#E2E4E9] hover:bg-[#D1D5DB] text-slate-700 py-3.5 rounded-2xl text-[15px] font-black uppercase tracking-widest transition-colors shadow-sm pointer-events-auto active:scale-[0.98]"
+                        >
+                            Đóng
+                        </button>
+                    </div>
 
-                {/* Footer Add Task Button */}
-                <div className="sticky bottom-0 z-20 p-4 sm:p-6 bg-[#EAEAEA]/90 backdrop-blur-md flex justify-between items-center px-4 sm:px-8 border-t border-slate-300 gap-3 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-                    <button
-                        onClick={() => onAddTask(project.id)}
-                        className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 transition-all flex items-center gap-2 flex-1 sm:flex-none justify-center"
-                    >
-                        <Plus size={18} /> Thêm nhiệm vụ
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="bg-slate-300 hover:bg-slate-400 text-slate-700 px-6 sm:px-8 py-2.5 rounded-xl text-sm font-bold transition-all"
-                    >
-                        Đóng
-                    </button>
                 </div>
             </div>
-        </div>
-        </div>
         </div>
     )
 }

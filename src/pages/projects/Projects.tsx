@@ -481,7 +481,7 @@ export const Projects = () => {
             {projectViewMode === 'cards' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project) => (
-                    <div key={project.id} onClick={() => setKpiProject(project)} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
+                    <div key={project.id} onClick={() => setSelectedProjectForDetails(project)} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center">
                                 <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
