@@ -720,7 +720,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             type="text"
                                             value={form.name}
                                             onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                            className="text-xl sm:text-2xl font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 focus:outline-none focus:ring-0 p-0 flex-1 min-w-0 w-full transition-colors"
+                                            className="text-[22px] sm:text-2xl font-black text-slate-800 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-[#4F46E5] focus:outline-none focus:ring-0 p-0 flex-1 min-w-0 w-full transition-colors tracking-tight"
                                             placeholder="Nhập tiêu đề công việc..."
                                         />
                                         <div className="flex gap-1 ml-2 shrink-0">
@@ -755,7 +755,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                             {editingTask && form.task_code && (
                                 <div className="mt-2 flex items-center gap-2">
-                                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-black rounded-full">
+                                    <span className="px-4 py-1.5 bg-[#E0E7FF] text-[#4F46E5] text-[13px] font-black rounded-full">
                                         {form.task_code}
                                     </span>
                                     <span className="text-xs font-bold text-slate-500">
@@ -813,36 +813,36 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 1: Bắt đầu | Hạn chót (thời gian lên trước) */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Bắt đầu</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Bắt đầu</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
                                             value={form.start_date}
                                             onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
+                                            className="w-full sm:w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold transition-all shadow-sm"
                                         />
                                         <input
                                             type="time"
                                             value={form.start_time}
                                             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-center"
+                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold text-center transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Hạn chót</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Hạn chót</label>
                                     <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         <input
                                             type="date"
                                             value={form.due_date}
                                             onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                            className="w-full sm:w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold"
+                                            className="w-full sm:w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold transition-all shadow-sm"
                                         />
                                         <input
                                             type="time"
                                             value={form.due_time}
                                             onChange={(e) => setForm({ ...form, due_time: e.target.value })}
-                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-bold text-center"
+                                            className="hidden md:block w-full sm:w-1/3 px-2 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] font-bold text-center transition-all shadow-sm"
                                         />
                                     </div>
                                 </div>
@@ -851,11 +851,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 2: Trạng thái | Giai đoạn */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Trạng thái</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Trạng thái</label>
                                     <select
                                         value={form.status}
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer hover:bg-slate-100 transition-colors"
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm"
                                     >
                                         {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
                                         {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
@@ -866,11 +866,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Giai đoạn</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Giai đoạn</label>
                                     <select
                                         value={form.target || ''}
                                         onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer hover:bg-slate-100 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="">Chưa gán</option>
@@ -885,12 +885,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {/* Row 3: Chủ trì | Thực hiện */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Chủ trì</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
                                     <div className="flex gap-1.5 items-center">
                                         <select
                                             value={form.assignee_id}
                                             onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className={`flex-1 px-3 py-2 bg-indigo-50/50 border border-indigo-100 rounded-xl text-[13px] text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-black cursor-pointer hover:bg-indigo-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                            className={`flex-1 px-3 py-2 bg-[#F5F8FF] border border-[#E5EDFF] rounded-xl text-[13px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 font-black cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
@@ -900,7 +900,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             <button 
                                                 onClick={handleSendEmail}
                                                 disabled={isSendingEmail}
-                                                className="hidden md:flex p-1.5 rounded-xl text-indigo-600 hover:bg-indigo-100 transition-colors border border-indigo-200 shadow-sm items-center justify-center disabled:opacity-50 shrink-0 h-[38px] w-[38px]"
+                                                className="hidden md:flex p-1.5 rounded-xl text-[#4F46E5] hover:bg-[#E0E7FF] transition-colors border border-[#E5EDFF] shadow-sm items-center justify-center disabled:opacity-50 shrink-0 h-[38px] w-[38px]"
                                                 title="Gửi Email Thông Báo Bằng AI"
                                             >
                                                 {isSendingEmail ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
@@ -909,11 +909,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-black text-slate-500 uppercase tracking-wide mb-1.5">Thực hiện</label>
+                                    <label className="block text-[11px] font-black text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
                                     <select
                                         value={form.supporter_id}
                                         onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-emerald-50/50 border border-emerald-100 rounded-xl text-[13px] text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 font-black cursor-pointer hover:bg-emerald-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 font-black cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">+ Thêm người...</option>
@@ -931,13 +931,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     <textarea
                                         value={form.description}
                                         onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all min-h-[120px] resize-none"
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all min-h-[120px] resize-none shadow-sm"
                                         placeholder="Thêm mô tả chi tiết cho nhiệm vụ này..."
                                     />
                                     <div className="absolute right-3 bottom-3 flex gap-2">
                                         <button
                                             onClick={() => handleSpeechToText('description')}
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-indigo-600 hover:border-indigo-300 shadow-sm'}`}
+                                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-[#4F46E5] hover:border-[#4F46E5]'}`}
                                             title="Ghi âm mô tả"
                                         >
                                             {isListening === 'description' ? <MicOff size={16} /> : <Mic size={16} />}
@@ -945,7 +945,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         <button
                                             onClick={() => handleAIRefine('description')}
                                             disabled={isRefining === 'description'}
-                                            className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-300 shadow-sm transition-all disabled:opacity-50"
+                                            className="w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-[#4F46E5] hover:border-[#4F46E5] shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all disabled:opacity-50"
                                             title="AI tinh chỉnh"
                                         >
                                             {isRefining === 'description' ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}

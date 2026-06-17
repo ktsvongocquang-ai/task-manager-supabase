@@ -436,62 +436,70 @@ export const Projects = () => {
         <div className="space-y-6 max-w-[1400px] mx-auto">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-3 shrink-0">
-                    <h1 className="text-xl font-bold text-slate-800">Quản lý dự án</h1>
-                    <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+                <div className="flex items-center gap-4 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">Quản lý dự án</h1>
+                    <div className="flex bg-slate-50/80 rounded-xl p-1 gap-1 border border-slate-100">
                         <button
                             onClick={() => setProjectViewMode('cards')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'cards' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${projectViewMode === 'cards' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
-                            <LayoutGrid size={14} /> Dự án
+                            <LayoutGrid size={16} /> Dự án
                         </button>
                         <button
                             onClick={() => setProjectViewMode('list')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${projectViewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${projectViewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
-                            <List size={14} /> Danh sách
+                            <List size={16} /> Danh sách
                         </button>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Tìm kiếm dự án..."
-                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-[14px] text-sm focus:outline-none focus:ring-2 focus:ring-[#5534FA]/20 focus:border-[#5534FA] transition-all font-medium placeholder:text-slate-400 shadow-sm"
                         />
                     </div>
                     <button
                         onClick={openAddModal}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm"
+                        className="bg-[#5534FA] hover:bg-[#462ae0] text-white px-5 py-2.5 rounded-[14px] text-[15px] font-bold transition-colors flex items-center gap-2 whitespace-nowrap shadow-[0_4px_12px_rgba(85,52,250,0.25)]"
                     >
-                        <Plus size={18} /> Tạo mới dự án
+                        <Plus size={18} strokeWidth={2.5} /> Tạo mới dự án
                     </button>
                 </div>
             </div>
 
             {/* Status Tabs - Circular style matching screenshot */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {Object.entries(statusCounts).map(([status, count]) => (
-                    <button
-                        key={status}
-                        onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-                        className={`bg-white border p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${statusFilter === status ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-slate-100 hover:border-slate-200'
-                            }`}
-                    >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${status === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600' :
-                            status === 'Đang thực hiện' ? 'bg-blue-50 text-blue-600' :
-                                status === 'Thi công' ? 'bg-purple-50 text-purple-600' :
-                                    status === 'Tạm dừng' ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-600'
-                            }`}>
-                            {count}
-                        </div>
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{status}</span>
-                    </button>
-                ))}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+                {Object.entries(statusCounts).map(([status, count]) => {
+                    const isCompleted = status === 'Hoàn thành';
+                    const isDoing = status === 'Đang thực hiện';
+                    const isConstruct = status === 'Thi công';
+                    const isPause = status === 'Tạm dừng';
+                    
+                    return (
+                        <button
+                            key={status}
+                            onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+                            className={`bg-white border p-5 rounded-[20px] flex flex-col items-center justify-center gap-3 transition-all shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)] ${statusFilter === status ? 'border-[#5534FA] ring-2 ring-[#5534FA]/10' : 'border-slate-100 hover:border-slate-200'}`}
+                        >
+                            <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center font-black text-[22px] ${
+                                isCompleted ? 'bg-emerald-50 text-emerald-600' :
+                                isDoing ? 'bg-blue-50 text-blue-600' :
+                                isConstruct ? 'bg-fuchsia-50 text-fuchsia-600' :
+                                isPause ? 'bg-orange-50 text-orange-500' : 
+                                'bg-slate-50 text-slate-700'
+                                }`}>
+                                {count}
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{status}</span>
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Project Cards */}
