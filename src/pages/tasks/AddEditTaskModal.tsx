@@ -8,6 +8,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import { CommentSection } from '../../components/chat/CommentSection';
 import { format, parseISO } from 'date-fns';
 import { getAssignableProfiles } from '../../utils/profileUtils';
+import { openGoogleCalendar } from '../../utils/calendarUtils';
 
 interface AddEditTaskModalProps {
     isOpen: boolean;
@@ -788,6 +789,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     }
                                 }} className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors bg-slate-50">
                                     <Trash2 size={18} />
+                                </button>
+                            )}
+                            {editingTask && (
+                                <button onClick={() => openGoogleCalendar(editingTask)} className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors bg-slate-50" title="Thêm vào Google Calendar">
+                                    <Calendar size={18} />
                                 </button>
                             )}
                             <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
