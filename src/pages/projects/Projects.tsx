@@ -5,10 +5,9 @@ import { type Project, type Task } from '../../types'
 import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { ProjectDetailsModal } from './ProjectDetailsModal'
 import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
-import { ProjectKPIOverlay } from './ProjectKPIOverlay'
+import { UnifiedProjectModal } from './UnifiedProjectModal'
 
 export const Projects = () => {
     const { profile } = useAuthStore()
@@ -28,11 +27,10 @@ export const Projects = () => {
         link_hien_trang: '', link_du_an: '', link_presentation: '',
     })
 
-    const [selectedProjectForDetails, setSelectedProjectForDetails] = useState<Project | null>(null)
+    const [unifiedProjectData, setUnifiedProjectData] = useState<{ project: Project, tab: 'tasks' | 'info' | 'timeline' } | null>(null)
     const [showTaskModal, setShowTaskModal] = useState(false)
     const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
-    const [kpiProject, setKpiProject] = useState<Project | null>(null)
     const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list'>('cards')
     const [expandedDoneProjects, setExpandedDoneProjects] = useState<Set<string>>(new Set())
 
@@ -170,7 +168,7 @@ export const Projects = () => {
         setShowModal(true)
     }
 
-    const openEditModal = (p: Project) => {
+    const openUnifiedModal = (p: Project, tab: 'tasks' | 'info' | 'timeline') => {
         setEditingProject(p)
         // Parse KPI fields from other_info
         let kpiBudget = 0, kpiScale = '', kpiProjectType = '';
@@ -191,7 +189,11 @@ export const Projects = () => {
             link_du_an: (p as any).link_du_an || '',
             link_presentation: (p as any).link_presentation || '',
         })
-        setShowModal(true)
+        setUnifiedProjectData({ project: p, tab })
+    }
+
+    const openEditModal = (p: Project) => {
+        openUnifiedModal(p, 'info')
     }
 
     const handleSave = async () => {
@@ -253,6 +255,9 @@ export const Projects = () => {
                 }
 
                 result = await supabase.from('projects').update(payload).eq('id', editingProject.id)
+                if (unifiedProjectData?.project.id === editingProject.id) {
+                    setUnifiedProjectData({ ...unifiedProjectData, project: { ...editingProject, ...payload } as Project })
+                }
             } else {
                 result = await supabase.from('projects').insert(payload)
             }
@@ -492,50 +497,55 @@ export const Projects = () => {
             {/* Project Cards */}
             {projectViewMode === 'cards' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProjects.map((project) => (
-                    <div key={project.id} onClick={() => setSelectedProjectForDetails(project)} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center">
-                                <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
-                                    {project.status}
-                                </span>
-                                {renderTrafficLight(project)}
+                {filteredProjects.map((project) => {
+                    const progress = getProjectProgress(project.id);
+                    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '');
+                    return (
+                        <div key={project.id} onClick={() => openUnifiedModal(project, 'tasks')} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
+                            {/* Progress Bar Top */}
+                            <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100 rounded-t-2xl overflow-hidden">
+                                <div className={`h-full transition-all duration-500 ease-out ${progress === 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${progress}%` }}></div>
                             </div>
-                            <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); setKpiProject(project); }} className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all shadow-sm border border-indigo-100" title="Thời gian"><Clock size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
-                            </div>
-                        </div>
-                        <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
-                        <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
-                        <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
-                        <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
-                            <div className="flex flex-col gap-1.5">
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-emerald-500" /><span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-rose-500" /><span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
-                            </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
-                        </div>
-                        <div className="pt-3 border-t border-slate-100 mt-2">
-                            <div className="flex justify-between items-center bg-slate-50 border border-slate-100 py-2 px-3 rounded-2xl">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tiến độ</span>
-                                <div className="flex-1 mx-3 bg-white rounded-full h-2 ring-1 ring-slate-200 overflow-hidden shadow-inner">
-                                    <div className={`h-full rounded-full transition-all duration-700 ${getProjectProgress(project.id) >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-600'}`} style={{ width: `${getProjectProgress(project.id)}%` }}></div>
+                            
+                            {/* Top Actions */}
+                            <div className="flex justify-between items-start mb-4 mt-2">
+                                <div className="flex items-center">
+                                    <span className={`px-2.5 py-1 z-10 rounded-full text-[10px] font-black uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>
+                                        {project.status}
+                                    </span>
+                                    {renderTrafficLight(project)}
                                 </div>
-                                <span className="text-xs font-black text-slate-700">{getProjectProgress(project.id)}%</span>
+                                <div className="flex gap-1.5 translate-x-1 -translate-y-1">
+                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
+                                </div>
                             </div>
-                            <div className="flex justify-end mt-3">
-                                <button onClick={(e) => { e.stopPropagation(); setSelectedProjectForDetails(project); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
-                                    <List size={14} className="text-indigo-400" />
-                                    {allTasks.filter(t => t.project_id === project.id && !t.parent_id).length} nhiệm vụ
+                            
+                            <h3 className="text-lg font-black text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
+                            <div className="text-[10px] font-black text-slate-400 mb-3 tracking-widest">{project.project_code}</div>
+                            <p className="text-xs text-slate-500 line-clamp-2 mb-4 h-8 font-medium">{project.description || 'Không có mô tả chi tiết cho dự án này.'}</p>
+                            
+                            <div className="space-y-3 mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/50">
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-emerald-500" /><span>Bắt đầu: {project.start_date ? format(parseISO(project.start_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600"><Calendar size={14} className="text-rose-500" /><span>Kết thúc: {project.end_date ? format(parseISO(project.end_date), 'dd/MM/yyyy') : 'N/A'}</span></div>
+                                </div>
+                                <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
+                            </div>
+
+                            <div className="mt-6 flex gap-2">
+                                {isManagerOrAdmin && <button onClick={(e) => { e.stopPropagation(); openEditModal(project); }} className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-sm font-bold transition-colors border border-slate-100">
+                                    <Edit3 size={16} /> Sửa
+                                </button>}
+                                <button onClick={(e) => { e.stopPropagation(); openUnifiedModal(project, 'tasks'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
+                                    Chi tiết
                                 </button>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
             )}
 
@@ -636,30 +646,42 @@ export const Projects = () => {
                 currentUserProfile={profile}
             />
 
-            {/* Project Details Modal */}
-            <ProjectDetailsModal
-                isOpen={!!selectedProjectForDetails}
-                onClose={() => setSelectedProjectForDetails(null)}
-                project={selectedProjectForDetails}
+            {/* Unified Project Modal (Tasks, Info, Timeline) */}
+            <UnifiedProjectModal
+                isOpen={!!unifiedProjectData}
+                onClose={() => { setUnifiedProjectData(null); fetchProjects(); }}
+                project={unifiedProjectData?.project || null}
+                initialTab={unifiedProjectData?.tab}
+                // Tasks props
                 tasks={allTasks}
                 profiles={profiles}
                 currentUserProfile={profile}
                 onToggleComplete={handleToggleTaskComplete}
+                onAddTask={(projectId) => {
+                    const p = projects.find(p => p.id === projectId);
+                    if (p) {
+                        setTaskModalInitialData({ project_id: projectId, task_code: `${p.project_code}-` });
+                        setEditingTask(null);
+                        setShowTaskModal(true);
+                    }
+                }}
+                onEditTask={(task) => {
+                    setEditingTask(task);
+                    setTaskModalInitialData({ project_id: task.project_id || '', task_code: task.task_code || '' });
+                    setShowTaskModal(true);
+                }}
                 onDeleteTask={handleDeleteTask}
                 onCopyTask={handleCopyTask}
-                onEditTask={openEditTaskModal}
-                onAddTask={openAddTaskModal}
                 onUpdateAssignee={handleUpdateAssignee}
-            />
+                
+                // Info props
+                onSaveProject={handleSave}
+                form={form}
+                setForm={setForm}
 
-            {/* KPI Overlay */}
-            <ProjectKPIOverlay
-                isOpen={!!kpiProject}
-                onClose={() => setKpiProject(null)}
-                project={kpiProject}
-                tasks={allTasks}
-                managerName={kpiProject?.manager_id ? profiles.find(p => p.id === kpiProject.manager_id)?.full_name : undefined}
-                onUpdateProject={fetchProjects}
+                // Timeline props
+                managerName={unifiedProjectData?.project?.manager_id ? profiles.find(p => p.id === unifiedProjectData.project.manager_id)?.full_name : undefined}
+                onUpdateProjectStats={fetchProjects}
             />
 
             {/* Add/Edit Task Modal */}

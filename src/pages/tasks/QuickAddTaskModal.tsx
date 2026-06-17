@@ -176,7 +176,7 @@ export const QuickAddTaskModal = ({
                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                             >
                                 <option value="">Chọn dự án...</option>
-                                {[...projects].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                {[...projects].sort((a, b) => (b.project_code || '').localeCompare((a.project_code || ''), undefined, { numeric: true, sensitivity: 'base' })).map(p => <option key={p.id} value={p.id}>[{p.project_code}] {p.name}</option>)}
                             </select>
                         </div>
 
