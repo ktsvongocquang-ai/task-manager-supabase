@@ -233,7 +233,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         } else if (sortMode === 'project') {
             const projectIds = Array.from(new Set(sourceList.map(t => t.project_id)));
             groups = projectIds.map(pid => {
-                const label = `${getProjectCode(pid)} - ${getProjectName(pid)}`;
+                const code = getProjectCode(pid);
+                const name = getProjectName(pid);
+                const label = code ? (name.includes(code) ? name : `${code} - ${name}`) : name;
                 const tks = sourceList.filter(t => t.project_id === pid).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
                 return { key: pid, label, tasks: tks, defaultValues: { project_id: pid } };
             }).sort((a, b) => a.label.localeCompare(b.label));
@@ -374,9 +376,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
                 >
                     <option value="">Tất cả dự án</option>
-                    {uniqueProjects.map(id => (
-                        <option key={id} value={id}>{getProjectCode(id)} – {getProjectName(id)}</option>
-                    ))}
+                    {uniqueProjects.map(id => {
+                        const code = getProjectCode(id);
+                        const name = getProjectName(id);
+                        const label = code ? (name.includes(code) ? name : `${code} - ${name}`) : name;
+                        return <option key={id} value={id}>{label}</option>
+                    })}
                 </select>
 
                 <div className="flex items-center gap-1 ml-auto">
