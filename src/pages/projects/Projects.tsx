@@ -558,12 +558,9 @@ export const Projects = () => {
                                 <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 pt-1"><Users size={14} className="text-indigo-500" /><span>Quản lý: {getManagerName(project.manager_id || '')}</span></div>
                             </div>
 
-                            <div className="mt-6 flex gap-2">
-                                {isManagerOrAdmin && <button onClick={(e) => { e.stopPropagation(); openEditModal(project); }} className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 text-sm font-bold transition-colors border border-slate-100">
-                                    <Edit3 size={16} /> Sửa
-                                </button>}
-                                <button onClick={(e) => { e.stopPropagation(); openUnifiedModal(project, 'tasks'); }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 text-xs font-bold">
-                                    Chi tiết
+                            <div className="mt-6">
+                                <button onClick={(e) => { e.stopPropagation(); openUnifiedModal(project, 'tasks'); }} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 text-sm font-bold transition-all shadow-sm hover:shadow">
+                                    <List size={16} /> Nhiệm vụ ({allTasks.filter(t => t.project_id === project.id).length})
                                 </button>
                             </div>
                         </div>
