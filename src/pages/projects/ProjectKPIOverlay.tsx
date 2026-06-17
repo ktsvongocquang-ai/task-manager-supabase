@@ -30,6 +30,7 @@ function detectPhase(task: Task): string {
 // ── KPI State stored in other_info ─────────────────────────────────────────────
 interface KPIPhaseState {
     days_used: number;
+    days_estimated?: number;
 }
 interface KPIState {
     paused_days: number;
@@ -43,10 +44,10 @@ const DEFAULT_KPI_STATE: KPIState = {
     paused_days: 0,
     is_paused: false,
     phases: {
-        'concept': { days_used: 0 },
-        '3d': { days_used: 0 },
-        '2d': { days_used: 0 },
-        'construction': { days_used: 0 },
+        'concept': { days_used: 0, days_estimated: 0 },
+        '3d': { days_used: 0, days_estimated: 0 },
+        '2d': { days_used: 0, days_estimated: 0 },
+        'construction': { days_used: 0, days_estimated: 0 },
     },
     taskPhaseMap: {},
 };
@@ -144,6 +145,7 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
 
     // ── Time metrics ────────────────────────────────────────────────────────────
     const totalPhaseDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_used || 0), 0);
+    const totalEstimatedDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_estimated || 0), 0);
     const totalDaysUsed = totalPhaseDays + (kpiState.paused_days || 0);
 
     return (
@@ -165,8 +167,8 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                     </div>
                     <div className="text-right pr-6 sm:pr-10 shrink-0">
                         <div className="text-3xl sm:text-5xl font-black leading-none text-indigo-500">{totalDaysUsed}</div>
-                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">tổng ngày đã dùng</div>
-                        <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">{totalPhaseDays} ngày làm + {kpiState.paused_days} ngày dừng</div>
+                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">tổng thực tế</div>
+                        <div className="text-[9px] sm:text-[10px] text-slate-400 hidden sm:block">{totalPhaseDays} ng làm + {kpiState.paused_days} ng dừng / Dự kiến {totalEstimatedDays} ng</div>
                     </div>
                     <button onClick={onClose} className="absolute top-4 sm:top-6 right-2 sm:right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-200 rounded-full"><X size={20} className="sm:w-6 sm:h-6" /></button>
                 </div>
@@ -195,18 +197,22 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
 
                 <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-4">
                     {/* Value Metrics Grid */}
-                    <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày làm</div>
-                            <div className="text-3xl font-black text-indigo-600">{totalPhaseDays} ng</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Dự kiến</div>
+                            <div className="text-2xl sm:text-3xl font-black text-slate-600">{totalEstimatedDays} ng</div>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Thực tế làm</div>
+                            <div className="text-2xl sm:text-3xl font-black text-indigo-600">{totalPhaseDays} ng</div>
+                        </div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
                             <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày dừng</div>
-                            <div className="text-3xl font-black text-amber-500">{kpiState.paused_days} ng</div>
+                            <div className="text-2xl sm:text-3xl font-black text-amber-500">{kpiState.paused_days} ng</div>
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Tổng cộng</div>
-                            <div className="text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
+                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Tổng cộng (TT)</div>
+                            <div className="text-2xl sm:text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
                         </div>
                     </div>
 
@@ -255,8 +261,11 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                             {/* Expand arrow on mobile logic: show here if flex-col is active and taking space, but actually it's easier to put at the very end of the row */}
                                         </div>
                                         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pl-5 sm:pl-0">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm font-black w-10 text-right text-indigo-600">{pState.days_used} ng</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex flex-col items-end leading-none">
+                                                    <span className="text-sm font-black text-indigo-600">{pState.days_used || 0} <span className="text-[10px] font-semibold text-indigo-400">ng</span></span>
+                                                    <span className="text-[10px] font-bold text-slate-400">/ {pState.days_estimated || 0} dự kiến</span>
+                                                </div>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-12 text-center border ${pState.days_used === 0 ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}>
                                                     {pState.days_used === 0 ? 'Chờ' : 'Đang'}
                                                 </span>
@@ -268,13 +277,24 @@ export const ProjectKPIOverlay: React.FC<ProjectKPIOverlayProps> = ({
                                     {isExpanded && (
                                         <div className="bg-slate-50 border-t border-slate-100 p-3 sm:p-4 space-y-3">
                                             {/* Days +/- */}
-                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/60 pb-3 gap-2 sm:gap-0">
-                                                <span className="text-[11px] sm:text-xs font-bold text-slate-600">Ngày đã dùng cho giai đoạn này</span>
-                                                <div className="flex items-center gap-2">
-                                                    <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 text-slate-500 bg-white transition-colors"><Minus size={14}/></button>
-                                                    <span className="font-bold text-slate-800 w-6 text-center">{pState.days_used}</span>
-                                                    <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: (s.phases[phase.key]?.days_used || 0) + 1 } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-500 text-slate-500 bg-white transition-colors"><Plus size={14}/></button>
-                                                    <span className="text-xs text-slate-500">ngày</span>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-slate-200/60 pb-4">
+                                                {/* Dự kiến */}
+                                                <div className="flex justify-between items-center bg-slate-100 rounded-xl px-4 py-2 border border-slate-200">
+                                                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dự kiến</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: Math.max(0, (s.phases[phase.key]?.days_estimated || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-white hover:text-rose-500 text-slate-500 bg-white transition-colors"><Minus size={14}/></button>
+                                                        <span className="font-bold text-slate-700 w-6 text-center">{pState.days_estimated || 0}</span>
+                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: (s.phases[phase.key]?.days_estimated || 0) + 1 } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-white hover:text-indigo-500 text-slate-500 bg-white transition-colors"><Plus size={14}/></button>
+                                                    </div>
+                                                </div>
+                                                {/* Thực tế */}
+                                                <div className="flex justify-between items-center bg-indigo-50 rounded-xl px-4 py-2 border border-indigo-100">
+                                                    <span className="text-[11px] font-bold text-indigo-500 uppercase tracking-widest">Thực tế</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-indigo-200 flex items-center justify-center hover:bg-white hover:text-rose-500 text-indigo-500 bg-white transition-colors"><Minus size={14}/></button>
+                                                        <span className="font-bold text-indigo-700 w-6 text-center">{pState.days_used || 0}</span>
+                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: (s.phases[phase.key]?.days_used || 0) + 1 } } }))} className="w-7 h-7 rounded-full border border-indigo-200 flex items-center justify-center hover:bg-white hover:text-indigo-500 text-indigo-500 bg-white transition-colors"><Plus size={14}/></button>
+                                                    </div>
                                                 </div>
                                             </div>
 
