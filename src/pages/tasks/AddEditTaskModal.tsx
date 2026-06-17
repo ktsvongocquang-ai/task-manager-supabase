@@ -705,13 +705,13 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     return (
         <>
         <div className="fixed inset-0 z-[9999]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+            <div className="fixed inset-0 bg-slate-900/50 animate-in fade-in duration-200"></div>
             <div className="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
                 <div className="flex min-h-full items-end justify-center p-0 sm:items-center sm:p-4 text-left">
-                    <div className="relative transform bg-white sm:rounded-3xl shadow-2xl transition-all w-full sm:max-w-3xl">
+                    <div className="relative transform bg-white sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl animate-in fade-in zoom-in-95 duration-200">
 
                     {/* Header */}
-                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white/90 backdrop-blur-md sm:rounded-t-3xl border-b border-slate-100/50">
+                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-5 sm:py-6 flex justify-between items-start bg-white sm:rounded-t-3xl border-b border-slate-100/50">
                         <div className="flex-1">
                             <div className="flex items-center gap-3">
                                 {editingTask ? (
@@ -1142,7 +1142,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     </div>
 
                     {/* Footer fixed */}
-                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white/90 backdrop-blur-md border-t border-slate-100 flex gap-4 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)] w-full">
+                    <div className="sticky bottom-0 z-20 px-4 sm:px-8 py-4 sm:py-5 bg-white border-t border-slate-100 flex gap-4 shrink-0 sm:rounded-b-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.03)] w-full">
                         {editingTask && form.status === 'Chờ duyệt' && ['Admin', 'Quản lý', 'Giám đốc'].includes(currentUserProfile?.role?.trim() || '') && (
                             currentUserProfile?.role === 'Admin' ||
                             currentUserProfile?.role === 'Quản lý' ||

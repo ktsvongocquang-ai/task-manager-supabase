@@ -76,11 +76,11 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[9998]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-slate-900/50 animate-in fade-in duration-200" onClick={onClose}></div>
             <div className="fixed inset-0 z-10 flex items-center justify-center p-4">
-                <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden w-full max-w-5xl h-[90vh]">
+                <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden w-full max-w-5xl h-[90vh] animate-in fade-in zoom-in-95 duration-200">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md relative shrink-0 gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 bg-slate-50/80 relative shrink-0 gap-4">
                         <div className="flex items-start gap-3 md:gap-4 pr-12">
                             <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-bold text-lg md:text-xl shrink-0">
                                 {project.name.charAt(0)}
