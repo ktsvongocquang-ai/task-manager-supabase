@@ -151,178 +151,131 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
 
     return (
         <div className="w-full flex flex-col h-full bg-[#F3F4F6] sm:rounded-b-3xl relative">
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 custom-scrollbar space-y-6">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 custom-scrollbar">
                 
                 {/* Stats Bar */}
-                <div className="bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100 flex justify-between items-center">
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Clock size={20} className="text-indigo-500" />
-                            <h2 className="text-xl sm:text-2xl font-black text-slate-800 uppercase tracking-tight truncate">Tổng tiến độ</h2>
+                <div className="bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100 mb-4">
+                    <div className="flex justify-between items-center mb-3">
+                        <h2 className="text-[12px] sm:text-[13px] font-black text-slate-500 uppercase tracking-wider">Tổng tiến độ (Ngày công)</h2>
+                        <div className="text-[32px] font-black text-slate-800 leading-none flex items-baseline gap-1">
+                            {totalPhaseDays} <span className="text-[13px] font-bold text-slate-400">/{totalEstimatedDays} ng</span>
                         </div>
-                        <p className="text-sm text-slate-500 font-medium mt-1">
-                            {totalPhaseDays} ng làm + {kpiState.paused_days} ng dừng / Dự kiến {totalEstimatedDays} ng
-                        </p>
                     </div>
-                    <div className="text-right shrink-0">
-                        <div className="text-3xl sm:text-5xl font-black leading-none text-indigo-500">{totalDaysUsed}</div>
-                        <div className="text-[10px] sm:text-xs uppercase font-bold text-slate-400 mt-1">tổng thực tế</div>
+                    
+                    {/* Progress Bar */}
+                    <div className="h-2.5 bg-indigo-50 rounded-full mb-5 overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: totalEstimatedDays > 0 ? `${Math.min(100, (totalPhaseDays / totalEstimatedDays) * 100)}%` : '0%' }}></div>
                     </div>
-                </div>
 
-                {/* Progress Bar */}
-                <div className="px-4 sm:px-8 pb-4">
-                    <div className="bg-indigo-50 border-indigo-100 border rounded-2xl p-3 sm:p-4 mt-2 sm:mt-4 shadow-sm">
-                        <h3 className="text-sm font-bold text-indigo-800 mb-3 flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 animate-pulse bg-indigo-500 rounded-full inline-block"></span>
-                            {totalDaysUsed > 0 ? `${totalPhaseDays} ngày làm + ${kpiState.paused_days} ngày dừng = ${totalDaysUsed} ngày tổng cộng.` : 'Chưa ghi nhận ngày làm việc nào. Nhấn +/- ở từng giai đoạn để bắt đầu.'}
-                        </h3>
-                        {totalDaysUsed > 0 && (
-                            <>
-                                <div className="h-4 bg-indigo-200/50 rounded-full overflow-hidden flex shadow-inner">
-                                    <div className="h-full bg-indigo-500 transition-all duration-500" style={{ width: `${totalDaysUsed > 0 ? Math.round((totalPhaseDays / totalDaysUsed) * 100) : 0}%` }}></div>
-                                    <div className="h-full bg-amber-400 opacity-60 flex-none" style={{ width: `${totalDaysUsed > 0 ? Math.round((kpiState.paused_days / totalDaysUsed) * 100) : 0}%` }}></div>
-                                </div>
-                                <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase">
-                                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-indigo-500"></div> Ngày làm: {totalPhaseDays}</span>
-                                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-amber-400"></div> Tạm dừng: {kpiState.paused_days}</span>
-                                </div>
-                            </>
-                        )}
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-indigo-50/50 border border-indigo-50 rounded-xl py-3 flex flex-col items-center justify-center">
+                            <span className="text-[20px] font-black text-indigo-600 leading-none mb-1.5">{totalPhaseDays}</span>
+                            <span className="text-[11px] font-semibold text-slate-500">Ngày làm</span>
+                        </div>
+                        <div className="bg-amber-50/50 border border-amber-50 rounded-xl py-3 flex flex-col items-center justify-center">
+                            <span className="text-[20px] font-black text-amber-500 leading-none mb-1.5">{kpiState.paused_days}</span>
+                            <span className="text-[11px] font-semibold text-slate-500">Ngày dừng</span>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 rounded-xl py-3 flex flex-col items-center justify-center">
+                            <span className="text-[20px] font-black text-slate-600 leading-none mb-1.5">{totalEstimatedDays}</span>
+                            <span className="text-[11px] font-semibold text-slate-500">Dự kiến</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="px-4 sm:px-8 pb-6 sm:pb-8 space-y-4">
-                    {/* Value Metrics Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Dự kiến</div>
-                            <div className="text-2xl sm:text-3xl font-black text-slate-600">{totalEstimatedDays} ng</div>
+                {/* Paused Config */}
+                <div className="bg-white border border-slate-100 rounded-[1.25rem] p-4 shadow-sm flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shrink-0">
+                            <PauseCircle size={16} fill="currentColor" className="text-white" />
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Thực tế làm</div>
-                            <div className="text-2xl sm:text-3xl font-black text-indigo-600">{totalPhaseDays} ng</div>
-                        </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Ngày dừng</div>
-                            <div className="text-2xl sm:text-3xl font-black text-amber-500">{kpiState.paused_days} ng</div>
-                        </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl p-3 sm:p-4 text-center shadow-sm">
-                            <div className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Tổng cộng (TT)</div>
-                            <div className="text-2xl sm:text-3xl font-black text-slate-800">{totalDaysUsed} ng</div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="text-[13px] font-black text-slate-800">Tạm dừng / chờ khách</h4>
+                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">Gộp chờ khách + chuyển dự án</p>
                         </div>
                     </div>
-
-                    {/* Paused Config */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-                        <div className="flex-1">
-                            <h4 className="text-sm sm:text-base font-bold text-slate-800 mb-0.5">Tạm dừng / Chờ khách phản hồi</h4>
-                            <p className="text-[11px] sm:text-xs text-slate-500">Gộp cả chờ khách + chuyển dự án — thời gian dự án không thể tiếp tục.</p>
-                        </div>
-                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                                <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:text-rose-500 transition-colors text-slate-400"><Minus size={14} /></button>
-                                <span className="font-bold text-lg text-slate-700 w-6 text-center">{kpiState.paused_days}</span>
-                                <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 hover:text-emerald-500 transition-colors text-slate-400"><Plus size={14} /></button>
-                                <span className="text-xs text-slate-500 font-bold ml-1">ngày</span>
-                            </div>
-                            <button type="button"
-                                onClick={() => updateState(s => ({ ...s, is_paused: !s.is_paused }))}
-                                className={`px-4 py-1.5 text-xs font-bold rounded-full transition-colors flex items-center gap-1.5 ${kpiState.is_paused ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200'}`}
-                            >
-                                {kpiState.is_paused ? <PauseCircle size={14} /> : <Play size={14} />}
-                                {kpiState.is_paused ? 'ĐANG DỪNG' : 'BÌNH THƯỜNG'}
-                            </button>
-                        </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
+                        <span className="font-black text-sm text-slate-800 w-5 text-center">{kpiState.paused_days}</span>
+                        <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
                     </div>
+                </div>
 
-                    {/* ── Phases with linked tasks ── */}
-                    <div className="space-y-3">
-                        {DEFAULT_PHASES.map((phase) => {
-                            const pState = kpiState.phases[phase.key] || { days_used: 0 };
-                            const phaseTasks = tasksByPhase[phase.key] || [];
-                            const isActive = pState.days_used > 0 || phaseTasks.length > 0;
-                            const isExpanded = expandedPhases[phase.key];
+                <h3 className="text-[13px] font-black text-slate-800 mb-3 px-1">Giai đoạn</h3>
 
-                            return (
-                                <div key={phase.key} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center cursor-pointer select-none gap-2 sm:gap-0" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
-                                        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                                            <div className={`w-3 h-3 rounded shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-slate-800 text-sm sm:text-base truncate">{phase.name}</h4>
-                                                <div className="text-[9px] sm:text-[10px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">
-                                                    {pState.days_used} ngày • {phaseTasks.length} task
-                                                </div>
-                                            </div>
-                                            {/* Expand arrow on mobile logic: show here if flex-col is active and taking space, but actually it's easier to put at the very end of the row */}
+                {/* ── Phases with linked tasks ── */}
+                <div className="space-y-3">
+                    {DEFAULT_PHASES.map((phase) => {
+                        const pState = kpiState.phases[phase.key] || { days_used: 0, days_estimated: 0 };
+                        const phaseTasks = tasksByPhase[phase.key] || [];
+                        const isExpanded = expandedPhases[phase.key];
+                        
+                        const isDone = pState.days_used >= (pState.days_estimated || 1) && pState.days_used > 0;
+                        const isActive = pState.days_used > 0 && !isDone;
+
+                        return (
+                            <div key={phase.key} className="bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm">
+                                <div className="p-4 flex flex-col gap-3.5" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
+                                    
+                                    {/* Header Row */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2.5 h-2.5 rounded-full ${isDone ? 'bg-emerald-500' : isActive ? 'bg-indigo-500' : 'bg-slate-400'}`}></div>
+                                            <h4 className="font-black text-slate-800 text-[15px]">{phase.name}</h4>
                                         </div>
-                                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto pl-5 sm:pl-0">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex flex-col items-end leading-none">
-                                                    <span className="text-sm font-black text-indigo-600">{pState.days_used || 0} <span className="text-[10px] font-semibold text-indigo-400">ng</span></span>
-                                                    <span className="text-[10px] font-bold text-slate-400">/ {pState.days_estimated || 0} dự kiến</span>
-                                                </div>
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-12 text-center border ${pState.days_used === 0 ? 'bg-slate-50 text-slate-400 border-slate-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200'}`}>
-                                                    {pState.days_used === 0 ? 'Chờ' : 'Đang'}
-                                                </span>
-                                            </div>
-                                            <div className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}><ChevronDown size={18} /></div>
+                                        <span className={`px-2 py-0.5 rounded font-black text-[10px] tracking-wide uppercase ${isDone ? 'bg-emerald-50 text-emerald-600' : isActive ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                                            {isDone ? 'XONG' : isActive ? 'ĐANG' : 'CHỜ'}
+                                        </span>
+                                    </div>
+                                    
+                                    {/* Row 2: Subtext and Actual Days Buttons */}
+                                    <div className={`flex items-center justify-between ${isExpanded ? 'border-b border-dashed border-slate-200 pb-3.5' : 'pb-1'}`}>
+                                        <div className="text-[12px] font-semibold text-slate-500 flex items-center gap-1">
+                                            Làm <span className="text-slate-800 font-black">{pState.days_used || 0}</span><span className="text-indigo-500 font-black">/{pState.days_estimated || 0} ng</span> 
+                                            <span className="text-indigo-500 ml-0.5">✏️</span>
+                                            <span className="text-slate-300 mx-0.5">•</span> 
+                                            {phaseTasks.length} task
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                                            <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
+                                            <span className="font-black text-sm text-slate-800 w-5 text-center">{pState.days_used || 0}</span>
+                                            <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: (s.phases[phase.key]?.days_used || 0) + 1 } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
                                         </div>
                                     </div>
-
-                                    {isExpanded && (
-                                        <div className="bg-slate-50 border-t border-slate-100 p-3 sm:p-4 space-y-3">
-                                            {/* Days +/- */}
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-slate-200/60 pb-4">
-                                                {/* Dự kiến */}
-                                                <div className="flex justify-between items-center bg-slate-100 rounded-xl px-4 py-2 border border-slate-200">
-                                                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Dự kiến</span>
-                                                    <div className="flex items-center gap-3">
-                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: Math.max(0, (s.phases[phase.key]?.days_estimated || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-white hover:text-rose-500 text-slate-500 bg-white transition-colors"><Minus size={14}/></button>
-                                                        <span className="font-bold text-slate-700 w-6 text-center">{pState.days_estimated || 0}</span>
-                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: (s.phases[phase.key]?.days_estimated || 0) + 1 } } }))} className="w-7 h-7 rounded-full border border-slate-300 flex items-center justify-center hover:bg-white hover:text-indigo-500 text-slate-500 bg-white transition-colors"><Plus size={14}/></button>
-                                                    </div>
-                                                </div>
-                                                {/* Thực tế */}
-                                                <div className="flex justify-between items-center bg-indigo-50 rounded-xl px-4 py-2 border border-indigo-100">
-                                                    <span className="text-[11px] font-bold text-indigo-500 uppercase tracking-widest">Thực tế</span>
-                                                    <div className="flex items-center gap-3">
-                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: Math.max(0, (s.phases[phase.key]?.days_used || 0) - 1) } } }))} className="w-7 h-7 rounded-full border border-indigo-200 flex items-center justify-center hover:bg-white hover:text-rose-500 text-indigo-500 bg-white transition-colors"><Minus size={14}/></button>
-                                                        <span className="font-bold text-indigo-700 w-6 text-center">{pState.days_used || 0}</span>
-                                                        <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_used: (s.phases[phase.key]?.days_used || 0) + 1 } } }))} className="w-7 h-7 rounded-full border border-indigo-200 flex items-center justify-center hover:bg-white hover:text-indigo-500 text-indigo-500 bg-white transition-colors"><Plus size={14}/></button>
-                                                    </div>
+                                </div>
+                                    
+                                {/* Expanded content */}
+                                {isExpanded && (
+                                    <div className="px-4 pb-4 pt-1 flex flex-col gap-4">
+                                            {/* Estimated days editor */}
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[13px] font-black text-slate-800">Dự kiến giai đoạn này</div>
+                                                <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                                                    <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: Math.max(0, (s.phases[phase.key]?.days_estimated || 0) - 1) } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3}/></button>
+                                                    <span className="font-black text-sm text-slate-800 w-5 text-center">{pState.days_estimated || 0}</span>
+                                                    <button type="button" onClick={() => updateState(s => ({ ...s, phases: { ...s.phases, [phase.key]: { ...s.phases[phase.key], days_estimated: (s.phases[phase.key]?.days_estimated || 0) + 1 } } }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3}/></button>
+                                                    <span className="text-[11px] font-semibold text-slate-500 ml-1">ngày</span>
                                                 </div>
                                             </div>
 
-                                            {/* Linked Tasks from project */}
-                                            {phaseTasks.length > 0 ? (
-                                                <div className="space-y-2">
+                                            {/* Linked Tasks List */}
+                                            {phaseTasks.length > 0 && (
+                                                <div className="space-y-2 mt-2">
                                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nhiệm vụ thuộc giai đoạn này</div>
                                                     {phaseTasks.map(t => (
-                                                        <div key={t.id} className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-slate-100 shadow-sm">
+                                                        <div key={t.id} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 shadow-sm">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <div className={`w-2 h-2 rounded-full shrink-0 ${t.status?.includes('Hoàn thành') ? 'bg-emerald-500' : t.status?.includes('Đang') ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
-                                                                <span className={`text-sm font-bold truncate ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{t.name}</span>
+                                                                <span className={`text-[13px] font-bold truncate ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{t.name}</span>
                                                                 <span className="text-[10px] text-slate-400 shrink-0">({t.task_code})</span>
                                                             </div>
                                                             <div className="flex items-center gap-2 shrink-0">
-                                                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${t.status?.includes('Hoàn thành') ? 'bg-emerald-50 text-emerald-600' : t.status?.includes('Đang') ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'}`}>{t.status}</span>
+                                                                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${t.status?.includes('Hoàn thành') ? 'bg-emerald-100 text-emerald-600' : t.status?.includes('Đang') ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>{t.status}</span>
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
-                                            ) : (
-                                                <p className="text-xs text-slate-400 italic">Chưa có nhiệm vụ nào được gán vào giai đoạn này.</p>
                                             )}
-
-                                            {/* Footer */}
-                                            <div className="flex justify-between items-center text-xs text-slate-400 border-t border-slate-200/60 pt-3 font-bold">
-                                                <span>Tổng: {phaseTasks.length} task</span>
-                                                <span className="text-indigo-400">
-                                                    Đã dùng: {pState.days_used} ngày
-                                                </span>
-                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -330,10 +283,15 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                         })}
                     </div>
 
+                    {/* Footer helper text */}
+                    <p className="text-center text-[11px] font-medium text-slate-400 mt-6 mb-2">
+                        Bấm số <span className="text-indigo-500 font-bold">/0 ng ✏️</span> để nhập dự kiến cho từng giai đoạn.
+                    </p>
+
                     {/* Unassigned tasks */}
                     {(tasksByPhase['_unassigned'] || []).length > 0 && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-                            <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        <div className="bg-amber-50 border border-amber-200 rounded-[1.25rem] p-4 shadow-sm mt-4">
+                            <h4 className="text-[11px] font-black text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                 ⚠ Nhiệm vụ chưa gán giai đoạn ({tasksByPhase['_unassigned'].length})
                             </h4>
                             <div className="space-y-2">
@@ -341,13 +299,12 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     <div key={t.id} className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-amber-100 shadow-sm">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0"></div>
-                                            <span className="text-sm font-bold text-slate-700 truncate">{t.name}</span>
-                                            <span className="text-[10px] text-slate-400 shrink-0">({t.task_code})</span>
+                                            <span className="text-[13px] font-bold text-slate-700 truncate">{t.name}</span>
                                         </div>
                                         <select 
                                             value=""
                                             onChange={e => { if (e.target.value) assignTaskToPhase(t.id, e.target.value); }}
-                                            className="text-[11px] font-bold bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer"
+                                            className="text-[10px] font-bold bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer shrink-0 ml-2"
                                         >
                                             <option value="">Gán giai đoạn...</option>
                                             {DEFAULT_PHASES.map(p => <option key={p.key} value={p.key}>{p.name}</option>)}
@@ -357,7 +314,6 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                             </div>
                         </div>
                     )}
-                </div>
 
                 {saving && (
                     <div className="absolute top-4 right-20 flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 rounded-full text-[10px] font-bold shadow-sm">
