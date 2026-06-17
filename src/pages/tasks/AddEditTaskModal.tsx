@@ -885,19 +885,32 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Hidden fields: Giai đoạn, Ưu tiên (giữ giá trị mặc định, ẩn khỏi giao diện) */}
-                            <div className="hidden">
-                                <select value={form.target || ''} onChange={(e) => setForm({ ...form, target: e.target.value })}>
-                                    <option value="">Chọn...</option>
-                                    <option value="concept">Concept</option>
-                                    <option value="3d">3D / Phối cảnh</option>
-                                    <option value="2d">2D / Triển khai</option>
-                                    <option value="construction">Construction / Hồ sơ TC</option>
-                                </select>
-                                <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
-                                    <option value="JUX">JUX</option>
-                                    <option value="DQH">DQH</option>
-                                </select>
+                            {/* Row 4.5: Giai đoạn (Phase) */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
+                                    <select
+                                        value={form.target || ''}
+                                        onChange={(e) => setForm({ ...form, target: e.target.value })}
+                                        className={`w-full px-2 py-2 bg-slate-50/50 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer hover:bg-slate-50 transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        disabled={shouldDisableTopFields()}
+                                    >
+                                        <option value="">Chưa gán</option>
+                                        <option value="concept">Concept (Thiết kế)</option>
+                                        <option value="3d">3D / Phối cảnh (Thiết kế)</option>
+                                        <option value="2d">2D / Triển khai (Triển khai)</option>
+                                        <option value="construction">Construction / Hồ sơ TC (Thi công)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    {/* Ưu tiên (giữ giá trị mặc định, ẩn khỏi giao diện nhưng chiếm chỗ cho đẹp hoặc ẩn hẳn tuỳ layout) */}
+                                    <div className="hidden">
+                                        <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
+                                            <option value="JUX">JUX</option>
+                                            <option value="DQH">DQH</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Row 5: Chủ trì | Thực hiện */}
@@ -912,7 +925,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             disabled={shouldDisableTopFields()}
                                         >
                                             <option value="" className="text-slate-400 font-normal">Chọn...</option>
-                                            {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                         </select>
                                         {form.assignee_id && (
                                             <button 
@@ -935,7 +948,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         disabled={shouldDisableTopFields()}
                                     >
                                         <option value="" className="text-slate-400 font-normal">Thêm người...</option>
-                                        {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                        {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                     </select>
                                 </div>
                             </div>

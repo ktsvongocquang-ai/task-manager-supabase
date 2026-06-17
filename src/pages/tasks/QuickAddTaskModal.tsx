@@ -167,24 +167,33 @@ export const QuickAddTaskModal = ({
                 {/* Body */}
                 <div className="p-4 sm:p-5 overflow-y-auto max-h-[80vh]">
                     <div className="flex flex-col gap-3">
-                        {/* Row 1: Dự án */}
-                        <div>
-                            <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
-                            <select 
-                                value={form.project_id}
-                                onChange={e => setForm({...form, project_id: e.target.value})}
-                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                            >
-                                <option value="">Chọn dự án...</option>
-                                {[...projects].sort((a, b) => (b.project_code || '').localeCompare((a.project_code || ''), undefined, { numeric: true, sensitivity: 'base' })).map(p => <option key={p.id} value={p.id}>[{p.project_code}] {p.name}</option>)}
-                            </select>
-                        </div>
-
-                        {/* Hidden Target field */}
-                        <div className="hidden">
-                            <select value={form.target} onChange={e => setForm({...form, target: e.target.value})}>
-                                <option value="">Chọn...</option>
-                            </select>
+                        {/* Row 1: Dự án & Giai đoạn */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
+                                <select 
+                                    value={form.project_id}
+                                    onChange={e => setForm({...form, project_id: e.target.value})}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    <option value="">Chọn dự án...</option>
+                                    {[...projects].sort((a, b) => (b.project_code || '').localeCompare((a.project_code || ''), undefined, { numeric: true, sensitivity: 'base' })).map(p => <option key={p.id} value={p.id}>[{p.project_code}] {p.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
+                                <select
+                                    value={form.target || ''}
+                                    onChange={(e) => setForm({ ...form, target: e.target.value })}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                >
+                                    <option value="">Chưa gán</option>
+                                    <option value="concept">Concept (Thiết kế)</option>
+                                    <option value="3d">3D / Phối cảnh (Thiết kế)</option>
+                                    <option value="2d">2D / Triển khai (Triển khai)</option>
+                                    <option value="construction">Construction / Hồ sơ TC (Thi công)</option>
+                                </select>
+                            </div>
                         </div>
 
                         {/* Row 2: Trạng thái & Số ngày */}
@@ -248,7 +257,7 @@ export const QuickAddTaskModal = ({
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                 >
                                     <option value="">Chọn...</option>
-                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                 </select>
                             </div>
                             <div>
@@ -259,7 +268,7 @@ export const QuickAddTaskModal = ({
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                 >
                                     <option value="">Chọn...</option>
-                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => <option key={p.id} value={p.id}>{p.full_name}</option>)}
+                                    {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                 </select>
                             </div>
                         </div>
