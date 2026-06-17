@@ -409,7 +409,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 </div>
             </div>
 
-            <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 bg-slate-50 border-b border-slate-100">
+            <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 pl-8 pr-5 py-2 bg-slate-50 border-b border-slate-100">
                 {['Nhiệm vụ', 'Hạn chốt', 'Tiến độ', 'Phụ trách', 'Trạng thái', ''].map(h => (
                     <span key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide">{h}</span>
                 ))}
@@ -494,7 +494,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                             </div>
                                                         </div>
                                                         {/* Desktop */}
-                                                        <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 px-5 py-2 items-center group relative">
+                                                        <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 pl-8 pr-5 py-2 items-center group relative">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
                                                                     {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
@@ -522,7 +522,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </button>
                                                             ) : <div />}
                                                             {!isDone && (
-                                                                <button onClick={(e) => { e.stopPropagation(); updateStatus(t.id, 'Hoàn thành') }} className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition-colors border border-emerald-100 opacity-0 group-hover:opacity-100 shadow-sm" title="Hoàn thành ngay">
+                                                                <button onClick={(e) => { e.stopPropagation(); updateStatus(t.id, 'Hoàn thành') }} className="absolute left-1.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center bg-emerald-50 text-emerald-500 rounded-full hover:bg-emerald-500 hover:text-white transition-colors border border-emerald-100 opacity-0 group-hover:opacity-100 shadow-sm" title="Hoàn thành ngay">
                                                                     <CheckCircle2 size={14} />
                                                                 </button>
                                                             )}
