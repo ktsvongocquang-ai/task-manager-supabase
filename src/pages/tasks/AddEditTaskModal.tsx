@@ -757,23 +757,27 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                             
                             {/* Tags Row */}
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                {editingTask && (
-                                    <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide shrink-0 ${form.priority === 'JUX' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                            {editingTask && (
+                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500">
+                                    <span className={`${form.priority === 'JUX' ? 'text-red-600 font-bold bg-red-50 px-1.5 rounded' : 'text-blue-600 font-bold bg-blue-50 px-1.5 rounded'}`}>
                                         {form.priority}
                                     </span>
-                                )}
-                                {editingTask && form.task_code && (
-                                    <span className="px-3 py-1 bg-[#E0E7FF] text-[#4F46E5] text-[12px] font-bold rounded-full truncate max-w-full">
-                                        {form.task_code}
-                                    </span>
-                                )}
-                                {editingTask && form.project_id && (
-                                    <span className="text-xs font-bold text-slate-500 truncate max-w-full">
-                                        {projects.find(p => p.id === form.project_id)?.name || ''}
-                                    </span>
-                                )}
-                            </div>
+                                    {form.task_code && (
+                                        <>
+                                            <span className="text-slate-300">•</span>
+                                            <span className="text-slate-600 font-bold truncate max-w-[150px] sm:max-w-[200px]" title="Mã công việc">{form.task_code}</span>
+                                        </>
+                                    )}
+                                    {form.project_id && (
+                                        <>
+                                            <span className="text-slate-300">•</span>
+                                            <span className="truncate flex-1 min-w-[100px]" title="Dự án">
+                                                {projects.find(p => p.id === form.project_id)?.name || ''}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Actions */}
