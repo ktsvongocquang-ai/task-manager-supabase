@@ -151,38 +151,6 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                         />
                     </div>
 
-                    {/* Project Info Fields */}
-                    <div className="pt-1 border-t border-slate-100">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            📐 Thông tin dự án
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
-                                <input
-                                    type="text"
-                                    value={form.scale || ''}
-                                    onChange={(e) => setForm({ ...form, scale: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
-                                    placeholder="100"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loại hình</label>
-                                <select
-                                    value={form.project_type || ''}
-                                    onChange={(e) => setForm({ ...form, project_type: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                >
-                                    <option value="">Chọn loại hình</option>
-                                    <option value="Chung cư">Chung cư</option>
-                                    <option value="Nhà ở">Nhà ở</option>
-                                    <option value="Dịch vụ">Dịch vụ</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Link fields */}
                     <div className="pt-1 border-t border-slate-100">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
