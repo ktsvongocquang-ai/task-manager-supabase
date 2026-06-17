@@ -33,8 +33,10 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     onUpdateAssignee
 }) => {
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({
-        'thiet-ke': true,
-        'trien-khai': true,
+        'concept': true,
+        '3d': true,
+        '2d': true,
+        'construction': true,
         'unassigned': true,
     });
 
@@ -84,18 +86,24 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
 
     const phases = [
         {
-            key: 'thiet-ke',
-            name: 'Thiết kế',
-            icon: '🎨',
-            colorClass: 'bg-rose-50',
-            matchTargets: ['concept', '3d'],
+            key: 'concept',
+            name: 'Concept',
+            matchTargets: ['concept'],
         },
         {
-            key: 'trien-khai',
-            name: 'Triển khai',
-            icon: '📐',
-            colorClass: 'bg-slate-100',
-            matchTargets: ['2d', 'construction'],
+            key: '3d',
+            name: '3D / Phối cảnh',
+            matchTargets: ['3d'],
+        },
+        {
+            key: '2d',
+            name: '2D / Triển khai',
+            matchTargets: ['2d'],
+        },
+        {
+            key: 'construction',
+            name: 'Construction / Hồ sơ TC',
+            matchTargets: ['construction'],
         }
     ];
 
@@ -137,7 +145,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                             {/* Phase Header */}
                             <div className="flex items-center justify-between p-3 cursor-pointer select-none" onClick={() => togglePhase(phase.key)}>
                                 <div className="flex items-center gap-3">
-                                    <div className="text-lg bg-slate-50 w-8 h-8 rounded-xl flex items-center justify-center">{phase.icon}</div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-slate-400 ml-1"></div>
                                     <span className="text-[15px] font-black text-slate-800">{phase.name}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -261,7 +269,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-amber-100">
                             <div className="flex items-center justify-between p-3 cursor-pointer select-none bg-amber-50/50" onClick={() => togglePhase('unassigned')}>
                                 <div className="flex items-center gap-3">
-                                    <div className="text-lg bg-amber-100 w-8 h-8 rounded-xl flex items-center justify-center">📋</div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500 ml-1"></div>
                                     <span className="text-[15px] font-black text-amber-800">Chưa gán</span>
                                 </div>
                                 <div className="flex items-center gap-3">
