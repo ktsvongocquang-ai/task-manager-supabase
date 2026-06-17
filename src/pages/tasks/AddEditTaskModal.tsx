@@ -865,7 +865,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     >
                                         <option value="">Chọn dự án...</option>
                                         <option value="personal">Việc cá nhân</option>
-                                        {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        {projects.filter(p => currentUserProfile?.role === 'Admin' || p.manager_id === currentUserProfile?.id || editingTask !== null || p.id === initialData.project_id).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
