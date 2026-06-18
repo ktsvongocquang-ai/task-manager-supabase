@@ -294,14 +294,14 @@ export const Gantt = () => {
                         isPhase: true,
                         isExpanded: expandedPhases.has(fakePhaseId),
                         task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id }, // Fake task for progress render
-                        startDate: isUnassigned ? null : currentPhaseStartDate.toISOString(),
-                        endDate: isUnassigned ? null : phaseEndDate.toISOString(),
+                        startDate: hasExpectedTimeline ? currentPhaseStartDate.toISOString() : null,
+                        endDate: hasExpectedTimeline ? phaseEndDate.toISOString() : null,
                         type: 'phase',
                         projectCode: p.project_code
                     });
 
                     // Next phase starts on the next working day after phaseEndDate
-                    if (!isUnassigned) {
+                    if (hasExpectedTimeline) {
                         currentPhaseStartDate = getNextWorkingDay(phaseEndDate);
                     }
 
