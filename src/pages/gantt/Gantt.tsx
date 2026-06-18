@@ -152,7 +152,7 @@ export const Gantt = () => {
         name: `Tháng ${d.getMonth() + 1} ${d.getFullYear()}`
     })), [year, month]);
 
-    const totalDays = monthsData.reduce((sum, m) => sum + m.days, 0);
+    const totalDays = daysInMonth;
 
     const flatDays = useMemo(() => {
         const arr: any[] = [];
@@ -486,16 +486,7 @@ export const Gantt = () => {
     const cellWidth = Math.max(20, Math.round(28 * zoom / 100))
 
 
-    useEffect(() => {
-        if (rightPaneRef.current && monthsData[0]) {
-            // setTimeout to ensure layout has updated before scrolling
-            setTimeout(() => {
-                if (rightPaneRef.current) {
-                    rightPaneRef.current.scrollLeft = monthsData[0].days * cellWidth;
-                }
-            }, 100);
-        }
-    }, [year, month, cellWidth]);
+
 
     const handleRightScroll = (e: React.UIEvent<HTMLDivElement>) => {
         if (!isSyncingRightScroll.current) {
@@ -660,7 +651,6 @@ export const Gantt = () => {
                                                         {item.type === 'phase' && <div className="w-4 h-4 flex-shrink-0" />}
                                                         <span 
                                                             className={`truncate text-[11px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'font-medium text-slate-700'} hover:text-blue-600 cursor-pointer`}
-                                                            onClick={() => { setTaskPanelMode(item.type === 'project' ? 'project' : 'phase'); setSelectedItem(item); }}
                                                         >
                                                             {item.name}
                                                         </span>
@@ -730,7 +720,15 @@ export const Gantt = () => {
                                                     <div
                                                         className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500/60 border-emerald-600/60' : 'bg-[#5da0ea]/60 border-[#4b82c3]/60'}`}
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
-                                                        onClick={(e) => { e.stopPropagation(); setTaskPanelMode('phase'); setSelectedItem(item); }}
+                                                        onDoubleClick={(e) => { 
+                                                            e.stopPropagation(); 
+                                                            if (item.type === 'task' || item.type === 'phase') {
+                                                                if (item.task) {
+                                                                    setEditingTask(item.task); 
+                                                                    setIsEditModalOpen(true); 
+                                                                }
+                                                            }
+                                                        }}
                                                     >
                                                         {progressAmount > 0 && (
                                                             <span className="text-[8px] font-bold text-slate-800 whitespace-nowrap z-10 select-none block truncate w-full text-center drop-shadow-sm">
