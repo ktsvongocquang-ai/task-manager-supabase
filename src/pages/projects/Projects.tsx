@@ -52,7 +52,7 @@ export const Projects = () => {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'projects' },
-                () => fetchProjects()
+                () => fetchProjects(true)
             )
             .on(
                 'postgres_changes',
@@ -66,15 +66,15 @@ export const Projects = () => {
         }
     }, [])
 
-    const fetchProjects = async () => {
+    const fetchProjects = async (silent = false) => {
         try {
-            setLoading(true)
+            if (!silent) setLoading(true)
             const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false })
             if (data) setProjects(data as Project[])
         } catch (err) {
             console.error(err)
         } finally {
-            setLoading(false)
+            if (!silent) setLoading(false)
         }
     }
 
@@ -770,7 +770,7 @@ export const Projects = () => {
 
                 // Timeline props
                 managerName={unifiedProjectData?.project?.manager_id ? profiles.find(p => p.id === unifiedProjectData.project.manager_id)?.full_name : undefined}
-                onUpdateProjectStats={fetchProjects}
+                onUpdateProjectStats={() => fetchProjects(true)}
             />
 
             {/* Add/Edit Task Modal */}
