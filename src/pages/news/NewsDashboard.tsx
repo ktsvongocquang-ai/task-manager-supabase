@@ -28,16 +28,18 @@ export const NewsDashboard = () => {
     if (generating) return;
     setGenerating(true);
     try {
-      const baseUrl = import.meta.env.DEV ? 'http://localhost:3001' : '';
-      const res = await fetch(`${baseUrl}/api/generate-grok-news?force=true`);
+      const res = await fetch(`/api/generate-grok-news?force=true`);
       const result = await res.json();
-      if (result.success && !result.skipped) {
+      
+      if (!res.ok || result.error) {
+        alert('Lỗi từ server: ' + (result.error || 'Không xác định'));
+      } else if (result.success && !result.skipped) {
         await fetchNews(); // reload to show new article
       } else if (result.skipped) {
         alert('Bản tin phiên này đã được tạo trước đó. Hãy đợi phiên tiếp theo!');
       }
-    } catch (err) {
-      alert('Lỗi kết nối API. Vui lòng thử lại sau.');
+    } catch (err: any) {
+      alert('Lỗi kết nối API: ' + err.message);
     }
     setGenerating(false);
   };
