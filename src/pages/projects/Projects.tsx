@@ -207,11 +207,38 @@ export const Projects = () => {
             if (editingProject?.other_info) {
                 try { existingOtherInfo = JSON.parse(editingProject.other_info); } catch(e) {}
             }
+
+            let kpiData = existingOtherInfo.kpiData;
+            if (form.timelinePhases && form.timelinePhases.length > 0) {
+                const aiMap: Record<string, number> = {};
+                form.timelinePhases.forEach((p: any) => {
+                    const phaseStr = (p.phase || '').toLowerCase();
+                    if (phaseStr.includes('concept')) aiMap['concept'] = p.days;
+                    else if (phaseStr.includes('3d')) aiMap['3d'] = p.days;
+                    else if (phaseStr.includes('triển khai') || phaseStr.includes('2d')) aiMap['2d'] = p.days;
+                    else if (phaseStr.includes('construction') || phaseStr.includes('thi công') || phaseStr.includes('hồ sơ')) aiMap['construction'] = p.days;
+                });
+                
+                kpiData = {
+                    ...kpiData,
+                    paused_days: kpiData?.paused_days || 0,
+                    is_paused: kpiData?.is_paused || false,
+                    taskPhaseMap: kpiData?.taskPhaseMap || {},
+                    phases: {
+                        'concept': { ...(kpiData?.phases?.['concept'] || {}), days_used: kpiData?.phases?.['concept']?.days_used || 0, days_estimated: aiMap['concept'] || kpiData?.phases?.['concept']?.days_estimated || 0 },
+                        '3d': { ...(kpiData?.phases?.['3d'] || {}), days_used: kpiData?.phases?.['3d']?.days_used || 0, days_estimated: aiMap['3d'] || kpiData?.phases?.['3d']?.days_estimated || 0 },
+                        '2d': { ...(kpiData?.phases?.['2d'] || {}), days_used: kpiData?.phases?.['2d']?.days_used || 0, days_estimated: aiMap['2d'] || kpiData?.phases?.['2d']?.days_estimated || 0 },
+                        'construction': { ...(kpiData?.phases?.['construction'] || {}), days_used: kpiData?.phases?.['construction']?.days_used || 0, days_estimated: aiMap['construction'] || kpiData?.phases?.['construction']?.days_estimated || 0 },
+                    }
+                };
+            }
+
             const mergedOtherInfo = {
                 ...existingOtherInfo,
                 budget: form.budget || 0,
                 scale: form.scale || '',
                 project_type: form.project_type || '',
+                ...(kpiData ? { kpiData } : {})
             };
 
             const payload = {

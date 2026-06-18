@@ -145,49 +145,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
         }));
     };
 
-    const handleAIPredict = async () => {
-        if (!project || !project.area_sqm) {
-            alert('Vui lòng cập nhật Diện tích và Loại hình cho dự án trước khi dùng AI!');
-            return;
-        }
-        setIsGeneratingAI(true);
-        try {
-            const res = await fetch('/api/generate-timeline', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    area: project.area_sqm,
-                    projectType: project.type || 'Chung cư'
-                })
-            });
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                const aiMap: Record<string, number> = {};
-                data.forEach((item: any) => {
-                    const phaseStr = (item.phase || '').toLowerCase();
-                    if (phaseStr.includes('concept')) aiMap['concept'] = item.days;
-                    else if (phaseStr.includes('3d')) aiMap['3d'] = item.days;
-                    else if (phaseStr.includes('triển khai') || phaseStr.includes('2d')) aiMap['2d'] = item.days;
-                    else if (phaseStr.includes('construction') || phaseStr.includes('thi công') || phaseStr.includes('hồ sơ')) aiMap['construction'] = item.days;
-                });
-                
-                updateState(s => {
-                    const newPhases = { ...s.phases };
-                    ['concept', '3d', '2d', 'construction'].forEach(key => {
-                        if (aiMap[key] !== undefined) {
-                            newPhases[key] = { ...newPhases[key], days_estimated: aiMap[key] };
-                        }
-                    });
-                    return { ...s, phases: newPhases };
-                });
-            }
-        } catch (error) {
-            console.error('AI Predict error:', error);
-            alert('Có lỗi xảy ra khi dự đoán bằng AI.');
-        } finally {
-            setIsGeneratingAI(false);
-        }
-    };
+
 
     // ── Time metrics ────────────────────────────────────────────────────────────
     const totalPhaseDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_used || 0), 0);
@@ -246,18 +204,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                     </div>
                 </div>
 
-                <div className="flex justify-between items-center mb-3 px-1">
-                    <h3 className="text-[13px] font-bold text-slate-800">Giai đoạn</h3>
-                    <button 
-                        type="button" 
-                        onClick={handleAIPredict}
-                        disabled={isGeneratingAI}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white text-[12px] font-bold rounded-[0.75rem] shadow-sm hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                    >
-                        {isGeneratingAI ? <span className="animate-spin text-sm leading-none">⏳</span> : <span className="text-sm leading-none">🤖</span>}
-                        Dự đoán AI
-                    </button>
-                </div>
+                <h3 className="text-[13px] font-bold text-slate-800 mb-3 px-1">Giai đoạn</h3>
 
                 {/* ── Phases with linked tasks ── */}
                 <div className="space-y-3">
