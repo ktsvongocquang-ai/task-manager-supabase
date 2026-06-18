@@ -251,126 +251,80 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
         <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl relative">
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 custom-scrollbar">
                 
-                {/* Stats Bar */}
-                <div className="bg-white p-5 rounded-[1.25rem] shadow-sm border border-slate-100 mb-4">
-                    <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-[12px] sm:text-[13px] font-bold text-slate-500 uppercase tracking-wider">Tổng tiến độ (Ngày công)</h2>
-                        <div className="text-[32px] font-bold text-slate-800 leading-none flex items-baseline gap-1">
-                            {totalPhaseDays} <span className="text-[13px] font-bold text-slate-400">/{totalEstimatedDays} ng</span>
-                        </div>
-                    </div>
+                {/* ── Compact Top Dashboard ── */}
+                <div className="bg-white border border-slate-100 rounded-[1.25rem] p-4 shadow-sm mb-5">
                     
-                    {/* Progress Bar */}
-                    <div className="h-2.5 bg-indigo-50 rounded-full mb-5 overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: totalEstimatedDays > 0 ? `${Math.min(100, (totalPhaseDays / totalEstimatedDays) * 100)}%` : '0%' }}></div>
+                    {/* Top Row: Progress & Stats */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                        <div className="flex-1">
+                            <div className="flex justify-between items-end mb-1.5">
+                                <h2 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tổng tiến độ</h2>
+                                <div className="text-base font-bold text-slate-800 leading-none">
+                                    {totalPhaseDays} <span className="text-[11px] font-bold text-slate-400">/ {totalEstimatedDays} ng</span>
+                                </div>
+                            </div>
+                            {/* Thin Progress Bar */}
+                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: totalEstimatedDays > 0 ? `${Math.min(100, (totalPhaseDays / totalEstimatedDays) * 100)}%` : '0%' }}></div>
+                            </div>
+                        </div>
+
+                        {/* Inline Stats */}
+                        <div className="flex items-center gap-3 bg-slate-50 px-3 py-2 rounded-[0.85rem] border border-slate-100 shrink-0">
+                            <div className="flex items-center gap-1.5 border-r border-slate-200 pr-3">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Làm:</span>
+                                <span className="text-[13px] font-bold text-indigo-600">{totalPhaseDays}</span>
+                            </div>
+                            <div className="flex items-center gap-2 border-r border-slate-200 pr-3">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Dừng:</span>
+                                <div className="flex items-center gap-1">
+                                    <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-5 h-5 rounded hover:bg-slate-200 flex items-center justify-center text-slate-500"><Minus size={12} strokeWidth={3} /></button>
+                                    <span className="text-[13px] font-bold text-amber-500 w-3 text-center">{kpiState.paused_days}</span>
+                                    <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-5 h-5 rounded hover:bg-slate-200 flex items-center justify-center text-slate-500"><Plus size={12} strokeWidth={3} /></button>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Dự kiến:</span>
+                                <span className="text-[13px] font-bold text-slate-700">{totalEstimatedDays}</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-indigo-50/50 border border-indigo-50 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-bold text-indigo-600 leading-none mb-1.5">{totalPhaseDays}</span>
-                            <span className="text-[11px] font-semibold text-slate-500">Ngày làm</span>
-                        </div>
-                        <div className="bg-amber-50/50 border border-amber-50 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-bold text-amber-500 leading-none mb-1.5">{kpiState.paused_days}</span>
-                            <span className="text-[11px] font-semibold text-slate-500">Ngày dừng</span>
-                        </div>
-                        <div className="bg-slate-50 border border-slate-100 rounded-xl py-3 flex flex-col items-center justify-center">
-                            <span className="text-[20px] font-bold text-slate-600 leading-none mb-1.5">{totalEstimatedDays}</span>
-                            <span className="text-[11px] font-semibold text-slate-500">Dự kiến</span>
-                        </div>
-                    </div>
-                </div>
+                    <div className="h-px bg-slate-100 w-full mb-4"></div>
 
-                {/* Paused Config */}
-                <div className="bg-white border border-slate-100 rounded-[1.25rem] p-4 shadow-sm flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center shrink-0">
-                            <PauseCircle size={16} fill="currentColor" className="text-white" />
+                    {/* Bottom Row: Inputs & AI */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                        <div className="md:col-span-1">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} onBlur={(e) => handleUpdateProjectDates('start_date', e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <h4 className="text-[13px] font-bold text-slate-800">Tạm dừng / chờ khách</h4>
-                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">Gộp chờ khách + chuyển dự án</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
-                        <span className="font-bold text-sm text-slate-800 w-5 text-center">{kpiState.paused_days}</span>
-                        <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
-                    </div>
-                </div>
-
-                {/* AI & Project Info */}
-                <div className="bg-white border border-slate-100 rounded-[1.25rem] p-4 shadow-sm mb-6">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                        📐 Thông tin công trình
-                    </p>
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                onBlur={(e) => handleUpdateProjectDates('start_date', e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                            />
-                        </div>
-                        <div>
-                            <label className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase mb-1">
+                        <div className="md:col-span-1">
+                            <label className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase mb-1">
                                 <span>Ngày kết thúc</span>
-                                <button 
-                                    type="button" 
-                                    onClick={handleAutoCalculateEndDate}
-                                    className="text-indigo-500 hover:text-indigo-700 normal-case flex items-center gap-1 bg-indigo-50/50 px-1.5 py-0.5 rounded transition-colors"
-                                    title="Tính tự động (bỏ qua Chủ nhật & tính thêm Ngày chờ khách)"
-                                >
-                                    <span className="text-[10px]">✨ Tự tính</span>
+                                <button type="button" onClick={handleAutoCalculateEndDate} className="text-indigo-500 hover:text-indigo-700 normal-case flex items-center" title="Tự tính (bỏ qua CN)">
+                                    <span className="text-[9px]">✨ Tự tính</span>
                                 </button>
                             </label>
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                onBlur={(e) => handleUpdateProjectDates('end_date', e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                            />
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} onBlur={(e) => handleUpdateProjectDates('end_date', e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
-                            <input
-                                type="number"
-                                value={areaSqm}
-                                onChange={(e) => setAreaSqm(e.target.value ? Number(e.target.value) : '')}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                placeholder="100"
-                            />
+                        <div className="md:col-span-1">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
+                            <input type="number" value={areaSqm} onChange={(e) => setAreaSqm(e.target.value ? Number(e.target.value) : '')} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="100" />
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loại hình</label>
-                            <select
-                                value={projectType}
-                                onChange={(e) => setProjectType(e.target.value)}
-                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                            >
-                                <option value="">Chọn loại hình</option>
+                        <div className="md:col-span-1">
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Loại hình</label>
+                            <select value={projectType} onChange={(e) => setProjectType(e.target.value)} className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                                <option value="">Chọn</option>
                                 <option value="Chung cư">Chung cư</option>
-                                <option value="Nhà ở">Nhà ở (Biệt thự/Nhà phố)</option>
-                                <option value="Dịch vụ">Dịch vụ (Shop/Cửa hàng)</option>
+                                <option value="Nhà ở">Nhà ở (Biệt thự/Nhố)</option>
+                                <option value="Dịch vụ">Dịch vụ (Shop)</option>
                             </select>
                         </div>
-                    </div>
-                    <div className="flex justify-between items-center bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
-                        <label className="block text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
-                            <span className="text-indigo-500 text-sm">✨</span> AI Dự kiến Tiến độ
-                        </label>
-                        <button
-                            type="button"
-                            onClick={handleAIPredict}
-                            disabled={isGeneratingAI}
-                            className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-[0.75rem] shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
-                        >
-                            {isGeneratingAI ? 'Đang tính...' : 'Dự đoán Timeline'}
-                        </button>
+                        <div className="md:col-span-1">
+                            <button type="button" onClick={handleAIPredict} disabled={isGeneratingAI} className="w-full px-2 py-1.5 bg-indigo-600 text-white text-[11px] font-semibold rounded-lg shadow-sm hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 h-[30px]">
+                                {isGeneratingAI ? <RefreshCw size={12} className="animate-spin" /> : <span>✨ AI Dự đoán</span>}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
