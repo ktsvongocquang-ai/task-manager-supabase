@@ -51,66 +51,43 @@ export default async function handler(req, res) {
         const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const dateOnlyVN = dateVN.toISOString().split('T')[0];
 
-        const prompt = `Bạn là Giám đốc Phân tích Đầu tư (CIO) cấp cao. Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
+        const prompt = `Bạn là Giám đốc Thiết kế Kiến trúc & Nội thất (Design Director) cấp cao. Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
 
-Hãy dùng Google Search để tìm các thông tin thực tế mới nhất và tạo BẢNG TIN ĐẦU TƯ cho CEO.
+Hãy dùng Google Search để tìm các thông tin thực tế mới nhất và tạo BẢNG TIN THIẾT KẾ & CÔNG NGHỆ cho đội ngũ nhân sự thiết kế.
 
 QUY TẮC BẮT BUỘC:
-- Chỉ dùng số liệu của năm 2026. Nếu không tìm thấy, ghi rõ "Chưa có dữ liệu hôm nay".
-- Ghi rõ nguồn và giờ cập nhật cho mỗi số liệu.
-- Không tự bịa số liệu.
+- Chỉ dùng số liệu, xu hướng và phần mềm của năm 2026. Nếu không tìm thấy, ghi rõ "Chưa có thông tin hôm nay".
+- Ghi rõ nguồn cho mỗi thông tin (Ví dụ: ArchDaily, Dezeen, Autodesk, ChatGPT).
+- Không tự bịa thông tin.
 
 CẤU TRÚC BẮT BUỘC (Markdown):
 
-## 📊 EXECUTIVE SUMMARY (CHO CEO)
-[1-2 câu tóm tắt tình hình thị trường hôm nay, rủi ro chính, cơ hội lớn nhất]
+## 🎨 TÓM TẮT XU HƯỚNG HÔM NAY
+[1-2 câu tóm tắt xu hướng nổi bật nhất trong ngày hôm nay về kiến trúc, nội thất hoặc công nghệ]
 
-## 📈 BẢNG THÔNG TIN ĐẦU TƯ
+## 🏗️ XU HƯỚNG KIẾN TRÚC & NỘI THẤT 2026
 
-| Chỉ số | Giá trị hiện tại | Thay đổi | Hành động CEO hôm nay | Ghi chú / Rủi ro |
-|---|---|---|---|---|
-| VN-Index | [cập nhật từ HOSE] | +/- % | DCA / Hold / Bán | - |
-| Vàng Thế Giới | [USD/ounce - Kitco/Bloomberg] | +/- % | Giữ / Mua dip | - |
-| Vàng SJC | Mua: … / Bán: … (triệu/lượng) | +/- triệu | Giữ / Mua thêm | - |
-| BĐS TP.HCM | Trung tâm: … triệu/m² | +/- % | Theo dõi | Thanh khoản |
-| BĐS Bình Dương | Đất KCN: … triệu/m² | +/- % | Mua dần | FDI tăng |
-| BĐS Đắk Lắk | Đất đô thị: … triệu/m² | +/- % | Dài hạn | Hạ tầng |
-| Xăng RON 95 | [Petrolimex] | +/- | Kiểm soát logistics | - |
+| Hạng mục | Xu hướng hiện tại | Ứng dụng thực tế | Đánh giá / Ghi chú |
+|---|---|---|---|
+| Vật liệu mới | [cập nhật vật liệu xanh/thông minh] | [cách ứng dụng] | [ưu/nhược điểm] |
+| Phong cách Nội thất | [cập nhật phong cách hot 2026] | [màu sắc, hình khối] | [phù hợp loại dự án nào] |
+| Giải pháp Không gian | [thiết kế bền vững/đa năng] | [ví dụ] | [chi phí thi công] |
 
-## 🎯 HÀNH ĐỘNG ƯU TIÊN CHO CEO HÔM NAY
-- [Bullet 1: mua gì, bán gì]
-- [Bullet 2: rủi ro cần theo dõi]
-- [Bullet 3: cơ hội ngắn hạn]
+## 💻 CÔNG NGHỆ & PHẦN MỀM THIẾT KẾ
+- **AI trong Thiết kế:** [Cập nhật mới nhất từ Midjourney, Stable Diffusion, hoặc AI tools năm 2026]
+- **BIM & Phần mềm:** [Cập nhật mới nhất từ Revit, SketchUp, 3ds Max, Enscape, Corona, Lumion]
+- **Thiết bị & VR/AR:** [Công nghệ trình diễn dự án cho khách hàng]
 
-## 🚨 PHÂN TÍCH ĐỊA CHÍNH TRỊ & CHIẾN SỰ
-[Trung Đông, Mỹ-Trung, thuế quan Trump, tác động thị trường]
+## 🎯 GÓC KỸ NĂNG & TRUYỀN CẢM HỨNG
+- **Kỹ năng thiết yếu 2026:** [Kỹ năng mềm hoặc kỹ thuật cần có]
+- **Dự án nổi bật thế giới:** [Tên 1 dự án kiến trúc mới hoàn thành hoặc đạt giải gần đây]
+- **Lời khuyên cho Designer:** [Lời khuyên thực chiến khi gặp khách hàng hoặc tối ưu hiệu suất làm việc]
 
-## 🇻🇳 TÁC ĐỘNG ĐẾN VIỆT NAM
-[XNK, FDI, logistics, lạm phát, lãi suất, khuyến nghị doanh nghiệp]
+## 🚨 LƯU Ý KỸ THUẬT & THI CÔNG
+[Các vấn đề thường gặp về kỹ thuật thi công, lỗi sai kích thước, hoặc xu hướng chi tiết cấu tạo]
 
-## 🏗️ NGÀNH XÂY DỰNG & NỘI THẤT
-
-### Bảng giá Vật tư Xây dựng tại TP.HCM
-| Vật tư | Đơn vị | Giá (VND) | Xu hướng | Khuyến nghị |
-|---|---|---|---|---|
-| Xi măng | tấn | [giá] | ↑/↓ | - |
-| Sắt / Thép | kg | [giá] | ↑/↓ | - |
-| Gạch xây | viên | [giá] | ↑/↓ | - |
-| Nhôm thanh | kg | [giá] | ↑/↓ | - |
-| Kính 8mm | m² | [giá] | ↑/↓ | - |
-| Gỗ công nghiệp | m² | [giá] | ↑/↓ | - |
-
-### Lời khuyên CEO ngành xây dựng & nội thất
-- [Chiến lược mua vật tư, thời điểm đặt hàng, cơ hội dự án HCM và Đắk Lắk]
-
-## 🔮 DỰ BÁO VĨ MÔ
-- **Tuần sau:** [ngắn gọn]
-- **Tháng 4:** [ngắn gọn]
-- **Quý II/2026:** GDP VN ước tính
-- **Cả năm 2026:** VN-Index mục tiêu
-
-**Lưu ý:** Đây không phải lời khuyên tài chính cá nhân. Luôn tham khảo cố vấn chuyên môn.
-*Bản tin tổng hợp tự động bởi Gemini AI lúc ${dateVN.toLocaleTimeString('vi-VN')} UTC+7*`;
+**Lưu ý:** Hãy luôn sáng tạo, cập nhật công nghệ và bám sát thực tế thi công để tạo ra những bản vẽ chất lượng nhất.
+*Bản tin thiết kế tổng hợp tự động bởi Gemini AI lúc ${dateVN.toLocaleTimeString('vi-VN')} UTC+7*`;
 
         const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
@@ -132,12 +109,12 @@ CẤU TRÚC BẮT BUỘC (Markdown):
 
         const timeLabel = edition === 'AM' ? 'Sáng' : 'Chiều';
         const dateStrVN = dateVN.toLocaleDateString('vi-VN');
-        const title = `Bảng Tin Đầu Tư ${timeLabel} ${dateStrVN}`;
+        const title = `Bảng Tin Thiết Kế ${timeLabel} ${dateStrVN}`;
 
         const { error } = await supabaseAdmin.from('grok_news_feed').insert({
             title,
             content_markdown: newsContent,
-            category: 'Đầu tư CEO',
+            category: 'Thiết kế & Công nghệ',
             ai_model: 'gemini-2.5-flash (google_search)',
             edition,
             edition_date: dateOnlyVN,
