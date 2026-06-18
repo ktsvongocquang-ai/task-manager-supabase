@@ -52,20 +52,12 @@ export const Gantt = () => {
     const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null)
     const [editValue, setEditValue] = useState<string>('')
 
-    const leftPaneRef = useRef<HTMLDivElement>(null)
-    const rightPaneRef = useRef<HTMLDivElement>(null)
-    const isSyncingLeftScroll = useRef(false)
-    const isSyncingRightScroll = useRef(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    
+    
+    
 
-    const handleLeftScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (!isSyncingLeftScroll.current) {
-            isSyncingRightScroll.current = true;
-            if (rightPaneRef.current) {
-                rightPaneRef.current.scrollTop = e.currentTarget.scrollTop;
-            }
-        }
-        isSyncingLeftScroll.current = false;
-    };
+    
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
 
@@ -488,15 +480,7 @@ export const Gantt = () => {
 
 
 
-    const handleRightScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (!isSyncingRightScroll.current) {
-            isSyncingLeftScroll.current = true;
-            if (leftPaneRef.current) {
-                leftPaneRef.current.scrollTop = e.currentTarget.scrollTop;
-            }
-        }
-        isSyncingRightScroll.current = false;
-    };
+    
 
 
 
