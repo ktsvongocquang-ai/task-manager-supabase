@@ -217,6 +217,36 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
     const totalEstimatedDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_estimated || 0), 0);
     const totalDaysUsed = totalPhaseDays + (kpiState.paused_days || 0);
 
+    const handleAutoCalculateEndDate = () => {
+        if (!startDate) {
+            alert("Vui lòng chọn Ngày bắt đầu trước!");
+            return;
+        }
+        if (totalEstimatedDays === 0) {
+            alert("Vui lòng dự đoán AI để có Tổng tiến độ dự kiến trước!");
+            return;
+        }
+        
+        let daysNeeded = totalEstimatedDays + (kpiState.paused_days || 0);
+        let current = new Date(startDate);
+        let workingDaysCounted = 0;
+        
+        if (current.getDay() !== 0) {
+            workingDaysCounted = 1;
+        }
+        
+        while (workingDaysCounted < daysNeeded) {
+            current.setDate(current.getDate() + 1);
+            if (current.getDay() !== 0) {
+                workingDaysCounted++;
+            }
+        }
+        
+        const newEndDate = current.toISOString().split('T')[0];
+        setEndDate(newEndDate);
+        handleUpdateProjectDates('end_date', newEndDate);
+    };
+
     return (
         <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl relative">
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 custom-scrollbar">
@@ -286,7 +316,17 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày kết thúc</label>
+                            <label className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase mb-1">
+                                <span>Ngày kết thúc</span>
+                                <button 
+                                    type="button" 
+                                    onClick={handleAutoCalculateEndDate}
+                                    className="text-indigo-500 hover:text-indigo-700 normal-case flex items-center gap-1 bg-indigo-50/50 px-1.5 py-0.5 rounded transition-colors"
+                                    title="Tính tự động (bỏ qua Chủ nhật & tính thêm Ngày chờ khách)"
+                                >
+                                    <span className="text-[10px]">✨ Tự tính</span>
+                                </button>
+                            </label>
                             <input
                                 type="date"
                                 value={endDate}
