@@ -832,8 +832,11 @@ export const Gantt = () => {
                                                 {flatDays.map((d, idx) => (
                                                     <div 
                                                         key={`bg-${idx}`}
-                                                        style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
-                                                        className={`border-r border-slate-200/50 ${isToday3M(d.day, d.month, d.year) ? 'bg-orange-500/10' : isWeekend3M(d.day, d.month, d.year) ? 'bg-slate-100/50' : ''}`}
+                                                        style={{ 
+                                                            left: `${idx * cellWidth}px`,
+                                                            width: `${cellWidth}px` 
+                                                        }}
+                                                        className={`absolute top-0 bottom-0 border-r border-slate-200 ${isToday3M(d.day, d.month, d.year) ? 'bg-orange-500/10' : isWeekend3M(d.day, d.month, d.year) ? 'bg-slate-100/50' : ''}`}
                                                     ></div>
                                                 ))}
 
