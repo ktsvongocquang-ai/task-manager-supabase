@@ -63,16 +63,20 @@ QUY TẮC BẮT BUỘC:
 CẤU TRÚC BẮT BUỘC (Markdown):
 
 ## 📊 EXECUTIVE SUMMARY (TÌNH HÌNH CHUNG)
-[1-2 câu tóm tắt nhanh tình hình vĩ mô, địa chính trị hoặc điểm nóng kinh tế quan trọng nhất trong ngày]
+[1-2 câu tóm tắt nhanh tình hình vĩ mô, chính trị hoặc điểm nóng kinh tế quan trọng nhất trong ngày]
 
-## 📈 KINH TẾ - ĐẦU TƯ - ĐỊA CHÍNH TRỊ
-- **Địa chính trị & Chiến sự:** [Tác động từ Trung Đông, Mỹ-Trung, chính sách toàn cầu ảnh hưởng VN]
-- **Tài chính & Đầu tư:** [Diễn biến VN-Index, Giá Vàng, tỷ giá, lãi suất ngân hàng]
-- **Bất động sản:** [Biến động giá hoặc thanh khoản khu vực TP.HCM, Bình Dương, Đắk Lắk...]
+## 🌍 CHÍNH TRỊ - KINH TẾ & ĐỜI SỐNG HÀNG NGÀY
+| Chỉ số / Mặt hàng | Giá trị hiện tại / Cập nhật | Thay đổi | Ghi chú / Tác động |
+|---|---|---|---|
+| Chính trị & Xã hội | [Tin chính trị nổi bật VN/Thế giới] | - | [Tác động tới đời sống/kinh tế] |
+| Giá Vàng SJC / 9999 | ↑/↓ [giá mua/bán] | +/- | - |
+| Xăng RON 95 / Dầu | ↑/↓ [giá cập nhật] | +/- | [Tác động chi phí đi lại] |
+| Thực phẩm & Ăn uống | [Giá thịt/rau hoặc lạm phát ăn uống] | ↑/↓ | [Tác động chi phí sinh hoạt của nhân sự] |
+| Bất động sản | [Biến động giá TP.HCM, Đắk Lắk...] | ↑/↓ | - |
 
 ## ⚖️ PHÁP LÝ & QUY HOẠCH (DÀNH CHO QUẢN LÝ & THIẾT KẾ)
 - **Luật/Nghị định mới:** [Các luật liên quan Đất đai, Xây dựng, PCCC, Thuế... mới có hiệu lực hoặc dự thảo nóng]
-- **Quy hoạch & Hạ tầng:** [Các dự án cao tốc, sân bay, quy hoạch đô thị mới ảnh hưởng tới tiềm năng BĐS]
+- **Quy hoạch & Hạ tầng:** [Các dự án cao tốc, sân bay, quy hoạch đô thị mới ảnh hưởng tới BĐS]
 
 ## 🏗️ THỊ TRƯỜNG VẬT TƯ & THI CÔNG
 | Vật liệu trọng điểm | Xu hướng giá | Lời khuyên cho Sale/Thi công |
@@ -90,7 +94,7 @@ CẤU TRÚC BẮT BUỘC (Markdown):
 - **Dự án nổi bật:** [Review nhanh 1 dự án kiến trúc ấn tượng mới hoàn thành trên thế giới/VN]
 - **Kỹ năng sống còn:** [Lời khuyên thực chiến khi làm việc với khách hàng, đối phó deadline hoặc tối ưu hiệu suất]
 
-**Lưu ý:** Hãy giữ văn phong chuyên nghiệp, truyền cảm hứng và mang tính thực chiến cao.
+**Lưu ý:** Hãy giữ văn phong chuyên nghiệp, truyền cảm hứng và mang tính thực tiễn cao, gần gũi với đời sống anh em nhân viên.
 *Bản tin tổng hợp tự động bởi Gemini AI lúc ${dateVN.toLocaleTimeString('vi-VN')} UTC+7*`;
 
         const ai = new GoogleGenAI({ apiKey: geminiApiKey });
