@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../../services/supabase'
+import { DEFAULT_PHASES, detectPhase, addWorkingDays, getNextWorkingDay } from '../../utils/phaseUtils'
 import { type Task, type Project } from '../../types'
 import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDown, Folder, CheckCircle2, User, ArrowRight } from 'lucide-react'
 import { format } from 'date-fns'
@@ -181,85 +182,132 @@ export const Gantt = () => {
             }
 
             if (expandedProjects.has(p.id)) {
-                // Get phases (tasks without parent_id)
-                const projectPhases = tasks.filter(t => t.project_id === p.id && !t.parent_id)
-                    .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
-                
-                projectPhases.forEach(phase => {
-                    const phaseStart = phase.start_date ? new Date(phase.start_date) : null
-                    const phaseEnd = phase.due_date ? new Date(phase.due_date) : null
+                // Parse KPI Data
+                let kpiState: any = null;
+                try {
+                    if (p.other_info) {
+                        const info = JSON.parse(p.other_info);
+                        if (info.kpiData) kpiState = info.kpiData;
+                    }
+                } catch(e) {}
 
-                    let renderStartDay = null
-                    let renderEndDay = null
+                // Default fallback if project doesn't have start_date
+                let currentPhaseStartDate = p.start_date ? new Date(p.start_date) : new Date();
 
-                    if (phaseStart && phaseStart.getFullYear() === year && phaseStart.getMonth() === month) {
-                        renderStartDay = phaseStart.getDate()
-                    } else if (phaseStart && phaseStart < new Date(year, month, 1)) {
-                        renderStartDay = 1
+                // If the user hasn't generated AI KPIs, we still render the 4 phases with 1 day duration so they show up
+                const phasesToRender = [...DEFAULT_PHASES];
+
+                phasesToRender.forEach((phaseDef) => {
+                    const phaseKey = phaseDef.key;
+                    
+                    // Filter actual tasks that belong to this phase
+                    // We check if the task belongs to the project, and its detected phase matches phaseKey
+                    let phaseTasks = tasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
+
+                    // For _unassigned, only render if there are actual tasks!
+                    if (phaseKey === '_unassigned' && phaseTasks.length === 0) {
+                        return;
                     }
 
-                    if (phaseEnd && phaseEnd.getFullYear() === year && phaseEnd.getMonth() === month) {
-                        renderEndDay = phaseEnd.getDate()
-                    } else if (phaseEnd && phaseEnd > new Date(year, month + 1, 0)) {
-                        renderEndDay = daysInMonth
+                    const phaseState = kpiState?.phases?.[phaseKey] || { days_used: 0, days_estimated: 0 };
+                    
+                    // For expected timeline, use AI predicted days_estimated. If 0, fallback to 1 day for visuals.
+                    // For _unassigned, we don't have expected timeline, so we just use 0.
+                    const expectedDays = phaseKey === '_unassigned' ? 0 : Math.max(1, phaseState.days_estimated || 1);
+                    
+                    // Calculate expected end date for this phase
+                    const phaseEndDate = phaseKey === '_unassigned' ? new Date(currentPhaseStartDate) : addWorkingDays(currentPhaseStartDate, expectedDays);
+
+                    // Render days logic
+                    let renderStartDay = null;
+                    let renderEndDay = null;
+
+                    if (currentPhaseStartDate.getFullYear() === year && currentPhaseStartDate.getMonth() === month) {
+                        renderStartDay = currentPhaseStartDate.getDate();
+                    } else if (currentPhaseStartDate < new Date(year, month, 1)) {
+                        renderStartDay = 1;
+                    }
+
+                    if (phaseEndDate.getFullYear() === year && phaseEndDate.getMonth() === month) {
+                        renderEndDay = phaseEndDate.getDate();
+                    } else if (phaseEndDate > new Date(year, month + 1, 0)) {
+                        renderEndDay = daysInMonth;
                     }
 
                     let duration = 0;
                     if (renderStartDay !== null || renderEndDay !== null) {
                         if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
                         if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
-                        duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
+                        duration = Math.max(1, renderEndDay! - renderStartDay! + 1);
                     }
-                    const isCompleted = phase.status?.includes('Hoàn thành')
-                    const phaseColor = phase.is_planned_phase ? (isCompleted ? 'bg-orange-300' : 'bg-orange-500') : (isCompleted ? 'bg-slate-400' : 'bg-emerald-500');
 
+                    // For the "Expected" phase bar, we might not have a direct task, so we fake it.
+                    // But we can calculate a dynamic progress based on its actual subtasks!
+                    let phasePct = 0;
+                    if (phaseTasks.length > 0) {
+                        const totalPct = phaseTasks.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
+                        phasePct = Math.round(totalPct / phaseTasks.length);
+                    }
+
+                    // A fake "task" object so the cell click/edit logic doesn't crash completely
+                    // We only want them to edit tasks, not these expected phase headers!
+                    const fakePhaseId = `phase_${p.id}_${phaseKey}`;
+                    
+                    // We only push the Phase row if it's not unassigned, OR if it's unassigned AND has tasks.
+                    // Unassigned doesn't have an expected timeline.
+                    const isUnassigned = phaseKey === '_unassigned';
+                    
                     items.push({
-                        id: phase.id,
-                        name: phase.name || phase.task_code,
-                        startDay: renderStartDay,
-                        duration,
-                        color: phaseColor,
+                        id: fakePhaseId,
+                        name: phaseDef.name,
+                        startDay: isUnassigned ? null : renderStartDay,
+                        duration: isUnassigned ? 0 : duration,
+                        color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500', // Phase bar color
                         isProject: false,
                         isPhase: true,
-                        isExpanded: expandedPhases.has(phase.id),
-                        task: phase,
-                        startDate: phase.start_date || phase.due_date,
-                        endDate: phase.due_date || phase.start_date,
+                        isExpanded: expandedPhases.has(fakePhaseId),
+                        task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id }, // Fake task for progress render
+                        startDate: isUnassigned ? null : currentPhaseStartDate.toISOString(),
+                        endDate: isUnassigned ? null : phaseEndDate.toISOString(),
                         type: 'phase',
                         projectCode: p.project_code
-                    })
+                    });
 
-                    // Get subtasks if phase is expanded
-                    if (expandedPhases.has(phase.id)) {
-                        const phaseTasks = tasks.filter(t => t.parent_id === phase.id)
-                            .sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                    // Next phase starts on the next working day after phaseEndDate
+                    if (!isUnassigned) {
+                        currentPhaseStartDate = getNextWorkingDay(phaseEndDate);
+                    }
+
+                    // Get actual subtasks if this phase is expanded
+                    if (expandedPhases.has(fakePhaseId)) {
+                        phaseTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
                         
                         phaseTasks.forEach(t => {
-                            const tStart = t.start_date ? new Date(t.start_date) : null
-                            const tEnd = t.due_date ? new Date(t.due_date) : null
+                            const tStart = t.start_date ? new Date(t.start_date) : null;
+                            const tEnd = t.due_date ? new Date(t.due_date) : null;
 
-                            let tRenderStartDay = null
-                            let tRenderEndDay = null
+                            let tRenderStartDay = null;
+                            let tRenderEndDay = null;
 
                             if (tStart && tStart.getFullYear() === year && tStart.getMonth() === month) {
-                                tRenderStartDay = tStart.getDate()
+                                tRenderStartDay = tStart.getDate();
                             } else if (tStart && tStart < new Date(year, month, 1)) {
-                                tRenderStartDay = 1
+                                tRenderStartDay = 1;
                             }
 
                             if (tEnd && tEnd.getFullYear() === year && tEnd.getMonth() === month) {
-                                tRenderEndDay = tEnd.getDate()
+                                tRenderEndDay = tEnd.getDate();
                             } else if (tEnd && tEnd > new Date(year, month + 1, 0)) {
-                                tRenderEndDay = daysInMonth
+                                tRenderEndDay = daysInMonth;
                             }
 
                             let tDuration = 0;
                             if (tRenderStartDay !== null || tRenderEndDay !== null) {
                                 if (tRenderStartDay !== null && tRenderEndDay === null) tRenderEndDay = tRenderStartDay;
                                 if (tRenderEndDay !== null && tRenderStartDay === null) tRenderStartDay = tRenderEndDay;
-                                tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1)
+                                tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1);
                             }
-                            const tIsCompleted = t.status?.includes('Hoàn thành')
+                            const tIsCompleted = t.status?.includes('Hoàn thành');
 
                             items.push({
                                 id: t.id,
@@ -274,10 +322,10 @@ export const Gantt = () => {
                                 endDate: t.due_date || t.start_date,
                                 type: 'task',
                                 projectCode: p.project_code
-                            })
-                        })
+                            });
+                        });
                     }
-                })
+                });
             }
         })
 
