@@ -45,6 +45,7 @@ interface Note {
   color: string;
   isPinned: boolean;
   sortOrder: number;
+  created_at?: string;
 }
 
 const NOTE_COLORS = [
@@ -142,6 +143,10 @@ const NoteCard = ({
     }
   }, [newlyAddedId, note.items]);
 
+  const formattedDate = note.created_at 
+    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(note.created_at)) 
+    : '';
+
   return (
     <div 
       draggable
@@ -149,33 +154,40 @@ const NoteCard = ({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
-      className={`rounded-xl border shadow-sm overflow-hidden flex flex-col transition-all duration-200 ${note.color} ${
+      className={`rounded-xl shadow-sm overflow-hidden flex flex-col transition-all duration-200 ${note.color} ${
         isDragging ? 'opacity-40 scale-95 border-dashed border-indigo-300 rotate-1' : ''
       } ${
-        isDragOver ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02] shadow-lg' : 'border-gray-200'
+        isDragOver ? 'border-indigo-400 ring-2 ring-indigo-200 scale-[1.02] shadow-lg' : 'border-x border-b border-gray-200'
       }`}
-      style={{ cursor: isDragging ? 'grabbing' : 'default' }}
+      style={{ cursor: isDragging ? 'grabbing' : 'default', borderTop: '4px solid #FCD34D' }}
     >
-      <div className="p-4 flex items-start justify-between group">
+      <div className="p-4 flex items-start justify-between group relative">
         <div 
           className="mt-1 mr-2 cursor-grab active:cursor-grabbing p-1 rounded-md text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
           onMouseDown={(e) => { /* Allow drag from grip */ }}
         >
           <GripVertical className="w-4 h-4" />
         </div>
-        <input 
-          type="text" 
-          value={note.title}
-          onChange={(e) => updateNoteTitle(note.id, e.target.value)}
-          onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
-          className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
-          placeholder="Tiêu đề..."
-        />
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => togglePinNote(note.id)} className={`p-1.5 rounded-md hover:bg-black/5 ${note.isPinned ? 'text-blue-600' : 'text-gray-400'}`}>
+        <div className="w-full flex-1 pr-6">
+          <input 
+            type="text" 
+            value={note.title}
+            onChange={(e) => updateNoteTitle(note.id, e.target.value)}
+            onBlur={(e) => saveNoteTitle(note.id, e.target.value)}
+            className="font-bold text-gray-800 bg-transparent border-none focus:ring-0 p-0 text-lg w-full"
+            placeholder="Tiêu đề..."
+          />
+          {formattedDate && (
+            <div className="absolute top-3 right-4 text-[11px] font-semibold text-amber-600/80 tracking-wide pointer-events-none">
+              {formattedDate}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4 top-8 bg-white/60 backdrop-blur-md rounded-lg p-0.5 shadow-sm">
+          <button onClick={() => togglePinNote(note.id)} className={`p-1.5 rounded-md hover:bg-black/5 ${note.isPinned ? 'text-blue-600' : 'text-gray-500'}`}>
             <Pin className="w-4 h-4" />
           </button>
-          <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-md hover:bg-black/5 text-gray-400 hover:text-red-600">
+          <button onClick={() => deleteNote(note.id)} className="p-1.5 rounded-md hover:bg-black/5 text-gray-500 hover:text-red-600">
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
@@ -349,6 +361,7 @@ export default function MyTasks() {
           color: n.color,
           isPinned: n.is_pinned,
           sortOrder: n.sort_order ?? idx,
+          created_at: n.created_at,
           items: (n.personal_note_items || []).map((i: any) => ({
             id: i.id,
             text: i.text,
@@ -803,7 +816,8 @@ export default function MyTasks() {
           items: itemData ? [{ id: itemData.id, text: itemData.text, isCompleted: itemData.is_completed }] : [],
           color: data.color,
           isPinned: data.is_pinned,
-          sortOrder: data.sort_order ?? maxSortOrder
+          sortOrder: data.sort_order ?? maxSortOrder,
+          created_at: data.created_at
         };
         setNotes([newNote, ...notes]);
       }
@@ -1137,7 +1151,7 @@ export default function MyTasks() {
         {pinnedNotes.length > 0 && (
           <div>
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Được ghim</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {pinnedNotes.map(note => (
                 <NoteCard 
                   key={note.id} 
@@ -1165,7 +1179,7 @@ export default function MyTasks() {
         {unpinnedNotes.length > 0 && (
           <div>
             {pinnedNotes.length > 0 && <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Khác</h3>}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {unpinnedNotes.map(note => (
                 <NoteCard 
                   key={note.id} 
