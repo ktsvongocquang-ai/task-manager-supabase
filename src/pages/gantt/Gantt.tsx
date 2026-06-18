@@ -674,7 +674,7 @@ export const Gantt = () => {
                                 const progressAmount = item.task?.completion_pct || 0;
 
                                 return (
-                                    <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors group/row h-14 ${item.type === 'project' ? 'bg-[#e0e4db] hover:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 hover:bg-slate-200' : 'bg-white'}`}>
+                                    <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors group/row h-9 ${item.type === 'project' ? 'bg-[#e0e4db] hover:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 hover:bg-slate-200' : 'bg-white'}`}>
                                         {/* Tên Mô Tả */}
                                         <div className="w-[200px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">
                                             {item.type === 'project' ? (
@@ -876,7 +876,7 @@ export const Gantt = () => {
                                     const progressAmount = item.task?.completion_pct || 0;
 
                                     return (
-                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors h-14 group/row ${item.type === 'project' ? 'bg-[#e0e4db] hover:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 hover:bg-slate-200' : 'bg-white'}`}>
+                                        <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors h-9 group/row ${item.type === 'project' ? 'bg-[#e0e4db] hover:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 hover:bg-slate-200' : 'bg-white'}`}>
                                             
                                             {/* Timeline Grid (Right Side) */}
                                             <div className="flex-1 flex relative w-full h-full">
