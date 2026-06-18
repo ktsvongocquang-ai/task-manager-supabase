@@ -10,28 +10,7 @@ import { Plus, Trash2 } from 'lucide-react'
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
 
-
-    const isToday = (day: number) => {
-        const now = new Date()
-        return day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
-    }
-    const isTodayRow = () => {
-        const now = new Date()
-        return month === now.getMonth() && year === now.getFullYear()
-    }
-
-    const isWeekend = (day: number) => {
-        const d = new Date(year, month, day)
-        return d.getDay() === 0 || d.getDay() === 6
-    }
-
-    const getDayName = (day: number) => {
-        const d = new Date(year, month, day)
-        return DAY_NAMES[d.getDay()]
-    }
-
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-
 
 export const Gantt = () => {
     const [tasks, setTasks] = useState<Task[]>([])
@@ -53,13 +32,26 @@ export const Gantt = () => {
     const [editValue, setEditValue] = useState<string>('')
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
-    
-    
-    
 
-    
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
+
+    const isToday = (day: number) => {
+        const now = new Date()
+        return day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
+    }
+    const isTodayRow = () => {
+        const now = new Date()
+        return month === now.getMonth() && year === now.getFullYear()
+    }
+    const isWeekend = (day: number) => {
+        const d = new Date(year, month, day)
+        return d.getDay() === 0 || d.getDay() === 6
+    }
+    const getDayName = (day: number) => {
+        const d = new Date(year, month, day)
+        return DAY_NAMES[d.getDay()]
+    }
 
     useEffect(() => {
         fetchData()
@@ -118,21 +110,6 @@ export const Gantt = () => {
     const daysInMonth = new Date(year, month + 1, 0).getDate()
     const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
-    const isToday = (day: number) => {
-        const now = new Date()
-        return day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
-    }
-
-    const isWeekend = (day: number) => {
-        const d = new Date(year, month, day)
-        return d.getDay() === 0 || d.getDay() === 6
-    }
-
-    const getDayName = (day: number) => {
-        const d = new Date(year, month, day)
-        return DAY_NAMES[d.getDay()]
-    }
-
     const prevMonthDate = new Date(year, month - 1, 1);
     const currentMonthDate = new Date(year, month, 1);
     const nextMonthDate = new Date(year, month + 1, 1);
@@ -185,8 +162,6 @@ export const Gantt = () => {
         return new Date(dateStr);
     };
 
-    
-
     const getTimelineRange = (start: Date | null, end: Date | null) => {
         if (!start || !end) return null;
         
@@ -200,7 +175,6 @@ export const Gantt = () => {
 
         return { startIndex: startDay - 1, duration: Math.max(1, endDay - startDay + 1) };
     };
-
 
     const getDayOfWeek = (y: number, m: number, d: number) => {
         return DAY_NAMES[new Date(y, m, d).getDay()]
@@ -216,9 +190,6 @@ export const Gantt = () => {
         const d = new Date(y, m, day)
         return d.getDay() === 0 || d.getDay() === 6
     }
-
-
-
 
     const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
     const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
@@ -373,8 +344,6 @@ export const Gantt = () => {
         return items
     }, [updatedProjects, expandedProjects, expandedPhases, tasks, flatDays]);
 
-    
-
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
             const next = new Set(prev)
@@ -477,13 +446,6 @@ export const Gantt = () => {
 
     const cellWidth = Math.max(20, Math.round(28 * zoom / 100))
 
-
-
-
-    
-
-
-
     if (loading) {
         return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
     }
@@ -562,7 +524,6 @@ export const Gantt = () => {
                 </button>
             </div>
 
-            
             {/* Desktop Gantt Grid Container (Unified Sticky) */}
             <div className="hidden md:flex flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden relative">
                 <div 
