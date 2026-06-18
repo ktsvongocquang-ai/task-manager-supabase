@@ -451,10 +451,6 @@ export const Gantt = () => {
 
     const cellWidth = Math.max(20, Math.round(28 * zoom / 100))
 
-    if (loading) {
-        return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
-    }
-
 
     useEffect(() => {
         if (rightPaneRef.current && monthsData[0]) {
@@ -477,6 +473,11 @@ export const Gantt = () => {
         isSyncingRightScroll.current = false;
     };
 
+
+
+    if (loading) {
+        return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
+    }
     return (
         <div className="w-full h-[calc(100vh-140px)] flex flex-col space-y-4 pb-4">
             {/* Top Toolbar */}
