@@ -161,6 +161,18 @@ export const Gantt = () => {
         return index;
     };
 
+    const parseDateStr = (dateStr: string | null): Date | null => {
+        if (!dateStr) return null;
+        if (dateStr.includes('T')) return new Date(dateStr);
+        if (dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+                return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
+            }
+        }
+        return new Date(dateStr);
+    };
+
     const getTimelineRange = (start: Date | null, end: Date | null) => {
         if (!start || !end) return null;
         if (end < timelineStart || start > timelineEnd) return null;
@@ -212,8 +224,8 @@ export const Gantt = () => {
         let validTasks = pTasks.filter(t => t.start_date || t.due_date);
         if (validTasks.length === 0) return p;
 
-        const startDates = validTasks.map(t => t.start_date ? new Date(t.start_date).getTime() : new Date(t.due_date!).getTime())
-        const endDates = validTasks.map(t => t.due_date ? new Date(t.due_date).getTime() : new Date(t.start_date!).getTime())
+        const startDates = validTasks.map(t => t.start_date ? parseDateStr(t.start_date)!.getTime() : parseDateStr(t.due_date!)!.getTime())
+        const endDates = validTasks.map(t => t.due_date ? parseDateStr(t.due_date)!.getTime() : parseDateStr(t.start_date!)!.getTime())
 
         const minDate = new Date(Math.min(...startDates))
         const maxDate = new Date(Math.max(...endDates))
@@ -232,8 +244,8 @@ export const Gantt = () => {
             const startDate = p.start_date || p.computed_start
             const endDate = p.end_date || p.computed_end || p.start_date
 
-            const start = startDate ? new Date(startDate) : null;
-            const end = endDate ? new Date(endDate) : null;
+            const start = parseDateStr(startDate);
+            const end = parseDateStr(endDate);
 
             const range = getTimelineRange(start, end);
 
@@ -269,7 +281,7 @@ export const Gantt = () => {
                     }
                 } catch(e) {}
 
-                let currentPhaseStartDate = p.start_date ? new Date(p.start_date) : new Date();
+                let currentPhaseStartDate = p.start_date ? parseDateStr(p.start_date)! : new Date();
                 const phasesToRender = [...DEFAULT_PHASES];
 
                 phasesToRender.forEach((phaseDef) => {
@@ -320,8 +332,8 @@ export const Gantt = () => {
                         phaseTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
                         
                         phaseTasks.forEach(t => {
-                            const tStart = t.start_date ? new Date(t.start_date) : null;
-                            const tEnd = t.due_date ? new Date(t.due_date) : null;
+                            const tStart = parseDateStr(t.start_date);
+                            const tEnd = parseDateStr(t.due_date);
                             const tRange = getTimelineRange(tStart, tEnd);
                             const tIsCompleted = t.status?.includes('Hoàn thành');
 
@@ -410,7 +422,7 @@ export const Gantt = () => {
             if (!item.startDate) return; // Cannot calc duration without start
             const daysCount = parseInt(editValue, 10);
             if (isNaN(daysCount) || daysCount < 1) return;
-            const newEnd = new Date(item.startDate);
+            const newEnd = parseDateStr(item.startDate);
             newEnd.setDate(newEnd.getDate() + (daysCount - 1));
             updatePayload.due_date = newEnd.toISOString();
         }
@@ -601,9 +613,9 @@ export const Gantt = () => {
                             </div>
                         ) : (
                             ganttItems.map((item) => {
-                                const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM/yyyy') : '';
-                                const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM/yyyy') : '';
-                                const totalDays = (item.startDate && item.endDate) ? Math.max(1, Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
+                                const sDate = parseDateStr(item.startDate); const formattedStart = sDate ? format(sDate, 'dd/MM/yyyy') : '';
+                                const eDate = parseDateStr(item.endDate); const formattedEnd = eDate ? format(eDate, 'dd/MM/yyyy') : '';
+                                const totalDays = (sDate && eDate) ? Math.max(1, Math.round((eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
                                 const progressAmount = item.task?.completion_pct || 0;
 
                                 return (
@@ -695,7 +707,7 @@ export const Gantt = () => {
                                         {/* Bắt Đầu */}
                                         <div 
                                             className={`w-[70px] px-1 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
-                                            onDoubleClick={(e) => handleCellClick(item, 'start_date', item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '', e)}
+                                            onDoubleClick={(e) => handleCellClick(item, 'start_date', item.startDate ? parseDateStr(item.startDate)!.toISOString().split('T')[0] : '', e)}
                                         >
                                             {editingCell?.id === item.id && editingCell?.field === 'start_date' ? (
                                                 <input 
@@ -718,7 +730,7 @@ export const Gantt = () => {
                                         {/* Kết Thúc */}
                                         <div 
                                             className={`w-[70px] px-1 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
-                                            onDoubleClick={(e) => handleCellClick(item, 'end_date', item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '', e)}
+                                            onDoubleClick={(e) => handleCellClick(item, 'end_date', item.endDate ? parseDateStr(item.endDate)!.toISOString().split('T')[0] : '', e)}
                                         >
                                             {editingCell?.id === item.id && editingCell?.field === 'end_date' ? (
                                                 <input 
@@ -914,9 +926,9 @@ export const Gantt = () => {
                 ) : (
                     ganttItems.filter(item => item.type === 'project').map(item => {
                         const projectPhases = ganttItems.filter(p => p.type === 'phase' && p.projectCode === item.projectCode);
-                        const formattedStart = item.startDate ? format(new Date(item.startDate), 'dd/MM/yyyy') : '';
-                        const formattedEnd = item.endDate ? format(new Date(item.endDate), 'dd/MM/yyyy') : '';
-                        const totalDays = (item.startDate && item.endDate) ? Math.max(1, Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
+                        const sDate = parseDateStr(item.startDate); const formattedStart = sDate ? format(sDate, 'dd/MM/yyyy') : '';
+                        const eDate = parseDateStr(item.endDate); const formattedEnd = eDate ? format(eDate, 'dd/MM/yyyy') : '';
+                        const totalDays = (sDate && eDate) ? Math.max(1, Math.round((eDate.getTime() - sDate.getTime()) / (1000 * 60 * 60 * 24)) + 1) : 0;
                         
                         return (
                             <div key={item.id} className="bg-white rounded-[24px] shadow-sm border border-[#e0e4db] p-5">
@@ -947,8 +959,8 @@ export const Gantt = () => {
                                     <div className="space-y-2 mt-2 pt-4 border-t border-slate-100">
                                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Các giai đoạn</h4>
                                         {projectPhases.map(phase => {
-                                            const phaseStart = phase.startDate ? format(new Date(phase.startDate), 'dd/MM') : '';
-                                            const phaseEnd = phase.endDate ? format(new Date(phase.endDate), 'dd/MM') : '';
+                                            const phaseStart = phase.startDate ? format(parseDateStr(phase.startDate)!, 'dd/MM') : '';
+                                            const phaseEnd = phase.endDate ? format(parseDateStr(phase.endDate)!, 'dd/MM') : '';
                                             const isDone = phase.task?.status?.includes('Hoàn thành');
                                             return (
                                                 <div key={phase.id} className={`rounded-xl p-3 border transition-colors ${isDone ? 'bg-slate-50 border-slate-100' : 'bg-white border-blue-100 shadow-sm ring-1 ring-blue-50'}`}>
