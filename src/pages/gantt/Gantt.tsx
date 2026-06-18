@@ -710,7 +710,7 @@ export const Gantt = () => {
                                                 {/* Gray Expected Timeline Bar (Only for projects) */}
                                                 {item.type === 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-slate-300 shadow-inner"
+                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-slate-300/40 shadow-inner"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         title="Timeline dự kiến"
                                                     />
@@ -719,7 +719,7 @@ export const Gantt = () => {
                                                 {/* Colored Timeline Bar */}
                                                 {item.type === 'project' && item.actualStartIndex !== null && item.actualDuration > 0 && (
                                                     <div
-                                                        className="absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] opacity-80"
+                                                        className="absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc]/60 border border-[#3a689b]/60"
                                                         style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
                                                         title="Timeline thực tế"
                                                     />
@@ -728,10 +728,16 @@ export const Gantt = () => {
                                                 {/* Default Colored Timeline Bar (for phases) */}
                                                 {item.type !== 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500 border-emerald-600' : 'bg-[#5da0ea] border-[#4b82c3]'}`}
+                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500/60 border-emerald-600/60' : 'bg-[#5da0ea]/60 border-[#4b82c3]/60'}`}
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         onClick={(e) => { e.stopPropagation(); setTaskPanelMode('phase'); setSelectedItem(item); }}
-                                                    />
+                                                    >
+                                                        {progressAmount > 0 && (
+                                                            <span className="text-[8px] font-bold text-slate-800 whitespace-nowrap z-10 select-none block truncate w-full text-center drop-shadow-sm">
+                                                                {progressAmount}%
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
                                                 
                                                 {/* Today Line inside Row */}
