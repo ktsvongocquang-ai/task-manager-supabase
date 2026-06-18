@@ -211,34 +211,40 @@ export const Gantt = () => {
 
                     const phaseState = kpiState?.phases?.[phaseKey] || { days_used: 0, days_estimated: 0 };
                     
-                    // For expected timeline, use AI predicted days_estimated. If 0, fallback to 1 day for visuals.
-                    // For _unassigned, we don't have expected timeline, so we just use 0.
-                    const expectedDays = phaseKey === '_unassigned' ? 0 : Math.max(1, phaseState.days_estimated || 1);
+                    const expectedDays = phaseKey === '_unassigned' ? 0 : (phaseState.days_estimated || 0);
+                    const hasExpectedTimeline = expectedDays > 0;
                     
+                    // If this phase has NO expected timeline AND NO actual tasks, skip it completely
+                    if (!hasExpectedTimeline && phaseTasks.length === 0) {
+                        return;
+                    }
+
                     // Calculate expected end date for this phase
-                    const phaseEndDate = phaseKey === '_unassigned' ? new Date(currentPhaseStartDate) : addWorkingDays(currentPhaseStartDate, expectedDays);
+                    const phaseEndDate = hasExpectedTimeline ? addWorkingDays(currentPhaseStartDate, expectedDays) : currentPhaseStartDate;
 
                     // Render days logic
                     let renderStartDay = null;
                     let renderEndDay = null;
-
-                    if (currentPhaseStartDate.getFullYear() === year && currentPhaseStartDate.getMonth() === month) {
-                        renderStartDay = currentPhaseStartDate.getDate();
-                    } else if (currentPhaseStartDate < new Date(year, month, 1)) {
-                        renderStartDay = 1;
-                    }
-
-                    if (phaseEndDate.getFullYear() === year && phaseEndDate.getMonth() === month) {
-                        renderEndDay = phaseEndDate.getDate();
-                    } else if (phaseEndDate > new Date(year, month + 1, 0)) {
-                        renderEndDay = daysInMonth;
-                    }
-
                     let duration = 0;
-                    if (renderStartDay !== null || renderEndDay !== null) {
-                        if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
-                        if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
-                        duration = Math.max(1, renderEndDay! - renderStartDay! + 1);
+
+                    if (hasExpectedTimeline) {
+                        if (currentPhaseStartDate.getFullYear() === year && currentPhaseStartDate.getMonth() === month) {
+                            renderStartDay = currentPhaseStartDate.getDate();
+                        } else if (currentPhaseStartDate < new Date(year, month, 1)) {
+                            renderStartDay = 1;
+                        }
+
+                        if (phaseEndDate.getFullYear() === year && phaseEndDate.getMonth() === month) {
+                            renderEndDay = phaseEndDate.getDate();
+                        } else if (phaseEndDate > new Date(year, month + 1, 0)) {
+                            renderEndDay = daysInMonth;
+                        }
+
+                        if (renderStartDay !== null || renderEndDay !== null) {
+                            if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
+                            if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
+                            duration = Math.max(1, renderEndDay! - renderStartDay! + 1);
+                        }
                     }
 
                     // For the "Expected" phase bar, we might not have a direct task, so we fake it.
@@ -250,18 +256,13 @@ export const Gantt = () => {
                     }
 
                     // A fake "task" object so the cell click/edit logic doesn't crash completely
-                    // We only want them to edit tasks, not these expected phase headers!
                     const fakePhaseId = `phase_${p.id}_${phaseKey}`;
-                    
-                    // We only push the Phase row if it's not unassigned, OR if it's unassigned AND has tasks.
-                    // Unassigned doesn't have an expected timeline.
-                    const isUnassigned = phaseKey === '_unassigned';
                     
                     items.push({
                         id: fakePhaseId,
                         name: phaseDef.name,
-                        startDay: isUnassigned ? null : renderStartDay,
-                        duration: isUnassigned ? 0 : duration,
+                        startDay: hasExpectedTimeline ? renderStartDay : null,
+                        duration: hasExpectedTimeline ? duration : 0,
                         color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500', // Phase bar color
                         isProject: false,
                         isPhase: true,
