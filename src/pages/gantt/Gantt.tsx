@@ -45,30 +45,7 @@ export const Gantt = () => {
             }
         }
         isSyncingLeftScroll.current = false;
-    };
-
-
-    useEffect(() => {
-        if (rightPaneRef.current && monthsData[0]) {
-            // setTimeout to ensure layout has updated before scrolling
-            setTimeout(() => {
-                if (rightPaneRef.current) {
-                    rightPaneRef.current.scrollLeft = monthsData[0].days * cellWidth;
-                }
-            }, 100);
-        }
-    }, [year, month, cellWidth]);
-
-    const handleRightScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        if (!isSyncingRightScroll.current) {
-            isSyncingLeftScroll.current = true;
-            if (leftPaneRef.current) {
-                leftPaneRef.current.scrollTop = e.currentTarget.scrollTop;
-            }
-        }
-        isSyncingRightScroll.current = false;
-    };
-
+    };
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
 
@@ -477,6 +454,28 @@ export const Gantt = () => {
     if (loading) {
         return <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>
     }
+
+
+    useEffect(() => {
+        if (rightPaneRef.current && monthsData[0]) {
+            // setTimeout to ensure layout has updated before scrolling
+            setTimeout(() => {
+                if (rightPaneRef.current) {
+                    rightPaneRef.current.scrollLeft = monthsData[0].days * cellWidth;
+                }
+            }, 100);
+        }
+    }, [year, month, cellWidth]);
+
+    const handleRightScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        if (!isSyncingRightScroll.current) {
+            isSyncingLeftScroll.current = true;
+            if (leftPaneRef.current) {
+                leftPaneRef.current.scrollTop = e.currentTarget.scrollTop;
+            }
+        }
+        isSyncingRightScroll.current = false;
+    };
 
     return (
         <div className="w-full h-[calc(100vh-140px)] flex flex-col space-y-4 pb-4">
