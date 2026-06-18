@@ -546,7 +546,7 @@ export const Gantt = () => {
     }
 
     return (
-        <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+        <div className="w-full h-[calc(100vh-140px)] flex flex-col space-y-4 pb-4">
             {/* Top Toolbar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -622,11 +622,11 @@ export const Gantt = () => {
 
             
             {/* Desktop Gantt Grid Container (Dual-Pane) */}
-            <div className="hidden md:flex bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden relative">
+            <div className="hidden md:flex flex-1 bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden relative">
                 {/* Left Pane - Fixed Width, Vertical Scroll (hidden scrollbar but synced) */}
                 <div 
                     className="w-[420px] flex-shrink-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] flex flex-col overflow-y-auto overflow-x-scroll" 
-                    style={{ maxHeight: '600px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    style={{ height: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     ref={leftPaneRef}
                     onScroll={handleLeftScroll}
                 >
@@ -841,7 +841,7 @@ export const Gantt = () => {
                 {/* Right Pane - Horizontal and Vertical Scroll */}
                 <div 
                     className="flex-1 overflow-auto min-w-0" 
-                    style={{ maxHeight: '600px' }}
+                    style={{ height: '100%' }}
                     ref={rightPaneRef}
                     onScroll={handleRightScroll}
                 >
