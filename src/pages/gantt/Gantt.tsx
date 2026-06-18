@@ -142,8 +142,8 @@ export const Gantt = () => {
         updatedProjects.forEach(p => {
             if (!p.computed_start && !p.start_date) return
 
-            const startDate = p.computed_start || p.start_date
-            const endDate = p.computed_end || p.end_date || p.start_date
+            const startDate = p.start_date || p.computed_start
+            const endDate = p.end_date || p.computed_end || p.start_date
 
             const start = new Date(startDate!)
             const end = new Date(endDate!)
@@ -155,6 +155,13 @@ export const Gantt = () => {
                 const startDay = start.getMonth() === month ? start.getDate() : 1
                 const endDay = end.getMonth() === month ? end.getDate() : daysInMonth
                 const duration = Math.max(1, endDay - startDay + 1)
+
+                const pTasksForPct = tasks.filter(t => t.project_id === p.id);
+                let projectPct = 0;
+                if (pTasksForPct.length > 0) {
+                    const totalPct = pTasksForPct.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
+                    projectPct = Math.round(totalPct / pTasksForPct.length);
+                }
 
                 items.push({
                     id: p.id,
@@ -168,7 +175,8 @@ export const Gantt = () => {
                     startDate: startDate,
                     endDate: endDate,
                     type: 'project',
-                    projectCode: p.project_code
+                    projectCode: p.project_code,
+                    projectPct: projectPct
                 })
             }
 
@@ -741,7 +749,7 @@ export const Gantt = () => {
 
                                                 {/* Tiến Độ % */}
                                                 <div className={`w-[50px] px-2 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                    {item.type !== 'project' ? `${progressAmount}%` : '0%'}
+                                                    {item.type !== 'project' ? `${progressAmount}%` : `${item.projectPct || 0}%`}
                                                 </div>
                                                 
                                                 {/* Dải phân cách mờ */}
