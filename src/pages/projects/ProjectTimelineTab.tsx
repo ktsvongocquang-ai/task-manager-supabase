@@ -90,7 +90,6 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
             }
             setAreaSqm(project.area_sqm || '');
             if (project.other_info && JSON.parse(project.other_info)?.kpiData) return;
-            }
         } catch (e) {}
         setKpiState(DEFAULT_KPI_STATE);
     }, [project, isOpen]);
