@@ -565,7 +565,7 @@ const MarketingApp = () => {
   const [expandedMobileGroups, setExpandedMobileGroups] = useState<Set<string>>(new Set(['COL_IDEA', 'COL_CONTENT']));
   const [view, setView] = useState<'DASHBOARD' | 'WORKFLOW' | 'KANBAN' | 'TIMELINE' | 'CALENDAR' | 'KPI' | 'LIST' | 'ARCHIVE'>(getInitialView());
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date(2024, 10, 1)); // November 2024 to match mock data
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [listTimeFilter, setListTimeFilter] = useState('Tất cả');
   const [formatFilter, setFormatFilter] = useState('Tất cả');
@@ -661,6 +661,9 @@ const MarketingApp = () => {
 
   const updateVideo = (id: string, updates: Partial<typeof videos[0]>) => {
     setVideos(videos.map(v => v.id === id ? { ...v, ...updates } : v));
+    supabase.from('marketing_tasks').update(updates).eq('id', id).then(({ error }) => {
+        if (error) console.error('Update error:', error);
+    });
   };
 
   return (

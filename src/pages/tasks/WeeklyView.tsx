@@ -19,11 +19,10 @@ const ALL_STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ duyệ
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-const TODAY = new Date()
-TODAY.setHours(0, 0, 0, 0)
+// TODAY moved inside component
 
-function getWeekRange(offset: number) {
-    const now = new Date(TODAY)
+function getWeekRange(offset: number, today: Date) {
+    const now = new Date(today)
     const day = now.getDay()
     const mon = new Date(now)
     mon.setDate(now.getDate() - ((day + 6) % 7) + offset * 7)
@@ -107,6 +106,7 @@ function Avatar({ name }: { name: string }) {
 // ─── main component ───────────────────────────────────────────────────────────
 
 export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, onEditTask, onDeleteTask }: Props) => {
+    const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
     const [weekOffset, setWeekOffset] = useState(0)
     const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
@@ -134,7 +134,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         })
     }
 
-    const { mon, sun } = getWeekRange(weekOffset)
+    const { mon, sun } = getWeekRange(weekOffset, TODAY)
     const wn = getWeekNum(mon)
 
     const getAssigneeId = (id: string | string[] | null): string => {
@@ -269,7 +269,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         const val = HIGH_OLD.includes(raw || '') ? 'JUX' : 'DQH'
         return {
             label: val,
-            cls: val === 'JUX' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'
+            cls: val === 'JUX' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-700'
         }
     }
 
@@ -278,11 +278,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         if (!task) return
         const newPct = Math.min(100, Math.max(0, (task.completion_pct || 0) + delta))
         const newStatus = newPct === 100 ? 'Hoàn thành' : newPct === 0 ? 'Chưa bắt đầu' : 'Đang thực hiện'
+        setSaving(s => ({ ...s, [taskId]: true }))
+        const { error } = await supabase.from('tasks').update({ completion_pct: newPct, status: newStatus }).eq('id', taskId)
+        if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
         if (newPct === 100 && task.completion_pct !== 100) {
             triggerSuccessConfetti();
         }
-        setSaving(s => ({ ...s, [taskId]: true }))
-        await supabase.from('tasks').update({ completion_pct: newPct, status: newStatus }).eq('id', taskId)
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()
     }
@@ -290,20 +291,22 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const updateStatus = async (taskId: string, newStatus: string) => {
         const task = tasks.find(t => t.id === taskId)
         const newPct = newStatus === 'Hoàn thành' ? 100 : undefined
-        if (newStatus === 'Hoàn thành' && task?.status !== 'Hoàn thành') {
-            triggerSuccessConfetti();
-        }
         const updates: any = { status: newStatus }
         if (newPct !== undefined) updates.completion_pct = newPct
         setSaving(s => ({ ...s, [taskId]: true }))
-        await supabase.from('tasks').update(updates).eq('id', taskId)
+        const { error } = await supabase.from('tasks').update(updates).eq('id', taskId)
+        if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
+        if (newStatus === 'Hoàn thành' && task?.status !== 'Hoàn thành') {
+            triggerSuccessConfetti();
+        }
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()
     }
 
     const updateAssignee = async (taskId: string, newAssigneeId: string) => {
         setSaving(s => ({ ...s, [taskId]: true }))
-        await supabase.from('tasks').update({ assignee_id: newAssigneeId || null }).eq('id', taskId)
+        const { error } = await supabase.from('tasks').update({ assignee_id: newAssigneeId || null }).eq('id', taskId)
+        if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()
     }

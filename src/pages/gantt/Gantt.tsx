@@ -116,7 +116,7 @@ export const Gantt = () => {
         ? projects.filter(p => p.id === selectedProjectId)
         : projects;
 
-    const updatedProjects = filteredProjectsBase.map((p): Project & { computed_start?: string, computed_end?: string } => {
+    const updatedProjects = useMemo(() => filteredProjectsBase.map((p): Project & { computed_start?: string, computed_end?: string } => {
         const pTasks = tasks.filter(t => t.project_id === p.id)
         if (pTasks.length === 0) return p
 
@@ -134,7 +134,7 @@ export const Gantt = () => {
             computed_start: minDate.toISOString(),
             computed_end: maxDate.toISOString()
         }
-    })
+    }), [filteredProjectsBase, tasks])
 
     const ganttItems = useMemo(() => {
         let items: any[] = []
@@ -272,7 +272,7 @@ export const Gantt = () => {
             }
         })
 
-        return items
+        return items.filter(item => !search || item.name.toLowerCase().includes(search.toLowerCase()))
     }, [updatedProjects, tasks, year, month, search, expandedProjects, expandedPhases])
 
     useEffect(() => {
@@ -294,13 +294,13 @@ export const Gantt = () => {
                     if (draggingItem.action === 'move') {
                         const newStart = new Date(item.startDate);
                         newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
-                        updatePayload.start_date = newStart.toISOString();
+                        updatePayload.start_date = newStart.toISOString().split('T')[0];
 
                         const newEnd = item.endDate ? new Date(item.endDate) : null;
                         if (newEnd) {
                             newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
-                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString();
-                            else updatePayload.due_date = newEnd.toISOString();
+                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString().split('T')[0];
+                            else updatePayload.due_date = newEnd.toISOString().split('T')[0];
                         }
                     } else if (draggingItem.action === 'resize-left') {
                         const newStart = new Date(item.startDate);
@@ -309,7 +309,7 @@ export const Gantt = () => {
                         // Prevent left edge passing right edge
                         const currentEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
                         if (newStart <= currentEnd) {
-                            updatePayload.start_date = newStart.toISOString();
+                            updatePayload.start_date = newStart.toISOString().split('T')[0];
                         }
                     } else if (draggingItem.action === 'resize-right') {
                         const newEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
@@ -318,15 +318,15 @@ export const Gantt = () => {
                         // Prevent right edge passing left edge
                         const currentStart = new Date(item.startDate);
                         if (newEnd >= currentStart) {
-                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString();
-                            else updatePayload.due_date = newEnd.toISOString();
+                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString().split('T')[0];
+                            else updatePayload.due_date = newEnd.toISOString().split('T')[0];
                         }
                     }
 
                     if (Object.keys(updatePayload).length > 0) {
                         const table = item.type === 'project' ? 'projects' : 'tasks';
 
-                        if (item.type === 'task') {
+                        if (item.type !== 'project') {
                             setTasks(prev => prev.map(t => t.id === item.id ? { ...t, ...updatePayload } : t));
                         } else {
                             setProjects(prev => prev.map(p => p.id === item.id ? { ...p, ...updatePayload } : p));
@@ -606,7 +606,7 @@ export const Gantt = () => {
                                                                 <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
                                                             </div>
                                                             <button 
-                                                                onClick={(e) => handleQuickAdd(item.id, item.projectCode, e)}
+                                                                onClick={(e) => handleQuickAdd(item.id, item.task.project_id, e)}
                                                                 className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-500 hover:text-blue-600"
                                                                 title="Thêm nhiệm vụ mới vào giai đoạn này"
                                                             >
@@ -647,7 +647,7 @@ export const Gantt = () => {
                                                             </div>
                                                             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity">
                                                                 <button 
-                                                                    onClick={(e) => handleQuickAdd(item.task.parent_id, item.projectCode, e)}
+                                                                    onClick={(e) => handleQuickAdd(item.task.parent_id, item.task.project_id, e)}
                                                                     className="hover:bg-blue-100 p-1 rounded-md transition-all text-blue-500 hover:text-blue-600 bg-white shadow-sm"
                                                                     title="Chèn nhiệm vụ mới"
                                                                 >

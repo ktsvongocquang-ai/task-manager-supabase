@@ -297,7 +297,9 @@ export default function FloorPlanViewer({
         
         // Delete focused floor plan if no annotation/marker is selected
         if (!selectedAnnotationId && !selectedMarkerId && activeFloorPlanId && activeFloorPlanId !== 'demo-floor-plan' && onDeleteFloorPlan) {
-          onDeleteFloorPlan(activeFloorPlanId);
+          if (window.confirm('Bạn có chắc muốn xóa mặt bằng này?')) {
+            onDeleteFloorPlan(activeFloorPlanId);
+          }
           e.preventDefault();
           return;
         }
@@ -2061,7 +2063,7 @@ export default function FloorPlanViewer({
                 const isFocused = activeFloorPlanId === plan.id;
                 const isBeingDragged = draggingPlanId === plan.id;
                 const fw = getFrameWidth(plan);
-                const h = (plan.height / plan.width) * fw;
+                const h = plan.width > 0 ? (plan.height / plan.width) * fw : fw;
                 
                 // VIEWPORT CULLING: skip rendering off-screen plans for performance
                 if (containerRef.current && !isBeingDragged) {
@@ -3157,7 +3159,7 @@ export default function FloorPlanViewer({
 
                 {/* 1.5 FLOATING COLLABORATIVE COMMENT POPUP NEXT TO SELECTED PIN (Miro style) */}
                 {(() => {
-                  return null; // Bỏ bảng popup này đi vì đã có Sidebar
+                  // Collaborative comment popup (previously disabled)
                   if (!selectedMarkerId) return null;
                   const activeM = markers.find(m => m.id === selectedMarkerId);
                   if (!activeM) return null;

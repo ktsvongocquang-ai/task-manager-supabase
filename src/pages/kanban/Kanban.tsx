@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
@@ -33,6 +33,7 @@ export const Kanban = () => {
     const [dateFilter, setDateFilter] = useState<'today' | 'all'>('today')
     const [selectedProject, setSelectedProject] = useState('all')
     const [selectedAssignee, setSelectedAssignee] = useState('all')
+    const draggingRef = useRef(false)
 
     useEffect(() => {
         fetchAll()
@@ -90,6 +91,7 @@ export const Kanban = () => {
     }
 
     const onDragEnd = async (result: DropResult) => {
+        if (draggingRef.current) return;
         const { destination, source, draggableId } = result;
 
         if (!destination) return;
@@ -105,24 +107,32 @@ export const Kanban = () => {
         if (toColumnId === 'Đang thực hiện') newStatus = 'Đang thực hiện';
         if (toColumnId === 'Chờ duyệt') newStatus = 'Chờ duyệt';
 
+        // Skip API call if status didn't actually change
+        if (task.status === newStatus) return;
+
         const isCompleted = toColumnId === 'Hoàn thành';
 
-        setTasks(prev => prev.map(t => {
-            if (t.id === taskId) {
-                return { ...t, status: newStatus, completion_pct: isCompleted ? 100 : t.completion_pct };
+        draggingRef.current = true;
+        try {
+            setTasks(prev => prev.map(t => {
+                if (t.id === taskId) {
+                    return { ...t, status: newStatus, completion_pct: isCompleted ? 100 : t.completion_pct };
+                }
+                return t;
+            }));
+
+            const { error } = await supabase.from('tasks').update({
+                status: newStatus,
+                completion_pct: isCompleted ? 100 : task.completion_pct,
+                completion_date: isCompleted ? new Date().toLocaleDateString('sv-SE') : null
+            }).eq('id', taskId);
+
+            if (error) {
+                console.error('Error updating task status:', error);
+                fetchAll();
             }
-            return t;
-        }));
-
-        const { error } = await supabase.from('tasks').update({
-            status: newStatus,
-            completion_pct: isCompleted ? 100 : task.completion_pct,
-            completion_date: isCompleted ? new Date().toLocaleDateString('sv-SE') : null
-        }).eq('id', taskId);
-
-        if (error) {
-            console.error('Error updating task status:', error);
-            fetchAll();
+        } finally {
+            draggingRef.current = false;
         }
     };
 
@@ -134,6 +144,7 @@ export const Kanban = () => {
         return t.due_date < todayStr
     }
 
+    const parentIds = new Set(tasks.filter(t => t.parent_id).map(t => t.parent_id!));
     const filteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
         const isAssigned = Array.isArray(t.assignee_id)
@@ -149,8 +160,7 @@ export const Kanban = () => {
         }
         if (!isVisible) return false;
 
-        const isPhase = tasks.some(other => other.parent_id === t.id);
-        if (isPhase) return false;
+        if (parentIds.has(t.id)) return false;
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())

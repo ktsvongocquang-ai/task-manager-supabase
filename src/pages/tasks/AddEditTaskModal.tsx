@@ -242,7 +242,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     project_id: editingTask.project_id || initialData.project_id, 
                     name: editingTask.name || '', 
                     description: editingTask.description || '',
-                    assignee_id: editingTask.assignee_id || currentUserProfile?.id || '', 
+                    assignee_id: Array.isArray(editingTask?.assignee_id) ? editingTask.assignee_id[0] : (editingTask?.assignee_id || currentUserProfile?.id || ''), 
                     supporter_id: editingTask.supporter_id || '', 
                     status: editingTask.status || 'Cần làm', 
                     priority: editingTask.priority || 'Trung bình',
@@ -783,18 +783,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         {/* Actions */}
                         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                             {editingTask && (!shouldDisableTopFields() || editingTask.assignee_id === currentUserProfile?.id) && (
-                                <button onClick={async () => {
-                                    if (confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.')) {
-                                        try {
-                                            const table = form.project_id === 'personal' ? 'personal_tasks' : 'tasks';
-                                            const { error } = await supabase.from(table).delete().eq('id', editingTask.id);
-                                            if (error) throw error;
-                                            onSaved();
-                                            onClose();
-                                        } catch (err) {
-                                            console.error('Lỗi khi xóa nhiệm vụ:', err);
-                                            alert('Lỗi khi xóa nhiệm vụ. Vui lòng thử lại.');
-                                        }
+                                <button onClick={() => {
+                                    if (!editingTask) return;
+                                    if (window.confirm('Bạn có chắc muốn xóa công việc này?')) {
+                                        onDeleteTask?.(editingTask);
+                                        onClose();
                                     }
                                 }} className="p-1.5 sm:p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors bg-slate-50" title="Xóa">
                                     <Trash2 size={18} />

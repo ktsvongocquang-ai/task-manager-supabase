@@ -278,6 +278,7 @@ export const Projects = () => {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Xóa dự án này?')) return
+        await supabase.from('tasks').delete().eq('project_id', id)
         await supabase.from('projects').delete().eq('id', id)
         fetchProjects()
     }
@@ -420,7 +421,7 @@ export const Projects = () => {
         if (project.status === 'Chưa bắt đầu' || project.status === 'Mới') return 'blue';
 
         // Mocking actual cost since it isn't strictly tracked in the `projects` table for this demo
-        const mockActualCost = project.budget ? project.budget * (progress / 100) * (1 + (Math.random() * 0.2 - 0.05)) : 0; 
+        const mockActualCost = project.budget ? project.budget * (progress / 100) * 1.05 : 0; 
         
         const delay = expectedProgress - progress;
         const overBudget = project.budget ? (mockActualCost / project.budget) > 1 : false;

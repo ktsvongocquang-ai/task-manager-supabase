@@ -20,10 +20,11 @@ interface AddEditUserModalProps {
     setForm: (form: any) => void
     onClose: () => void
     onSave: () => void
+    saving?: boolean
     constructionProjects?: ConstructionProjectOption[]
 }
 
-export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, constructionProjects = [] }: AddEditUserModalProps) => {
+export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, saving, constructionProjects = [] }: AddEditUserModalProps) => {
     return (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center sm:p-4">
             <div className="bg-white rounded-t-2xl sm:rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200 border border-border-main max-h-[75dvh] sm:max-h-[92dvh] flex flex-col">
@@ -120,8 +121,8 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, co
                 </div>
                 <div className="px-5 py-4 bg-gray-50/50 border-t border-border-main flex gap-3 shrink-0" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
                     <button onClick={onClose} className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200">Hủy</button>
-                    <button onClick={onSave} className="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm">
-                        {isEditing ? 'Cập nhật' : 'Thêm nhân viên'}
+                    <button onClick={onSave} disabled={saving} className="flex-1 sm:flex-none px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        {saving ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Thêm nhân viên'}
                     </button>
                 </div>
             </div>

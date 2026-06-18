@@ -11,6 +11,7 @@ export const Users = () => {
     const { profile: _profile } = useAuthStore()
     const [profiles, setProfiles] = useState<Profile[]>([])
     const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
     const [showModal, setShowModal] = useState(false)
     const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
     const [form, setForm] = useState({
@@ -55,7 +56,11 @@ export const Users = () => {
 
     const openAddModal = () => {
         setEditingProfile(null)
-        const nextId = `NV${String(profiles.length + 1).padStart(3, '0')}`
+        const maxNum = profiles.reduce((max, p) => {
+            const match = p.staff_id?.match(/NV(\d+)/);
+            return match ? Math.max(max, parseInt(match[1])) : max;
+        }, 0);
+        const nextId = `NV${String(maxNum + 1).padStart(3, '0')}`
         setForm({ staff_id: nextId, full_name: '', email: '', position: '', role: 'Thiết kế', password: '', construction_project_id: null })
         setShowModal(true)
     }
@@ -71,6 +76,7 @@ export const Users = () => {
     }
 
     const handleSave = async () => {
+        setSaving(true)
         try {
             if (editingProfile) {
                 // 1. Update profiles table (including email)
@@ -209,12 +215,17 @@ export const Users = () => {
         } catch (err) {
             console.error(err)
             alert('Lỗi hệ thống khi lưu thông tin nhân viên.')
+        } finally {
+            setSaving(false)
         }
     }
 
     const handleDelete = async (id: string) => {
         if (!confirm('Bạn có chắc muốn xóa người dùng này?')) return
-        await supabase.from('profiles').delete().eq('id', id)
+        // WARNING: This only deletes the profile, not the auth user.
+        // TODO: Add server-side function to delete auth user via supabase.auth.admin.deleteUser()
+        const { error: deleteError } = await supabase.from('profiles').delete().eq('id', id)
+        if (deleteError) { alert('Lỗi xóa: ' + deleteError.message); return; }
         fetchProfiles()
     }
 
@@ -278,6 +289,7 @@ export const Users = () => {
                     setForm={setForm}
                     onClose={() => setShowModal(false)}
                     onSave={handleSave}
+                    saving={saving}
                     constructionProjects={constructionProjects}
                 />
             )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
@@ -31,32 +31,40 @@ export const Tasks = () => {
     const [viewMode, setViewMode] = useState<'list' | 'weekly'>('weekly')
 
     const isAdmin = profile?.role?.trim() === 'Admin'
+    const isInitialLoadRef = useRef(true);
+    const assigneeInitRef = useRef(false);
 
     useEffect(() => {
         fetchAll()
-    }, [profile])
+    }, [profile?.id])
 
     useEffect(() => {
-        if (profile && !isAdmin) {
+        if (profile && !isAdmin && !assigneeInitRef.current) {
             setAssigneeFilter(profile.id)
+            assigneeInitRef.current = true;
         }
     }, [profile, isAdmin])
 
     const fetchAll = async (silent = false) => {
         try {
             if (!silent) setLoading(true)
-            const [{ data: t }, { data: p }, { data: pr }] = await Promise.all([
+            const [tasksRes, projectsRes, profilesRes] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
                 supabase.from('profiles').select('id, full_name, role, email')
             ])
+            if (tasksRes.error) console.error('Tasks fetch error:', tasksRes.error);
+            if (projectsRes.error) console.error('Projects fetch error:', projectsRes.error);
+            if (profilesRes.error) console.error('Profiles fetch error:', profilesRes.error);
+            const t = tasksRes.data; const p = projectsRes.data; const pr = profilesRes.data;
             setTasks((t || []) as Task[])
             setProjects((p || []) as Project[])
             setProfiles(pr || [])
-            if (p) {
+            if (isInitialLoadRef.current && p) {
                 // By default expand projects that have tasks
                 const projectsWithTasks = new Set((t || []).map(x => x.project_id))
                 setExpandedProjects(projectsWithTasks)
+                isInitialLoadRef.current = false;
             }
         } catch (err) {
             console.error(err)
@@ -79,9 +87,12 @@ export const Tasks = () => {
         return p?.full_name || 'N/A'
     }
 
+    const matchesAssignee = (aid: string | string[] | null, id: string) =>
+        Array.isArray(aid) ? aid.includes(id) : aid === id;
+
     const baseFilteredTasks = tasks.filter(t => {
         const userRole = profile?.role;
-        const isAssigned = t.assignee_id === profile?.id;
+        const isAssigned = matchesAssignee(t.assignee_id, profile?.id || '');
         const isSupporter = t.supporter_id === profile?.id;
 
         const isManagerOrAdmin = ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
@@ -95,17 +106,18 @@ export const Tasks = () => {
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
-        const matchAssignee = assigneeFilter ? t.assignee_id === assigneeFilter : true
+        const matchAssignee = assigneeFilter ? matchesAssignee(t.assignee_id, assigneeFilter) : true
         return matchSearch && matchAssignee
     })
 
+    const parentIds = new Set(tasks.filter(t => t.parent_id).map(t => t.parent_id!));
     const statusCounts = {
-        'Chưa bắt đầu': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')).length,
-        'Đang thực hiện': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Đang thực hiện')).length,
-        'Chờ duyệt': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Chờ duyệt')).length,
-        'Hoàn thành': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && t.status?.includes('Hoàn thành')).length,
-        'Tạm dừng': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status?.includes('Tạm dừng') || t.status?.includes('Hủy'))).length,
-        'Lưu trữ': baseFilteredTasks.filter(t => !tasks.some(x => x.parent_id === t.id) && (t.status === 'Lưu trữ')).length,
+        'Chưa bắt đầu': baseFilteredTasks.filter(t => !parentIds.has(t.id) && (t.status === 'Chưa bắt đầu' || t.status === 'Mới tạo' || t.status === 'Cần làm')).length,
+        'Đang thực hiện': baseFilteredTasks.filter(t => !parentIds.has(t.id) && (t.status === 'Đang thực hiện')).length,
+        'Chờ duyệt': baseFilteredTasks.filter(t => !parentIds.has(t.id) && (t.status === 'Chờ duyệt')).length,
+        'Hoàn thành': baseFilteredTasks.filter(t => !parentIds.has(t.id) && t.status?.includes('Hoàn thành')).length,
+        'Tạm dừng': baseFilteredTasks.filter(t => !parentIds.has(t.id) && (t.status?.includes('Tạm dừng') || t.status?.includes('Hủy'))).length,
+        'Lưu trữ': baseFilteredTasks.filter(t => !parentIds.has(t.id) && (t.status === 'Lưu trữ')).length,
     }
 
     const filteredTasks = baseFilteredTasks.filter(t => {
