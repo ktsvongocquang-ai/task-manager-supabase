@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { type Project, type Task } from '../../types';
 import { supabase } from '../../services/supabase';
 import { format, parseISO } from 'date-fns';
-import { X, Plus, Minus, ChevronDown, Play, PauseCircle, Clock } from 'lucide-react';
+import { X, Plus, Minus, ChevronDown, Play, PauseCircle, Clock, RefreshCw } from 'lucide-react';
 
 // ── Phase definition ───────────────────────────────────────────────────────────
 const DEFAULT_PHASES = [
