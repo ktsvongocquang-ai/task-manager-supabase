@@ -204,9 +204,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
 
             if (TODAY >= mon && TODAY <= sun) {
                 const todayTasks = sourceList.filter(t => {
-                    const tDate = new Date(t.due_date!);
-                    if (tDate < mon) return false;
-                    return t.due_date!.substring(0, 10) === todayStr;
+                    const startRaw = ((t as any).start_date || t.due_date) as string;
+                    const startStr = startRaw.substring(0, 10);
+                    const dueStr = t.due_date!.substring(0, 10);
+                    return startStr <= todayStr && todayStr <= dueStr;
                 }).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
                 groups.push({ key: 'Hôm nay', label: 'Hôm nay', tasks: todayTasks, isTodayGroup: true, defaultValues: { start_date: todayStr, due_date: todayStr } });
                 hasToday = true;
@@ -219,9 +220,10 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
 
                 const key = `${DAY_FULL[d.getDay()]} ${fmtShort(d)}`;
                 const dayTasks = sourceList.filter(t => {
-                    const tDate = new Date(t.due_date!);
-                    if (tDate < mon) return false; 
-                    return t.due_date!.substring(0, 10) === dStr;
+                    const startRaw = ((t as any).start_date || t.due_date) as string;
+                    const startStr = startRaw.substring(0, 10);
+                    const dueStr = t.due_date!.substring(0, 10);
+                    return startStr <= dStr && dStr <= dueStr;
                 }).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
                 
                 groups.push({ key, label: key, tasks: dayTasks, defaultValues: { start_date: dStr, due_date: dStr } });
