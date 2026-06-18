@@ -49,7 +49,7 @@ export const NewsDashboard = () => {
        <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div>
                <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                  <span className="text-3xl">📰</span> Bảng Tin Thiết Kế & Công Nghệ
+                  <span className="text-3xl">📰</span> Bảng Tin Công Ty
                </h1>
                <p className="text-sm text-slate-500 font-medium mt-1">
                  Tự động 7h sáng · Bấm nút để cập nhật thêm bất kỳ lúc nào

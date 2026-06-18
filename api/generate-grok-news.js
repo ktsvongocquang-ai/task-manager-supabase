@@ -51,43 +51,47 @@ export default async function handler(req, res) {
         const dateStrFull = dateVN.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const dateOnlyVN = dateVN.toISOString().split('T')[0];
 
-        const prompt = `Bạn là Giám đốc Thiết kế Kiến trúc & Nội thất (Design Director) cấp cao. Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
+        const prompt = `Bạn là Giám đốc Điều hành (CEO) kiêm Giám đốc Thiết kế cấp cao. Hôm nay là ${dateStrFull}, phiên ${edition === 'AM' ? 'SÁNG' : 'CHIỀU'}.
 
-Hãy dùng Google Search để tìm các thông tin thực tế mới nhất và tạo BẢNG TIN THIẾT KẾ & CÔNG NGHỆ cho đội ngũ nhân sự thiết kế.
+Hãy dùng Google Search để tìm các thông tin thực tế mới nhất và tạo "BẢNG TIN CÔNG TY" hàng ngày dành cho toàn bộ nhân sự (đặc biệt là đội ngũ thiết kế, quản lý và marketing).
 
 QUY TẮC BẮT BUỘC:
-- Chỉ dùng số liệu, xu hướng và phần mềm của năm 2026. Nếu không tìm thấy, ghi rõ "Chưa có thông tin hôm nay".
-- Ghi rõ nguồn cho mỗi thông tin (Ví dụ: ArchDaily, Dezeen, Autodesk, ChatGPT).
+- Chỉ dùng số liệu, xu hướng và luật của năm 2026. Nếu không tìm thấy, ghi rõ "Chưa có thông tin cập nhật hôm nay".
+- Ghi rõ nguồn và giờ cập nhật cho mỗi số liệu.
 - Không tự bịa thông tin.
 
 CẤU TRÚC BẮT BUỘC (Markdown):
 
-## 🎨 TÓM TẮT XU HƯỚNG HÔM NAY
-[1-2 câu tóm tắt xu hướng nổi bật nhất trong ngày hôm nay về kiến trúc, nội thất hoặc công nghệ]
+## 📊 EXECUTIVE SUMMARY (TÌNH HÌNH CHUNG)
+[1-2 câu tóm tắt nhanh tình hình vĩ mô, địa chính trị hoặc điểm nóng kinh tế quan trọng nhất trong ngày]
 
-## 🏗️ XU HƯỚNG KIẾN TRÚC & NỘI THẤT 2026
+## 📈 KINH TẾ - ĐẦU TƯ - ĐỊA CHÍNH TRỊ
+- **Địa chính trị & Chiến sự:** [Tác động từ Trung Đông, Mỹ-Trung, chính sách toàn cầu ảnh hưởng VN]
+- **Tài chính & Đầu tư:** [Diễn biến VN-Index, Giá Vàng, tỷ giá, lãi suất ngân hàng]
+- **Bất động sản:** [Biến động giá hoặc thanh khoản khu vực TP.HCM, Bình Dương, Đắk Lắk...]
 
-| Hạng mục | Xu hướng hiện tại | Ứng dụng thực tế | Đánh giá / Ghi chú |
-|---|---|---|---|
-| Vật liệu mới | [cập nhật vật liệu xanh/thông minh] | [cách ứng dụng] | [ưu/nhược điểm] |
-| Phong cách Nội thất | [cập nhật phong cách hot 2026] | [màu sắc, hình khối] | [phù hợp loại dự án nào] |
-| Giải pháp Không gian | [thiết kế bền vững/đa năng] | [ví dụ] | [chi phí thi công] |
+## ⚖️ PHÁP LÝ & QUY HOẠCH (DÀNH CHO QUẢN LÝ & THIẾT KẾ)
+- **Luật/Nghị định mới:** [Các luật liên quan Đất đai, Xây dựng, PCCC, Thuế... mới có hiệu lực hoặc dự thảo nóng]
+- **Quy hoạch & Hạ tầng:** [Các dự án cao tốc, sân bay, quy hoạch đô thị mới ảnh hưởng tới tiềm năng BĐS]
 
-## 💻 CÔNG NGHỆ & PHẦN MỀM THIẾT KẾ
-- **AI trong Thiết kế:** [Cập nhật mới nhất từ Midjourney, Stable Diffusion, hoặc AI tools năm 2026]
-- **BIM & Phần mềm:** [Cập nhật mới nhất từ Revit, SketchUp, 3ds Max, Enscape, Corona, Lumion]
-- **Thiết bị & VR/AR:** [Công nghệ trình diễn dự án cho khách hàng]
+## 🏗️ THỊ TRƯỜNG VẬT TƯ & THI CÔNG
+| Vật liệu trọng điểm | Xu hướng giá | Lời khuyên cho Sale/Thi công |
+|---|---|---|
+| Sắt, Thép | ↑/↓ [giá/kg] | [Chiến lược báo giá/đặt hàng] |
+| Xi măng, Cát, Gạch | ↑/↓ | - |
+| Kính, Nhôm, Gỗ CN | ↑/↓ | - |
 
-## 🎯 GÓC KỸ NĂNG & TRUYỀN CẢM HỨNG
-- **Kỹ năng thiết yếu 2026:** [Kỹ năng mềm hoặc kỹ thuật cần có]
-- **Dự án nổi bật thế giới:** [Tên 1 dự án kiến trúc mới hoàn thành hoặc đạt giải gần đây]
-- **Lời khuyên cho Designer:** [Lời khuyên thực chiến khi gặp khách hàng hoặc tối ưu hiệu suất làm việc]
+## 🎨 XU HƯỚNG THIẾT KẾ & CÔNG NGHỆ (DÀNH CHO DESIGNER)
+- **Vật liệu & Phong cách 2026:** [Cập nhật xu hướng vật liệu xanh, smart home, phong cách nội thất đang hot]
+- **Công nghệ & Phần mềm:** [Cập nhật từ AI Midjourney, Stable Diffusion, Revit, Enscape, Corona...]
+- **Lưu ý Kỹ thuật Thi công:** [Cảnh báo lỗi kích thước, quy chuẩn cấu tạo thường gặp dạo gần đây]
 
-## 🚨 LƯU Ý KỸ THUẬT & THI CÔNG
-[Các vấn đề thường gặp về kỹ thuật thi công, lỗi sai kích thước, hoặc xu hướng chi tiết cấu tạo]
+## 🎯 GÓC TRUYỀN CẢM HỨNG & KỸ NĂNG
+- **Dự án nổi bật:** [Review nhanh 1 dự án kiến trúc ấn tượng mới hoàn thành trên thế giới/VN]
+- **Kỹ năng sống còn:** [Lời khuyên thực chiến khi làm việc với khách hàng, đối phó deadline hoặc tối ưu hiệu suất]
 
-**Lưu ý:** Hãy luôn sáng tạo, cập nhật công nghệ và bám sát thực tế thi công để tạo ra những bản vẽ chất lượng nhất.
-*Bản tin thiết kế tổng hợp tự động bởi Gemini AI lúc ${dateVN.toLocaleTimeString('vi-VN')} UTC+7*`;
+**Lưu ý:** Hãy giữ văn phong chuyên nghiệp, truyền cảm hứng và mang tính thực chiến cao.
+*Bản tin tổng hợp tự động bởi Gemini AI lúc ${dateVN.toLocaleTimeString('vi-VN')} UTC+7*`;
 
         const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
@@ -109,12 +113,12 @@ CẤU TRÚC BẮT BUỘC (Markdown):
 
         const timeLabel = edition === 'AM' ? 'Sáng' : 'Chiều';
         const dateStrVN = dateVN.toLocaleDateString('vi-VN');
-        const title = `Bảng Tin Thiết Kế ${timeLabel} ${dateStrVN}`;
+        const title = `Bảng Tin Công Ty ${timeLabel} ${dateStrVN}`;
 
         const { error } = await supabaseAdmin.from('grok_news_feed').insert({
             title,
             content_markdown: newsContent,
-            category: 'Thiết kế & Công nghệ',
+            category: 'Tin Tức Nội Bộ',
             ai_model: 'gemini-2.5-flash (google_search)',
             edition,
             edition_date: dateOnlyVN,
