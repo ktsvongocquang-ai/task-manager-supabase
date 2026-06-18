@@ -322,7 +322,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
 
                         return (
                             <div key={phase.key} className={`bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm transition-all duration-300 ${isEmpty ? 'opacity-50 hover:opacity-100' : ''}`}>
-                                <div className="p-4 flex flex-col gap-3.5" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
+                                <div className="px-4 py-3 flex flex-col gap-2" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
                                     
                                     {/* Header Row */}
                                     <div className="flex items-center justify-between">
@@ -336,7 +336,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     </div>
                                     
                                     {/* Row 2: Subtext and Actual Days Buttons */}
-                                    <div className={`flex items-center justify-between ${isExpanded ? 'border-b border-dashed border-slate-200 pb-3.5' : 'pb-1'}`}>
+                                    <div className={`flex items-center justify-between ${isExpanded ? 'border-b border-dashed border-slate-200 pb-2' : ''}`}>
                                         <div className="text-[12px] font-semibold text-slate-500 flex items-center gap-1">
                                             Làm <span className="text-slate-800 font-bold">{pState.days_used || 0}</span><span className="text-indigo-500 font-bold">/{pState.days_estimated || 0} ng</span> 
                                             <span className="text-indigo-500 ml-0.5">✏️</span>
@@ -353,7 +353,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                     
                                 {/* Expanded content */}
                                 {isExpanded && (
-                                    <div className="px-4 pb-4 pt-1 flex flex-col gap-4">
+                                    <div className="px-4 pb-3 pt-2 flex flex-col gap-3">
                                             {/* Estimated days editor */}
                                             <div className="flex items-center justify-between">
                                                 <div className="text-[13px] font-bold text-slate-800">Dự kiến giai đoạn này</div>
@@ -367,7 +367,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
 
                                             {/* Linked Tasks List */}
                                             {phaseTasks.length > 0 && (
-                                                <div className="space-y-2 mt-2">
+                                                <div className="space-y-1.5 mt-0">
                                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nhiệm vụ thuộc giai đoạn này</div>
                                                     {phaseTasks.map(t => (
                                                         <div key={t.id} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 shadow-sm">
