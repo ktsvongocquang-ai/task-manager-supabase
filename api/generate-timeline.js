@@ -42,17 +42,48 @@ Trong đó X, Y, Z, W là số nguyên (số ngày ước tính hợp lý).`;
             const result = await model.generateContent(prompt);
             let text = result.response.text();
             
-            // Clean up markdown block if present
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
             estimates = JSON.parse(text);
         } catch (error) {
-            console.error('AI Request Failed or Parse Error, using fallback:', error.message);
-            estimates = [
-                { phase: "Concept", days: 3 },
-                { phase: "3D", days: Math.ceil(area / 50) + 2 },
-                { phase: "Triển Khai", days: Math.ceil(area / 40) + 2 },
-                { phase: "Construction / Hồ sơ TC", days: 3 }
-            ];
+            console.log('Gemini API Failed, trying Grok (xAI) as fallback...');
+            try {
+                if (!process.env.XAI_API_KEY) throw new Error('No XAI_API_KEY found');
+                
+                const response = await fetch('https://api.x.ai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.XAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'grok-4.3',
+                        messages: [
+                            { role: 'system', content: 'You are a helpful assistant that only responds with valid JSON arrays.' },
+                            { role: 'user', content: prompt }
+                        ],
+                        temperature: 0.1
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errText = await response.text();
+                    throw new Error(`xAI error: ${response.status} ${response.statusText} - ${errText}`);
+                }
+                
+                const data = await response.json();
+                let text = data.choices[0].message.content;
+                text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                estimates = JSON.parse(text);
+                
+            } catch (xaiError) {
+                console.error('Both AI APIs Failed, using hardcoded fallback:', xaiError.message);
+                estimates = [
+                    { phase: "Concept", days: 3 },
+                    { phase: "3D", days: Math.ceil(area / 50) + 2 },
+                    { phase: "Triển Khai", days: Math.ceil(area / 40) + 2 },
+                    { phase: "Construction / Hồ sơ TC", days: 3 }
+                ];
+            }
         }
 
         return res.status(200).json(estimates);
