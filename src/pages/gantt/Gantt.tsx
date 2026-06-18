@@ -572,7 +572,7 @@ export const Gantt = () => {
                     <div className="no-scrollbar"></div>
                     
                     {/* Left Header */}
-                    <div className="flex sticky top-0 z-30 bg-slate-50 border-b border-r border-slate-200 shadow-sm min-h-[57px]">
+                    <div className="flex sticky top-0 z-30 bg-slate-50 border-b border-r border-slate-200 shadow-sm h-[66px] box-border">
                         <div className="w-[200px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                             MÔ TẢ
                         </div>
@@ -782,16 +782,19 @@ export const Gantt = () => {
                         {/* Right Header */}
                         <div className="flex flex-col sticky top-0 z-30 shadow-sm h-[66px] bg-white border-b border-slate-200 box-border">
                             {/* Month Level Header */}
-                            <div className="flex border-b border-slate-200 flex-1">
-                                {monthsData.map((m) => (
-                                    <div 
-                                        key={`m-${m.year}-${m.month}`}
-                                        className="flex items-center justify-center font-bold text-slate-700 text-xs border-r border-slate-200 bg-slate-100 py-1"
-                                        style={{ width: `${m.days * cellWidth}px` }}
-                                    >
-                                        {m.name}
-                                    </div>
-                                ))}
+                            <div className="relative border-b border-slate-200" style={{ height: '25px', width: `${totalDays * cellWidth}px` }}>
+                                {monthsData.map((m, idx) => {
+                                    const prevDays = monthsData.slice(0, idx).reduce((sum, prev) => sum + prev.days, 0);
+                                    return (
+                                        <div 
+                                            key={`m-${m.year}-${m.month}`}
+                                            className="absolute top-0 bottom-0 flex items-center justify-center font-bold text-slate-700 text-xs border-r border-slate-200 bg-slate-100"
+                                            style={{ left: `${prevDays * cellWidth}px`, width: `${m.days * cellWidth}px` }}
+                                        >
+                                            {m.name}
+                                        </div>
+                                    );
+                                })}
                             </div>
                             
                             {/* Days Level Header */}
@@ -816,7 +819,7 @@ export const Gantt = () => {
                         </div>
 
                         {/* Right Chart Rows */}
-                        <div className="">
+                        <div className="pb-24">
                             {ganttItems.length === 0 ? (
                                 <div className="h-[200px]"></div> // Empty placeholder to align with left pane's 24 padding
                             ) : (
