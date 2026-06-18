@@ -877,12 +877,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                         onChange={(e) => setForm({ ...form, status: e.target.value })}
                                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer hover:border-slate-300 transition-all shadow-sm"
                                     >
-                                        {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
-                                        {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                         <option value="Cần làm">Cần làm</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                         <option value="Hoàn thành">Hoàn thành</option>
-                                        <option value="Tạm dừng">Tạm dừng</option>
                                     </select>
                                 </div>
                                 <div>

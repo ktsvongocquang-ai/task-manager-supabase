@@ -205,12 +205,10 @@ export const QuickAddTaskModal = ({
                                     onChange={e => setForm({...form, status: e.target.value})}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                 >
-                                    {form.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
-                                    {form.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                     <option value="Cần làm">Cần làm</option>
+                                    <option value="Đang thực hiện">Đang thực hiện</option>
                                     <option value="Chờ duyệt">Chờ duyệt</option>
                                     <option value="Hoàn thành">Hoàn thành</option>
-                                    <option value="Tạm dừng">Tạm dừng</option>
                                 </select>
                             </div>
                             <div>
