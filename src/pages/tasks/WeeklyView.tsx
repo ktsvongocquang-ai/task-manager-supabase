@@ -300,6 +300,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
         if (newStatus === 'Hoàn thành' && task?.status !== 'Hoàn thành') {
             triggerSuccessConfetti();
+        } else if (newStatus === 'Chờ duyệt' && task?.status !== 'Chờ duyệt') {
+            import('../../services/notifications').then(({ notifyTaskRequiresReview }) => {
+                const profileStr = localStorage.getItem('dqh_profile');
+                if (profileStr && task) {
+                    const p = JSON.parse(profileStr);
+                    notifyTaskRequiresReview(taskId, task.project_id, task.name, p.id, p.full_name || 'Nhân sự');
+                }
+            });
         }
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()

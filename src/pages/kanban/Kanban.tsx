@@ -130,6 +130,14 @@ export const Kanban = () => {
             if (error) {
                 console.error('Error updating task status:', error);
                 fetchAll();
+            } else if (newStatus === 'Chờ duyệt') {
+                import('../../services/notifications').then(({ notifyTaskRequiresReview }) => {
+                    const profileStr = localStorage.getItem('dqh_profile');
+                    if (profileStr) {
+                        const p = JSON.parse(profileStr);
+                        notifyTaskRequiresReview(taskId, task.project_id, task.name, p.id, p.full_name || 'Nhân sự');
+                    }
+                });
             }
         } finally {
             draggingRef.current = false;

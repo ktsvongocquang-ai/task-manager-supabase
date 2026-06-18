@@ -203,10 +203,52 @@ export const checkScheduledNotifications = async (userId: string) => {
                 }
             }
         }
-
-
-
     } catch (err) {
-        console.error('Error checking scheduled notifications:', err);
+        console.error('Error generating scheduled notifications:', err);
+    }
+}
+
+export const notifyTaskRequiresReview = async (
+    taskId: string,
+    projectId: string | null,
+    taskName: string,
+    actorId: string,
+    actorName: string
+) => {
+    try {
+        const { data: managers } = await supabase
+            .from('profiles')
+            .select('id')
+            .in('role', ['Admin']);
+            
+        let projectManagerId = null;
+        if (projectId) {
+            const { data: proj } = await supabase.from('projects').select('manager_id').eq('id', projectId).single();
+            if (proj) projectManagerId = proj.manager_id;
+        }
+
+        const notifiedIds = new Set<string>();
+
+        const notify = async (userId: string) => {
+            if (!userId || userId === actorId || notifiedIds.has(userId)) return;
+            await createNotification(
+                userId,
+                `${actorName} đã chuyển task "${taskName}" sang trạng thái Chờ duyệt.`,
+                'system',
+                actorId,
+                taskId,
+                projectId
+            );
+            notifiedIds.add(userId);
+        };
+
+        if (projectManagerId) await notify(projectManagerId);
+        if (managers) {
+            for (const m of managers) {
+                await notify(m.id);
+            }
+        }
+    } catch (err) {
+        console.error('Error in notifyTaskRequiresReview:', err);
     }
 }

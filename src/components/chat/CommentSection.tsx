@@ -201,6 +201,36 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
                     await createNotification(parentComment.user_id, `${currentUserProfile.full_name} đã trả lời bình luận của bạn trong "${itemName}"`, 'mention', currentUserProfile.id, taskId, projectId, moduleType)
                 }
             }
+
+            // Notify task executor (assignee) and project manager
+            if (taskId) {
+                const taskTable = moduleType === 'marketing' ? 'marketing_tasks' : 'tasks';
+                const projectTable = moduleType === 'marketing' ? 'marketing_projects' : 'projects';
+                
+                const { data: taskData } = await supabase.from(taskTable).select('assignee_id, project_id').eq('id', taskId).single();
+                if (taskData) {
+                    const notifyUsers = async (userIds: string | string[] | null) => {
+                        if (!userIds) return;
+                        const ids = Array.isArray(userIds) ? userIds : [userIds];
+                        for (const uId of ids) {
+                            if (uId && uId !== currentUserProfile.id && !detectedMentions.includes(uId)) {
+                                await createNotification(uId, `${currentUserProfile.full_name} đã bình luận vào công việc: "${itemName}"`, 'comment', currentUserProfile.id, taskId, projectId, moduleType);
+                            }
+                        }
+                    };
+                    
+                    // Notify assignee(s)
+                    await notifyUsers(taskData.assignee_id);
+                    
+                    // Notify manager
+                    if (taskData.project_id) {
+                        const { data: projData } = await supabase.from(projectTable).select('manager_id').eq('id', taskData.project_id).single();
+                        if (projData && projData.manager_id) {
+                            await notifyUsers(projData.manager_id);
+                        }
+                    }
+                }
+            }
             fetchComments()
         } else {
             fetchComments()

@@ -279,6 +279,16 @@ export const Tasks = () => {
             const task = tasks.find(t => t.id === taskId);
             if (task) {
                 await logActivity('Sửa nhanh', `Cập nhật ${field}: ${value} (Nhiệm vụ: ${task.name})`, task.project_id);
+                
+                if (field === 'status' && value === 'Chờ duyệt') {
+                    import('../../services/notifications').then(({ notifyTaskRequiresReview }) => {
+                        const profileStr = localStorage.getItem('dqh_profile');
+                        if (profileStr) {
+                            const p = JSON.parse(profileStr);
+                            notifyTaskRequiresReview(taskId, task.project_id, task.name, p.id, p.full_name || 'Nhân sự');
+                        }
+                    });
+                }
             }
         } catch (err) {
             console.error(`Error updating task ${field}:`, err);
