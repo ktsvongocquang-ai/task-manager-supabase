@@ -194,9 +194,7 @@ export const Gantt = () => {
     };
 
     
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-    
+
     const getTimelineRange = (start: Date | null, end: Date | null) => {
         if (!start || !end) return null;
         
