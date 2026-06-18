@@ -35,6 +35,60 @@ export const Gantt = () => {
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
     
+    useEffect(() => {
+        fetchData()
+    }, [])
+
+    const fetchData = async () => {
+        try {
+            setLoading(true)
+            const [{ data: t }, { data: p }, { data: pr }, { data: authData }] = await Promise.all([
+                supabase.from('tasks').select('*'),
+                supabase.from('projects').select('*'),
+                supabase.from('profiles').select('id, full_name'),
+                supabase.auth.getUser()
+            ])
+            setProjects((p || []) as Project[])
+            setProfiles((pr || []) as any[])
+
+            let currentProfile = null;
+            if (authData?.user) {
+                const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single()
+                setCurrentUserProfile(userProfile)
+                currentProfile = userProfile;
+            }
+
+            let fetchedTasks = (t || []) as Task[];
+            let fetchedProjects = (p || []) as Project[];
+
+            if (currentProfile?.role === 'Thiết kế') {
+                const employeeTasks = fetchedTasks.filter(task =>
+                    task.assignee_id === currentProfile?.id ||
+                    task.supporter_id === currentProfile?.id
+                );
+                
+                const parentIds = new Set(employeeTasks.map(t => t.parent_id).filter(Boolean));
+                
+                fetchedTasks = fetchedTasks.filter(task => 
+                    task.assignee_id === currentProfile?.id ||
+                    task.supporter_id === currentProfile?.id ||
+                    parentIds.has(task.id)
+                );
+
+                fetchedProjects = fetchedProjects.filter(proj =>
+                    fetchedTasks.some(task => task.project_id === proj.id)
+                );
+            }
+
+            setTasks(fetchedTasks);
+            setProjects(fetchedProjects);
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const visibleDates = useMemo(() => {
         const result = [];
         if (viewMode === 'month') {
