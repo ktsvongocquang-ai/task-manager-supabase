@@ -10,6 +10,26 @@ import { Plus, Trash2 } from 'lucide-react'
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
 
+
+    const isToday = (day: number) => {
+        const now = new Date()
+        return day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
+    }
+    const isTodayRow = () => {
+        const now = new Date()
+        return month === now.getMonth() && year === now.getFullYear()
+    }
+
+    const isWeekend = (day: number) => {
+        const d = new Date(year, month, day)
+        return d.getDay() === 0 || d.getDay() === 6
+    }
+
+    const getDayName = (day: number) => {
+        const d = new Date(year, month, day)
+        return DAY_NAMES[d.getDay()]
+    }
+
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 
@@ -173,22 +193,24 @@ export const Gantt = () => {
         return new Date(dateStr);
     };
 
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    
     const getTimelineRange = (start: Date | null, end: Date | null) => {
         if (!start || !end) return null;
-        if (end < timelineStart || start > timelineEnd) return null;
+        
+        const monthStart = new Date(year, month, 1, 0, 0, 0);
+        const monthEnd = new Date(year, month, daysInMonth, 23, 59, 59);
 
-        let startIndex = 0;
-        if (start >= timelineStart) {
-            startIndex = getDayIndex(start);
-        }
+        if (end < monthStart || start > monthEnd) return null;
 
-        let endIndex = totalDays - 1;
-        if (end <= timelineEnd) {
-            endIndex = getDayIndex(end);
-        }
+        const startDay = (start.getFullYear() === year && start.getMonth() === month) ? start.getDate() : 1;
+        const endDay = (end.getFullYear() === year && end.getMonth() === month) ? end.getDate() : daysInMonth;
 
-        return { startIndex, duration: Math.max(1, endIndex - startIndex + 1) };
+        return { startIndex: startDay - 1, duration: Math.max(1, endDay - startDay + 1) };
     };
+
 
     const getDayOfWeek = (y: number, m: number, d: number) => {
         return DAY_NAMES[new Date(y, m, d).getDay()]
