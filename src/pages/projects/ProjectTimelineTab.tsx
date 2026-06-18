@@ -69,6 +69,8 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({ concept: true });
     const [saving, setSaving] = useState(false);
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+    const [areaSqm, setAreaSqm] = useState<number | ''>('');
+    const [projectType, setProjectType] = useState<string>('');
 
     // Load KPI state from project.other_info
     useEffect(() => {
@@ -83,8 +85,11 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                         phases: { ...DEFAULT_KPI_STATE.phases, ...(parsed.kpiData.phases || {}) },
                         taskPhaseMap: parsed.kpiData.taskPhaseMap || {},
                     });
-                    return;
                 }
+                setProjectType(parsed?.project_type || '');
+            }
+            setAreaSqm(project.area_sqm || '');
+            if (project.other_info && JSON.parse(project.other_info)?.kpiData) return;
             }
         } catch (e) {}
         setKpiState(DEFAULT_KPI_STATE);
@@ -145,9 +150,60 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
         }));
     };
 
+    const handleAIPredict = async () => {
+        if (!areaSqm || !projectType) {
+            alert('Vui lòng nhập Diện tích và Loại hình trước khi dự đoán.');
+            return;
+        }
+        setIsGeneratingAI(true);
+        try {
+            // Auto save Area and Type to project
+            let currentOtherInfo: any = {};
+            try { if (project?.other_info) currentOtherInfo = JSON.parse(project.other_info); } catch (e) {}
+            if (project) {
+                await supabase.from('projects').update({ 
+                    area_sqm: areaSqm,
+                    other_info: JSON.stringify({ ...currentOtherInfo, project_type: projectType })
+                }).eq('id', project.id);
+                if (onUpdateProject) onUpdateProject();
+            }
 
-
-    // ── Time metrics ────────────────────────────────────────────────────────────
+            const res = await fetch('/api/generate-timeline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    area: areaSqm,
+                    projectType: projectType
+                })
+            });
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                const aiMap: Record<string, number> = {};
+                data.forEach((item: any) => {
+                    const phaseStr = (item.phase || '').toLowerCase();
+                    if (phaseStr.includes('concept')) aiMap['concept'] = item.days;
+                    else if (phaseStr.includes('3d')) aiMap['3d'] = item.days;
+                    else if (phaseStr.includes('triển khai') || phaseStr.includes('2d')) aiMap['2d'] = item.days;
+                    else if (phaseStr.includes('construction') || phaseStr.includes('thi công') || phaseStr.includes('hồ sơ')) aiMap['construction'] = item.days;
+                });
+                
+                updateState(s => {
+                    const newPhases = { ...s.phases };
+                    ['concept', '3d', '2d', 'construction'].forEach(key => {
+                        if (aiMap[key] !== undefined) {
+                            newPhases[key] = { ...newPhases[key], days_estimated: aiMap[key] };
+                        }
+                    });
+                    return { ...s, phases: newPhases };
+                });
+            }
+        } catch (error) {
+            console.error('AI Predict error:', error);
+            alert('Có lỗi xảy ra khi dự đoán bằng AI.');
+        } finally {
+            setIsGeneratingAI(false);
+        }
+    };    // ── Time metrics ────────────────────────────────────────────────────────────
     const totalPhaseDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_used || 0), 0);
     const totalEstimatedDays = Object.values(kpiState.phases).reduce((a, p) => a + (p.days_estimated || 0), 0);
     const totalDaysUsed = totalPhaseDays + (kpiState.paused_days || 0);
@@ -201,6 +257,51 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                         <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: Math.max(0, s.paused_days - 1) }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Minus size={14} strokeWidth={3} /></button>
                         <span className="font-bold text-sm text-slate-800 w-5 text-center">{kpiState.paused_days}</span>
                         <button type="button" onClick={() => updateState(s => ({ ...s, paused_days: s.paused_days + 1 }))} className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-indigo-500 bg-white hover:bg-slate-50 transition-colors"><Plus size={14} strokeWidth={3} /></button>
+                    </div>
+                </div>
+
+                {/* AI & Project Info */}
+                <div className="bg-white border border-slate-100 rounded-[1.25rem] p-4 shadow-sm mb-6">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                        📐 Thông tin công trình
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
+                            <input
+                                type="number"
+                                value={areaSqm}
+                                onChange={(e) => setAreaSqm(e.target.value ? Number(e.target.value) : '')}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                placeholder="100"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loại hình</label>
+                            <select
+                                value={projectType}
+                                onChange={(e) => setProjectType(e.target.value)}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            >
+                                <option value="">Chọn loại hình</option>
+                                <option value="Chung cư">Chung cư</option>
+                                <option value="Nhà ở">Nhà ở (Biệt thự/Nhà phố)</option>
+                                <option value="Dịch vụ">Dịch vụ (Shop/Cửa hàng)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-center bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
+                        <label className="block text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
+                            <span className="text-indigo-500 text-sm">✨</span> AI Dự kiến Tiến độ
+                        </label>
+                        <button
+                            type="button"
+                            onClick={handleAIPredict}
+                            disabled={isGeneratingAI}
+                            className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-[0.75rem] shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isGeneratingAI ? 'Đang tính...' : 'Dự đoán Timeline'}
+                        </button>
                     </div>
                 </div>
 

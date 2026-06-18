@@ -43,51 +43,6 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
     if (!isOpen) return null;
 
     const [activeTab, setActiveTab] = React.useState<'manual' | 'ai'>('manual');
-    const [isEstimatingTimeline, setIsEstimatingTimeline] = React.useState(false);
-    const [timelineError, setTimelineError] = React.useState<string | null>(null);
-
-    const handleEstimateTimeline = async () => {
-        if (!form.area_sqm || !form.project_type) {
-            setTimelineError('Vui lòng nhập Diện tích và Loại hình trước khi dự đoán.');
-            return;
-        }
-        setTimelineError(null);
-        setIsEstimatingTimeline(true);
-
-        try {
-            const res = await fetch('/api/generate-timeline', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    area: form.area_sqm,
-                    projectType: form.project_type
-                })
-            });
-
-            if (!res.ok) {
-                throw new Error('API Error');
-            }
-
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                setForm({ ...form, timelinePhases: data });
-            } else {
-                setTimelineError('Dữ liệu trả về không hợp lệ.');
-            }
-        } catch (error) {
-            console.error('Error fetching timeline:', error);
-            setTimelineError('Có lỗi xảy ra khi dự đoán bằng AI. Vui lòng thử lại sau.');
-        } finally {
-            setIsEstimatingTimeline(false);
-        }
-    };
-
-    const handlePhaseDaysChange = (index: number, delta: number) => {
-        const newPhases = [...(form.timelinePhases as any[])];
-        newPhases[index].days = Math.max(1, newPhases[index].days + delta);
-        setForm({ ...form, timelinePhases: newPhases });
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await onSave(form);
@@ -187,74 +142,8 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                         )}
                     </div>
                     
-                    {/* Project Info Fields */}
-                    <div className="pt-1 border-t border-slate-100">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            📐 Thông tin công trình
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
-                                <input
-                                    type="number"
-                                    value={form.area_sqm || ''}
-                                    onChange={(e) => setForm({ ...form, area_sqm: e.target.value ? Number(e.target.value) : '' })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-300"
-                                    placeholder="100"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Loại hình</label>
-                                <select
-                                    value={form.project_type || ''}
-                                    onChange={(e) => setForm({ ...form, project_type: e.target.value })}
-                                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                >
-                                    <option value="">Chọn loại hình</option>
-                                    <option value="Chung cư">Chung cư</option>
-                                    <option value="Nhà ở">Nhà ở (Biệt thự/Nhà phố)</option>
-                                    <option value="Dịch vụ">Dịch vụ (Shop/Cửa hàng)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* AI Timeline Predictor */}
-                        <div className="mt-4 p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl">
-                            <div className="flex justify-between items-center mb-3">
-                                <label className="block text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
-                                    <Sparkles size={14} className="text-indigo-500" /> AI Dự kiến Tiến độ
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={handleEstimateTimeline}
-                                    disabled={isEstimatingTimeline}
-                                    className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-[0.75rem] shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2 disabled:opacity-50"
-                                >
-                                    {isEstimatingTimeline ? 'Đang tính toán...' : 'Dự đoán Timeline'}
-                                </button>
-                            </div>
-                            {timelineError && <p className="text-xs text-red-500 mb-2">{timelineError}</p>}
-                            
-                            {(form as any).timelinePhases && (form as any).timelinePhases.length > 0 && (
-                                <div className="space-y-2 mt-3">
-                                    {(form as any).timelinePhases.map((phase: any, idx: number) => (
-                                        <div key={idx} className="flex justify-between items-center bg-white px-3 py-2 rounded-lg border border-indigo-100 shadow-sm">
-                                            <span className="text-sm font-medium text-slate-700">{idx + 1}. {phase.phase}</span>
-                                            <div className="flex items-center gap-3">
-                                                <button type="button" onClick={() => handlePhaseDaysChange(idx, -1)} className="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-colors">-</button>
-                                                <span className="text-sm font-bold w-12 text-center text-indigo-700">{phase.days} ngày</span>
-                                                <button type="button" onClick={() => handlePhaseDaysChange(idx, 1)} className="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md transition-colors">+</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <p className="text-[10px] text-slate-500 text-right mt-1 italic">* Bấm "Lưu" để cập nhật các mốc AI tính toán được vào Bảng tiến độ.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1 mt-4">Mô tả</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mô tả</label>
                         <textarea
                             value={form.description}
                             onChange={(e) => setForm({ ...form, description: e.target.value })}
