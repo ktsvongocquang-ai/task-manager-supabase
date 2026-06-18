@@ -19,6 +19,7 @@ export const Gantt = () => {
     const [currentDate, setCurrentDate] = useState(new Date())
     const [search, setSearch] = useState('')
     const [zoom, setZoom] = useState(100)
+    const [viewMode, setViewMode] = useState<'month' | 'week'>('week')
     const [profiles, setProfiles] = useState<any[]>([])
     const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set())
     const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
@@ -33,169 +34,102 @@ export const Gantt = () => {
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-    const year = currentDate.getFullYear()
-    const month = currentDate.getMonth()
-
-    const isToday = (day: number) => {
-        const now = new Date()
-        return day === now.getDate() && month === now.getMonth() && year === now.getFullYear()
-    }
-    const isTodayRow = () => {
-        const now = new Date()
-        return month === now.getMonth() && year === now.getFullYear()
-    }
-    const isWeekend = (day: number) => {
-        const d = new Date(year, month, day)
-        return d.getDay() === 0 || d.getDay() === 6
-    }
-    const getDayName = (day: number) => {
-        const d = new Date(year, month, day)
-        return DAY_NAMES[d.getDay()]
-    }
-
-    useEffect(() => {
-        fetchData()
-    }, [])
-
-    const fetchData = async () => {
-        try {
-            setLoading(true)
-            const [{ data: t }, { data: p }, { data: pr }, { data: authData }] = await Promise.all([
-                supabase.from('tasks').select('*'),
-                supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name'),
-                supabase.auth.getUser()
-            ])
-            setProjects((p || []) as Project[])
-            setProfiles((pr || []) as any[])
-
-            let currentProfile = null;
-            if (authData?.user) {
-                const { data: userProfile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single()
-                setCurrentUserProfile(userProfile)
-                currentProfile = userProfile;
+    
+    const visibleDates = useMemo(() => {
+        const result = [];
+        if (viewMode === 'month') {
+            const y = currentDate.getFullYear();
+            const m = currentDate.getMonth();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            for (let i = 1; i <= daysInMonth; i++) {
+                result.push(new Date(y, m, i, 0, 0, 0));
             }
-
-            let fetchedTasks = (t || []) as Task[];
-            let fetchedProjects = (p || []) as Project[];
-
-            if (currentProfile?.role === 'Thiết kế') {
-                const employeeTasks = fetchedTasks.filter(task =>
-                    task.assignee_id === currentProfile?.id ||
-                    task.supporter_id === currentProfile?.id
-                );
-                
-                const parentIds = new Set(employeeTasks.map(t => t.parent_id).filter(Boolean));
-                
-                fetchedTasks = fetchedTasks.filter(task => 
-                    task.assignee_id === currentProfile?.id ||
-                    task.supporter_id === currentProfile?.id ||
-                    parentIds.has(task.id)
-                );
-
-                fetchedProjects = fetchedProjects.filter(proj =>
-                    fetchedTasks.some(task => task.project_id === proj.id)
-                );
-            }
-
-            setTasks(fetchedTasks);
-            setProjects(fetchedProjects);
-        } catch (err) {
-            console.error(err)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const daysInMonth = new Date(year, month + 1, 0).getDate()
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
-
-    const prevMonthDate = new Date(year, month - 1, 1);
-    const currentMonthDate = new Date(year, month, 1);
-    const nextMonthDate = new Date(year, month + 1, 1);
-
-    const monthsData = useMemo(() => [prevMonthDate, currentMonthDate, nextMonthDate].map(d => ({
-        year: d.getFullYear(),
-        month: d.getMonth(),
-        days: new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(),
-        name: `Tháng ${d.getMonth() + 1} ${d.getFullYear()}`
-    })), [year, month]);
-
-    const totalDays = daysInMonth;
-
-    const flatDays = useMemo(() => {
-        const arr: any[] = [];
-        monthsData.forEach(m => {
-            for (let i = 1; i <= m.days; i++) {
-                arr.push({ day: i, month: m.month, year: m.year });
-            }
-        });
-        return arr;
-    }, [monthsData]);
-
-    const timelineStart = new Date(year, month - 1, 1);
-    const timelineEnd = new Date(year, month + 2, 0, 23, 59, 59);
-
-    const getDayIndex = (date: Date) => {
-        let index = 0;
-        for (let i = 0; i < monthsData.length; i++) {
-            const m = monthsData[i];
-            if (date.getFullYear() === m.year && date.getMonth() === m.month) {
-                return index + date.getDate() - 1;
-            }
-            if (date > new Date(m.year, m.month, m.days, 23, 59, 59)) {
-                index += m.days;
+        } else {
+            const d = new Date(currentDate);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(d.getFullYear(), d.getMonth(), diff, 0, 0, 0);
+            for (let i = 0; i < 7; i++) {
+                const nextDay = new Date(monday);
+                nextDay.setDate(monday.getDate() + i);
+                result.push(nextDay);
             }
         }
-        return index;
-    };
+        return result;
+    }, [currentDate, viewMode]);
 
-    const parseDateStr = (dateStr: string | null): Date | null => {
+    const totalDays = visibleDates.length;
+
+    const isToday = (d: Date) => {
+        const now = new Date();
+        return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+    const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+    const getDayName = (d: Date) => DAY_NAMES[d.getDay()];
+
+    const parseDateStr = (dateStr?: string | null) => {
         if (!dateStr) return null;
-        if (dateStr.includes('T')) return new Date(dateStr);
-        if (dateStr.includes('/')) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                return new Date(`${parts[2]}-${parts[1]}-${parts[0]}T00:00:00`);
-            }
-        }
         return new Date(dateStr);
     };
 
     const getTimelineRange = (start: Date | null, end: Date | null) => {
         if (!start || !end) return null;
+        if (visibleDates.length === 0) return null;
         
-        const monthStart = new Date(year, month, 1, 0, 0, 0);
-        const monthEnd = new Date(year, month, daysInMonth, 23, 59, 59);
+        const firstVisible = visibleDates[0];
+        const lastVisible = visibleDates[visibleDates.length - 1];
 
-        if (end < monthStart || start > monthEnd) return null;
+        // Normalize hours for accurate comparison
+        const s = new Date(start); s.setHours(0,0,0,0);
+        const e = new Date(end); e.setHours(23,59,59,999);
+        const f = new Date(firstVisible); f.setHours(0,0,0,0);
+        const l = new Date(lastVisible); l.setHours(23,59,59,999);
 
-        const startDay = (start.getFullYear() === year && start.getMonth() === month) ? start.getDate() : 1;
-        const endDay = (end.getFullYear() === year && end.getMonth() === month) ? end.getDate() : daysInMonth;
+        if (e < f || s > l) return null;
 
-        return { startIndex: startDay - 1, duration: Math.max(1, endDay - startDay + 1) };
+        let startIndex = 0;
+        let endIndex = visibleDates.length - 1;
+
+        for (let i = 0; i < visibleDates.length; i++) {
+            if (visibleDates[i].getTime() >= s.getTime()) {
+                startIndex = i;
+                break;
+            }
+        }
+        if (s.getTime() < f.getTime()) startIndex = 0;
+
+        for (let i = visibleDates.length - 1; i >= 0; i--) {
+            if (visibleDates[i].getTime() <= e.getTime()) {
+                endIndex = i;
+                break;
+            }
+        }
+        if (e.getTime() > l.getTime()) endIndex = visibleDates.length - 1;
+
+        return { startIndex, duration: Math.max(1, endIndex - startIndex + 1) };
     };
 
-    const getDayOfWeek = (y: number, m: number, d: number) => {
-        return DAY_NAMES[new Date(y, m, d).getDay()]
+    
+    const navigatePrev = () => {
+        const newDate = new Date(currentDate);
+        if (viewMode === 'month') {
+            newDate.setMonth(newDate.getMonth() - 1);
+        } else {
+            newDate.setDate(newDate.getDate() - 7);
+        }
+        setCurrentDate(newDate);
     }
-
-    // Overload isToday and isWeekend for the new 3-month logic
-    const isToday3M = (day: number, m: number, y: number) => {
-        const now = new Date()
-        return day === now.getDate() && m === now.getMonth() && y === now.getFullYear()
+    const navigateNext = () => {
+        const newDate = new Date(currentDate);
+        if (viewMode === 'month') {
+            newDate.setMonth(newDate.getMonth() + 1);
+        } else {
+            newDate.setDate(newDate.getDate() + 7);
+        }
+        setCurrentDate(newDate);
     }
+    const resetDate = () => setCurrentDate(new Date())
 
-    const isWeekend3M = (day: number, m: number, y: number) => {
-        const d = new Date(y, m, day)
-        return d.getDay() === 0 || d.getDay() === 6
-    }
-
-    const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
-    const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
-    const resetMonth = () => setCurrentDate(new Date())
-
-    // Calculate Project Dates and filter by selected project
     const filteredProjectsBase = selectedProjectId
         ? projects.filter(p => p.id === selectedProjectId)
         : projects;
@@ -556,14 +490,15 @@ export const Gantt = () => {
                             {/* Right Header */}
                             <div className="flex flex-col border-b border-slate-200">
                                 {/* Month Label */}
+                                {/* Dynamic Header Label */}
                                 <div className="flex items-center justify-center font-bold text-slate-700 text-xs border-b border-slate-200 bg-slate-100" style={{ height: '25px', width: `${totalDays * cellWidth}px` }}>
-                                    Tháng {month + 1} 2026
+                                    {viewMode === 'month' ? `Tháng ${visibleDates[0]?.getMonth() + 1} ${visibleDates[0]?.getFullYear()}` : `Tuần ${Math.ceil((visibleDates[0]?.getDate() - 1) / 7) + 1} Tháng ${visibleDates[0]?.getMonth() + 1} (${format(visibleDates[0] || new Date(), 'dd/MM')} - ${format(visibleDates[6] || new Date(), 'dd/MM')})`}
                                 </div>
                                 {/* Days Label */}
                                 <div className="relative flex-1" style={{ width: `${totalDays * cellWidth}px` }}>
-                                    {days.map((d, idx) => (
-                                        <div key={idx} className={`absolute top-0 bottom-0 text-center flex flex-col items-center justify-center border-r border-slate-100 transition-colors ${isToday(d) ? 'bg-orange-500' : isWeekend(d) ? 'bg-slate-100/50' : 'bg-blue-50/50'}`} style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }}>
-                                            <div className={`text-[11px] font-bold ${isToday(d) ? 'text-white' : 'text-slate-700'}`}>{d}</div>
+                                    {visibleDates.map((d, idx) => (
+                                        <div key={idx} className={`absolute top-0 bottom-0 text-center flex flex-col items-center justify-center border-r border-slate-200 transition-colors ${isToday(d) ? 'bg-orange-500' : isWeekend(d) ? 'bg-slate-100/50' : 'bg-blue-50/50'}`} style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }}>
+                                            <div className={`text-[11px] font-bold ${isToday(d) ? 'text-white' : 'text-slate-700'}`}>{d.getDate()}</div>
                                             <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(d) ? 'text-white/80' : isWeekend(d) ? 'text-red-400' : 'text-blue-400'}`}>{getDayName(d)}</div>
                                         </div>
                                     ))}
@@ -621,13 +556,9 @@ export const Gantt = () => {
                                             
                                             {/* Right Cells */}
                                             <div className="relative" style={{ width: `${totalDays * cellWidth}px` }}>
-                                                {/* Background Grid */}
-                                                {days.map((d, idx) => (
-                                                    <div 
-                                                        key={`bg-${idx}`} 
-                                                        className={`absolute top-0 bottom-0 border-r border-slate-100/50 pointer-events-none ${isWeekend(d) ? 'bg-slate-50/50' : ''}`} 
-                                                        style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} 
-                                                    />
+                                                {/* Background Weekend Shading (UNDER bars) */}
+                                                {visibleDates.map((d, idx) => (
+                                                    isWeekend(d) ? <div key={`bg-${idx}`} className="absolute top-0 bottom-0 pointer-events-none bg-slate-50/50" style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} /> : null
                                                 ))}
 
                                                 {/* Parent Project Outline */}
@@ -654,7 +585,7 @@ export const Gantt = () => {
                                                 {/* Colored Timeline Bar */}
                                                 {item.type === 'project' && item.actualStartIndex !== null && item.actualDuration > 0 && (
                                                     <div
-                                                        className="absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc]/60 border border-[#3a689b]/60"
+                                                        className="absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b]"
                                                         style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
                                                         title="Timeline thực tế"
                                                     />
@@ -663,7 +594,7 @@ export const Gantt = () => {
                                                 {/* Default Colored Timeline Bar (for phases) */}
                                                 {item.type !== 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500/60 border-emerald-600/60' : 'bg-[#5da0ea]/60 border-[#4b82c3]/60'}`}
+                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500 border-emerald-600' : 'bg-[#5da0ea] border-[#4b82c3]'}`}
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         onDoubleClick={(e) => { 
                                                             e.stopPropagation(); 
@@ -683,14 +614,28 @@ export const Gantt = () => {
                                                     </div>
                                                 )}
                                                 
+                                                
+                                                {/* Grid Lines Overlay (OVER bars) - CARO EFFECT */}
+                                                <div className="absolute inset-0 pointer-events-none z-20">
+                                                    {visibleDates.map((d, idx) => (
+                                                        <div key={`grid-${idx}`} className="absolute top-0 bottom-0 border-r border-slate-300" style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} />
+                                                    ))}
+                                                </div>
+                                                
                                                 {/* Today Line inside Row */}
-                                                {isTodayRow() && (
-                                                    <div 
-                                                        className="absolute top-0 bottom-0 border-l-2 border-orange-500/50 pointer-events-none z-10"
-                                                        style={{ left: `${(new Date().getDate() - 1) * cellWidth + (cellWidth / 2)}px` }}
-                                                    />
-                                                )}
-                                            </div>
+                                                {(() => {
+                                                    const todayIdx = visibleDates.findIndex(d => isToday(d));
+                                                    if (todayIdx !== -1) {
+                                                        return (
+                                                            <div 
+                                                                className="absolute top-0 bottom-0 border-l-2 border-orange-500/80 pointer-events-none z-30"
+                                                                style={{ left: `${todayIdx * cellWidth + (cellWidth / 2)}px` }}
+                                                            />
+                                                        )
+                                                    }
+                                                    return null;
+                                                })()}
+    </div>
                                         </div>
                                     );
                                 })
