@@ -254,12 +254,49 @@ export const Projects = () => {
                     }
                 }
 
-                result = await supabase.from('projects').update(payload).eq('id', editingProject.id)
+                result = await supabase.from('projects').update(payload).eq('id', editingProject.id).select().single()
                 if (unifiedProjectData?.project.id === editingProject.id) {
                     setUnifiedProjectData({ ...unifiedProjectData, project: { ...editingProject, ...payload } as Project })
                 }
             } else {
-                result = await supabase.from('projects').insert(payload)
+                result = await supabase.from('projects').insert(payload).select().single()
+                
+                // If it's a new project and we have timeline phases, insert them as parent tasks
+                if (result.data && form.timelinePhases && form.timelinePhases.length > 0) {
+                    const projectId = result.data.id;
+                    let currentStartDate = new Date(payload.start_date || new Date().toISOString().split('T')[0]);
+                    
+                    const addDaysSkipSundays = (startDate: Date, days: number) => {
+                        let d = new Date(startDate);
+                        let added = 0;
+                        while (added < days) {
+                            d.setDate(d.getDate() + 1);
+                            if (d.getDay() !== 0) added++;
+                        }
+                        return d;
+                    };
+
+                    const phaseTasks = form.timelinePhases.map((p: any, idx: number) => {
+                        const sDate = new Date(currentStartDate);
+                        const eDate = addDaysSkipSundays(currentStartDate, p.days);
+                        currentStartDate = eDate; // Next phase starts when this ends
+
+                        return {
+                            task_code: `${payload.project_code || 'PRJ'}-PHASE-${idx + 1}`,
+                            name: `Giai đoạn ${idx + 1}: ${p.phase}`,
+                            description: `Mốc thời gian dự kiến cho ${p.phase} (${p.days} ngày làm việc)`,
+                            project_id: projectId,
+                            status: 'Chưa bắt đầu',
+                            priority: 'Trung bình',
+                            completion_pct: 0,
+                            is_planned_phase: true,
+                            start_date: sDate.toISOString().split('T')[0],
+                            due_date: eDate.toISOString().split('T')[0],
+                        };
+                    });
+
+                    await supabase.from('tasks').insert(phaseTasks);
+                }
             }
 
             if (result.error) {

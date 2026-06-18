@@ -22,6 +22,7 @@ export interface Project {
     budget: number | null
     actualCost?: number | null
     created_at: string
+    area_sqm?: number | null
     department?: string | null
     project_type?: string | null
     update_status?: string | null
@@ -81,6 +82,7 @@ export interface Task {
     supporter_id?: string | null
     status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Hoàn thành' | 'Tạm dừng' | 'Hủy bỏ'
     priority: string | 'Thấp' | 'Trung bình' | 'Cao' | 'Khẩn cấp'
+    is_planned_phase?: boolean
     start_date: string | null
     start_time?: string | null
     due_date: string | null

@@ -203,13 +203,14 @@ export const Gantt = () => {
                         duration = Math.max(1, renderEndDay! - renderStartDay! + 1)
                     }
                     const isCompleted = phase.status?.includes('Hoàn thành')
+                    const phaseColor = phase.is_planned_phase ? (isCompleted ? 'bg-orange-300' : 'bg-orange-500') : (isCompleted ? 'bg-slate-400' : 'bg-emerald-500');
 
                     items.push({
                         id: phase.id,
                         name: phase.name || phase.task_code,
                         startDay: renderStartDay,
                         duration,
-                        color: isCompleted ? 'bg-slate-400' : 'bg-emerald-500',
+                        color: phaseColor,
                         isProject: false,
                         isPhase: true,
                         isExpanded: expandedPhases.has(phase.id),
