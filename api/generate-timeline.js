@@ -37,18 +37,16 @@ Hãy trả về kết quả định dạng JSON array như sau, không kèm bấ
 ]
 Trong đó X, Y, Z, W là số nguyên (số ngày ước tính hợp lý).`;
 
-        const result = await model.generateContent(prompt);
-        let text = result.response.text();
-        
-        // Clean up markdown block if present
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        
         let estimates;
         try {
+            const result = await model.generateContent(prompt);
+            let text = result.response.text();
+            
+            // Clean up markdown block if present
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
             estimates = JSON.parse(text);
-        } catch (e) {
-            console.error('Failed to parse Gemini response:', text);
-            // Fallback estimates if AI fails parsing
+        } catch (error) {
+            console.error('AI Request Failed or Parse Error, using fallback:', error.message);
             estimates = [
                 { phase: "Concept", days: 3 },
                 { phase: "3D", days: Math.ceil(area / 50) + 2 },
