@@ -456,7 +456,7 @@ export const Gantt = () => {
                             <ZoomIn size={16} />
                         </button>
                         <div className="w-px h-4 bg-slate-600 mx-1"></div>
-                        <button onClick={resetMonth} className="text-[10px] font-bold text-blue-300 hover:text-blue-100 hover:underline px-2 py-0.5 rounded transition-all uppercase whitespace-nowrap">
+                        <button onClick={resetDate} className="text-[10px] font-bold text-blue-300 hover:text-blue-100 hover:underline px-2 py-0.5 rounded transition-all uppercase whitespace-nowrap">
                             Đặt lại
                         </button>
                     </div>
@@ -493,7 +493,7 @@ export const Gantt = () => {
             {/* Navigation Header */}
             <div className="bg-white/70 backdrop-blur-md border border-white/20 p-4 rounded-[2rem] shadow-xl flex items-center justify-center gap-12 group">
                 <button
-                    onClick={prevMonth}
+                    onClick={navigatePrev}
                     className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
                     <ChevronLeft size={24} />
@@ -505,7 +505,7 @@ export const Gantt = () => {
                     <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1 opacity-20"></div>
                 </div>
                 <button
-                    onClick={nextMonth}
+                    onClick={navigateNext}
                     className="w-12 h-12 bg-white text-gray-700 hover:text-blue-600 rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center transition-all hover:scale-110 active:scale-95 group-hover:shadow-blue-100"
                 >
                     <ChevronRight size={24} />
