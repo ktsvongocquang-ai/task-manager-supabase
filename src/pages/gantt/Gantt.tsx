@@ -260,6 +260,7 @@ export const Gantt = () => {
                     
                     items.push({
                         id: fakePhaseId,
+                        phaseKey: phaseKey,
                         name: phaseDef.name,
                         startDay: hasExpectedTimeline ? renderStartDay : null,
                         duration: hasExpectedTimeline ? duration : 0,
@@ -480,10 +481,10 @@ export const Gantt = () => {
         setEditingCell(null);
     };
 
-    const handleQuickAdd = async (parentId: string, projectId: string, e: React.MouseEvent) => {
+    const handleQuickAdd = async (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
         e.stopPropagation();
         
-        const newTask = {
+        const newTask: any = {
             name: 'Nhiệm vụ mới',
             project_id: projectId,
             parent_id: parentId,
@@ -491,6 +492,10 @@ export const Gantt = () => {
             priority: 'Bình thường',
             task_code: `T${Date.now()}`
         };
+
+        if (targetPhase) {
+            newTask.target = targetPhase;
+        }
 
         const { data, error } = await supabase.from('tasks').insert([newTask]).select();
         
@@ -664,7 +669,7 @@ export const Gantt = () => {
                                                                 <span className="text-xs font-bold text-slate-800 truncate uppercase">{item.name}</span>
                                                             </div>
                                                             <button 
-                                                                onClick={(e) => handleQuickAdd(item.id, item.task.project_id, e)}
+                                                                onClick={(e) => handleQuickAdd(null, item.task.project_id, item.phaseKey, e)}
                                                                 className="opacity-0 group-hover/row:opacity-100 hover:bg-slate-200 p-1 rounded-md transition-all text-slate-500 hover:text-blue-600"
                                                                 title="Thêm nhiệm vụ mới vào giai đoạn này"
                                                             >
@@ -705,7 +710,7 @@ export const Gantt = () => {
                                                             </div>
                                                             <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity">
                                                                 <button 
-                                                                    onClick={(e) => handleQuickAdd(item.task.parent_id, item.task.project_id, e)}
+                                                                    onClick={(e) => handleQuickAdd(item.task.parent_id, item.task.project_id, item.task.target || null, e)}
                                                                     className="hover:bg-blue-100 p-1 rounded-md transition-all text-blue-500 hover:text-blue-600 bg-white shadow-sm"
                                                                     title="Chèn nhiệm vụ mới"
                                                                 >
