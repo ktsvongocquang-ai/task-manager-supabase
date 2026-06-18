@@ -795,12 +795,12 @@ export const Gantt = () => {
                             </div>
                             
                             {/* Days Level Header */}
-                            <div className="flex border-b border-slate-200 flex-1">
+                            <div className="relative border-b border-slate-200 flex-1" style={{ width: `${totalDays * cellWidth}px` }}>
                                 {flatDays.map((d, idx) => (
                                     <div
                                         key={`h-${idx}`}
-                                        style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
-                                        className={`text-center flex flex-col items-center justify-center py-1 border-r border-slate-100 transition-colors ${isToday3M(d.day, d.month, d.year) ? 'bg-orange-500' :
+                                        style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }}
+                                        className={`absolute top-0 bottom-0 text-center flex flex-col items-center justify-center border-r border-slate-100 transition-colors ${isToday3M(d.day, d.month, d.year) ? 'bg-orange-500' :
                                             isWeekend3M(d.day, d.month, d.year) ? 'bg-slate-100/50' : 'bg-blue-50/50'
                                             }`}
                                     >
