@@ -617,7 +617,7 @@ export const Gantt = () => {
             <div className="hidden md:flex bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden relative">
                 {/* Left Pane - Fixed Width, Vertical Scroll (hidden scrollbar but synced) */}
                 <div 
-                    className="w-[600px] flex-shrink-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] flex flex-col overflow-y-auto" 
+                    className="w-[420px] flex-shrink-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] flex flex-col overflow-y-auto overflow-x-scroll" 
                     style={{ maxHeight: '600px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     ref={leftPaneRef}
                     onScroll={handleLeftScroll}
@@ -632,19 +632,19 @@ export const Gantt = () => {
                     
                     {/* Left Header */}
                     <div className="flex sticky top-0 z-30 bg-slate-50 border-b border-r border-slate-200 shadow-sm min-h-[57px]">
-                        <div className="w-[300px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
+                        <div className="w-[200px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                             MÔ TẢ
                         </div>
-                        <div className="w-[100px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
+                        <div className="w-[70px] px-1 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                             BẮT ĐẦU
                         </div>
-                        <div className="w-[100px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
+                        <div className="w-[70px] px-1 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
                             KẾT THÚC
                         </div>
-                        <div className="w-[50px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
+                        <div className="w-[40px] px-1 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50">
                             NGÀY
                         </div>
-                        <div className="w-[50px] px-2 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
+                        <div className="w-[40px] px-1 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 flex items-center justify-center bg-slate-50">
                             TIẾN %
                         </div>
                     </div>
@@ -668,7 +668,7 @@ export const Gantt = () => {
                                 return (
                                     <div key={item.id} className={`flex border-b border-slate-200 hover:bg-slate-50 transition-colors group/row h-14 ${item.type === 'project' ? 'bg-[#e0e4db] hover:bg-[#d4d9ce]' : item.type === 'phase' ? 'bg-slate-100 hover:bg-slate-200' : 'bg-white'}`}>
                                         {/* Tên Mô Tả */}
-                                        <div className="w-[300px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">
+                                        <div className="w-[200px] px-3 py-2 border-r border-slate-200 flex-shrink-0 flex flex-col justify-center relative">
                                             {item.type === 'project' ? (
                                                 <div
                                                     className="flex items-center gap-2 cursor-pointer w-full select-none"
@@ -753,7 +753,7 @@ export const Gantt = () => {
 
                                         {/* Bắt Đầu */}
                                         <div 
-                                            className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                            className={`w-[70px] px-1 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                             onDoubleClick={(e) => handleCellClick(item, 'start_date', item.startDate ? new Date(item.startDate).toISOString().split('T')[0] : '', e)}
                                         >
                                             {editingCell?.id === item.id && editingCell?.field === 'start_date' ? (
@@ -776,7 +776,7 @@ export const Gantt = () => {
 
                                         {/* Kết Thúc */}
                                         <div 
-                                            className={`w-[100px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                            className={`w-[70px] px-1 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                             onDoubleClick={(e) => handleCellClick(item, 'end_date', item.endDate ? new Date(item.endDate).toISOString().split('T')[0] : '', e)}
                                         >
                                             {editingCell?.id === item.id && editingCell?.field === 'end_date' ? (
@@ -799,7 +799,7 @@ export const Gantt = () => {
 
                                         {/* Số Lượng Ngày */}
                                         <div 
-                                            className={`w-[50px] px-2 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
+                                            className={`w-[40px] px-1 py-2 border-r border-slate-200 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}
                                             onDoubleClick={(e) => handleCellClick(item, 'duration', totalDays.toString(), e)}
                                         >
                                             {editingCell?.id === item.id && editingCell?.field === 'duration' ? (
@@ -820,7 +820,7 @@ export const Gantt = () => {
                                         </div>
 
                                         {/* Tiến Độ % */}
-                                        <div className={`w-[50px] px-2 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                        <div className={`w-[40px] px-1 py-2 flex-shrink-0 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
                                             {item.type !== 'project' ? `${progressAmount}%` : `${item.projectPct || 0}%`}
                                         </div>
                                     </div>
