@@ -13,13 +13,6 @@ const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', '
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 
-const isOverlapping = (start: Date | null, end: Date | null, currentYear: number, currentMonth: number) => {
-    if (!start || !end) return false;
-    const monthStart = new Date(currentYear, currentMonth, 1);
-    const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
-    return start <= monthEnd && end >= monthStart;
-};
-
 export const Gantt = () => {
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
@@ -53,6 +46,18 @@ export const Gantt = () => {
         }
         isSyncingLeftScroll.current = false;
     };
+
+
+    useEffect(() => {
+        if (rightPaneRef.current && monthsData[0]) {
+            // setTimeout to ensure layout has updated before scrolling
+            setTimeout(() => {
+                if (rightPaneRef.current) {
+                    rightPaneRef.current.scrollLeft = monthsData[0].days * cellWidth;
+                }
+            }, 100);
+        }
+    }, [year, month, cellWidth]);
 
     const handleRightScroll = (e: React.UIEvent<HTMLDivElement>) => {
         if (!isSyncingRightScroll.current) {
@@ -174,48 +179,38 @@ export const Gantt = () => {
         let items: any[] = []
 
         updatedProjects.forEach(p => {
-            if (!p.computed_start && !p.start_date) return
-
             const startDate = p.start_date || p.computed_start
             const endDate = p.end_date || p.computed_end || p.start_date
 
-            const start = new Date(startDate!)
-            const end = new Date(endDate!)
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
 
-            if (start.getFullYear() === year && start.getMonth() === month ||
-                end.getFullYear() === year && end.getMonth() === month ||
-                (start < new Date(year, month, 1) && end > new Date(year, month + 1, 0))) {
+            const range = getTimelineRange(start, end);
 
-                const startDay = start.getMonth() === month ? start.getDate() : 1
-                const endDay = end.getMonth() === month ? end.getDate() : daysInMonth
-                const duration = Math.max(1, endDay - startDay + 1)
-
-                const pTasksForPct = tasks.filter(t => t.project_id === p.id);
-                let projectPct = 0;
-                if (pTasksForPct.length > 0) {
-                    const totalPct = pTasksForPct.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
-                    projectPct = Math.round(totalPct / pTasksForPct.length);
-                }
-
-                items.push({
-                    id: p.id,
-                    name: p.name,
-                    startDay,
-                    duration,
-                    color: 'bg-red-500',
-                    isProject: true,
-                    isExpanded: expandedProjects.has(p.id),
-                    taskCount: tasks.filter(t => t.project_id === p.id && !t.parent_id).length,
-                    startDate: startDate,
-                    endDate: endDate,
-                    type: 'project',
-                    projectCode: p.project_code,
-                    projectPct: projectPct
-                })
+            const pTasksForPct = tasks.filter(t => t.project_id === p.id);
+            let projectPct = 0;
+            if (pTasksForPct.length > 0) {
+                const totalPct = pTasksForPct.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
+                projectPct = Math.round(totalPct / pTasksForPct.length);
             }
 
+            items.push({
+                id: p.id,
+                name: p.name,
+                startIndex: range?.startIndex ?? null,
+                duration: range?.duration ?? 0,
+                color: 'bg-red-500',
+                isProject: true,
+                isExpanded: expandedProjects.has(p.id),
+                taskCount: tasks.filter(t => t.project_id === p.id && !t.parent_id).length,
+                startDate: startDate,
+                endDate: endDate,
+                type: 'project',
+                projectCode: p.project_code,
+                projectPct: projectPct
+            })
+
             if (expandedProjects.has(p.id)) {
-                // Parse KPI Data
                 let kpiState: any = null;
                 try {
                     if (p.other_info) {
@@ -224,131 +219,67 @@ export const Gantt = () => {
                     }
                 } catch(e) {}
 
-                // Default fallback if project doesn't have start_date
                 let currentPhaseStartDate = p.start_date ? new Date(p.start_date) : new Date();
-
-                // If the user hasn't generated AI KPIs, we still render the 4 phases with 1 day duration so they show up
                 const phasesToRender = [...DEFAULT_PHASES];
 
                 phasesToRender.forEach((phaseDef) => {
                     const phaseKey = phaseDef.key;
-                    
-                    // Filter actual tasks that belong to this phase
-                    // We check if the task belongs to the project, and its detected phase matches phaseKey
                     let phaseTasks = tasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
 
-                    // For _unassigned, only render if there are actual tasks!
-                    if (phaseKey === '_unassigned' && phaseTasks.length === 0) {
-                        return;
-                    }
+                    if (phaseKey === '_unassigned' && phaseTasks.length === 0) return;
 
                     const phaseState = kpiState?.phases?.[phaseKey] || { days_used: 0, days_estimated: 0 };
-                    
                     const expectedDays = phaseKey === '_unassigned' ? 0 : (phaseState.days_estimated || 0);
                     const hasExpectedTimeline = expectedDays > 0;
                     
-                    // If this phase has NO expected timeline AND NO actual tasks, skip it completely
-                    if (!hasExpectedTimeline && phaseTasks.length === 0) {
-                        return;
-                    }
+                    if (!hasExpectedTimeline && phaseTasks.length === 0) return;
 
-                    // Calculate expected end date for this phase
                     const phaseEndDate = hasExpectedTimeline ? addWorkingDays(currentPhaseStartDate, expectedDays) : currentPhaseStartDate;
+                    const pRange = hasExpectedTimeline ? getTimelineRange(currentPhaseStartDate, phaseEndDate) : null;
 
-                    // Render days logic
-                    let renderStartDay = null;
-                    let renderEndDay = null;
-                    let duration = 0;
-
-                    if (hasExpectedTimeline) {
-                        if (currentPhaseStartDate.getFullYear() === year && currentPhaseStartDate.getMonth() === month) {
-                            renderStartDay = currentPhaseStartDate.getDate();
-                        } else if (currentPhaseStartDate < new Date(year, month, 1)) {
-                            renderStartDay = 1;
-                        }
-
-                        if (phaseEndDate.getFullYear() === year && phaseEndDate.getMonth() === month) {
-                            renderEndDay = phaseEndDate.getDate();
-                        } else if (phaseEndDate > new Date(year, month + 1, 0)) {
-                            renderEndDay = daysInMonth;
-                        }
-
-                        if (renderStartDay !== null || renderEndDay !== null) {
-                            if (renderStartDay !== null && renderEndDay === null) renderEndDay = renderStartDay;
-                            if (renderEndDay !== null && renderStartDay === null) renderStartDay = renderEndDay;
-                            duration = Math.max(1, renderEndDay! - renderStartDay! + 1);
-                        }
-                    }
-
-                    // For the "Expected" phase bar, we might not have a direct task, so we fake it.
-                    // But we can calculate a dynamic progress based on its actual subtasks!
                     let phasePct = 0;
                     if (phaseTasks.length > 0) {
                         const totalPct = phaseTasks.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
                         phasePct = Math.round(totalPct / phaseTasks.length);
                     }
 
-                    // A fake "task" object so the cell click/edit logic doesn't crash completely
                     const fakePhaseId = `phase_${p.id}_${phaseKey}`;
                     
                     items.push({
                         id: fakePhaseId,
                         phaseKey: phaseKey,
                         name: phaseDef.name,
-                        startDay: hasExpectedTimeline ? renderStartDay : null,
-                        duration: hasExpectedTimeline ? duration : 0,
-                        color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500', // Phase bar color
+                        startIndex: pRange?.startIndex ?? null,
+                        duration: pRange?.duration ?? 0,
+                        color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500',
                         isProject: false,
                         isPhase: true,
                         isExpanded: expandedPhases.has(fakePhaseId),
-                        task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id }, // Fake task for progress render
+                        task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id },
                         startDate: hasExpectedTimeline ? currentPhaseStartDate.toISOString() : null,
                         endDate: hasExpectedTimeline ? phaseEndDate.toISOString() : null,
                         type: 'phase',
                         projectCode: p.project_code
                     });
 
-                    // Next phase starts on the next working day after phaseEndDate
                     if (hasExpectedTimeline) {
                         currentPhaseStartDate = getNextWorkingDay(phaseEndDate);
                     }
 
-                    // Get actual subtasks if this phase is expanded
                     if (expandedPhases.has(fakePhaseId)) {
                         phaseTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
                         
                         phaseTasks.forEach(t => {
                             const tStart = t.start_date ? new Date(t.start_date) : null;
                             const tEnd = t.due_date ? new Date(t.due_date) : null;
-
-                            let tRenderStartDay = null;
-                            let tRenderEndDay = null;
-
-                            if (tStart && tStart.getFullYear() === year && tStart.getMonth() === month) {
-                                tRenderStartDay = tStart.getDate();
-                            } else if (tStart && tStart < new Date(year, month, 1)) {
-                                tRenderStartDay = 1;
-                            }
-
-                            if (tEnd && tEnd.getFullYear() === year && tEnd.getMonth() === month) {
-                                tRenderEndDay = tEnd.getDate();
-                            } else if (tEnd && tEnd > new Date(year, month + 1, 0)) {
-                                tRenderEndDay = daysInMonth;
-                            }
-
-                            let tDuration = 0;
-                            if (tRenderStartDay !== null || tRenderEndDay !== null) {
-                                if (tRenderStartDay !== null && tRenderEndDay === null) tRenderEndDay = tRenderStartDay;
-                                if (tRenderEndDay !== null && tRenderStartDay === null) tRenderStartDay = tRenderEndDay;
-                                tDuration = Math.max(1, tRenderEndDay! - tRenderStartDay! + 1);
-                            }
+                            const tRange = getTimelineRange(tStart, tEnd);
                             const tIsCompleted = t.status?.includes('Hoàn thành');
 
                             items.push({
                                 id: t.id,
                                 name: t.name || t.task_code,
-                                startDay: tRenderStartDay,
-                                duration: tDuration,
+                                startIndex: tRange?.startIndex ?? null,
+                                duration: tRange?.duration ?? 0,
                                 color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
                                 isProject: false,
                                 isPhase: false,
@@ -356,88 +287,17 @@ export const Gantt = () => {
                                 startDate: t.start_date || t.due_date,
                                 endDate: t.due_date || t.start_date,
                                 type: 'task',
-                                projectCode: p.project_code
                             });
                         });
                     }
                 });
             }
-        })
+        });
 
-        return items.filter(item => !search || item.name.toLowerCase().includes(search.toLowerCase()))
-    }, [updatedProjects, tasks, year, month, search, expandedProjects, expandedPhases])
+        return items
+    }, [updatedProjects, expandedProjects, expandedPhases, tasks, flatDays]);
 
-    useEffect(() => {
-        if (!draggingItem) return;
-
-        const handleMouseMove = (e: MouseEvent) => {
-            const cellWidthNow = Math.max(24, Math.round(36 * zoom / 100));
-            const deltaX = e.clientX - draggingItem.startX;
-            const deltaDays = Math.round(deltaX / cellWidthNow);
-            setDraggingItem(prev => prev ? { ...prev, deltaDays } : null);
-        };
-
-        const handleMouseUp = async () => {
-            if (draggingItem && draggingItem.deltaDays !== 0) {
-                const item = ganttItems.find(i => i.id === draggingItem.id && i.type === draggingItem.type);
-                if (item) {
-                    const updatePayload: any = {};
-
-                    if (draggingItem.action === 'move') {
-                        const newStart = new Date(item.startDate);
-                        newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
-                        updatePayload.start_date = newStart.toISOString().split('T')[0];
-
-                        const newEnd = item.endDate ? new Date(item.endDate) : null;
-                        if (newEnd) {
-                            newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
-                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString().split('T')[0];
-                            else updatePayload.due_date = newEnd.toISOString().split('T')[0];
-                        }
-                    } else if (draggingItem.action === 'resize-left') {
-                        const newStart = new Date(item.startDate);
-                        newStart.setDate(newStart.getDate() + draggingItem.deltaDays);
-
-                        // Prevent left edge passing right edge
-                        const currentEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
-                        if (newStart <= currentEnd) {
-                            updatePayload.start_date = newStart.toISOString().split('T')[0];
-                        }
-                    } else if (draggingItem.action === 'resize-right') {
-                        const newEnd = item.endDate ? new Date(item.endDate) : new Date(item.startDate);
-                        newEnd.setDate(newEnd.getDate() + draggingItem.deltaDays);
-
-                        // Prevent right edge passing left edge
-                        const currentStart = new Date(item.startDate);
-                        if (newEnd >= currentStart) {
-                            if (item.type === 'project') updatePayload.end_date = newEnd.toISOString().split('T')[0];
-                            else updatePayload.due_date = newEnd.toISOString().split('T')[0];
-                        }
-                    }
-
-                    if (Object.keys(updatePayload).length > 0) {
-                        const table = item.type === 'project' ? 'projects' : 'tasks';
-
-                        if (item.type !== 'project') {
-                            setTasks(prev => prev.map(t => t.id === item.id ? { ...t, ...updatePayload } : t));
-                        } else {
-                            setProjects(prev => prev.map(p => p.id === item.id ? { ...p, ...updatePayload } : p));
-                        }
-
-                        await supabase.from(table).update(updatePayload).eq('id', item.id);
-                    }
-                }
-            }
-            setDraggingItem(null);
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [draggingItem, zoom, ganttItems]);
+    
 
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
@@ -847,23 +707,39 @@ export const Gantt = () => {
                 >
                     <div className="min-w-max relative">
                         {/* Right Header */}
-                        <div className="flex border-b border-slate-200 sticky top-0 z-30 bg-white shadow-sm min-h-[57px]">
-                            {days.map(day => (
-                                <div
-                                    key={day}
-                                    style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
-                                    className={`text-center flex flex-col items-center justify-center py-2 border-r border-slate-100 transition-colors ${isToday(day) ? 'bg-orange-500' :
-                                        isWeekend(day) ? 'bg-slate-100/50' : 'bg-blue-50/50'
-                                        }`}
-                                >
-                                    <div className={`text-[11px] font-bold ${isToday(day) ? 'text-white' : 'text-slate-700'}`}>{day}</div>
-                                    <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(day) ? 'text-white/80' :
-                                        isWeekend(day) ? 'text-red-400' : 'text-blue-400'
-                                        }`}>
-                                        {getDayName(day)}
+                        <div className="flex flex-col sticky top-0 z-30 shadow-sm min-h-[57px] bg-white">
+                            {/* Month Level Header */}
+                            <div className="flex border-b border-slate-200">
+                                {monthsData.map((m) => (
+                                    <div 
+                                        key={`m-${m.year}-${m.month}`}
+                                        className="flex items-center justify-center font-bold text-slate-700 text-xs border-r border-slate-200 bg-slate-100 py-1"
+                                        style={{ width: `${m.days * cellWidth}px` }}
+                                    >
+                                        {m.name}
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                            
+                            {/* Days Level Header */}
+                            <div className="flex border-b border-slate-200">
+                                {flatDays.map((d, idx) => (
+                                    <div
+                                        key={`h-${idx}`}
+                                        style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
+                                        className={`text-center flex flex-col items-center justify-center py-1 border-r border-slate-100 transition-colors ${isToday(d.day, d.month, d.year) ? 'bg-orange-500' :
+                                            isWeekend(d.day, d.month, d.year) ? 'bg-slate-100/50' : 'bg-blue-50/50'
+                                            }`}
+                                    >
+                                        <div className={`text-[11px] font-bold ${isToday(d.day, d.month, d.year) ? 'text-white' : 'text-slate-700'}`}>{d.day}</div>
+                                        <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(d.day, d.month, d.year) ? 'text-white/80' :
+                                            isWeekend(d.day, d.month, d.year) ? 'text-red-400' : 'text-blue-400'
+                                            }`}>
+                                            {getDayOfWeek(d.year, d.month, d.day)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Right Chart Rows */}
@@ -872,7 +748,6 @@ export const Gantt = () => {
                                 <div className="h-[200px]"></div> // Empty placeholder to align with left pane's 24 padding
                             ) : (
                                 ganttItems.map((item) => {
-                                    // Calculate total days including weekends (just for passing to right pane if needed)
                                     const progressAmount = item.task?.completion_pct || 0;
 
                                     return (
@@ -880,97 +755,64 @@ export const Gantt = () => {
                                             
                                             {/* Timeline Grid (Right Side) */}
                                             <div className="flex-1 flex relative w-full h-full">
-                                                {Array.from({ length: daysInMonth }).map((_, index) => {
-                                                    const day = index + 1;
-                                                    // Determine if this day falls within the item's duration
-                                                    let isWithinRange = false;
-                                                    
-                                                    // Determine logical range limits based on dragging
-                                                    let logicalStartDay = item.startDay;
-                                                    let logicalDuration = item.duration;
-                                                    
-                                                    if (draggingItem && draggingItem.id === item.id && draggingItem.type === item.type) {
-                                                        if (draggingItem.action === 'move') {
-                                                            logicalStartDay += draggingItem.deltaDays;
-                                                        } else if (draggingItem.action === 'resize-left') {
-                                                            const maxDelta = item.duration - 1;
-                                                            const delta = Math.min(draggingItem.deltaDays, maxDelta);
-                                                            logicalStartDay += delta;
-                                                            logicalDuration -= delta;
-                                                        } else if (draggingItem.action === 'resize-right') {
-                                                            const minDelta = -(item.duration - 1);
-                                                            const delta = Math.max(draggingItem.deltaDays, minDelta);
-                                                            logicalDuration += delta;
-                                                        }
-                                                    }
-                                                    
-                                                    const logicalEndDay = logicalStartDay + logicalDuration - 1;
+                                                {/* Background Grid Cells */}
+                                                {flatDays.map((d, idx) => (
+                                                    <div 
+                                                        key={`bg-${idx}`}
+                                                        style={{ width: `${cellWidth}px`, minWidth: `${cellWidth}px` }}
+                                                        className={`border-r border-slate-200/50 ${isToday(d.day, d.month, d.year) ? 'bg-orange-500/10' : isWeekend(d.day, d.month, d.year) ? 'bg-slate-100/50' : ''}`}
+                                                    ></div>
+                                                ))}
 
-                                                    if (day >= logicalStartDay && day <= logicalEndDay) {
-                                                        isWithinRange = true;
-                                                    }
-
-                                                    // Cell Background Color Logic
-                                                    let cellBgClass = "";
-                                                    if (isWithinRange) {
-                                                        if (item.type === 'project') cellBgClass = "bg-[#4a80bc]"; // Xanh biển đậm
-                                                        else if (item.type === 'phase') cellBgClass = "bg-[#4a80bc]"; // Xanh biển
-                                                        else cellBgClass = "bg-[#71d9a2]"; // Xanh lá mạ
-                                                    } else {
-                                                        if (isWeekend(day)) cellBgClass = "bg-slate-100/50";
-                                                    }
-                                                    
-                                                    return (
-                                                        <div
-                                                            key={day}
-                                                            style={{ 
-                                                                width: `${cellWidth}px`, 
-                                                                minWidth: `${cellWidth}px`,
-                                                                left: `${(day - 1) * cellWidth}px`
-                                                            }}
-                                                            className={`absolute top-0 bottom-0 border-r border-slate-200/50 flex flex-col justify-center items-center transition-colors group/cell ${cellBgClass}
-                                                                ${isWithinRange && item.type !== 'project' ? 'hover:brightness-95 cursor-grab active:cursor-grabbing' : ''}
-                                                            `}
-                                                            onMouseDown={(e) => {
-                                                                if (isWithinRange && item.type !== 'project') {
-                                                                    e.stopPropagation();
-                                                                    e.preventDefault();
-                                                                    
-                                                                    // Determine action (resize if near edges)
-                                                                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                                                    const clickX = e.clientX - rect.left;
-                                                                    let action: 'move' | 'resize-left' | 'resize-right' = 'move';
-                                                                    
-                                                                    if (day === logicalStartDay && clickX < 10) action = 'resize-left';
-                                                                    else if (day === logicalEndDay && clickX > rect.width - 10) action = 'resize-right';
-                                                                    
-                                                                    setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action });
-                                                                }
-                                                            }}
-                                                            onDoubleClick={() => {
-                                                                if (item.type === 'task') {
-                                                                    setEditingTask(item.task);
-                                                                    setIsEditModalOpen(true);
-                                                                }
-                                                            }}
-                                                        >
-                                                            {/* If it's the first day of the range, we can optionally show progress text */}
-                                                            {day === logicalStartDay && isWithinRange && item.type !== 'project' && (
-                                                                <span className="text-[8px] font-bold text-slate-800 whitespace-nowrap z-10 select-none px-1 block truncate w-full text-center">
-                                                                    {progressAmount > 0 ? `${progressAmount}%` : ''}
-                                                                </span>
-                                                            )}
-                                                            
-                                                            {/* Resize handle visuals (optional tooltip for edges) */}
-                                                            {isWithinRange && day === logicalStartDay && item.type !== 'project' && (
-                                                                <div className="absolute left-0 top-0 bottom-0 w-1 hover:cursor-col-resize z-20"></div>
-                                                            )}
-                                                            {isWithinRange && day === logicalEndDay && item.type !== 'project' && (
-                                                                <div className="absolute right-0 top-0 bottom-0 w-1 hover:cursor-col-resize z-20"></div>
-                                                            )}
-                                                        </div>
-                                                    )
-                                                })}
+                                                {/* Colored Timeline Bar */}
+                                                {item.startIndex !== null && item.duration > 0 && (
+                                                    <div
+                                                        style={{
+                                                            left: `${item.startIndex * cellWidth}px`,
+                                                            width: `${item.duration * cellWidth}px`
+                                                        }}
+                                                        className={`absolute top-1 bottom-1 rounded-sm shadow-sm opacity-90 flex items-center transition-colors group/cell ${
+                                                            item.type === 'project' ? 'bg-[#4a80bc]' : 
+                                                            item.type === 'phase' ? 'bg-[#4a80bc]' : 
+                                                            item.color // Usually bg-blue-500 or bg-slate-300
+                                                        } ${item.type !== 'project' ? 'hover:brightness-95 cursor-grab active:cursor-grabbing' : ''}`}
+                                                        onMouseDown={(e) => {
+                                                            if (item.type !== 'project') {
+                                                                e.stopPropagation();
+                                                                e.preventDefault();
+                                                                
+                                                                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                                                const clickX = e.clientX - rect.left;
+                                                                let action: 'move' | 'resize-left' | 'resize-right' = 'move';
+                                                                
+                                                                if (clickX < 10) action = 'resize-left';
+                                                                else if (clickX > rect.width - 10) action = 'resize-right';
+                                                                
+                                                                setDraggingItem({ id: item.id, type: item.type, startX: e.clientX, deltaDays: 0, action });
+                                                            }
+                                                        }}
+                                                        onDoubleClick={() => {
+                                                            if (item.type === 'task') {
+                                                                setEditingTask(item.task);
+                                                                setIsEditModalOpen(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {item.type !== 'project' && progressAmount > 0 && (
+                                                            <span className="text-[8px] font-bold text-white/90 whitespace-nowrap z-10 select-none px-1 block truncate w-full text-center drop-shadow-md">
+                                                                {progressAmount}%
+                                                            </span>
+                                                        )}
+                                                        
+                                                        {/* Resize handles */}
+                                                        {item.type !== 'project' && (
+                                                            <>
+                                                                <div className="absolute left-0 top-0 bottom-0 w-1.5 hover:cursor-col-resize z-20"></div>
+                                                                <div className="absolute right-0 top-0 bottom-0 w-1.5 hover:cursor-col-resize z-20"></div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )
