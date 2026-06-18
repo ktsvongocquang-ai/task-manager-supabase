@@ -71,6 +71,8 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
     const [isGeneratingAI, setIsGeneratingAI] = useState(false);
     const [areaSqm, setAreaSqm] = useState<number | ''>('');
     const [projectType, setProjectType] = useState<string>('');
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
 
     // Load KPI state from project.other_info
     useEffect(() => {
@@ -89,6 +91,8 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                 setProjectType(parsed?.project_type || '');
             }
             setAreaSqm(project.area_sqm || '');
+            setStartDate(project.start_date || '');
+            setEndDate(project.end_date || '');
             if (project.other_info && JSON.parse(project.other_info)?.kpiData) return;
         } catch (e) {}
         setKpiState(DEFAULT_KPI_STATE);
@@ -147,6 +151,12 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
             ...s,
             taskPhaseMap: { ...s.taskPhaseMap, [taskId]: phaseKey }
         }));
+    };
+
+    const handleUpdateProjectDates = async (field: 'start_date' | 'end_date', val: string) => {
+        if (!project) return;
+        await supabase.from('projects').update({ [field]: val }).eq('id', project.id);
+        if (onUpdateProject) onUpdateProject();
     };
 
     const handleAIPredict = async () => {
@@ -265,6 +275,26 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                         📐 Thông tin công trình
                     </p>
                     <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày bắt đầu</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                onBlur={(e) => handleUpdateProjectDates('start_date', e.target.value)}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày kết thúc</label>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                onBlur={(e) => handleUpdateProjectDates('end_date', e.target.value)}
+                                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            />
+                        </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Diện tích (m²)</label>
                             <input
