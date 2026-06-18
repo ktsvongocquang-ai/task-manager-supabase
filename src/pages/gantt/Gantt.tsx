@@ -12,6 +12,14 @@ const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', '
 
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
+
+const isOverlapping = (start: Date | null, end: Date | null, currentYear: number, currentMonth: number) => {
+    if (!start || !end) return false;
+    const monthStart = new Date(currentYear, currentMonth, 1);
+    const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59);
+    return start <= monthEnd && end >= monthStart;
+};
+
 export const Gantt = () => {
     const [tasks, setTasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
