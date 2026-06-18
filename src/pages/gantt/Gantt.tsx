@@ -276,7 +276,7 @@ export const Gantt = () => {
         });
 
         return items
-    }, [updatedProjects, expandedProjects, expandedPhases, tasks, flatDays]);
+    }, [updatedProjects, expandedProjects, expandedPhases, tasks, visibleDates]);
 
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
