@@ -780,9 +780,9 @@ export const Gantt = () => {
                 >
                     <div className="min-w-max relative">
                         {/* Right Header */}
-                        <div className="flex flex-col sticky top-0 z-30 shadow-sm min-h-[57px] bg-white">
+                        <div className="flex flex-col sticky top-0 z-30 shadow-sm h-[66px] bg-white border-b border-slate-200 box-border">
                             {/* Month Level Header */}
-                            <div className="flex border-b border-slate-200">
+                            <div className="flex border-b border-slate-200 flex-1">
                                 {monthsData.map((m) => (
                                     <div 
                                         key={`m-${m.year}-${m.month}`}
@@ -795,7 +795,7 @@ export const Gantt = () => {
                             </div>
                             
                             {/* Days Level Header */}
-                            <div className="flex border-b border-slate-200">
+                            <div className="flex border-b border-slate-200 flex-1">
                                 {flatDays.map((d, idx) => (
                                     <div
                                         key={`h-${idx}`}
