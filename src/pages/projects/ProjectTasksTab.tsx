@@ -150,6 +150,18 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                 </div>
             </div>
 
+            {/* Action Bar for Rollup */}
+            {isRollupProject && canEdit && (
+                <div className="px-6 pb-2 flex justify-end">
+                    <button
+                        onClick={() => onAddTask(project.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[11px] font-bold shadow-sm transition-all hover:scale-[1.02]"
+                    >
+                        <Plus size={14} strokeWidth={3} /> Thêm công trình (Cấp 2)
+                    </button>
+                </div>
+            )}
+
             {/* Task List Grouped by Phase */}
             <div className="px-4 sm:px-6 pb-24 space-y-4">
                 {activePhases.map(phase => {
