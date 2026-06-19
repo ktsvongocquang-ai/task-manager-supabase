@@ -8,6 +8,8 @@ import { format, parseISO } from 'date-fns'
 import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { UnifiedProjectModal } from './UnifiedProjectModal'
+import { DEFAULT_PHASES, detectPhase } from '../../utils/phaseUtils'
+import { ChevronRight } from 'lucide-react'
 
 export const Projects = () => {
     const { profile } = useAuthStore()
@@ -33,6 +35,7 @@ export const Projects = () => {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list'>('cards')
     const [expandedDoneProjects, setExpandedDoneProjects] = useState<Set<string>>(new Set())
+    const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
 
     const toggleDoneProject = (projectId: string) => {
         setExpandedDoneProjects(prev => {
@@ -638,85 +641,132 @@ export const Projects = () => {
             </div>
             )}
 
-            {/* List View - Tasks grouped by project */}
+            {/* List View - Tasks grouped by project → phase → task */}
             {projectViewMode === 'list' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 {filteredProjects.map(project => {
                     const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
+                    
+                    // Group tasks by phase
+                    const phaseGroups: Record<string, typeof projTasks> = {};
+                    DEFAULT_PHASES.forEach(p => { phaseGroups[p.key] = []; });
+                    projTasks.forEach(t => {
+                        const pk = detectPhase(t);
+                        if (!phaseGroups[pk]) phaseGroups[pk] = [];
+                        phaseGroups[pk].push(t);
+                    });
+
+                    const togglePhase = (phaseId: string) => {
+                        setExpandedPhases(prev => {
+                            const next = new Set(prev);
+                            if (next.has(phaseId)) next.delete(phaseId);
+                            else next.add(phaseId);
+                            return next;
+                        });
+                    };
+
+                    const activeTasks = projTasks.filter(t => t.status !== 'Hoàn thành');
+
+                    const TaskRow = ({ t }: { t: typeof projTasks[0] }) => {
+                        const isDone = t.status === 'Hoàn thành'
+                        const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
+                        const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
+                        return (
+                            <div className={`border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
+                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 pl-12 py-2 items-center">
+                                    <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                    <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
+                                    <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                    <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
+                                    <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                </div>
+                                <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[11px] text-slate-500">
+                                        <span className="truncate max-w-[150px]">👤 {assignee}</span>
+                                        <div className="flex items-center gap-3 font-semibold">
+                                            <span className={isLate ? 'text-red-600' : ''}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                            <span className="text-indigo-600 bg-indigo-50 px-1.5 rounded">{t.completion_pct || 0}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+
                     return (
                         <div key={project.id} className="border-b border-slate-100 last:border-0">
-                            {(() => {
-                                const activeTasks = projTasks.filter(t => t.status !== 'Hoàn thành')
-                                const doneTasks = projTasks.filter(t => t.status === 'Hoàn thành')
-                                const isDoneOpen = expandedDoneProjects.has(project.id)
+                            {/* Project Header (Cấp 1) */}
+                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
+                                    <span className="text-sm font-bold text-slate-800">{project.name}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
+                                    <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{activeTasks.length}</span>
+                                </div>
+                                <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
+                            </div>
 
-                                const TaskRow = ({ t }: { t: typeof projTasks[0] }) => {
-                                    const isDone = t.status === 'Hoàn thành'
-                                    const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
-                                    const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
-                                    return (
-                                        <div className={`border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
-                                            <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-2 items-center">
-                                                <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
-                                                <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
-                                                <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
-                                                <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
-                                                <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
-                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
-                                            </div>
-                                            <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
-                                                <div className="flex justify-between items-start gap-2">
-                                                    <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center text-[11px] text-slate-500">
-                                                    <span className="truncate max-w-[150px]">👤 {assignee}</span>
-                                                    <div className="flex items-center gap-3 font-semibold">
-                                                        <span className={isLate ? 'text-red-600' : ''}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
-                                                        <span className="text-indigo-600 bg-indigo-50 px-1.5 rounded">{t.completion_pct || 0}%</span>
+                            {projTasks.length === 0 ? (
+                                <div className="px-5 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
+                            ) : (
+                                <div>
+                                    {/* Table Header */}
+                                    <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 pl-12 py-1.5 bg-slate-50/50 border-b border-slate-100">
+                                        {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
+                                    </div>
+
+                                    {/* Phase Groups (Cấp 2) */}
+                                    {DEFAULT_PHASES.map(phase => {
+                                        const phaseTasks = phaseGroups[phase.key] || [];
+                                        if (phaseTasks.length === 0) return null;
+                                        const phaseId = `${project.id}_${phase.key}`;
+                                        const isPhaseExpanded = expandedPhases.has(phaseId);
+                                        const phaseActiveTasks = phaseTasks.filter(t => t.status !== 'Hoàn thành');
+                                        const phaseDoneTasks = phaseTasks.filter(t => t.status === 'Hoàn thành');
+
+                                        return (
+                                            <div key={phase.key}>
+                                                {/* Phase Header */}
+                                                <button
+                                                    onClick={() => togglePhase(phaseId)}
+                                                    className="flex items-center gap-2 w-full px-5 pl-7 py-2 bg-blue-50/50 hover:bg-blue-50 border-b border-slate-100 transition-colors text-left"
+                                                >
+                                                    {isPhaseExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+                                                    <span className="text-[11px] font-bold text-slate-700">{phase.name}</span>
+                                                    <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">{phaseActiveTasks.length}</span>
+                                                    {phaseDoneTasks.length > 0 && (
+                                                        <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">✓ {phaseDoneTasks.length}</span>
+                                                    )}
+                                                </button>
+
+                                                {/* Tasks inside phase (Cấp 3) */}
+                                                {isPhaseExpanded && (
+                                                    <div>
+                                                        {phaseActiveTasks.map(t => <TaskRow key={t.id} t={t} />)}
+                                                        {phaseDoneTasks.length > 0 && (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => toggleDoneProject(phaseId)}
+                                                                    className="flex items-center gap-2 px-5 pl-12 py-2 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-50"
+                                                                >
+                                                                    <ChevronDown size={12} className={`text-slate-400 transition-transform duration-200 ${expandedDoneProjects.has(phaseId) ? '' : '-rotate-90'}`} />
+                                                                    <span className="text-[10px] text-slate-400">Hoàn tất {phaseDoneTasks.length} mục</span>
+                                                                </button>
+                                                                {expandedDoneProjects.has(phaseId) && phaseDoneTasks.map(t => <TaskRow key={t.id} t={t} />)}
+                                                            </>
+                                                        )}
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                }
-
-                                return (
-                                    <>
-                                        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 sticky top-0 z-10">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
-                                                <span className="text-sm font-bold text-slate-800">{project.name}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
-                                                <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{activeTasks.length}</span>
-                                            </div>
-                                            <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
-                                        </div>
-                                        {projTasks.length === 0 ? (
-                                            <div className="px-5 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
-                                        ) : (
-                                            <div>
-                                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 py-1.5 bg-slate-50/50 border-b border-slate-100">
-                                                    {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
-                                                </div>
-                                                {activeTasks.map(t => <TaskRow key={t.id} t={t} />)}
-                                                {doneTasks.length > 0 && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => toggleDoneProject(project.id)}
-                                                            className="flex items-center gap-2 px-5 py-2.5 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-100"
-                                                        >
-                                                            <ChevronDown size={13} className={`text-slate-400 transition-transform duration-200 ${isDoneOpen ? '' : '-rotate-90'}`} />
-                                                            <span className="text-xs text-slate-500">Đã hoàn tất {doneTasks.length} mục</span>
-                                                        </button>
-                                                        {isDoneOpen && doneTasks.map(t => <TaskRow key={t.id} t={t} />)}
-                                                    </>
                                                 )}
                                             </div>
-                                        )}
-                                    </>
-                                )
-                            })()}
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
