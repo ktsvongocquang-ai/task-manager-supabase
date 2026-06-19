@@ -169,7 +169,7 @@ export const Gantt = () => {
         if (viewMode === 'month') {
             newDate.setMonth(newDate.getMonth() - 1);
         } else {
-            newDate.setDate(newDate.getDate() - 28);
+            newDate.setDate(newDate.getDate() - 7);
         }
         setCurrentDate(newDate);
     }
@@ -178,7 +178,7 @@ export const Gantt = () => {
         if (viewMode === 'month') {
             newDate.setMonth(newDate.getMonth() + 1);
         } else {
-            newDate.setDate(newDate.getDate() + 28);
+            newDate.setDate(newDate.getDate() + 7);
         }
         setCurrentDate(newDate);
     }
@@ -632,7 +632,7 @@ export const Gantt = () => {
                                             {/* Left Cells - Sticky Left */}
                                             <div className={`sticky left-0 z-30 flex w-[420px] border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
                                                 <div className="w-[200px] px-3 py-2 border-r border-slate-200 flex flex-col justify-center overflow-hidden">
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1">
                                                         {item.type === 'project' && (
                                                             <button onClick={() => toggleProject(item.id)} className="w-4 h-4 flex items-center justify-center hover:bg-slate-200 rounded text-slate-500 flex-shrink-0">
                                                                 {expandedProjects.has(item.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -644,6 +644,21 @@ export const Gantt = () => {
                                                         >
                                                             {item.name}
                                                         </span>
+                                                        {/* Nút + tạo task - hiện khi hover */}
+                                                        {(item.type === 'project' || item.type === 'phase') && (
+                                                            <button
+                                                                onClick={(e) => handleQuickAdd(
+                                                                    item.type === 'phase' ? item.task?.id || null : null,
+                                                                    item.type === 'project' ? item.id : (item.task?.project_id || ''),
+                                                                    item.type === 'phase' ? (item.task?.target || item.name) : null,
+                                                                    e
+                                                                )}
+                                                                className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded bg-blue-500 text-white opacity-0 group-hover/row:opacity-100 hover:bg-blue-600 transition-all ml-auto"
+                                                                title="Thêm nhiệm vụ"
+                                                            >
+                                                                <Plus size={12} />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
 
