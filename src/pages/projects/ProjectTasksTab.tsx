@@ -163,7 +163,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
             )}
 
             {/* Task List Grouped by Phase */}
-            <div className="px-4 sm:px-6 pb-24 space-y-4">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-24 space-y-4 custom-scrollbar">
                 {activePhases.map(phase => {
                     const phaseTasksRaw = isRollupProject
                         ? tasks.filter(t => t.parent_id === phase.key)
