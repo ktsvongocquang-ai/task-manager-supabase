@@ -411,12 +411,24 @@ export const Gantt = () => {
     };
 
     const handleInlineEdit = async (taskId: string, field: string, value: string) => {
-        if (!value) { setEditingCell(null); return; }
+        if (!value && field !== 'duration') { setEditingCell(null); return; }
         const updatePayload: any = {};
         if (field === 'start_date') {
             updatePayload.start_date = value;
         } else if (field === 'due_date') {
             updatePayload.due_date = value;
+        } else if (field === 'duration') {
+            const daysCount = parseInt(value, 10);
+            if (isNaN(daysCount) || daysCount < 1) { setEditingCell(null); return; }
+            const task = tasks.find(t => t.id === taskId);
+            if (!task || !task.start_date) {
+                alert('Vui lòng chọn ngày bắt đầu trước khi nhập số ngày.');
+                setEditingCell(null); 
+                return; 
+            }
+            const newEnd = new Date(task.start_date);
+            newEnd.setDate(newEnd.getDate() + (daysCount - 1));
+            updatePayload.due_date = newEnd.toISOString();
         }
         if (Object.keys(updatePayload).length > 0) {
             setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updatePayload } : t));
@@ -739,8 +751,27 @@ export const Gantt = () => {
                                                     ) : (formattedEnd || '—')}
                                                 </div>
 
-                                                <div className={`w-[40px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                    {tDays > 0 ? tDays : '-'}
+                                                <div 
+                                                    className={`w-[40px] px-1 py-2 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800 border-r border-slate-200' : 'text-slate-600 hover:bg-blue-50 cursor-pointer border-r border-slate-200'}`}
+                                                    onClick={() => {
+                                                        if (item.type === 'task' && item.task) {
+                                                            setEditingCell({ id: item.id, field: 'duration' });
+                                                            setEditValue(tDays > 0 ? tDays.toString() : '');
+                                                        }
+                                                    }}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'duration' ? (
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            className="w-full text-[10px] border rounded px-1 text-center"
+                                                            value={editValue}
+                                                            autoFocus
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => handleInlineEdit(item.id, 'duration', editValue)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleInlineEdit(item.id, 'duration', editValue); if (e.key === 'Escape') setEditingCell(null); }}
+                                                        />
+                                                    ) : (tDays > 0 ? tDays : '-')}
                                                 </div>
 
                                                 <div className={`w-[40px] px-1 py-2 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
@@ -767,10 +798,10 @@ export const Gantt = () => {
                                                     />
                                                 )}
 
-                                                {/* Gray Expected Timeline Bar (Only for projects) */}
+                                                {/* Light Expected Timeline Bar (Only for projects) */}
                                                 {item.type === 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-slate-300/40 shadow-inner"
+                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-slate-100/60 border border-slate-200/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         title="Timeline dự kiến"
                                                     />
