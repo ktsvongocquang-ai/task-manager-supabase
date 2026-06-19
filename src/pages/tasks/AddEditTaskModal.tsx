@@ -28,6 +28,7 @@ interface AddEditTaskModalProps {
     currentUserProfile: any;
     generateNextTaskCode?: (projectId: string) => Promise<string> | string;
     onDeleteTask?: (task: Task) => void;
+    initialTab?: 'subtasks' | 'comments' | 'links';
 }
 
 export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
@@ -40,7 +41,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     profiles,
     currentUserProfile,
     generateNextTaskCode,
-    onDeleteTask
+    onDeleteTask,
+    initialTab
 }) => {
     const [form, setForm] = useState({
         task_code: '', project_id: '', name: '', description: '', assignee_id: '',
@@ -49,7 +51,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     });
 
     const [subTasks, setSubTasks] = useState<Task[]>([]);
-    const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>('subtasks');
+    const [activeTab, setActiveTab] = useState<'subtasks' | 'comments' | 'links'>(initialTab || 'subtasks');
     const [newSubtaskName, setNewSubtaskName] = useState('');
     const [isLoadingSubtasks, setIsLoadingSubtasks] = useState(false);
 
@@ -236,6 +238,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
+            setActiveTab(initialTab || 'subtasks');
             if (editingTask) {
                 const today = new Date().toISOString().split('T')[0];
                 setForm({
@@ -475,14 +478,14 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 if (isNewSupporter) {
                     await createNotification(
                         newSupporterId,
-                        `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm Người thực hiện nhiệm vụ: "${form.name}"`,
+                        `${currentUserProfile?.full_name || 'Admin'} đã thêm bạn làm Người hỗ trợ cho nhiệm vụ: "${form.name}"`,
                         'assignment',
                         currentUserProfile?.id,
-                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id, // Ideally insert returns data if we do .select() but let's just use form project
+                        editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id,
                         form.project_id
                     );
 
-                    // Gửi thông báo qua Telegram ngầm cho Người thực hiện
+                    // Gửi thông báo qua Telegram ngầm cho Người hỗ trợ
                     try {
                         const taskLink = `${window.location.origin}/tasks`;
                         const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
@@ -492,7 +495,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId: newSupporterId,
-                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người thực hiện cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
+                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người hỗ trợ cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
                                 taskUrl: taskLink
                             })
                         }).catch(e => console.error('Lỗi gọi Telegram API:', e));
@@ -500,6 +503,22 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         console.error('Lỗi thiết lập thông báo Telegram:', e);
                     }
                 }
+            }
+
+            // Notification for "Chờ duyệt" status
+            if (form.status === 'Chờ duyệt' && (!editingTask || editingTask.status !== 'Chờ duyệt')) {
+                import('../../services/notifications').then(({ notifyTaskRequiresReview }) => {
+                    const taskIdStr = editingTask ? editingTask.id : (result?.data as any[])?.[0]?.id;
+                    if (taskIdStr) {
+                        notifyTaskRequiresReview(
+                            taskIdStr,
+                            form.project_id,
+                            form.name,
+                            currentUserProfile?.id || '',
+                            currentUserProfile?.full_name || 'Nhân sự'
+                        );
+                    }
+                }).catch(e => console.error('Failed to load notifications module', e));
             }
             // --- Logging ---
             if (editingTask) {

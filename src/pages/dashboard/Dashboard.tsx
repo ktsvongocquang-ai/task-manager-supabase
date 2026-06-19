@@ -54,6 +54,7 @@ export const Dashboard = () => {
     const [activePopup, setActivePopup] = useState<PopupType>(null)
     const [selectedProject, setSelectedProject] = useState<Project | null>(null)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+    const [taskModalInitialTab, setTaskModalInitialTab] = useState<'subtasks' | 'comments' | 'links' | undefined>(undefined)
     const [taskFilter, setTaskFilter] = useState<TaskFilterType>('all')
     const [searchProjects, setSearchProjects] = useState('')
     const [searchTasks, setSearchTasks] = useState('')
@@ -87,7 +88,7 @@ export const Dashboard = () => {
     }, [profile, assigneeFilter, monthFilter])
 
     const location = useLocation()
-    const pendingOpenRef = useRef<{ taskId?: string | null; projectId?: string | null } | null>(null)
+    const pendingOpenRef = useRef<{ taskId?: string | null; projectId?: string | null; taskTab?: string | null } | null>(null)
 
     // Capture navigation state into ref
     useEffect(() => {
@@ -95,7 +96,8 @@ export const Dashboard = () => {
         if (state?.openTaskId || state?.openProjectId) {
             pendingOpenRef.current = {
                 taskId: state.openTaskId,
-                projectId: state.openProjectId
+                projectId: state.openProjectId,
+                taskTab: state.openTaskTab
             }
             // Clear navigation state to prevent stale re-triggers
             window.history.replaceState({}, '')
@@ -106,12 +108,12 @@ export const Dashboard = () => {
     useEffect(() => {
         if (!pendingOpenRef.current || loading) return
 
-        const { taskId, projectId } = pendingOpenRef.current
+        const { taskId, projectId, taskTab } = pendingOpenRef.current
 
         if (taskId) {
             const task = allTasks.find(t => t.id === taskId)
             if (task) {
-                openEditTask(task)
+                openEditTask(task, taskTab as any)
                 pendingOpenRef.current = null
             }
         } else if (projectId) {
@@ -284,11 +286,12 @@ export const Dashboard = () => {
         setTaskForm({ ...emptyTaskForm, task_code: nextCode, project_id: projectId })
         setActivePopup('createTask')
     }
-    const openEditTask = (t: Task) => {
+    const openEditTask = (t: Task, initialTab?: 'subtasks' | 'comments' | 'links') => {
         if (activePopup && activePopup !== 'editTask') {
             setPreviousPopup(activePopup);
         }
         setSelectedTask(t)
+        setTaskModalInitialTab(initialTab)
         setTaskForm({
             task_code: t.task_code, project_id: t.project_id, name: t.name,
             description: t.description || '', assignee_id: (t.assignee_id as string) || '',

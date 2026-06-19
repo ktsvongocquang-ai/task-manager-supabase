@@ -280,6 +280,14 @@ const buildGeneralContext = async (userId: string, userName: string, userRole: s
     const inProgressTasks = allTasks.filter(t => t.status === 'Đang thực hiện')
     const activeProjectIds = [...new Set(inProgressTasks.map((t: any) => t.project_id).filter(Boolean))]
 
+    const todayDate = new Date(todayStr);
+    const dayOfWeek = todayDate.getDay();
+    const diffToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+    const endOfWeekDate = new Date(todayDate);
+    endOfWeekDate.setDate(todayDate.getDate() + diffToSunday);
+    const endOfWeekStr = endOfWeekDate.toISOString().split('T')[0];
+    const dueThisWeekTasks = allTasks.filter(t => t.due_date && t.due_date > todayStr && t.due_date <= endOfWeekStr);
+
     const { data: newProjects } = await supabase
         .from('projects')
         .select('name, created_at')
@@ -299,7 +307,10 @@ NGÀY: ${todayStr} | NHÂN SỰ: ${userName} (${userRole})
 TASK ĐẾN HẠN HÔM NAY (${dueTodayTasks.length}):
 ${dueTodayTasks.map((t: any) => `- "${t.name}"`).join('\n') || 'Không có'}
 
-TASK QUÁ HẠN THÁNG NÀY (${overdueThisMonth.length}) + TỒN TỪ THÁNG TRƯỚC (${overdueCarriedOver.length}):
+TASK TRONG TUẦN NÀY (${dueThisWeekTasks.length}):
+${dueThisWeekTasks.map((t: any) => `- "${t.name}" (Hạn: ${new Date(t.due_date).toLocaleDateString('vi-VN')})`).join('\n') || 'Không có'}
+
+TASK CHƯA HOÀN THÀNH / QUÁ HẠN TỒN ĐỌNG (${allOverdue.length}):
 ${overdueLines}
 
 ĐANG LÀM ${activeProjectIds.length} DỰ ÁN SONG SONG (${inProgressTasks.length} task đang chạy)

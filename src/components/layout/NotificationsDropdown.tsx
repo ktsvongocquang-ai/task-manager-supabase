@@ -149,6 +149,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
                                             ...navState,
                                             openTaskId: notif.related_task_id,
                                             openProjectId: notif.related_project_id,
+                                            openTaskTab: (notif.type === 'mention' || notif.type === 'comment') ? 'comments' : undefined
                                         };
                                         // Force navigation even if already on same page
                                         if (window.location.pathname === target) {
