@@ -410,6 +410,21 @@ export const Gantt = () => {
         setEditingCell(null);
     };
 
+    const handleInlineEdit = async (taskId: string, field: string, value: string) => {
+        if (!value) { setEditingCell(null); return; }
+        const updatePayload: any = {};
+        if (field === 'start_date') {
+            updatePayload.start_date = value;
+        } else if (field === 'due_date') {
+            updatePayload.due_date = value;
+        }
+        if (Object.keys(updatePayload).length > 0) {
+            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updatePayload } : t));
+            await supabase.from('tasks').update(updatePayload).eq('id', taskId);
+        }
+        setEditingCell(null);
+    };
+
     const PHASE_SHORT: Record<string, string> = { concept: 'C', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
 
     const generateTaskCode = (projectId: string, phaseKey: string | null) => {
@@ -653,6 +668,12 @@ export const Gantt = () => {
                                                         )}
                                                         <span 
                                                             className={`truncate text-[11px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'font-medium text-slate-700'} hover:text-blue-600 cursor-pointer`}
+                                                            onClick={() => {
+                                                                if (item.type === 'task' && item.task) {
+                                                                    setEditingTask(item.task as Task);
+                                                                    setIsEditModalOpen(true);
+                                                                }
+                                                            }}
                                                         >
                                                             {item.name}
                                                         </span>
@@ -674,12 +695,48 @@ export const Gantt = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className={`w-[70px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}>
-                                                    {formattedStart || '—'}
+                                                <div 
+                                                    className={`w-[70px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-blue-50 cursor-pointer'}`}
+                                                    onClick={() => {
+                                                        if (item.type === 'task' && item.task) {
+                                                            setEditingCell({ id: item.id, field: 'start_date' });
+                                                            setEditValue(item.task.start_date || '');
+                                                        }
+                                                    }}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'start_date' ? (
+                                                        <input
+                                                            type="date"
+                                                            className="w-full text-[10px] border rounded px-1"
+                                                            value={editValue}
+                                                            autoFocus
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => handleInlineEdit(item.id, 'start_date', editValue)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleInlineEdit(item.id, 'start_date', editValue); if (e.key === 'Escape') setEditingCell(null); }}
+                                                        />
+                                                    ) : (formattedStart || '—')}
                                                 </div>
 
-                                                <div className={`w-[70px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-slate-100/50 cursor-pointer'}`}>
-                                                    {formattedEnd || '—'}
+                                                <div 
+                                                    className={`w-[70px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600 hover:bg-blue-50 cursor-pointer'}`}
+                                                    onClick={() => {
+                                                        if (item.type === 'task' && item.task) {
+                                                            setEditingCell({ id: item.id, field: 'due_date' });
+                                                            setEditValue(item.task.due_date || '');
+                                                        }
+                                                    }}
+                                                >
+                                                    {editingCell?.id === item.id && editingCell?.field === 'due_date' ? (
+                                                        <input
+                                                            type="date"
+                                                            className="w-full text-[10px] border rounded px-1"
+                                                            value={editValue}
+                                                            autoFocus
+                                                            onChange={(e) => setEditValue(e.target.value)}
+                                                            onBlur={() => handleInlineEdit(item.id, 'due_date', editValue)}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') handleInlineEdit(item.id, 'due_date', editValue); if (e.key === 'Escape') setEditingCell(null); }}
+                                                        />
+                                                    ) : (formattedEnd || '—')}
                                                 </div>
 
                                                 <div className={`w-[40px] px-1 py-2 border-r border-slate-200 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
