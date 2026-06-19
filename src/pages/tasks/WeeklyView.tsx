@@ -118,6 +118,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [sortMode, setSortMode]     = useState<'time' | 'project' | 'person' | 'alert'>('time')
     const [filterPerson, setFilterPerson]   = useState('')
     const [filterProject, setFilterProject] = useState('')
+    const [filterPhase, setFilterPhase]     = useState('')
     const [saving, setSaving] = useState<Record<string, boolean>>({})
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [expandedDone, setExpandedDone] = useState<Set<string>>(new Set())
@@ -199,9 +200,27 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             const assigneeId = getAssigneeId(t.assignee_id)
             if (filterPerson  && assigneeId !== filterPerson)  return false
             if (filterProject && t.project_id  !== filterProject) return false
+
+            if (filterPhase) {
+                const resolvedTarget = (() => {
+                    let target = (t as any).target;
+                    if (!target && t.project_id && projects) {
+                        const p = projects.find(x => x.id === t.project_id);
+                        if (p && (p.status === 'Thi công' || (p.name || '').toLowerCase().includes('tổng hợp'))) {
+                            target = 'construction';
+                        }
+                    }
+                    return target;
+                })();
+
+                const normalizedResolved = (resolvedTarget || '').toLowerCase();
+                const normalizedFilter = filterPhase.toLowerCase();
+                if (normalizedResolved !== normalizedFilter) return false;
+            }
+
             return true
         })
-    }, [tasks, weekOffset, filterPerson, filterProject, mon, sun, projects])
+    }, [tasks, weekOffset, filterPerson, filterProject, filterPhase, mon, sun, projects])
 
     const stats = {
         total:   weekTasks.length,
@@ -423,6 +442,18 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                         const label = code ? (cleanName.includes(cleanCode) ? name : `${code} - ${name}`) : name;
                         return <option key={id} value={id}>{label}</option>
                     })}
+                </select>
+
+                <select
+                    value={filterPhase}
+                    onChange={e => setFilterPhase(e.target.value)}
+                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+                >
+                    <option value="">Tất cả giai đoạn</option>
+                    <option value="concept">Concept</option>
+                    <option value="3d">3D / Phối cảnh</option>
+                    <option value="2d">Triển khai 2D</option>
+                    <option value="construction">Thi công</option>
                 </select>
 
                 <div className="flex items-center gap-1 ml-auto">
