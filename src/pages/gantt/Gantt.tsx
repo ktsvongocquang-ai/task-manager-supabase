@@ -801,7 +801,7 @@ export const Gantt = () => {
                                                 {/* Light Expected Timeline Bar (Only for projects) */}
                                                 {item.type === 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-slate-100/60 border border-slate-200/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
+                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         title="Timeline dự kiến"
                                                     />
@@ -819,7 +819,7 @@ export const Gantt = () => {
                                                 {/* Phase Timeline Bar (Expected) */}
                                                 {item.type === 'phase' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2 bottom-2 rounded-sm bg-slate-100/80 border border-slate-200 shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md"
+                                                        className="absolute top-2 bottom-2 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         onDoubleClick={(e) => { 
                                                             e.stopPropagation(); 
@@ -827,7 +827,7 @@ export const Gantt = () => {
                                                         }}
                                                     >
                                                         {progressAmount > 0 && (
-                                                            <span className="text-[8px] font-bold text-slate-500 whitespace-nowrap z-10 select-none block truncate w-full text-center drop-shadow-sm">
+                                                            <span className="text-[8px] font-bold text-emerald-800 whitespace-nowrap z-10 select-none block truncate w-full text-center drop-shadow-sm">
                                                                 {progressAmount}%
                                                             </span>
                                                         )}
