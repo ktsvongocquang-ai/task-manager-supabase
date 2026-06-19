@@ -646,7 +646,11 @@ export const Gantt = () => {
                                                                 {expandedProjects.has(item.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                                             </button>
                                                         )}
-                                                        {item.type === 'phase' && <div className="w-4 h-4 flex-shrink-0" />}
+                                                        {item.type === 'phase' && (
+                                                            <button onClick={() => togglePhase(item.id)} className="w-4 h-4 flex items-center justify-center hover:bg-slate-200 rounded text-slate-500 flex-shrink-0">
+                                                                {expandedPhases.has(item.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                                            </button>
+                                                        )}
                                                         <span 
                                                             className={`truncate text-[11px] ${item.type === 'project' ? 'font-bold text-slate-800' : 'font-medium text-slate-700'} hover:text-blue-600 cursor-pointer`}
                                                         >
