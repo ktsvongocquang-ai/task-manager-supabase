@@ -655,13 +655,13 @@ export const Gantt = () => {
                                                         >
                                                             {item.name}
                                                         </span>
-                                                        {/* Nút + tạo task - hiện khi hover */}
-                                                        {(item.type === 'project' || item.type === 'phase') && (
+                                                        {/* Nút + tạo task (cấp 3) cho giai đoạn (cấp 2) - hiện khi hover */}
+                                                        {item.type === 'phase' && (
                                                             <button
                                                                 onClick={(e) => handleQuickAdd(
                                                                     null,
-                                                                    item.type === 'project' ? item.id : (item.task?.project_id || ''),
-                                                                    item.type === 'phase' ? item.name : null,
+                                                                    item.task?.project_id || '',
+                                                                    item.name,
                                                                     e
                                                                 )}
                                                                 className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded bg-blue-500 text-white opacity-0 group-hover/row:opacity-100 hover:bg-blue-600 transition-all ml-auto"
