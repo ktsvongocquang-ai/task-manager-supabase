@@ -87,7 +87,6 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                             >
                                 <option value="Chưa bắt đầu">Chưa bắt đầu</option>
                                 <option value="Đang thực hiện">Đang thực hiện</option>
-                                <option value="Thi công">Thi công</option>
                                 <option value="Hoàn thành">Hoàn thành</option>
                                 <option value="Tạm dừng">Tạm dừng</option>
                             </select>

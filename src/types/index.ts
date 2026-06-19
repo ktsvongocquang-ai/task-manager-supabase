@@ -18,7 +18,7 @@ export interface Project {
     manager_id: string | null
     start_date: string | null
     end_date: string | null
-    status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Thi công' | 'Hoàn thành' | 'Tạm dừng'
+    status: string | 'Chưa bắt đầu' | 'Đang thực hiện' | 'Hoàn thành' | 'Tạm dừng'
     budget: number | null
     actualCost?: number | null
     created_at: string

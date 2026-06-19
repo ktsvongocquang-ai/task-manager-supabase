@@ -138,7 +138,6 @@ export const Projects = () => {
     const statusCounts = {
         'Chưa bắt đầu': baseFilteredProjects.filter(p => p.status === 'Chưa bắt đầu' || p.status === 'Mới').length,
         'Đang thực hiện': baseFilteredProjects.filter(p => p.status === 'Đang thực hiện').length,
-        'Thi công': baseFilteredProjects.filter(p => p.status === 'Thi công').length,
         'Hoàn thành': baseFilteredProjects.filter(p => p.status === 'Hoàn thành').length,
         'Tạm dừng': baseFilteredProjects.filter(p => p.status === 'Tạm dừng').length,
     }
@@ -467,7 +466,6 @@ export const Projects = () => {
     const getStatusBadge = (status: string) => {
         if (status === 'Hoàn thành') return 'bg-emerald-100 text-emerald-700 border-emerald-200'
         if (status === 'Đang thực hiện') return 'bg-blue-100 text-blue-700 border-blue-200'
-        if (status === 'Thi công') return 'bg-purple-100 text-purple-700 border-purple-200'
         if (status === 'Tạm dừng') return 'bg-amber-100 text-amber-700 border-amber-200'
         return 'bg-slate-100 text-slate-700 border-slate-200'
     }
@@ -575,11 +573,10 @@ export const Projects = () => {
             </div>
 
             {/* Status Tabs - Circular style matching screenshot */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                 {Object.entries(statusCounts).map(([status, count]) => {
                     const isCompleted = status === 'Hoàn thành';
                     const isDoing = status === 'Đang thực hiện';
-                    const isConstruct = status === 'Thi công';
                     const isPause = status === 'Tạm dừng';
                     
                     return (
@@ -591,7 +588,6 @@ export const Projects = () => {
                             <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center font-bold text-[22px] ${
                                 isCompleted ? 'bg-emerald-50 text-emerald-600' :
                                 isDoing ? 'bg-blue-50 text-blue-600' :
-                                isConstruct ? 'bg-fuchsia-50 text-fuchsia-600' :
                                 isPause ? 'bg-orange-50 text-orange-500' : 
                                 'bg-slate-50 text-slate-700'
                                 }`}>
