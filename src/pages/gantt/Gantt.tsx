@@ -837,7 +837,13 @@ export const Gantt = () => {
                                                 {/* Task Timeline Bar */}
                                                 {item.type === 'task' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${item.task?.status?.includes('Hoàn thành') ? 'bg-emerald-500 border-emerald-600' : 'bg-[#5da0ea] border-[#4b82c3]'}`}
+                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${
+                                                            item.task?.status?.includes('Hoàn thành') 
+                                                                ? 'bg-emerald-500 border-emerald-600' 
+                                                                : (item.endDate && new Date(item.endDate) < new Date(new Date().setHours(0,0,0,0)))
+                                                                    ? 'bg-red-500 border-red-600'
+                                                                    : 'bg-[#5da0ea] border-[#4b82c3]'
+                                                        }`}
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         onDoubleClick={(e) => { 
                                                             e.stopPropagation(); 
