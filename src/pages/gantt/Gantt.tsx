@@ -420,7 +420,12 @@ export const Gantt = () => {
         const dd = String(now.getDate()).padStart(2, '0');
         const mm = String(now.getMonth() + 1).padStart(2, '0');
         const yy = String(now.getFullYear()).slice(-2);
-        return `${projCode}-${phaseCode}-${dd}${mm}${yy}`;
+        const prefix = `${projCode}-${phaseCode}-${dd}${mm}${yy}`;
+        
+        // Đếm task đã có cùng prefix để tạo số thứ tự
+        const existingCount = tasks.filter(t => t.task_code?.startsWith(prefix)).length;
+        const seq = String(existingCount + 1).padStart(2, '0');
+        return `${prefix}-${seq}`;
     };
 
     const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
