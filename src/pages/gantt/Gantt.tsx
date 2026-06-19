@@ -103,7 +103,7 @@ export const Gantt = () => {
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             const monday = new Date(d.getFullYear(), d.getMonth(), diff, 0, 0, 0);
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < 28; i++) {
                 const nextDay = new Date(monday);
                 nextDay.setDate(monday.getDate() + i);
                 result.push(nextDay);
@@ -169,7 +169,7 @@ export const Gantt = () => {
         if (viewMode === 'month') {
             newDate.setMonth(newDate.getMonth() - 1);
         } else {
-            newDate.setDate(newDate.getDate() - 7);
+            newDate.setDate(newDate.getDate() - 28);
         }
         setCurrentDate(newDate);
     }
@@ -178,7 +178,7 @@ export const Gantt = () => {
         if (viewMode === 'month') {
             newDate.setMonth(newDate.getMonth() + 1);
         } else {
-            newDate.setDate(newDate.getDate() + 7);
+            newDate.setDate(newDate.getDate() + 28);
         }
         setCurrentDate(newDate);
     }
@@ -546,7 +546,7 @@ export const Gantt = () => {
                                 {/* Month Label */}
                                 {/* Dynamic Header Label */}
                                 <div className="flex items-center justify-center font-bold text-slate-700 text-xs border-b border-slate-200 bg-slate-100" style={{ height: '25px', width: `${totalDays * cellWidth}px` }}>
-                                    {viewMode === 'month' ? `Tháng ${visibleDates[0]?.getMonth() + 1} ${visibleDates[0]?.getFullYear()}` : `Tuần ${Math.ceil((visibleDates[0]?.getDate() - 1) / 7) + 1} Tháng ${visibleDates[0]?.getMonth() + 1} (${format(visibleDates[0] || new Date(), 'dd/MM')} - ${format(visibleDates[6] || new Date(), 'dd/MM')})`}
+                                    {viewMode === 'month' ? `Tháng ${visibleDates[0]?.getMonth() + 1} ${visibleDates[0]?.getFullYear()}` : `${format(visibleDates[0] || new Date(), 'dd/MM/yyyy')} - ${format(visibleDates[visibleDates.length - 1] || new Date(), 'dd/MM/yyyy')}`}
                                 </div>
                                 {/* Days Label */}
                                 <div className="relative flex-1" style={{ width: `${totalDays * cellWidth}px` }}>
