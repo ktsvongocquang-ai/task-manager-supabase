@@ -51,14 +51,14 @@ const getQuickQuestions = (role?: string) => {
             { icon: '📢', text: 'Hôm nay tôi có task marketing nào?' },
             { icon: '📊', text: 'Báo cáo Facebook Ads gần nhất?' },
             { icon: '🚨', text: 'Task nào đang trễ deadline?' },
-            { icon: '🎯', text: 'Tôi cần làm gì để đạt KPI?' },
+            { icon: '🎯', text: 'Dự án nào đang cần chú ý?' },
         ];
     }
     return [
         { icon: '📋', text: 'Hôm nay tôi có task nào?' },
         { icon: '🚨', text: 'Task nào đang trễ deadline?' },
-        { icon: '💰', text: 'KPI & lương tháng này?' },
-        { icon: '📈', text: 'Cách tăng KPI của tôi?' },
+        { icon: '📝', text: 'Tóm tắt công việc tuần này?' },
+        { icon: '📈', text: 'Tiến độ dự án của tôi?' },
     ];
 };
 
@@ -428,13 +428,13 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${activeTab === 'ai' ? 'bg-teal-50 text-teal-600' : activeTab === 'dm' ? 'bg-purple-50 text-purple-600' : 'bg-indigo-50 text-indigo-600'}`}>
                                 {activeTab === 'ai' ? <Bot size={16} /> : activeTab === 'dm' ? <MessageCircle size={16} /> : <MessageSquare size={16} />}
                             </div>
-                            <div>
-                                <h3 className="font-bold text-slate-800 text-sm">
-                                    {activeTab === 'ai' ? 'Trợ Lý AI' : activeTab === 'dm' ? (dmPartner ? dmPartner.full_name : 'Tin Nhắn Riêng') : 'Chat Chung'}
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-bold text-slate-800 truncate text-[15px]">
+                                    {activeTab === 'ai' ? 'Trợ Lý AI' : activeTab === 'dm' ? (dmPartner ? dmPartner.full_name : 'Tin nhắn riêng') : 'Thảo luận chung'}
                                 </h3>
-                                <p className="text-[10px] text-slate-400">
-                                    {activeTab === 'ai' ? 'Phân tích công việc & KPI' : activeTab === 'dm' ? (dmPartner ? dmPartner.role : 'Nhắn tin 1-1') : 'Kênh thảo luận toàn công ty'}
-                                </p>
+                                <div className="text-[11px] text-slate-500 font-medium truncate">
+                                    {activeTab === 'ai' ? 'Phân tích công việc & Dự án' : activeTab === 'dm' ? (dmPartner ? dmPartner.role : 'Nhắn tin 1-1') : 'Kênh thảo luận toàn công ty'}
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -744,7 +744,9 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
                                 ))}
                             </div>
                             <div className="flex items-center gap-2">
-                                <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendAI()} placeholder="Hỏi về task, KPI, lương..." className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-teal-400" />
+                                <div className="flex-1 flex bg-slate-50 border border-slate-200 rounded-[14px] items-center px-1 py-1 focus-within:border-[#5534FA] focus-within:ring-2 focus-within:ring-[#5534FA]/10 transition-all shadow-sm">
+                                    <input value={aiInput} onChange={e => setAiInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendAI()} placeholder="Hỏi về task, tiến độ dự án..." className="flex-1 bg-transparent border-none px-3 py-2 text-sm focus:outline-none placeholder:text-slate-400" />
+                                </div>
                                 <button onClick={() => handleSendAI()} disabled={!aiInput.trim() || aiLoading} className="w-10 h-10 bg-teal-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50 hover:bg-teal-700">
                                     <Send size={15} />
                                 </button>

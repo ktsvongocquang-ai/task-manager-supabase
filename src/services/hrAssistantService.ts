@@ -393,30 +393,25 @@ export const processHRQuestion = async (
 
         const contextData = `
         DỮ LIỆU HIỆN TẠI (NHÂN SỰ: ${userName} - VAI TRÒ: ${userRole}):
-        - Lương hiệu quả tháng này ước tính: ${salaryData.finalSalary.toLocaleString('vi-VN')} VNĐ
-        - Nhịp KPI tháng: ${salaryData.kpiPercent.toFixed(1)}% (Mục tiêu 150m2 quy đổi - Đã làm được ${salaryData.totalM2.toFixed(1)}m2)
-        - Hệ số KPI đang áp dụng: ${salaryData.kpiMulti}x
 
         THỐNG KÊ TASK TRỄ:
         - ${lastMonthLabel}: ${salaryData.lastMonthDelayed} task trễ
         - ${thisMonthLabel}: ${salaryData.overdueThisMonth} task trễ hạn trong tháng + ${salaryData.overdueCarriedOver} task từ tháng trước chưa xong (tổng tồn đọng: ${salaryData.overdueCarriedOver + salaryData.overdueThisMonth})
 
         DANH SÁCH TASK THÁNG NÀY (Max 10):
-        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'}, Quy đổi: ${(t.taskValue).toLocaleString('vi-VN')}đ)`).join('\n') || '(Chưa có task nào tháng này)'}
+        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'})`).join('\n') || '(Chưa có task nào tháng này)'}
         `;
 
-        const systemPrompt = `BẠN LÀ TRỢ LÝ QUẢN LÝ NHÂN SỰ (HR ASSISTANT) THÔNG MINH CHO NHÂN VIÊN.
+        const systemPrompt = `BẠN LÀ TRỢ LÝ QUẢN LÝ DỰ ÁN VÀ CÔNG VIỆC THÔNG MINH CHO NHÂN VIÊN.
         
         # VAI TRÒ CHÍNH:
-        Bạn giải đáp theo thời gian thực về tiến độ task, tính KPI, lương năng suất của chính nhân sự đang hỏi.
+        Bạn giải đáp theo thời gian thực về tiến độ task, dự án của chính nhân sự đang hỏi.
 
         # QUY TẮC CẦN TUÂN THỦ NGHIÊM NGẶT:
-        1. LUÔN HIỂN THỊ SỐ TIỀN CỤ THỂ HOẶC SỐ M2 KHI ĐƯỢC HỎI - KHÔNG DÙNG % TRỪU TƯỢNG, TRƯỜNG HỢP KHÔNG CÓ DATA THÌ BÁO 0Đ.
-        2. TONE GIỌNG: CHUYÊN NGHIỆP, TRUNG LẬP - KHÔNG PHÁN XÉT.
-        3. Nếu nhân sự hỏi "Lương tháng này của tôi là bao nhiêu?", hãy nói rõ tiền lương năng suất ước tính, % KPI và chỉ ra các task đang làm giảm hoặc tăng lương.
-        4. Cảnh báo nếu nhân sự có task trễ gây giảm tiền.
-        5. KHÔNG chia sẻ dữ liệu của người khác. Dữ liệu đã được cung cấp sẵn ở bên dưới là của riêng nhân sự.
-        6. Đề xuất 1 HÀNH ĐỘNG RÕ RÀNG để nhân sự có thể làm (vd: "Hãy hoàn thành task X để đạt KPI...").
+        1. TONE GIỌNG: CHUYÊN NGHIỆP, TRUNG LẬP - KHÔNG PHÁN XÉT.
+        2. Cảnh báo nếu nhân sự có task trễ tiến độ.
+        3. KHÔNG chia sẻ dữ liệu của người khác. Dữ liệu đã được cung cấp sẵn ở bên dưới là của riêng nhân sự.
+        4. Đề xuất 1 HÀNH ĐỘNG RÕ RÀNG để nhân sự có thể làm (vd: "Hãy ưu tiên hoàn thành task X trước...").
         `;
 
         const recentHistory = history.slice(-6).map(m => ({
@@ -450,7 +445,7 @@ export const processHRQuestion = async (
 
         if (!response.ok) {
             console.error("Fetch Proxy Error:", await response.text());
-            return `Hệ thống tính AI HR đang gián đoạn. Số liệu cơ bản của bạn:\nLương ước tính: ${salaryData.finalSalary.toLocaleString('vi-VN')} VNĐ (KPI: ${salaryData.kpiPercent.toFixed(1)}%).`;
+            return `Hệ thống tính AI đang gián đoạn. Số liệu cơ bản của bạn:\nTổng tồn đọng: ${salaryData.overdueCarriedOver + salaryData.overdueThisMonth} task trễ hạn.`;
         }
         
         const result = await response.json();
