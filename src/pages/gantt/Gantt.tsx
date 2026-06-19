@@ -443,17 +443,23 @@ export const Gantt = () => {
         const project = projects.find(p => p.id === projectId);
         const projCode = project?.project_code || 'PROJ';
         
+        const PHASE_SHORT: Record<string, string> = { concept: 'C', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
+        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey.toLowerCase()] || 'KH') : 'KH';
+        const prefix = `${projCode}-${phaseCode}`;
+
         let maxId = 0;
         const projTasks = tasks.filter(t => t.project_id === projectId);
         projTasks.forEach(t => {
-            const match = (t.task_code || '').match(/-(\d+)$/);
-            if (match) {
-                const num = parseInt(match[1], 10);
-                if (num > maxId) maxId = num;
+            if (t.task_code?.startsWith(prefix)) {
+                const match = (t.task_code || '').match(/-(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxId) maxId = num;
+                }
             }
         });
         
-        return `${projCode}-${String(maxId + 1).padStart(2, '0')}`;
+        return `${prefix}-${String(maxId + 1).padStart(2, '0')}`;
     };
 
     const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {

@@ -213,32 +213,41 @@ export const Tasks = () => {
         return 'bg-slate-50 text-slate-500 border-slate-100'
     }
 
-    const generateNextTaskCode = async (projectId: string) => {
+    const generateNextTaskCode = async (projectId: string, phaseKey?: string) => {
         const { data: projTasks } = await supabase
             .from('tasks')
             .select('task_code')
             .eq('project_id', projectId);
+            
+        const projCode = getProjectCode(projectId);
+        if (!projCode) return `TASK-${Date.now().toString(36)}`;
+
+        const PHASE_SHORT: Record<string, string> = { concept: 'C', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
+        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey.toLowerCase()] || 'KH') : 'KH';
+        const prefix = `${projCode}-${phaseCode}`;
+
         let maxId = 0;
         (projTasks || []).forEach((t: any) => {
-            const match = (t.task_code || '').match(/-(\d+)$/);
-            if (match) {
-                const num = parseInt(match[1], 10);
-                if (num > maxId) maxId = num;
+            if (t.task_code?.startsWith(prefix)) {
+                const match = (t.task_code || '').match(/-(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxId) maxId = num;
+                }
             }
         });
-        const projCode = getProjectCode(projectId);
-        return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : `TASK-${Date.now().toString(36)}`;
+        return `${prefix}-${String(maxId + 1).padStart(2, '0')}`;
     }
 
     const openAddModal = async (projectId?: string, defaultValues?: any) => {
         setEditingTask(null)
-        const nextCode = projectId ? await generateNextTaskCode(projectId) : ''
+        const nextCode = projectId ? await generateNextTaskCode(projectId, defaultValues?.target) : ''
         setInitialTaskData({ task_code: nextCode, project_id: projectId || '', ...defaultValues })
         setShowModal(true)
     }
 
     const openQuickAddModal = async (defaultValues?: any) => {
-        const nextCode = defaultValues?.project_id ? await generateNextTaskCode(defaultValues.project_id) : ''
+        const nextCode = defaultValues?.project_id ? await generateNextTaskCode(defaultValues.project_id, defaultValues?.target) : ''
         setInitialTaskData({ task_code: nextCode, project_id: defaultValues?.project_id || '', ...defaultValues })
         setShowQuickAdd(true)
     }
