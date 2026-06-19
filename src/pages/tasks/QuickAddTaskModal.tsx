@@ -50,11 +50,13 @@ export const QuickAddTaskModal = ({
             const st = initialData.start_date || today
             const ed = initialData.due_date || today
             const days = Math.max(1, differenceInDays(new Date(ed), new Date(st)) + 1)
+            const proj = projects.find(p => p.id === initialData.project_id)
+            const defaultTarget = proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp')) ? 'construction' : ''
             setForm({
                 name: '',
                 task_code: initialData.task_code,
                 project_id: initialData.project_id,
-                target: '',
+                target: defaultTarget,
                 status: 'Cần làm',
                 start_date: st,
                 due_date: ed,
@@ -64,7 +66,7 @@ export const QuickAddTaskModal = ({
                 description: ''
             })
         }
-    }, [isOpen, initialData, currentUserProfile, today])
+    }, [isOpen, initialData, currentUserProfile, today, projects])
 
     if (!isOpen) return null
 
@@ -173,7 +175,15 @@ export const QuickAddTaskModal = ({
                                 <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Dự án</label>
                                 <select 
                                     value={form.project_id}
-                                    onChange={e => setForm({...form, project_id: e.target.value})}
+                                    onChange={e => {
+                                        const nextProjId = e.target.value
+                                        const proj = projects.find(p => p.id === nextProjId)
+                                        let nextTarget = form.target
+                                        if (proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp'))) {
+                                            nextTarget = 'construction'
+                                        }
+                                        setForm({...form, project_id: nextProjId, target: nextTarget})
+                                    }}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                 >
                                     <option value="">Chọn dự án...</option>

@@ -284,6 +284,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
             } else {
                 const today = new Date().toISOString().split('T')[0];
+                const proj = projects.find(p => p.id === initialData.project_id);
+                let defaultTarget = initialData.target || '';
+                if (!defaultTarget && proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp'))) {
+                    defaultTarget = 'construction';
+                }
 
                 setForm({
                     task_code: initialData.task_code,
@@ -301,23 +306,28 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     result_links: '',
                     notes: '',
                     parent_id: initialData.parent_id || '',
-                    target: initialData.target || ''
+                    target: defaultTarget
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
             }
         }
-    }, [isOpen, editingTask, initialData]);
+    }, [isOpen, editingTask, initialData, projects]);
 
     const handleProjectChange = async (projectId: string) => {
         const nextCode = generateNextTaskCode ? await generateNextTaskCode(projectId) : form.task_code;
+        const proj = projects.find(p => p.id === projectId);
+        let newTarget = form.target;
+        if (proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp'))) {
+            newTarget = 'construction';
+        }
         setForm(prev => ({
             ...prev,
             project_id: projectId,
             task_code: nextCode,
             assignee_id: currentUserProfile?.id || prev.assignee_id,
             parent_id: '',
-            target: prev.target // keep phase when changing project
+            target: newTarget
         }));
     }
 
@@ -591,6 +601,9 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                 let finalSubCode = `${editingTask.task_code}-${String(subTasks.length + 1).padStart(2, '0')}`;
                 let finalData = null;
 
+                const proj = projects.find(p => p.id === editingTask.project_id);
+                const subTarget = proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp')) ? 'construction' : null;
+
                 while (!success && retryCount < 10) {
                     const { data, error } = await supabase.from('tasks').insert({
                         name: subTaskName,
@@ -599,6 +612,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         task_code: finalSubCode,
                         status: 'Cần làm',
                         priority: 'DQH',
+                        target: subTarget,
                         completion_pct: 0
                     }).select().single();
 

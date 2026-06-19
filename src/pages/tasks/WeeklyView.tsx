@@ -77,9 +77,16 @@ const PHASE_MAP: Record<string, { label: string; color: string }> = {
     'construction': { label: 'Thi công',      color: 'bg-orange-100 text-orange-700' },
 }
 
-function getPhaseLabel(target: string | null | undefined) {
-    if (!target) return null
-    return PHASE_MAP[target] || null
+function getPhaseLabel(target: string | null | undefined, projectId?: string, projects?: Project[]) {
+    let resolvedTarget = target;
+    if (!resolvedTarget && projectId && projects) {
+        const p = projects.find(x => x.id === projectId);
+        if (p && (p.status === 'Thi công' || (p.name || '').toLowerCase().includes('tổng hợp'))) {
+            resolvedTarget = 'construction';
+        }
+    }
+    if (!resolvedTarget) return null;
+    return PHASE_MAP[resolvedTarget] || null;
 }
 
 const AVATAR_COLORS = [
@@ -154,6 +161,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const getProjectCode = (id: string) => {
         return (projects.find(p => p.id === id) as any)?.project_code || ''
     }
+    const getTaskSubtitle = (t: Task) => {
+        const projName = getProjectName(t.project_id)
+        if (t.parent_id) {
+            const parentTask = tasks.find(x => x.id === t.parent_id)
+            if (parentTask) {
+                return `${projName} / ${parentTask.name}`
+            }
+        }
+        return projName
+    }
 
     // Tasks relevant to this week:
     // 1. due_date falls in this week
@@ -163,6 +180,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         const monStr = format(mon, 'yyyy-MM-dd')
         const sunStr = format(sun, 'yyyy-MM-dd')
         return tasks.filter(t => {
+            if (!t.parent_id) {
+                const proj = projects.find(p => p.id === t.project_id)
+                if (proj && (proj.status === 'Thi công' || (proj.name || '').toLowerCase().includes('tổng hợp'))) {
+                    return false // hide parent tasks of construction/tổng hợp projects
+                }
+            }
+
             if (!t.due_date) return false
             const startRaw = ((t as any).start_date || t.due_date) as string
             const startStr = startRaw.substring(0, 10)
@@ -177,7 +201,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             if (filterProject && t.project_id  !== filterProject) return false
             return true
         })
-    }, [tasks, weekOffset, filterPerson, filterProject, mon, sun])
+    }, [tasks, weekOffset, filterPerson, filterProject, mon, sun, projects])
 
     const stats = {
         total:   weekTasks.length,
@@ -492,7 +516,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                     {t.name || t.task_code || 'Chưa có tên'}
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-0.5">
-                                                                    <span className="text-[9px] font-semibold text-slate-400 truncate max-w-[140px]">{getProjectName(t.project_id)}</span>
+                                                                    <span className="text-[9px] font-semibold text-slate-400 truncate max-w-[140px]">{getTaskSubtitle(t)}</span>
                                                                     <span className={`text-[9px] font-medium ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{fmtShort(d)}</span>
                                                                 </div>
                                                             </div>
@@ -510,12 +534,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                         <div className="hidden md:grid grid-cols-[1fr_64px_70px_100px_110px_32px] gap-2 pl-8 pr-5 py-2 items-center group relative">
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5 overflow-hidden">
-                                                                    {getPhaseLabel((t as any).target) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target)!.color}`}>{getPhaseLabel((t as any).target)!.label}</span>}
+                                                                    {getPhaseLabel((t as any).target, t.project_id, projects) && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${getPhaseLabel((t as any).target, t.project_id, projects)!.color}`}>{getPhaseLabel((t as any).target, t.project_id, projects)!.label}</span>}
                                                                     <div className={`text-xs font-semibold truncate min-w-0 flex-1 cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600 hover:underline'}`} onClick={() => onEditTask?.(t)}>
                                                                         {t.name || t.task_code || 'Chưa có tên'}
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getProjectName(t.project_id)}</div>
+                                                                <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getTaskSubtitle(t)}</div>
                                                             </div>
                                                             <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{fmtShort(d)}</span>
                                                             <div className="flex items-center gap-1.5">
