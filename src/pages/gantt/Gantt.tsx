@@ -441,18 +441,19 @@ export const Gantt = () => {
 
     const generateTaskCode = (projectId: string, phaseKey: string | null) => {
         const project = projects.find(p => p.id === projectId);
-        const projCode = (project?.project_code || 'T').replace(/-/g, '');
-        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey] || 'KH') : 'KH';
-        const now = new Date();
-        const dd = String(now.getDate()).padStart(2, '0');
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const yy = String(now.getFullYear()).slice(-2);
-        const prefix = `${projCode}-${phaseCode}-${dd}${mm}${yy}`;
+        const projCode = project?.project_code || 'PROJ';
         
-        // Đếm task đã có cùng prefix để tạo số thứ tự
-        const existingCount = tasks.filter(t => t.task_code?.startsWith(prefix)).length;
-        const seq = String(existingCount + 1).padStart(2, '0');
-        return `${prefix}-${seq}`;
+        let maxId = 0;
+        const projTasks = tasks.filter(t => t.project_id === projectId);
+        projTasks.forEach(t => {
+            const match = (t.task_code || '').match(/-(\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxId) maxId = num;
+            }
+        });
+        
+        return `${projCode}-${String(maxId + 1).padStart(2, '0')}`;
     };
 
     const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
