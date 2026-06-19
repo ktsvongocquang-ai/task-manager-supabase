@@ -661,7 +661,7 @@ export const Gantt = () => {
                                                                 onClick={(e) => handleQuickAdd(
                                                                     null,
                                                                     item.task?.project_id || '',
-                                                                    item.name,
+                                                                    item.phaseKey || item.name,
                                                                     e
                                                                 )}
                                                                 className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded bg-blue-500 text-white opacity-0 group-hover/row:opacity-100 hover:bg-blue-600 transition-all ml-auto"
