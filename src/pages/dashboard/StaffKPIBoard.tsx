@@ -47,7 +47,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
 }) => {
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
     const [showAll, setShowAll] = useState(false);
-    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(currentProfile?.role?.trim() || '');
+    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(currentProfile?.role?.trim() || '');
 
     const projectMap = useMemo(() => {
         const m: Record<string, Project> = {};

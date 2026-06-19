@@ -6,6 +6,8 @@ interface HRAssistantChatProps {
     userId?: string
     userRole?: string
     userName?: string
+    controlledIsOpen?: boolean
+    onClose?: () => void
 }
 
 const HR_QUESTIONS = [
@@ -15,8 +17,16 @@ const HR_QUESTIONS = [
     { icon: '📈', text: 'Làm sao để tôi đạt 100% KPI?' },
 ];
 
-export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatProps) => {
-    const [isOpen, setIsOpen] = useState(false)
+export const HRAssistantChat = ({ userId, userRole, userName, controlledIsOpen, onClose }: HRAssistantChatProps) => {
+    const [internalIsOpen, setInternalIsOpen] = useState(false)
+    const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen
+    const setIsOpen = (val: boolean) => {
+        if (controlledIsOpen !== undefined) {
+            if (!val && onClose) onClose()
+        } else {
+            setInternalIsOpen(val)
+        }
+    }
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -67,27 +77,33 @@ export const HRAssistantChat = ({ userId, userRole, userName }: HRAssistantChatP
 
     return (
         <>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`fixed bottom-20 md:bottom-24 left-4 md:left-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-95 group ${
-                    isOpen
-                        ? 'bg-slate-800 rotate-0 shadow-slate-800/30'
-                        : 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-teal-500/40 hover:shadow-teal-500/60'
-                }`}
-                title="HR Assistant"
-            >
-                {isOpen ? (
-                    <X size={22} className="text-white" />
-                ) : (
-                    <>
-                        <UserCheck size={24} className="text-white relative z-10" />
-                        <span className="absolute w-full h-full rounded-full bg-teal-400/30 animate-ping" />
-                    </>
-                )}
-            </button>
+            {controlledIsOpen === undefined && (
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`fixed bottom-20 md:bottom-24 left-4 md:left-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-95 group ${
+                        isOpen
+                            ? 'bg-slate-800 rotate-0 shadow-slate-800/30'
+                            : 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-teal-500/40 hover:shadow-teal-500/60'
+                    }`}
+                    title="HR Assistant"
+                >
+                    {isOpen ? (
+                        <X size={22} className="text-white" />
+                    ) : (
+                        <>
+                            <UserCheck size={24} className="text-white relative z-10" />
+                            <span className="absolute w-full h-full rounded-full bg-teal-400/30 animate-ping" />
+                        </>
+                    )}
+                </button>
+            )}
 
             {isOpen && (
-                <div className="fixed z-[99] bottom-36 md:bottom-40 left-3 md:left-6 w-[calc(100vw-24px)] md:w-[400px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[550px] max-h-[70vh] animate-in fade-in slide-in-from-bottom-5">
+                <div className={`fixed z-[99] ${
+                    controlledIsOpen !== undefined 
+                        ? 'bottom-24 md:bottom-28 left-3 md:left-[272px] w-[calc(100vw-24px)] md:w-[400px]' 
+                        : 'bottom-36 md:bottom-40 left-3 md:left-6 w-[calc(100vw-24px)] md:w-[400px]'
+                } bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[550px] max-h-[70vh] animate-in fade-in slide-in-from-bottom-5`}>
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-3 flex justify-between items-center text-white shrink-0">
                         <div className="flex items-center gap-3">

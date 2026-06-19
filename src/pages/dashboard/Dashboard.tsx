@@ -138,7 +138,7 @@ export const Dashboard = () => {
             let fetchedProjects = (projects || []) as Project[]
             const fetchedProfiles = (profiles || []) as any[]
 
-            const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '');
+            const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '');
 
             if (!isManagerOrAdmin) {
                 fetchedTasks = fetchedTasks.filter(t =>

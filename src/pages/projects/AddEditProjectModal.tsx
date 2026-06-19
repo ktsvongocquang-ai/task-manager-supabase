@@ -220,16 +220,16 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                             value={form.manager_id}
                             onChange={(e) => setForm({ ...form, manager_id: e.target.value })}
                             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-75 disabled:cursor-not-allowed"
-                            disabled={currentUserProfile?.role !== 'Admin' && currentUserProfile?.role !== 'Quản lý'}
+                            disabled={!['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(currentUserProfile?.role || '')}
                         >
                             <option value="">Chọn quản lý</option>
                             {profiles
-                                .filter(p => currentUserProfile?.role === 'Admin' || currentUserProfile?.role === 'Quản lý' || p.id === currentUserProfile?.id)
+                                .filter(p => ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(currentUserProfile?.role || '') || p.id === currentUserProfile?.id)
                                 .map(p => (
                                     <option key={p.id} value={p.id}>{p.full_name}</option>
                                 ))}
                         </select>
-                        {!['Admin', 'Quản lý', 'Giám đốc'].includes(currentUserProfile?.role?.trim() || '') && (
+                        {!['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(currentUserProfile?.role?.trim() || '') && (
                             <p className="text-[10px] text-slate-400 mt-1.5 italic">* Nhân sự này tạo dự án sẽ mặc định được gán làm quản lý dự án đó.</p>
                         )}
                     </div>

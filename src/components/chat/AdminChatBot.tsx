@@ -5,10 +5,20 @@ import { processAdminQuestion, QUICK_QUESTIONS, type ChatMessage } from '../../s
 interface AdminChatBotProps {
     userRole?: string
     userName?: string
+    controlledIsOpen?: boolean
+    onClose?: () => void
 }
 
-export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
-    const [isOpen, setIsOpen] = useState(false)
+export const AdminChatBot = ({ userRole, userName, controlledIsOpen, onClose }: AdminChatBotProps) => {
+    const [internalIsOpen, setInternalIsOpen] = useState(false)
+    const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen
+    const setIsOpen = (val: boolean) => {
+        if (controlledIsOpen !== undefined) {
+            if (!val && onClose) onClose()
+        } else {
+            setInternalIsOpen(val)
+        }
+    }
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: 'assistant',
@@ -117,30 +127,32 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
     return (
         <>
             {/* Floating Action Button */}
-            <button
-                id="admin-chatbot-fab"
-                onClick={() => setIsOpen(!isOpen)}
-                className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-95 group ${
-                    isOpen
-                        ? 'bg-slate-800 rotate-0 shadow-slate-800/30'
-                        : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 shadow-indigo-500/40 hover:shadow-indigo-500/60'
-                }`}
-                title="DQH AI Assistant"
-            >
-                {isOpen ? (
-                    <X size={22} className="text-white" />
-                ) : (
-                    <>
-                        <Bot size={24} className="text-white" />
-                        {/* Pulse ring */}
-                        <span className="absolute w-full h-full rounded-full bg-indigo-500/30 animate-ping" />
-                        {/* Notification dot */}
-                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
-                            <Sparkles size={8} className="text-white" />
-                        </span>
-                    </>
-                )}
-            </button>
+            {controlledIsOpen === undefined && (
+                <button
+                    id="admin-chatbot-fab"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[100] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-95 group ${
+                        isOpen
+                            ? 'bg-slate-800 rotate-0 shadow-slate-800/30'
+                            : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 shadow-indigo-500/40 hover:shadow-indigo-500/60'
+                    }`}
+                    title="DQH AI Assistant"
+                >
+                    {isOpen ? (
+                        <X size={22} className="text-white" />
+                    ) : (
+                        <>
+                            <Bot size={24} className="text-white" />
+                            {/* Pulse ring */}
+                            <span className="absolute w-full h-full rounded-full bg-indigo-500/30 animate-ping" />
+                            {/* Notification dot */}
+                            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-white flex items-center justify-center">
+                                <Sparkles size={8} className="text-white" />
+                            </span>
+                        </>
+                    )}
+                </button>
+            )}
 
             {/* Chat Panel */}
             <div
@@ -148,7 +160,11 @@ export const AdminChatBot = ({ userRole, userName }: AdminChatBotProps) => {
                     isOpen
                         ? 'opacity-100 translate-y-0 pointer-events-auto'
                         : 'opacity-0 translate-y-8 pointer-events-none'
-                } bottom-36 md:bottom-24 right-3 md:right-6 w-[calc(100vw-24px)] md:w-[420px] max-h-[70vh] md:max-h-[600px]`}
+                } ${
+                    controlledIsOpen !== undefined 
+                        ? 'bottom-24 md:bottom-28 left-3 md:left-[272px] w-[calc(100vw-24px)] md:w-[420px]' 
+                        : 'bottom-36 md:bottom-24 right-3 md:right-6 w-[calc(100vw-24px)] md:w-[420px]'
+                } max-h-[70vh] md:max-h-[600px]`}
             >
                 <div className="bg-white rounded-2xl shadow-2xl shadow-slate-900/20 border border-slate-200/80 flex flex-col overflow-hidden h-full max-h-[70vh] md:max-h-[600px]">
                     {/* Header */}

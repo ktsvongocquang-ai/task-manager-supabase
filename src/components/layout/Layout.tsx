@@ -30,14 +30,15 @@ import {
     Database,
     Calculator,
     BookOpen,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Bot
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
 import { GlobalModals } from '../modals/GlobalModals'
 import { GlobalChat } from '../chat/GlobalChat'
-// import { AdminChatBot } from '../chat/AdminChatBot'
-// import { HRAssistantChat } from '../chat/HRAssistantChat'
+import { AdminChatBot } from '../chat/AdminChatBot'
+import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
@@ -73,6 +74,7 @@ export const Layout = () => {
     const [unreadNotifCount, setUnreadNotifCount] = useState(0) // Added state for unread notification count
     const [isLauncherOpen, setIsLauncherOpen] = useState(false) // Added Fullscreen Launcher state
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false) // Added Mobile Sidebar state
+    const [isChatBotOpen, setIsChatBotOpen] = useState(false) // Added AI Assistant state
     
     // Accordion sidebar state
     const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Thiết kế': true, 'Quản lý thiết kế': true, 'Công việc': true })
@@ -382,20 +384,35 @@ export const Layout = () => {
                     </button>
 
                     {/* User Profile Card */}
-                    <div className="bg-gray-50 rounded-xl p-4 border border-border-main mb-4">
-                        <button 
-                            onClick={() => navigate('/profile')}
-                            className="flex items-center space-x-3 w-full text-left hover:bg-gray-100 p-2 -mx-2 rounded-lg transition-colors group"
-                            title="Xem hồ sơ của bạn"
-                        >
-                            <div className={`w-10 h-10 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover:scale-105 transition-transform`}>
-                                {getInitials(profile?.full_name)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-text-main truncate group-hover:text-indigo-600 transition-colors">{profile?.full_name || 'Người dùng'}</p>
-                                <p className={`text-xs ${getRoleBrand(profile?.role).text}`}>{profile?.role || 'Thiết kế'}</p>
-                            </div>
-                        </button>
+                    <div className="bg-gray-50 rounded-xl p-3 border border-border-main mb-4">
+                        <div className="flex items-center justify-between gap-1">
+                            <button 
+                                onClick={() => navigate('/profile')}
+                                className="flex items-center space-x-2.5 flex-1 min-w-0 text-left hover:bg-gray-100 p-1.5 -ml-1 rounded-lg transition-colors group"
+                                title="Xem hồ sơ của bạn"
+                            >
+                                <div className={`w-9 h-9 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover:scale-105 transition-transform shrink-0`}>
+                                    {getInitials(profile?.full_name)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-bold text-text-main truncate group-hover:text-indigo-600 transition-colors leading-tight">{profile?.full_name || 'Người dùng'}</p>
+                                    <p className={`text-[11px] font-semibold ${getRoleBrand(profile?.role).text} leading-none mt-0.5`}>{profile?.role || 'Thiết kế'}</p>
+                                </div>
+                            </button>
+                            
+                            {/* AI Assistant Button */}
+                            <button
+                                onClick={() => setIsChatBotOpen(!isChatBotOpen)}
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 border shrink-0 ${
+                                    isChatBotOpen
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20 active:scale-95'
+                                        : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50 hover:text-indigo-700 shadow-sm active:scale-95'
+                                }`}
+                                title="Trợ lý AI"
+                            >
+                                <Bot size={18} className={isChatBotOpen ? '' : 'animate-pulse'} />
+                            </button>
+                        </div>
                         <div className="grid grid-cols-2 gap-2 mt-4">
                             <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
@@ -758,9 +775,26 @@ export const Layout = () => {
             )}
 
             {/* Global Modals Wrapper */}
-            {/* Admin AI Chatbot removed per request */}
+            {/* Admin AI Chatbot */}
+            {profile?.role?.trim() === 'Admin' && (
+                <AdminChatBot
+                    userRole={profile?.role}
+                    userName={profile?.full_name}
+                    controlledIsOpen={isChatBotOpen}
+                    onClose={() => setIsChatBotOpen(false)}
+                />
+            )}
 
-            {/* HR AI Chatbot removed per request */}
+            {/* HR AI Chatbot */}
+            {profile?.role?.trim() !== 'Admin' && (
+                <HRAssistantChat
+                    userId={profile?.id}
+                    userRole={profile?.role}
+                    userName={profile?.full_name}
+                    controlledIsOpen={isChatBotOpen}
+                    onClose={() => setIsChatBotOpen(false)}
+                />
+            )}
 
             <GlobalModals
                 isProjectModalOpen={isGlobalAddProjectOpen}
