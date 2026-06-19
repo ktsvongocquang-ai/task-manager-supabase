@@ -523,8 +523,8 @@ export const Gantt = () => {
                         {/* Unified Header */}
                         <div className="flex sticky top-0 z-40 bg-white h-[62px] w-max">
                             {/* Left Header - Sticky Left */}
-                            <div className="sticky left-0 z-50 flex bg-slate-50 w-[420px] border-b border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                <div className="w-[200px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
+                            <div className="sticky left-0 z-50 flex bg-slate-50 w-[500px] border-b border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                <div className="w-[280px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
                                     MÔ TẢ
                                 </div>
                                 <div className="w-[70px] px-1 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center justify-center text-center bg-slate-50">
@@ -630,8 +630,8 @@ export const Gantt = () => {
                                     return (
                                         <div key={item.id} className="flex h-9 border-b border-slate-200 hover:bg-slate-50 transition-colors group/row w-max">
                                             {/* Left Cells - Sticky Left */}
-                                            <div className={`sticky left-0 z-30 flex w-[420px] border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
-                                                <div className="w-[200px] px-3 py-2 border-r border-slate-200 flex flex-col justify-center overflow-hidden">
+                                            <div className={`sticky left-0 z-30 flex w-[500px] border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${item.type === 'project' ? 'bg-[#e0e4db]' : item.type === 'phase' ? 'bg-slate-100' : 'bg-white'}`}>
+                                                <div className="w-[280px] px-3 py-2 border-r border-slate-200 flex flex-col justify-center overflow-hidden">
                                                     <div className="flex items-center gap-1">
                                                         {item.type === 'project' && (
                                                             <button onClick={() => toggleProject(item.id)} className="w-4 h-4 flex items-center justify-center hover:bg-slate-200 rounded text-slate-500 flex-shrink-0">
