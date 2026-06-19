@@ -11,7 +11,7 @@ export const getAssignableProfiles = (profiles: any[], target: string | null | u
         const isManager = role.includes('admin') || role.includes('quản lý') || role.includes('giám đốc');
         
         if (isDesignPhase) {
-            return role.includes('thiết kế') || role.includes('triển khai');
+            return role.includes('thiết kế') || role.includes('triển khai') || isManager;
         }
         if (isConstructionPhase) {
             return role.includes('thi công') || role.includes('giám sát') || isManager;

@@ -903,6 +903,13 @@ export const Gantt = () => {
                 onClose={() => setIsCreateModalOpen(false)}
                 onSaved={() => {
                     setIsCreateModalOpen(false);
+                    // Auto-expand phase để task mới hiện trên timeline
+                    if (createModalInitialData.target && createModalInitialData.project_id) {
+                        const phaseId = `phase_${createModalInitialData.project_id}_${createModalInitialData.target}`;
+                        setExpandedPhases(prev => new Set(prev).add(phaseId));
+                        // Also expand the project
+                        setExpandedProjects(prev => new Set(prev).add(createModalInitialData.project_id));
+                    }
                     fetchData();
                 }}
                 editingTask={null}
