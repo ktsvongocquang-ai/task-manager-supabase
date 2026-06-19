@@ -413,11 +413,14 @@ export const Gantt = () => {
         const newTask: any = {
             name: 'Nhiệm vụ mới',
             project_id: projectId,
-            parent_id: parentId,
             status: 'Chưa bắt đầu',
             priority: 'Bình thường',
             task_code: `T${Date.now()}`
         };
+
+        if (parentId) {
+            newTask.parent_id = parentId;
+        }
 
         if (targetPhase) {
             newTask.target = targetPhase;
@@ -425,10 +428,18 @@ export const Gantt = () => {
 
         const { data, error } = await supabase.from('tasks').insert([newTask]).select();
         
-        if (!error && data) {
+        if (error) {
+            console.error('Error creating task:', error);
+            alert('Lỗi tạo task: ' + error.message);
+            return;
+        }
+        
+        if (data) {
             setTasks(prev => [...prev, data[0] as Task]);
-            // Automatically expand the phase so the user can see it
-            setExpandedPhases(prev => new Set(prev).add(parentId));
+            if (targetPhase) {
+                const phaseId = `phase_${projectId}_${targetPhase}`;
+                setExpandedPhases(prev => new Set(prev).add(phaseId));
+            }
         }
     };
 
@@ -648,9 +659,9 @@ export const Gantt = () => {
                                                         {(item.type === 'project' || item.type === 'phase') && (
                                                             <button
                                                                 onClick={(e) => handleQuickAdd(
-                                                                    item.type === 'phase' ? item.task?.id || null : null,
+                                                                    null,
                                                                     item.type === 'project' ? item.id : (item.task?.project_id || ''),
-                                                                    item.type === 'phase' ? (item.task?.target || item.name) : null,
+                                                                    item.type === 'phase' ? item.name : null,
                                                                     e
                                                                 )}
                                                                 className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded bg-blue-500 text-white opacity-0 group-hover/row:opacity-100 hover:bg-blue-600 transition-all ml-auto"
