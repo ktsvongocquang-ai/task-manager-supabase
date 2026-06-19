@@ -14,6 +14,7 @@ import { ChevronRight } from 'lucide-react'
 export const Projects = () => {
     const { profile } = useAuthStore()
     const navigate = useNavigate()
+    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '')
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [search, setSearch] = useState('')
@@ -92,11 +93,8 @@ export const Projects = () => {
     }
 
     const filteredAllTasks = allTasks.filter(t => {
-        const userRole = profile?.role;
         const isAssigned = t.assignee_id === profile?.id;
         const isSupporter = t.supporter_id === profile?.id;
-
-        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(userRole?.trim() || '');
 
         let isVisible = true;
         if (!isManagerOrAdmin) {
@@ -123,9 +121,6 @@ export const Projects = () => {
     const [viewScope, setViewScope] = useState<'all' | 'mine'>('all')
 
     const baseFilteredProjects = projects.filter(p => {
-        const userRole = profile?.role;
-        const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(userRole?.trim() || '');
-        
         let isVisible = true;
         if (!isManagerOrAdmin && viewScope === 'mine') {
             isVisible = p.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === p.id);
@@ -604,7 +599,6 @@ export const Projects = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProjects.map((project) => {
                     const progress = getProjectProgress(project.id);
-                    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '');
                     return (
                         <div key={project.id} onClick={() => openUnifiedModal(project, 'tasks')} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
                             {/* Progress Bar Top */}
@@ -852,7 +846,6 @@ export const Projects = () => {
                 canEdit={(() => {
                     if (!unifiedProjectData?.project) return false;
                     const p = unifiedProjectData.project;
-                    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '');
                     const isMine = p.manager_id === profile?.id || allTasks.some(t => t.project_id === p.id && (t.assignee_id === profile?.id || t.supporter_id === profile?.id));
                     return isManagerOrAdmin || isMine;
                 })()}
