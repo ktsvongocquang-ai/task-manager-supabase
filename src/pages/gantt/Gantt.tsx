@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Search, ZoomIn, ZoomOut, Calendar, ChevronDo
 import { format } from 'date-fns'
 import { QuickTaskModal } from './QuickTaskModal'
 import { Plus, Trash2 } from 'lucide-react'
+import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
@@ -31,6 +32,8 @@ export const Gantt = () => {
     const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project' | 'phase', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
     const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null)
     const [editValue, setEditValue] = useState<string>('')
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [createModalInitialData, setCreateModalInitialData] = useState<{ project_id: string, target?: string }>({ project_id: '' })
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -407,40 +410,14 @@ export const Gantt = () => {
         setEditingCell(null);
     };
 
-    const handleQuickAdd = async (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
+    const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
         e.stopPropagation();
-        
-        const newTask: any = {
-            name: 'Nhiệm vụ mới',
+        setCreateModalInitialData({
             project_id: projectId,
-            status: 'Chưa bắt đầu',
-            priority: 'Bình thường',
-            task_code: `T${Date.now()}`
-        };
-
-        if (parentId) {
-            newTask.parent_id = parentId;
-        }
-
-        if (targetPhase) {
-            newTask.target = targetPhase;
-        }
-
-        const { data, error } = await supabase.from('tasks').insert([newTask]).select();
-        
-        if (error) {
-            console.error('Error creating task:', error);
-            alert('Lỗi tạo task: ' + error.message);
-            return;
-        }
-        
-        if (data) {
-            setTasks(prev => [...prev, data[0] as Task]);
-            if (targetPhase) {
-                const phaseId = `phase_${projectId}_${targetPhase}`;
-                setExpandedPhases(prev => new Set(prev).add(phaseId));
-            }
-        }
+            target: targetPhase || undefined
+        });
+        setEditingTask(null);
+        setIsCreateModalOpen(true);
     };
 
     const cellWidth = Math.max(20, Math.round(28 * zoom / 100))
@@ -894,6 +871,25 @@ export const Gantt = () => {
                 profiles={profiles}
                 currentUserProfile={currentUserProfile}
                 projects={projects}
+            />
+
+            {/* Create Task Modal from Gantt + button */}
+            <AddEditTaskModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSaved={() => {
+                    setIsCreateModalOpen(false);
+                    fetchData();
+                }}
+                editingTask={null}
+                initialData={{
+                    task_code: `T${Date.now()}`,
+                    project_id: createModalInitialData.project_id,
+                    target: createModalInitialData.target
+                }}
+                projects={projects}
+                profiles={profiles}
+                currentUserProfile={currentUserProfile}
             />
         </div >
     )

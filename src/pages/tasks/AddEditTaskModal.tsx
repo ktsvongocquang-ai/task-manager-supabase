@@ -21,6 +21,7 @@ interface AddEditTaskModalProps {
         start_date?: string;
         due_date?: string;
         assignee_id?: string;
+        target?: string;
     };
     projects: Project[];
     profiles: any[];
@@ -296,7 +297,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     result_links: '',
                     notes: '',
                     parent_id: '',
-                    target: ''
+                    target: initialData.target || ''
                 });
                 setSubTasks([]);
                 setNewSubtaskName('');
