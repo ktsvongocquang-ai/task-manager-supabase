@@ -16,7 +16,7 @@ interface ProjectTasksTabProps {
     onDeleteTask: (id: string) => void;
     onCopyTask: (task: Task) => void;
     onEditTask: (task: Task) => void;
-    onAddTask: (projectId: string, parentId?: string) => void;
+    onAddTask: (projectId: string, parentId?: string, target?: string) => void;
     onUpdateAssignee: (taskId: string, assigneeId: string) => void;
     canEdit: boolean;
 }
@@ -203,7 +203,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                     {isExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
                                     {canEdit && (
                                         <button 
-                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id, phase.isRollup ? phase.key : undefined); }} 
+                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id, phase.isRollup ? phase.key : undefined, phase.isRollup ? undefined : phase.key); }} 
                                             className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
                                         >
                                             <Plus size={16} strokeWidth={3} />

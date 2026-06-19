@@ -16,7 +16,7 @@ interface UnifiedProjectModalProps {
     profiles: any[];
     currentUserProfile: any;
     onToggleComplete: (task: Task) => void;
-    onAddTask: (projectId: string, parentId?: string) => void;
+    onAddTask: (projectId: string, parentId?: string, target?: string) => void;
     onEditTask: (task: Task) => void;
     onDeleteTask: (taskId: string) => void;
     onCopyTask: (task: Task) => void;

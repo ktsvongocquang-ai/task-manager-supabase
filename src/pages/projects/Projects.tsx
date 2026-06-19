@@ -447,12 +447,13 @@ export const Projects = () => {
         }
     }
 
-    const openAddTaskModal = (projectId: string, parentId?: string) => {
+    const openAddTaskModal = (projectId: string, parentId?: string, target?: string) => {
         setEditingTask(null);
         setTaskModalInitialData({ 
             task_code: generateNextTaskCode(projectId), 
             project_id: projectId,
-            parent_id: parentId || ''
+            parent_id: parentId || '',
+            target: target || ''
         } as any);
         setShowTaskModal(true);
     }
@@ -814,7 +815,7 @@ export const Projects = () => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    openAddTaskModal(project.id, phase.isRollup ? phase.key : undefined);
+                                                                    openAddTaskModal(project.id, phase.isRollup ? phase.key : undefined, phase.isRollup ? undefined : phase.key);
                                                                 }}
                                                                 className="text-[10px] font-bold text-blue-600 hover:bg-blue-100 bg-white px-2 py-0.5 rounded border border-blue-200 transition-colors flex items-center gap-0.5"
                                                             >
@@ -876,10 +877,10 @@ export const Projects = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 onToggleComplete={handleToggleTaskComplete}
-                onAddTask={(projectId, parentId) => {
+                onAddTask={(projectId, parentId, target) => {
                     const p = projects.find(p => p.id === projectId);
                     if (p) {
-                        setTaskModalInitialData({ project_id: projectId, task_code: `${p.project_code}-`, parent_id: parentId || '' } as any);
+                        setTaskModalInitialData({ project_id: projectId, task_code: `${p.project_code}-`, parent_id: parentId || '', target: target || '' } as any);
                         setEditingTask(null);
                         setShowTaskModal(true);
                     }
