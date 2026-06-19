@@ -33,7 +33,7 @@ export const Gantt = () => {
     const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null)
     const [editValue, setEditValue] = useState<string>('')
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-    const [createModalInitialData, setCreateModalInitialData] = useState<{ project_id: string, target?: string }>({ project_id: '' })
+    const [createModalInitialData, setCreateModalInitialData] = useState<{ project_id: string, target?: string, task_code?: string }>({ project_id: '' })
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -410,11 +410,26 @@ export const Gantt = () => {
         setEditingCell(null);
     };
 
+    const PHASE_SHORT: Record<string, string> = { concept: 'C', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
+
+    const generateTaskCode = (projectId: string, phaseKey: string | null) => {
+        const project = projects.find(p => p.id === projectId);
+        const projCode = (project?.project_code || 'T').replace(/-/g, '');
+        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey] || 'KH') : 'KH';
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yy = String(now.getFullYear()).slice(-2);
+        return `${projCode}-${phaseCode}-${dd}${mm}${yy}`;
+    };
+
     const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
         e.stopPropagation();
+        const taskCode = generateTaskCode(projectId, targetPhase);
         setCreateModalInitialData({
             project_id: projectId,
-            target: targetPhase || undefined
+            target: targetPhase || undefined,
+            task_code: taskCode
         });
         setEditingTask(null);
         setIsCreateModalOpen(true);
@@ -883,7 +898,7 @@ export const Gantt = () => {
                 }}
                 editingTask={null}
                 initialData={{
-                    task_code: `T${Date.now()}`,
+                    task_code: createModalInitialData.task_code || `T${Date.now()}`,
                     project_id: createModalInitialData.project_id,
                     target: createModalInitialData.target
                 }}
