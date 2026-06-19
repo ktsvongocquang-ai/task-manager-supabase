@@ -500,7 +500,7 @@ export const Gantt = () => {
                 </button>
                 <div className="flex flex-col items-center">
                     <h2 className="text-2xl font-bold text-gray-900 min-w-[220px] text-center uppercase tracking-tighter bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {MONTHS_VI[month]} {year}
+                        {MONTHS_VI[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </h2>
                     <div className="w-12 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mt-1 opacity-20"></div>
                 </div>
