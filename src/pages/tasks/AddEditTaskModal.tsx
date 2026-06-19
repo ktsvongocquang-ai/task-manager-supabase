@@ -22,6 +22,7 @@ interface AddEditTaskModalProps {
         due_date?: string;
         assignee_id?: string;
         target?: string;
+        parent_id?: string;
     };
     projects: Project[];
     profiles: any[];
@@ -299,7 +300,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     due_time: '',
                     result_links: '',
                     notes: '',
-                    parent_id: '',
+                    parent_id: initialData.parent_id || '',
                     target: initialData.target || ''
                 });
                 setSubTasks([]);

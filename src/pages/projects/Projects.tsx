@@ -32,11 +32,12 @@ export const Projects = () => {
 
     const [unifiedProjectData, setUnifiedProjectData] = useState<{ project: Project, tab: 'tasks' | 'info' | 'timeline' } | null>(null)
     const [showTaskModal, setShowTaskModal] = useState(false)
-    const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '' })
+    const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '', parent_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list'>('cards')
     const [expandedDoneProjects, setExpandedDoneProjects] = useState<Set<string>>(new Set())
     const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
+    const [collapsedRollupPhases, setCollapsedRollupPhases] = useState<Set<string>>(new Set())
 
     const toggleDoneProject = (projectId: string) => {
         setExpandedDoneProjects(prev => {
@@ -134,7 +135,7 @@ export const Projects = () => {
         'Chưa bắt đầu': baseFilteredProjects.filter(p => p.status === 'Chưa bắt đầu' || p.status === 'Mới').length,
         'Đang thực hiện': baseFilteredProjects.filter(p => p.status === 'Đang thực hiện').length,
         'Hoàn thành': baseFilteredProjects.filter(p => p.status === 'Hoàn thành').length,
-        'Tạm dừng': baseFilteredProjects.filter(p => p.status === 'Tạm dừng').length,
+        'Thi công': baseFilteredProjects.filter(p => p.status === 'Thi công').length,
     }
 
     const filteredProjects = baseFilteredProjects.filter(p => {
@@ -446,9 +447,13 @@ export const Projects = () => {
         }
     }
 
-    const openAddTaskModal = (projectId: string) => {
+    const openAddTaskModal = (projectId: string, parentId?: string) => {
         setEditingTask(null);
-        setTaskModalInitialData({ task_code: generateNextTaskCode(projectId), project_id: projectId });
+        setTaskModalInitialData({ 
+            task_code: generateNextTaskCode(projectId), 
+            project_id: projectId,
+            parent_id: parentId || ''
+        } as any);
         setShowTaskModal(true);
     }
 
@@ -461,7 +466,7 @@ export const Projects = () => {
     const getStatusBadge = (status: string) => {
         if (status === 'Hoàn thành') return 'bg-emerald-100 text-emerald-700 border-emerald-200'
         if (status === 'Đang thực hiện') return 'bg-blue-100 text-blue-700 border-blue-200'
-        if (status === 'Tạm dừng') return 'bg-amber-100 text-amber-700 border-amber-200'
+        if (status === 'Thi công') return 'bg-purple-100 text-purple-700 border-purple-200'
         return 'bg-slate-100 text-slate-700 border-slate-200'
     }
 
@@ -572,7 +577,7 @@ export const Projects = () => {
                 {Object.entries(statusCounts).map(([status, count]) => {
                     const isCompleted = status === 'Hoàn thành';
                     const isDoing = status === 'Đang thực hiện';
-                    const isPause = status === 'Tạm dừng';
+                    const isConstruction = status === 'Thi công';
                     
                     return (
                         <button
@@ -583,7 +588,7 @@ export const Projects = () => {
                             <div className={`w-[52px] h-[52px] rounded-full flex items-center justify-center font-bold text-[22px] ${
                                 isCompleted ? 'bg-emerald-50 text-emerald-600' :
                                 isDoing ? 'bg-blue-50 text-blue-600' :
-                                isPause ? 'bg-orange-50 text-orange-500' : 
+                                isConstruction ? 'bg-purple-50 text-purple-600' : 
                                 'bg-slate-50 text-slate-700'
                                 }`}>
                                 {count}
@@ -656,31 +661,59 @@ export const Projects = () => {
             </div>
             )}
 
-            {/* List View - Tasks grouped by project → phase → task */}
+            {/* List View - Tasks grouped by project → phase/parent → task */}
             {projectViewMode === 'list' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 {filteredProjects.map(project => {
                     const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id);
-                    
-                    // Group tasks by phase
-                    const phaseGroups: Record<string, typeof projTasks> = {};
-                    DEFAULT_PHASES.forEach(p => { phaseGroups[p.key] = []; });
-                    projTasks.forEach(t => {
-                        const pk = detectPhase(t);
-                        if (!phaseGroups[pk]) phaseGroups[pk] = [];
-                        phaseGroups[pk].push(t);
-                    });
+                    const isRollup = project.status === 'Thi công' || (project.name || '').toLowerCase().includes('tổng hợp');
 
-                    const togglePhase = (phaseId: string) => {
-                        setExpandedPhases(prev => {
-                            const next = new Set(prev);
-                            if (next.has(phaseId)) next.delete(phaseId);
-                            else next.add(phaseId);
-                            return next;
+                    // Group tasks by phase (only for non-rollup projects)
+                    const phaseGroups: Record<string, typeof projTasks> = {};
+                    if (!isRollup) {
+                        DEFAULT_PHASES.forEach(p => { phaseGroups[p.key] = []; });
+                        projTasks.forEach(t => {
+                            const pk = detectPhase(t);
+                            if (!phaseGroups[pk]) phaseGroups[pk] = [];
+                            phaseGroups[pk].push(t);
                         });
+                    }
+
+                    const activeGroups = isRollup
+                        ? projTasks.map(pt => ({
+                            key: pt.id,
+                            name: pt.name,
+                            isRollup: true,
+                            parentTask: pt
+                          }))
+                        : DEFAULT_PHASES.map(p => ({
+                            key: p.key,
+                            name: p.name,
+                            isRollup: false,
+                            parentTask: null
+                          }));
+
+                    const togglePhase = (phaseId: string, isRollupPhase: boolean) => {
+                        if (isRollupPhase) {
+                            setCollapsedRollupPhases(prev => {
+                                const next = new Set(prev);
+                                if (next.has(phaseId)) next.delete(phaseId);
+                                else next.add(phaseId);
+                                return next;
+                            });
+                        } else {
+                            setExpandedPhases(prev => {
+                                const next = new Set(prev);
+                                if (next.has(phaseId)) next.delete(phaseId);
+                                else next.add(phaseId);
+                                return next;
+                            });
+                        }
                     };
 
-                    const activeTasks = projTasks.filter(t => t.status !== 'Hoàn thành');
+                    const activeTasks = isRollup
+                        ? allTasks.filter(t => t.project_id === project.id && t.parent_id && t.status !== 'Hoàn thành')
+                        : projTasks.filter(t => t.status !== 'Hoàn thành');
 
                     const TaskRow = ({ t }: { t: typeof projTasks[0] }) => {
                         const isDone = t.status === 'Hoàn thành'
@@ -742,29 +775,54 @@ export const Projects = () => {
                                         {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
                                     </div>
 
-                                    {/* Phase Groups (Cấp 2) */}
-                                    {DEFAULT_PHASES.map(phase => {
-                                        const phaseTasks = phaseGroups[phase.key] || [];
-                                        if (phaseTasks.length === 0) return null;
+                                    {/* Phase Groups / Parent Task Groups (Cấp 2) */}
+                                    {activeGroups.map(phase => {
+                                        const phaseTasks = phase.isRollup
+                                            ? allTasks.filter(t => t.parent_id === phase.key)
+                                            : (phaseGroups[phase.key] || []);
+
+                                        if (phaseTasks.length === 0 && !phase.isRollup) return null;
+
                                         const phaseId = `${project.id}_${phase.key}`;
-                                        const isPhaseExpanded = expandedPhases.has(phaseId);
+                                        const isPhaseExpanded = phase.isRollup
+                                            ? !collapsedRollupPhases.has(phaseId)
+                                            : expandedPhases.has(phaseId);
+
                                         const phaseActiveTasks = phaseTasks.filter(t => t.status !== 'Hoàn thành');
                                         const phaseDoneTasks = phaseTasks.filter(t => t.status === 'Hoàn thành');
 
                                         return (
                                             <div key={phase.key}>
                                                 {/* Phase Header */}
-                                                <button
-                                                    onClick={() => togglePhase(phaseId)}
-                                                    className="flex items-center gap-2 w-full px-5 pl-7 py-2 bg-blue-50/50 hover:bg-blue-50 border-b border-slate-100 transition-colors text-left"
+                                                <div
+                                                    className="flex items-center justify-between w-full px-5 pl-7 py-2 bg-blue-50/50 hover:bg-blue-50 border-b border-slate-100 transition-colors text-left cursor-pointer"
+                                                    onClick={() => togglePhase(phaseId, phase.isRollup)}
                                                 >
-                                                    {isPhaseExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-                                                    <span className="text-[11px] font-bold text-slate-700">{phase.name}</span>
-                                                    <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">{phaseActiveTasks.length}</span>
-                                                    {phaseDoneTasks.length > 0 && (
-                                                        <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">✓ {phaseDoneTasks.length}</span>
-                                                    )}
-                                                </button>
+                                                    <div className="flex items-center gap-2">
+                                                        {isPhaseExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+                                                        <span className="text-[11px] font-bold text-slate-700">{phase.name}</span>
+                                                        <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">{phaseActiveTasks.length}</span>
+                                                        {phaseDoneTasks.length > 0 && (
+                                                            <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">✓ {phaseDoneTasks.length}</span>
+                                                        )}
+                                                    </div>
+                                                    {(() => {
+                                                        const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
+                                                        const canEdit = isManagerOrAdmin || isMine;
+                                                        if (!canEdit) return null;
+                                                        return (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    openAddTaskModal(project.id, phase.isRollup ? phase.key : undefined);
+                                                                }}
+                                                                className="text-[10px] font-bold text-blue-600 hover:bg-blue-100 bg-white px-2 py-0.5 rounded border border-blue-200 transition-colors flex items-center gap-0.5"
+                                                            >
+                                                                <Plus size={10} strokeWidth={3} /> Thêm CV
+                                                            </button>
+                                                        );
+                                                    })()}
+                                                </div>
 
                                                 {/* Tasks inside phase (Cấp 3) */}
                                                 {isPhaseExpanded && (
@@ -818,10 +876,10 @@ export const Projects = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 onToggleComplete={handleToggleTaskComplete}
-                onAddTask={(projectId) => {
+                onAddTask={(projectId, parentId) => {
                     const p = projects.find(p => p.id === projectId);
                     if (p) {
-                        setTaskModalInitialData({ project_id: projectId, task_code: `${p.project_code}-` });
+                        setTaskModalInitialData({ project_id: projectId, task_code: `${p.project_code}-`, parent_id: parentId || '' } as any);
                         setEditingTask(null);
                         setShowTaskModal(true);
                     }

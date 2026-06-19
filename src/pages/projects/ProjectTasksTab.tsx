@@ -16,7 +16,7 @@ interface ProjectTasksTabProps {
     onDeleteTask: (id: string) => void;
     onCopyTask: (task: Task) => void;
     onEditTask: (task: Task) => void;
-    onAddTask: (projectId: string) => void;
+    onAddTask: (projectId: string, parentId?: string) => void;
     onUpdateAssignee: (taskId: string, assigneeId: string) => void;
     canEdit: boolean;
 }
@@ -45,7 +45,10 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     });
 
     const togglePhase = (phaseKey: string) => {
-        setExpandedPhases(prev => ({ ...prev, [phaseKey]: !prev[phaseKey] }));
+        setExpandedPhases(prev => {
+            const currentVal = prev[phaseKey] !== false; // default to true if undefined
+            return { ...prev, [phaseKey]: !currentVal };
+        });
     }
 
     if (!isOpen || !project) return null;
@@ -88,7 +91,18 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
         return parts[parts.length - 1].charAt(0).toUpperCase();
     }
 
-    const phases = [
+    const isRollupProject = project?.status === 'Thi công' || (project?.name || '').toLowerCase().includes('tổng hợp');
+
+    const rollupPhases = isRollupProject 
+        ? projectTasks.map(pt => ({
+            key: pt.id,
+            name: pt.name,
+            matchTargets: [pt.id],
+            isRollup: true
+        }))
+        : [];
+
+    const activePhases = isRollupProject ? rollupPhases : [
         {
             key: 'concept',
             name: 'Concept',
@@ -138,14 +152,28 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
 
             {/* Task List Grouped by Phase */}
             <div className="px-4 sm:px-6 pb-24 space-y-4">
-                {phases.map(phase => {
-                    const phaseTasks = tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
+                {activePhases.map(phase => {
+                    const phaseTasksRaw = isRollupProject
+                        ? tasks.filter(t => t.parent_id === phase.key)
+                        : tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
+
+                    // Sort rollup tasks (subtasks) by task_code
+                    const phaseTasks = isRollupProject
+                        ? phaseTasksRaw.map(t => ({
+                            ...t,
+                            subTasks: [],
+                            totalSub: 0,
+                            completedSub: 0,
+                            displayPct: t.completion_pct || 0
+                          })).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
+                        : phaseTasksRaw;
+
                     const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
-                    const isExpanded = expandedPhases[phase.key];
+                    const isExpanded = expandedPhases[phase.key] !== false;
                     const isEmpty = phaseTasks.length === 0;
                     
-                    if (isEmpty) return null;
+                    if (isEmpty && !phase.isRollup) return null;
 
                     return (
                         <div key={phase.key} className="bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
@@ -163,7 +191,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                     {isExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
                                     {canEdit && (
                                         <button 
-                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
+                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id, phase.isRollup ? phase.key : undefined); }} 
                                             className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
                                         >
                                             <Plus size={16} strokeWidth={3} />
@@ -258,7 +286,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 <option value="">Chưa gán</option>
-                                                                {getAssignableProfiles(profiles, phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                                {getAssignableProfiles(profiles, phase.isRollup ? 'construction' : phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
                                                         )}
                                                     </div>
@@ -274,9 +302,10 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
 
                 {/* Unassigned Tasks */}
                 {(() => {
+                    if (isRollupProject) return null;
                     const unassigned = tasksWithProgress.filter(t => !['concept', '3d', '2d', 'construction'].includes((t.target || '').toLowerCase()));
                     if (unassigned.length === 0) return null;
-                    const isExpanded = expandedPhases['unassigned'];
+                    const isExpanded = expandedPhases['unassigned'] !== false;
                     
                     return (
                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-amber-100">
