@@ -18,6 +18,7 @@ interface ProjectTasksTabProps {
     onEditTask: (task: Task) => void;
     onAddTask: (projectId: string) => void;
     onUpdateAssignee: (taskId: string, assigneeId: string) => void;
+    canEdit: boolean;
 }
 
 export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
@@ -32,7 +33,8 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     onCopyTask,
     onEditTask,
     onAddTask,
-    onUpdateAssignee
+    onUpdateAssignee,
+    canEdit
 }) => {
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({
         'concept': true,
@@ -159,12 +161,14 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                     </div>
                                     <span className="text-[11px] font-bold text-slate-500 min-w-[20px] text-center">{phaseCompleted}/{phaseTasks.length}</span>
                                     {isExpanded ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
-                                        className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
-                                    >
-                                        <Plus size={16} strokeWidth={3} />
-                                    </button>
+                                    {canEdit && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
+                                            className="w-8 h-8 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
+                                        >
+                                            <Plus size={16} strokeWidth={3} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -244,17 +248,19 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                             <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>
                                                         )}
                                                     </div>
-                                                    <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center shadow-sm border border-indigo-50" title="Nhấn để gán người phụ trách">
+                                                    <div className="relative w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold flex items-center justify-center shadow-sm border border-indigo-50" title="Người phụ trách">
                                                         {getAssigneeInitials(task.assignee_id)}
-                                                        <select 
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                            value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
-                                                            onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <option value="">Chưa gán</option>
-                                                            {getAssignableProfiles(profiles, phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
-                                                        </select>
+                                                        {canEdit && (
+                                                            <select 
+                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
+                                                                onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <option value="">Chưa gán</option>
+                                                                {getAssignableProfiles(profiles, phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                            </select>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -282,12 +288,14 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                 <div className="flex items-center gap-3">
                                     <span className="text-[11px] font-bold text-amber-600 min-w-[20px] text-center">{unassigned.length}</span>
                                     {isExpanded ? <ChevronDown size={14} className="text-amber-500" /> : <ChevronRight size={14} className="text-amber-500" />}
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
-                                        className="w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
-                                    >
-                                        <Plus size={16} strokeWidth={3} />
-                                    </button>
+                                    {canEdit && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); onAddTask(project.id); }} 
+                                            className="w-8 h-8 bg-amber-500 hover:bg-amber-600 text-white rounded-xl flex items-center justify-center shadow-sm ml-1 transition-colors"
+                                        >
+                                            <Plus size={16} strokeWidth={3} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                             
@@ -341,17 +349,19 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                         <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-1 text-slate-400 hover:text-blue-500 bg-white rounded shadow-sm border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
                                                         {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                     </div>
-                                                    <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">
+                                                    <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Người phụ trách">
                                                         {getAssigneeInitials(task.assignee_id)}
-                                                        <select 
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                            value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
-                                                            onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <option value="">Chưa gán</option>
-                                                            {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
-                                                        </select>
+                                                        {canEdit && (
+                                                            <select 
+                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
+                                                                onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <option value="">Chưa gán</option>
+                                                                {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                            </select>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

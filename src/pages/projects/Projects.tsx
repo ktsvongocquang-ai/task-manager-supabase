@@ -120,13 +120,16 @@ export const Projects = () => {
         return Math.round(totalPct / projTasks.length);
     }
 
+    const [viewScope, setViewScope] = useState<'all' | 'mine'>('all')
+
     const baseFilteredProjects = projects.filter(p => {
         const userRole = profile?.role;
         const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(userRole?.trim() || '');
         
         let isVisible = true;
-        if (!isManagerOrAdmin) {
-            // Visible if user is the manager OR has tasks in the project
+        if (!isManagerOrAdmin && viewScope === 'mine') {
+            isVisible = p.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === p.id);
+        } else if (isManagerOrAdmin && viewScope === 'mine') {
             isVisible = p.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === p.id);
         }
         return isVisible;
@@ -535,6 +538,21 @@ export const Projects = () => {
                             <List size={16} /> Danh sách
                         </button>
                     </div>
+                    {/* Scope Filter */}
+                    <div className="flex bg-slate-50/80 rounded-xl p-1 gap-1 border border-slate-100 ml-0 sm:ml-4 mt-2 sm:mt-0">
+                        <button
+                            onClick={() => setViewScope('mine')}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${viewScope === 'mine' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Của tôi
+                        </button>
+                        <button
+                            onClick={() => setViewScope('all')}
+                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${viewScope === 'all' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Tất cả
+                        </button>
+                    </div>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
@@ -606,12 +624,19 @@ export const Projects = () => {
                                     </span>
                                     {renderTrafficLight(project)}
                                 </div>
-                                <div className="flex gap-1.5 translate-x-1 -translate-y-1">
-                                    <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
-                                </div>
+                                {(() => {
+                                    const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
+                                    const canEdit = isManagerOrAdmin || isMine;
+                                    if (!canEdit) return null;
+                                    return (
+                                        <div className="flex gap-1.5 translate-x-1 -translate-y-1">
+                                            <button onClick={(e) => { e.stopPropagation(); openAddTaskModal(project.id); }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Tạo nhiệm vụ"><Plus size={14} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); handleCopy(project) }} className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center hover:bg-emerald-100 transition-all shadow-sm border border-emerald-100" title="Sao chép"><Copy size={14} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); openEditModal(project) }} className="w-8 h-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-all shadow-sm border border-blue-100" title="Sửa"><Edit3 size={14} /></button>
+                                            <button onClick={(e) => { e.stopPropagation(); handleDelete(project.id) }} className="w-8 h-8 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Xóa"><Trash2 size={14} /></button>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                             
                             <h3 className="text-lg font-bold text-slate-800 mb-1 leading-tight group-hover:text-blue-600 transition-colors uppercase italic tracking-tighter">{project.name}</h3>
@@ -708,7 +733,14 @@ export const Projects = () => {
                                     <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
                                     <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{activeTasks.length}</span>
                                 </div>
-                                <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
+                                {(() => {
+                                    const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
+                                    const canEdit = isManagerOrAdmin || isMine;
+                                    if (!canEdit) return null;
+                                    return (
+                                        <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
+                                    );
+                                })()}
                             </div>
 
                             {projTasks.length === 0 ? (
@@ -821,6 +853,13 @@ export const Projects = () => {
                 // Timeline props
                 managerName={unifiedProjectData?.project?.manager_id ? profiles.find(p => p.id === unifiedProjectData.project.manager_id)?.full_name : undefined}
                 onUpdateProjectStats={() => fetchProjects(true)}
+                canEdit={(() => {
+                    if (!unifiedProjectData?.project) return false;
+                    const p = unifiedProjectData.project;
+                    const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc'].includes(profile?.role?.trim() || '');
+                    const isMine = p.manager_id === profile?.id || allTasks.some(t => t.project_id === p.id && (t.assignee_id === profile?.id || t.supporter_id === profile?.id));
+                    return isManagerOrAdmin || isMine;
+                })()}
             />
 
             {/* Add/Edit Task Modal */}

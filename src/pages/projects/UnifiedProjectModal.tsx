@@ -32,6 +32,7 @@ interface UnifiedProjectModalProps {
     onUpdateProjectStats?: () => void;
 
     initialTab?: 'tasks' | 'info' | 'timeline';
+    canEdit?: boolean;
 }
 
 type TabType = 'tasks' | 'info' | 'timeline';
@@ -61,7 +62,8 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
     managerName,
     onUpdateProjectStats,
 
-    initialTab = 'tasks'
+    initialTab = 'tasks',
+    canEdit = true
 }) => {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab);
 
@@ -143,6 +145,7 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                                 onDeleteTask={onDeleteTask}
                                 onCopyTask={onCopyTask}
                                 onUpdateAssignee={onUpdateAssignee}
+                                canEdit={canEdit}
                             />
                         </div>
                         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'timeline' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
@@ -165,6 +168,7 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                                 setForm={setForm}
                                 profiles={profiles}
                                 currentUserProfile={currentUserProfile}
+                                canEdit={canEdit}
                             />
                         </div>
                     </div>

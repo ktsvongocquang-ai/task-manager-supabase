@@ -28,6 +28,7 @@ interface ProjectInfoTabProps {
     setForm: (form: any) => void;
     profiles: any[];
     currentUserProfile: any;
+    canEdit: boolean;
 }
 
 export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
@@ -38,7 +39,8 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
     form,
     setForm,
     profiles,
-    currentUserProfile
+    currentUserProfile,
+    canEdit
 }) => {
     if (!isOpen) return null;
 
@@ -193,15 +195,17 @@ export const ProjectInfoTab: React.FC<ProjectInfoTabProps> = ({
                     </div>
                 </div>
             </div>
-            <div className="p-4 bg-gradient-to-t from-[#F3F4F6] via-[#F3F4F6] to-transparent mt-4">
-                <button
-                    onClick={handleSubmit}
-                    disabled={!form.name || !form.project_code}
-                    className="w-full bg-[#C4B5FD] hover:bg-[#A78BFA] text-white py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {editingProject ? 'Cập nhật dự án' : 'Lưu dự án mới'}
-                </button>
-            </div>
+            {canEdit && (
+                <div className="p-4 bg-gradient-to-t from-[#F3F4F6] via-[#F3F4F6] to-transparent mt-4">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!form.name || !form.project_code}
+                        className="w-full bg-[#C4B5FD] hover:bg-[#A78BFA] text-white py-3.5 rounded-2xl text-[15px] font-bold uppercase tracking-widest shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {editingProject ? 'Cập nhật dự án' : 'Lưu dự án mới'}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
