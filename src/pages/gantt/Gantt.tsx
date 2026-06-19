@@ -521,7 +521,7 @@ export const Gantt = () => {
                 >
                     <div className="min-w-max flex flex-col relative">
                         {/* Unified Header */}
-                        <div className="flex sticky top-0 z-40 bg-white h-[66px] w-max">
+                        <div className="flex sticky top-0 z-40 bg-white h-[62px] w-max">
                             {/* Left Header - Sticky Left */}
                             <div className="sticky left-0 z-50 flex bg-slate-50 w-[420px] border-b border-r border-slate-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                                 <div className="w-[200px] px-3 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 border-r border-slate-200 flex items-center bg-slate-50">
@@ -541,23 +541,79 @@ export const Gantt = () => {
                                 </div>
                             </div>
                             
-                            {/* Right Header */}
-                            <div className="flex flex-col border-b border-slate-200">
-                                {/* Month Label */}
-                                {/* Dynamic Header Label */}
-                                <div className="flex items-center justify-center font-bold text-slate-700 text-xs border-b border-slate-200 bg-slate-100" style={{ height: '25px', width: `${totalDays * cellWidth}px` }}>
-                                    {viewMode === 'month' ? `Tháng ${visibleDates[0]?.getMonth() + 1} ${visibleDates[0]?.getFullYear()}` : `${format(visibleDates[0] || new Date(), 'dd/MM/yyyy')} - ${format(visibleDates[visibleDates.length - 1] || new Date(), 'dd/MM/yyyy')}`}
-                                </div>
-                                {/* Days Label */}
-                                <div className="relative flex-1" style={{ width: `${totalDays * cellWidth}px` }}>
-                                    {visibleDates.map((d, idx) => (
-                                        <div key={idx} className={`absolute top-0 bottom-0 text-center flex flex-col items-center justify-center border-r border-slate-200 transition-colors ${isToday(d) ? 'bg-orange-500' : isWeekend(d) ? 'bg-slate-100/50' : 'bg-blue-50/50'}`} style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }}>
-                                            <div className={`text-[11px] font-bold ${isToday(d) ? 'text-white' : 'text-slate-700'}`}>{d.getDate()}</div>
-                                            <div className={`text-[8px] font-bold uppercase tracking-tighter ${isToday(d) ? 'text-white/80' : isWeekend(d) ? 'text-red-400' : 'text-blue-400'}`}>{getDayName(d)}</div>
+                            {/* Right Header - 3-row week-grouped timeline */}
+                            {(() => {
+                                // Group visible dates by week (Mon-Sun)
+                                const weekGroups: { weekNum: number, startDate: Date, days: { date: Date, idx: number }[] }[] = [];
+                                let currentWeek: typeof weekGroups[0] | null = null;
+                                
+                                visibleDates.forEach((d, idx) => {
+                                    const dayOfWeek = d.getDay();
+                                    // Start new week group on Monday (1) or first date
+                                    if (dayOfWeek === 1 || idx === 0) {
+                                        if (currentWeek) weekGroups.push(currentWeek);
+                                        // Calculate ISO week number
+                                        const tmp = new Date(d.getTime());
+                                        tmp.setHours(0, 0, 0, 0);
+                                        tmp.setDate(tmp.getDate() + 3 - (tmp.getDay() + 6) % 7);
+                                        const week1 = new Date(tmp.getFullYear(), 0, 4);
+                                        const wNum = 1 + Math.round(((tmp.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+                                        currentWeek = { weekNum: wNum, startDate: new Date(d), days: [] };
+                                    }
+                                    currentWeek!.days.push({ date: d, idx });
+                                });
+                                if (currentWeek) weekGroups.push(currentWeek);
+
+                                return (
+                                    <div className="flex flex-col border-b border-slate-200">
+                                        {/* Row 1: Week labels */}
+                                        <div className="flex" style={{ height: '28px', width: `${totalDays * cellWidth}px` }}>
+                                            {weekGroups.map((wg, wIdx) => (
+                                                <div 
+                                                    key={`week-${wIdx}`} 
+                                                    className="flex items-center justify-center font-bold text-[10px] text-slate-700 bg-[#c5cdb8] border-r-2 border-slate-400 border-b border-slate-300 relative"
+                                                    style={{ width: `${wg.days.length * cellWidth}px` }}
+                                                >
+                                                    <div className="flex flex-col items-center leading-tight">
+                                                        <span className="uppercase tracking-wide">Tuần {wg.weekNum}</span>
+                                                        <span className="text-[8px] font-medium text-slate-600">{format(wg.startDate, 'dd/MM/yyyy')}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                        {/* Row 2: Day numbers */}
+                                        <div className="flex" style={{ height: '18px', width: `${totalDays * cellWidth}px` }}>
+                                            {visibleDates.map((d, idx) => {
+                                                const isSunday = d.getDay() === 0;
+                                                return (
+                                                    <div 
+                                                        key={`dn-${idx}`} 
+                                                        className={`flex items-center justify-center text-[10px] font-bold border-r ${isSunday ? 'border-r-2 border-slate-400' : 'border-slate-200'} ${isToday(d) ? 'bg-orange-500 text-white' : isWeekend(d) ? 'bg-gray-200 text-slate-500' : 'bg-slate-50 text-slate-700'}`}
+                                                        style={{ width: `${cellWidth}px` }}
+                                                    >
+                                                        {d.getDate()}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Row 3: Day names */}
+                                        <div className="flex" style={{ height: '16px', width: `${totalDays * cellWidth}px` }}>
+                                            {visibleDates.map((d, idx) => {
+                                                const isSunday = d.getDay() === 0;
+                                                return (
+                                                    <div 
+                                                        key={`dd-${idx}`} 
+                                                        className={`flex items-center justify-center text-[8px] font-bold uppercase tracking-tighter border-r ${isSunday ? 'border-r-2 border-slate-400' : 'border-slate-200'} ${isToday(d) ? 'bg-orange-500 text-white/80' : isWeekend(d) ? 'bg-gray-200 text-red-400' : 'bg-slate-50 text-blue-400'}`}
+                                                        style={{ width: `${cellWidth}px` }}
+                                                    >
+                                                        {getDayName(d)}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
 
                         {/* Unified Rows */}
@@ -672,7 +728,7 @@ export const Gantt = () => {
                                                 {/* Grid Lines Overlay (OVER bars) - CARO EFFECT */}
                                                 <div className="absolute inset-0 pointer-events-none z-20">
                                                     {visibleDates.map((d, idx) => (
-                                                        <div key={`grid-${idx}`} className="absolute top-0 bottom-0 border-r border-slate-300" style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} />
+                                                        <div key={`grid-${idx}`} className={`absolute top-0 bottom-0 ${d.getDay() === 0 ? 'border-r-2 border-slate-400' : 'border-r border-slate-200'}`} style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} />
                                                     ))}
                                                 </div>
                                                 
