@@ -96,6 +96,23 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
         return grouped;
     }, [projectTasks, kpiState.taskPhaseMap, isOpen, project]);
 
+    const isRollupProject = project?.status === 'Thi công' || (project?.name || '').toLowerCase().includes('tổng hợp');
+
+    const activePhases = useMemo(() => {
+        if (!project) return [];
+        return isRollupProject
+            ? projectTasks.map(pt => ({
+                key: pt.id,
+                name: pt.name,
+                isRollup: true
+              }))
+            : DEFAULT_PHASES.map(p => ({
+                key: p.key,
+                name: p.name,
+                isRollup: false
+              }));
+    }, [project, isRollupProject, projectTasks]);
+
     if (!isOpen || !project) return null;
 
     // Save handler
@@ -311,18 +328,20 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
 
                 {/* ── Phases with linked tasks ── */}
                 <div className="space-y-3">
-                    {DEFAULT_PHASES.map((phase) => {
+                    {activePhases.map((phase) => {
                         const pState = kpiState.phases[phase.key] || { days_used: 0, days_estimated: 0 };
-                        const phaseTasks = tasksByPhase[phase.key] || [];
-                        const isExpanded = expandedPhases[phase.key];
+                        const phaseTasks = phase.isRollup
+                            ? tasks.filter(t => t.parent_id === phase.key)
+                            : (tasksByPhase[phase.key] || []);
+                        const isExpanded = expandedPhases[phase.key] !== false;
                         
                         const isDone = pState.days_used >= (pState.days_estimated || 1) && pState.days_used > 0;
                         const isActive = pState.days_used > 0 && !isDone;
                         const isEmpty = phaseTasks.length === 0;
 
                         return (
-                            <div key={phase.key} className={`bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm transition-all duration-300 ${isEmpty ? 'opacity-50 hover:opacity-100' : ''}`}>
-                                <div className="px-4 py-3 flex flex-col gap-2" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))}>
+                            <div key={phase.key} className={`bg-white border border-slate-100 rounded-[1.25rem] overflow-hidden shadow-sm transition-all duration-300 ${isEmpty && !phase.isRollup ? 'opacity-50 hover:opacity-100' : ''}`}>
+                                <div className="px-4 py-3 flex flex-col gap-2" onClick={() => setExpandedPhases(prev => ({ ...prev, [phase.key]: !(prev[phase.key] !== false) }))}>
                                     
                                     {/* Header Row */}
                                     <div className="flex items-center justify-between">
@@ -396,7 +415,7 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                     </p>
 
                     {/* Unassigned tasks */}
-                    {(tasksByPhase['_unassigned'] || []).length > 0 && (
+                    {!isRollupProject && (tasksByPhase['_unassigned'] || []).length > 0 && (
                         <div className="bg-amber-50 border border-amber-200 rounded-[1.25rem] p-4 shadow-sm mt-4">
                             <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                                 ⚠ Nhiệm vụ chưa gán giai đoạn ({tasksByPhase['_unassigned'].length})
