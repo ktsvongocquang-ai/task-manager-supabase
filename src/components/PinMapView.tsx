@@ -312,10 +312,10 @@ export default function PinMapView({
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-      onAddMarker(activePlanId, x, y);
+      onAddMarker(activePlanId, x, y, currentPageIndex);
       setMode('pan');
     }
-  }, [mode, activePlanId, onAddMarker, isRenderingPdf]);
+  }, [mode, activePlanId, onAddMarker, isRenderingPdf, currentPageIndex]);
 
   const handleConfirmCenterPin = useCallback(() => {
     if (mode !== 'pin' || !activePlanId || !imageRef.current || !containerRef.current) return;
@@ -330,14 +330,25 @@ export default function PinMapView({
     const y = ((centerY - rect.top) / rect.height) * 100;
 
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
-      onAddMarker(activePlanId, x, y);
+      onAddMarker(activePlanId, x, y, currentPageIndex);
       setMode('pan');
     }
-  }, [mode, activePlanId, onAddMarker, isRenderingPdf]);
+  }, [mode, activePlanId, onAddMarker, isRenderingPdf, currentPageIndex]);
 
   const filteredMarkers = useMemo(() => {
     if (!activePlanId) return [];
     let list = markers.filter(m => m.floorPlanId === activePlanId);
+    
+    if (activePlan && (activePlan.pageCount || 1) > 1) {
+      list = list.filter(m => {
+        const pageTag = m.tags?.find(t => t.startsWith('page:'));
+        if (pageTag) {
+          return parseInt(pageTag.replace('page:', ''), 10) === currentPageIndex;
+        }
+        return currentPageIndex === 0;
+      });
+    }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       list = list.filter(m => 
@@ -347,7 +358,7 @@ export default function PinMapView({
       );
     }
     return list.sort((a, b) => b.createdAt - a.createdAt);
-  }, [markers, activePlanId, searchQuery]);
+  }, [markers, activePlanId, searchQuery, activePlan, currentPageIndex]);
 
   const getStatus = (m: any) => m.tags?.[0] || 'Chưa xử lý';
 
