@@ -597,7 +597,7 @@ export default function PinMapView({
       );
     }
     return list.sort((a, b) => a.createdAt - b.createdAt);
-  }, [markers, activePlanId, searchQuery]);
+  }, [markers, activePlanId, searchQuery, currentPageIndex, activePlan]);
 
   const getStatus = (m: any) => m.tags?.[0] || 'Chưa xử lý';
 
