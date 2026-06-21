@@ -839,12 +839,10 @@ export const PrototypeBoard = () => {
     if (!activeFloorPlanId) return;
     
     const count = projectMarkerNotes.length + 1;
-    const newMarkerId = `marker-${Date.now()}`;
-    
     const draft = globalDraftFault || {};
-
+    
     const newMarker: MarkerNote = {
-      id: newMarkerId,
+      id: `marker-${Date.now()}`,
       floorPlanId: activeFloorPlanId,
       x,
       y,
@@ -1820,28 +1818,39 @@ export const PrototypeBoard = () => {
             setWorkspaceView('report');
           }}
           onAddMarker={async (fpId, x, y, pageIndex) => {
-            const initialTags = ['Chưa sửa'];
-            if (pageIndex !== undefined) {
+            const draft = globalDraftFault || {};
+            const initialTags = draft.tags ? [...draft.tags] : ['Chưa sửa'];
+            
+            // Add pageIndex tag if not already present
+            if (pageIndex !== undefined && !initialTags.some(t => t.startsWith('page:'))) {
               initialTags.push(`page:${pageIndex}`);
             }
+            
             const newMarker: MarkerNote = {
               id: `marker-${Date.now()}`,
               floorPlanId: fpId,
               x, y,
-              title: `Sự cố #${projectMarkerNotes.length + 1}`,
-              photoData: null,
-              audioData: null,
-              transcription: '',
-              textNotes: '',
+              title: draft.title || `Sự cố #${projectMarkerNotes.length + 1}`,
+              photoData: draft.photoData || null,
+              audioData: draft.audioData || null,
+              transcription: draft.transcription || '',
+              textNotes: draft.textNotes || '',
               createdAt: Date.now(),
               comments: [],
               tags: initialTags,
             };
+            
+            if (globalDraftFault) {
+              setGlobalDraftFault(null);
+            }
+
+            // Optimistic UI Update
+            setMarkerNotes(prev => [...prev, newMarker]);
+            setSelectedMarkerId(newMarker.id);
+
             try {
               await saveMarkerNote(newMarker);
-              setMarkerNotes(prev => [...prev, newMarker]);
-              setSelectedMarkerId(newMarker.id);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error('Error saving marker to DB:', e); }
           }}
           onSelectMarker={setSelectedMarkerId}
           activeUserRole={activeUserRole}
