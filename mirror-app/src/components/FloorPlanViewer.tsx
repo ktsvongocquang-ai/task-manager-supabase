@@ -147,7 +147,41 @@ export default function FloorPlanViewer({
   const boardLayerRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
 
+  // Touch & multi-touch pinch zoom refs
+  const activePointersRef = useRef<Map<number, { clientX: number; clientY: number }>>(new Map());
+  const pinchStartDistanceRef = useRef<number>(0);
+  const pinchStartZoomLevelRef = useRef<number>(0.4);
+  const pinchStartDragOffsetRef = useRef<{ x: number; y: number }>({ x: 50, y: 50 });
+  const pinchStartMidpointRef = useRef<{ x: number; y: number } | null>(null);
+  const pinchStartBoardCoordsRef = useRef<{ x: number; y: number } | null>(null);
+
+  // === PRODUCTION-GRADE GESTURE REFS ===
+  // Fix #1: Smooth pinch→pan transition — prevents canvas jump when releasing one finger from pinch
+  const pinchJustEndedRef = useRef<boolean>(false);
+  // Fix #2: Anti-ghost-click — blocks accidental marker/drawing triggers after pinch-zoom ends
+  const lastPinchEndTimeRef = useRef<number>(0);
+  // Fix #4: Stable refs for wheel handler to avoid re-creating listener on every zoom frame
+  const zoomLevelRef = useRef<number>(0.4);
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 50, y: 50 });
+  // Fix #5: Momentum/inertia panning — velocity tracking
+  const panVelocityRef = useRef<{ vx: number; vy: number }>({ vx: 0, vy: 0 });
+  const lastPanTimeRef = useRef<number>(0);
+  const lastPanPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const momentumRafRef = useRef<number | null>(null);
+  // Fix #6: Double-tap to zoom
+  const lastTapTimeRef = useRef<number>(0);
+  const lastTapPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  // Track if currently in active pinch gesture
+  const isPinchingRef = useRef<boolean>(false);
+
+  // Sync state to refs for stable event handler closures (Fix #4)
+  useEffect(() => {
+    zoomLevelRef.current = zoomLevel;
+    dragOffsetRef.current = dragOffset;
+  }, [zoomLevel, dragOffset]);
+
   // Smooth mouse-wheel zooming centered on user's cursor (Miro-like)
+  // Fix #4: Uses refs so listener is created ONCE — no re-creation on every zoom frame
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -164,24 +198,32 @@ export default function FloorPlanViewer({
         setIsZooming(false);
       }, 300);
 
+      const currentZoom = zoomLevelRef.current;
+      const currentOffset = dragOffsetRef.current;
+
       const rect = container.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
       // Board canvas coordinates directly under cursor
-      const boardX = (mouseX - dragOffset.x) / zoomLevel;
-      const boardY = (mouseY - dragOffset.y) / zoomLevel;
+      const boardX = (mouseX - currentOffset.x) / currentZoom;
+      const boardY = (mouseY - currentOffset.y) / currentZoom;
 
       // Precise scaling ratio mimicking professional graphic boards
       const ratio = 1.08;
       let nextZoomLevel;
       if (e.deltaY < 0) {
         // Scroll Up = Zoom In
-        nextZoomLevel = Math.min(zoomLevel * ratio, 3.5);
+        nextZoomLevel = Math.min(currentZoom * ratio, 3.5);
       } else {
         // Scroll Down = Zoom Out
         // Allow zooming out extremely far (2%) to see the massive 100k canvas
-        nextZoomLevel = Math.max(zoomLevel / ratio, 0.02);
+        nextZoomLevel = Math.max(currentZoom / ratio, 0.02);
+      }
+
+      // Fix #12: Snap to 100% when close — professional feel
+      if (nextZoomLevel > 0.96 && nextZoomLevel < 1.04) {
+        nextZoomLevel = 1.0;
       }
 
       // New offsets ensuring board coordinates (boardX, boardY) stay stationary under cursor (mouseX, mouseY)
@@ -195,14 +237,28 @@ export default function FloorPlanViewer({
       });
     };
 
+    // Fix #14: Prevent browser default gestures (pull-to-refresh, back-swipe, pinch-zoom browser level)
+    const handleNativeTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    const handleNativeTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
     container.addEventListener('wheel', handleNativeWheel, { passive: false });
+    container.addEventListener('touchstart', handleNativeTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
     return () => {
       container.removeEventListener('wheel', handleNativeWheel);
+      container.removeEventListener('touchstart', handleNativeTouchStart);
+      container.removeEventListener('touchmove', handleNativeTouchMove);
       if (zoomTimeoutRef.current) {
         clearTimeout(zoomTimeoutRef.current);
       }
     };
-  }, [zoomLevel, dragOffset]);
+  }, []); // Fix #4: Empty deps — reads from refs, created once
 
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -920,13 +976,25 @@ export default function FloorPlanViewer({
   }
 
   // Stage Mouse Downs
-  function handleStageMouseDown(e: ReactMouseEvent<HTMLDivElement> | React.PointerEvent<HTMLDivElement>) {
+  function handleStageMouseDown(e: React.PointerEvent<HTMLDivElement>) {
     const target = e.target as HTMLElement;
 
     // GUARD: Ignore clicks on toolbar, UI overlays, and marker pins
     if (target.closest('.no-pan-trigger') || target.closest('.marker-pin-button') || target.closest('.whiteboard-element')) {
       return;
     }
+
+    // Add pointer to active pointers map
+    if ('pointerId' in e) {
+      activePointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    }
+
+    // Fix #5: Cancel any ongoing momentum animation on new touch
+    if (momentumRafRef.current) {
+      cancelAnimationFrame(momentumRafRef.current);
+      momentumRafRef.current = null;
+    }
+    panVelocityRef.current = { vx: 0, vy: 0 };
 
     // Capture pointer for reliable mobile drawing (only for drawing tools, not text/sticky/marker)
     const needsCapture = !['select', 'text', 'sticky', 'marker'].includes(activeWhiteboardTool);
@@ -938,13 +1006,108 @@ export default function FloorPlanViewer({
     if (isFrameFlyoutOpen) setIsFrameFlyoutOpen(false);
     if (isPenFlyoutOpen) setIsPenFlyoutOpen(false);
 
+    // Fix #2: Anti-ghost-click — block ALL non-pan actions for 350ms after pinch zoom ends
+    const timeSincePinch = Date.now() - lastPinchEndTimeRef.current;
+    const isGhostClick = timeSincePinch < 350;
+
+    // Fix #6: Double-tap to zoom detection (only in select mode, only single pointer)
+    if (activeWhiteboardTool === 'select' && activePointersRef.current.size === 1 && !isGhostClick) {
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapTimeRef.current;
+      const distFromLastTap = Math.hypot(
+        e.clientX - lastTapPosRef.current.x,
+        e.clientY - lastTapPosRef.current.y
+      );
+      
+      if (timeSinceLastTap < 300 && distFromLastTap < 30) {
+        // DOUBLE TAP detected — toggle zoom between 1.0 and current
+        lastTapTimeRef.current = 0; // Reset to prevent triple-tap
+        
+        const container = containerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const tapX = e.clientX - rect.left;
+          const tapY = e.clientY - rect.top;
+          const boardX = (tapX - dragOffset.x) / zoomLevel;
+          const boardY = (tapY - dragOffset.y) / zoomLevel;
+          
+          // Toggle: if zoomed in (>0.8), zoom out to fit. If zoomed out, zoom to 1.0
+          const targetZoom = zoomLevel > 0.8 ? 0.3 : 1.0;
+          const nextOffsetX = tapX - boardX * targetZoom;
+          const nextOffsetY = tapY - boardY * targetZoom;
+          
+          setZoomLevel(targetZoom);
+          setDragOffset({ x: nextOffsetX, y: nextOffsetY });
+        }
+        return; // Don't proceed with normal pointerdown logic
+      }
+      
+      lastTapTimeRef.current = now;
+      lastTapPosRef.current = { x: e.clientX, y: e.clientY };
+    }
+
     // If Select, or holding middle mouse/Space button, pan around
     if (activeWhiteboardTool === 'select' || e.button === 1) {
       const target = e.target as HTMLElement;
       if (target.closest('.whiteboard-element') || target.closest('.no-pan-trigger')) return;
 
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+      if (activePointersRef.current.size === 1) {
+        // Fix #1: If pinch just ended, don't re-init panStart from old coords.
+        // Instead mark as "needs re-init" so handleStageMouseMove will do it from current position.
+        if (pinchJustEndedRef.current) {
+          pinchJustEndedRef.current = false;
+          // Re-init panStart from THIS pointer's current position
+          setPanStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+        } else {
+          setPanStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+        }
+        setIsPanning(true);
+        // Fix #5: Init velocity tracking
+        lastPanTimeRef.current = performance.now();
+        lastPanPosRef.current = { x: e.clientX, y: e.clientY };
+      } else if (activePointersRef.current.size === 2) {
+        setIsPanning(false);
+        isPinchingRef.current = true;
+        const pointers = Array.from(activePointersRef.current.values());
+        const dx = pointers[0].clientX - pointers[1].clientX;
+        const dy = pointers[0].clientY - pointers[1].clientY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Fix #3: Ignore pinch if fingers are too close (< 30px) — prevents extreme zoom ratios
+        if (distance < 30) {
+          pinchStartDistanceRef.current = 0;
+          return;
+        }
+        
+        pinchStartDistanceRef.current = distance;
+        pinchStartZoomLevelRef.current = zoomLevel;
+        pinchStartDragOffsetRef.current = { ...dragOffset };
+        
+        const midX = (pointers[0].clientX + pointers[1].clientX) / 2;
+        const midY = (pointers[0].clientY + pointers[1].clientY) / 2;
+        pinchStartMidpointRef.current = { x: midX, y: midY };
+        
+        const container = containerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const containerMidX = midX - rect.left;
+          const containerMidY = midY - rect.top;
+          pinchStartBoardCoordsRef.current = {
+            x: (containerMidX - dragOffset.x) / zoomLevel,
+            y: (containerMidY - dragOffset.y) / zoomLevel
+          };
+        }
+      }
+      return;
+    }
+
+    // Ignore multi-touch for drawing tools
+    if (activePointersRef.current.size > 1) {
+      return;
+    }
+
+    // Fix #2: Anti-ghost-click guard — block drawing/marker/eraser actions if pinch just ended
+    if (isGhostClick) {
       return;
     }
 
@@ -1109,8 +1272,66 @@ export default function FloorPlanViewer({
 
   // Mouse move drawing and panning actions
   function handleStageMouseMove(e: React.PointerEvent<HTMLDivElement>) {
+    // Update pointer coordinates in active pointers map
+    if ('pointerId' in e && activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    }
+
+    // If pinch-to-zoom is active (2 pointers)
+    if (activePointersRef.current.size === 2 && pinchStartDistanceRef.current > 0) {
+      const pointers = Array.from(activePointersRef.current.values());
+      const dx = pointers[0].clientX - pointers[1].clientX;
+      const dy = pointers[0].clientY - pointers[1].clientY;
+      const currentDistance = Math.sqrt(dx * dx + dy * dy);
+      
+      const scale = currentDistance / pinchStartDistanceRef.current;
+      
+      let nextZoomLevel = pinchStartZoomLevelRef.current * scale;
+      nextZoomLevel = Math.max(0.02, Math.min(nextZoomLevel, 3.5));
+      
+      // Fix #12: Snap to 100% during pinch
+      if (nextZoomLevel > 0.96 && nextZoomLevel < 1.04) {
+        nextZoomLevel = 1.0;
+      }
+      
+      const currentMidX = (pointers[0].clientX + pointers[1].clientX) / 2;
+      const currentMidY = (pointers[0].clientY + pointers[1].clientY) / 2;
+      
+      const container = containerRef.current;
+      if (container && pinchStartBoardCoordsRef.current) {
+        const rect = container.getBoundingClientRect();
+        const containerMidX = currentMidX - rect.left;
+        const containerMidY = currentMidY - rect.top;
+        
+        const nextDragOffsetX = containerMidX - pinchStartBoardCoordsRef.current.x * nextZoomLevel;
+        const nextDragOffsetY = containerMidY - pinchStartBoardCoordsRef.current.y * nextZoomLevel;
+        
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          setZoomLevel(nextZoomLevel);
+          setDragOffset({ x: nextDragOffsetX, y: nextDragOffsetY });
+        });
+      }
+      return;
+    }
+
     // 1. Camera Pan
-    if (isPanning) {
+    if (isPanning && activePointersRef.current.size === 1) {
+      // Fix #5: Track velocity for momentum inertia
+      const now = performance.now();
+      const dt = now - lastPanTimeRef.current;
+      if (dt > 0) {
+        const vx = (e.clientX - lastPanPosRef.current.x) / dt;
+        const vy = (e.clientY - lastPanPosRef.current.y) / dt;
+        // Exponential moving average for smooth velocity
+        panVelocityRef.current = {
+          vx: vx * 0.6 + panVelocityRef.current.vx * 0.4,
+          vy: vy * 0.6 + panVelocityRef.current.vy * 0.4
+        };
+      }
+      lastPanTimeRef.current = now;
+      lastPanPosRef.current = { x: e.clientX, y: e.clientY };
+
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(() => {
         setDragOffset({
@@ -1378,8 +1599,82 @@ export default function FloorPlanViewer({
   }
 
   // Mouse up releases
-  function handleStageMouseUp() {
-    setIsPanning(false);
+  function handleStageMouseUp(e?: React.PointerEvent<HTMLDivElement>) {
+    const wasPinching = isPinchingRef.current;
+    
+    if (e && 'pointerId' in e) {
+      activePointersRef.current.delete(e.pointerId);
+    } else {
+      activePointersRef.current.clear();
+    }
+
+    // Fix #1: Handle pinch→pan transition smoothly
+    if (wasPinching && activePointersRef.current.size === 1) {
+      // One finger was just lifted from a pinch — the remaining finger should NOT cause a pan jump
+      isPinchingRef.current = false;
+      pinchJustEndedRef.current = true;
+      pinchStartDistanceRef.current = 0;
+      pinchStartBoardCoordsRef.current = null;
+      
+      // Fix #2: Record pinch end time for ghost-click prevention
+      lastPinchEndTimeRef.current = Date.now();
+      
+      // Re-initialize panStart from the remaining pointer's current position
+      const remainingPointer = Array.from(activePointersRef.current.values())[0];
+      if (remainingPointer) {
+        setIsPanning(true);
+        setPanStart({ x: remainingPointer.clientX - dragOffset.x, y: remainingPointer.clientY - dragOffset.y });
+        lastPanTimeRef.current = performance.now();
+        lastPanPosRef.current = { x: remainingPointer.clientX, y: remainingPointer.clientY };
+        panVelocityRef.current = { vx: 0, vy: 0 }; // Reset velocity — don't carry over from pinch
+      }
+      return; // Don't proceed to cleanup — still have 1 active pointer
+    }
+
+    if (activePointersRef.current.size < 2) {
+      pinchStartDistanceRef.current = 0;
+      pinchStartBoardCoordsRef.current = null;
+      if (wasPinching) {
+        isPinchingRef.current = false;
+        lastPinchEndTimeRef.current = Date.now();
+      }
+    }
+
+    if (activePointersRef.current.size === 0) {
+      // Fix #5: Apply momentum/inertia after pan release
+      if (isPanning && !wasPinching) {
+        const velocity = panVelocityRef.current;
+        const speed = Math.hypot(velocity.vx, velocity.vy);
+        
+        if (speed > 0.15) {  // Only apply momentum if moving fast enough
+          let vx = velocity.vx * 16; // Convert from px/ms to px/frame (60fps)
+          let vy = velocity.vy * 16;
+          const friction = 0.92; // Deceleration factor — lower = stops faster
+          
+          const applyMomentum = () => {
+            vx *= friction;
+            vy *= friction;
+            
+            if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
+              momentumRafRef.current = null;
+              return;
+            }
+            
+            setDragOffset(prev => ({
+              x: prev.x + vx,
+              y: prev.y + vy
+            }));
+            
+            momentumRafRef.current = requestAnimationFrame(applyMomentum);
+          };
+          
+          momentumRafRef.current = requestAnimationFrame(applyMomentum);
+        }
+      }
+      
+      setIsPanning(false);
+      isPinchingRef.current = false;
+    }
     
     if ((draggingPlanId || resizingPlanId) && tempPlanState) {
       const targetPlan = floorPlans.find(p => p.id === tempPlanState.id);
@@ -1941,7 +2236,7 @@ export default function FloorPlanViewer({
       <div 
         ref={containerRef}
         className="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center pointer-events-auto"
-        style={{ touchAction: 'none' }}
+        style={{ touchAction: 'none', overscrollBehavior: 'none' }}
       >
         {/* Dynamic Instructional Banner for Pinning Camera and Voice Faults (Miro-style) */}
         {floorPlans.length > 0 && activeWhiteboardTool === 'marker' && (
@@ -1971,6 +2266,8 @@ export default function FloorPlanViewer({
             onPointerDown={handleStageMouseDown}
             onPointerMove={handleStageMouseMove}
             onPointerUp={handleStageMouseUp}
+            onPointerCancel={handleStageMouseUp}
+            onPointerLeave={handleStageMouseUp}
             onContextMenu={(e) => {
               e.preventDefault();
               let targetType: 'plan' | 'annot' | null = null;

@@ -96,8 +96,27 @@ export default function PinMapView({
     panY: number;
     zoom: number;
     dist: number;
-  }>({ x: 0, y: 0, panX: 0, panY: 0, zoom: 1, dist: 0 });
+    // Fix #8: Focal point data for pinch zoom
+    midX: number;
+    midY: number;
+  }>({ x: 0, y: 0, panX: 0, panY: 0, zoom: 1, dist: 0, midX: 0, midY: 0 });
   const isTouchingRef = useRef<boolean>(false);
+  // Fix #10: Track active touch state to disable CSS transitions during gestures
+  const [isTouchActive, setIsTouchActive] = useState(false);
+  // Fix #9: Track if pinch was active
+  const wasPinchingRef = useRef<boolean>(false);
+  // Fix #6: Anti-ghost-tap after pinch
+  const lastPinchEndRef = useRef<number>(0);
+  // Fix #11: Momentum/inertia
+  const panVelocityRef = useRef<{ vx: number; vy: number }>({ vx: 0, vy: 0 });
+  const lastPanTimeRef = useRef<number>(0);
+  const lastPanPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const momentumRafRef = useRef<number | null>(null);
+  // Fix #6 (PinMapView): Double-tap to zoom
+  const lastTapTimeRef = useRef<number>(0);
+  const lastTapPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  // Track touch count for transition detection
+  const activeTouchCountRef = useRef<number>(0);
 
   // Derived state
   const activePlan = floorPlans.find(fp => fp.id === activePlanId) || floorPlans[0] || null;
@@ -239,38 +258,238 @@ export default function PinMapView({
     );
   };
 
+  const getPinchMidpoint = (touches: React.TouchList) => ({
+    x: (touches[0].clientX + touches[1].clientX) / 2,
+    y: (touches[0].clientY + touches[1].clientY) / 2
+  });
+
+  // Fix #14: Prevent native browser gestures (pull-to-refresh, overscroll) on the canvas
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const preventNative = (e: TouchEvent) => { e.preventDefault(); };
+    container.addEventListener('touchmove', preventNative, { passive: false });
+    container.addEventListener('touchstart', (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+    return () => {
+      container.removeEventListener('touchmove', preventNative);
+    };
+  }, []);
+
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     isTouchingRef.current = true;
+    setIsTouchActive(true); // Fix #10: disable CSS transitions immediately
+    activeTouchCountRef.current = e.touches.length;
+
+    // Cancel any ongoing momentum animation
+    if (momentumRafRef.current) {
+      cancelAnimationFrame(momentumRafRef.current);
+      momentumRafRef.current = null;
+    }
+    panVelocityRef.current = { vx: 0, vy: 0 };
+
     if (e.touches.length === 1) {
+      // Fix #6 (PinMapView): Double-tap detection
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapTimeRef.current;
+      const dist = Math.hypot(
+        e.touches[0].clientX - lastTapPosRef.current.x,
+        e.touches[0].clientY - lastTapPosRef.current.y
+      );
+
+      if (timeSinceLastTap < 300 && dist < 30 && (now - lastPinchEndRef.current) > 400) {
+        // DOUBLE TAP — toggle zoom
+        lastTapTimeRef.current = 0;
+        const container = containerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const tapX = e.touches[0].clientX - rect.left;
+          const tapY = e.touches[0].clientY - rect.top;
+          
+          // Current zoom: if zoomed in, zoom out to fit. If zoomed out, zoom to 2x
+          const currentZoom = touchStartRef.current.zoom || zoom;
+          const targetZoom = currentZoom > 1.5 ? 1 : 3;
+          
+          // Calculate new pan to keep tap point stationary
+          const containerCenterX = rect.width / 2;
+          const containerCenterY = rect.height / 2;
+          
+          // Point under tap in content space: (tapX - containerCenterX - pan.x) / zoom
+          const contentX = (tapX - containerCenterX - pan.x) / zoom;
+          const contentY = (tapY - containerCenterY - pan.y) / zoom;
+          
+          // New pan to keep same content point under tap: tapX - containerCenterX - contentX * targetZoom
+          const newPanX = tapX - containerCenterX - contentX * targetZoom;
+          const newPanY = tapY - containerCenterY - contentY * targetZoom;
+          
+          setZoom(targetZoom);
+          setPan({ x: newPanX, y: newPanY });
+          setIsTouchActive(false); // re-enable CSS transitions for smooth animated zoom
+        }
+        return;
+      }
+
+      lastTapTimeRef.current = now;
+      lastTapPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
       touchStartRef.current.x = e.touches[0].clientX;
       touchStartRef.current.y = e.touches[0].clientY;
       touchStartRef.current.panX = pan.x;
       touchStartRef.current.panY = pan.y;
+
+      // Fix #11: Init velocity tracking
+      lastPanTimeRef.current = performance.now();
+      lastPanPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     } else if (e.touches.length === 2) {
-      touchStartRef.current.dist = getPinchDistance(e.touches);
+      wasPinchingRef.current = true;
+      const dist = getPinchDistance(e.touches);
+      
+      // Fix #3: Ignore if fingers too close
+      if (dist < 30) {
+        touchStartRef.current.dist = 0;
+        return;
+      }
+      
+      touchStartRef.current.dist = dist;
       touchStartRef.current.zoom = zoom;
+      touchStartRef.current.panX = pan.x;
+      touchStartRef.current.panY = pan.y;
+      
+      // Fix #8: Store midpoint for focal-point zoom
+      const mid = getPinchMidpoint(e.touches);
+      touchStartRef.current.midX = mid.x;
+      touchStartRef.current.midY = mid.y;
     }
   }, [pan.x, pan.y, zoom]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isTouchingRef.current) return;
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && !wasPinchingRef.current) {
       const dx = e.touches[0].clientX - touchStartRef.current.x;
       const dy = e.touches[0].clientY - touchStartRef.current.y;
+
+      // Fix #11: Track velocity for momentum
+      const now = performance.now();
+      const dt = now - lastPanTimeRef.current;
+      if (dt > 0) {
+        const vx = (e.touches[0].clientX - lastPanPosRef.current.x) / dt;
+        const vy = (e.touches[0].clientY - lastPanPosRef.current.y) / dt;
+        panVelocityRef.current = {
+          vx: vx * 0.6 + panVelocityRef.current.vx * 0.4,
+          vy: vy * 0.6 + panVelocityRef.current.vy * 0.4
+        };
+      }
+      lastPanTimeRef.current = now;
+      lastPanPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
       setPan({
         x: touchStartRef.current.panX + dx,
         y: touchStartRef.current.panY + dy
       });
-    } else if (e.touches.length === 2) {
+    } else if (e.touches.length === 2 && touchStartRef.current.dist > 0) {
       const newDist = getPinchDistance(e.touches);
-      const zoomFactor = newDist / touchStartRef.current.dist;
-      setZoom(Math.max(0.05, Math.min(touchStartRef.current.zoom * zoomFactor, 10)));
+      const scale = newDist / touchStartRef.current.dist;
+      let newZoom = touchStartRef.current.zoom * scale;
+      newZoom = Math.max(0.1, Math.min(newZoom, 10));
+      
+      // Fix #12: Snap to 100%
+      if (newZoom > 0.95 && newZoom < 1.05) newZoom = 1.0;
+
+      // Fix #8: Focal-point pinch zoom — keep content under midpoint stationary
+      const container = containerRef.current;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const currentMid = getPinchMidpoint(e.touches);
+        const containerCenterX = rect.width / 2;
+        const containerCenterY = rect.height / 2;
+        
+        // Content point under the original midpoint
+        const contentX = (touchStartRef.current.midX - rect.left - containerCenterX - touchStartRef.current.panX) / touchStartRef.current.zoom;
+        const contentY = (touchStartRef.current.midY - rect.top - containerCenterY - touchStartRef.current.panY) / touchStartRef.current.zoom;
+        
+        // New pan to keep same content point under current midpoint
+        const newPanX = (currentMid.x - rect.left) - containerCenterX - contentX * newZoom;
+        const newPanY = (currentMid.y - rect.top) - containerCenterY - contentY * newZoom;
+        
+        setZoom(newZoom);
+        setPan({ x: newPanX, y: newPanY });
+      } else {
+        setZoom(newZoom);
+      }
     }
   }, []);
 
-  const handleTouchEnd = useCallback(() => {
-    isTouchingRef.current = false;
-  }, []);
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const remainingTouches = e.touches.length;
+    
+    // Fix #9: Handle 2→1 finger transition — reset touchStart for remaining finger
+    if (wasPinchingRef.current && remainingTouches === 1) {
+      wasPinchingRef.current = false;
+      lastPinchEndRef.current = Date.now();
+      
+      // Re-init single-finger tracking from the remaining touch
+      touchStartRef.current.x = e.touches[0].clientX;
+      touchStartRef.current.y = e.touches[0].clientY;
+      touchStartRef.current.panX = pan.x;
+      touchStartRef.current.panY = pan.y;
+      touchStartRef.current.zoom = zoom;
+      
+      // Reset velocity — don't carry over from pinch
+      panVelocityRef.current = { vx: 0, vy: 0 };
+      lastPanTimeRef.current = performance.now();
+      lastPanPosRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      
+      activeTouchCountRef.current = 1;
+      return; // Don't end touching — still have 1 finger
+    }
+    
+    if (remainingTouches === 0) {
+      // Fix #11: Apply momentum/inertia on release
+      if (!wasPinchingRef.current) {
+        const velocity = panVelocityRef.current;
+        const speed = Math.hypot(velocity.vx, velocity.vy);
+        
+        if (speed > 0.15) {
+          let vx = velocity.vx * 16;
+          let vy = velocity.vy * 16;
+          const friction = 0.93;
+          
+          const applyMomentum = () => {
+            vx *= friction;
+            vy *= friction;
+            
+            if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
+              momentumRafRef.current = null;
+              return;
+            }
+            
+            setPan(prev => ({
+              x: prev.x + vx,
+              y: prev.y + vy
+            }));
+            
+            momentumRafRef.current = requestAnimationFrame(applyMomentum);
+          };
+          
+          momentumRafRef.current = requestAnimationFrame(applyMomentum);
+        }
+      }
+      
+      if (wasPinchingRef.current) {
+        lastPinchEndRef.current = Date.now();
+      }
+      
+      isTouchingRef.current = false;
+      wasPinchingRef.current = false;
+      activeTouchCountRef.current = 0;
+      
+      // Fix #10: Re-enable CSS transitions after a small delay
+      setTimeout(() => setIsTouchActive(false), 50);
+    } else {
+      activeTouchCountRef.current = remainingTouches;
+    }
+  }, [pan.x, pan.y, zoom]);
 
   const hasPrev = currentPageIndex > 0;
   const hasNext = activePlan ? currentPageIndex < (activePlan.pageCount || 1) - 1 : false;
@@ -319,6 +538,9 @@ export default function PinMapView({
   const handleImageClick = useCallback((e: React.MouseEvent) => {
     if (mode !== 'pin' || !activePlanId || !imageRef.current) return;
     if (isRenderingPdf) return;
+    
+    // Fix #6: Anti-ghost-tap — block clicks for 350ms after pinch zoom ends
+    if (Date.now() - lastPinchEndRef.current < 350) return;
 
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -542,7 +764,7 @@ export default function PinMapView({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          style={{ cursor: mode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : 'crosshair' }}
+          style={{ cursor: mode === 'pan' ? (isPanning ? 'grabbing' : 'grab') : 'crosshair', overscrollBehavior: 'none' }}  /* Fix #14 */
         >
           {!activePlan ? (
             <div className="absolute inset-0 flex items-center justify-center text-[#666] text-sm">
@@ -554,7 +776,9 @@ export default function PinMapView({
               style={{
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: 'center center',
-                transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+                // Fix #10: Disable CSS transitions during ALL touch interactions, not just isPanning
+                // This prevents CSS transition from fighting JS updates during pinch-zoom
+                transition: (isPanning || isTouchActive) ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
               }}
             >
               {/* Floor Plan Page */}
@@ -617,8 +841,11 @@ export default function PinMapView({
                         </>
                       )}
                       <div
-                        className={`w-8 h-8 rounded-full ${bgColor} text-white text-[12px] font-black flex items-center justify-center relative z-10`}
+                        className={`w-10 h-10 rounded-full ${bgColor} text-white text-[13px] font-black flex items-center justify-center relative z-10`}
                         style={{
+                          // Fix #13: Larger touch targets for mobile
+                          minWidth: '40px',
+                          minHeight: '40px',
                           boxShadow: isActive
                             ? `0 0 0 3px white, 0 0 16px ${pinColor}80, 0 4px 12px rgba(0,0,0,0.5)`
                             : `0 0 0 2px white, 0 2px 8px rgba(0,0,0,0.4)`,
@@ -732,6 +959,10 @@ export default function PinMapView({
               >
                 <ZoomIn className="w-5 h-5" />
               </button>
+              {/* Fix #11: Zoom percentage indicator */}
+              <div className="w-12 h-8 flex items-center justify-center text-[10px] font-bold text-[#888] border-b border-[#333] select-none">
+                {Math.round(zoom * 100)}%
+              </div>
               <button
                 onClick={() => handleZoom(0.8)}
                 className="w-12 h-12 flex items-center justify-center text-[#ccc] hover:bg-[#222] hover:text-rose-600 transition-colors cursor-pointer"
