@@ -71,7 +71,11 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
             : allProfiles.filter(p => p.id === currentProfile?.id);
 
         profilesToShow.forEach(profile => {
-            const myTasks = filtered.filter(t => t.supporter_id === profile.id && !t.parent_id);
+            const myTasks = filtered.filter(t => {
+                const sId = t.supporter_id;
+                const isMatch = Array.isArray(sId) ? sId.includes(profile.id) : sId === profile.id;
+                return isMatch && !t.parent_id;
+            });
             const leadProjectIds = new Set(myTasks.map(t => t.project_id));
             const completed = myTasks.filter(t => t.status?.includes('Hoàn thành'));
 
@@ -102,7 +106,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
             });
         });
 
-        return rows.sort((a, b) => b.totalTasks - a.totalTasks);
+        return rows.filter(r => r.totalTasks > 0).sort((a, b) => b.totalTasks - a.totalTasks);
     }, [allTasks, allProjects, allProfiles, monthFilter, currentProfile, isManagerOrAdmin, projectMap]);
 
     const displayData = showAll || !isManagerOrAdmin ? staffData : staffData.slice(0, 6);
