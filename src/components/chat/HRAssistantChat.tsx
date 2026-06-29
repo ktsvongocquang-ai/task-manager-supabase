@@ -134,7 +134,13 @@ export const HRAssistantChat = ({ userId, userRole, userName, controlledIsOpen, 
                                         ? 'bg-teal-600 text-white rounded-tr-sm'
                                         : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'
                                 }`}>
-                                     <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\\n/g, '<br/>') }} />
+                                     <div dangerouslySetInnerHTML={{ 
+                                        __html: msg.content
+                                            .replace(/\[task:([a-f0-9-]+):([^\]]+)\]/g, '<a href="#" onclick="window.dispatchEvent(new CustomEvent(\'openChatTask\', {detail: \'$1\'})); return false;" class="text-indigo-600 underline font-semibold hover:text-indigo-800 break-words">$2</a>')
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                            .replace(/\\n/g, '<br/>')
+                                    }} />
                                 </div>
                             </div>
                         ))}

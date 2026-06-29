@@ -21,6 +21,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     const { profile } = useAuthStore();
     const [projects, setProjects] = useState<Project[]>([]);
     const [profiles, setProfiles] = useState<any[]>([]);
+    const [editingTask, setEditingTask] = useState<any>(null);
 
     // Project Form State
     const [projectForm, setProjectForm] = useState({
@@ -33,16 +34,30 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
 
     // Fetch dependencies when any modal opens
     useEffect(() => {
-        if (isProjectModalOpen || isTaskModalOpen) {
+        if (isProjectModalOpen || isTaskModalOpen || editingTask) {
             fetchProfiles();
-            if (isTaskModalOpen) {
+            if (isTaskModalOpen || editingTask) {
                 fetchProjects();
             } else if (isProjectModalOpen && projects.length === 0) {
                 // For generating next project code
                 fetchProjects();
             }
         }
-    }, [isProjectModalOpen, isTaskModalOpen]);
+    }, [isProjectModalOpen, isTaskModalOpen, editingTask]);
+
+    // Handle global event to open task from chat
+    useEffect(() => {
+        const handleOpenTask = async (e: any) => {
+            const taskId = e.detail;
+            if (!taskId) return;
+            const { data } = await supabase.from('tasks').select('*').eq('id', taskId).single();
+            if (data) {
+                setEditingTask(data);
+            }
+        };
+        window.addEventListener('openChatTask', handleOpenTask);
+        return () => window.removeEventListener('openChatTask', handleOpenTask);
+    }, []);
 
     useEffect(() => {
         if (isProjectModalOpen && projects.length > 0) {
@@ -134,6 +149,25 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                 profiles={profiles}
                 currentUserProfile={profile}
             />
+
+            {/* Global Edit Task Modal from Chat */}
+            {editingTask && (
+                <AddEditTaskModal
+                    isOpen={!!editingTask}
+                    onClose={() => setEditingTask(null)}
+                    onSaved={() => {
+                        setEditingTask(null);
+                        if (window.location.pathname === '/tasks' || window.location.pathname === '/kanban') {
+                            window.location.reload();
+                        }
+                    }}
+                    editingTask={editingTask}
+                    initialData={taskModalInitialData}
+                    projects={projects}
+                    profiles={profiles}
+                    currentUserProfile={profile}
+                />
+            )}
         </>
     );
 };

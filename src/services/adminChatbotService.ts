@@ -96,11 +96,11 @@ export const fetchTaskStats = async (date?: string) => {
 
     const { data: coreTasks } = await supabase
         .from('tasks')
-        .select('id, status, priority, due_date, completion_pct')
+        .select('id, name, status, priority, due_date, completion_pct, project_id, projects:project_id(name)')
 
     const { data: mkTasks } = await supabase
         .from('marketing_tasks')
-        .select('id, status, priority, due_date')
+        .select('id, name, status, priority, due_date')
 
     const tasks = coreTasks || []
     const marketingTasks = mkTasks || []
@@ -147,8 +147,10 @@ export const fetchTaskStats = async (date?: string) => {
         completionRate: allActiveTasks.length > 0
             ? Math.round((completed / allActiveTasks.length) * 100)
             : 0,
-        overdueDetails: overdue.slice(0, 10).map(t => ({
-            name: t.id,
+        overdueDetails: overdue.slice(0, 10).map((t: any) => ({
+            id: t.id,
+            name: t.name || t.id,
+            project: (t.projects as any)?.name,
             due_date: t.due_date,
             status: t.status,
         })),
@@ -454,7 +456,9 @@ QUY TẮC:
 5. Nếu data trống hoặc không có, nói thẳng "Hiện chưa có dữ liệu" thay vì bịa
 6. Khi báo cáo tổng quan, chia theo team rõ ràng
 7. Đề xuất hành động cụ thể nếu phát hiện vấn đề (task quá hạn, team chậm tiến độ...)
-8. KHÔNG giải thích dài dòng về AI hay hệ thống, chỉ tập trung trả lời câu hỏi`;
+8. KHÔNG giải thích dài dòng về AI hay hệ thống, chỉ tập trung trả lời câu hỏi
+9. QUAN TRỌNG: Bất cứ khi nào nhắc đến hoặc liệt kê một task/nhiệm vụ (quá hạn, đến hạn...), PHẢI SỬ DỤNG ĐÚNG CÚ PHÁP ĐẶC BIỆT NÀY: [task:ID_CỦA_TASK:Tên Task (Tên Dự án)]
+Ví dụ: [task:123e4567-e89b-12d3:Thiết kế mặt bằng (Biệt thự Mộc Xuyên)]`;
 
     const recentHistory = history.slice(-6).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',

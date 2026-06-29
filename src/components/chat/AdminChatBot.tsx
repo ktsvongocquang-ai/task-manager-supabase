@@ -116,6 +116,7 @@ export const AdminChatBot = ({ userRole, userName, controlledIsOpen, onClose }: 
     // Format markdown-like content
     const formatMessage = (content: string) => {
         return content
+            .replace(/\[task:([a-f0-9-]+):([^\]]+)\]/g, '<a href="#" onclick="window.dispatchEvent(new CustomEvent(\'openChatTask\', {detail: \'$1\'})); return false;" class="text-indigo-600 underline font-semibold hover:text-indigo-800 break-words">$2</a>')
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code class="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded text-xs font-mono">$1</code>')

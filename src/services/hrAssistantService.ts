@@ -410,7 +410,7 @@ export const processHRQuestion = async (
         - ${thisMonthLabel}: ${salaryData.overdueThisMonth} task trễ hạn trong tháng + ${salaryData.overdueCarriedOver} task từ tháng trước chưa xong (tổng tồn đọng: ${salaryData.overdueCarriedOver + salaryData.overdueThisMonth})
 
         DANH SÁCH TASK THÁNG NÀY (Max 10):
-        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'})`).join('\n') || '(Chưa có task nào tháng này)'}
+        ${salaryData.evaluatedTasks.slice(0, 10).map(t => `- [${t.status}] ID: ${t.id} | Tên: ${t.name} (Chậm: ${t.daysLate} ngày, ${t.isHardDeadline ? 'CỨNG' : 'MỀM'})`).join('\n') || '(Chưa có task nào tháng này)'}
         `;
 
         const systemPrompt = `BẠN LÀ TRỢ LÝ QUẢN LÝ DỰ ÁN VÀ CÔNG VIỆC THÔNG MINH CHO NHÂN VIÊN.
@@ -423,6 +423,8 @@ export const processHRQuestion = async (
         2. Cảnh báo nếu nhân sự có task trễ tiến độ.
         3. KHÔNG chia sẻ dữ liệu của người khác. Dữ liệu đã được cung cấp sẵn ở bên dưới là của riêng nhân sự.
         4. Đề xuất 1 HÀNH ĐỘNG RÕ RÀNG để nhân sự có thể làm (vd: "Hãy ưu tiên hoàn thành task X trước...").
+        5. QUAN TRỌNG: Bất cứ khi nào nhắc đến hoặc liệt kê một task/nhiệm vụ, PHẢI SỬ DỤNG ĐÚNG CÚ PHÁP ĐẶC BIỆT NÀY: [task:ID_CỦA_TASK:Tên Task]
+        Ví dụ: [task:123e4567-e89b-12d3:Thiết kế mặt bằng]
         `;
 
         const recentHistory = history.slice(-6).map(m => ({
