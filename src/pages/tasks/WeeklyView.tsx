@@ -15,7 +15,7 @@ interface Props {
     onDeleteTask?: (task: Task) => void
 }
 
-const ALL_STATUSES = ['Chưa bắt đầu', 'Đang thực hiện', 'Chờ duyệt', 'Tạm dừng', 'Hoàn thành']
+const ALL_STATUSES = ['Cần làm', 'Đang thực hiện', 'Chờ duyệt', 'Hoàn thành']
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -157,7 +157,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     }
 
     const getProjectName = (id: string) => {
-        return projects.find(p => p.id === id)?.name || ''
+        const p = projects.find(p => p.id === id)
+        if (!p) return ''
+        return (p as any).project_code ? `${(p as any).project_code} - ${p.name}` : p.name
     }
     const getProjectCode = (id: string) => {
         return (projects.find(p => p.id === id) as any)?.project_code || ''
@@ -200,7 +202,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             if (!spansWeek && !isOverdue) return false
             
             const assigneeId = getAssigneeId(t.assignee_id)
-            if (filterPerson  && assigneeId !== filterPerson)  return false
+            if (filterPerson && assigneeId !== filterPerson && t.supporter_id !== filterPerson) return false
             if (filterProject && t.project_id  !== filterProject) return false
 
             if (filterPhase) {

@@ -92,6 +92,12 @@ export const Tasks = () => {
         return p?.full_name || 'N/A'
     }
 
+    const getProjectDisplay = (id: string) => {
+        const p = projects.find(p => p.id === id);
+        if (!p) return '';
+        return p.project_code ? `${p.project_code} - ${p.name}` : p.name;
+    }
+
     const matchesAssignee = (aid: string | string[] | null, id: string) =>
         Array.isArray(aid) ? aid.includes(id) : aid === id;
 
@@ -111,7 +117,8 @@ export const Tasks = () => {
 
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
-        const matchAssignee = assigneeFilter ? matchesAssignee(t.assignee_id, assigneeFilter) : true
+        const isProjectManager = assigneeFilter ? projects.find(p => p.id === t.project_id)?.manager_id === assigneeFilter : false;
+        const matchAssignee = assigneeFilter ? (matchesAssignee(t.assignee_id, assigneeFilter) || isProjectManager) : true
         return matchSearch && matchAssignee
     })
 
@@ -429,20 +436,17 @@ export const Tasks = () => {
                     <List size={22} />
                 </button>
                 {isAdmin ? (
-                    <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[200px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
-                        <button 
-                            className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${!assigneeFilter ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                            onClick={() => setAssigneeFilter('')}
-                        >
-                            Tất cả
-                        </button>
-                        <button 
-                            className={`flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold transition-all duration-300 truncate ${assigneeFilter === profile?.id ? 'bg-white text-[#5B5FC7] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                            onClick={() => setAssigneeFilter(profile?.id || '')}
-                        >
-                            Của tôi
-                        </button>
-                    </div>
+                    <select
+                        value={assigneeFilter}
+                        onChange={(e) => setAssigneeFilter(e.target.value)}
+                        className="bg-slate-100/80 border border-slate-200/50 text-slate-700 text-sm rounded-full px-4 py-1.5 focus:ring-[#5B5FC7] focus:border-[#5B5FC7] font-bold min-w-[150px] max-w-[200px] truncate shadow-inner cursor-pointer"
+                    >
+                        <option value="">Tất cả nhân sự</option>
+                        <option value={profile?.id || ''}>Của tôi</option>
+                        {profiles.filter(p => p.id !== profile?.id).map(p => (
+                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                        ))}
+                    </select>
                 ) : (
                     <div className="flex bg-slate-100/80 rounded-full p-1 flex-1 max-w-[120px] justify-center text-sm shadow-inner overflow-hidden border border-slate-200/50">
                         <div className="flex-1 min-w-0 px-2 py-1.5 rounded-full font-bold bg-white text-[#5B5FC7] shadow-sm text-center">
@@ -629,7 +633,10 @@ export const Tasks = () => {
                                                                             <p className={`font-bold leading-tight ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{t.name}</p>
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
-                                                                            <p className="text-[10px] text-slate-400 font-medium">{t.task_code}</p>
+                                                                            <p className="text-[10px] text-slate-400 font-medium">
+                                                                                {t.task_code ? <span className="font-semibold text-slate-500 mr-1">{t.task_code}</span> : null}
+                                                                                {getProjectDisplay(t.project_id)}
+                                                                            </p>
                                                                             {totalSub > 0 && (
                                                                                 <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
                                                                                     {completedSub}/{totalSub}
@@ -1034,9 +1041,12 @@ export const Tasks = () => {
                                                         <h4 className={`text-[14px] font-bold leading-tight line-clamp-2 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-800 flex-1 group-hover:text-[#5B5FC7] transition-colors'}`}>
                                                             {task.name}
                                                         </h4>
-                                                        {(task.task_code || task.priority) && (
+                                                        {(task.project_id || task.task_code || task.priority) && (
                                                             <div className="flex items-center justify-between mt-2.5">
-                                                                <span className="text-[10px] font-medium text-slate-400 tracking-tight">{task.task_code}</span>
+                                                                <span className="text-[10px] font-medium text-slate-400 tracking-tight truncate mr-2">
+                                                                    {task.task_code ? <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span> : null}
+                                                                    {getProjectDisplay(task.project_id)}
+                                                                </span>
                                                                 {task.priority && (
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'JUX' ? 'bg-red-50 text-red-600 border-red-100' :
                                                                     task.priority === 'DQH' ? 'bg-blue-50 text-blue-600 border-blue-100' :

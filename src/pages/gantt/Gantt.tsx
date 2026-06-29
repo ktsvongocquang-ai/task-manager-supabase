@@ -535,8 +535,7 @@ export const Gantt = () => {
         return `${prefix}-${String(maxId + 1).padStart(2, '0')}`;
     };
 
-    const handleQuickAdd = (parentId: string | null, projectId: string, targetPhase: string | null, e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleQuickAdd = (projectId: string, targetPhase: string | null) => {
         const taskCode = generateTaskCode(projectId, targetPhase);
         setCreateModalInitialData({
             project_id: projectId,
@@ -546,6 +545,21 @@ export const Gantt = () => {
         setEditingTask(null);
         setIsCreateModalOpen(true);
     };
+
+    const handleDelete = async (t: Task) => {
+        if (t.status === 'Lưu trữ') {
+            if (['Admin'].includes(currentUserProfile?.role?.trim() || '')) {
+                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
+                await supabase.from('tasks').delete().eq('id', t.id)
+                fetchData()
+            }
+            return
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
+        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
+        fetchData()
+    }
 
     const cellWidth = Math.max(20, Math.round(28 * zoom / 100))
 
@@ -772,12 +786,10 @@ export const Gantt = () => {
                                                         {/* Nút + tạo task (cấp 3) cho giai đoạn (cấp 2) - hiện khi hover */}
                                                         {item.type === 'phase' && (
                                                             <button
-                                                                onClick={(e) => handleQuickAdd(
-                                                                    null,
-                                                                    item.task?.project_id || '',
-                                                                    item.phaseKey || item.name,
-                                                                    e
-                                                                )}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleQuickAdd(item.task?.project_id || '', item.phaseKey || item.name);
+                                                                }}
                                                                 className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded bg-blue-500 text-white opacity-0 group-hover/row:opacity-100 hover:bg-blue-600 transition-all ml-auto"
                                                                 title="Thêm nhiệm vụ"
                                                             >
@@ -940,7 +952,7 @@ export const Gantt = () => {
                                                                     : 'bg-[#5da0ea] border-[#4b82c3]'
                                                         }`}
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
-                                                        onDoubleClick={(e) => { 
+                                                        onClick={(e) => { 
                                                             e.stopPropagation(); 
                                                             if (item.task) {
                                                                 setEditingTask(item.task); 
@@ -1088,24 +1100,27 @@ export const Gantt = () => {
             }
 
             {/* Edit Task Modal */}
-            <QuickTaskModal
-                isOpen={isEditModalOpen}
-                onClose={() => { setIsEditModalOpen(false); setEditingTask(null); }}
+            <QuickTaskModal 
+                isOpen={isEditModalOpen} 
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setEditingTask(null);
+                }} 
                 onSaved={() => {
                     setIsEditModalOpen(false);
                     setEditingTask(null);
                     fetchData();
                 }}
-                editingTask={editingTask}
+                task={editingTask}
                 profiles={profiles}
-                currentUserProfile={currentUserProfile}
-                projects={projects}
+                canEdit={true}
+                onDeleteTask={(t) => { setIsEditModalOpen(false); setEditingTask(null); handleDelete(t); }}
             />
 
             {/* Create Task Modal from Gantt + button */}
-            <AddEditTaskModal
-                isOpen={isCreateModalOpen}
-                onClose={() => setIsCreateModalOpen(false)}
+            <AddEditTaskModal 
+                isOpen={isCreateModalOpen} 
+                onClose={() => setIsCreateModalOpen(false)} 
                 onSaved={() => {
                     setIsCreateModalOpen(false);
                     // Auto-expand phase để task mới hiện trên timeline

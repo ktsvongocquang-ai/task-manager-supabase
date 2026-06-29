@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 
@@ -13,7 +13,7 @@ interface Props {
     currentUserProfile: any
 }
 
-const STATUS_OPTIONS = ['Chưa bắt đầu', 'Cần làm', 'Đang thực hiện', 'Chờ duyệt', 'Hoàn thành', 'Tạm dừng']
+const STATUS_OPTIONS = ['Cần làm', 'Đang thực hiện', 'Chờ duyệt', 'Hoàn thành']
 const PRIORITY_OPTIONS = ['JUX', 'DQH']
 const PHASE_OPTIONS = ['Concept', '3D / Phối cảnh', 'Triển khai 2D', 'Hoàn thiện hồ sơ', 'Khác']
 
@@ -83,6 +83,22 @@ export const QuickTaskModal: React.FC<Props> = ({
         }
     }
 
+    const handleDelete = async () => {
+        if (!editingTask) return
+        if (!window.confirm('Bạn có chắc muốn xóa nhiệm vụ này?')) return
+        setSaving(true)
+        try {
+            const { error } = await supabase.from('tasks').delete().eq('id', editingTask.id)
+            if (error) throw error
+            onSaved()
+            onClose()
+        } catch (err: any) {
+            alert('Lỗi xóa nhiệm vụ: ' + err.message)
+        } finally {
+            setSaving(false)
+        }
+    }
+
     if (!isOpen) return null
 
     return (
@@ -105,9 +121,16 @@ export const QuickTaskModal: React.FC<Props> = ({
                             {PRIORITY_OPTIONS.map(p => <option key={p}>{p}</option>)}
                         </select>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
-                        <X size={18} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        {editingTask && (
+                            <button onClick={handleDelete} className="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa nhiệm vụ">
+                                <Trash2 size={18} />
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Đóng">
+                            <X size={18} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Body */}

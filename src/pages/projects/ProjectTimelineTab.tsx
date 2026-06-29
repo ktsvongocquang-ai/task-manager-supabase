@@ -39,10 +39,11 @@ interface ProjectTimelineTabProps {
     tasks: Task[];
     managerName?: string;
     onUpdateProject?: () => void;
+    onEditTask?: (t: Task) => void;
 }
 
 export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
-    isOpen, onClose, project, tasks, managerName, onUpdateProject
+    isOpen, onClose, project, tasks, managerName, onUpdateProject, onEditTask
 }) => {
     const [kpiState, setKpiState] = useState<KPIState>(DEFAULT_KPI_STATE);
     const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({ concept: true });
@@ -389,7 +390,11 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                                                 <div className="space-y-1.5 mt-0">
                                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nhiệm vụ thuộc giai đoạn này</div>
                                                     {phaseTasks.map(t => (
-                                                        <div key={t.id} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 shadow-sm">
+                                                        <div 
+                                                            key={t.id} 
+                                                            onClick={() => onEditTask?.(t)}
+                                                            className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 shadow-sm cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all"
+                                                        >
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <div className={`w-2 h-2 rounded-full shrink-0 ${t.status?.includes('Hoàn thành') ? 'bg-emerald-500' : t.status?.includes('Đang') ? 'bg-blue-500' : 'bg-slate-300'}`}></div>
                                                                 <span className={`text-[13px] font-bold truncate ${t.status?.includes('Hoàn thành') ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{t.name}</span>
@@ -422,7 +427,11 @@ export const ProjectTimelineTab: React.FC<ProjectTimelineTabProps> = ({
                             </h4>
                             <div className="space-y-2">
                                 {tasksByPhase['_unassigned'].map(t => (
-                                    <div key={t.id} className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-amber-100 shadow-sm">
+                                    <div 
+                                        key={t.id} 
+                                        onClick={() => onEditTask?.(t)}
+                                        className="flex justify-between items-center bg-white rounded-lg px-3 py-2 border border-amber-100 shadow-sm cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all"
+                                    >
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0"></div>
                                             <span className="text-[13px] font-bold text-slate-700 truncate">{t.name}</span>

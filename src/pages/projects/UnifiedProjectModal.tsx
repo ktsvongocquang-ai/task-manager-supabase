@@ -156,6 +156,7 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                                 tasks={tasks}
                                 managerName={managerName}
                                 onUpdateProject={onUpdateProjectStats}
+                                onEditTask={onEditTask}
                             />
                         </div>
                         <div className={`absolute inset-0 transition-opacity duration-300 overflow-y-auto custom-scrollbar bg-white ${activeTab === 'info' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>

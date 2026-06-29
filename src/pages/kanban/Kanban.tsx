@@ -82,10 +82,31 @@ export const Kanban = () => {
         return projCode ? `${projCode}-${String(maxId + 1).padStart(2, '0')}` : '';
     }
 
+    const getProjectDisplay = (projectId: string) => {
+        const p = projects.find(x => x.id === projectId)
+        if (!p) return ''
+        return p.project_code ? `${p.project_code} - ${p.name}` : p.name;
+    }
+
     const openEditModal = (t: Task) => {
         setEditingTask(t)
         setInitialTaskData({ task_code: t.task_code, project_id: t.project_id })
         setShowModal(true)
+    }
+
+    const handleDelete = async (t: Task) => {
+        if (t.status === 'Lưu trữ') {
+            if (['Admin'].includes(profile?.role?.trim() || '')) {
+                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
+                await supabase.from('tasks').delete().eq('id', t.id)
+                fetchAll()
+            }
+            return
+        }
+
+        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
+        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
+        fetchAll()
     }
 
     const openAddModalWithStatus = () => {
@@ -182,7 +203,7 @@ export const Kanban = () => {
 
         if (selectedAssignee !== 'all') {
             const ids = Array.isArray(t.assignee_id) ? t.assignee_id : [t.assignee_id]
-            if (!ids.includes(selectedAssignee)) return false
+            if (!ids.includes(selectedAssignee) && t.supporter_id !== selectedAssignee) return false
         }
 
         if (dateFilter === 'today') {
@@ -357,7 +378,8 @@ export const Kanban = () => {
                                                                 </div>
 
                                                                 <div className="text-[10px] font-medium text-slate-400 tracking-tight mb-3">
-                                                                    {task.task_code}
+                                                                    {task.task_code ? <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span> : null}
+                                                                    {getProjectDisplay(task.project_id)}
                                                                 </div>
 
                                                                 <div className="w-full bg-slate-100 rounded-full h-2 mb-3.5 overflow-hidden">
@@ -421,6 +443,7 @@ export const Kanban = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 generateNextTaskCode={generateNextTaskCode}
+                onDeleteTask={(t) => { setShowModal(false); handleDelete(t); }}
             />
         </div>
     )
