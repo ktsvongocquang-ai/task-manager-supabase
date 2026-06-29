@@ -163,14 +163,16 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         return (projects.find(p => p.id === id) as any)?.project_code || ''
     }
     const getTaskSubtitle = (t: Task) => {
+        const code = t.task_code ? `${t.task_code}` : '';
         const projName = getProjectName(t.project_id)
+        let subtitle = projName;
         if (t.parent_id) {
             const parentTask = tasks.find(x => x.id === t.parent_id)
             if (parentTask) {
-                return `${projName} / ${parentTask.name}`
+                subtitle = `${projName} / ${parentTask.name}`
             }
         }
-        return projName
+        return code ? `${code} • ${subtitle}` : subtitle;
     }
 
     // Tasks relevant to this week:
@@ -530,7 +532,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                             const doneTasks   = group.tasks.filter(t => t.status === 'Hoàn thành')
                                             const isDoneOpen  = expandedDone.has(group.key)
 
-                                            const TaskRow = ({ t }: { t: Task }) => {
+                                            const TaskRow: React.FC<{ t: Task }> = ({ t }) => {
                                                 const d = new Date(t.due_date!)
                                                 const isLate = d < TODAY && t.status !== 'Hoàn thành'
                                                 const isDone = t.status === 'Hoàn thành'
@@ -547,7 +549,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                     {t.name || t.task_code || 'Chưa có tên'}
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-0.5">
-                                                                    <span className="text-[9px] font-semibold text-slate-400 truncate max-w-[140px]">{getTaskSubtitle(t)}</span>
+                                                                    <span className="text-[9px] font-semibold text-slate-400 truncate">{getTaskSubtitle(t)}</span>
                                                                     <span className={`text-[9px] font-medium ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{fmtShort(d)}</span>
                                                                 </div>
                                                             </div>
