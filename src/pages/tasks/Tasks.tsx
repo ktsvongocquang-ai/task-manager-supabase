@@ -118,7 +118,7 @@ export const Tasks = () => {
         const matchSearch = (t.name || '').toLowerCase().includes(search.toLowerCase()) ||
             (t.task_code || '').toLowerCase().includes(search.toLowerCase())
         const isProjectManager = assigneeFilter ? projects.find(p => p.id === t.project_id)?.manager_id === assigneeFilter : false;
-        const matchAssignee = assigneeFilter ? (matchesAssignee(t.assignee_id, assigneeFilter) || isProjectManager) : true
+        const matchAssignee = assigneeFilter ? (matchesAssignee(t.assignee_id, assigneeFilter) || matchesAssignee(t.supporter_id, assigneeFilter) || isProjectManager) : true
         return matchSearch && matchAssignee
     })
 

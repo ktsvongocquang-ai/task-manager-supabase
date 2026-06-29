@@ -203,8 +203,9 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             const isOverdue = dueStr < monStr && t.status !== 'Hoàn thành' && t.status !== 'Lưu trữ'
             if (!spansWeek && !isOverdue) return false
             
-            const assigneeId = getAssigneeId(t.assignee_id)
-            if (filterPerson && assigneeId !== filterPerson && t.supporter_id !== filterPerson) return false
+            const aId = getAssigneeId(t.assignee_id);
+            const sId = getAssigneeId(t.supporter_id);
+            if (filterPerson && aId !== filterPerson && sId !== filterPerson) return false
             if (filterProject && t.project_id  !== filterProject) return false
 
             if (filterPhase) {
@@ -293,11 +294,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 return { key: pid, label, tasks: tks, defaultValues: { project_id: pid } };
             }).sort((a, b) => a.label.localeCompare(b.label));
         } else if (sortMode === 'person') {
-            const personIds = Array.from(new Set(sourceList.map(t => getAssigneeId(t.assignee_id))));
+            const getPrimaryPerson = (t: Task) => getAssigneeId(t.supporter_id) || getAssigneeId(t.assignee_id);
+            const personIds = Array.from(new Set(sourceList.map(t => getPrimaryPerson(t))));
             groups = personIds.map(pid => {
                 const label = getAssigneeName(pid);
-                const tks = sourceList.filter(t => getAssigneeId(t.assignee_id) === pid).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
-                return { key: pid, label, tasks: tks, defaultValues: { assignee_id: pid } };
+                const tks = sourceList.filter(t => getPrimaryPerson(t) === pid).sort((a,b) => (a.due_date||'').localeCompare(b.due_date||''));
+                return { key: pid, label, tasks: tks, defaultValues: { supporter_id: pid } };
             }).sort((a, b) => a.label.localeCompare(b.label));
         }
 
@@ -370,7 +372,15 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         onRefresh()
     }
 
-    const uniquePersonIds = [...new Set(weekTasks.map(t => getAssigneeId(t.assignee_id)).filter(Boolean))]
+    const updateSupporter = async (taskId: string, newSupporterId: string) => {
+        setSaving(s => ({ ...s, [taskId]: true }))
+        const { error } = await supabase.from('tasks').update({ supporter_id: newSupporterId || null }).eq('id', taskId)
+        if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
+        setSaving(s => ({ ...s, [taskId]: false }))
+        onRefresh()
+    }
+
+    const uniquePersonIds = [...new Set(weekTasks.flatMap(t => [getAssigneeId(t.assignee_id), getAssigneeId(t.supporter_id)]).filter(Boolean))]
     const uniqueProjects  = [...new Set(weekTasks.map(t => t.project_id).filter(Boolean))]
 
     return (
@@ -583,7 +593,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                                 <span className="text-[10px] font-semibold text-slate-600 w-7 text-right">{saving[t.id] ? '...' : `${pct}%`}</span>
                                                             </div>
-                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
+                                                            <select value={getAssigneeId(t.supporter_id)} onChange={e => updateSupporter(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
                                                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
