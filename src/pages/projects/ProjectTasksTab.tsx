@@ -150,14 +150,14 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                 </div>
             </div>
 
-            {/* Action Bar for Rollup */}
-            {isRollupProject && canEdit && (
+            {/* Action Bar */}
+            {canEdit && (
                 <div className="px-6 pb-2 flex justify-end">
                     <button
-                        onClick={() => onAddTask(project.id)}
+                        onClick={() => onAddTask(project.id, undefined, isRollupProject ? undefined : 'concept')}
                         className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[11px] font-bold shadow-sm transition-all hover:scale-[1.02]"
                     >
-                        <Plus size={14} strokeWidth={3} /> Thêm công trình thi công
+                        <Plus size={14} strokeWidth={3} /> {isRollupProject ? 'Thêm công trình thi công' : 'Thêm công việc'}
                     </button>
                 </div>
             )}
@@ -184,8 +184,6 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
                     const isExpanded = expandedPhases[phase.key] !== false;
                     const isEmpty = phaseTasks.length === 0;
-                    
-                    if (isEmpty && !phase.isRollup) return null;
 
                     return (
                         <div key={phase.key} className="bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
@@ -215,6 +213,11 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                             {/* Phase Tasks */}
                             {isExpanded && (
                                 <div className="border-t border-slate-50">
+                                    {isEmpty && (
+                                        <div className="p-4 text-center text-[11px] font-semibold text-slate-400">
+                                            Chưa có công việc nào
+                                        </div>
+                                    )}
                                     {phaseTasks.map((task, idx) => {
                                         const isCompleted = task.status?.includes('Hoàn thành');
                                         const isOverdue = !isCompleted && task.due_date && isBefore(parseISO(task.due_date), today);
