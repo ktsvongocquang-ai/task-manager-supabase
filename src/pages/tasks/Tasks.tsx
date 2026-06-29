@@ -563,7 +563,8 @@ export const Tasks = () => {
                                                     <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                                                 </th>
                                                 <th className="px-4 py-3 text-left min-w-[250px]">Nhiệm vụ</th>
-                                                <th className="px-4 py-3 text-left w-[150px] min-w-[150px]">Phụ trách</th>
+                                                <th className="px-4 py-3 text-left w-[130px] min-w-[130px]">Chủ trì</th>
+                                                <th className="px-4 py-3 text-left w-[130px] min-w-[130px]">Phụ trách</th>
                                                 <th className="px-4 py-3 text-left w-[140px] min-w-[140px]">Trạng thái</th>
                                                 <th className="px-4 py-3 text-left w-[120px] min-w-[120px]">Ưu tiên</th>
                                                 <th className="px-4 py-3 text-left w-[140px] min-w-[140px]">Tiến độ</th>
@@ -648,7 +649,7 @@ export const Tasks = () => {
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-4 py-3 text-slate-600 font-medium w-[150px] min-w-[150px]">
+                                                                <td className="px-4 py-3 text-slate-600 font-medium w-[130px] min-w-[130px]">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                             {getAssigneeName(t.assignee_id).charAt(0)}
@@ -656,6 +657,24 @@ export const Tasks = () => {
                                                                         <select
                                                                             value={t.assignee_id || ''}
                                                                             onChange={(e) => updateTaskField(t.id, 'assignee_id', e.target.value || null)}
+                                                                            className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
+                                                                            disabled={!canEdit}
+                                                                        >
+                                                                            <option value="">Chưa gán</option>
+                                                                            {profiles.map(p => (
+                                                                                <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-slate-600 font-medium w-[130px] min-w-[130px]">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
+                                                                            {getAssigneeName(t.supporter_id).charAt(0)}
+                                                                        </div>
+                                                                        <select
+                                                                            value={t.supporter_id || ''}
+                                                                            onChange={(e) => updateTaskField(t.id, 'supporter_id', e.target.value || null)}
                                                                             className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
                                                                             disabled={!canEdit}
                                                                         >
@@ -846,8 +865,8 @@ export const Tasks = () => {
                                                                                             </div>
                                                                                         </td>
 
-                                                                                        {/* 4. Assignee */}
-                                                                                        <td className="px-4 py-3 text-slate-600 font-medium relative z-10 w-[150px] min-w-[150px]">
+                                                                                        {/* 4. Chủ trì */}
+                                                                                        <td className="px-4 py-3 text-slate-600 font-medium relative z-10 w-[130px] min-w-[130px]">
                                                                                             <div className="flex items-center gap-2">
                                                                                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.assignee_id).charAt(0)}
@@ -855,6 +874,25 @@ export const Tasks = () => {
                                                                                                 <select
                                                                                                     value={child.assignee_id || ''}
                                                                                                     onChange={(e) => updateTaskField(child.id, 'assignee_id', e.target.value || null)}
+                                                                                                    className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
+                                                                                                    disabled={!canEdit}
+                                                                                                >
+                                                                                                    <option value="">Chưa gán</option>
+                                                                                                    {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => (
+                                                                                                        <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                                                                                    ))}
+                                                                                                </select>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                        {/* 4.5 Phụ trách */}
+                                                                                        <td className="px-4 py-3 text-slate-600 font-medium relative z-10 w-[130px] min-w-[130px]">
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
+                                                                                                    {getAssigneeName(child.supporter_id).charAt(0)}
+                                                                                                </div>
+                                                                                                <select
+                                                                                                    value={child.supporter_id || ''}
+                                                                                                    onChange={(e) => updateTaskField(child.id, 'supporter_id', e.target.value || null)}
                                                                                                     className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
                                                                                                     disabled={!canEdit}
                                                                                                 >
