@@ -935,10 +935,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Row 3: Chủ trì | Thực hiện */}
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Row 3: Người Thực hiện / Phụ trách */}
+                            <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Chủ trì</label>
+                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Người Thực hiện (Phụ trách)</label>
                                     <div className="flex gap-1.5 items-center">
                                         <select
                                             value={form.assignee_id}
@@ -960,18 +960,6 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                             </button>
                                         )}
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[11px] text-slate-600 uppercase tracking-wide mb-1.5">Thực hiện</label>
-                                    <select
-                                        value={form.supporter_id}
-                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-3 py-2 bg-[#ECFDF5] border border-[#D1FAE5] rounded-xl text-[13px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="" className="text-slate-400 font-normal">+ Thêm người...</option>
-                                        {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
-                                    </select>
                                 </div>
                             </div>
 
