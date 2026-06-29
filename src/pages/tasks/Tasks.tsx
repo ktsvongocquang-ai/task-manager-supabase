@@ -7,6 +7,8 @@ import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalL
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
+import { isLevel2ProjectTask } from '../../utils/taskUtils'
+import { motion, AnimatePresence } from 'framer-motion'
 import { QuickAddTaskModal } from './QuickAddTaskModal'
 import { logActivity } from '../../services/activity'
 import { WeeklyView } from './WeeklyView'
@@ -56,9 +58,11 @@ export const Tasks = () => {
             if (tasksRes.error) console.error('Tasks fetch error:', tasksRes.error);
             if (projectsRes.error) console.error('Projects fetch error:', projectsRes.error);
             if (profilesRes.error) console.error('Profiles fetch error:', profilesRes.error);
-            const t = tasksRes.data; const p = projectsRes.data; const pr = profilesRes.data;
-            setTasks((t || []) as Task[])
-            setProjects((p || []) as Project[])
+            const p = projectsRes.data; const pr = profilesRes.data;
+            const loadedProjects = (p || []) as Project[];
+            const loadedTasks = (tasksRes.data || []) as Task[];
+            setTasks(loadedTasks.filter(task => !isLevel2ProjectTask(task, loadedProjects)))
+            setProjects(loadedProjects)
             setProfiles(pr || [])
             if (isInitialLoadRef.current && p) {
                 // By default expand projects that have tasks

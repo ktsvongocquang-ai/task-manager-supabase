@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { QuickTaskModal } from './QuickTaskModal'
 import { Plus, Trash2 } from 'lucide-react'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { isLevel2ProjectTask } from '../../utils/taskUtils'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
@@ -61,8 +62,9 @@ export const Gantt = () => {
                 currentProfile = userProfile;
             }
 
-            let fetchedTasks = (t || []) as Task[];
             let fetchedProjects = (p || []) as Project[];
+            let fetchedTasks = (t || []) as Task[];
+            fetchedTasks = fetchedTasks.filter(task => !isLevel2ProjectTask(task, fetchedProjects));
 
             if (currentProfile?.role === 'Thiết kế') {
                 const employeeTasks = fetchedTasks.filter(task =>

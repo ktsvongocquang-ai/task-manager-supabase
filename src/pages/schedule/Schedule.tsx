@@ -3,6 +3,7 @@ import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { isLevel2ProjectTask } from '../../utils/taskUtils'
 import { DayView } from './DayView'
 import {
     format,
@@ -73,6 +74,8 @@ export const Schedule = () => {
             ])
 
             const companyTasks = (t || []) as Task[];
+            const loadedProjects = (p || []) as Project[];
+            const filteredCompanyTasks = companyTasks.filter(task => !isLevel2ProjectTask(task, loadedProjects));
             const personalTasksMapped = (pt || []).map((t: any) => ({
                 id: t.id,
                 name: t.title,
@@ -84,8 +87,8 @@ export const Schedule = () => {
                 created_at: t.created_at,
             })) as unknown as Task[];
 
-            setTasks([...companyTasks, ...personalTasksMapped])
-            setProjects((p || []) as Project[])
+            setTasks([...filteredCompanyTasks, ...personalTasksMapped])
+            setProjects(loadedProjects)
             setProfiles(pr || [])
         } catch (err) {
             console.error(err)

@@ -5,6 +5,7 @@ import { type Task, type Project } from '../../types'
 import { Plus, Search, Calendar, Users } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
+import { isLevel2ProjectTask } from '../../utils/taskUtils'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { DropResult } from '@hello-pangea/dnd'
 
@@ -47,8 +48,10 @@ export const Kanban = () => {
                 supabase.from('projects').select('*'),
                 supabase.from('profiles').select('id, full_name, role, email')
             ])
-            setTasks((t || []) as Task[])
-            setProjects((p || []) as Project[])
+            const loadedProjects = (p || []) as Project[];
+            const loadedTasks = (t || []) as Task[];
+            setTasks(loadedTasks.filter(task => !isLevel2ProjectTask(task, loadedProjects)))
+            setProjects(loadedProjects)
             setProfiles(pr || [])
         } catch (err) {
             console.error(err)

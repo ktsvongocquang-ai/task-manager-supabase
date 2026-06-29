@@ -12,6 +12,7 @@ import {
     Plus,
     ArrowLeft,
 } from 'lucide-react'
+import { isLevel2ProjectTask } from '../../utils/taskUtils'
 import { format, parseISO } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import {
@@ -134,8 +135,9 @@ export const Dashboard = () => {
                 supabase.from('profiles').select('*')
             ])
 
-            let fetchedTasks = (tasks || []) as Task[]
             let fetchedProjects = (projects || []) as Project[]
+            let fetchedTasks = (tasks || []) as Task[]
+            fetchedTasks = fetchedTasks.filter(task => !isLevel2ProjectTask(task, fetchedProjects));
             const fetchedProfiles = (profiles || []) as any[]
 
             const isManagerOrAdmin = ['Admin', 'Quản lý', 'Giám đốc', 'Quản lý thiết kế', 'Quản lý thi công'].includes(profile?.role?.trim() || '');
