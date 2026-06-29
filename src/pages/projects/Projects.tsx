@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock, ChevronRight } from 'lucide-react'
+import { enrichTasks } from '../../utils/taskUtils'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { AddEditProjectModal } from './AddEditProjectModal'
@@ -89,8 +90,16 @@ export const Projects = () => {
     }
 
     const fetchTasks = async () => {
-        const { data } = await supabase.from('tasks').select('*')
-        if (data) setAllTasks(data as Task[])
+        const [{ data: tasksData }, { data: projectsData }] = await Promise.all([
+            supabase.from('tasks').select('*'),
+            supabase.from('projects').select('*')
+        ]);
+        if (tasksData) {
+            let loadedTasks = tasksData as Task[];
+            const loadedProjects = (projectsData || []) as Project[];
+            loadedTasks = enrichTasks(loadedTasks, loadedProjects);
+            setAllTasks(loadedTasks)
+        }
     }
 
     const filteredAllTasks = allTasks.filter(t => {

@@ -7,7 +7,7 @@ import { Plus, Search, Edit3, Trash2, Copy, ChevronDown, ChevronRight, ExternalL
 import { format, parseISO } from 'date-fns'
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { AddEditTaskModal } from './AddEditTaskModal'
-import { isLevel2ProjectTask } from '../../utils/taskUtils'
+import { isLevel2ProjectTask, enrichTasks } from '../../utils/taskUtils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QuickAddTaskModal } from './QuickAddTaskModal'
 import { logActivity } from '../../services/activity'
@@ -60,7 +60,8 @@ export const Tasks = () => {
             if (profilesRes.error) console.error('Profiles fetch error:', profilesRes.error);
             const p = projectsRes.data; const pr = profilesRes.data;
             const loadedProjects = (p || []) as Project[];
-            const loadedTasks = (tasksRes.data || []) as Task[];
+            let loadedTasks = (tasksRes.data || []) as Task[];
+            loadedTasks = enrichTasks(loadedTasks, loadedProjects);
             setTasks(loadedTasks.filter(task => !isLevel2ProjectTask(task, loadedProjects)))
             setProjects(loadedProjects)
             setProfiles(pr || [])

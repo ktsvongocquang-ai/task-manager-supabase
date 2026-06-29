@@ -3,7 +3,7 @@ import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Task, type Project } from '../../types'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
-import { isLevel2ProjectTask } from '../../utils/taskUtils'
+import { isLevel2ProjectTask, enrichTasks } from '../../utils/taskUtils'
 import { DayView } from './DayView'
 import {
     format,
@@ -73,8 +73,9 @@ export const Schedule = () => {
                 supabase.from('profiles').select('id, full_name, role, email')
             ])
 
-            const companyTasks = (t || []) as Task[];
+            let companyTasks = (t || []) as Task[];
             const loadedProjects = (p || []) as Project[];
+            companyTasks = enrichTasks(companyTasks, loadedProjects);
             const filteredCompanyTasks = companyTasks.filter(task => !isLevel2ProjectTask(task, loadedProjects));
             const personalTasksMapped = (pt || []).map((t: any) => ({
                 id: t.id,

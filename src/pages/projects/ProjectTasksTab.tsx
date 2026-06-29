@@ -261,11 +261,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-400">
-                                                        <span>
-                                                            {isRollupProject && phase.isRollup
-                                                                ? `${project.project_code}-${task.task_code?.match(/(\d+)$/)?.[1]?.padStart(2, '0') || task.task_code}-${(phase.name || '').replace('HSTC-', '').trim()}`
-                                                                : task.task_code}
-                                                        </span>
+                                                        <span>{task.task_code}</span>
                                                         <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
                                                         <span className={isOverdue ? 'text-rose-500 font-bold' : ''}>{task.due_date ? format(parseISO(task.due_date), 'dd/MM') : 'N/A'}</span>
                                                         <span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>

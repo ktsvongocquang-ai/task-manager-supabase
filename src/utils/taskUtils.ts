@@ -19,3 +19,28 @@ export const isLevel2ProjectTask = (task: Task, projects: Project[]): boolean =>
     // In a rollup project, top-level tasks (no parent) are Level 2 Projects
     return isRollup;
 };
+
+/**
+ * Enriches tasks by formatting their task_code if they are subtasks of a Level 2 project.
+ * It changes the display to: [ProjectCode]-[TaskNum]-[PhaseName]
+ */
+export const enrichTasks = (tasks: Task[], projects: Project[]): Task[] => {
+    return tasks.map(task => {
+        if (task.parent_id) {
+            const project = projects.find(p => p.id === task.project_id);
+            const isRollup = project?.status === 'Thi công' || (project?.name || '').toLowerCase().includes('tổng hợp');
+            if (isRollup) {
+                const parentTask = tasks.find(pt => pt.id === task.parent_id);
+                if (parentTask) {
+                    let phaseName = parentTask.name || '';
+                    if (phaseName.toUpperCase().startsWith('HSTC-')) phaseName = phaseName.substring(5).trim();
+                    const match = (task.task_code || '').match(/(\d+)$/);
+                    const taskNum = match ? match[1].padStart(2, '0') : task.task_code;
+                    const projCode = project.project_code || '';
+                    return { ...task, task_code: `${projCode}-${taskNum}-${phaseName}` };
+                }
+            }
+        }
+        return task;
+    });
+};

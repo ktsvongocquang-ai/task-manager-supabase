@@ -12,7 +12,7 @@ import {
     Plus,
     ArrowLeft,
 } from 'lucide-react'
-import { isLevel2ProjectTask } from '../../utils/taskUtils'
+import { isLevel2ProjectTask, enrichTasks } from '../../utils/taskUtils'
 import { format, parseISO } from 'date-fns'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import {
@@ -137,6 +137,7 @@ export const Dashboard = () => {
 
             let fetchedProjects = (projects || []) as Project[]
             let fetchedTasks = (tasks || []) as Task[]
+            fetchedTasks = enrichTasks(fetchedTasks, fetchedProjects);
             fetchedTasks = fetchedTasks.filter(task => !isLevel2ProjectTask(task, fetchedProjects));
             const fetchedProfiles = (profiles || []) as any[]
 
