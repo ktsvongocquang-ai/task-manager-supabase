@@ -46,6 +46,7 @@ export const Schedule = () => {
 
     // Filter and View
     const [selectedProject, setSelectedProject] = useState('all')
+    const [selectedAssignee, setSelectedAssignee] = useState('all')
     const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month')
 
     useEffect(() => {
@@ -141,6 +142,10 @@ export const Schedule = () => {
         if (!isVisible) return false;
 
         if (selectedProject !== 'all' && t.project_id !== selectedProject) return false;
+        
+        if (selectedAssignee !== 'all') {
+            if (t.assignee_id !== selectedAssignee && t.supporter_id !== selectedAssignee) return false;
+        }
 
         return true;
     }).sort((a, b) => {
@@ -250,6 +255,16 @@ export const Schedule = () => {
                             <option value="personal">Việc cá nhân</option>
                             {projects.map(p => (
                                 <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                        <select
+                            value={selectedAssignee}
+                            onChange={(e) => setSelectedAssignee(e.target.value)}
+                            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-600 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer max-w-[200px] truncate"
+                        >
+                            <option value="all">Tất cả nhân sự</option>
+                            {profiles.map(p => (
+                                <option key={p.id} value={p.id}>{p.full_name}</option>
                             ))}
                         </select>
                     </div>
