@@ -378,8 +378,11 @@ export const Kanban = () => {
                                                                 </div>
 
                                                                 <div className="text-[10px] font-medium text-slate-400 tracking-tight mb-3">
-                                                                    {task.task_code ? <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span> : null}
-                                                                    {getProjectDisplay(task.project_id)}
+                                                                    {task.task_code ? (
+                                                                        <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span>
+                                                                    ) : (
+                                                                        getProjectDisplay(task.project_id)
+                                                                    )}
                                                                 </div>
 
                                                                 <div className="w-full bg-slate-100 rounded-full h-2 mb-3.5 overflow-hidden">

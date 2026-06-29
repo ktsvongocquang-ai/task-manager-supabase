@@ -634,8 +634,11 @@ export const Tasks = () => {
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
                                                                             <p className="text-[10px] text-slate-400 font-medium">
-                                                                                {t.task_code ? <span className="font-semibold text-slate-500 mr-1">{t.task_code}</span> : null}
-                                                                                {getProjectDisplay(t.project_id)}
+                                                                                {t.task_code ? (
+                                                                                    <span className="font-semibold text-slate-500 mr-1">{t.task_code}</span>
+                                                                                ) : (
+                                                                                    getProjectDisplay(t.project_id)
+                                                                                )}
                                                                             </p>
                                                                             {totalSub > 0 && (
                                                                                 <span className="text-[11px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded">
@@ -1044,8 +1047,11 @@ export const Tasks = () => {
                                                         {(task.project_id || task.task_code || task.priority) && (
                                                             <div className="flex items-center justify-between mt-2.5">
                                                                 <span className="text-[10px] font-medium text-slate-400 tracking-tight truncate mr-2">
-                                                                    {task.task_code ? <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span> : null}
-                                                                    {getProjectDisplay(task.project_id)}
+                                                                    {task.task_code ? (
+                                                                        <span className="font-semibold text-slate-500 mr-1">{task.task_code}</span>
+                                                                    ) : (
+                                                                        getProjectDisplay(task.project_id)
+                                                                    )}
                                                                 </span>
                                                                 {task.priority && (
                                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 max-h-[22px] flex items-center ${task.priority === 'JUX' ? 'bg-red-50 text-red-600 border-red-100' :

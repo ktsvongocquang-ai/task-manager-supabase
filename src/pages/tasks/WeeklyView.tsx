@@ -166,6 +166,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     }
     const getTaskSubtitle = (t: Task) => {
         const code = t.task_code ? `${t.task_code}` : '';
+        if (code) return code;
+        
         const projName = getProjectName(t.project_id)
         let subtitle = projName;
         if (t.parent_id) {
@@ -174,7 +176,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 subtitle = `${projName} / ${parentTask.name}`
             }
         }
-        return code ? `${code} • ${subtitle}` : subtitle;
+        return subtitle;
     }
 
     // Tasks relevant to this week:
