@@ -556,9 +556,9 @@ export const Dashboard = () => {
                     <div className="w-1 h-3 bg-indigo-500 rounded-full"></div> Tiến độ dự án (%)
                 </h3>
                 <ResponsiveContainer width="100%" height={240}>
-                    <BarChart data={projectProgressData}>
+                    <BarChart data={projectProgressData} margin={{ bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} interval={0} angle={-35} textAnchor="end" height={50} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                         <Bar dataKey="Khối lượng" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
