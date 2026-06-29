@@ -71,7 +71,7 @@ export const StaffKPIBoard: React.FC<StaffKPIBoardProps> = ({
             : allProfiles.filter(p => p.id === currentProfile?.id);
 
         profilesToShow.forEach(profile => {
-            const myTasks = filtered.filter(t => t.assignee_id === profile.id && !t.parent_id);
+            const myTasks = filtered.filter(t => t.supporter_id === profile.id && !t.parent_id);
             const leadProjectIds = new Set(myTasks.map(t => t.project_id));
             const completed = myTasks.filter(t => t.status?.includes('Hoàn thành'));
 

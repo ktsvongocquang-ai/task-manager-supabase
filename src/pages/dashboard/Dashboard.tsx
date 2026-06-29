@@ -217,12 +217,12 @@ export const Dashboard = () => {
 
             const empMap: Record<string, { total: number, done: number }> = {}
             fetchedTasks.forEach((t: any) => {
-                const roles = Array.from(new Set([t.assignee_id, t.supporter_id].filter(id => !!id)));
-                roles.forEach(roleId => {
-                    if (!empMap[roleId]) empMap[roleId] = { total: 0, done: 0 }
-                    empMap[roleId].total++
-                    if (t.status?.includes('Hoàn thành')) empMap[roleId].done++
-                })
+                const executor = t.supporter_id;
+                if (!executor) return;
+                
+                if (!empMap[executor]) empMap[executor] = { total: 0, done: 0 }
+                empMap[executor].total++
+                if (t.status?.includes('Hoàn thành')) empMap[executor].done++
             })
             setEmployeeData(Object.entries(empMap).map(([id, data]) => {
                 const prof = profiles?.find((p: any) => p.id === id)
