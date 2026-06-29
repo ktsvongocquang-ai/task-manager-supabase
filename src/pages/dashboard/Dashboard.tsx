@@ -211,7 +211,7 @@ export const Dashboard = () => {
                 const projTasks = fetchedTasks.filter(t => t.project_id === p.id)
                 const total = projTasks.length
                 const done = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
-                return { name: p.project_code || p.name?.substring(0, 10), 'Khối lượng': total > 0 ? Math.round((done / total) * 100) : 0 }
+                return { name: p.project_code || p.name?.substring(0, 10), 'Tiến độ (%)': total > 0 ? Math.round((done / total) * 100) : 0 }
             }).slice(0, 8)
             setProjectProgressData(projProgress)
 
@@ -561,7 +561,7 @@ export const Dashboard = () => {
                         <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} interval={0} angle={-35} textAnchor="end" height={50} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                        <Bar dataKey="Khối lượng" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
+                        <Bar dataKey="Tiến độ (%)" fill="url(#colorBar)" radius={[10, 10, 0, 0]} barSize={24}>
                             <defs>
                                 <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#6366f1" stopOpacity={1} />
