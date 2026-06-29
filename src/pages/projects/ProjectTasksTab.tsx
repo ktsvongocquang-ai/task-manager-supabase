@@ -157,7 +157,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                         onClick={() => onAddTask(project.id)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[11px] font-bold shadow-sm transition-all hover:scale-[1.02]"
                     >
-                        <Plus size={14} strokeWidth={3} /> Thêm công trình (Cấp 2)
+                        <Plus size={14} strokeWidth={3} /> Thêm công trình thi công
                     </button>
                 </div>
             )}
@@ -298,7 +298,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 <option value="">Chưa gán</option>
-                                                                {getAssignableProfiles(profiles, phase.isRollup ? 'construction' : phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[]).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
+                                                                {getAssignableProfiles(profiles, phase.isRollup ? 'construction' : phase.key, [Array.isArray(task.assignee_id) ? task.assignee_id[0] : task.assignee_id].filter(Boolean) as string[], currentUserProfile?.role).map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
                                                         )}
                                                     </div>

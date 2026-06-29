@@ -60,7 +60,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
     };
 
     const fetchProfiles = async () => {
-        const { data } = await supabase.from('profiles').select('id, full_name');
+        const { data } = await supabase.from('profiles').select('id, full_name, role, email');
         if (data) setProfiles(data);
     };
 

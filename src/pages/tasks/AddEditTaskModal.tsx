@@ -64,8 +64,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const assignableProfiles = React.useMemo(() => {
         const currentAssignees = [form.assignee_id, form.supporter_id, ...subTasks.map(st => st.assignee_id)].filter(Boolean) as string[];
-        return getAssignableProfiles(profiles, form.target, currentAssignees);
-    }, [profiles, form.target, form.assignee_id, form.supporter_id, subTasks]);
+        return getAssignableProfiles(profiles, form.target, currentAssignees, currentUserProfile?.role);
+    }, [profiles, form.target, form.assignee_id, form.supporter_id, subTasks, currentUserProfile?.role]);
 
     // AI & Speech states
     const [isListening, setIsListening] = useState<'name' | 'description' | 'subtask' | null>(null);
