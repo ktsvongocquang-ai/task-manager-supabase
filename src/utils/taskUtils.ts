@@ -26,19 +26,26 @@ export const isLevel2ProjectTask = (task: Task, projects: Project[]): boolean =>
  */
 export const enrichTasks = (tasks: Task[], projects: Project[]): Task[] => {
     return tasks.map(task => {
-        if (task.parent_id) {
-            const project = projects.find(p => p.id === task.project_id);
-            const isRollup = project?.status === 'Thi công' || (project?.name || '').toLowerCase().includes('tổng hợp');
-            if (isRollup) {
-                const parentTask = tasks.find(pt => pt.id === task.parent_id);
-                if (parentTask) {
-                    let phaseName = parentTask.name || '';
-                    if (phaseName.toUpperCase().startsWith('HSTC-')) phaseName = phaseName.substring(5).trim();
-                    const match = (task.task_code || '').match(/(\d+)$/);
-                    const taskNum = match ? match[1].padStart(2, '0') : task.task_code;
-                    const projCode = project.project_code || '';
-                    return { ...task, task_code: `${projCode}-${taskNum}-${phaseName}` };
-                }
+        const project = projects.find(p => p.id === task.project_id);
+        if (!project) return task;
+
+        const isRollup = project.status === 'Thi công' || (project.name || '').toLowerCase().includes('tổng hợp');
+        
+        if (isRollup && task.parent_id) {
+            const parentTask = tasks.find(pt => pt.id === task.parent_id);
+            if (parentTask) {
+                let phaseName = parentTask.name || '';
+                if (phaseName.toUpperCase().startsWith('HSTC-')) phaseName = phaseName.substring(5).trim();
+                const match = (task.task_code || '').match(/(\d+)$/);
+                const taskNum = match ? match[1].padStart(2, '0') : task.task_code;
+                const projCode = project.project_code || '';
+                return { ...task, task_code: `${projCode}-${taskNum}-${phaseName}` };
+            }
+        } else if (!isRollup) {
+            const projName = project.name || '';
+            const currentCode = task.task_code || '';
+            if (projName && !currentCode.endsWith(projName)) {
+                return { ...task, task_code: `${currentCode}-${projName}` };
             }
         }
         return task;
