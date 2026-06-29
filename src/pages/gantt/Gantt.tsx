@@ -413,8 +413,78 @@ export const Gantt = () => {
         setEditingCell(null);
     };
 
-    const handleInlineEdit = async (taskId: string, field: string, value: string) => {
+    const handleInlineEdit = async (itemId: string, field: string, value: string) => {
         if (!value && field !== 'duration') { setEditingCell(null); return; }
+
+        if (itemId.startsWith('phase_')) {
+            const parts = itemId.split('_');
+            const projectId = parts[1];
+            const phaseKey = parts[2];
+            const project = projects.find(p => p.id === projectId);
+            
+            if (project) {
+                if (field === 'start_date' && phaseKey === 'concept') {
+                    await supabase.from('projects').update({ start_date: value }).eq('id', projectId);
+                    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, start_date: value } : p));
+                } else if (field === 'start_date' && phaseKey !== 'concept') {
+                    alert('Ngày bắt đầu của giai đoạn này phụ thuộc vào giai đoạn trước đó. Vui lòng thay đổi số ngày, hoặc thay đổi ngày bắt đầu dự án.');
+                } else if (field === 'duration' || field === 'due_date') {
+                    let kpiState: any = {};
+                    try {
+                        if (project.other_info) {
+                            const info = JSON.parse(project.other_info);
+                            if (info.kpiData) kpiState = info.kpiData;
+                        }
+                    } catch(e) {}
+                    
+                    if (!kpiState.phases) kpiState.phases = {};
+                    if (!kpiState.phases[phaseKey]) kpiState.phases[phaseKey] = { days_estimated: 0, days_used: 0 };
+                    
+                    if (field === 'duration') {
+                        const daysCount = parseInt(value, 10);
+                        if (!isNaN(daysCount) && daysCount >= 1) {
+                            kpiState.phases[phaseKey].days_estimated = daysCount;
+                        }
+                    } else if (field === 'due_date') {
+                        const phaseItem = ganttItems.find(i => i.id === itemId);
+                        if (phaseItem && phaseItem.startDate) {
+                            const sDate = parseDateStr(phaseItem.startDate);
+                            const eDate = parseDateStr(value);
+                            if (sDate && eDate && eDate >= sDate) {
+                                let count = 0;
+                                let cur = new Date(sDate);
+                                while (cur <= eDate) {
+                                    if (cur.getDay() !== 0 && cur.getDay() !== 6) count++;
+                                    cur.setDate(cur.getDate() + 1);
+                                }
+                                kpiState.phases[phaseKey].days_estimated = Math.max(1, count);
+                            } else {
+                                alert('Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.');
+                            }
+                        }
+                    }
+                    
+                    const other_info = JSON.stringify({ ...JSON.parse(project.other_info || '{}'), kpiData: kpiState });
+                    await supabase.from('projects').update({ other_info }).eq('id', projectId);
+                    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, other_info } : p));
+                }
+            }
+            setEditingCell(null);
+            return;
+        }
+
+        if (projects.some(p => p.id === itemId)) {
+            if (field === 'start_date') {
+                await supabase.from('projects').update({ start_date: value }).eq('id', itemId);
+                setProjects(prev => prev.map(p => p.id === itemId ? { ...p, start_date: value } : p));
+            } else if (field === 'due_date') {
+                await supabase.from('projects').update({ end_date: value }).eq('id', itemId);
+                setProjects(prev => prev.map(p => p.id === itemId ? { ...p, end_date: value } : p));
+            }
+            setEditingCell(null);
+            return;
+        }
+
         const updatePayload: any = {};
         if (field === 'start_date') {
             updatePayload.start_date = value;
@@ -423,7 +493,7 @@ export const Gantt = () => {
         } else if (field === 'duration') {
             const daysCount = parseInt(value, 10);
             if (isNaN(daysCount) || daysCount < 1) { setEditingCell(null); return; }
-            const task = tasks.find(t => t.id === taskId);
+            const task = tasks.find(t => t.id === itemId);
             if (!task || !task.start_date) {
                 alert('Vui lòng chọn ngày bắt đầu trước khi nhập số ngày.');
                 setEditingCell(null); 
@@ -434,8 +504,8 @@ export const Gantt = () => {
             updatePayload.due_date = newEnd.toISOString();
         }
         if (Object.keys(updatePayload).length > 0) {
-            setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updatePayload } : t));
-            await supabase.from('tasks').update(updatePayload).eq('id', taskId);
+            setTasks(prev => prev.map(t => t.id === itemId ? { ...t, ...updatePayload } : t));
+            await supabase.from('tasks').update(updatePayload).eq('id', itemId);
         }
         setEditingCell(null);
     };
@@ -722,7 +792,13 @@ export const Gantt = () => {
                                                     onClick={() => {
                                                         if (item.type === 'task' && item.task) {
                                                             setEditingCell({ id: item.id, field: 'start_date' });
-                                                            setEditValue(item.task.start_date || '');
+                                                            setEditValue(item.task.start_date ? item.task.start_date.split('T')[0] : '');
+                                                        } else if (item.type === 'phase') {
+                                                            setEditingCell({ id: item.id, field: 'start_date' });
+                                                            setEditValue(item.startDate ? item.startDate.split('T')[0] : '');
+                                                        } else if (item.type === 'project') {
+                                                            setEditingCell({ id: item.id, field: 'start_date' });
+                                                            setEditValue(item.startDate ? item.startDate.split('T')[0] : '');
                                                         }
                                                     }}
                                                 >
@@ -744,7 +820,13 @@ export const Gantt = () => {
                                                     onClick={() => {
                                                         if (item.type === 'task' && item.task) {
                                                             setEditingCell({ id: item.id, field: 'due_date' });
-                                                            setEditValue(item.task.due_date || '');
+                                                            setEditValue(item.task.due_date ? item.task.due_date.split('T')[0] : '');
+                                                        } else if (item.type === 'phase') {
+                                                            setEditingCell({ id: item.id, field: 'due_date' });
+                                                            setEditValue(item.endDate ? item.endDate.split('T')[0] : '');
+                                                        } else if (item.type === 'project') {
+                                                            setEditingCell({ id: item.id, field: 'due_date' });
+                                                            setEditValue(item.endDate ? item.endDate.split('T')[0] : '');
                                                         }
                                                     }}
                                                 >
@@ -765,6 +847,9 @@ export const Gantt = () => {
                                                     className={`w-[40px] px-1 py-2 flex items-center justify-center text-[10px] ${item.type === 'project' ? 'font-bold text-slate-800 border-r border-slate-200' : 'text-slate-600 hover:bg-blue-50 cursor-pointer border-r border-slate-200'}`}
                                                     onClick={() => {
                                                         if (item.type === 'task' && item.task) {
+                                                            setEditingCell({ id: item.id, field: 'duration' });
+                                                            setEditValue(tDays > 0 ? tDays.toString() : '');
+                                                        } else if (item.type === 'phase') {
                                                             setEditingCell({ id: item.id, field: 'duration' });
                                                             setEditValue(tDays > 0 ? tDays.toString() : '');
                                                         }
