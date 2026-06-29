@@ -36,13 +36,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
     onUpdateAssignee,
     canEdit
 }) => {
-    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({
-        'concept': true,
-        '3d': true,
-        '2d': true,
-        'construction': true,
-        'unassigned': true,
-    });
+    const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({});
 
     const togglePhase = (phaseKey: string) => {
         setExpandedPhases(prev => {
@@ -182,8 +176,8 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
 
                     const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
-                    const isExpanded = expandedPhases[phase.key] !== false;
                     const isEmpty = phaseTasks.length === 0;
+                    const isExpanded = expandedPhases[phase.key] !== undefined ? expandedPhases[phase.key] : !isEmpty;
 
                     return (
                         <div key={phase.key} className="bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
