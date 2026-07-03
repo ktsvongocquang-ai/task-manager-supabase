@@ -201,11 +201,13 @@ export const Gantt = () => {
         let validTasks = pTasks.filter(t => t.start_date || t.due_date);
         if (validTasks.length === 0) return p;
 
-        const startDates = validTasks.map(t => t.start_date ? parseDateStr(t.start_date)!.getTime() : parseDateStr(t.due_date!)!.getTime())
-        const endDates = validTasks.map(t => t.due_date ? parseDateStr(t.due_date)!.getTime() : parseDateStr(t.start_date!)!.getTime())
+        const startTimes = validTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[]
+        const endTimes = validTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[]
 
-        const minDate = new Date(Math.min(...startDates))
-        const maxDate = new Date(Math.max(...endDates))
+        if (startTimes.length === 0 || endTimes.length === 0) return p;
+
+        const minDate = new Date(Math.min(...startTimes))
+        const maxDate = new Date(Math.max(...endTimes))
 
         return {
             ...p,
@@ -288,14 +290,17 @@ export const Gantt = () => {
                     let actualDuration = 0;
                     const validPhaseTasks = phaseTasks.filter(t => t.start_date || t.due_date);
                     if (validPhaseTasks.length > 0) {
-                        const startDates = validPhaseTasks.map(t => t.start_date ? parseDateStr(t.start_date)!.getTime() : parseDateStr(t.due_date!)!.getTime());
-                        const endDates = validPhaseTasks.map(t => t.due_date ? parseDateStr(t.due_date)!.getTime() : parseDateStr(t.start_date!)!.getTime());
-                        const actualStart = new Date(Math.min(...startDates));
-                        const actualEnd = new Date(Math.max(...endDates));
-                        const actualRange = getTimelineRange(actualStart, actualEnd);
-                        if (actualRange) {
-                            actualStartIndex = actualRange.startIndex;
-                            actualDuration = actualRange.duration;
+                        const startTimes = validPhaseTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                        const endTimes = validPhaseTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                        
+                        if (startTimes.length > 0 && endTimes.length > 0) {
+                            const actualStart = new Date(Math.min(...startTimes));
+                            const actualEnd = new Date(Math.max(...endTimes));
+                            const actualRange = getTimelineRange(actualStart, actualEnd);
+                            if (actualRange) {
+                                actualStartIndex = actualRange.startIndex;
+                                actualDuration = actualRange.duration;
+                            }
                         }
                     }
 
@@ -1139,7 +1144,7 @@ export const Gantt = () => {
             }
 
             {/* Edit Task Modal */}
-            <QuickTaskModal 
+            <AddEditTaskModal 
                 isOpen={isEditModalOpen} 
                 onClose={() => {
                     setIsEditModalOpen(false);
