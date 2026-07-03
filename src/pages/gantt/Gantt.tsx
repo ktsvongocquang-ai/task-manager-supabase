@@ -1113,6 +1113,7 @@ export const Gantt = () => {
                 }}
                 task={editingTask}
                 profiles={profiles}
+                projects={projects}
                 canEdit={true}
                 onDeleteTask={(t) => { setIsEditModalOpen(false); setEditingTask(null); handleDelete(t); }}
             />
