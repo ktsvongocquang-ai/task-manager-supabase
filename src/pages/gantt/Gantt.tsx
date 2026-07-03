@@ -921,11 +921,23 @@ export const Gantt = () => {
 
                                                 {/* Colored Timeline Bar (Project) */}
                                                 {item.type === 'project' && item.actualStartIndex !== null && item.actualDuration > 0 && (
-                                                    <div
-                                                        className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10"
-                                                        style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
-                                                        title="Timeline thực tế (Dự án)"
-                                                    />
+                                                    <>
+                                                        <div
+                                                            className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10"
+                                                            style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
+                                                            title="Timeline thực tế (Dự án)"
+                                                        />
+                                                        {item.startIndex !== null && item.duration > 0 && (item.actualStartIndex + item.actualDuration) > (item.startIndex + item.duration) && (
+                                                            <div
+                                                                className="absolute top-[10px] bottom-[10px] rounded-r-sm shadow-sm flex items-center transition-colors bg-red-500 border border-red-600 z-20 pointer-events-none animate-pulse"
+                                                                style={{ 
+                                                                    left: `${Math.max(item.actualStartIndex, item.startIndex + item.duration) * cellWidth}px`, 
+                                                                    width: `${((item.actualStartIndex + item.actualDuration) - Math.max(item.actualStartIndex, item.startIndex + item.duration)) * cellWidth}px` 
+                                                                }}
+                                                                title="Phần trễ hạn"
+                                                            />
+                                                        )}
+                                                    </>
                                                 )}
 
                                                 {/* Phase Timeline Bar (Expected) */}
@@ -949,11 +961,23 @@ export const Gantt = () => {
 
                                                 {/* Phase Timeline Bar (Actual) */}
                                                 {item.type === 'phase' && item.actualStartIndex !== null && item.actualDuration > 0 && (
-                                                    <div
-                                                        className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10 pointer-events-none"
-                                                        style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
-                                                        title="Timeline thực tế (Giai đoạn)"
-                                                    />
+                                                    <>
+                                                        <div
+                                                            className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10 pointer-events-none"
+                                                            style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
+                                                            title="Timeline thực tế (Giai đoạn)"
+                                                        />
+                                                        {item.startIndex !== null && item.duration > 0 && (item.actualStartIndex + item.actualDuration) > (item.startIndex + item.duration) && (
+                                                            <div
+                                                                className="absolute top-[10px] bottom-[10px] rounded-r-sm shadow-sm flex items-center transition-colors bg-red-500 border border-red-600 z-20 pointer-events-none animate-pulse"
+                                                                style={{ 
+                                                                    left: `${Math.max(item.actualStartIndex, item.startIndex + item.duration) * cellWidth}px`, 
+                                                                    width: `${((item.actualStartIndex + item.actualDuration) - Math.max(item.actualStartIndex, item.startIndex + item.duration)) * cellWidth}px` 
+                                                                }}
+                                                                title="Phần trễ hạn"
+                                                            />
+                                                        )}
+                                                    </>
                                                 )}
 
                                                 {/* Task Timeline Bar */}
