@@ -422,6 +422,16 @@ export const Projects = () => {
         }
     }
 
+    // === INLINE EDIT FUNCTION ===
+    const handleUpdateTaskField = async (taskId: string, field: string, value: any) => {
+        setAllTasks(prev => prev.map(t => t.id === taskId ? { ...t, [field]: value } : t));
+        const { error } = await supabase.from('tasks').update({ [field]: value }).eq('id', taskId);
+        if (error) {
+            console.error('Inline update error:', error);
+            fetchTasks();
+        }
+    }
+
     const generateNextTaskCode = (projectId: string) => {
         const projTasks = allTasks.filter(t => t.project_id === projectId);
         let maxId = 0;
@@ -734,10 +744,34 @@ export const Projects = () => {
                                 <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 pl-12 py-2 items-center">
                                     <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{t.name || 'N/A'}</div>
                                     <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
-                                    <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                    <input
+                                        type="date"
+                                        value={t.due_date ? t.due_date.split('T')[0] : ''}
+                                        onChange={(e) => handleUpdateTaskField(t.id, 'due_date', e.target.value || null)}
+                                        className={`text-[11px] font-semibold bg-transparent border-none p-0 cursor-pointer focus:ring-0 w-[75px] ${isLate ? 'text-red-600' : 'text-slate-600'}`}
+                                    />
                                     <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
-                                    <span className="text-[11px] text-slate-600 truncate">{assignee}</span>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
+                                    <select
+                                        value={Array.isArray(t.assignee_id) ? t.assignee_id[0] || '' : t.assignee_id || ''}
+                                        onChange={(e) => handleUpdateAssignee(t.id, e.target.value)}
+                                        className="text-[11px] text-slate-600 bg-transparent border-none p-0 cursor-pointer focus:ring-0 truncate w-full"
+                                    >
+                                        <option value="">Chưa gán</option>
+                                        {profiles.map(p => (
+                                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                        ))}
+                                    </select>
+                                    <select
+                                        value={t.status}
+                                        onChange={(e) => handleUpdateTaskField(t.id, 'status', e.target.value)}
+                                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center border-none focus:ring-0 cursor-pointer ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}
+                                    >
+                                        <option value="Cần làm">Cần làm</option>
+                                        <option value="Đang thực hiện">Đang thực hiện</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                        <option value="Tạm dừng">Tạm dừng</option>
+                                        <option value="Lưu trữ">Lưu trữ</option>
+                                    </select>
                                 </div>
                                 <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
                                     <div className="flex justify-between items-start gap-2">

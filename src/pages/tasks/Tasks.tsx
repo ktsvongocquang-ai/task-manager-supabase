@@ -731,7 +731,17 @@ export const Tasks = () => {
                                                                 </td>
                                                                 <td className="px-4 py-3 text-slate-500 font-medium whitespace-nowrap w-[120px] min-w-[120px]">
                                                                     <div className="flex flex-col gap-1 items-start">
-                                                                        {t.due_date ? <span className={getDueDateStyle(t.due_date, t.status)}>{format(parseISO(t.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
+                                                                        <input
+                                                                            type="date"
+                                                                            value={t.due_date ? t.due_date.split('T')[0] : ''}
+                                                                            onChange={(e) => {
+                                                                                e.stopPropagation();
+                                                                                updateTaskField(t.id, 'due_date', e.target.value || null);
+                                                                            }}
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            className={`text-[11px] font-semibold bg-transparent border-none p-0 cursor-pointer focus:ring-0 w-full ${getDueDateStyle(t.due_date || '', t.status)}`}
+                                                                            disabled={!canEdit}
+                                                                        />
                                                                         {t.start_date && t.due_date && (
                                                                             <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100" title={`Từ ${format(parseISO(t.start_date), 'dd/MM/yyyy')}`}>
                                                                                 {Math.max(0, Math.ceil((new Date(t.due_date).getTime() - new Date(t.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1} ngày
@@ -959,7 +969,17 @@ export const Tasks = () => {
 
                                                                                         <td className="px-4 py-3 text-slate-500 font-medium relative z-10 whitespace-nowrap w-[120px] min-w-[120px]">
                                                                                             <div className="flex flex-col gap-1 items-start">
-                                                                                                {child.due_date ? <span className={getDueDateStyle(child.due_date, child.status)}>{format(parseISO(child.due_date), 'dd/MM/yyyy')}</span> : <span>---</span>}
+                                                                                                <input
+                                                                                                    type="date"
+                                                                                                    value={child.due_date ? child.due_date.split('T')[0] : ''}
+                                                                                                    onChange={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        updateTaskField(child.id, 'due_date', e.target.value || null);
+                                                                                                    }}
+                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                    className={`text-[11px] font-semibold bg-transparent border-none p-0 cursor-pointer focus:ring-0 w-full ${getDueDateStyle(child.due_date || '', child.status)}`}
+                                                                                                    disabled={!canEdit}
+                                                                                                />
                                                                                                 {child.start_date && child.due_date && (
                                                                                                     <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100" title={`Từ ${format(parseISO(child.start_date), 'dd/MM/yyyy')}`}>
                                                                                                         {Math.max(0, Math.ceil((new Date(child.due_date).getTime() - new Date(child.start_date).getTime()) / (1000 * 60 * 60 * 24))) + 1} ngày
