@@ -31,6 +31,7 @@ export const Gantt = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [currentUserProfile, setCurrentUserProfile] = useState<any>(null)
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+    const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null)
     const [draggingItem, setDraggingItem] = useState<{ id: string, type: 'task' | 'project' | 'phase', startX: number, deltaDays: number, action: 'move' | 'resize-left' | 'resize-right' } | null>(null)
     const [editingCell, setEditingCell] = useState<{ id: string, field: string } | null>(null)
     const [editValue, setEditValue] = useState<string>('')
@@ -198,6 +199,20 @@ export const Gantt = () => {
         ? projects.filter(p => p.id === selectedProjectId)
         : projects;
 
+    // Filter tasks by assignee if selected
+    const filteredTasks = useMemo(() => {
+        if (!selectedAssigneeId) return tasks;
+        return tasks.filter(t => t.assignee_id === selectedAssigneeId || t.supporter_id === selectedAssigneeId);
+    }, [tasks, selectedAssigneeId]);
+
+    const filteredLevel2Tasks = useMemo(() => {
+        if (!selectedAssigneeId) return level2Tasks;
+        // Only show sites that have matching tasks
+        return level2Tasks.filter(site => 
+            tasks.some(t => t.parent_id === site.id && (t.assignee_id === selectedAssigneeId || t.supporter_id === selectedAssigneeId))
+        );
+    }, [level2Tasks, tasks, selectedAssigneeId]);
+
     const updatedProjects = useMemo(() => filteredProjectsBase.map((p): Project & { computed_start?: string, computed_end?: string } => {
         const pTasks = tasks.filter(t => t.project_id === p.id)
         if (pTasks.length === 0) return p
@@ -232,7 +247,7 @@ export const Gantt = () => {
 
             const range = getTimelineRange(start, end);
 
-            const pTasksForPct = tasks.filter(t => t.project_id === p.id);
+            const pTasksForPct = filteredTasks.filter(t => t.project_id === p.id);
             let projectPct = 0;
             if (pTasksForPct.length > 0) {
                 const totalPct = pTasksForPct.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
@@ -249,7 +264,7 @@ export const Gantt = () => {
                 color: 'bg-red-500',
                 isProject: true,
                 isExpanded: expandedProjects.has(p.id),
-                taskCount: tasks.filter(t => t.project_id === p.id && !t.parent_id).length,
+                taskCount: filteredTasks.filter(t => t.project_id === p.id && !t.parent_id).length,
                 startDate: startDate,
                 endDate: endDate,
                 type: 'project',
@@ -264,11 +279,11 @@ export const Gantt = () => {
                 if (isRollup) {
                     // ========== CHẾ ĐỘ THI CÔNG ==========
                     // Nhóm theo Công trình (task cấp 2) thay vì Phase thiết kế
-                    const constructionSites = level2Tasks.filter(l2 => l2.project_id === p.id);
+                    const constructionSites = filteredLevel2Tasks.filter(l2 => l2.project_id === p.id);
                     constructionSites.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
 
                     constructionSites.forEach(site => {
-                        const siteTasks = tasks.filter(t => t.project_id === p.id && t.parent_id === site.id);
+                        const siteTasks = filteredTasks.filter(t => t.project_id === p.id && t.parent_id === site.id);
                         const fakeSiteId = `site_${p.id}_${site.id}`;
 
                         // Tính % hoàn thành trung bình của công trình
@@ -353,7 +368,7 @@ export const Gantt = () => {
 
                     phasesToRender.forEach((phaseDef) => {
                         const phaseKey = phaseDef.key;
-                        let phaseTasks = tasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
+                        let phaseTasks = filteredTasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
 
                         if (phaseKey === '_unassigned' && phaseTasks.length === 0) return;
 
@@ -445,7 +460,7 @@ export const Gantt = () => {
         });
 
         return items
-    }, [updatedProjects, expandedProjects, expandedPhases, tasks, level2Tasks, visibleDates]);
+    }, [updatedProjects, expandedProjects, expandedPhases, filteredTasks, filteredLevel2Tasks, visibleDates]);
 
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
@@ -710,6 +725,22 @@ export const Gantt = () => {
                             <option value="">Tất cả dự án</option>
                             {projects.map(p => (
                                 <option key={p.id} value={p.id}>{p.name}</option>
+                            ))}
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    </div>
+
+                    {/* Assignee Filter */}
+                    <div className="relative">
+                        <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <select
+                            value={selectedAssigneeId || ''}
+                            onChange={(e) => setSelectedAssigneeId(e.target.value || null)}
+                            className="bg-white border border-slate-200 pl-9 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 w-44 appearance-none cursor-pointer hover:bg-slate-50 transition-colors font-medium text-slate-700"
+                        >
+                            <option value="">Tất cả nhân sự</option>
+                            {profiles.map(p => (
+                                <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                             ))}
                         </select>
                         <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
