@@ -16,6 +16,7 @@ const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 export const Gantt = () => {
     const [tasks, setTasks] = useState<Task[]>([])
+    const [level2Tasks, setLevel2Tasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [currentDate, setCurrentDate] = useState(new Date())
@@ -65,6 +66,9 @@ export const Gantt = () => {
             let fetchedProjects = (p || []) as Project[];
             let fetchedTasks = (t || []) as Task[];
             fetchedTasks = enrichTasks(fetchedTasks, fetchedProjects);
+            // Lưu task cấp 2 (HSTC-...) riêng cho Gantt thi công trước khi lọc bỏ
+            const savedLevel2 = fetchedTasks.filter(task => isLevel2ProjectTask(task, fetchedProjects));
+            setLevel2Tasks(savedLevel2);
             fetchedTasks = fetchedTasks.filter(task => !isLevel2ProjectTask(task, fetchedProjects));
 
             if (currentProfile?.role === 'Thiết kế') {
@@ -254,111 +258,194 @@ export const Gantt = () => {
             })
 
             if (expandedProjects.has(p.id)) {
-                let kpiState: any = null;
-                try {
-                    if (p.other_info) {
-                        const info = JSON.parse(p.other_info);
-                        if (info.kpiData) kpiState = info.kpiData;
-                    }
-                } catch(e) {}
+                // === Phát hiện dự án Thi công / Rollup ===
+                const isRollup = p.status === 'Thi công' || (p.name || '').toLowerCase().includes('tổng hợp');
 
-                let currentPhaseStartDate = p.start_date ? parseDateStr(p.start_date)! : new Date();
-                const phasesToRender = [...DEFAULT_PHASES];
+                if (isRollup) {
+                    // ========== CHẾ ĐỘ THI CÔNG ==========
+                    // Nhóm theo Công trình (task cấp 2) thay vì Phase thiết kế
+                    const constructionSites = level2Tasks.filter(l2 => l2.project_id === p.id);
+                    constructionSites.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'vi'));
 
-                phasesToRender.forEach((phaseDef) => {
-                    const phaseKey = phaseDef.key;
-                    let phaseTasks = tasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
+                    constructionSites.forEach(site => {
+                        const siteTasks = tasks.filter(t => t.project_id === p.id && t.parent_id === site.id);
+                        const fakeSiteId = `site_${p.id}_${site.id}`;
 
-                    if (phaseKey === '_unassigned' && phaseTasks.length === 0) return;
+                        // Tính % hoàn thành trung bình của công trình
+                        let sitePct = 0;
+                        if (siteTasks.length > 0) {
+                            const totalPct = siteTasks.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
+                            sitePct = Math.round(totalPct / siteTasks.length);
+                        }
 
-                    const phaseState = kpiState?.phases?.[phaseKey] || { days_used: 0, days_estimated: 0 };
-                    const expectedDays = phaseKey === '_unassigned' ? 0 : (phaseState.days_estimated || 0);
-                    const hasExpectedTimeline = expectedDays > 0;
-                    
-                    if (!hasExpectedTimeline && phaseTasks.length === 0) return;
-
-                    const phaseEndDate = hasExpectedTimeline ? addWorkingDays(currentPhaseStartDate, expectedDays) : currentPhaseStartDate;
-                    const pRange = hasExpectedTimeline ? getTimelineRange(currentPhaseStartDate, phaseEndDate) : null;
-
-                    let phasePct = 0;
-                    if (phaseTasks.length > 0) {
-                        const totalPct = phaseTasks.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
-                        phasePct = Math.round(totalPct / phaseTasks.length);
-                    }
-
-                    let actualStartIndex: number | null = null;
-                    let actualDuration = 0;
-                    const validPhaseTasks = phaseTasks.filter(t => t.start_date || t.due_date);
-                    if (validPhaseTasks.length > 0) {
-                        const startTimes = validPhaseTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
-                        const endTimes = validPhaseTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
-                        
-                        if (startTimes.length > 0 && endTimes.length > 0) {
-                            const actualStart = new Date(Math.min(...startTimes));
-                            const actualEnd = new Date(Math.max(...endTimes));
-                            const actualRange = getTimelineRange(actualStart, actualEnd);
-                            if (actualRange) {
-                                actualStartIndex = actualRange.startIndex;
-                                actualDuration = actualRange.duration;
+                        // Tính timeline thực tế từ task con
+                        let actualStartIndex: number | null = null;
+                        let actualDuration = 0;
+                        const validSiteTasks = siteTasks.filter(t => t.start_date || t.due_date);
+                        if (validSiteTasks.length > 0) {
+                            const startTimes = validSiteTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                            const endTimes = validSiteTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                            if (startTimes.length > 0 && endTimes.length > 0) {
+                                const actualStart = new Date(Math.min(...startTimes));
+                                const actualEnd = new Date(Math.max(...endTimes));
+                                const actualRange = getTimelineRange(actualStart, actualEnd);
+                                if (actualRange) {
+                                    actualStartIndex = actualRange.startIndex;
+                                    actualDuration = actualRange.duration;
+                                }
                             }
                         }
-                    }
 
-                    const fakePhaseId = `phase_${p.id}_${phaseKey}`;
-                    
-                    items.push({
-                        id: fakePhaseId,
-                        phaseKey: phaseKey,
-                        name: phaseDef.name,
-                        startIndex: pRange?.startIndex ?? null,
-                        duration: pRange?.duration ?? 0,
-                        actualStartIndex,
-                        actualDuration,
-                        color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500',
-                        isProject: false,
-                        isPhase: true,
-                        isExpanded: expandedPhases.has(fakePhaseId),
-                        task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id },
-                        startDate: hasExpectedTimeline ? currentPhaseStartDate.toISOString() : null,
-                        endDate: hasExpectedTimeline ? phaseEndDate.toISOString() : null,
-                        type: 'phase',
-                        projectCode: p.project_code
-                    });
-
-                    if (hasExpectedTimeline) {
-                        currentPhaseStartDate = getNextWorkingDay(phaseEndDate);
-                    }
-
-                    if (expandedPhases.has(fakePhaseId)) {
-                        phaseTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
-                        
-                        phaseTasks.forEach(t => {
-                            const tStart = parseDateStr(t.start_date);
-                            const tEnd = parseDateStr(t.due_date);
-                            const tRange = getTimelineRange(tStart, tEnd);
-                            const tIsCompleted = t.status?.includes('Hoàn thành');
-
-                            items.push({
-                                id: t.id,
-                                name: t.name || t.task_code,
-                                startIndex: tRange?.startIndex ?? null,
-                                duration: tRange?.duration ?? 0,
-                                color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
-                                isProject: false,
-                                isPhase: false,
-                                task: t,
-                                startDate: t.start_date || t.due_date,
-                                endDate: t.due_date || t.start_date,
-                                type: 'task',
-                            });
+                        items.push({
+                            id: fakeSiteId,
+                            phaseKey: site.id,
+                            name: site.name || site.task_code,
+                            startIndex: actualStartIndex,
+                            duration: actualDuration,
+                            actualStartIndex,
+                            actualDuration,
+                            color: sitePct === 100 ? 'bg-teal-300' : 'bg-teal-500',
+                            isProject: false,
+                            isPhase: true,
+                            isExpanded: expandedPhases.has(fakeSiteId),
+                            task: { completion_pct: sitePct, id: fakeSiteId, project_id: p.id },
+                            startDate: validSiteTasks.length > 0 ? new Date(Math.min(...validSiteTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime() || Infinity))).toISOString() : null,
+                            endDate: validSiteTasks.length > 0 ? new Date(Math.max(...validSiteTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime() || 0))).toISOString() : null,
+                            type: 'phase',
+                            projectCode: p.project_code
                         });
-                    }
-                });
+
+                        if (expandedPhases.has(fakeSiteId)) {
+                            siteTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
+                            siteTasks.forEach(t => {
+                                const tStart = parseDateStr(t.start_date);
+                                const tEnd = parseDateStr(t.due_date);
+                                const tRange = getTimelineRange(tStart, tEnd);
+                                const tIsCompleted = t.status?.includes('Hoàn thành');
+                                items.push({
+                                    id: t.id,
+                                    name: t.name || t.task_code,
+                                    startIndex: tRange?.startIndex ?? null,
+                                    duration: tRange?.duration ?? 0,
+                                    color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
+                                    isProject: false,
+                                    isPhase: false,
+                                    task: t,
+                                    startDate: t.start_date || t.due_date,
+                                    endDate: t.due_date || t.start_date,
+                                    type: 'task',
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    // ========== CHẾ ĐỘ THIẾT KẾ (GIỮ NGUYÊN) ==========
+                    let kpiState: any = null;
+                    try {
+                        if (p.other_info) {
+                            const info = JSON.parse(p.other_info);
+                            if (info.kpiData) kpiState = info.kpiData;
+                        }
+                    } catch(e) {}
+
+                    let currentPhaseStartDate = p.start_date ? parseDateStr(p.start_date)! : new Date();
+                    const phasesToRender = [...DEFAULT_PHASES];
+
+                    phasesToRender.forEach((phaseDef) => {
+                        const phaseKey = phaseDef.key;
+                        let phaseTasks = tasks.filter(t => t.project_id === p.id && (kpiState?.taskPhaseMap?.[t.id] || detectPhase(t)) === phaseKey);
+
+                        if (phaseKey === '_unassigned' && phaseTasks.length === 0) return;
+
+                        const phaseState = kpiState?.phases?.[phaseKey] || { days_used: 0, days_estimated: 0 };
+                        const expectedDays = phaseKey === '_unassigned' ? 0 : (phaseState.days_estimated || 0);
+                        const hasExpectedTimeline = expectedDays > 0;
+                        
+                        if (!hasExpectedTimeline && phaseTasks.length === 0) return;
+
+                        const phaseEndDate = hasExpectedTimeline ? addWorkingDays(currentPhaseStartDate, expectedDays) : currentPhaseStartDate;
+                        const pRange = hasExpectedTimeline ? getTimelineRange(currentPhaseStartDate, phaseEndDate) : null;
+
+                        let phasePct = 0;
+                        if (phaseTasks.length > 0) {
+                            const totalPct = phaseTasks.reduce((sum, t) => sum + (t.completion_pct || 0), 0);
+                            phasePct = Math.round(totalPct / phaseTasks.length);
+                        }
+
+                        let actualStartIndex: number | null = null;
+                        let actualDuration = 0;
+                        const validPhaseTasks = phaseTasks.filter(t => t.start_date || t.due_date);
+                        if (validPhaseTasks.length > 0) {
+                            const startTimes = validPhaseTasks.map(t => parseDateStr(t.start_date || t.due_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                            const endTimes = validPhaseTasks.map(t => parseDateStr(t.due_date || t.start_date)?.getTime()).filter(t => t !== undefined && !isNaN(t)) as number[];
+                            
+                            if (startTimes.length > 0 && endTimes.length > 0) {
+                                const actualStart = new Date(Math.min(...startTimes));
+                                const actualEnd = new Date(Math.max(...endTimes));
+                                const actualRange = getTimelineRange(actualStart, actualEnd);
+                                if (actualRange) {
+                                    actualStartIndex = actualRange.startIndex;
+                                    actualDuration = actualRange.duration;
+                                }
+                            }
+                        }
+
+                        const fakePhaseId = `phase_${p.id}_${phaseKey}`;
+                        
+                        items.push({
+                            id: fakePhaseId,
+                            phaseKey: phaseKey,
+                            name: phaseDef.name,
+                            startIndex: pRange?.startIndex ?? null,
+                            duration: pRange?.duration ?? 0,
+                            actualStartIndex,
+                            actualDuration,
+                            color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500',
+                            isProject: false,
+                            isPhase: true,
+                            isExpanded: expandedPhases.has(fakePhaseId),
+                            task: { completion_pct: phasePct, id: fakePhaseId, project_id: p.id },
+                            startDate: hasExpectedTimeline ? currentPhaseStartDate.toISOString() : null,
+                            endDate: hasExpectedTimeline ? phaseEndDate.toISOString() : null,
+                            type: 'phase',
+                            projectCode: p.project_code
+                        });
+
+                        if (hasExpectedTimeline) {
+                            currentPhaseStartDate = getNextWorkingDay(phaseEndDate);
+                        }
+
+                        if (expandedPhases.has(fakePhaseId)) {
+                            phaseTasks.sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }));
+                            
+                            phaseTasks.forEach(t => {
+                                const tStart = parseDateStr(t.start_date);
+                                const tEnd = parseDateStr(t.due_date);
+                                const tRange = getTimelineRange(tStart, tEnd);
+                                const tIsCompleted = t.status?.includes('Hoàn thành');
+
+                                items.push({
+                                    id: t.id,
+                                    name: t.name || t.task_code,
+                                    startIndex: tRange?.startIndex ?? null,
+                                    duration: tRange?.duration ?? 0,
+                                    color: tIsCompleted ? 'bg-slate-300' : 'bg-blue-500',
+                                    isProject: false,
+                                    isPhase: false,
+                                    task: t,
+                                    startDate: t.start_date || t.due_date,
+                                    endDate: t.due_date || t.start_date,
+                                    type: 'task',
+                                });
+                            });
+                        }
+                    });
+                }
             }
         });
 
         return items
-    }, [updatedProjects, expandedProjects, expandedPhases, tasks, visibleDates]);
+    }, [updatedProjects, expandedProjects, expandedPhases, tasks, level2Tasks, visibleDates]);
 
     const toggleProject = (projectId: string) => {
         setExpandedProjects(prev => {
