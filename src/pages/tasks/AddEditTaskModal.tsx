@@ -753,7 +753,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     <div className="relative transform bg-white sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl animate-in fade-in zoom-in-95 duration-200">
 
                     {/* Header */}
-                    <div className="sticky top-0 z-20 px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-start bg-white sm:rounded-t-3xl border-b border-slate-100/50 gap-3">
+                    <div className="sticky top-0 z-20 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-start bg-white sm:rounded-t-3xl border-b border-slate-100/50 gap-2">
                         <div className="flex-1 min-w-0">
                             {/* Title Row */}
                             <div className="flex items-center gap-2 w-full">
@@ -856,36 +856,36 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             </div>
                         )}
 
-                        {/* Form Grid Layout - Compact */}
-                        <div className="space-y-3">
+                        {/* Form Grid Layout - Ultra Compact */}
+                        <div className="space-y-2">
 
-                            {/* Row 1: Dates + Status */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {/* Row 1: Dates inline */}
+                            <div className="grid grid-cols-3 gap-2">
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Bắt đầu</label>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all"
-                                    />
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Bắt đầu</label>
+                                    <input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400" />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Hạn chót</label>
-                                    <input
-                                        type="date"
-                                        value={form.due_date}
-                                        onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all"
-                                    />
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Hạn chót</label>
+                                    <input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                        className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400" />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Trạng thái</label>
-                                    <select
-                                        value={form.status}
-                                        onChange={(e) => setForm({ ...form, status: e.target.value })}
-                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer transition-all"
-                                    >
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Số ngày</label>
+                                    <input type="number" min="1"
+                                        value={(form.start_date && form.due_date) ? (differenceInDays(new Date(form.due_date), new Date(form.start_date)) + 1) : ''}
+                                        onChange={(e) => { const d = parseInt(e.target.value, 10); if (!isNaN(d) && d > 0 && form.start_date) setForm({ ...form, due_date: format(addDays(new Date(form.start_date), d - 1), 'yyyy-MM-dd') }); }}
+                                        className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 text-center font-semibold" placeholder="—" />
+                                </div>
+                            </div>
+
+                            {/* Row 2: Status + Phase */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Trạng thái</label>
+                                    <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
+                                        className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer">
                                         <option value="Cần làm">Cần làm</option>
                                         <option value="Đang thực hiện">Đang thực hiện</option>
                                         <option value="Chờ duyệt">Chờ duyệt</option>
@@ -893,109 +893,64 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Giai đoạn</label>
-                                    <select
-                                        value={form.target || ''}
-                                        onChange={(e) => setForm({ ...form, target: e.target.value })}
-                                        className={`w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] cursor-pointer transition-all ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Giai đoạn</label>
+                                    <select value={form.target || ''} onChange={(e) => setForm({ ...form, target: e.target.value })}
+                                        className={`w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer ${shouldDisableTopFields() ? 'opacity-70' : ''}`}
+                                        disabled={shouldDisableTopFields()}>
                                         <option value="">Chưa gán</option>
                                         <option value="concept">Concept</option>
                                         <option value="3d">3D / Phối cảnh</option>
                                         <option value="2d">2D / Triển khai</option>
-                                        <option value="construction">Construction / Hồ sơ TC</option>
+                                        <option value="construction">Hồ sơ TC</option>
                                     </select>
                                 </div>
                             </div>
 
-                            {/* Row 2: People + Days */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {/* Row 3: People */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Chủ trì</label>
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Chủ trì</label>
                                     <div className="flex gap-1 items-center">
-                                        <select
-                                            value={form.assignee_id}
-                                            onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
-                                            className={`flex-1 px-2.5 py-1.5 bg-[#F5F8FF] border border-[#E5EDFF] rounded-lg text-[12px] text-[#4F46E5] focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 cursor-pointer hover:bg-[#E0E7FF] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                            disabled={shouldDisableTopFields()}
-                                        >
-                                            <option value="" className="text-slate-400">Chọn...</option>
+                                        <select value={form.assignee_id} onChange={(e) => setForm({ ...form, assignee_id: e.target.value })}
+                                            className={`flex-1 px-1.5 py-1 bg-indigo-50 border border-indigo-100 rounded text-[11px] text-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer ${shouldDisableTopFields() ? 'opacity-70' : ''}`}
+                                            disabled={shouldDisableTopFields()}>
+                                            <option value="">Chọn...</option>
                                             {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                         </select>
                                         {form.assignee_id && (
-                                            <button 
-                                                onClick={handleSendEmail}
-                                                disabled={isSendingEmail}
-                                                className="hidden md:flex p-1 rounded-lg text-[#4F46E5] hover:bg-[#E0E7FF] transition-colors border border-[#E5EDFF] items-center justify-center disabled:opacity-50 shrink-0 h-[30px] w-[30px]"
-                                                title="Gửi Email"
-                                            >
-                                                {isSendingEmail ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                                            <button onClick={handleSendEmail} disabled={isSendingEmail}
+                                                className="hidden md:flex p-0.5 rounded text-indigo-500 hover:bg-indigo-100 border border-indigo-100 items-center justify-center disabled:opacity-50 shrink-0 h-[24px] w-[24px]" title="Email">
+                                                {isSendingEmail ? <Loader2 size={12} className="animate-spin" /> : <Mail size={12} />}
                                             </button>
                                         )}
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Thực hiện (Phụ trách)</label>
-                                    <select
-                                        value={form.supporter_id}
-                                        onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
-                                        className={`w-full px-2.5 py-1.5 bg-[#ECFDF5] border border-[#D1FAE5] rounded-lg text-[12px] text-[#059669] focus:outline-none focus:ring-2 focus:ring-[#059669]/20 cursor-pointer hover:bg-[#D1FAE5] transition-colors ${shouldDisableTopFields() ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        disabled={shouldDisableTopFields()}
-                                    >
-                                        <option value="" className="text-slate-400">+ Thêm người...</option>
+                                    <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Phụ trách</label>
+                                    <select value={form.supporter_id} onChange={(e) => setForm({ ...form, supporter_id: e.target.value })}
+                                        className={`w-full px-1.5 py-1 bg-emerald-50 border border-emerald-100 rounded text-[11px] text-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-300 cursor-pointer ${shouldDisableTopFields() ? 'opacity-70' : ''}`}
+                                        disabled={shouldDisableTopFields()}>
+                                        <option value="">+ Thêm...</option>
                                         {assignableProfiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Tổng số ngày</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={(form.start_date && form.due_date) ? (differenceInDays(new Date(form.due_date), new Date(form.start_date)) + 1) : ''}
-                                            onChange={(e) => {
-                                                const days = parseInt(e.target.value, 10);
-                                                if (!isNaN(days) && days > 0 && form.start_date) {
-                                                    const newDueDate = addDays(new Date(form.start_date), days - 1);
-                                                    setForm({ ...form, due_date: format(newDueDate, 'yyyy-MM-dd') });
-                                                }
-                                            }}
-                                            className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[12px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all text-center font-semibold"
-                                            placeholder="—"
-                                        />
-                                        <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-                                            <span className="text-[10px] text-slate-400 font-semibold">ngày</span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
-                            {/* Description - Compact */}
+                            {/* Description - Minimal */}
                             <div>
-                                <label className="block text-[10px] text-slate-500 uppercase tracking-wide mb-1">Mô tả</label>
-                                <div className="relative group/desc">
-                                    <textarea
-                                        value={form.description}
-                                        onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#4F46E5]/20 focus:border-[#4F46E5] transition-all min-h-[70px] resize-none"
-                                        placeholder="Thêm mô tả chi tiết..."
-                                    />
-                                    <div className="absolute right-2 bottom-2 flex gap-1.5">
-                                        <button
-                                            onClick={() => handleSpeechToText('description')}
-                                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-slate-400 border border-slate-200 hover:text-[#4F46E5] hover:border-[#4F46E5]'}`}
-                                            title="Ghi âm"
-                                        >
-                                            {isListening === 'description' ? <MicOff size={14} /> : <Mic size={14} />}
+                                <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Mô tả</label>
+                                <div className="relative">
+                                    <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                        className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-[12px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 min-h-[48px] resize-none"
+                                        placeholder="Mô tả..." />
+                                    <div className="absolute right-1.5 bottom-1.5 flex gap-1">
+                                        <button onClick={() => handleSpeechToText('description')}
+                                            className={`w-6 h-6 rounded-full flex items-center justify-center ${isListening === 'description' ? 'bg-red-500 text-white animate-pulse' : 'text-slate-300 hover:text-indigo-500'}`} title="Ghi âm">
+                                            {isListening === 'description' ? <MicOff size={12} /> : <Mic size={12} />}
                                         </button>
-                                        <button
-                                            onClick={() => handleAIRefine('description')}
-                                            disabled={isRefining === 'description'}
-                                            className="w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 hover:text-[#4F46E5] hover:border-[#4F46E5] transition-all disabled:opacity-50"
-                                            title="AI tinh chỉnh"
-                                        >
-                                            {isRefining === 'description' ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                        <button onClick={() => handleAIRefine('description')} disabled={isRefining === 'description'}
+                                            className="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-indigo-500 disabled:opacity-50" title="AI">
+                                            {isRefining === 'description' ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                                         </button>
                                     </div>
                                 </div>
