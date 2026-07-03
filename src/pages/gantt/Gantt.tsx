@@ -284,6 +284,21 @@ export const Gantt = () => {
                         phasePct = Math.round(totalPct / phaseTasks.length);
                     }
 
+                    let actualStartIndex: number | null = null;
+                    let actualDuration = 0;
+                    const validPhaseTasks = phaseTasks.filter(t => t.start_date || t.due_date);
+                    if (validPhaseTasks.length > 0) {
+                        const startDates = validPhaseTasks.map(t => t.start_date ? parseDateStr(t.start_date)!.getTime() : parseDateStr(t.due_date!)!.getTime());
+                        const endDates = validPhaseTasks.map(t => t.due_date ? parseDateStr(t.due_date)!.getTime() : parseDateStr(t.start_date!)!.getTime());
+                        const actualStart = new Date(Math.min(...startDates));
+                        const actualEnd = new Date(Math.max(...endDates));
+                        const actualRange = getTimelineRange(actualStart, actualEnd);
+                        if (actualRange) {
+                            actualStartIndex = actualRange.startIndex;
+                            actualDuration = actualRange.duration;
+                        }
+                    }
+
                     const fakePhaseId = `phase_${p.id}_${phaseKey}`;
                     
                     items.push({
@@ -292,6 +307,8 @@ export const Gantt = () => {
                         name: phaseDef.name,
                         startIndex: pRange?.startIndex ?? null,
                         duration: pRange?.duration ?? 0,
+                        actualStartIndex,
+                        actualDuration,
                         color: phasePct === 100 ? 'bg-orange-300' : 'bg-orange-500',
                         isProject: false,
                         isPhase: true,
@@ -893,41 +910,30 @@ export const Gantt = () => {
                                                     isWeekend(d) ? <div key={`bg-${idx}`} className="absolute top-0 bottom-0 pointer-events-none bg-slate-50/50" style={{ left: `${idx * cellWidth}px`, width: `${cellWidth}px` }} /> : null
                                                 ))}
 
-                                                {/* Parent Project Outline */}
-                                                {item.isPhase && (
-                                                    <div
-                                                        className="absolute top-[2px] bottom-[2px] rounded-sm pointer-events-none opacity-20 border border-slate-400"
-                                                        style={{
-                                                            left: `${(ganttItems.find(p => p.id === item.task?.project_id)?.actualStartIndex ?? 0) * cellWidth}px`,
-                                                            width: `${(ganttItems.find(p => p.id === item.task?.project_id)?.actualDuration ?? 0) * cellWidth}px`,
-                                                            backgroundColor: 'transparent'
-                                                        }}
-                                                    />
-                                                )}
-
                                                 {/* Light Expected Timeline Bar (Only for projects) */}
                                                 {item.type === 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
                                                         className="absolute top-1.5 bottom-1.5 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
-                                                        title="Timeline dự kiến"
+                                                        title="Timeline dự kiến (Dự án)"
                                                     />
                                                 )}
 
-                                                {/* Colored Timeline Bar */}
+                                                {/* Colored Timeline Bar (Project) */}
                                                 {item.type === 'project' && item.actualStartIndex !== null && item.actualDuration > 0 && (
                                                     <div
                                                         className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10"
                                                         style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
-                                                        title="Timeline thực tế"
+                                                        title="Timeline thực tế (Dự án)"
                                                     />
                                                 )}
 
                                                 {/* Phase Timeline Bar (Expected) */}
                                                 {item.type === 'phase' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2 bottom-2 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md"
+                                                        className="absolute top-1.5 bottom-1.5 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
+                                                        title="Timeline dự kiến (Giai đoạn)"
                                                         onDoubleClick={(e) => { 
                                                             e.stopPropagation(); 
                                                             // Could open phase edit here if supported
@@ -941,10 +947,19 @@ export const Gantt = () => {
                                                     </div>
                                                 )}
 
+                                                {/* Phase Timeline Bar (Actual) */}
+                                                {item.type === 'phase' && item.actualStartIndex !== null && item.actualDuration > 0 && (
+                                                    <div
+                                                        className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10 pointer-events-none"
+                                                        style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
+                                                        title="Timeline thực tế (Giai đoạn)"
+                                                    />
+                                                )}
+
                                                 {/* Task Timeline Bar */}
                                                 {item.type === 'task' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className={`absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${
+                                                        className={`absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center px-2 cursor-pointer transition-all hover:brightness-95 hover:shadow-md border ${
                                                             item.task?.status?.includes('Hoàn thành') 
                                                                 ? 'bg-emerald-500 border-emerald-600' 
                                                                 : (item.endDate && new Date(item.endDate) < new Date(new Date().setHours(0,0,0,0)))
