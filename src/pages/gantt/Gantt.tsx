@@ -1155,10 +1155,14 @@ export const Gantt = () => {
                     setEditingTask(null);
                     fetchData();
                 }}
-                task={editingTask}
+                editingTask={editingTask}
+                initialData={{
+                    task_code: editingTask?.task_code || '',
+                    project_id: editingTask?.project_id || '',
+                }}
                 profiles={profiles}
                 projects={projects}
-                canEdit={true}
+                currentUserProfile={currentUserProfile}
                 onDeleteTask={(t) => { setIsEditModalOpen(false); setEditingTask(null); handleDelete(t); }}
             />
 
