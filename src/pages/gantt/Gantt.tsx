@@ -908,7 +908,7 @@ export const Gantt = () => {
                                                 {/* Light Expected Timeline Bar (Only for projects) */}
                                                 {item.type === 'project' && item.startIndex !== null && item.duration > 0 && (
                                                     <div
-                                                        className="absolute top-2.5 bottom-2.5 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
+                                                        className="absolute top-1.5 bottom-1.5 rounded-sm bg-emerald-100/80 border border-emerald-300 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]"
                                                         style={{ left: `${item.startIndex * cellWidth}px`, width: `${item.duration * cellWidth}px` }}
                                                         title="Timeline dự kiến"
                                                     />
@@ -917,7 +917,7 @@ export const Gantt = () => {
                                                 {/* Colored Timeline Bar */}
                                                 {item.type === 'project' && item.actualStartIndex !== null && item.actualDuration > 0 && (
                                                     <div
-                                                        className="absolute top-1.5 bottom-1.5 rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b]"
+                                                        className="absolute top-[10px] bottom-[10px] rounded-sm shadow-sm flex items-center transition-colors bg-[#4a80bc] border border-[#3a689b] z-10"
                                                         style={{ left: `${item.actualStartIndex * cellWidth}px`, width: `${item.actualDuration * cellWidth}px` }}
                                                         title="Timeline thực tế"
                                                     />
