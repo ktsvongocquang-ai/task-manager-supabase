@@ -1,11 +1,15 @@
 import { useAuthStore } from '../../store/authStore';
-import { User, ShieldAlert, Award, Mail, Link } from 'lucide-react';
+import { User, ShieldAlert, Award, Mail, Link, Send, Save, CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabase';
 
 export const Profile = () => {
     const { profile, user } = useAuthStore();
     const [linking, setLinking] = useState(false);
+    const [zaloId, setZaloId] = useState(profile?.zalo_user_id || '');
+    const [telegramId, setTelegramId] = useState(profile?.telegram_chat_id || '');
+    const [savingZalo, setSavingZalo] = useState(false);
+    const [savedZalo, setSavedZalo] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -118,6 +122,65 @@ export const Profile = () => {
                                 <div>
                                     <p className="text-xs text-slate-500 font-medium mb-1">Cơ sở / Chi nhánh</p>
                                     <p className="text-sm font-bold text-slate-900">{(profile as any)?.branch || 'Chưa cập nhật'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Zalo & Telegram Notification IDs */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <Send size={18} className="text-sky-500" />
+                                Nhận thông báo Task
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs text-slate-500 font-medium mb-1.5 block">Số điện thoại Zalo (Bot)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={zaloId}
+                                            onChange={e => setZaloId(e.target.value)}
+                                            placeholder="Nhập SĐT Zalo (VD: 0912345678)..."
+                                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                setSavingZalo(true);
+                                                const { error } = await supabase.from('profiles').update({ zalo_user_id: zaloId || null }).eq('id', profile?.id);
+                                                setSavingZalo(false);
+                                                if (!error) { setSavedZalo(true); setTimeout(() => setSavedZalo(false), 2000); }
+                                                else alert('Lỗi: ' + error.message);
+                                            }}
+                                            disabled={savingZalo}
+                                            className="px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1"
+                                        >
+                                            {savedZalo ? <><CheckCircle2 size={14} /> OK</> : savingZalo ? 'Lưu...' : <><Save size={14} /> Lưu</>}
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1">Nhập số điện thoại Zalo của nhân viên để nhận thông báo từ Bot miễn phí.</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-slate-500 font-medium mb-1.5 block">Telegram Chat ID</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={telegramId}
+                                            onChange={e => setTelegramId(e.target.value)}
+                                            placeholder="Ví dụ: 123456789"
+                                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                const { error } = await supabase.from('profiles').update({ telegram_chat_id: telegramId || null }).eq('id', profile?.id);
+                                                if (!error) alert('Đã lưu Telegram ID!');
+                                                else alert('Lỗi: ' + error.message);
+                                            }}
+                                            className="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center gap-1"
+                                        >
+                                            <Save size={14} /> Lưu
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-1">Gửi /start cho @userinfobot trên Telegram để lấy Chat ID</p>
                                 </div>
                             </div>
                         </div>
