@@ -267,7 +267,7 @@ export const processAdminQuestion = async (
         let answer = await callGeminiWithContext(question, contextData, conversationHistory)
         
         // Step 3: Kiểm tra lệnh gửi Zalo
-        const zaloMatch = answer.match(/\[SEND_ZALO:(.+?):(.+?)\]/s);
+        const zaloMatch = answer.match(/\[SEND_ZALO:(.+?):(.+)\]/s);
         if (zaloMatch) {
             const staffName = zaloMatch[1].trim();
             const message = zaloMatch[2].trim();
