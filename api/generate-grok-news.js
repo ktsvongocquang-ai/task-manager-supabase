@@ -17,6 +17,73 @@ export default async function handler(req, res) {
         }
     }
 
+    if (req.query?.job === 'zalo_webhook') {
+        try {
+            const { sender_id, text } = req.body;
+            if (!sender_id || !text) return res.status(400).json({ error: 'Missing data' });
+
+            const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+            const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const supabaseAdmin = createClient(supabaseUrl, serviceKey);
+
+            // 1. Find user by zalo_user_id
+            const { data: user } = await supabaseAdmin.from('profiles').select('*').eq('zalo_user_id', sender_id).single();
+            if (!user) {
+                return res.status(200).json({ reply_message: 'Số điện thoại Zalo của bạn chưa được liên kết với hệ thống quản lý công việc.' });
+            }
+
+            // 2. Fetch user's active tasks
+            const { data: tasks } = await supabaseAdmin.from('tasks')
+                .select('*')
+                .eq('assignee_id', user.staff_id)
+                .neq('status', 'Hoàn thành')
+                .neq('status', 'Hủy bỏ');
+
+            // 3. AI Analysis with Gemini
+            const geminiApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+            const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+            
+            const systemPrompt = `Bạn là Trợ lý AI Quản lý Công việc. 
+            Nhân viên tên ${user.full_name} (${user.role}) vừa nhắn tin: "${text}".
+            Danh sách Task đang làm:
+            ${tasks?.map(t => `- [ID: ${t.id}] ${t.title} (Trạng thái: ${t.status})`).join('\n') || 'Không có task nào'}
+            
+            Nhiệm vụ của bạn là:
+            1. Tìm xem nhân viên đang nói đến task nào.
+            2. Nếu họ báo cáo đã hoàn thành, hãy gọi hàm update_task_status(id, 'Hoàn thành', 'Báo cáo qua Zalo: ...').
+            3. Nếu họ báo cáo tiến độ, gọi hàm add_comment(id, comment).
+            4. Trả về một câu trả lời ngắn gọn, thân thiện (dưới 20 từ) để bot gửi lại cho nhân viên.`;
+
+            // Since we can't easily use tools with raw fetch, we will just ask Gemini to output JSON
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: systemPrompt + '\n\nYêu cầu: Hãy trả về ĐÚNG định dạng JSON sau (không chứa ký tự markdown):\n{"action": "update_status", "task_id": "...", "status": "Hoàn thành", "reply": "Đã cập nhật hoàn thành!"} HOẶC {"action": "comment", "task_id": "...", "comment": "...", "reply": "Đã ghi nhận tiến độ!"} HOẶC {"action": "none", "reply": "Câu trả lời tự nhiên của bạn..."}',
+                config: { responseMimeType: "application/json" }
+            });
+
+            let aiResult = { action: 'none', reply: 'Đã nhận thông tin!' };
+            try {
+                aiResult = JSON.parse(response.text);
+            } catch (e) { console.error('JSON parse error', e); }
+
+            // 4. Execute Action
+            if (aiResult.action === 'update_status' && aiResult.task_id) {
+                await supabaseAdmin.from('tasks').update({ status: aiResult.status }).eq('id', aiResult.task_id);
+            } else if (aiResult.action === 'comment' && aiResult.task_id) {
+                await supabaseAdmin.from('task_comments').insert({
+                    task_id: aiResult.task_id,
+                    user_id: user.id,
+                    content: aiResult.comment
+                });
+            }
+
+            return res.status(200).json({ reply_message: aiResult.reply || 'Đã ghi nhận!' });
+        } catch (e) {
+            console.error('Webhook error:', e);
+            return res.status(500).json({ error: e.message });
+        }
+    }
+
     try {
         const geminiApiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
         if (!geminiApiKey) {
