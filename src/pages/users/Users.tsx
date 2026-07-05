@@ -70,7 +70,8 @@ export const Users = () => {
         setForm({
             staff_id: p.staff_id, full_name: p.full_name, email: p.email,
             position: p.position || '', role: p.role, password: '',
-            construction_project_id: (p as any).construction_project_id || null
+            construction_project_id: (p as any).construction_project_id || null,
+            zalo_user_id: p.zalo_user_id || ''
         })
         setShowModal(true)
     }
@@ -82,7 +83,8 @@ export const Users = () => {
                 // 1. Update profiles table (including email)
                 const { error: profileError } = await supabase.from('profiles').update({
                     full_name: form.full_name, position: form.position, role: form.role, email: form.email,
-                    construction_project_id: form.construction_project_id || null
+                    construction_project_id: form.construction_project_id || null,
+                    zalo_user_id: form.zalo_user_id || null
                 }).eq('id', editingProfile.id)
 
                 if (profileError) {
@@ -202,7 +204,8 @@ export const Users = () => {
                     email: form.email,
                     position: form.position || null,
                     role: form.role,
-                    construction_project_id: form.construction_project_id || null
+                    construction_project_id: form.construction_project_id || null,
+                    zalo_user_id: form.zalo_user_id || null
                 })
                 if (error) {
                     console.error('Insert profile error:', error)

@@ -64,6 +64,15 @@ export const AddEditUserModal = ({ isEditing, form, setForm, onClose, onSave, sa
                         />
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Số điện thoại Zalo (để Bot nhắc việc)</label>
+                        <input
+                            value={form.zalo_user_id || ''}
+                            onChange={e => setForm({ ...form, zalo_user_id: e.target.value })}
+                            className="w-full px-4 py-2 bg-white border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            placeholder="Nhập SĐT (VD: 0912345678)..."
+                        />
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Chức vụ</label>
                         <input
                             value={form.position}
