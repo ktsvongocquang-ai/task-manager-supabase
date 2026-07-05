@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type Profile } from '../../types'
-import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle } from 'lucide-react'
+import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle, Send } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../../services/supabase'
 
@@ -199,6 +199,19 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
                                 <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider ${brand.badge}`}>
                                     {p.role}
                                 </span>
+
+                                {/* Zalo Link Status */}
+                                <div className="flex items-center gap-1.5 mt-2.5">
+                                    {p.zalo_user_id ? (
+                                        <span className="inline-flex items-center gap-1 text-[10px] bg-sky-50 text-sky-600 px-2 py-1 rounded font-bold border border-sky-100">
+                                            <Send size={10} /> Zalo: {p.zalo_user_id}
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-1 text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded font-medium border border-slate-100 border-dashed">
+                                            <Send size={10} /> Chưa có Zalo
+                                        </span>
+                                    )}
+                                </div>
 
                                 {/* Actions */}
                                 {currentUserRole === 'Admin' && (
