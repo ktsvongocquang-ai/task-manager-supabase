@@ -264,7 +264,39 @@ export const processAdminQuestion = async (
         const contextData = await gatherContextForQuestion(question)
 
         // Step 2: Gọi Gemini với context data
-        const answer = await callGeminiWithContext(question, contextData, conversationHistory)
+        let answer = await callGeminiWithContext(question, contextData, conversationHistory)
+        
+        // Step 3: Kiểm tra lệnh gửi Zalo
+        const zaloMatch = answer.match(/\[SEND_ZALO:(.+?):(.+?)\]/s);
+        if (zaloMatch) {
+            const staffName = zaloMatch[1].trim();
+            const message = zaloMatch[2].trim();
+            
+            // Remove the raw tag from the answer shown to user
+            answer = answer.replace(zaloMatch[0], `\n⏳ *Đang gửi thông báo Zalo cho ${staffName}...*`);
+            
+            // Gọi API thực thi
+            try {
+                const res = await fetch('/api/admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'send_zalo_message',
+                        payload: { staffName, message }
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    answer = answer.replace(`⏳ *Đang gửi thông báo Zalo cho ${staffName}...*`, `✅ *${data.message}*`);
+                } else {
+                    answer = answer.replace(`⏳ *Đang gửi thông báo Zalo cho ${staffName}...*`, `❌ *Lỗi gửi Zalo: ${data.error}*`);
+                }
+            } catch (err) {
+                answer = answer.replace(`⏳ *Đang gửi thông báo Zalo cho ${staffName}...*`, `❌ *Lỗi hệ thống khi gửi Zalo.*`);
+            }
+        }
+
         return answer
     } catch (error: any) {
         console.error('Admin Chatbot Error:', error)
@@ -457,8 +489,10 @@ QUY TẮC:
 6. Khi báo cáo tổng quan, chia theo team rõ ràng
 7. Đề xuất hành động cụ thể nếu phát hiện vấn đề (task quá hạn, team chậm tiến độ...)
 8. KHÔNG giải thích dài dòng về AI hay hệ thống, chỉ tập trung trả lời câu hỏi
-9. QUAN TRỌNG: Bất cứ khi nào nhắc đến hoặc liệt kê một task/nhiệm vụ (quá hạn, đến hạn...), PHẢI SỬ DỤNG ĐÚNG CÚ PHÁP ĐẶC BIỆT NÀY: [task:ID_CỦA_TASK:Tên Task (Tên Dự án)]
-Ví dụ: [task:123e4567-e89b-12d3:Thiết kế mặt bằng (Biệt thự Mộc Xuyên)]`;
+9. QUAN TRỌNG VỀ TASK: Bất cứ khi nào nhắc đến một task, PHẢI SỬ DỤNG ĐÚNG CÚ PHÁP: [task:ID:Tên Task]
+10. QUAN TRỌNG VỀ GỬI THÔNG BÁO: Nếu Admin yêu cầu bạn nhắn tin/thông báo/nhắc nhở một nhân sự nào đó qua Zalo, bạn BẮT BUỘC phải chèn một dòng cú pháp ẩn này vào cuối câu trả lời của bạn:
+[SEND_ZALO:Tên_Nhân_Sự:Nội dung tin nhắn bạn muốn gửi cho họ]
+Ví dụ Admin nói: "Nhắc Quang nộp báo cáo đi" -> Bạn trả lời: "Đã rõ. Tôi sẽ gửi thông báo cho Quang ngay. [SEND_ZALO:Quang:Chào bạn, vui lòng nộp báo cáo công việc sớm nhé!]"`;
 
     const recentHistory = history.slice(-6).map(m => ({
         role: m.role === 'user' ? 'user' : 'model',
