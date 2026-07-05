@@ -5,15 +5,15 @@
             "schedule": "0 0 * * *"
         },
         {
-            "path": "/api/cron-zalo-remind",
+            "path": "/api/generate-grok-news?job=zalo",
             "schedule": "0 2 * * *"
         },
         {
-            "path": "/api/cron-zalo-remind",
+            "path": "/api/generate-grok-news?job=zalo",
             "schedule": "35 6 * * *"
         },
         {
-            "path": "/api/cron-zalo-remind",
+            "path": "/api/generate-grok-news?job=zalo",
             "schedule": "30 10 * * *"
         }
     ],
