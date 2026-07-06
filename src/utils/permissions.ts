@@ -11,6 +11,7 @@ const ROUTE_ACCESS: Record<string, AppRole[]> = {
     '/projects':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/marketing':    ['Admin', 'Quản lý thiết kế', 'Marketing'],
     '/construction': ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Khách hàng'],
+    '/finance':      ['Admin', 'Quản lý thiết kế'],
     '/customers':    ['Admin', 'Quản lý thiết kế', 'Sale'],
     '/history':      ['Admin', 'Quản lý thiết kế'],
     '/users':        ['Admin'],

@@ -32,7 +32,8 @@ import {
     BookOpen,
     Link as LinkIcon,
     Bot,
-    Settings
+    Settings,
+    DollarSign
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -56,6 +57,7 @@ const viewTitles: Record<string, string> = {
     '/history': 'Lịch sử Hoạt động',
     '/users': 'Quản lý Thiết kế',
     '/construction': 'Quản lý Thi công',
+    '/finance': 'Tài chính',
     '/customers': 'CRM',
     '/marketing': 'Marketing',
     '/bao-gia': 'Báo giá Nội thất',
@@ -355,6 +357,11 @@ export const Layout = () => {
         // Tab Thi Công
         if (canAccessRoute(role, '/construction')) {
             items.push({ name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] });
+        }
+
+        // Tab Tài chính
+        if (canAccessRoute(role, '/finance')) {
+            items.push({ name: 'Tài chính', path: '/finance', icon: DollarSign, matchPrefix: ['/finance'] });
         }
 
         // Tab CRM

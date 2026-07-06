@@ -28,6 +28,7 @@ const History = lazy(() => import('./pages/history/History').then(m => ({ defaul
 const Kanban = lazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
 const Schedule = lazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
 const Construction = lazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
+const Finance = lazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
 const Customers = lazy(() => import('./pages/customers/Customers').then(m => ({ default: m.Customers })))
 const QuoteGenerator = lazy(() => import('./pages/customers/QuoteGenerator'))
 
@@ -72,6 +73,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="history" element={<History />} />
             <Route path="construction" element={<Construction />} />
+            <Route path="finance" element={<Finance />} />
             <Route path="customers" element={<Customers />} />
             <Route path="customers/quotes/new" element={<QuoteGenerator />} />
             <Route path="marketing" element={<MarketingApp />} />

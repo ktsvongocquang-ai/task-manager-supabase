@@ -8,13 +8,14 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 
-import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, PaymentRecord, WeatherType } from './types';
+import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from './mockData';
-import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart, CostOverview, NotificationSettings, WorkflowManager } from './views';
+import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, NotificationSettings, WorkflowManager } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
-import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabasePaymentRecord, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
+import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
 
@@ -81,15 +82,6 @@ const mapDailyLog = (l: SupabaseDailyLog): DailyLog => {
     comments: Array.isArray(l.comments) ? l.comments : [],
   };
 };
-
-const mapPayment = (r: SupabasePaymentRecord): PaymentRecord => ({
-  id: r.id, projectId: r.project_id, date: r.date,
-  description: r.description, amount: r.amount || 0,
-  billPhotos: Array.isArray(r.bill_photos) ? r.bill_photos : [],
-  type: (r.type as 'payment_out' | 'payment_in') || 'payment_out',
-  status: (r.status as 'confirmed' | 'pending') || 'pending',
-  category: r.category || 'Vật liệu',
-});
 
 const mapSubcontractor = (s: SupabaseSubcontractor): Subcontractor => ({
   id: s.id, name: s.name, trade: s.trade, phone: s.phone, rating: s.rating,
@@ -1148,6 +1140,7 @@ const profileRoleToUserRole = (role?: string): UserRole => {
 export const Construction = () => {
   const db = useConstructionData();
   const { profile } = useAuthStore();
+  const navigate = useNavigate();
 
   // Derive initial role from URL param (QR share) or authenticated profile role
   const getInitialRole = (): UserRole => {
@@ -1189,7 +1182,6 @@ export const Construction = () => {
   const dbMilestones: Milestone[] = db.milestones.map(mapMilestone);
   const dbApprovals: Approval[] = db.approvals.map(mapApproval);
   const dbNotifications: Notification[] = db.notifications.length > 0 ? db.notifications.map(mapNotification) : NOTIFICATIONS;
-  const dbPayments: PaymentRecord[] = db.paymentRecords.map(mapPayment);
   const dbSubs: Subcontractor[] = db.subcontractors.map(mapSubcontractor);
   const dbPhases: ConstructionPhase[] = db.phases.map(p => ({ id: p.id, name: p.name, status: p.status as 'done' | 'doing' | 'upcoming', order: p.sort_order, startDate: p.start_date || undefined, endDate: p.end_date || undefined, note: p.note }));
   const dbAttendance: AttendanceData = db.attendance.length > 0
@@ -1571,17 +1563,28 @@ export const Construction = () => {
                 showToast(`Chuyển "${task.name}" → ${statusConfig[newStatus].label}`);
               }
             }} />}
-            {/* Tài chính (merged COST + PAYMENTS + SUBS) */}
+            {/* Tài chính — tóm tắt nhanh công trình này, chi tiết đầy đủ (Chi phí/Thu tiền/Khách hàng) nằm ở trang Tài chính riêng */}
             {activeTab === 'COST' && (
-              <div className="space-y-6">
-                <CostOverview tasks={tasks} project={selectedProject} milestones={dbMilestones} />
-                <PaymentHistory 
-                  payments={dbPayments} 
-                  onAdd={userRole === 'MANAGER' ? async (record) => db.createPaymentRecord({ ...record, project_id: selectedProject.id }) : undefined}
-                  onDelete={userRole === 'MANAGER' ? async (id) => db.deletePaymentRecord(id) : undefined}
-                  onUpdate={userRole === 'MANAGER' ? async (id, updates) => db.updatePaymentRecord(id, updates) : undefined}
-                />
-                <ContractorProgressChart subcontractors={dbSubs} />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                    <p className="text-[10px] text-slate-400 font-bold">Giá trị hợp đồng</p>
+                    <p className="text-lg font-bold text-slate-800">{fmt(selectedProject.contractValue)}</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                    <p className="text-[10px] text-slate-400 font-bold">Ngân sách</p>
+                    <p className="text-lg font-bold text-slate-800">{fmt(selectedProject.budget)}</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+                    <p className="text-[10px] text-slate-400 font-bold">Đã chi (thi công)</p>
+                    <p className="text-lg font-bold text-indigo-600">{fmt(tasks.reduce((s, t) => s + (t.spent || 0), 0))}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate(`/finance?project=${selectedProject.id}`)}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm">
+                  <DollarSign className="w-4 h-4" /> Xem chi tiết Tài chính (Chi phí, Thu tiền, Khách hàng) →
+                </button>
               </div>
             )}
             {/* Engineer Daily Report */}
