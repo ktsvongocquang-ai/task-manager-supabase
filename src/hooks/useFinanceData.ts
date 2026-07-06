@@ -8,6 +8,7 @@ import { supabase } from '../services/supabase';
 export interface FinanceProject {
   id: string; name: string; status: string; progress: number;
   contract_value: number; customer_id: string | null; owner_name: string;
+  accounting_sheet_url?: string | null;
 }
 
 export interface Customer {
@@ -70,7 +71,7 @@ export const useFinanceData = () => {
   const loadAll = useCallback(async () => {
     setLoading(true);
     const [projectsRes, customersRes, expensesRes, incomesRes, tasksRes, suppliersRes, lookupsRes] = await Promise.all([
-      supabase.from('construction_projects').select('id,name,status,progress,contract_value,customer_id,owner_name').order('created_at', { ascending: false }),
+      supabase.from('construction_projects').select('id,name,status,progress,contract_value,customer_id,owner_name,accounting_sheet_url').order('created_at', { ascending: false }),
       supabase.from('customers').select('*').order('name'),
       supabase.from('construction_expenses').select('*').order('date', { ascending: false }),
       supabase.from('construction_incomes').select('*').order('date', { ascending: false }),

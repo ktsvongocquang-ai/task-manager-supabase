@@ -15,6 +15,7 @@ import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from './mockData';
 import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, NotificationSettings, WorkflowManager } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
+import { ProjectAccountingSync } from './ProjectAccountingSync';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -990,6 +991,7 @@ function EditProjectModal({ project, onClose, onSave }: {
         handoverDate: form.handoverDate,
         contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
         budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
+        accountingSheetUrl: form.accountingSheetUrl?.trim() || null,
       });
       onClose();
     } catch (e: any) { setError(e.message || 'Lỗi khi cập nhật'); }
@@ -1006,6 +1008,7 @@ function EditProjectModal({ project, onClose, onSave }: {
     { label: 'Ngày bàn giao', key: 'handoverDate', type: 'date' },
     { label: 'Giá trị hợp đồng (đ)', key: 'contractValue', type: 'text' },
     { label: 'Ngân sách (đ)', key: 'budget', type: 'text' },
+    { label: 'Link Google Sheet Kế toán (Tùy chọn)', key: 'accountingSheetUrl', type: 'text', placeholder: 'https://docs.google.com/spreadsheets/d/...' },
   ];
 
   return (
@@ -1054,7 +1057,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
   isOpen: boolean; onClose: () => void;
   onCreate: (data: Partial<Project>) => Promise<void>;
 }) {
-  const [form, setForm] = useState({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '' });
+  const [form, setForm] = useState({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '', accountingSheetUrl: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -1070,8 +1073,9 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
         handoverDate: form.handoverDate,
         contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
         budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
+        accountingSheetUrl: form.accountingSheetUrl?.trim() || null,
       });
-      setForm({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '' });
+      setForm({ name: '', address: '', ownerName: '', startDate: '', handoverDate: '', contractValue: '', budget: '', accountingSheetUrl: '' });
       onClose();
     } catch (e: any) { setError(e.message || 'Lỗi khi tạo dự án'); }
     finally { setSaving(false); }
@@ -1085,6 +1089,7 @@ function CreateProjectModal({ isOpen, onClose, onCreate }: {
     { label: 'Ngày bàn giao', key: 'handoverDate', placeholder: '', type: 'date' },
     { label: 'Giá trị hợp đồng (đ)', key: 'contractValue', placeholder: '2800000000', type: 'text' },
     { label: 'Ngân sách (đ)', key: 'budget', placeholder: '1700000000', type: 'text' },
+    { label: 'Link Google Sheet Kế toán', key: 'accountingSheetUrl', placeholder: 'https://docs.google.com/spreadsheets/d/...', type: 'text' },
   ];
 
   return (
@@ -1582,9 +1587,12 @@ export const Construction = () => {
                 </div>
                 <button
                   onClick={() => navigate(`/finance?project=${selectedProject.id}`)}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm">
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm mb-4">
                   <DollarSign className="w-4 h-4" /> Xem chi tiết Tài chính (Chi phí, Thu tiền, Khách hàng) →
                 </button>
+                <div className="border-t border-slate-200 pt-4">
+                  <ProjectAccountingSync project={selectedProject} />
+                </div>
               </div>
             )}
             {/* Engineer Daily Report */}
@@ -1659,6 +1667,7 @@ export const Construction = () => {
             handover_date: info.handoverDate || null,
             contract_value: info.contractValue || 0,
             budget: info.budget || 0,
+            accounting_sheet_url: info.accountingSheetUrl || null,
             spent: 0, progress: 0, status: 'in_progress',
           } as any);
           if (!newId) throw new Error('Lỗi khi tạo dự án');
@@ -1685,6 +1694,7 @@ export const Construction = () => {
               manager_name: updates.managerName,
               contract_value: updates.contractValue,
               budget: updates.budget,
+              accounting_sheet_url: updates.accountingSheetUrl || null,
               start_date: updates.startDate || null,
               handover_date: updates.handoverDate || null,
             } as any);

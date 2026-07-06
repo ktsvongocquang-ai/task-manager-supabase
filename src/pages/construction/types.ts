@@ -14,6 +14,8 @@ export interface Project {
   unexpectedCosts: number; totalDocuments: number; daysOff: number; totalDiaryEntries: number;
   client_password?: string | null;
   client_token?: string | null;
+  accountingSheetUrl?: string | null;
+  accountingSheetId?: string | null;
 }
 
 export interface CTask {
