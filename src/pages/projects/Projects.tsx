@@ -85,7 +85,7 @@ export const Projects = () => {
     }
 
     const fetchProfiles = async () => {
-        const { data } = await supabase.from('profiles').select('id, full_name, role, email')
+        const { data } = await supabase.from('profiles').select('id, full_name, role, email, zalo_user_id')
         if (data) setProfiles(data)
     }
 

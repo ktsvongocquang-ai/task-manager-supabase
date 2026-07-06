@@ -4,6 +4,7 @@ import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
 import { triggerSuccessConfetti, triggerFireworks } from '../../utils/confetti'
+import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
 
 interface Props {
     tasks: Task[]
@@ -359,6 +360,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                     notifyTaskRequiresReview(taskId, task.project_id, task.name, p.id, p.full_name || 'Nhân sự');
                 }
             });
+        }
+
+        // Notify all status changes via Zalo/Telegram
+        if (task) {
+            const projectName = projects?.find(p => p.id === task.project_id)?.name || 'N/A';
+            const profileStr = localStorage.getItem('dqh_profile');
+            const changedBy = profileStr ? JSON.parse(profileStr)?.full_name : undefined;
+            notifyTaskStatusChanged(task.name || 'Task', projectName, newStatus, changedBy);
         }
         setSaving(s => ({ ...s, [taskId]: false }))
         onRefresh()

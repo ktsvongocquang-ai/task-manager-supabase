@@ -381,7 +381,7 @@ const MarketingApp = () => {
     try {
       const [{ data: projectsData, error: projErr }, { data: profilesData }] = await Promise.all([
         supabase.from('marketing_projects').select('*'),
-        supabase.from('profiles').select('id, full_name, role, email')
+        supabase.from('profiles').select('id, full_name, role, email, zalo_user_id')
       ]);
       
       if (projErr) console.error("Error fetching projects", projErr);

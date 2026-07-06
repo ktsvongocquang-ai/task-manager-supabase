@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../services/supabase';
+import { useAuthStore } from '../store/authStore';
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -9,7 +10,7 @@ export interface SupabaseProject {
   id: string; name: string; address: string; status: string;
   progress: number; budget: number; spent: number; start_date: string;
   contract_value: number; budget_spent: number; risk_level: string;
-  owner_name: string; engineer_name: string; handover_date: string;
+  owner_name: string; engineer_name: string; manager_name?: string; handover_date: string;
   unexpected_costs: number; total_documents: number; days_off: number;
   total_diary_entries: number; created_at: string;
   client_password?: string | null;
@@ -96,17 +97,29 @@ export const useConstructionData = () => {
   const [phases, setPhases] = useState<SupabasePhase[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const { profile } = useAuthStore();
 
   // ── PROJECTS ──
   const loadProjects = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from('construction_projects')
       .select('*')
       .order('created_at', { ascending: false });
+
+    // RBAC logic for Projects
+    if (profile?.role === 'Quản lý thi công') {
+      query = query.eq('manager_name', profile.full_name);
+    } else if (profile?.role === 'Giám Sát') {
+      query = query.eq('engineer_name', profile.full_name);
+    } else if (profile?.role === 'Khách hàng') {
+      query = query.eq('owner_name', profile.full_name);
+    }
+
+    const { data } = await query;
     if (data) setProjects(data as SupabaseProject[]);
     setLoading(false);
-  }, []);
+  }, [profile]);
 
   const createProject = async (project: Partial<SupabaseProject>): Promise<string | null> => {
     const { data, error } = await supabase
@@ -193,10 +206,10 @@ export const useConstructionData = () => {
       const mapped = newTasks.map((t, idx) => ({
         id: ids[idx],
         project_id: projectId,
-        name: t.name,
-        category: t.category,
-        budget: t.budget,
-        days: t.days,
+        name: t.name || 'Hạng mục không tên',
+        category: t.category || 'KHÁC',
+        budget: typeof t.budget === 'number' ? t.budget : 0,
+        days: typeof t.days === 'number' ? t.days : 1,
         status: 'TODO',
         subcontractor: t.subcontractor || '',
         checklist: (t.checklist || []).map((c: any) =>
@@ -210,16 +223,23 @@ export const useConstructionData = () => {
         spent: 0,
         progress: 0,
         approved: false,
-        start_date: fmtDate(startDates[idx]),
-        end_date: fmtDate(taskEndDates[idx]),
+        start_date: startDates[idx] ? fmtDate(startDates[idx]) : fmtDate(baseStart),
+        end_date: taskEndDates[idx] ? fmtDate(taskEndDates[idx]) : fmtDate(baseStart),
       }));
 
+      console.log('[createTimelineTasks] Inserting', mapped.length, 'tasks for project', projectId);
+      console.log('[createTimelineTasks] Sample task:', JSON.stringify(mapped[0], null, 2));
+
       const { error } = await supabase.from('construction_tasks').insert(mapped);
-      if (error) throw error;
+      if (error) {
+        console.error('[createTimelineTasks] Supabase error:', error.message, error.details, error.hint, error.code);
+        throw error;
+      }
       await loadProjectDetails(projectId);
       return true;
-    } catch (e) {
-      console.error('Bulk Insert Tasks Error:', e);
+    } catch (e: any) {
+      console.error('Bulk Insert Tasks Error:', e?.message || e);
+      console.error('Error details:', JSON.stringify(e, null, 2));
       return false;
     }
   };
@@ -313,8 +333,9 @@ export const useConstructionData = () => {
       // Step 2: Create new timeline tasks (reuse existing logic)
       const result = await createTimelineTasks(projectId, newTasks, projectStartDate);
       return result;
-    } catch (e) {
+    } catch (e: any) {
       console.error('Replace Timeline Error:', e);
+      console.error('Error details:', JSON.stringify(e, null, 2));
       return false;
     }
   };
@@ -480,6 +501,17 @@ export const useConstructionData = () => {
     return !error;
   };
 
+  const deletePaymentRecord = async (recordId: string) => {
+    const { error } = await supabase
+      .from('construction_payment_records')
+      .delete()
+      .eq('id', recordId);
+    if (!error) {
+      setPaymentRecords(prev => prev.filter(r => r.id !== recordId));
+    }
+    return !error;
+  };
+
   // ── PHASES ──
   const updatePhase = async (phaseId: string, updates: Partial<SupabasePhase>) => {
     const { error } = await supabase
@@ -570,15 +602,23 @@ export const useConstructionData = () => {
 
   // Computed: finance data from projects
   const getFinanceData = () => {
-    const totalInflow = projects.reduce((s, p) => s + (p.spent || 0), 0);
+    // Calculate real monthly data from payment records
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthlyPayments = paymentRecords.filter(r => new Date(r.date) >= startOfMonth);
+    const monthlyInflow = monthlyPayments.filter(r => r.type === 'payment_in').reduce((s, r) => s + (r.amount || 0), 0);
+    const monthlyOutflow = monthlyPayments.filter(r => r.type === 'payment_out').reduce((s, r) => s + (r.amount || 0), 0);
+
     const totalBudget = projects.reduce((s, p) => s + (p.budget || 0), 0);
     const totalSpent = projects.reduce((s, p) => s + (p.spent || 0), 0);
-    return {
-      monthlyInflow: Math.round(totalInflow * 0.3),
-      monthlyOutflow: Math.round(totalSpent * 0.25),
-      workingCapital: totalBudget - totalSpent,
-      upcoming: [] as any[],
-    };
+
+    // Upcoming: milestones with unpaid status
+    const upcoming = milestones
+      .filter(m => m.payment_status === 'unpaid' && m.payment_amount > 0)
+      .map(m => ({ desc: m.name, dueDate: m.approved_date || 'Chưa xác định', amount: m.payment_amount, type: 'in' as const }))
+      .slice(0, 5);
+
+    return { monthlyInflow, monthlyOutflow, workingCapital: totalBudget - totalSpent, upcoming };
   };
 
   return {
@@ -605,7 +645,7 @@ export const useConstructionData = () => {
     // Notifications
     loadNotifications, markNotificationRead,
     // Payment Records
-    createPaymentRecord, updatePaymentRecord,
+    createPaymentRecord, updatePaymentRecord, deletePaymentRecord,
     // Phases
     updatePhase, createPhase,
     // Computed

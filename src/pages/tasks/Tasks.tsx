@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { QuickAddTaskModal } from './QuickAddTaskModal'
 import { logActivity } from '../../services/activity'
 import { WeeklyView } from './WeeklyView'
+import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
+import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
 
 export const Tasks = () => {
     const navigate = useNavigate();
@@ -53,7 +55,7 @@ export const Tasks = () => {
             const [tasksRes, projectsRes, profilesRes] = await Promise.all([
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name, role, email')
+                supabase.from('profiles').select('id, full_name, role, email, zalo_user_id')
             ])
             if (tasksRes.error) console.error('Tasks fetch error:', tasksRes.error);
             if (projectsRes.error) console.error('Projects fetch error:', projectsRes.error);
@@ -285,6 +287,11 @@ export const Tasks = () => {
         }).eq('id', task.id)
 
         if (error) console.error(error)
+        else {
+            // Gửi thông báo Telegram/Zalo khi toggle hoàn thành
+            const projectName = projects.find(p => p.id === task.project_id)?.name || 'Dự án';
+            notifyTaskStatusChanged(task.name, projectName, newStatus, profile?.full_name);
+        }
         fetchAll()
     }
 
@@ -309,6 +316,18 @@ export const Tasks = () => {
                             notifyTaskRequiresReview(taskId, task.project_id, task.name, p.id, p.full_name || 'Nhân sự');
                         }
                     });
+                }
+
+                // Notify all status changes via Zalo/Telegram
+                if (field === 'status') {
+                    const projectName = projects?.find(p => p.id === task.project_id)?.name || 'N/A';
+                    notifyTaskStatusChanged(task.name || 'Task', projectName, value as string, profile?.full_name);
+                }
+
+                // Gửi thông báo Telegram/Zalo khi trạng thái thay đổi
+                if (field === 'status') {
+                    const projectName = projects.find(p => p.id === task.project_id)?.name || 'Dự án';
+                    notifyTaskStatusChanged(task.name, projectName, value, profile?.full_name);
                 }
             }
         } catch (err) {

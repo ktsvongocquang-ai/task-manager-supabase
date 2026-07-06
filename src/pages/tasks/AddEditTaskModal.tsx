@@ -4,6 +4,7 @@ import { type Task, type Project } from '../../types'
 import { X, Plus, Trash2, CheckCircle2, Calendar, User, Folder, Flag, AlignLeft, Link as LinkIcon, ListTodo, MessageSquare, ExternalLink, GripVertical, Mic, MicOff, Sparkles, Loader2, Mail } from 'lucide-react'
 import { logActivity } from '../../services/activity';
 import { createNotification } from '../../services/notifications';
+import { notifyTaskAssigned, notifyTaskStatusChanged } from '../../services/taskNotificationService';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
 import { CommentSection } from '../../components/chat/CommentSection';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
@@ -462,23 +463,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         form.project_id
                     );
 
-                    // Gửi thông báo qua Telegram ngầm
-                    try {
-                        const taskLink = `${window.location.origin}/tasks`;
-                        const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
-
-                        fetch('/api/send-telegram', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                userId: newAssigneeId,
-                                message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
-                                taskUrl: taskLink
-                            })
-                        }).catch(e => console.error('Lỗi gọi Telegram API:', e));
-                    } catch (e) {
-                        console.error('Lỗi thiết lập thông báo Telegram:', e);
-                    }
+                    // Gửi thông báo qua Telegram/Zalo OA
+                    const projectName = projects.find(p => p.id === form.project_id)?.name || 'Dự án';
+                    const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : undefined;
+                    const assigneeName = profiles.find(p => p.id === newAssigneeId)?.full_name;
+                    notifyTaskAssigned(form.name, projectName, assigneeName, dueStr, currentUserProfile?.full_name);
                 }
             }
 
@@ -496,23 +485,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         form.project_id
                     );
 
-                    // Gửi thông báo qua Telegram ngầm cho Người hỗ trợ
-                    try {
-                        const taskLink = `${window.location.origin}/tasks`;
-                        const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
-
-                        fetch('/api/send-telegram', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                userId: newSupporterId,
-                                message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người hỗ trợ cho một nhiệm vụ!\n\n📌 *${form.name}*\n🗓 Hạn chót: ${dueStr}\n📈 Ưu tiên: ${form.priority}`,
-                                taskUrl: taskLink
-                            })
-                        }).catch(e => console.error('Lỗi gọi Telegram API:', e));
-                    } catch (e) {
-                        console.error('Lỗi thiết lập thông báo Telegram:', e);
-                    }
+                    // Gửi thông báo Telegram/Zalo cho Người hỗ trợ
+                    const supporterProjectName = projects.find(p => p.id === form.project_id)?.name || 'Dự án';
+                    const supporterDueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : undefined;
+                    const supporterName = profiles.find(p => p.id === newSupporterId)?.full_name;
+                    notifyTaskAssigned(form.name, supporterProjectName, supporterName, supporterDueStr, currentUserProfile?.full_name);
                 }
             }
 
@@ -530,6 +507,12 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                         );
                     }
                 }).catch(e => console.error('Failed to load notifications module', e));
+            }
+
+            // Gửi thông báo Telegram/Zalo khi trạng thái thay đổi
+            if (editingTask && editingTask.status !== form.status) {
+                const statusProjectName = projects.find(p => p.id === form.project_id)?.name || 'Dự án';
+                notifyTaskStatusChanged(form.name, statusProjectName, form.status, currentUserProfile?.full_name);
             }
             // --- Logging ---
             if (editingTask) {

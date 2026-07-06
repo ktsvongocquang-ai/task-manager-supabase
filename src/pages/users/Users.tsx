@@ -158,6 +158,13 @@ export const Users = () => {
                     return
                 }
 
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(form.email)) {
+                    alert('Email không hợp lệ (vui lòng kiểm tra lại định dạng, VD: ten@congty.com).')
+                    return
+                }
+
                 let newUserId = '';
                 try {
                     const res = await fetch(`/api/admin`, {

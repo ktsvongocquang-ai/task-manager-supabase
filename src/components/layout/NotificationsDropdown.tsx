@@ -41,13 +41,7 @@ export const NotificationsDropdown: React.FC<NotificationsDropdownProps> = ({ us
         setNotifications(data)
         setLoading(false)
 
-        // Auto-mark all as read when dropdown is opened
-        const hasUnread = data.some((n: AppNotification) => !n.is_read)
-        if (hasUnread) {
-            await markAllNotificationsAsRead(userId!)
-            setNotifications(data.map((n: AppNotification) => ({ ...n, is_read: true })))
-            onCountChange(0)
-        }
+        // Notifications will remain unread until user clicks them or clicks "Mark all as read" button
     }
 
     const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {

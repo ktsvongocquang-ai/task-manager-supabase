@@ -46,18 +46,22 @@ function ConstructionGantt({
   onSelect,
   onUpdateTask,
   onDeleteTask,
-  onCreateTask,
-  onReorderTasks,
+  onCreateTask,  onReorderTasks,
   readOnly,
+  projectStartDate,
+  projectEndDate,
+  onUpdateProjectDates,
 }: {
   tasks: CTask[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onUpdateTask: (id: string, updates: Partial<CTask>) => void;
-  onDeleteTask?: (id: string) => void;
-  onCreateTask?: (category: string) => void;
+  onDeleteTask?: (id: string) => void;  onCreateTask?: (category: string) => void;
   onReorderTasks?: (reordered: CTask[]) => void;
   readOnly?: boolean;
+  projectStartDate?: string;
+  projectEndDate?: string;
+  onUpdateProjectDates?: (start?: string, end?: string) => void;
 }) {
   const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
   const days = useMemo(() => getDaysBetween(min, max), [min.toISOString(), max.toISOString()]);
@@ -86,7 +90,7 @@ function ConstructionGantt({
     }, {} as Record<string, CTask[]>)
   , [tasks]);
 
-  const handleStartChange = (task: CTask, val: string) => {
+  const handleStartChange = (task: CTask, val: string, isFirst: boolean = false) => {
     if (readOnly) return;
     const ns = parseDate(val);
     if (!ns) return;
@@ -116,6 +120,19 @@ function ConstructionGantt({
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!readOnly && !projectStartDate && Object.keys(grouped).length > 0) {
+      const flatTasks = Object.values(grouped).flat();
+      if (flatTasks.length > 0) {
+        const firstTask = flatTasks[0];
+        const ts = getTaskStart(firstTask);
+        if (ts && onUpdateProjectDates) {
+          onUpdateProjectDates(format(ts, 'yyyy-MM-dd'), projectEndDate || undefined);
+        }
+      }
+    }
+  }, [projectStartDate, grouped, readOnly, onUpdateProjectDates, projectEndDate]);
+
   const handleDrop = (targetTaskId: string) => {
     if (!dragId || dragId === targetTaskId || !onReorderTasks) return;
     const flatTasks = Object.values(grouped).flat();
@@ -133,14 +150,15 @@ function ConstructionGantt({
   let stt = 0;
 
   // Column layout constants (px)
-  const CW = { stt: 32, name: 244, start: 96, dur: 48, prog: 80, action: readOnly ? 0 : 40 };
+  const CW = { stt: 32, name: 244, start: 96, dur: 48, end: 96, prog: 80, action: readOnly ? 0 : 40 };
   const CL = {
     stt: 0,
     name: CW.stt,
     start: CW.stt + CW.name,
     dur: CW.stt + CW.name + CW.start,
-    prog: CW.stt + CW.name + CW.start + CW.dur,
-    action: CW.stt + CW.name + CW.start + CW.dur + CW.prog,
+    end: CW.stt + CW.name + CW.start + CW.dur,
+    prog: CW.stt + CW.name + CW.start + CW.dur + CW.end,
+    action: CW.stt + CW.name + CW.start + CW.dur + CW.end + CW.prog,
   };
   const TOTAL_LEFT = CL.action + CW.action;
 
@@ -178,6 +196,58 @@ function ConstructionGantt({
           </tr>
         </thead>
         <tbody>
+          <tr className="h-10 bg-[#e0f2fe] border-b-2 border-[#bae6fd]">
+            <td className="sticky z-30 bg-[#e0f2fe] border-r border-slate-200 text-center text-sky-800 font-black text-xs" style={{ left: CL.stt }}>★</td>
+            <td className="sticky z-30 bg-[#e0f2fe] border-r border-slate-200 px-2 text-sky-900 font-black text-xs tracking-wider" style={{ left: CL.name, width: CW.name, minWidth: CW.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.05)' }}>
+              TIẾN ĐỘ THI CÔNG
+            </td>
+            <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200 p-0" style={{ left: CL.start }}>
+              <input type="date" disabled={readOnly}
+                className="w-full h-10 text-center bg-transparent outline-none cursor-pointer text-sky-900 font-bold disabled:opacity-80 hover:bg-sky-100 focus:bg-sky-100"
+                value={projectStartDate ? format(parseISO(projectStartDate), 'yyyy-MM-dd') : ''}
+                onChange={e => { 
+                  const newStart = e.target.value;
+                  if (onUpdateProjectDates) onUpdateProjectDates(newStart || undefined, projectEndDate || undefined);
+                  if (newStart && !readOnly) {
+                    const flatTasks = Object.values(grouped).flat();
+                    if (flatTasks.length > 0) {
+                      const firstTask = flatTasks[0];
+                      const ns = parseISO(newStart);
+                      const os = getTaskStart(firstTask);
+                      const oe = getTaskEnd(firstTask);
+                      const dur = os && oe ? differenceInDays(oe, os) : (firstTask.duration || firstTask.days || 7) - 1;
+                      const ne = addDays(ns, dur);
+                      onUpdateTask(firstTask.id, {
+                        plannedStart: format(ns, 'yyyy-MM-dd'), startDate: format(ns, 'yyyy-MM-dd'),
+                        plannedEnd: format(ne, 'yyyy-MM-dd'), endDate: format(ne, 'yyyy-MM-dd'),
+                      });
+                    }
+                  }
+                }} />
+            </td>
+            <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200 p-0" style={{ left: CL.dur }}>
+              <div className="w-full h-10 flex items-center justify-center text-sky-900 font-bold">
+                --
+              </div>
+            </td>
+            <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200 p-0" style={{ left: CL.end }}>
+              <input type="date" disabled={readOnly}
+                className="w-full h-10 text-center bg-transparent outline-none cursor-pointer text-sky-900 font-bold disabled:opacity-80 hover:bg-sky-100 focus:bg-sky-100"
+                value={projectEndDate ? format(parseISO(projectEndDate), 'yyyy-MM-dd') : ''}
+                onChange={e => { if (onUpdateProjectDates) onUpdateProjectDates(projectStartDate || undefined, e.target.value || undefined) }} />
+            </td>
+            <td className="sticky max-md:!static z-30 bg-[#e0f2fe] text-center px-1 print:hidden" style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.05)' : 'none' }}>
+              <div className="w-10 h-2 bg-sky-200 rounded-full overflow-hidden mx-auto">
+                <div className="h-full rounded-full bg-sky-500" style={{ width: '100%' }} />
+              </div>
+            </td>
+            {!readOnly && (
+               <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200" style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.05)' }}></td>
+            )}
+            {days.map((day, i) => (
+              <td key={i} className="border-r border-[#bae6fd] bg-[#f0f9ff]/50" />
+            ))}
+          </tr>
           {Object.entries(grouped).map(([cat, catTasks], ci) => (
             <React.Fragment key={cat}>
               {/* Category header row */}
@@ -244,7 +314,7 @@ function ConstructionGantt({
                       {readOnly ? (
                         <div className="w-full h-9 flex items-center justify-center text-slate-600">{ts ? format(ts, 'dd/MM/yy') : '--'}</div>
                       ) : (
-                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={ts ? format(ts, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value); }} onClick={e => e.stopPropagation()} />
+                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={ts ? format(ts, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value, stt === 1); }} onClick={e => e.stopPropagation()} />
                       )}
                     </td>
                     {/* Duration */}
@@ -547,12 +617,16 @@ async function exportGanttToPDF(ganttRef: React.RefObject<HTMLDivElement | null>
 
 export function ProjectManagementAIModule({
   projectId,
+  project,
+  onUpdateProject,
   externalTasks,
   readOnly = false,
   onUpdateTask,
   onOpenImport,
 }: {
   projectId?: string;
+  project?: { startDate?: string; handoverDate?: string };
+  onUpdateProject?: (id: string, updates: Record<string, any>) => void;
   externalTasks?: CTask[];
   readOnly?: boolean;
   onUpdateTask?: (id: string, updates: Partial<CTask>) => void;
@@ -886,9 +960,20 @@ export function ProjectManagementAIModule({
           onSelect={id => setSelectedId(prev => prev === id ? null : id)}
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
-          onCreateTask={handleCreateTask}
-          onReorderTasks={reordered => setDisplayTasks(reordered)}
+          onCreateTask={handleCreateTask}          onReorderTasks={reordered => setDisplayTasks(reordered)}
           readOnly={readOnly}
+          projectStartDate={project?.startDate}
+          projectEndDate={project?.handoverDate}
+          onUpdateProjectDates={(start, end) => {
+            if (projectId && onUpdateProject) {
+              const updates = {};
+              if (start !== undefined) updates.start_date = start;
+              if (end !== undefined) updates.handover_date = end;
+              if (Object.keys(updates).length > 0) {
+                onUpdateProject(projectId, updates);
+              }
+            }
+          }}
         />
       </div>
       {!readOnly && (

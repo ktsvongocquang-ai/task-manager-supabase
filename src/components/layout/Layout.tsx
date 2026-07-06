@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { canAccessRoute, isAdminRole, isConstructionOnlyRole, isManagerRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
@@ -31,7 +31,8 @@ import {
     Calculator,
     BookOpen,
     Link as LinkIcon,
-    Bot
+    Bot,
+    Settings
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -43,6 +44,7 @@ import { BottomTabBar } from './BottomTabBar'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
 import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
+import { NotificationSettings as BotSettingsModal } from '../../pages/construction/views'
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -75,6 +77,7 @@ export const Layout = () => {
     const [isLauncherOpen, setIsLauncherOpen] = useState(false) // Added Fullscreen Launcher state
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false) // Added Mobile Sidebar state
     const [isChatBotOpen, setIsChatBotOpen] = useState(false) // Added AI Assistant state
+    const [isBotSettingsOpen, setIsBotSettingsOpen] = useState(false) // Zalo/Telegram bot settings
     
     // Accordion sidebar state
     const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Thiết kế': true, 'Quản lý thiết kế': true, 'Công việc': true })
@@ -167,6 +170,24 @@ export const Layout = () => {
     }
 
     useEffect(() => {
+        // Yêu cầu cấp quyền Notification khi ứng dụng khởi động
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().catch(console.error);
+        }
+    }, []);
+
+    // Đồng bộ số đếm thông báo lên Icon App (Taskbar PWA)
+    useEffect(() => {
+        if ('setAppBadge' in navigator) {
+            if (unreadNotifCount > 0) {
+                (navigator as any).setAppBadge(unreadNotifCount).catch((e: any) => console.error(e));
+            } else {
+                (navigator as any).clearAppBadge().catch((e: any) => console.error(e));
+            }
+        }
+    }, [unreadNotifCount]);
+
+    useEffect(() => {
         if (!profile?.id) return
 
         const refreshCount = async () => {
@@ -192,7 +213,31 @@ export const Layout = () => {
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
-                () => refreshCount()
+                (payload) => {
+                    refreshCount();
+                    
+                    // Hiển thị System Notification (Popup góc phải)
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        const newNotif = payload.new as any;
+                        const title = 'Thông báo mới (DQH)';
+                        const options = {
+                            body: newNotif.content || 'Bạn có thông báo công việc mới',
+                            icon: '/pwa-192x192.png',
+                            tag: 'dqh-notif',
+                            silent: false
+                        };
+                        
+                        try {
+                            navigator.serviceWorker.ready.then(registration => {
+                                registration.showNotification(title, options);
+                            }).catch(() => {
+                                new Notification(title, options);
+                            });
+                        } catch (e) {
+                            new Notification(title, options);
+                        }
+                    }
+                }
             )
             .on(
                 'postgres_changes',
@@ -614,6 +659,15 @@ export const Layout = () => {
                                     )}
                                 </div>
 
+                                {/* Bot Settings Button */}
+                                <button
+                                    onClick={() => setIsBotSettingsOpen(true)}
+                                    className="hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-violet-600 hover:bg-violet-50 transition-all shadow-sm border border-slate-100"
+                                    title="Cài đặt Zalo/Telegram Bot"
+                                >
+                                    <Settings size={18} strokeWidth={2.5} />
+                                </button>
+
                                 {/* Global Chat Button */}
                                 <button
                                     onClick={() => {
@@ -697,7 +751,13 @@ export const Layout = () => {
 
                 {/* Page View */}
                 <div className={`flex-1 w-full max-w-full flex flex-col relative min-w-0 ${location.pathname === '/schedule' ? 'overflow-hidden' : 'overflow-y-scroll'} ${location.pathname.startsWith('/customers') || location.pathname === '/schedule' || location.pathname === '/portfolio' ? '' : 'p-3 sm:p-6'}`}>
-                    <Outlet />
+                    <Suspense fallback={
+                        <div className="flex items-center justify-center min-h-[50vh] w-full">
+                            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        </div>
+                    }>
+                        <Outlet />
+                    </Suspense>
                 </div>
             </main>
 
@@ -802,6 +862,12 @@ export const Layout = () => {
                 onCloseProjectModal={() => setIsGlobalAddProjectOpen(false)}
                 onCloseTaskModal={() => setIsGlobalAddTaskOpen(false)}
             />
+
+
+            {/* Bot Settings Modal (Zalo/Telegram) */}
+            {isBotSettingsOpen && (
+                <BotSettingsModal isOpen={isBotSettingsOpen} onClose={() => setIsBotSettingsOpen(false)} />
+            )}
 
             <BottomTabBar />
             <PWAInstallPrompt />

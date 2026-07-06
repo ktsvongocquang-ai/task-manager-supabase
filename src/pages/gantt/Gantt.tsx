@@ -51,7 +51,7 @@ export const Gantt = () => {
             const [{ data: t }, { data: p }, { data: pr }, { data: authData }] = await Promise.all([
                 supabase.from('tasks').select('*'),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name'),
+                supabase.from('profiles').select('id, full_name, zalo_user_id'),
                 supabase.auth.getUser()
             ])
             setProjects((p || []) as Project[])

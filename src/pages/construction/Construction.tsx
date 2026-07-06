@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, PaymentRecord, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from './mockData';
-import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart } from './views';
+import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, PaymentHistory, ContractorProgressChart, CostOverview, NotificationSettings, WorkflowManager } from './views';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabasePaymentRecord, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
@@ -191,12 +191,15 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
   const [newIssueDesc, setNewIssueDesc] = useState('');
   const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null);
   const [editingChecklistText, setEditingChecklistText] = useState('');
+  const [newChecklistAssignee, setNewChecklistAssignee] = useState('');
+  const [newChecklistDeadline, setNewChecklistDeadline] = useState('');
   const [issuePhotos, setIssuePhotos] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const photoInputRef = React.useRef<HTMLInputElement>(null);
 
   if (!task) return null;
-  const canEdit = userRole !== 'HOMEOWNER';
+  const isFinancialTask = task.category === 'Tài chính' || task.category === 'Thanh toán';
+  const canEdit = userRole !== 'HOMEOWNER' && !(userRole === 'ENGINEER' && isFinancialTask);
   const canApprove = userRole === 'MANAGER';
   const sc = statusConfig[task.status];
   const cc = catColors[task.category] || catColors['KHÁC'];
@@ -208,8 +211,8 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
   };
   const addChecklistItem = () => {
     if (!newChecklistItem.trim() || !canEdit) return;
-    onUpdate({ ...task, checklist: [...task.checklist, { id: `cl_${Date.now()}`, label: newChecklistItem.trim(), completed: false, required: false }] });
-    setNewChecklistItem('');
+    onUpdate({ ...task, checklist: [...task.checklist, { id: `cl_${Date.now()}`, label: newChecklistItem.trim(), completed: false, required: false, assignee: newChecklistAssignee || undefined, deadline: newChecklistDeadline || undefined }] });
+    setNewChecklistItem(''); setNewChecklistAssignee(''); setNewChecklistDeadline('');
   };
   const deleteChecklistItem = (itemId: string) => {
     if (!canEdit) return;
@@ -293,23 +296,31 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
             {/* Checklist */}
             <div className="p-5 border-b border-slate-50">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Smart Checklist</h3>
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Subtasks</h3>
                 <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{completedChecklist}/{task.checklist.length}</span>
               </div>
               <div className="space-y-1.5">
                 {task.checklist.map(item => (
-                  <div key={item.id} className={`flex items-center gap-2 p-3 rounded-xl transition-all group ${item.completed ? 'bg-emerald-50/50' : 'bg-slate-50 hover:bg-slate-100'}`}>
-                    <button onClick={() => toggleChecklistItem(item.id)} disabled={!canEdit} className="shrink-0">
+                  <div key={item.id} className={`flex items-start gap-2 p-3 rounded-xl transition-all group ${item.completed ? 'bg-emerald-50/50' : 'bg-slate-50 hover:bg-slate-100'}`}>
+                    <button onClick={() => toggleChecklistItem(item.id)} disabled={!canEdit} className="shrink-0 mt-0.5">
                       <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${item.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>{item.completed && <Check className="w-3 h-3 text-white" />}</div>
                     </button>
-                    {editingChecklistId === item.id ? (
-                      <input type="text" value={editingChecklistText} onChange={e => setEditingChecklistText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveChecklistEdit(item.id); if (e.key === 'Escape') setEditingChecklistId(null); }} onBlur={() => saveChecklistEdit(item.id)} autoFocus className="flex-1 px-2 py-1 text-sm border border-indigo-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-200" />
-                    ) : (
-                      <span onDoubleClick={() => { if (canEdit) { setEditingChecklistId(item.id); setEditingChecklistText(item.label); } }} className={`flex-1 text-sm ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'} ${canEdit ? 'cursor-text' : ''}`}>{item.label}</span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      {editingChecklistId === item.id ? (
+                        <input type="text" value={editingChecklistText} onChange={e => setEditingChecklistText(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveChecklistEdit(item.id); if (e.key === 'Escape') setEditingChecklistId(null); }} onBlur={() => saveChecklistEdit(item.id)} autoFocus className="w-full px-2 py-1 text-sm border border-indigo-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-200" />
+                      ) : (
+                        <span onDoubleClick={() => { if (canEdit) { setEditingChecklistId(item.id); setEditingChecklistText(item.label); } }} className={`text-sm block ${item.completed ? 'text-slate-400 line-through' : 'text-slate-700'} ${canEdit ? 'cursor-text' : ''}`}>{item.label}</span>
+                      )}
+                      {(item.assignee || item.deadline) && (
+                        <div className="flex items-center gap-2 mt-1">
+                          {item.assignee && <span className="text-[9px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">👤 {item.assignee}</span>}
+                          {item.deadline && <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${new Date(item.deadline) < new Date() && !item.completed ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500'}`}>📅 {new Date(item.deadline).toLocaleDateString('vi-VN')}</span>}
+                        </div>
+                      )}
+                    </div>
                     {item.required && <span className="text-rose-400 text-xs">*</span>}
                     {canEdit && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button onClick={() => { setEditingChecklistId(item.id); setEditingChecklistText(item.label); }} className="p-1 hover:bg-slate-200 rounded-md" title="Sửa"><FileText className="w-3 h-3 text-slate-400" /></button>
                         <button onClick={() => deleteChecklistItem(item.id)} className="p-1 hover:bg-rose-100 rounded-md" title="Xóa"><X className="w-3 h-3 text-rose-400" /></button>
                       </div>
@@ -318,9 +329,17 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
                 ))}
               </div>
               {canEdit && (
-                <div className="flex gap-2 mt-3">
-                  <input type="text" value={newChecklistItem} onChange={e => setNewChecklistItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addChecklistItem()} placeholder="+ Thêm checklist mới..." className="flex-1 px-3 py-2.5 text-sm border border-dashed border-slate-300 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 bg-white placeholder-slate-400" />
-                  {newChecklistItem.trim() && <button onClick={addChecklistItem} className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700"><Plus className="w-4 h-4" /></button>}
+                <div className="mt-3 space-y-2">
+                  <div className="flex gap-2">
+                    <input type="text" value={newChecklistItem} onChange={e => setNewChecklistItem(e.target.value)} onKeyDown={e => e.key === 'Enter' && addChecklistItem()} placeholder="+ Thêm subtask mới..." className="flex-1 px-3 py-2.5 text-sm border border-dashed border-slate-300 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 bg-white placeholder-slate-400" />
+                    {newChecklistItem.trim() && <button onClick={addChecklistItem} className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700"><Plus className="w-4 h-4" /></button>}
+                  </div>
+                  {newChecklistItem.trim() && (
+                    <div className="flex gap-2 pl-1">
+                      <input type="text" value={newChecklistAssignee} onChange={e => setNewChecklistAssignee(e.target.value)} placeholder="👤 Giao cho..." className="flex-1 px-2.5 py-1.5 text-[11px] border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-300" />
+                      <input type="date" value={newChecklistDeadline} onChange={e => setNewChecklistDeadline(e.target.value)} className="px-2.5 py-1.5 text-[11px] border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-300" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -469,129 +488,9 @@ function KanbanView({ tasks, onTaskClick, onMoveTask }: { tasks: CTask[]; onTask
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// COST OVERVIEW (with EVA)
-// ═══════════════════════════════════════════════════════════
 
-function CostOverview({ tasks, project, milestones: milestonesFromDB }: { tasks: CTask[]; project: Project; milestones?: any[] }) {
-  // Use Supabase milestones if available, otherwise fall back to mock
-  const activeMilestones = (milestonesFromDB && milestonesFromDB.length > 0) ? milestonesFromDB : MILESTONES;
-  const categories = useMemo(() => {
-    const m: Record<string, { budget: number; spent: number }> = {};
-    tasks.forEach(t => { if (!m[t.category]) m[t.category] = { budget: 0, spent: 0 }; m[t.category].budget += t.budget; m[t.category].spent += t.spent; });
-    return Object.entries(m).map(([name, data]) => ({ name, ...data }));
-  }, [tasks]);
-  const totalBudget = tasks.reduce((s, t) => s + t.budget, 0);
-  const totalSpent = tasks.reduce((s, t) => s + t.spent, 0);
-  const over = totalSpent > totalBudget;
-  const budgetPct = totalBudget > 0 ? Math.round(totalSpent / totalBudget * 100) : 0;
+// Old inline CostOverview and ProgressTimeline removed — now imported from views.tsx
 
-  return (
-    <div className="space-y-6">
-      {/* EVA Card */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-700 mb-4">Earned Value Analysis</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase">% Khối lượng xong</p>
-            <p className="text-2xl font-bold text-indigo-600">{project.progress}%</p>
-            <div className="w-full h-2 bg-slate-100 rounded-full mt-1 overflow-hidden"><div className="h-full bg-indigo-500 rounded-full" style={{ width: `${project.progress}%` }} /></div>
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase">% Ngân sách đã chi</p>
-            <p className={`text-2xl font-bold ${budgetPct > project.progress * 1.15 ? 'text-rose-600' : 'text-emerald-600'}`}>{budgetPct}%</p>
-            <div className="w-full h-2 bg-slate-100 rounded-full mt-1 overflow-hidden"><div className={`h-full rounded-full ${budgetPct > project.progress * 1.15 ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: `${budgetPct}%` }} /></div>
-          </div>
-        </div>
-        {budgetPct > project.progress * 1.15 && (
-          <div className="mt-4 p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-700 font-medium flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0" /> Chi tiền nhanh hơn tiến độ. Dự báo vượt ngân sách {Math.round((budgetPct / project.progress - 1) * 100)}%.
-          </div>
-        )}
-      </div>
-
-      {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { label: 'Hợp đồng', value: fmt(project.contractValue), color: 'text-slate-800' },
-          { label: 'Ngân sách', value: fmt(totalBudget), color: 'text-slate-800' },
-          { label: 'Đã chi', value: fmt(totalSpent), color: over ? 'text-rose-600' : 'text-emerald-600' },
-          { label: 'Còn lại', value: fmt(totalBudget - totalSpent), color: 'text-indigo-600' },
-        ].map((c, i) => (
-          <div key={i} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">{c.label}</p>
-            <p className={`text-lg font-bold ${c.color}`}>{c.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Category bars */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2"><DollarSign className="w-4 h-4 text-indigo-500" /> Ngân Sách vs Thực Tế</h3>
-        <div className="space-y-5">
-          {categories.map(cat => {
-            const pct = cat.budget > 0 ? Math.min((cat.spent / cat.budget) * 100, 100) : 0;
-            const o = cat.spent > cat.budget;
-            return (
-              <div key={cat.name} className="space-y-2">
-                <div className="flex justify-between items-center"><span className="text-xs font-bold text-slate-600 uppercase">{cat.name}</span><span className={`text-sm font-bold ${o ? 'text-rose-600' : 'text-slate-800'}`}>{fmt(cat.spent)} <span className="text-slate-400 font-normal">/ {fmt(cat.budget)}</span></span></div>
-                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${o ? 'bg-rose-500' : pct > 80 ? 'bg-amber-500' : 'bg-indigo-500'}`} style={{ width: `${pct}%` }} /></div>
-                {o && <p className="text-[10px] text-rose-600 font-bold flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Vượt {Math.round(((cat.spent - cat.budget) / cat.budget) * 100)}%</p>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Payment Milestones */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2"><FileCheck className="w-4 h-4 text-emerald-500" /> Tiến Độ Thanh Toán</h3>
-        <div className="space-y-4">
-          {activeMilestones.map((m: any) => (
-            <div key={m.id} className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${(m.paymentStatus || m.payment_status) === 'paid' ? 'bg-emerald-100 text-emerald-600' : (m.status === 'pending_internal') ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>{(m.paymentStatus || m.payment_status) === 'paid' ? <Check className="w-4 h-4" /> : <Clock className="w-4 h-4" />}</div>
-              <div className="flex-1 min-w-0"><div className="text-xs font-bold text-slate-700 truncate">{m.name}</div><div className="text-[10px] text-slate-400">{m.status === 'passed' ? (m.approvedDate || m.approved_date) : m.status === 'pending_internal' ? 'Đang QC...' : 'Sắp tới'}</div></div>
-              <div className="text-right shrink-0"><div className="text-xs font-bold text-slate-900">{fmt(m.paymentAmount || m.payment_amount || 0)}</div><div className={`text-[9px] font-bold uppercase ${(m.paymentStatus || m.payment_status) === 'paid' ? 'text-emerald-500' : 'text-slate-400'}`}>{(m.paymentStatus || m.payment_status) === 'paid' ? 'Đã thu' : 'Chưa'}</div></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════
-// PROGRESS TIMELINE
-// ═══════════════════════════════════════════════════════════
-
-function ProgressTimeline({ tasks }: { tasks: CTask[] }) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase">
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Hoàn thành</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500" /> Đang làm</div>
-        <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-slate-300" /> Chưa bắt đầu</div>
-      </div>
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-5">
-        {tasks.map((t, idx) => (
-          <div key={t.id} className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700">{t.name}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${catColors[t.category] || catColors['KHÁC']}`}>{t.category}</span>
-              </div>
-              <div className="flex items-center gap-3"><span className="text-[10px] text-slate-400">{t.days} ngày</span><span className="text-xs font-bold text-indigo-600">{t.progress}%</span></div>
-            </div>
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-              <motion.div initial={{ width: 0 }} animate={{ width: `${t.progress}%` }} transition={{ duration: 0.8, delay: idx * 0.1 }} className={`h-full rounded-full ${t.status === 'DONE' ? 'bg-emerald-500' : t.status === 'DOING' ? 'bg-indigo-500' : 'bg-slate-300'}`} />
-            </div>
-            {t.startDate && <p className="text-[10px] text-slate-400">{t.startDate} → {t.endDate}</p>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════
 // IMPORT QUOTATION MODAL — PDF / Excel / Text → AI Timeline
@@ -1073,12 +972,20 @@ function EditProjectModal({ project, onClose, onSave }: {
 }) {
   const [form, setForm] = useState({
     name: project.name, address: project.address, ownerName: project.ownerName,
+    engineerName: project.engineerName || '', managerName: project.managerName || '',
     startDate: project.startDate || '', handoverDate: project.handoverDate || '',
     contractValue: String(project.contractValue || ''), budget: String(project.budget || ''),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [profiles, setProfiles] = useState<any[]>([]);
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    supabase.from('profiles').select('id, full_name, role').then(({ data }) => {
+      if (data) setProfiles(data);
+    });
+  }, []);
 
   const handleSubmit = async () => {
     if (!form.name.trim()) { setError('Cần điền tên dự án'); return; }
@@ -1086,7 +993,8 @@ function EditProjectModal({ project, onClose, onSave }: {
     try {
       await onSave({
         name: form.name.trim(), address: form.address.trim(),
-        ownerName: form.ownerName.trim(), startDate: form.startDate,
+        ownerName: form.ownerName.trim(), engineerName: form.engineerName.trim(),
+        managerName: form.managerName.trim(), startDate: form.startDate,
         handoverDate: form.handoverDate,
         contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
         budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
@@ -1099,7 +1007,9 @@ function EditProjectModal({ project, onClose, onSave }: {
   const fields = [
     { label: 'Tên dự án *', key: 'name', type: 'text' },
     { label: 'Địa chỉ', key: 'address', type: 'text' },
-    { label: 'Chủ nhà', key: 'ownerName', type: 'text' },
+    { label: 'Chủ nhà (Khách hàng)', key: 'ownerName', type: 'select', role: 'Khách hàng' },
+    { label: 'Tên Giám sát (để phân quyền)', key: 'engineerName', type: 'select', role: 'Giám Sát' },
+    { label: 'Tên Quản lý thi công (để phân quyền)', key: 'managerName', type: 'select', role: 'Quản lý thi công' },
     { label: 'Ngày khởi công', key: 'startDate', type: 'date' },
     { label: 'Ngày bàn giao', key: 'handoverDate', type: 'date' },
     { label: 'Giá trị hợp đồng (đ)', key: 'contractValue', type: 'text' },
@@ -1108,8 +1018,8 @@ function EditProjectModal({ project, onClose, onSave }: {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+      <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
               <Building2 className="w-4 h-4 text-indigo-600" />
@@ -1118,12 +1028,21 @@ function EditProjectModal({ project, onClose, onSave }: {
           </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
-        <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+        <div className="px-5 py-4 space-y-3 overflow-y-auto flex-1">
           {fields.map(f => (
             <div key={f.key}>
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{f.label}</label>
-              <input type={f.type} value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)}
-                className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+              {f.type === 'select' ? (
+                <select value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)} className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                  <option value="">-- Trống --</option>
+                  {profiles.filter(p => !f.role || p.role === f.role).map(p => (
+                    <option key={p.id} value={p.full_name}>{p.full_name}</option>
+                  ))}
+                </select>
+              ) : (
+                <input type={f.type} value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)}
+                  className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+              )}
             </div>
           ))}
           {error && <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{error}</p>}
@@ -1259,6 +1178,9 @@ export const Construction = () => {
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+  const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
+  const [isWorkflowOpen, setIsWorkflowOpen] = useState(false);
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
 
@@ -1333,7 +1255,7 @@ export const Construction = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('role') === 'homeowner') {
       setUserRole('HOMEOWNER');
-      setActiveTab('DASHBOARD');
+      setActiveTab('PROJECT');
       setIsSharedLink(true);
     }
   }, []);
@@ -1425,17 +1347,14 @@ export const Construction = () => {
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
       { id: 'LOGS', label: 'Báo cáo', icon: <FileText className="w-4 h-4" /> },
+      { id: 'COST', label: 'Tài chính', icon: <DollarSign className="w-4 h-4" /> },
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
-      { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
-      { id: 'COST', label: 'Chi phí', icon: <DollarSign className="w-4 h-4" /> },
-      { id: 'PAYMENTS', label: 'Thanh toán', icon: <DollarSign className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'SUBS', label: 'Thầu phụ', icon: <Users className="w-4 h-4" /> },
-      { id: 'ATTENDANCE', label: 'Chấm công', icon: <Users className="w-4 h-4" /> },
-      { id: 'REPORTS', label: 'Báo cáo', icon: <Download className="w-4 h-4" /> },
+      { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
+      { id: 'COST', label: 'Tài chính', icon: <DollarSign className="w-4 h-4" /> },
     ];
   };
 
@@ -1462,95 +1381,130 @@ export const Construction = () => {
   return (
     <ErrorBoundary>
     <div className="flex flex-col space-y-6 max-w-[1600px] mx-auto w-full" style={{ minHeight: 'calc(100vh - 120px)' }}>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
-        <div>
-          {isSharedLink ? (
-            <>
-              <h1 className="text-xl font-bold text-slate-800">{selectedProject.name}</h1>
-              <p className="text-sm text-slate-400 mt-0.5">{selectedProject.address}</p>
-            </>
+      {/* Header & Tabs */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0">
+        {/* Left: View Tabs OR Homeowner Title */}
+        <div className="flex-1 w-full md:w-auto overflow-hidden">
+          {userRole === 'HOMEOWNER' ? (
+             <div>
+               <h1 className="text-xl font-bold text-slate-800">{isSharedLink ? selectedProject.name : 'Quản lý Thi công'}</h1>
+               <p className="text-sm text-slate-400 mt-0.5">{selectedProject.address}</p>
+             </div>
           ) : (
-            <>
-              <h1 className="text-xl font-bold text-slate-800">Quản lý Thi công</h1>
-              <p className="text-sm text-slate-400 mt-0.5">{selectedProject.name} • {selectedProject.address}</p>
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {userRole === 'MANAGER' && (
-            <div className="flex gap-2">
-              <button onClick={() => {
-                const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
-                if (pass !== null) {
-                  db.updateProject(selectedProject.id, { client_password: pass }).then(() => {
-                    setSelectedProject({ ...selectedProject, client_password: pass });
-                    showToast('Đã cập nhật mã Khách Hàng', 'success');
-                  });
-                }
-              }} className="flex items-center gap-1.5 px-3 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-amber-600 active:scale-95 transition-all h-[38px]" title="Cài mã xem tiến độ cho Khách hàng"><Key className="w-4 h-4" /> Mã KH</button>
-              <button onClick={() => setIsShareQROpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold shadow-sm hover:bg-slate-50 active:scale-95 transition-all h-[38px]"><QrCode className="w-4 h-4 text-emerald-600" /> Chia sẻ QR</button>
-              <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[38px]"><FileSpreadsheet className="w-4 h-4" /> AI Tiến Độ</button>
-              <button onClick={() => setIsCreateProjectOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-emerald-700 active:scale-95 transition-all h-[38px]"><Plus className="w-4 h-4" /> Tạo Dự Án</button>
-            </div>
-          )}
-          {userRole !== 'HOMEOWNER' && (
-            <div className="relative flex items-center gap-1">
-              <select value={selectedProject.id} onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }} className="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[38px]">
-                {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-16 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <button onClick={() => setIsEditProjectOpen(true)} title="Sửa dự án" className="w-[38px] h-[38px] flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500 hover:text-indigo-600">
-                <FileText className="w-4 h-4" />
-              </button>
-              <button onClick={() => setConfirmDialog({
-                title: 'Xóa dự án?',
-                message: `Bạn có chắc muốn xóa dự án "${selectedProject.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
-                confirmLabel: 'Xóa vĩnh viễn',
-                confirmColor: 'bg-rose-600 hover:bg-rose-700',
-                onConfirm: async () => {
-                  const ok = await db.deleteProject(selectedProject.id);
-                  if (ok) {
-                    showToast(`Đã xóa dự án "${selectedProject.name}"`, 'success');
-                    await db.loadProjects();
-                    const remaining = db.projects.filter(p => p.id !== selectedProject.id);
-                    if (remaining.length > 0) {
-                      const next = mapProject(remaining[0]);
-                      setSelectedProject(next);
-                      db.loadProjectDetails(next.id);
-                    } else {
-                      setSelectedProject(PROJECTS[0]);
-                    }
-                  } else {
-                    showToast('Lỗi khi xóa dự án', 'error');
-                  }
-                },
-              })} title="Xóa dự án" className="w-[38px] h-[38px] flex items-center justify-center border border-rose-200 rounded-xl hover:bg-rose-50 active:scale-95 transition-all text-rose-400 hover:text-rose-600">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-          {userRole !== 'HOMEOWNER' && (
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Tìm hạng mục..." className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 h-[38px] w-48" />
-            </div>
-          )}
-          {!isSharedLink && profile?.role === 'Admin' && (
-            <div className="flex bg-slate-100 p-1 rounded-xl">
-              {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
-                <button key={role} onClick={() => handleRoleChange(role)} className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                  {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Giám Sát' : 'Quản lý'}
+            <div className={`flex bg-slate-100 p-1 rounded-xl overflow-x-auto w-fit max-w-full`}>
+              {VIEW_TABS.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${userRole === 'ENGINEER' ? 'flex-1' : ''} ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                  {tab.icon}
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
+
+        <div className="flex items-center gap-2">
+          {/* Project Selector */}
+          {userRole !== 'HOMEOWNER' && activeTab !== 'DASHBOARD' && (
+            <div className="relative shrink-0">
+              <select value={selectedProject.id} onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }} className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[36px] max-w-[150px] sm:max-w-[200px] truncate">
+                {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
+          {/* Search */}
+          {userRole !== 'HOMEOWNER' && (
+            <div className="relative hidden lg:block shrink-0">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Tìm..." className="pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 h-[36px] w-32 xl:w-48" />
+            </div>
+          )}
+          {/* Primary Action: AI Tiến Độ */}
+          {(userRole === 'MANAGER' || profile?.role === 'Admin') && (
+            <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[36px] shrink-0"><FileSpreadsheet className="w-4 h-4" /> <span className="hidden sm:inline">AI Tiến Độ</span></button>
+          )}
+          {/* ⋯ Menu */}
+          {(userRole === 'MANAGER' || (!isSharedLink && profile?.role === 'Admin')) && (
+            <div className="relative shrink-0">
+              <button onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)} className="w-[36px] h-[36px] flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+              {isHeaderMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsHeaderMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm">
+                    {userRole === 'MANAGER' && (
+                      <>
+                        <button onClick={() => { setIsQuotationModalOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Plus className="w-4 h-4 text-emerald-500" /> Tạo Dự Án Mới</button>
+                        <button onClick={() => { setIsEditProjectOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><FileText className="w-4 h-4 text-indigo-500" /> Sửa Dự Án</button>
+                    <button onClick={() => {
+                      const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
+                      if (pass !== null) {
+                        db.updateProject(selectedProject.id, { client_password: pass }).then(() => {
+                          setSelectedProject({ ...selectedProject, client_password: pass });
+                          showToast('Đã cập nhật mã Khách Hàng', 'success');
+                        });
+                      }
+                      setIsHeaderMenuOpen(false);
+                    }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Key className="w-4 h-4 text-amber-500" /> Mã Khách Hàng</button>
+                    <button onClick={() => { setIsShareQROpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><QrCode className="w-4 h-4 text-emerald-500" /> Chia sẻ QR</button>
+                    <button onClick={() => { setIsNotificationSettingsOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Bell className="w-4 h-4 text-sky-500" /> Thông báo Zalo/TG</button>
+                    <button onClick={() => { setIsWorkflowOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><ListChecks className="w-4 h-4 text-violet-500" /> Workflow</button>
+                    <div className="border-t border-slate-100 my-1" />
+                    <button onClick={() => {
+                      setConfirmDialog({
+                        title: 'Xóa dự án?',
+                        message: `Bạn có chắc muốn xóa dự án "${selectedProject.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
+                        confirmLabel: 'Xóa vĩnh viễn',
+                        confirmColor: 'bg-rose-600 hover:bg-rose-700',
+                        onConfirm: async () => {
+                          const ok = await db.deleteProject(selectedProject.id);
+                          if (ok) {
+                            showToast(`Đã xóa dự án "${selectedProject.name}"`, 'success');
+                            await db.loadProjects();
+                            const remaining = db.projects.filter(p => p.id !== selectedProject.id);
+                            if (remaining.length > 0) {
+                              const next = mapProject(remaining[0]);
+                              setSelectedProject(next);
+                              db.loadProjectDetails(next.id);
+                            } else {
+                              setSelectedProject(PROJECTS[0]);
+                            }
+                          } else {
+                            showToast('Lỗi khi xóa dự án', 'error');
+                          }
+                        },
+                      });
+                      setIsHeaderMenuOpen(false);
+                    }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-rose-50 text-rose-600"><X className="w-4 h-4" /> Xóa Dự Án</button>
+                      </>
+                    )}
+                    {!isSharedLink && profile?.role === 'Admin' && (
+                      <>
+                        <div className="border-t border-slate-100 my-1" />
+                        <div className="px-4 py-2">
+                          <p className="text-[10px] text-slate-400 font-bold mb-1.5">XEM VỚI VAI TRÒ</p>
+                          <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                            {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
+                              <button key={role} onClick={() => { handleRoleChange(role); setIsHeaderMenuOpen(false); }} className={`flex-1 px-2 py-1 text-[10px] font-bold rounded-md transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>
+                                {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Giám Sát' : 'Quản lý'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Stats (hide for homeowner) */}
-      {userRole !== 'HOMEOWNER' && activeTab !== 'DASHBOARD' && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Stats (hide for homeowner, only show on KANBAN tab) */}
+      {userRole !== 'HOMEOWNER' && activeTab === 'KANBAN' && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
           {[
             { icon: <TrendingUp className="w-5 h-5 text-indigo-500" />, value: `${stats.progress}%`, label: 'Tiến độ', bg: 'bg-indigo-50' },
             { icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />, value: `${stats.done}/${stats.total}`, label: 'Hoàn thành', bg: 'bg-emerald-50' },
@@ -1565,65 +1519,68 @@ export const Construction = () => {
         </div>
       )}
 
-      {/* View Tabs */}
-      {(() => {
-        const fullWidth = userRole === 'HOMEOWNER' || userRole === 'ENGINEER';
-        return (
-          <div className={`flex bg-slate-100 p-1 rounded-xl overflow-x-auto ${fullWidth ? 'w-full' : 'w-fit'}`}>
-            {VIEW_TABS.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${fullWidth ? 'flex-1' : ''} ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                {tab.icon}
-                {fullWidth
-                  ? <span>{tab.label}</span>
-                  : <span className="hidden sm:inline">{tab.label}</span>
-                }
-              </button>
-            ))}
-          </div>
-        );
-      })()}
-
       {/* Main Content */}
       <div className="flex-1 min-h-0">
         <AnimatePresence mode="wait">
           <motion.div key={activeTab + userRole} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
             {/* Manager Dashboard */}
             {activeTab === 'DASHBOARD' && userRole === 'MANAGER' && (
-              <div className="space-y-6">
-                <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
-                <ProjectOverview project={selectedProject} subcontractors={dbSubs} milestones={dbMilestones} />
+              <div className="space-y-8">
+                <div>
+                  <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
+                </div>
               </div>
             )}
-            {/* Homeowner Dashboard */}
-            {activeTab === 'DASHBOARD' && userRole === 'HOMEOWNER' && (
-              <ClientCountdown project={selectedProject} milestones={dbMilestones} dailyLogs={dailyLogs} phases={dbPhases} tasks={tasks} />
+            {/* Project Overview */}
+            {activeTab === 'PROJECT' && (
+              <div className="space-y-8">
+                {userRole === 'HOMEOWNER' ? (
+                  <ClientCountdown project={selectedProject} milestones={dbMilestones} dailyLogs={dailyLogs} phases={dbPhases} tasks={tasks} />
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-emerald-500" /> 
+                        CHI TIẾT DỰ ÁN: <span className="text-indigo-600">{selectedProject?.name.toUpperCase()}</span>
+                      </h2>
+                      <button onClick={() => setActiveTab('KANBAN')} className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors">
+                        Xem công việc
+                      </button>
+                    </div>
+                    <ProjectOverview project={selectedProject} subcontractors={dbSubs} milestones={dbMilestones} />
+                  </div>
+                )}
+              </div>
             )}
             {/* Kanban */}
             {activeTab === 'KANBAN' && <KanbanView tasks={filteredTasks} onTaskClick={openTask} onMoveTask={(taskId, newStatus) => {
               const task = tasks.find(t => t.id === taskId);
               if (task && task.status !== newStatus) {
+                const isFinancialTask = task.category === 'Tài chính' || task.category === 'Thanh toán';
+                if (userRole === 'ENGINEER' && isFinancialTask) {
+                  showToast('Giám sát không có quyền chỉnh sửa task tài chính', 'error');
+                  return;
+                }
                 const updated = { ...task, status: newStatus, progress: newStatus === 'DONE' ? 100 : newStatus === 'REVIEW' ? 90 : newStatus === 'DOING' ? Math.max(task.progress, 10) : task.progress };
                 handleUpdateTask(updated);
                 showToast(`Chuyển "${task.name}" → ${statusConfig[newStatus].label}`);
               }
             }} />}
-            {/* Cost */}
-            {activeTab === 'COST' && <CostOverview tasks={tasks} project={selectedProject} milestones={dbMilestones} />}
-            {/* Progress */}
-            {activeTab === 'PROGRESS' && <ProgressTimeline tasks={tasks} />}
+            {/* Tài chính (merged COST + PAYMENTS + SUBS) */}
+            {activeTab === 'COST' && (
+              <div className="space-y-6">
+                <CostOverview tasks={tasks} project={selectedProject} milestones={dbMilestones} />
+                <PaymentHistory 
+                  payments={dbPayments} 
+                  onAdd={userRole === 'MANAGER' ? async (record) => db.createPaymentRecord({ ...record, project_id: selectedProject.id }) : undefined}
+                  onDelete={userRole === 'MANAGER' ? async (id) => db.deletePaymentRecord(id) : undefined}
+                  onUpdate={userRole === 'MANAGER' ? async (id, updates) => db.updatePaymentRecord(id, updates) : undefined}
+                />
+                <ContractorProgressChart subcontractors={dbSubs} />
+              </div>
+            )}
             {/* Engineer Daily Report */}
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}
-            {/* Manager Logs — now uses DailyLogView */}
-            {activeTab === 'LOGS' && userRole !== 'ENGINEER' && (
-              <DailyLogView
-                logs={dailyLogs}
-                onAddLog={handleAddDailyLog}
-                canEdit={true}
-                isManager={userRole === 'MANAGER'}
-                onApproveLog={logId => db.updateDailyLog(logId, { status: 'approved' })}
-                onRejectLog={logId => db.updateDailyLog(logId, { status: 'rejected' })}
-              />
-            )}
             {/* Diary tab — all roles */}
             {activeTab === 'DIARY' && (
               <DailyLogView
@@ -1635,28 +1592,12 @@ export const Construction = () => {
                 onRejectLog={userRole === 'MANAGER' ? logId => db.updateDailyLog(logId, { status: 'rejected' }) : undefined}
               />
             )}
-            {/* Payment History */}
-            {activeTab === 'PAYMENTS' && (
-              <div className="space-y-6">
-                <PaymentHistory payments={dbPayments} />
-                <ContractorProgressChart subcontractors={dbSubs} />
-              </div>
-            )}
-            {/* Subcontractors */}
-            {activeTab === 'SUBS' && (
-              <div className="space-y-6">
-                <ContractorProgressChart subcontractors={dbSubs} />
-                <SubcontractorView subcontractors={dbSubs} />
-              </div>
-            )}
-            {/* Attendance */}
-            {activeTab === 'ATTENDANCE' && <AttendanceView attendance={dbAttendance} />}
-            {/* Reports */}
-            {activeTab === 'REPORTS' && <ReportsView tasks={tasks} projectName={selectedProject.name} />}
             {/* AI Master Architect Board */}
             {activeTab === 'AI_GANTT' && (
               <ProjectManagementAIModule
                 projectId={selectedProject.id}
+                project={selectedProject}
+                onUpdateProject={db.updateProject}
                 externalTasks={tasks}
                 readOnly={userRole === 'HOMEOWNER'}
                 onUpdateTask={(id, updates) => {
@@ -1664,6 +1605,8 @@ export const Construction = () => {
                   if (updated) handleUpdateTask({ ...updated, ...updates });
                 }}
                 onOpenImport={userRole !== 'HOMEOWNER' ? () => setIsQuotationModalOpen(true) : undefined}
+                isWorkflowOpen={isWorkflowOpen}
+                onCloseWorkflow={() => setIsWorkflowOpen(false)}
               />
             )}
           </motion.div>
@@ -1674,39 +1617,20 @@ export const Construction = () => {
 
       <ShareQRModal isOpen={isShareQROpen} onClose={() => setIsShareQROpen(false)} project={selectedProject} />
 
-      <CreateProjectModal
-        isOpen={isCreateProjectOpen}
-        onClose={() => setIsCreateProjectOpen(false)}
-        onCreate={async (data) => {
-          const newId = await db.createProject({
-            name: data.name, address: data.address,
-            owner_name: data.ownerName, engineer_name: '',
-            start_date: data.startDate || null,
-            handover_date: data.handoverDate || null,
-            contract_value: data.contractValue || 0,
-            budget: data.budget || 0,
-            spent: 0, progress: 0, status: 'in_progress',
-          } as any);
-          if (newId) {
-            showToast(`Đã tạo dự án "${data.name}"`, 'success');
-            db.loadProjects();
-          } else {
-            throw new Error('Lỗi khi tạo dự án vào CSDL');
-          }
-        }}
-      />
+      {/* CreateProjectModal removed — use ImportQuotationModal's create mode instead */}
 
       <ImportQuotationModal
         isOpen={isQuotationModalOpen}
         onClose={() => setIsQuotationModalOpen(false)}
         onGenerate={async (generatedTasks) => {
           // For existing projects: replace timeline (delete old tasks, keep logs)
+          console.log('[ImportQuotation] Saving', generatedTasks.length, 'tasks for project:', selectedProject.id, 'startDate:', selectedProject.startDate);
           const ok = await db.replaceTimelineTasks(selectedProject.id, generatedTasks, selectedProject.startDate);
           if (ok) {
             showToast(`Đã cập nhật ${generatedTasks.length} hạng mục (nhật ký thi công không bị xóa)`, 'success');
             setActiveTab('AI_GANTT');
           } else {
-            showToast('Lỗi khi lưu timeline vào CSDL', 'error');
+            showToast('Lỗi khi lưu timeline vào CSDL. Kiểm tra Console (F12) để xem chi tiết.', 'error');
           }
         }}
         onCreateProject={async (info, tasks) => {
@@ -1739,6 +1663,8 @@ export const Construction = () => {
               name: updates.name,
               address: updates.address,
               owner_name: updates.ownerName,
+              engineer_name: updates.engineerName,
+              manager_name: updates.managerName,
               contract_value: updates.contractValue,
               budget: updates.budget,
               start_date: updates.startDate || null,
@@ -1754,6 +1680,10 @@ export const Construction = () => {
           }}
         />
       )}
+
+
+      {/* Notification Settings Modal */}
+      <NotificationSettings isOpen={isNotificationSettingsOpen} onClose={() => setIsNotificationSettingsOpen(false)} />
 
       {/* Toast Notification */}
       <AnimatePresence>

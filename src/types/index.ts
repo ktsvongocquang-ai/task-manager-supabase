@@ -7,6 +7,7 @@ export interface Profile {
     role: 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Giám Sát' | 'Sale' | 'Marketing' | 'Khách hàng' | 'Thiết kế'
     construction_project_id?: string | null
     telegram_chat_id?: string | null
+    zalo_user_id?: string | null
     created_at: string
 }
 

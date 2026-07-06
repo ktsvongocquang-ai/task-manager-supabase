@@ -71,7 +71,7 @@ export const Schedule = () => {
                 supabase.from('tasks').select('*').order('created_at', { ascending: true }),
                 profile?.id ? supabase.from('personal_tasks').select('*').eq('user_id', profile.id) : Promise.resolve({ data: [] }),
                 supabase.from('projects').select('*'),
-                supabase.from('profiles').select('id, full_name, role, email')
+                supabase.from('profiles').select('id, full_name, role, email, zalo_user_id')
             ])
 
             let companyTasks = (t || []) as Task[];

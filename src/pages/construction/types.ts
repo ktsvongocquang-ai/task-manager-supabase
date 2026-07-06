@@ -9,7 +9,7 @@ export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'S
 export interface Project {
   id: string; name: string; startDate: string; handoverDate: string; status: string;
   progress: number; budget: number; spent: number; contractValue: number;
-  address: string; ownerName: string; engineerName: string;
+  address: string; ownerName: string; engineerName: string; managerName?: string;
   budgetSpent: number; riskLevel: 'green' | 'yellow' | 'red';
   unexpectedCosts: number; totalDocuments: number; daysOff: number; totalDiaryEntries: number;
   client_password?: string | null;
@@ -34,7 +34,10 @@ export interface CTask {
   isOverdue?: boolean;
 }
 
-export interface ChecklistItem { id: string; label: string; completed: boolean; required: boolean; }
+export interface ChecklistItem { 
+  id: string; label: string; completed: boolean; required: boolean;
+  assignee?: string; deadline?: string; 
+}
 export interface Issue {
   id: string; title: string; description: string; status: 'OPEN' | 'FIXING' | 'RESOLVED';
   severity: 'LOW' | 'MEDIUM' | 'HIGH'; photoBefore?: string; photoAfter?: string; createdAt: string;

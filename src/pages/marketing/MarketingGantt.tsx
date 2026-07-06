@@ -43,7 +43,7 @@ export const MarketingGantt = () => {
             const [{ data: t }, { data: p }, { data: pr }, { data: authData }] = await Promise.all([
                 supabase.from('marketing_tasks').select('*'),
                 supabase.from('marketing_projects').select('*'),
-                supabase.from('profiles').select('id, full_name'),
+                supabase.from('profiles').select('id, full_name, zalo_user_id'),
                 supabase.auth.getUser()
             ])
             setProjects((p || []) as Project[])

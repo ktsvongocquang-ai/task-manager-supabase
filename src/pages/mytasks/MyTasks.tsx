@@ -1042,9 +1042,9 @@ export default function MyTasks() {
         }}
         className={`group bg-white rounded-lg border transition-all duration-200 cursor-pointer ${
           task.status === 'done' ? 'border-gray-100 bg-gray-50/50 opacity-75' : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
-        } px-4 py-3 flex flex-col`}
+        } px-3 py-2 flex flex-col`}
       >
-        <div className="flex justify-between items-start mb-1.5 gap-2">
+        <div className="flex justify-between items-start mb-0.5 gap-2">
             <div className={`mt-0.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity cursor-grab hover:bg-gray-100 p-0.5 rounded-md text-gray-400 shrink-0 ${isKanban ? '-ml-2' : ''}`}>
                <GripVertical className="w-4 h-4" />
             </div>
@@ -1071,7 +1071,7 @@ export default function MyTasks() {
            </p>
         )}
         
-        <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-50">
+        <div className="flex justify-between items-center mt-auto pt-1.5 border-t border-slate-50">
             <div className={`flex items-center gap-2 flex-wrap ${isKanban ? 'pl-[26px]' : ''}`}>
                 {task.dueDate && (
                     <div className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border ${isOverdue ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-500 bg-slate-50 border-slate-200'}`}>
@@ -1575,63 +1575,52 @@ export default function MyTasks() {
 
   return (
     <div className="h-full flex flex-col bg-[#F8FAFC]">
-      {/* Hero Section - The "Hook" */}
-      <div className="bg-white border-b border-gray-200 px-4 sm:px-8 py-6 sm:py-8 flex-shrink-0 relative overflow-hidden">
-        {/* Decorative background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-70 pointer-events-none"></div>
-        
-        <div className="relative w-full max-w-[2000px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <greeting.icon className={`w-5 h-5 ${greeting.color}`} />
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{greeting.text}</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-              Hôm nay của bạn thế nào?
-            </h1>
-            <p className="text-gray-500 mt-2 flex items-center gap-2">
-              <Lock className="w-4 h-4" /> Không gian riêng tư. Dữ liệu được bảo mật.
-            </p>
+      {/* Compact Header */}
+      <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-2.5 flex-shrink-0">
+        <div className="w-full max-w-[2000px] mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <greeting.icon className={`w-4 h-4 ${greeting.color} flex-shrink-0`} />
+            <span className="text-sm font-semibold text-gray-600 truncate">{greeting.text}</span>
+            <span className="hidden sm:inline text-gray-300 flex-shrink-0">·</span>
+            <span className="hidden sm:flex items-center gap-1 text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">
+              <Lock className="w-3 h-3" /> Riêng tư
+            </span>
           </div>
 
-          {/* Gamification Progress */}
-          <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <div className="relative w-14 h-14 flex items-center justify-center">
+          <div className="flex items-center gap-2 bg-gray-50/80 px-3 py-1.5 rounded-full border border-gray-100 flex-shrink-0">
+            <div className="relative w-6 h-6 flex items-center justify-center flex-shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#F1F5F9" strokeWidth="3" />
-                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10B981" strokeWidth="3" strokeDasharray={`${progressPercent}, 100`} className="transition-all duration-1000 ease-out" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E2E8F0" strokeWidth="4" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10B981" strokeWidth="4" strokeDasharray={`${progressPercent}, 100`} className="transition-all duration-1000 ease-out" />
               </svg>
-              <span className="absolute text-sm font-bold text-gray-700">{progressPercent}%</span>
+              <span className="absolute text-[8px] font-bold text-gray-600">{progressPercent}%</span>
             </div>
-            <div>
-              <div className="text-sm font-bold text-gray-900">Tiến độ hôm nay</div>
-              <div className="text-xs text-gray-500">{completedToday} / {todayTasks.length} công việc hoàn thành</div>
-            </div>
+            <span className="text-xs font-semibold text-gray-600 whitespace-nowrap">{completedToday}/{todayTasks.length}</span>
           </div>
         </div>
       </div>
 
       {/* Controls & Quick Add */}
-      <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-8 py-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+      <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 pt-3 pb-1">
+        <div className="flex items-center gap-2 mb-3">
           {/* View Toggle */}
-          <div className="flex items-center p-1 bg-gray-200/50 rounded-xl w-full sm:w-auto">
+          <div className="flex items-center gap-0.5 p-0.5 bg-gray-100/80 rounded-lg w-full sm:w-auto overflow-x-auto hide-scrollbar">
             <button 
               onClick={() => setViewMode('focus')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'focus' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Star className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
                 <span className="sm:hidden">Focus</span>
                 <span className="hidden sm:inline">Focus Hôm nay</span>
               </span>
             </button>
             <button 
               onClick={() => setViewMode('kanban')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <LayoutGrid className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
                 <span className="sm:hidden">Kanban</span>
                 <span className="hidden sm:inline">Bảng Kanban</span>
               </span>
@@ -1639,30 +1628,30 @@ export default function MyTasks() {
 
             <button 
               onClick={() => setViewMode('dashboard')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'dashboard' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <BarChart2 className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
                 <span className="sm:hidden">Chart</span>
                 <span className="hidden sm:inline">Thống kê</span>
               </span>
             </button>
             <button 
               onClick={() => setViewMode('notes')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'notes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <FileText className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
                 <span className="sm:hidden">Note</span>
                 <span className="hidden sm:inline">Ghi chú</span>
               </span>
             </button>
             <button 
               onClick={() => setViewMode('news')}
-              className={`flex-1 sm:flex-none flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-2 py-1.5 sm:py-2 px-1 sm:px-5 rounded-lg transition-all ${viewMode === 'news' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'news' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <Globe className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[10px] sm:text-sm font-semibold leading-none sm:leading-normal">
+              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
                 <span className="sm:hidden">Đầu tư</span>
                 <span className="hidden sm:inline">Bảng Tin Đầu tư</span>
               </span>
@@ -1672,7 +1661,7 @@ export default function MyTasks() {
 
         {/* Smart Quick Add */}
         {viewMode === 'focus' && (
-          <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-8">
+          <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-4">
             <div className="flex-1 flex items-center gap-3 w-full px-2">
               <Plus className="w-5 h-5 text-gray-400" />
               <input
@@ -1747,22 +1736,22 @@ export default function MyTasks() {
         ) : viewMode === 'dashboard' ? (
           renderDashboardView()
         ) : viewMode === 'focus' ? (
-          <div className="space-y-8 pb-12">
+          <div className="space-y-5 pb-8">
             {/* Today's Focus */}
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-500 fill-amber-100" /> Tiêu điểm hôm nay
+              <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                <Star className="w-4 h-4 text-amber-500 fill-amber-100" /> Tiêu điểm hôm nay
               </h2>
               {todayTasks.length === 0 ? (
-                <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-8 text-center">
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Coffee className="w-8 h-8 text-gray-400" />
+                <div className="bg-white border border-dashed border-gray-300 rounded-xl p-5 text-center">
+                  <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Coffee className="w-5 h-5 text-gray-400" />
                   </div>
                   <h3 className="text-gray-900 font-medium">Hôm nay bạn rảnh rỗi!</h3>
                   <p className="text-gray-500 text-sm mt-1">Hãy dành thời gian nghỉ ngơi hoặc thêm việc mới nhé.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {todayTasks.map(task => renderTaskCard(task, false))}
                 </div>
               )}
@@ -1770,10 +1759,10 @@ export default function MyTasks() {
 
             {/* Upcoming / Other */}
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5 text-blue-500" /> Sắp tới & Khác
+              <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                <CalendarIcon className="w-4 h-4 text-blue-500" /> Sắp tới & Khác
               </h2>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {filteredTasks.filter(t => t.dueDate !== todayStr).map(task => renderTaskCard(task, false))}
                 {filteredTasks.filter(t => t.dueDate !== todayStr).length === 0 && (
                   <p className="text-sm text-gray-500 italic">Không có công việc nào khác.</p>

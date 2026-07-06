@@ -1,8 +1,9 @@
 import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts';
 import {
   TrendingUp, DollarSign, ChevronRight, Check,
   Bell, Star, Users, FileText, Download, Camera, Mic,
-  CheckCircle2
+  CheckCircle2, BarChart3
 } from 'lucide-react';
 import type { Project, CTask, Approval, Milestone, Subcontractor, Notification, AttendanceData, FinanceData } from './types';
 import { fmt } from './types';
@@ -32,11 +33,19 @@ export function ManagerDashboard({
   projects: Project[]; finance: FinanceData; approvals: Approval[];
   notifications: Notification[]; onSelectProject: (p: Project) => void;
 }) {
+
   const pendingApprovals = approvals.filter(a => a.status === 'pending');
   const unread = notifications.filter(n => !n.read).length;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-indigo-500" />
+          TỔNG QUAN TOÀN BỘ CÔNG TRÌNH
+        </h2>
+      </div>
       {/* Finance Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
@@ -52,12 +61,83 @@ export function ManagerDashboard({
         ))}
       </div>
 
+      {/* Dashboard Charts — 4 biểu đồ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Bar Chart: Task status per project */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">📊 Công việc theo dự án</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={projects.map(p => ({ name: p.name.length > 12 ? p.name.slice(0, 12) + '...' : p.name, 'Hoàn thành': Math.round(p.progress), 'Còn lại': 100 - Math.round(p.progress) }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12 }} />
+              <Bar dataKey="Hoàn thành" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Còn lại" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Donut Chart: Task status distribution */}
+        {(() => {
+          const statusData = [
+            { name: 'Cần làm', value: projects.reduce((s, p) => s + (p.progress === 0 ? 1 : 0), 0) || 0, color: '#94a3b8' },
+            { name: 'Đang làm', value: projects.filter(p => p.progress > 0 && p.progress < 100).length || 0, color: '#6366f1' },
+            { name: 'Hoàn thành', value: projects.filter(p => p.progress >= 100).length || 0, color: '#10b981' },
+          ].filter(d => d.value > 0);
+          if (statusData.length === 0) statusData.push({ name: 'Chưa có', value: 1, color: '#e2e8f0' });
+          return (
+            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">🍩 Phân bổ trạng thái</h4>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12 }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 10 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        })()}
+
+        {/* Line Chart: Budget vs Spent trend */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">📈 Ngân sách vs Chi phí</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={projects.map(p => ({ name: p.name.length > 10 ? p.name.slice(0, 10) + '...' : p.name, 'Ngân sách': Math.round((p.budget || 0) / 1000000), 'Đã chi': Math.round((p.spent || 0) / 1000000) }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 10 }} unit="tr" />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12 }} formatter={(v: number) => v + ' triệu'} />
+              <Bar dataKey="Ngân sách" fill="#6366f1" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Đã chi" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Horizontal Bar: Contract value by project */}
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">🏗️ Giá trị hợp đồng</h4>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart layout="vertical" data={projects.map(p => ({ name: p.name.length > 15 ? p.name.slice(0, 15) + '...' : p.name, 'Hợp đồng': Math.round((p.contractValue || 0) / 1000000) }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis type="number" tick={{ fontSize: 10 }} unit="tr" />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={100} />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 12 }} formatter={(v: number) => v + ' triệu'} />
+              <Bar dataKey="Hợp đồng" fill="#0ea5e9" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* Project Cards with Traffic Lights */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-          Công trình ({projects.length})
+          Danh sách công trình ({projects.length})
         </h3>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
           {projects.map(p => {
             const timeProgress = 50; // simplified
             const tdOk = p.progress >= timeProgress - 10;
@@ -1085,6 +1165,129 @@ function DailyLogDetailModal({ log, onClose, isManager, onApprove, onReject }: {
 }
 
 // ═══════════════════════════════════════════════════════════
+// COST OVERVIEW — Tổng quan chi phí dự án
+// ═══════════════════════════════════════════════════════════
+
+export function CostOverview({ tasks, project, milestones }: {
+  tasks: CTask[]; project: Project; milestones: import('./types').Milestone[];
+}) {
+  const totalBudget = project.budget || project.contractValue || 0;
+  const totalSpent = tasks.reduce((s, t) => s + (t.spent || 0), 0);
+  const remaining = totalBudget - totalSpent;
+  const spentPct = totalBudget > 0 ? Math.round(totalSpent / totalBudget * 100) : 0;
+  const isOverBudget = spentPct > 90;
+
+  // Group tasks by category for breakdown
+  const categoryMap = new Map<string, { budget: number; spent: number }>();
+  tasks.forEach(t => {
+    const cat = t.category || 'KHÁC';
+    const prev = categoryMap.get(cat) || { budget: 0, spent: 0 };
+    categoryMap.set(cat, { budget: prev.budget + (t.budget || 0), spent: prev.spent + (t.spent || 0) });
+  });
+  const categories = Array.from(categoryMap.entries()).sort((a, b) => b[1].budget - a[1].budget);
+
+  const catColors: Record<string, string> = {
+    'PHẦN THÔ': '#6366f1', 'MEP': '#0ea5e9', 'HOÀN THIỆN': '#10b981',
+    'NỘI THẤT': '#f59e0b', 'NGOẠI THẤT': '#8b5cf6', 'KHÁC': '#94a3b8',
+  };
+
+  // Milestone payments
+  const totalMilestonePaid = milestones.filter(m => m.paymentStatus === 'paid').reduce((s, m) => s + m.paymentAmount, 0);
+  const totalMilestoneAmount = milestones.reduce((s, m) => s + m.paymentAmount, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+          <p className="text-[10px] text-slate-400 font-bold">Ngân sách</p>
+          <p className="text-lg font-bold text-slate-800">{fmt(totalBudget)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+          <p className="text-[10px] text-slate-400 font-bold">Đã chi</p>
+          <p className={`text-lg font-bold ${isOverBudget ? 'text-rose-600' : 'text-indigo-600'}`}>{fmt(totalSpent)}</p>
+        </div>
+        <div className={`rounded-xl border p-3 shadow-sm ${remaining >= 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+          <p className="text-[10px] text-slate-400 font-bold">Còn lại</p>
+          <p className={`text-lg font-bold ${remaining >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(remaining)}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+          <p className="text-[10px] text-slate-400 font-bold">Tiến độ chi</p>
+          <p className={`text-lg font-bold ${isOverBudget ? 'text-rose-600' : 'text-indigo-600'}`}>{spentPct}%</p>
+        </div>
+      </div>
+
+      {/* Budget Progress Bar */}
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-bold text-slate-700">Tiến độ ngân sách</h4>
+          {isOverBudget && <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">⚠️ Sắp vượt ngân sách</span>}
+        </div>
+        <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all ${isOverBudget ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${Math.min(spentPct, 100)}%` }} />
+        </div>
+        <div className="flex justify-between mt-1">
+          <span className="text-[9px] text-slate-400">0</span>
+          <span className="text-[9px] text-slate-400">{fmt(totalBudget)}</span>
+        </div>
+      </div>
+
+      {/* Category Breakdown */}
+      {categories.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-700 mb-3">📊 Chi phí theo hạng mục</h4>
+          <div className="space-y-3">
+            {categories.map(([cat, data]) => {
+              const pct = data.budget > 0 ? Math.round(data.spent / data.budget * 100) : 0;
+              return (
+                <div key={cat}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: catColors[cat] || '#94a3b8' }} />
+                      <span className="text-[11px] font-bold text-slate-700">{cat}</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500">{fmt(data.spent)} / {fmt(data.budget)}</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: catColors[cat] || '#94a3b8' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Milestone Payments */}
+      {milestones.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-xs font-bold text-slate-700">💰 Đợt thanh toán</h4>
+            <span className="text-[10px] text-indigo-600 font-bold">{fmt(totalMilestonePaid)} / {fmt(totalMilestoneAmount)}</span>
+          </div>
+          <div className="space-y-2">
+            {milestones.map(m => (
+              <div key={m.id} className={`flex items-center justify-between p-2.5 rounded-lg border ${m.paymentStatus === 'paid' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'}`}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${m.paymentStatus === 'paid' ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                    {m.paymentStatus === 'paid' ? '✓' : m.sortOrder}
+                  </span>
+                  <span className="text-[11px] font-medium text-slate-700">{m.name}</span>
+                </div>
+                <div className="text-right">
+                  <p className={`text-xs font-bold ${m.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-slate-600'}`}>{fmt(m.paymentAmount)}</p>
+                  <p className="text-[8px] text-slate-400">{m.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // PROJECT OVERVIEW — Tổng quan tài chính dự án
 // ═══════════════════════════════════════════════════════════
 
@@ -1103,11 +1306,11 @@ export function ProjectOverview({ project, subcontractors, milestones }: {
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       {cards.map((c, i) => (
         <div key={i} className={`rounded-xl border border-slate-200 p-4 shadow-sm ${c.bg}`}>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{c.label}</p>
-          <p className={`text-2xl font-bold mt-1 ${c.color}`}>{c.value}</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide leading-tight">{c.label}</p>
+          <p className={`text-xl md:text-2xl font-bold mt-1.5 ${c.color}`}>{c.value}</p>
         </div>
       ))}
     </div>
@@ -1118,18 +1321,96 @@ export function ProjectOverview({ project, subcontractors, milestones }: {
 // PAYMENT HISTORY — Lịch sử thanh toán chi tiết
 // ═══════════════════════════════════════════════════════════
 
-export function PaymentHistory({ payments }: { payments: import('./types').PaymentRecord[] }) {
+export function PaymentHistory({ payments, onAdd, onDelete, onUpdate }: { 
+  payments: import('./types').PaymentRecord[];
+  onAdd?: (record: any) => Promise<boolean>;
+  onDelete?: (id: string) => Promise<boolean>;
+  onUpdate?: (id: string, updates: any) => Promise<boolean>;
+}) {
   const [search, setSearch] = React.useState('');
+  const [showAdd, setShowAdd] = React.useState(false);
+  const [addForm, setAddForm] = React.useState({ date: new Date().toISOString().slice(0, 10), description: '', amount: '', type: 'payment_out' as string, category: 'Vật liệu' });
+  const [saving, setSaving] = React.useState(false);
+
   const filtered = payments.filter(p => !search || (p.description || '').toLowerCase().includes(search.toLowerCase()) || (p.date || '').includes(search));
   const totalOut = payments.filter(p => p.type === 'payment_out').reduce((s, p) => s + p.amount, 0);
   const totalIn = payments.filter(p => p.type === 'payment_in').reduce((s, p) => s + p.amount, 0);
+
+  const handleAdd = async () => {
+    if (!onAdd || !addForm.description || !addForm.amount) return;
+    setSaving(true);
+    const ok = await onAdd({
+      date: addForm.date,
+      description: addForm.description,
+      amount: parseInt(addForm.amount) || 0,
+      type: addForm.type,
+      category: addForm.category,
+      status: 'pending',
+      bill_photos: [],
+    });
+    if (ok) {
+      setShowAdd(false);
+      setAddForm({ date: new Date().toISOString().slice(0, 10), description: '', amount: '', type: 'payment_out', category: 'Vật liệu' });
+    }
+    setSaving(false);
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-slate-700">💰 Lịch sử thanh toán</h3>
-        <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{payments.length} giao dịch</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-bold">{payments.length} giao dịch</span>
+          {onAdd && <button onClick={() => setShowAdd(!showAdd)} className="text-[10px] font-bold bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 active:scale-95 transition-all">+ Thêm thu/chi</button>}
+        </div>
       </div>
+
+      {/* Add Form */}
+      {showAdd && (
+        <div className="bg-indigo-50 rounded-xl border border-indigo-200 p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-slate-500">Ngày</label>
+              <input type="date" value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500">Loại</label>
+              <select value={addForm.type} onChange={e => setAddForm(f => ({ ...f, type: e.target.value }))} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                <option value="payment_out">Chi</option>
+                <option value="payment_in">Thu</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-500">Mô tả</label>
+            <input value={addForm.description} onChange={e => setAddForm(f => ({ ...f, description: e.target.value }))} placeholder="VD: Mua xi măng, sắt thép..." className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] font-bold text-slate-500">Số tiền (VNĐ)</label>
+              <input type="number" value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} placeholder="1000000" className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm" />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-slate-500">Danh mục</label>
+              <select value={addForm.category} onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))} className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm">
+                <option>Vật liệu</option>
+                <option>Nhân công</option>
+                <option>Thầu phụ</option>
+                <option>Vận chuyển</option>
+                <option>Máy móc</option>
+                <option>Khác</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setShowAdd(false)} className="text-xs px-3 py-1.5 text-slate-500 hover:text-slate-700">Hủy</button>
+            <button onClick={handleAdd} disabled={saving || !addForm.description || !addForm.amount} className="text-xs font-bold px-4 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 active:scale-95 transition-all">
+              {saving ? 'Đang lưu...' : 'Lưu'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3"><p className="text-[10px] text-emerald-500 font-bold">Tổng thu</p><p className="text-lg font-bold text-emerald-600">{fmt(totalIn)}</p></div>
         <div className="bg-rose-50 rounded-xl border border-rose-200 p-3"><p className="text-[10px] text-rose-500 font-bold">Tổng chi</p><p className="text-lg font-bold text-rose-600">{fmt(totalOut)}</p></div>
@@ -1142,30 +1423,35 @@ export function PaymentHistory({ payments }: { payments: import('./types').Payme
         {filtered.map(p => (
           <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold text-slate-700">{new Date(p.date).toLocaleDateString('vi-VN')}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{p.description}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5 truncate">{p.description}</p>
                 <p className="text-[9px] text-slate-400 mt-0.5">{p.category}</p>
               </div>
-              <div className="text-right">
-                <p className={`text-sm font-bold ${p.type === 'payment_in' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  {p.type === 'payment_in' ? '+' : ''}{fmt(p.amount)}
-                </p>
-                <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${p.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                  {p.status === 'confirmed' ? '✓ Xác nhận' : '⏳ Chờ'}
-                </span>
+              <div className="text-right flex items-center gap-2">
+                <div>
+                  <p className={`text-sm font-bold ${p.type === 'payment_in' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {p.type === 'payment_in' ? '+' : ''}{fmt(p.amount)}
+                  </p>
+                  <div className="flex items-center gap-1 justify-end mt-0.5">
+                    {onUpdate && p.status !== 'confirmed' && (
+                      <button onClick={() => onUpdate(p.id, { status: 'confirmed' })} className="text-[8px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600 font-bold hover:bg-emerald-200 transition-all">✓ Xác nhận</button>
+                    )}
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${p.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                      {p.status === 'confirmed' ? '✓ Đã XN' : '⏳ Chờ'}
+                    </span>
+                  </div>
+                </div>
+                {onDelete && (
+                  <button onClick={() => { if (confirm('Xóa giao dịch này?')) onDelete(p.id); }} className="w-7 h-7 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="Xóa">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14" /></svg>
+                  </button>
+                )}
               </div>
             </div>
-            {p.billPhotos.length > 0 && (
-              <div className="flex gap-1.5 mt-2">
-                {p.billPhotos.slice(0, 3).map((_, i) => (
-                  <div key={i} className="w-10 h-10 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center text-sm border border-amber-300">📄</div>
-                ))}
-                {p.billPhotos.length > 3 && <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-[9px] font-bold text-amber-500">+{p.billPhotos.length - 3}</div>}
-              </div>
-            )}
           </div>
         ))}
+        {filtered.length === 0 && <p className="text-center text-sm text-slate-400 py-8">Chưa có giao dịch nào</p>}
       </div>
     </div>
   );
@@ -1212,3 +1498,325 @@ export function ContractorProgressChart({ subcontractors }: { subcontractors: im
   );
 }
 
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATION SETTINGS — Cài đặt Zalo / Telegram Bot
+// ═══════════════════════════════════════════════════════════
+
+export function NotificationSettings({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [telegramToken, setTelegramToken] = React.useState('');
+  const [telegramChatId, setTelegramChatId] = React.useState('');
+  const [zaloToken, setZaloToken] = React.useState('');
+  const [zaloChatId, setZaloChatId] = React.useState('');
+  const [testStatus, setTestStatus] = React.useState<{ telegram?: string; zalo?: string }>({});
+  const [saving, setSaving] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<'telegram' | 'zalo'>('telegram');
+
+  const testTelegram = async () => {
+    if (!telegramToken || !telegramChatId) { setTestStatus(s => ({ ...s, telegram: 'Nhập Token và Chat ID!' })); return; }
+    setTestStatus(s => ({ ...s, telegram: 'Đang gửi...' }));
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: telegramChatId, text: '✅ DQH App: Kết nối Telegram thành công!', parse_mode: 'HTML' }),
+      });
+      const data = await res.json();
+      setTestStatus(s => ({ ...s, telegram: data.ok ? '✅ Thành công!' : `❌ Lỗi: ${data.description}` }));
+    } catch (e) { setTestStatus(s => ({ ...s, telegram: '❌ Lỗi kết nối' })); }
+  };
+
+  const testZalo = async () => {
+    if (!zaloToken) { setTestStatus(s => ({ ...s, zalo: 'Nhập Zalo Bot Token!' })); return; }
+    setTestStatus(s => ({ ...s, zalo: '✅ Token đã lưu! Cần cấu hình webhook để nhận phản hồi.' }));
+  };
+
+    const handleSave = async () => {
+    setSaving(true);
+    const payload = {
+      telegram: { token: telegramToken, chatId: telegramChatId },
+      zalo: { token: zaloToken, chatId: zaloChatId },
+    };
+    // Save to localStorage for immediate local access
+    localStorage.setItem('dqh_notification_settings', JSON.stringify(payload));
+    
+    // Save to Supabase for Webhook/Bot access via Server API to bypass RLS
+    try {
+      await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              action: 'save_settings',
+              payload: { id: 'notification_settings', value: payload }
+          })
+      });
+    } catch (e) {
+      console.error('Failed to save to system_settings', e);
+    }
+    
+    setSaving(false);
+  };
+
+  // Load saved settings
+  React.useEffect(() => {
+    const loadSettings = async () => {
+      // 1. Try local storage first for speed
+      const saved = localStorage.getItem('dqh_notification_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.telegram) { setTelegramToken(parsed.telegram.token || ''); setTelegramChatId(parsed.telegram.chatId || ''); }
+          if (parsed.zalo) { setZaloToken(parsed.zalo.token || ''); setZaloChatId(parsed.zalo.chatId || ''); }
+        } catch {}
+      }
+
+      // 2. Fetch latest from Supabase
+      try {
+        const { data, error } = await supabase.from('system_settings').select('value').eq('id', 'notification_settings').single();
+        if (data && data.value) {
+          const parsed = data.value;
+          if (parsed.telegram) { setTelegramToken(parsed.telegram.token || ''); setTelegramChatId(parsed.telegram.chatId || ''); }
+          if (parsed.zalo) { setZaloToken(parsed.zalo.token || ''); setZaloChatId(parsed.zalo.chatId || ''); }
+          // update local cache
+          localStorage.setItem('dqh_notification_settings', JSON.stringify(parsed));
+        }
+      } catch (e) {}
+    };
+    if (isOpen) loadSettings();
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">🔔 Cài đặt Thông báo</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Kết nối Telegram / Zalo để nhận thông báo tự động</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-slate-100">
+          {(['telegram', 'zalo'] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-3 text-sm font-bold transition-all ${activeTab === tab ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}>
+              {tab === 'telegram' ? '📨 Telegram Bot' : '💬 Zalo OA'}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        <div className="p-5 space-y-4">
+          {activeTab === 'telegram' ? (
+            <>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">Bot Token</label>
+                <input value={telegramToken} onChange={e => setTelegramToken(e.target.value)} placeholder="Nhập Bot Token từ @BotFather" className="w-full mt-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">Chat ID</label>
+                <input value={telegramChatId} onChange={e => setTelegramChatId(e.target.value)} placeholder="Nhập Chat ID của bạn" className="w-full mt-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200" />
+                <p className="text-[10px] text-slate-400 mt-1">Gửi /start cho @userinfobot để lấy Chat ID</p>
+              </div>
+              <button onClick={testTelegram} className="w-full py-2.5 bg-sky-500 text-white rounded-xl text-sm font-bold hover:bg-sky-600 active:scale-[0.98] transition-all">🚀 Gửi tin nhắn test</button>
+              {testStatus.telegram && <p className={`text-xs font-medium text-center ${testStatus.telegram.startsWith('✅') ? 'text-emerald-600' : 'text-rose-600'}`}>{testStatus.telegram}</p>}
+              <div className="bg-sky-50 rounded-xl p-3 border border-sky-100">
+                <p className="text-[10px] font-bold text-sky-700 mb-1">📖 Hướng dẫn nhanh</p>
+                <ol className="text-[10px] text-sky-600 space-y-1 list-decimal list-inside">
+                  <li>Mở Telegram, tìm <b>@BotFather</b></li>
+                  <li>Gửi <code>/newbot</code> và làm theo hướng dẫn</li>
+                  <li>Copy <b>Bot Token</b> dán vào ô trên</li>
+                  <li>Gửi /start cho bot, sau đó tìm <b>@userinfobot</b> để lấy Chat ID</li>
+                </ol>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">Zalo OA Access Token</label>
+                <input value={zaloToken} onChange={e => setZaloToken(e.target.value)} placeholder="Nhập Zalo OA Access Token" className="w-full mt-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase">User ID Test</label>
+                <input value={zaloChatId} onChange={e => setZaloChatId(e.target.value)} placeholder="Ví dụ: 1234567890123456" className="w-full mt-1 px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200" />
+              </div>
+              <button onClick={testZalo} className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-[0.98] transition-all">📤 Kiểm tra kết nối</button>
+              {testStatus.zalo && <p className={`text-xs font-medium text-center ${testStatus.zalo.startsWith('✅') ? 'text-emerald-600' : 'text-amber-600'}`}>{testStatus.zalo}</p>}
+              <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                <p className="text-[10px] font-bold text-blue-700 mb-1">📖 Hướng dẫn Zalo OA</p>
+                <ol className="text-[10px] text-blue-600 space-y-1 list-decimal list-inside">
+                  <li>Truy cập <b>oa.zalo.me</b> → Tạo Official Account</li>
+                  <li>Vào <b>Quản lý API</b> → Lấy <b>Access Token</b></li>
+                  <li>Người dùng cần <b>follow OA</b> để nhận tin</li>
+                  <li>Lấy User ID từ API <code>getfollowers</code></li>
+                </ol>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t border-slate-100 flex gap-2">
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700">Hủy</button>
+          <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 active:scale-[0.98] transition-all">
+            {saving ? 'Đang lưu...' : 'Lưu cài đặt'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// WORKFLOW MANAGER — Tuỳ biến quy trình
+// ═══════════════════════════════════════════════════════════
+
+export function WorkflowManager({ isOpen, onClose, onSave, initialStages }: { 
+  isOpen: boolean; onClose: () => void;
+  onSave?: (stages: WorkflowStage[], renames: {old: string, new: string}[]) => void;
+  initialStages?: WorkflowStage[];
+}) {
+  const defaultStages: WorkflowStage[] = [
+    { id: 'wf_1', name: 'Khảo sát & Tư vấn', color: '#6366f1', order: 1 },
+    { id: 'wf_2', name: 'Thiết kế 3D', color: '#0ea5e9', order: 2 },
+    { id: 'wf_3', name: 'Sản xuất tại xưởng', color: '#f59e0b', order: 3 },
+    { id: 'wf_4', name: 'Vận chuyển', color: '#8b5cf6', order: 4 },
+    { id: 'wf_5', name: 'Thi công lắp đặt', color: '#10b981', order: 5 },
+    { id: 'wf_6', name: 'Nghiệm thu bàn giao', color: '#ef4444', order: 6 },
+  ];
+
+  const [stages, setStages] = React.useState<(WorkflowStage & { originalName?: string })[]>([]);
+  const [newStageName, setNewStageName] = React.useState('');
+  const [newStageColor, setNewStageColor] = React.useState('#6366f1');
+  const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (initialStages && initialStages.length > 0) {
+      setStages(initialStages.map(s => ({ ...s, originalName: s.name })));
+    } else {
+      const saved = localStorage.getItem('dqh_workflow_stages');
+      if (saved) {
+        try { 
+          const parsed = JSON.parse(saved) as WorkflowStage[];
+          setStages(parsed.map(s => ({ ...s, originalName: s.name })));
+        } catch { 
+          setStages(defaultStages.map(s => ({ ...s, originalName: s.name }))); 
+        }
+      } else {
+        setStages(defaultStages.map(s => ({ ...s, originalName: s.name })));
+      }
+    }
+  }, [isOpen, initialStages]);
+
+  const addStage = () => {
+    if (!newStageName.trim()) return;
+    setStages(prev => [...prev, { id: `wf_${Date.now()}`, name: newStageName.trim(), color: newStageColor, order: prev.length + 1 }]);
+    setNewStageName('');
+  };
+
+  const removeStage = (id: string) => {
+    setStages(prev => prev.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i + 1 })));
+  };
+
+  const moveStage = (from: number, to: number) => {
+    const updated = [...stages];
+    const [moved] = updated.splice(from, 1);
+    updated.splice(to, 0, moved);
+    setStages(updated.map((s, i) => ({ ...s, order: i + 1 })));
+  };
+
+  const handleSave = () => {
+    const renames = stages
+      .filter(s => s.originalName && s.originalName !== s.name)
+      .map(s => ({ old: s.originalName!, new: s.name }));
+      
+    const toSave = stages.map(({ originalName, ...rest }) => rest);
+    localStorage.setItem('dqh_workflow_stages', JSON.stringify(toSave));
+    onSave?.(toSave, renames);
+    onClose();
+  };
+
+  const presetColors = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">🔄 Workflow Tuỳ biến</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Tùy chỉnh quy trình làm việc theo dự án</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+        </div>
+
+        <div className="p-5 max-h-[60vh] overflow-y-auto">
+          {/* Current stages */}
+          <div className="space-y-2 mb-4">
+            {stages.map((stage, i) => (
+              <div key={stage.id} 
+                draggable
+                onDragStart={() => setDragIndex(i)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => { if (dragIndex !== null) moveStage(dragIndex, i); setDragIndex(null); }}
+                className={`flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 group hover:shadow-sm transition-all cursor-grab active:cursor-grabbing ${dragIndex === i ? 'opacity-50' : ''}`}
+              >
+                <div className="text-slate-300 cursor-grab"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="18" r="2"/><circle cx="15" cy="18" r="2"/></svg></div>
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                <input 
+                  value={stage.name}
+                  onChange={e => {
+                    const newStages = [...stages];
+                    newStages[i] = { ...stage, name: e.target.value };
+                    setStages(newStages);
+                  }}
+                  className="flex-1 text-sm font-medium text-slate-700 bg-transparent outline-none focus:bg-slate-50 focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1 transition-colors"
+                />
+                <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Bước {stage.order}</span>
+                <button onClick={() => removeStage(stage.id)} className="p-1 opacity-0 group-hover:opacity-100 hover:bg-rose-50 rounded-md transition-all"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
+              </div>
+            ))}
+          </div>
+
+          {/* Visual flow */}
+          <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-2">
+            {stages.map((s, i) => (
+              <React.Fragment key={s.id}>
+                <span className="text-[8px] font-bold px-2 py-1 rounded-full whitespace-nowrap text-white" style={{ backgroundColor: s.color }}>{s.name}</span>
+                {i < stages.length - 1 && <span className="text-slate-300 shrink-0">→</span>}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Add new */}
+          <div className="bg-slate-50 rounded-xl p-3 border border-dashed border-slate-300 space-y-3">
+            <div className="flex gap-2">
+              <input value={newStageName} onChange={e => setNewStageName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addStage()} placeholder="Tên giai đoạn mới..." className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400" />
+              <button onClick={addStage} disabled={!newStageName.trim()} className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-40">+ Thêm</button>
+            </div>
+            <div className="flex gap-1.5">
+              {presetColors.map(c => (
+                <button key={c} onClick={() => setNewStageColor(c)} className={`w-6 h-6 rounded-full border-2 transition-all ${newStageColor === c ? 'border-slate-800 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 border-t border-slate-100 flex gap-2">
+          <button onClick={() => { setStages(defaultStages); }} className="px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700">Đặt lại</button>
+          <div className="flex-1" />
+          <button onClick={onClose} className="px-4 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700">Hủy</button>
+          <button onClick={handleSave} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 active:scale-[0.98] transition-all">Lưu Workflow</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export interface WorkflowStage {
+  id: string; name: string; color: string; order: number;
+}

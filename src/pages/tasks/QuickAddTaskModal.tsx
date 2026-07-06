@@ -3,6 +3,7 @@ import { X, Loader2, LayoutTemplate } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Project } from '../../types'
 import { format, parseISO, addDays, differenceInDays } from 'date-fns'
+import { notifyTaskAssigned } from '../../services/taskNotificationService'
 
 interface Props {
     isOpen: boolean
@@ -31,6 +32,7 @@ export const QuickAddTaskModal = ({
 }: Props) => {
     const today = format(new Date(), 'yyyy-MM-dd')
     const [loading, setLoading] = useState(false)
+    const [sendZalo, setSendZalo] = useState(false)
     const [form, setForm] = useState({
         name: '',
         task_code: '',
@@ -128,6 +130,18 @@ export const QuickAddTaskModal = ({
             }
 
             if (result.error) throw result.error
+
+            if (sendZalo && form.assignee_id) {
+                const projectName = projects.find(p => p.id === form.project_id)?.name || 'Dự án';
+                const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : undefined;
+                const assignee = profiles.find(p => p.id === form.assignee_id);
+                try {
+                    notifyTaskAssigned(form.name, projectName, assignee?.full_name, dueStr, currentUserProfile?.full_name, assignee?.zalo_user_id);
+                } catch (e) {
+                    console.error('Lỗi gửi Zalo:', e);
+                }
+            }
+
             onSaved()
             onClose()
         } catch (error: any) {
@@ -295,21 +309,35 @@ export const QuickAddTaskModal = ({
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
-                    <button 
-                        onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
-                    >
-                        Hủy
-                    </button>
-                    <button 
-                        onClick={handleSave}
-                        disabled={loading}
-                        className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {loading && <Loader2 size={16} className="animate-spin" />}
-                        Lưu lại
-                    </button>
+                <div className="px-5 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <input 
+                            type="checkbox" 
+                            checked={sendZalo} 
+                            onChange={(e) => setSendZalo(e.target.checked)}
+                            className="w-4 h-4 rounded text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span className="text-sm text-slate-600 group-hover:text-slate-800 select-none">
+                            Gửi Zalo
+                        </span>
+                    </label>
+
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
+                        >
+                            Hủy
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            disabled={loading}
+                            className="px-6 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {loading && <Loader2 size={16} className="animate-spin" />}
+                            Lưu lại
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
