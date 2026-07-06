@@ -77,9 +77,12 @@ export const Finance = () => {
         </div>
       ) : (
         <>
-          {/* Mỗi tab luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
+          {/* Dashboard mount/unmount bình thường: không có bộ lọc gì cần giữ, và biểu đồ
+              Recharts đo kích thước = 0 khi bị ẩn bằng display:none — nếu giữ mount + hidden
+              như các tab khác thì biểu đồ sẽ "nhảy" hình mỗi lần quay lại tab này. */}
+          {tab === 'DASHBOARD' && <Dashboard db={db} />}
+          {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
-          <div className={tab === 'DASHBOARD' ? '' : 'hidden'}><Dashboard db={db} /></div>
           <div className={tab === 'CUSTOMERS' ? '' : 'hidden'}><CustomersTab db={db} /></div>
           <div className={tab === 'SUPPLIERS' ? '' : 'hidden'}><SuppliersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
