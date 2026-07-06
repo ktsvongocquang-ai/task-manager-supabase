@@ -23,8 +23,10 @@ const parseDate = (s?: string | null): Date | null => {
 const getTaskStart = (t: CTask) => parseDate(t.plannedStart || t.startDate);
 const getTaskEnd = (t: CTask) => parseDate(t.plannedEnd || t.endDate);
 
-const getDateRange = (tasks: CTask[]) => {
+const getDateRange = (tasks: CTask[], extraStart?: string, extraEnd?: string) => {
   const dates = tasks.flatMap(t => [getTaskStart(t), getTaskEnd(t)]).filter(Boolean) as Date[];
+  const es = parseDate(extraStart); if (es) dates.push(es);
+  const ee = parseDate(extraEnd); if (ee) dates.push(ee);
   if (!dates.length) { const n = new Date(); return { min: addDays(n, -3), max: addDays(n, 60) }; }
   const min = dates.reduce((a, b) => a < b ? a : b);
   const max = dates.reduce((a, b) => a > b ? a : b);
@@ -73,7 +75,7 @@ function ConstructionGantt({
   onUpdateProjectDates?: (start?: string, end?: string) => void;
   categoryOrder?: string[];
 }) {
-  const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
+  const { min, max } = useMemo(() => getDateRange(tasks, projectStartDate, projectEndDate), [tasks, projectStartDate, projectEndDate]);
   const days = useMemo(() => getDaysBetween(min, max), [min.toISOString(), max.toISOString()]);
 
   const weeks = useMemo(() => {
@@ -295,9 +297,22 @@ function ConstructionGantt({
             {!readOnly && (
                <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200" style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.05)' }}></td>
             )}
-            {days.map((day, i) => (
-              <td key={i} className="border-r border-[#bae6fd] bg-[#f0f9ff]/50" />
-            ))}
+            {days.map((day, i) => {
+              const dayStart = startOfDay(day);
+              const s = projectStartDate ? startOfDay(parseISO(projectStartDate)) : null;
+              const e = projectEndDate ? startOfDay(parseISO(projectEndDate)) : null;
+              const inRange = !!(s && e && dayStart >= s && dayStart <= e);
+              const isFirst = !!(s && dayStart.getTime() === s.getTime());
+              const isLast = !!(e && dayStart.getTime() === e.getTime());
+              return (
+                <td key={i} className="border-r border-[#bae6fd] bg-[#f0f9ff]/50 p-0 relative">
+                  {inRange && (
+                    <div className="mx-px my-2.5 h-5 bg-sky-500"
+                      style={{ borderRadius: `${isFirst ? '10px' : '0'} ${isLast ? '10px' : '0'} ${isLast ? '10px' : '0'} ${isFirst ? '10px' : '0'}` }} />
+                  )}
+                </td>
+              );
+            })}
           </tr>
           {groupedEntries.map(([cat, catTasks], ci) => {
             const letter = categoryLetter(ci);
