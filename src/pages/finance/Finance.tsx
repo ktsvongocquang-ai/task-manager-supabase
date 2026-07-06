@@ -487,8 +487,8 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
 
   const handleExport = () => {
     const rows = filtered.map(e => ({
-      'Ngày chi': e.date, 'Công trình': projectName(e.project_id), 'Hạng mục': e.category || '',
-      'Loại chi phí': e.expense_type, 'Nội dung chi': e.description, 'Nhà cung cấp': supplierName(e),
+      'Ngày chi': e.date, 'Tên công trình': projectName(e.project_id), 'Hạng mục': e.category || '',
+      'Loại chi phí': e.expense_type, 'Nội dung chi': e.description, 'Tên nhà cung cấp': supplierName(e),
       'Số tiền': e.amount, 'Đã thanh toán': e.amount_paid, 'Trạng thái thanh toán': PAYMENT_STATUS_LABEL[e.payment_status].label,
       'Ghi chú': e.note || '',
     }));
@@ -790,7 +790,7 @@ function IncomesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDat
 
   const handleExport = () => {
     const rows = filtered.map(i => ({
-      'Ngày thu': i.date, 'Công trình': projectName(i.project_id), 'Khách hàng': customerName(i.customer_id),
+      'Ngày thu': i.date, 'Tên công trình': projectName(i.project_id), 'Khách hàng': customerName(i.customer_id),
       'Nội dung thu': i.description || '', 'Số tiền thu': i.amount, 'Phương thức thanh toán': i.payment_method,
       'Người nhận': i.received_by || '', 'Ghi chú': i.note || '',
     }));
