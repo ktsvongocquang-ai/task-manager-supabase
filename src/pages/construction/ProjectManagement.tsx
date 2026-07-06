@@ -721,7 +721,6 @@ export function ProjectManagementAIModule({
   const [exporting, setExporting] = useState(false);
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const ganttRef = useRef<HTMLDivElement>(null);
-  const detailPanelRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
   const tempTasksRef = useRef<CTask[]>([]);
@@ -819,13 +818,6 @@ export function ProjectManagementAIModule({
     const palette = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
     return categoryOrder.map((name, i) => ({ id: `cat_${i}`, name, color: palette[i % palette.length], order: i + 1 }));
   }, [categoryOrder, workflowStorageKey]);
-
-  // Selecting a row scrolls the detail panel (checklist nghiệm thu + thanh kéo
-  // tiến độ) into view — the Gantt table above can be tall, so without this
-  // the panel renders off-screen and looks like nothing happened.
-  useEffect(() => {
-    if (selectedId) detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [selectedId]);
 
   const handleWorkflowSave = (stages: WorkflowStage[], renames: { old: string; new: string }[]) => {
     if (!readOnly) {
@@ -1114,15 +1106,18 @@ export function ProjectManagementAIModule({
         </p>
       )}
 
-      {/* Detail panel */}
+      {/* Detail popup — fixed overlay so the Gantt table underneath never moves or scrolls */}
       {selectedTask && (
-        <div ref={detailPanelRef}>
-          <TaskDetailPanel
-            task={selectedTask}
-            onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
-            onClose={() => setSelectedId(null)}
-            readOnly={readOnly}
-          />
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSelectedId(null)} />
+          <div className="relative w-full max-w-3xl max-h-[85vh] overflow-y-auto">
+            <TaskDetailPanel
+              task={selectedTask}
+              onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
+              onClose={() => setSelectedId(null)}
+              readOnly={readOnly}
+            />
+          </div>
         </div>
       )}
 
