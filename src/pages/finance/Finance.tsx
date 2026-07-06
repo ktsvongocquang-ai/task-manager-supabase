@@ -77,12 +77,14 @@ export const Finance = () => {
         </div>
       ) : (
         <>
-          {tab === 'DASHBOARD' && <Dashboard db={db} />}
-          {tab === 'CUSTOMERS' && <CustomersTab db={db} />}
-          {tab === 'SUPPLIERS' && <SuppliersTab db={db} />}
-          {tab === 'EXPENSES' && <ExpensesTab db={db} projectFilter={projectFilter} />}
-          {tab === 'INCOMES' && <IncomesTab db={db} projectFilter={projectFilter} />}
-          {tab === 'CATEGORIES' && <CategoriesTab db={db} />}
+          {/* Mỗi tab luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
+              mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
+          <div className={tab === 'DASHBOARD' ? '' : 'hidden'}><Dashboard db={db} /></div>
+          <div className={tab === 'CUSTOMERS' ? '' : 'hidden'}><CustomersTab db={db} /></div>
+          <div className={tab === 'SUPPLIERS' ? '' : 'hidden'}><SuppliersTab db={db} /></div>
+          <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
+          <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
+          <div className={tab === 'CATEGORIES' ? '' : 'hidden'}><CategoriesTab db={db} /></div>
         </>
       )}
     </div>
