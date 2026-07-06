@@ -729,6 +729,7 @@ export function ProjectManagementAIModule({
   // Workflow modal even though the header's Workflow button (isWorkflowOpen prop)
   // is unreachable before any task exists.
   const [localWorkflowOpen, setLocalWorkflowOpen] = useState(false);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
@@ -1003,18 +1004,29 @@ export function ProjectManagementAIModule({
         </p>
       </div>
       {!readOnly && (
-        <div className="flex items-center gap-2 flex-wrap justify-center">
-          {onOpenImport && (
-            <button onClick={onOpenImport}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-md">
-              <FileSpreadsheet className="w-4 h-4" />
-              Nhập Báo Giá / PDF Timeline (AI)
-            </button>
-          )}
-          <button onClick={() => setLocalWorkflowOpen(true)}
-            className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm">
-            🔄 Tạo thủ công theo Flow đề xuất
+        <div className="relative">
+          <button onClick={() => setShowCreateMenu(v => !v)}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-md">
+            <Plus className="w-4 h-4" />
+            Tạo mới tiến độ
           </button>
+          {showCreateMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm text-left">
+                {onOpenImport && (
+                  <button onClick={() => { setShowCreateMenu(false); onOpenImport(); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
+                    <FileSpreadsheet className="w-4 h-4 text-indigo-500" /> Import AI (Excel / PDF)
+                  </button>
+                )}
+                <button onClick={() => { setShowCreateMenu(false); setLocalWorkflowOpen(true); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
+                  🔄 Tạo thủ công theo Flow đề xuất
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
       {workflowModal}
