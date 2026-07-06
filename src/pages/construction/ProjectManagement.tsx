@@ -141,6 +141,19 @@ function ConstructionGantt({
     });
   };
 
+  const handleEndChange = (task: CTask, val: string) => {
+    if (readOnly) return;
+    const ne = parseDate(val);
+    if (!ne) return;
+    const s = getTaskStart(task) || new Date();
+    if (ne < s) return;
+    const d = differenceInDays(ne, s) + 1;
+    onUpdateTask(task.id, {
+      duration: d, days: d,
+      plannedEnd: format(ne, 'yyyy-MM-dd'), endDate: format(ne, 'yyyy-MM-dd'),
+    });
+  };
+
   const todayDate = startOfDay(new Date());
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -202,6 +215,7 @@ function ConstructionGantt({
             <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold max-md:text-[10px] max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>BẮT ĐẦU</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>NGÀY</th>
+            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.end, width: CW.end, minWidth: CW.end }}>KẾT THÚC</th>
             <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>TIẾN ĐỘ</th>
             {!readOnly && <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 text-center font-bold print:hidden" style={{ left: CL.action, width: CW.action, minWidth: CW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></th>}
             {weeks.map((w, i) => (
@@ -255,9 +269,17 @@ function ConstructionGantt({
                 }} />
             </td>
             <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200 p-0" style={{ left: CL.dur }}>
-              <div className="w-full h-10 flex items-center justify-center text-sky-900 font-bold">
-                --
-              </div>
+              <input type="number" min={1} disabled={readOnly}
+                className="w-full h-10 text-center bg-transparent outline-none cursor-pointer text-sky-900 font-bold disabled:opacity-80 hover:bg-sky-100 focus:bg-sky-100"
+                value={projectStartDate && projectEndDate ? differenceInDays(parseISO(projectEndDate), parseISO(projectStartDate)) + 1 : ''}
+                onChange={e => {
+                  if (readOnly || !onUpdateProjectDates) return;
+                  const d = parseInt(e.target.value, 10);
+                  if (isNaN(d) || d < 1) return;
+                  const base = projectStartDate ? parseISO(projectStartDate) : (orderedTasks[0] && getTaskStart(orderedTasks[0])) || new Date();
+                  const ne = addDays(base, d - 1);
+                  onUpdateProjectDates(projectStartDate || format(base, 'yyyy-MM-dd'), format(ne, 'yyyy-MM-dd'));
+                }} />
             </td>
             <td className="sticky max-md:!static z-30 bg-[#e0f2fe] border-r border-slate-200 p-0" style={{ left: CL.end }}>
               <input type="date" disabled={readOnly}
@@ -354,6 +376,14 @@ function ConstructionGantt({
                         <div className="w-full h-9 flex items-center justify-center text-slate-600">{dur || '--'}</div>
                       ) : (
                         <input type="number" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={dur || ''} min={1} onChange={e => { e.stopPropagation(); handleDurChange(task, e.target.value); }} onClick={e => e.stopPropagation()} />
+                      )}
+                    </td>
+                    {/* End date */}
+                    <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.end }}>
+                      {readOnly ? (
+                        <div className="w-full h-9 flex items-center justify-center text-slate-600">{te ? format(te, 'dd/MM/yy') : '--'}</div>
+                      ) : (
+                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={te ? format(te, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleEndChange(task, e.target.value); }} onClick={e => e.stopPropagation()} />
                       )}
                     </td>
                     {/* Progress */}
@@ -677,6 +707,7 @@ export function ProjectManagementAIModule({
   const [exporting, setExporting] = useState(false);
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const ganttRef = useRef<HTMLDivElement>(null);
+  const detailPanelRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
   const tempTasksRef = useRef<CTask[]>([]);
@@ -774,6 +805,13 @@ export function ProjectManagementAIModule({
     const palette = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
     return categoryOrder.map((name, i) => ({ id: `cat_${i}`, name, color: palette[i % palette.length], order: i + 1 }));
   }, [categoryOrder, workflowStorageKey]);
+
+  // Selecting a row scrolls the detail panel (checklist nghiệm thu + thanh kéo
+  // tiến độ) into view — the Gantt table above can be tall, so without this
+  // the panel renders off-screen and looks like nothing happened.
+  useEffect(() => {
+    if (selectedId) detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId]);
 
   const handleWorkflowSave = (stages: WorkflowStage[], renames: { old: string; new: string }[]) => {
     if (!readOnly) {
@@ -1036,7 +1074,7 @@ export function ProjectManagementAIModule({
         <ConstructionGantt
           tasks={tasks}
           selectedId={selectedId}
-          onSelect={id => setSelectedId(prev => prev === id ? null : id)}
+          onSelect={id => setSelectedId(id)}
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}          onReorderTasks={reordered => setDisplayTasks(reordered)}
@@ -1064,12 +1102,14 @@ export function ProjectManagementAIModule({
 
       {/* Detail panel */}
       {selectedTask && (
-        <TaskDetailPanel
-          task={selectedTask}
-          onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
-          onClose={() => setSelectedId(null)}
-          readOnly={readOnly}
-        />
+        <div ref={detailPanelRef}>
+          <TaskDetailPanel
+            task={selectedTask}
+            onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
+            onClose={() => setSelectedId(null)}
+            readOnly={readOnly}
+          />
+        </div>
       )}
 
       {/* Workflow (flow of hạng mục lớn — A, B, C ...) editor */}
