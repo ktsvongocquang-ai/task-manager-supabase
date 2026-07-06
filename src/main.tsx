@@ -1,7 +1,20 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import './index.css'
+
+// registerType: 'autoUpdate' means a detected update is activated and the
+// page reloaded automatically — no user prompt. We additionally poll for
+// updates so tabs left open for a long time still pick up new deploys
+// instead of only checking on the next full navigation/reload.
+registerSW({
+  immediate: true,
+  onRegisteredSW(_swUrl, registration) {
+    if (!registration) return
+    setInterval(() => { registration.update() }, 60 * 60 * 1000)
+  },
+})
 
 // Global Error Boundary to catch and display crashes instead of white screen
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
