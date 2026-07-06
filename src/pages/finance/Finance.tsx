@@ -53,19 +53,21 @@ export const Finance = () => {
   ];
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 max-w-[1500px] mx-auto">
-      <div className="flex items-center gap-2">
-        <DollarSign className="w-5 h-5 text-indigo-500" />
-        <h1 className="text-lg font-bold text-slate-800">Tài chính</h1>
-      </div>
+    <div className="p-4 sm:p-6 max-w-[1500px] mx-auto flex flex-col h-full min-h-0 w-full">
+      <div className="flex-none space-y-4 mb-4">
+        <div className="flex items-center gap-2">
+          <DollarSign className="w-5 h-5 text-indigo-500" />
+          <h1 className="text-lg font-bold text-slate-800">Tài chính</h1>
+        </div>
 
-      <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-            {t.icon} {t.label}
-          </button>
-        ))}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {db.loading && db.projects.length === 0 ? (
@@ -76,10 +78,8 @@ export const Finance = () => {
           </div>
         </div>
       ) : (
-        // Chiều cao CỐ ĐỊNH (không phải min-h) cho khung nội dung — tab dài hay ngắn đều
-        // chiếm đúng 1 khung y hệt nhau, phần dư thì tự cuộn bên trong, khung ngoài
-        // (và vị trí cuộn của cả trang) không bao giờ đổi khi chuyển tab.
-        <div className="h-[75vh] overflow-y-auto pr-1">
+        // Sử dụng flex-1 và overflow-y-auto để cuộn nội dung bên trong, giữ nguyên vị trí tab
+        <div className="flex-1 overflow-y-auto pr-1 min-h-0 space-y-4 pb-6">
 
           {/* Dashboard mount/unmount bình thường: không có bộ lọc gì cần giữ, và biểu đồ
               Recharts đo kích thước = 0 khi bị ẩn bằng display:none — nếu giữ mount + hidden
