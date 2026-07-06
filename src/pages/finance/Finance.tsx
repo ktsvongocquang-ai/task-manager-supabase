@@ -76,7 +76,9 @@ export const Finance = () => {
           </div>
         </div>
       ) : (
-        <>
+        // min-h khoá chiều cao tối thiểu của vùng nội dung — không cho trang co lại đột ngột
+        // khi chuyển từ tab dài (bảng nhiều dòng) sang tab ngắn (rỗng), tránh cảm giác "nhảy view".
+        <div className="min-h-[70vh]">
           {/* Dashboard mount/unmount bình thường: không có bộ lọc gì cần giữ, và biểu đồ
               Recharts đo kích thước = 0 khi bị ẩn bằng display:none — nếu giữ mount + hidden
               như các tab khác thì biểu đồ sẽ "nhảy" hình mỗi lần quay lại tab này. */}
@@ -88,7 +90,7 @@ export const Finance = () => {
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'CATEGORIES' ? '' : 'hidden'}><CategoriesTab db={db} /></div>
-        </>
+        </div>
       )}
     </div>
   );
