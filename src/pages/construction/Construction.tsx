@@ -13,16 +13,18 @@ import { useNavigate } from 'react-router-dom';
 import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
 import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from './mockData';
-import { ManagerDashboard, EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, NotificationSettings, WorkflowManager } from './views';
+import { EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, NotificationSettings, WorkflowManager } from './views';
+import { ManagerDashboard } from './ManagerDashboard';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { ProjectAccountingSync } from './ProjectAccountingSync';
+import { GlobalProjectsOverview } from './GlobalProjectsOverview';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
 
 // ── Mapping helpers: Supabase → local types ──
 const mapProject = (p: SupabaseProject): Project => ({
-  id: p.id, name: p.name, startDate: p.start_date || '',
+  id: p.id, projectCode: p.project_code || '', name: p.name, startDate: p.start_date || '',
   handoverDate: p.handover_date || '', status: p.status,
   progress: p.progress || 0, budget: p.budget || 0, spent: p.spent || 0,
   contractValue: p.contract_value || 0, address: p.address || '',
@@ -33,6 +35,7 @@ const mapProject = (p: SupabaseProject): Project => ({
   daysOff: p.days_off || 0, totalDiaryEntries: p.total_diary_entries || 0,
   client_password: p.client_password || null,
   client_token: (p as any).client_token || null,
+  accountingSheetUrl: (p as any).accounting_sheet_url || null,
 });
 
 const mapMilestone = (m: SupabaseMilestone): Milestone => ({
@@ -492,8 +495,9 @@ function KanbanView({ tasks, onTaskClick, onMoveTask }: { tasks: CTask[]; onTask
 type ImportMode = 'add_to_project' | 'create_project';
 
 interface ExtractedProjectInfo {
-  name: string; ownerName: string; address: string;
+  projectCode?: string; name: string; ownerName: string; address: string;
   contractValue: number; budget: number; startDate: string; handoverDate: string;
+  accountingSheetUrl?: string;
 }
 
 const CAT_STYLE: Record<string, string> = {
@@ -519,7 +523,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
   const [editedTasks, setEditedTasks] = useState<any[]>([]);
   const [selectedIdx, setSelectedIdx] = useState<Set<number>>(new Set());
   const [extractedInfo, setExtractedInfo] = useState<ExtractedProjectInfo>({
-    name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '',
+    projectCode: '', name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '', accountingSheetUrl: ''
   });
   const fileRef = React.useRef<HTMLInputElement>(null);
 
@@ -568,7 +572,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
     setIsAnalyzing(true); setError('');
     try {
       let tasks: any[] = [];
-      let info: ExtractedProjectInfo = { name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '' };
+      let info: ExtractedProjectInfo = { projectCode: '', name: '', ownerName: '', address: '', contractValue: 0, budget: 0, startDate: '', handoverDate: '', accountingSheetUrl: '' };
       if (fileBase64 && fileMime) {
         const result = await aiConstructionService.analyzeFileMultimodal(fileBase64, fileMime);
         tasks = result.tasks; info = result.projectInfo;
@@ -838,6 +842,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
               <div className="p-5 space-y-3 max-h-[75vh] overflow-y-auto">
                 <p className="text-xs text-slate-500 font-medium">AI đã trích xuất thông tin dự án. Kiểm tra và chỉnh sửa trước khi tạo:</p>
                 {([
+                  { label: 'Mã dự án (Tùy chọn)', key: 'projectCode', type: 'text' },
                   { label: 'Tên dự án', key: 'name', type: 'text' },
                   { label: 'Chủ nhà', key: 'ownerName', type: 'text' },
                   { label: 'Địa chỉ công trình', key: 'address', type: 'text' },
@@ -845,6 +850,7 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
                   { label: 'Ngân sách (đ)', key: 'budget', type: 'number' },
                   { label: 'Ngày khởi công', key: 'startDate', type: 'date' },
                   { label: 'Ngày bàn giao', key: 'handoverDate', type: 'date' },
+                  { label: 'Link Google Sheet Kế toán (Tùy chọn)', key: 'accountingSheetUrl', type: 'text' },
                 ] as { label: string; key: keyof ExtractedProjectInfo; type: string }[]).map(f => (
                   <div key={f.key}>
                     <label className="text-[11px] font-bold text-slate-400 uppercase">{f.label}</label>
@@ -964,6 +970,7 @@ function EditProjectModal({ project, onClose, onSave }: {
   onSave: (data: Partial<Project>) => Promise<void>;
 }) {
   const [form, setForm] = useState({
+    projectCode: project.projectCode || '',
     name: project.name, address: project.address, ownerName: project.ownerName,
     engineerName: project.engineerName || '', managerName: project.managerName || '',
     startDate: project.startDate || '', handoverDate: project.handoverDate || '',
@@ -1353,6 +1360,7 @@ export const Construction = () => {
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'PROJECTS_OVERVIEW', label: 'Tổng hợp CT', icon: <Folder className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
@@ -1533,6 +1541,12 @@ export const Construction = () => {
                 </div>
               </div>
             )}
+            {/* Projects Overview */}
+            {activeTab === 'PROJECTS_OVERVIEW' && userRole === 'MANAGER' && (
+              <div className="space-y-8">
+                <GlobalProjectsOverview projects={dbProjects} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
+              </div>
+            )}
             {/* Project Overview */}
             {activeTab === 'PROJECT' && (
               <div className="space-y-8">
@@ -1661,6 +1675,7 @@ export const Construction = () => {
         }}
         onCreateProject={async (info, tasks) => {
           const newId = await db.createProject({
+            project_code: info.projectCode || '',
             name: info.name, address: info.address,
             owner_name: info.ownerName, engineer_name: '',
             start_date: info.startDate || null,
@@ -1687,6 +1702,7 @@ export const Construction = () => {
           onClose={() => setIsEditProjectOpen(false)}
           onSave={async (updates) => {
             const ok = await db.updateProject(selectedProject.id, {
+              project_code: updates.projectCode || null,
               name: updates.name,
               address: updates.address,
               owner_name: updates.ownerName,

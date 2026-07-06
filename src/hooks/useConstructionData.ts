@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore';
 // ═══════════════════════════════════════════════════════════
 
 export interface SupabaseProject {
-  id: string; name: string; address: string; status: string;
+  id: string; project_code?: string; name: string; address: string; status: string;
   progress: number; budget: number; spent: number; start_date: string;
   contract_value: number; budget_spent: number; risk_level: string;
   owner_name: string; engineer_name: string; manager_name?: string; handover_date: string;

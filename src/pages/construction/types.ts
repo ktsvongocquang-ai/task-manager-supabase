@@ -4,10 +4,10 @@
 
 export type UserRole = 'HOMEOWNER' | 'ENGINEER' | 'MANAGER';
 export type TaskStatus = 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
-export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS' | 'AI_GANTT';
+export type ViewTab = 'DASHBOARD' | 'PROJECTS_OVERVIEW' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS' | 'AI_GANTT';
 
 export interface Project {
-  id: string; name: string; startDate: string; handoverDate: string; status: string;
+  id: string; projectCode?: string; name: string; startDate: string; handoverDate: string; status: string;
   progress: number; budget: number; spent: number; contractValue: number;
   address: string; ownerName: string; engineerName: string; managerName?: string;
   budgetSpent: number; riskLevel: 'green' | 'yellow' | 'red';
