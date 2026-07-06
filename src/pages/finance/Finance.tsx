@@ -76,9 +76,11 @@ export const Finance = () => {
           </div>
         </div>
       ) : (
-        // min-h khoá chiều cao tối thiểu của vùng nội dung — không cho trang co lại đột ngột
-        // khi chuyển từ tab dài (bảng nhiều dòng) sang tab ngắn (rỗng), tránh cảm giác "nhảy view".
-        <div className="min-h-[70vh]">
+        // Chiều cao CỐ ĐỊNH (không phải min-h) cho khung nội dung — tab dài hay ngắn đều
+        // chiếm đúng 1 khung y hệt nhau, phần dư thì tự cuộn bên trong, khung ngoài
+        // (và vị trí cuộn của cả trang) không bao giờ đổi khi chuyển tab.
+        <div className="h-[75vh] overflow-y-auto pr-1">
+
           {/* Dashboard mount/unmount bình thường: không có bộ lọc gì cần giữ, và biểu đồ
               Recharts đo kích thước = 0 khi bị ẩn bằng display:none — nếu giữ mount + hidden
               như các tab khác thì biểu đồ sẽ "nhảy" hình mỗi lần quay lại tab này. */}
