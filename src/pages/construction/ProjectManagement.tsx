@@ -1152,7 +1152,7 @@ export function ProjectManagementAIModule({
           projectEndDate={project?.handoverDate}
           onUpdateProjectDates={(start, end) => {
             if (projectId && onUpdateProject) {
-              const updates = {};
+              const updates: { start_date?: string; handover_date?: string } = {};
               if (start !== undefined) updates.start_date = start;
               if (end !== undefined) updates.handover_date = end;
               if (Object.keys(updates).length > 0) {
