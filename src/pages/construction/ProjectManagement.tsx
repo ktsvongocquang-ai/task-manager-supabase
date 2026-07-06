@@ -1082,12 +1082,31 @@ export function ProjectManagementAIModule({
             Chia sẻ
           </button>
           {/* Import / Create new */}
-          {!readOnly && onOpenImport && (
-            <button onClick={onOpenImport}
-              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              + Tạo Mới Từ File
-            </button>
+          {!readOnly && (
+            <div className="relative">
+              <button onClick={() => setShowCreateMenu(v => !v)}
+                className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-sm">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                + Tạo Mới Tiến Độ
+              </button>
+              {showCreateMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm text-left">
+                    {onOpenImport && (
+                      <button onClick={() => { setShowCreateMenu(false); onOpenImport(); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
+                        <FileSpreadsheet className="w-4 h-4 text-indigo-500" /> Import AI (Excel / PDF)
+                      </button>
+                    )}
+                    <button onClick={() => { setShowCreateMenu(false); setLocalWorkflowOpen(true); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
+                      🔄 Tạo thủ công theo Flow đề xuất
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
           {/* Save button — shown whenever there are unsaved changes */}
           {!readOnly && hasUnsaved && (
