@@ -342,16 +342,15 @@ function ConstructionGantt({
                     onDragLeave={() => setDragOverId(null)}
                     onDrop={() => handleDrop(task.id)}
                     onDragEnd={() => { setDragId(null); setDragOverId(null); }}
-                    className={`group h-9 border-b border-slate-100 cursor-pointer transition-colors
+                    className={`group h-9 border-b border-slate-100 transition-colors
                       ${dragOverId === task.id ? 'border-t-2 border-t-indigo-400 bg-indigo-50/60' : ''}
                       ${dragId === task.id ? 'opacity-40' : ''}
                       ${sel ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}
-                    onClick={() => onSelect(task.id)}
                   >
                     {/* STT */}
                     <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 text-center text-slate-400`} style={{ left: CL.stt }}>{stt}</td>
-                    {/* Name */}
-                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
+                    {/* Name — only this column opens the checklist/progress popup */}
+                    <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden cursor-pointer`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }} onClick={() => onSelect(task.id)}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         {!readOnly && <GripVertical size={12} className="text-slate-300 flex-none cursor-grab active:cursor-grabbing" />}
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />

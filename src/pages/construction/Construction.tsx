@@ -1602,7 +1602,17 @@ export const Construction = () => {
               <ProjectManagementAIModule
                 projectId={selectedProject.id}
                 project={selectedProject}
-                onUpdateProject={db.updateProject}
+                onUpdateProject={(id, updates) => {
+                  // Optimistic — selectedProject is local state and does not
+                  // auto-sync from db.projects after in-place edits, so without
+                  // this the date/duration inputs above look like they don't work.
+                  setSelectedProject(prev => prev.id !== id ? prev : {
+                    ...prev,
+                    ...('start_date' in updates ? { startDate: updates.start_date } : {}),
+                    ...('handover_date' in updates ? { handoverDate: updates.handover_date } : {}),
+                  });
+                  db.updateProject(id, updates);
+                }}
                 externalTasks={tasks}
                 readOnly={userRole === 'HOMEOWNER'}
                 onUpdateTask={(id, updates) => {
