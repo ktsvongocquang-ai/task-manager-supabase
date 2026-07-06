@@ -1673,10 +1673,11 @@ export function NotificationSettings({ isOpen, onClose }: { isOpen: boolean; onC
 // WORKFLOW MANAGER — Tuỳ biến quy trình
 // ═══════════════════════════════════════════════════════════
 
-export function WorkflowManager({ isOpen, onClose, onSave, initialStages }: { 
+export function WorkflowManager({ isOpen, onClose, onSave, initialStages, storageKey = 'dqh_workflow_stages' }: {
   isOpen: boolean; onClose: () => void;
   onSave?: (stages: WorkflowStage[], renames: {old: string, new: string}[]) => void;
   initialStages?: WorkflowStage[];
+  storageKey?: string;
 }) {
   const defaultStages: WorkflowStage[] = [
     { id: 'wf_1', name: 'Khảo sát & Tư vấn', color: '#6366f1', order: 1 },
@@ -1696,19 +1697,19 @@ export function WorkflowManager({ isOpen, onClose, onSave, initialStages }: {
     if (initialStages && initialStages.length > 0) {
       setStages(initialStages.map(s => ({ ...s, originalName: s.name })));
     } else {
-      const saved = localStorage.getItem('dqh_workflow_stages');
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
-        try { 
+        try {
           const parsed = JSON.parse(saved) as WorkflowStage[];
           setStages(parsed.map(s => ({ ...s, originalName: s.name })));
-        } catch { 
-          setStages(defaultStages.map(s => ({ ...s, originalName: s.name }))); 
+        } catch {
+          setStages(defaultStages.map(s => ({ ...s, originalName: s.name })));
         }
       } else {
         setStages(defaultStages.map(s => ({ ...s, originalName: s.name })));
       }
     }
-  }, [isOpen, initialStages]);
+  }, [isOpen, initialStages, storageKey]);
 
   const addStage = () => {
     if (!newStageName.trim()) return;
@@ -1733,7 +1734,7 @@ export function WorkflowManager({ isOpen, onClose, onSave, initialStages }: {
       .map(s => ({ old: s.originalName!, new: s.name }));
       
     const toSave = stages.map(({ originalName, ...rest }) => rest);
-    localStorage.setItem('dqh_workflow_stages', JSON.stringify(toSave));
+    localStorage.setItem(storageKey, JSON.stringify(toSave));
     onSave?.(toSave, renames);
     onClose();
   };

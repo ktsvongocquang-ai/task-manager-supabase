@@ -295,6 +295,18 @@ export const useConstructionData = () => {
     return !error;
   };
 
+  // ── UPDATE TASK CATEGORY (bulk rename when Workflow stages are renamed) ──
+  const updateTaskCategory = async (taskId: string, category: string) => {
+    const { error } = await supabase
+      .from('construction_tasks')
+      .update({ category })
+      .eq('id', taskId);
+    if (!error) {
+      setTasks(prev => prev.map(t => t.id === taskId ? { ...t, category } : t));
+    }
+    return !error;
+  };
+
   // ── DELETE PROJECT (cascade delete all children) ──
   const deleteProject = async (projectId: string) => {
     try {
@@ -629,7 +641,7 @@ export const useConstructionData = () => {
     loadProjects, createProject, updateProject,
     // Tasks
     loadProjectDetails, createTimelineTasks, replaceTimelineTasks, updateTaskStatusChecklist,
-    updateTaskProgress, updateTaskDates, deleteTask,
+    updateTaskProgress, updateTaskDates, updateTaskCategory, deleteTask,
     // Projects
     deleteProject,
     // Daily Logs

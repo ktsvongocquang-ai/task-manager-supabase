@@ -1307,11 +1307,16 @@ export const Construction = () => {
 
   const openTask = (task: CTask) => { setSelectedTask(task); setIsDrawerOpen(true); };
   const handleUpdateTask = async (u: CTask) => {
+    const prevTask = tasks.find(t => t.id === u.id);
     // Optimistic update — always update local state immediately
     setTasks(prev => prev.map(t => t.id === u.id ? u : t));
     setSelectedTask(u);
     // Persist to Supabase (only if task exists in DB — mock IDs like 't1' won't)
     try {
+      // Category renamed (e.g. via Workflow stage rename) — persist separately
+      if (u.category && prevTask && u.category !== prevTask.category) {
+        await db.updateTaskCategory(u.id, u.category);
+      }
       // Check if date/duration fields changed — persist them separately
       const hasDateFields = u.plannedStart || u.plannedEnd || u.startDate || u.endDate || u.duration || u.days;
       if (hasDateFields) {

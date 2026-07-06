@@ -3,8 +3,16 @@ import { supabase } from '../../services/supabase';
 import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
 import type { CTask, TaskStatus } from './types';
 import { Save, CheckSquare, AlertCircle, Share2, FileSpreadsheet, Download, Trash2, Plus, GripVertical } from 'lucide-react';
+import { WorkflowManager, type WorkflowStage } from './views';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+// Category ordering: A, B, C, ... Z, AA, AB, ... (26-based, like spreadsheet columns)
+const categoryLetter = (index: number): string => {
+  let n = index, s = '';
+  do { s = String.fromCharCode(65 + (n % 26)) + s; n = Math.floor(n / 26) - 1; } while (n >= 0);
+  return s;
+};
 
 const parseDate = (s?: string | null): Date | null => {
   if (!s) return null;
@@ -51,6 +59,7 @@ function ConstructionGantt({
   projectStartDate,
   projectEndDate,
   onUpdateProjectDates,
+  categoryOrder,
 }: {
   tasks: CTask[];
   selectedId: string | null;
@@ -62,6 +71,7 @@ function ConstructionGantt({
   projectStartDate?: string;
   projectEndDate?: string;
   onUpdateProjectDates?: (start?: string, end?: string) => void;
+  categoryOrder?: string[];
 }) {
   const { min, max } = useMemo(() => getDateRange(tasks), [tasks]);
   const days = useMemo(() => getDaysBetween(min, max), [min.toISOString(), max.toISOString()]);
@@ -89,6 +99,21 @@ function ConstructionGantt({
       return acc;
     }, {} as Record<string, CTask[]>)
   , [tasks]);
+
+  // Order categories (hạng mục lớn) by the saved Workflow flow — unknown categories
+  // (not yet part of a flow) keep their original appearance order at the end.
+  const groupedEntries = useMemo(() => {
+    const entries = Object.entries(grouped);
+    if (!categoryOrder || categoryOrder.length === 0) return entries;
+    const orderIndex = new Map(categoryOrder.map((c, i) => [c, i]));
+    return [...entries].sort((a, b) => {
+      const ai = orderIndex.has(a[0]) ? orderIndex.get(a[0])! : Number.MAX_SAFE_INTEGER;
+      const bi = orderIndex.has(b[0]) ? orderIndex.get(b[0])! : Number.MAX_SAFE_INTEGER;
+      return ai - bi;
+    });
+  }, [grouped, categoryOrder]);
+
+  const orderedTasks = useMemo(() => groupedEntries.flatMap(([, t]) => t), [groupedEntries]);
 
   const handleStartChange = (task: CTask, val: string, isFirst: boolean = false) => {
     if (readOnly) return;
@@ -121,33 +146,38 @@ function ConstructionGantt({
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!readOnly && !projectStartDate && Object.keys(grouped).length > 0) {
-      const flatTasks = Object.values(grouped).flat();
-      if (flatTasks.length > 0) {
-        const firstTask = flatTasks[0];
-        const ts = getTaskStart(firstTask);
-        if (ts && onUpdateProjectDates) {
-          onUpdateProjectDates(format(ts, 'yyyy-MM-dd'), projectEndDate || undefined);
-        }
+    if (!readOnly && !projectStartDate && orderedTasks.length > 0) {
+      const firstTask = orderedTasks[0];
+      const ts = getTaskStart(firstTask);
+      if (ts && onUpdateProjectDates) {
+        onUpdateProjectDates(format(ts, 'yyyy-MM-dd'), projectEndDate || undefined);
       }
     }
-  }, [projectStartDate, grouped, readOnly, onUpdateProjectDates, projectEndDate]);
+  }, [projectStartDate, orderedTasks, readOnly, onUpdateProjectDates, projectEndDate]);
+
+  // Auto-fill the project end date from the latest task end date — mirrors the
+  // start-date effect above. Without this, "NGÀY KẾT THÚC" stays stuck on the
+  // dd/mm/yyyy placeholder even once every task already has an end date.
+  useEffect(() => {
+    if (readOnly || projectEndDate || !onUpdateProjectDates || tasks.length === 0) return;
+    const ends = tasks.map(getTaskEnd).filter((d): d is Date => !!d);
+    if (!ends.length) return;
+    const maxEnd = ends.reduce((a, b) => (a > b ? a : b));
+    onUpdateProjectDates(projectStartDate || undefined, format(maxEnd, 'yyyy-MM-dd'));
+  }, [readOnly, projectEndDate, tasks, projectStartDate, onUpdateProjectDates]);
 
   const handleDrop = (targetTaskId: string) => {
     if (!dragId || dragId === targetTaskId || !onReorderTasks) return;
-    const flatTasks = Object.values(grouped).flat();
-    const from = flatTasks.findIndex(t => t.id === dragId);
-    const to = flatTasks.findIndex(t => t.id === targetTaskId);
+    const from = orderedTasks.findIndex(t => t.id === dragId);
+    const to = orderedTasks.findIndex(t => t.id === targetTaskId);
     if (from === -1 || to === -1) return;
-    const reordered = [...flatTasks];
+    const reordered = [...orderedTasks];
     const [moved] = reordered.splice(from, 1);
     reordered.splice(to, 0, moved);
     onReorderTasks(reordered);
     setDragId(null);
     setDragOverId(null);
   };
-
-  let stt = 0;
 
   // Column layout constants (px)
   const CW = { stt: 32, name: 244, start: 96, dur: 48, end: 96, prog: 80, action: readOnly ? 0 : 40 };
@@ -209,9 +239,8 @@ function ConstructionGantt({
                   const newStart = e.target.value;
                   if (onUpdateProjectDates) onUpdateProjectDates(newStart || undefined, projectEndDate || undefined);
                   if (newStart && !readOnly) {
-                    const flatTasks = Object.values(grouped).flat();
-                    if (flatTasks.length > 0) {
-                      const firstTask = flatTasks[0];
+                    if (orderedTasks.length > 0) {
+                      const firstTask = orderedTasks[0];
                       const ns = parseISO(newStart);
                       const os = getTaskStart(firstTask);
                       const oe = getTaskEnd(firstTask);
@@ -248,11 +277,13 @@ function ConstructionGantt({
               <td key={i} className="border-r border-[#bae6fd] bg-[#f0f9ff]/50" />
             ))}
           </tr>
-          {Object.entries(grouped).map(([cat, catTasks], ci) => (
+          {groupedEntries.map(([cat, catTasks], ci) => {
+            const letter = categoryLetter(ci);
+            return (
             <React.Fragment key={cat}>
               {/* Category header row */}
               <tr className="h-8 bg-slate-100">
-                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{ci + 1}</td>
+                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{letter}</td>
                 <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
                   <div className="flex justify-between items-center pr-2">
                     <span>{cat}</span>
@@ -271,7 +302,7 @@ function ConstructionGantt({
                 })}
               </tr>
               {/* Task rows */}
-              {catTasks.map(task => {
+              {catTasks.map((task, ti) => {
                 const ts = getTaskStart(task);
                 const te = getTaskEnd(task);
                 const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
@@ -279,7 +310,7 @@ function ConstructionGantt({
                 const isOverdue = task.status !== 'DONE' && te && startOfDay(te) < todayDate;
                 const barColor = isOverdue ? '#ef4444' : (STATUS_META[task.status]?.bar || '#94a3b8');
                 const cellBg = sel ? 'bg-indigo-50' : 'bg-white';
-                stt++;
+                const stt = `${letter}${ti + 1}`;
                 return (
                   <tr
                     key={task.id}
@@ -314,7 +345,7 @@ function ConstructionGantt({
                       {readOnly ? (
                         <div className="w-full h-9 flex items-center justify-center text-slate-600">{ts ? format(ts, 'dd/MM/yy') : '--'}</div>
                       ) : (
-                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={ts ? format(ts, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value, stt === 1); }} onClick={e => e.stopPropagation()} />
+                        <input type="date" className="w-full h-9 text-center bg-transparent outline-none hover:bg-indigo-50 focus:bg-indigo-50 cursor-pointer" value={ts ? format(ts, 'yyyy-MM-dd') : ''} onChange={e => { e.stopPropagation(); handleStartChange(task, e.target.value, ti === 0); }} onClick={e => e.stopPropagation()} />
                       )}
                     </td>
                     {/* Duration */}
@@ -387,7 +418,8 @@ function ConstructionGantt({
                 );
               })}
             </React.Fragment>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -623,6 +655,8 @@ export function ProjectManagementAIModule({
   readOnly = false,
   onUpdateTask,
   onOpenImport,
+  isWorkflowOpen,
+  onCloseWorkflow,
 }: {
   projectId?: string;
   project?: { startDate?: string; handoverDate?: string };
@@ -631,6 +665,8 @@ export function ProjectManagementAIModule({
   readOnly?: boolean;
   onUpdateTask?: (id: string, updates: Partial<CTask>) => void;
   onOpenImport?: () => void;
+  isWorkflowOpen?: boolean;
+  onCloseWorkflow?: () => void;
 }) {
   const [displayTasks, setDisplayTasks] = useState<CTask[]>([]);
   const [hasUnsaved, setHasUnsaved] = useState(false);
@@ -639,10 +675,12 @@ export function ProjectManagementAIModule({
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
   const ganttRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
   const tempTasksRef = useRef<CTask[]>([]);
+  const workflowStorageKey = `dqh_workflow_stages_${projectId || 'default'}`;
 
   // Sync from externalTasks: merge external status/progress with local pending edits.
   // Using refs avoids stale closure bugs when externalTasks changes mid-edit.
@@ -705,6 +743,47 @@ export function ProjectManagementAIModule({
 
   const tasks = displayTasks;
   const selectedTask = tasks.find(t => t.id === selectedId) || null;
+
+  // Load this project's saved Workflow flow (category order) once tasks are known.
+  // Falls back to the order categories first appear in the loaded tasks.
+  useEffect(() => {
+    if (loading) return;
+    const saved = localStorage.getItem(workflowStorageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as WorkflowStage[];
+        setCategoryOrder([...parsed].sort((a, b) => a.order - b.order).map(s => s.name));
+        return;
+      } catch { /* fall through to derive from tasks */ }
+    }
+    const seen: string[] = [];
+    tasks.forEach(t => { const c = t.category || 'KHÁC'; if (!seen.includes(c)) seen.push(c); });
+    setCategoryOrder(seen);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, workflowStorageKey]);
+
+  // Stages to seed the Workflow modal with: saved flow if any, else the current
+  // hạng mục lớn (categories) in their displayed order, else undefined so
+  // WorkflowManager proposes its own default flow (used for brand-new projects).
+  const workflowInitialStages = useMemo<WorkflowStage[] | undefined>(() => {
+    const saved = localStorage.getItem(workflowStorageKey);
+    if (saved) {
+      try { return JSON.parse(saved) as WorkflowStage[]; } catch { /* ignore */ }
+    }
+    if (categoryOrder.length === 0) return undefined;
+    const palette = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#64748b'];
+    return categoryOrder.map((name, i) => ({ id: `cat_${i}`, name, color: palette[i % palette.length], order: i + 1 }));
+  }, [categoryOrder, workflowStorageKey]);
+
+  const handleWorkflowSave = (stages: WorkflowStage[], renames: { old: string; new: string }[]) => {
+    if (!readOnly) {
+      renames.forEach(({ old, new: next }) => {
+        if (!next || old === next) return;
+        tasks.filter(t => (t.category || 'KHÁC') === old).forEach(t => handleUpdateTask(t.id, { category: next }));
+      });
+    }
+    setCategoryOrder(stages.map(s => s.name));
+  };
 
   const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
     // Record in ref first (ref is always current in closures/effects)
@@ -962,6 +1041,7 @@ export function ProjectManagementAIModule({
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}          onReorderTasks={reordered => setDisplayTasks(reordered)}
           readOnly={readOnly}
+          categoryOrder={categoryOrder}
           projectStartDate={project?.startDate}
           projectEndDate={project?.handoverDate}
           onUpdateProjectDates={(start, end) => {
@@ -989,6 +1069,17 @@ export function ProjectManagementAIModule({
           onUpdate={updates => handleUpdateTask(selectedTask.id, updates)}
           onClose={() => setSelectedId(null)}
           readOnly={readOnly}
+        />
+      )}
+
+      {/* Workflow (flow of hạng mục lớn — A, B, C ...) editor */}
+      {!readOnly && (
+        <WorkflowManager
+          isOpen={!!isWorkflowOpen}
+          onClose={() => onCloseWorkflow?.()}
+          onSave={handleWorkflowSave}
+          initialStages={workflowInitialStages}
+          storageKey={workflowStorageKey}
         />
       )}
     </div>
