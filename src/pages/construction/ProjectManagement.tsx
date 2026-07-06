@@ -102,17 +102,22 @@ function ConstructionGantt({
     }, {} as Record<string, CTask[]>)
   , [tasks]);
 
-  // Order categories (hạng mục lớn) by the saved Workflow flow — unknown categories
-  // (not yet part of a flow) keep their original appearance order at the end.
+  // Order categories (hạng mục lớn) by the saved Workflow flow. Categories from
+  // the flow that have no tasks yet still get a header row (empty, with just
+  // "+ Thêm việc") so a brand-new project can be built up manually stage by
+  // stage. Categories with tasks but not (yet) part of the flow are appended
+  // at the end in their original appearance order.
   const groupedEntries = useMemo(() => {
-    const entries = Object.entries(grouped);
-    if (!categoryOrder || categoryOrder.length === 0) return entries;
-    const orderIndex = new Map(categoryOrder.map((c, i) => [c, i]));
-    return [...entries].sort((a, b) => {
-      const ai = orderIndex.has(a[0]) ? orderIndex.get(a[0])! : Number.MAX_SAFE_INTEGER;
-      const bi = orderIndex.has(b[0]) ? orderIndex.get(b[0])! : Number.MAX_SAFE_INTEGER;
-      return ai - bi;
+    if (!categoryOrder || categoryOrder.length === 0) return Object.entries(grouped);
+    const seen = new Set<string>();
+    const ordered: [string, CTask[]][] = categoryOrder.map(cat => {
+      seen.add(cat);
+      return [cat, grouped[cat] || []];
     });
+    Object.entries(grouped).forEach(([cat, catTasks]) => {
+      if (!seen.has(cat)) ordered.push([cat, catTasks]);
+    });
+    return ordered;
   }, [grouped, categoryOrder]);
 
   const orderedTasks = useMemo(() => groupedEntries.flatMap(([, t]) => t), [groupedEntries]);
@@ -720,6 +725,10 @@ export function ProjectManagementAIModule({
   const [saveMsg, setSaveMsg] = useState('');
   const [exporting, setExporting] = useState(false);
   const [categoryOrder, setCategoryOrder] = useState<string[]>([]);
+  // Lets the empty-state's own "Tạo thủ công theo Flow đề xuất" button open the
+  // Workflow modal even though the header's Workflow button (isWorkflowOpen prop)
+  // is unreachable before any task exists.
+  const [localWorkflowOpen, setLocalWorkflowOpen] = useState(false);
   const ganttRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
@@ -828,6 +837,19 @@ export function ProjectManagementAIModule({
     }
     setCategoryOrder(stages.map(s => s.name));
   };
+
+  // Defined once so it can render from the loading/empty early-returns below too
+  // — a brand-new project with 0 tasks still needs to be able to open Workflow
+  // and pick the suggested flow before any task exists.
+  const workflowModal = !readOnly && (
+    <WorkflowManager
+      isOpen={!!isWorkflowOpen || localWorkflowOpen}
+      onClose={() => { onCloseWorkflow?.(); setLocalWorkflowOpen(false); }}
+      onSave={handleWorkflowSave}
+      initialStages={workflowInitialStages}
+      storageKey={workflowStorageKey}
+    />
+  );
 
   const handleUpdateTask = (id: string, updates: Partial<CTask>) => {
     // Record in ref first (ref is always current in closures/effects)
@@ -969,7 +991,7 @@ export function ProjectManagementAIModule({
     </div>
   );
 
-  if (!tasks.length) return (
+  if (!tasks.length && categoryOrder.length === 0) return (
     <div className="flex flex-col items-center justify-center h-64 gap-4">
       <AlertCircle className="w-12 h-12 text-slate-200" />
       <div className="text-center">
@@ -977,16 +999,25 @@ export function ProjectManagementAIModule({
         <p className="text-sm text-slate-500 mt-1">
           {readOnly
             ? 'Nhà thầu chưa nhập timeline thi công'
-            : 'Nhập báo giá hoặc file PDF timeline để AI tạo tiến độ tự động'}
+            : 'Nhập báo giá / PDF để AI tạo tiến độ tự động, hoặc tự tạo thủ công theo flow đề xuất'}
         </p>
       </div>
-      {onOpenImport && !readOnly && (
-        <button onClick={onOpenImport}
-          className="mt-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-md">
-          <FileSpreadsheet className="w-4 h-4" />
-          Nhập Báo Giá / PDF Timeline
-        </button>
+      {!readOnly && (
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+          {onOpenImport && (
+            <button onClick={onOpenImport}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-md">
+              <FileSpreadsheet className="w-4 h-4" />
+              Nhập Báo Giá / PDF Timeline (AI)
+            </button>
+          )}
+          <button onClick={() => setLocalWorkflowOpen(true)}
+            className="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm">
+            🔄 Tạo thủ công theo Flow đề xuất
+          </button>
+        </div>
       )}
+      {workflowModal}
     </div>
   );
 
@@ -1122,15 +1153,7 @@ export function ProjectManagementAIModule({
       )}
 
       {/* Workflow (flow of hạng mục lớn — A, B, C ...) editor */}
-      {!readOnly && (
-        <WorkflowManager
-          isOpen={!!isWorkflowOpen}
-          onClose={() => onCloseWorkflow?.()}
-          onSave={handleWorkflowSave}
-          initialStages={workflowInitialStages}
-          storageKey={workflowStorageKey}
-        />
-      )}
+      {workflowModal}
     </div>
   );
 }
