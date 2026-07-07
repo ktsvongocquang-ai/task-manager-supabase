@@ -61,6 +61,7 @@ const viewTitles: Record<string, string> = {
     '/customers': 'CRM',
     '/marketing': 'Marketing',
     '/bao-gia': 'Báo giá Nội thất',
+    '/price-book': 'Kho giá NCC',
     '/training': 'Đào tạo & Thư viện',
     '/portfolio': 'Portfolio',
 }
@@ -344,16 +345,6 @@ export const Layout = () => {
             });
         }
 
-        // Tab Marketing
-        if (canAccessRoute(role, '/marketing')) {
-            items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
-        }
-
-        // Tab Portfolio
-        if (canAccessRoute(role, '/portfolio')) {
-            items.push({ name: 'Portfolio', path: '/portfolio', icon: LinkIcon, matchPrefix: ['/portfolio'] });
-        }
-
         // Tab Thi Công
         if (canAccessRoute(role, '/construction')) {
             items.push({ name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] });
@@ -372,6 +363,7 @@ export const Layout = () => {
         // Tab Báo giá Nội thất
         if (isAdminRole(role)) {
             items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
+            items.push({ name: 'Kho giá', path: '/price-book', icon: Database, matchPrefix: ['/price-book'] });
         }
 
         // Đào tạo & Thư viện
@@ -379,14 +371,24 @@ export const Layout = () => {
             items.push({ name: 'Đào tạo', path: '/training', icon: BookOpen, matchPrefix: ['/training'] });
         }
 
-        // Lịch sử
-        if (canAccessRoute(role, '/history')) {
-            items.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon });
+        // Tab Portfolio
+        if (canAccessRoute(role, '/portfolio')) {
+            items.push({ name: 'Portfolio', path: '/portfolio', icon: LinkIcon, matchPrefix: ['/portfolio'] });
+        }
+
+        // Tab Marketing
+        if (canAccessRoute(role, '/marketing')) {
+            items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
         }
 
         // Người dùng (Admin only)
         if (isAdminRole(role)) {
             items.push({ name: 'Người dùng', path: '/users', icon: Users });
+        }
+
+        // Lịch sử
+        if (canAccessRoute(role, '/history')) {
+            items.push({ name: 'Lịch sử', path: '/history', icon: HistoryIcon });
         }
 
         return items;
