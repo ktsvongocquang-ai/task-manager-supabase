@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Project, CTask, Approval, Milestone, Subcontractor, Notification, AttendanceData, FinanceData } from './types';
 import { fmt } from './types';
+import { supabase } from '../../services/supabase';
 
 // ═══════════════════════════════════════════════════════════
 // MANAGER DASHBOARD — Multi-project overview

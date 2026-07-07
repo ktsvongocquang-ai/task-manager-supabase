@@ -21,6 +21,7 @@ import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModa
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
+import { supabase } from '../../services/supabase';
 
 // ── Mapping helpers: Supabase → local types ──
 const mapProject = (p: SupabaseProject): Project => ({
