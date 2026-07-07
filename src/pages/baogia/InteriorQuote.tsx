@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   BarChart3,
+  BookMarked,
   CheckCircle2,
   Copy,
   Database,
@@ -16,7 +17,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import { flattenPriceBook, getItemPrice, MARGIN_STRATEGIES, formatVND } from '../../constants/priceBook';
+import { flattenPriceBook, getItemPrice, MARGIN_STRATEGIES, formatVND, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../../constants/priceBook';
 import { exportRowsToExcel, readExcelFile } from '../../utils/excelIO';
 
 type QuoteTab = 'PROJECTS' | 'BOQ' | 'PRICEBOOK' | 'PRICING' | 'EXPORT';
@@ -582,6 +583,42 @@ export default function InteriorQuote() {
     'Ghi chú': item.note,
   })), `Kho_gia_moi_nhat_${todayStr()}.xlsx`, 'Kho gia');
 
+  // "Danh mục tên chuẩn" — nguồn tên chuẩn dùng chung giữa app và Claude Skill bóc BOQ (mục 4
+  // của skill yêu cầu dùng đúng tên chuẩn, không tự đặt tên từ bản vẽ). Gộp 2 nguồn: Kho giá NCC
+  // (tên chuẩn đã nhập từ báo giá thật) + Bảng giá nội bộ (constants/priceBook.ts, luôn có sẵn kể
+  // cả khi Kho giá NCC còn trống). Người dùng tải file này rồi đính kèm/dán vào chat Claude trước
+  // khi bóc khối lượng, để AI đặt "Tên công việc" đúng theo danh mục thay vì tự bịa.
+  const exportItemMaster = () => {
+    const fromPriceBook = (['chung_cu', 'nha_o', 'shop'] as const).flatMap(type =>
+      flattenPriceBook(type).map(fp => ({
+        'Nguồn': 'Bảng giá nội bộ',
+        'Loại hình': type,
+        'Nhóm': CATEGORY_LABELS[fp.category] || fp.category,
+        'Nhóm nhỏ': SUBCATEGORY_LABELS[fp.subcategory] || fp.subcategory,
+        'Mã (item key)': fp.itemKey,
+        'Tên chuẩn': fp.displayName,
+        'Đơn vị': fp.item.don_vi || '',
+      }))
+    );
+    const seen = new Set<string>();
+    const dedupedPriceBook = fromPriceBook.filter(r => {
+      const key = r['Mã (item key)'];
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const fromKhoGia = latestPriceItems.map(item => ({
+      'Nguồn': 'Kho giá NCC',
+      'Loại hình': '',
+      'Nhóm': '',
+      'Nhóm nhỏ': '',
+      'Mã (item key)': item.itemCode,
+      'Tên chuẩn': item.standardName || item.itemName,
+      'Đơn vị': item.unit,
+    }));
+    exportRowsToExcel([...fromKhoGia, ...dedupedPriceBook], `Danh_muc_ten_chuan_${todayStr()}.xlsx`, 'Danh muc ten chuan');
+  };
+
   const exportPricePreview = () => exportRowsToExcel(filteredPricePreview.map(item => ({
     'Trạng thái': priceStatusLabel[item.status],
     'Nhà cung cấp': item.supplier,
@@ -680,7 +717,8 @@ export default function InteriorQuote() {
                 <h2 className="text-sm font-bold text-slate-800">Kho giá NCC</h2>
                 <p className="text-xs text-slate-500 mt-1">Import báo giá NCC (file Excel), lưu lịch sử và so sánh giá mới với giá đã có. Dùng ngay ở tab "Áp giá".</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={exportItemMaster} title="Danh sách Tên chuẩn để dán/đính kèm cho Claude Skill bóc BOQ dùng đúng tên, không tự đặt tên." className="px-3 py-2 bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><BookMarked className="w-3.5 h-3.5" /> Danh mục tên chuẩn</button>
                 <button onClick={exportPriceTemplate} className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><Download className="w-3.5 h-3.5" /> Mẫu Excel</button>
                 <button onClick={() => priceFileInputRef.current?.click()} className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Import giá</button>
                 <input ref={priceFileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleImportPriceFile(f); e.target.value = ''; }} />
