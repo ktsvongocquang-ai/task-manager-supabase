@@ -21,6 +21,7 @@ export interface Customer {
 export interface Supplier {
   id: string; name: string; phone: string | null; address: string | null;
   supplier_type: string | null; status: string | null;
+  email: string | null; contact_person: string | null; tax_code: string | null;
   note: string | null; created_at: string;
 }
 

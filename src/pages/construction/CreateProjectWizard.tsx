@@ -35,14 +35,18 @@ const STATUS_OPTIONS = [
   { value: 'warranty', label: 'Bảo hành' },
 ];
 
-const ITEM_STATUS_OPTIONS = ['Đang làm', 'Hoàn thành', 'Tạm dừng'];
+// Trạng thái hạng mục / Mức độ ưu tiên: giá trị mặc định dùng khi chưa nạp được Danh mục
+// (finance_lookups list_key 'item_status'/'task_priority') — 2 field text tự do, an toàn khi
+// người dùng chỉnh trong Danh mục. Trạng thái công việc (TASK_STATUS_OPTIONS) KHÔNG lấy từ Danh
+// mục vì gắn cứng với enum TaskStatus chi phối màu/cột Kanban — đổi tự do sẽ làm hỏng Kanban.
+const DEFAULT_ITEM_STATUS_OPTIONS = ['Đang làm', 'Hoàn thành', 'Tạm dừng'];
+const DEFAULT_PRIORITY_OPTIONS = ['Thấp', 'Trung bình', 'Cao'];
 const TASK_STATUS_OPTIONS = [
   { value: 'TODO', label: 'Cần làm' },
   { value: 'DOING', label: 'Đang làm' },
   { value: 'REVIEW', label: 'Nghiệm thu' },
   { value: 'DONE', label: 'Hoàn thành' },
 ];
-const PRIORITY_OPTIONS = ['Thấp', 'Trung bình', 'Cao'];
 
 const STEPS = [
   { label: 'Nhập công trình', icon: Building2 },
@@ -86,6 +90,8 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
+  const [itemStatusOptions, setItemStatusOptions] = useState<string[]>(DEFAULT_ITEM_STATUS_OPTIONS);
+  const [priorityOptions, setPriorityOptions] = useState<string[]>(DEFAULT_PRIORITY_OPTIONS);
   const [staff, setStaff] = useState<StaffOption[]>([]);
   const [isQuickCustomerOpen, setIsQuickCustomerOpen] = useState(false);
   const [quickCustomer, setQuickCustomer] = useState(emptyQuickCustomer());
@@ -101,13 +107,17 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
     if (!isOpen) return;
     reset();
     (async () => {
-      const [custRes, lookupRes, staffRes] = await Promise.all([
+      const [custRes, lookupRes, itemStatusRes, priorityRes, staffRes] = await Promise.all([
         supabase.from('customers').select('id,name').order('name'),
         supabase.from('finance_lookups').select('label').eq('list_key', 'project_type').order('sort_order'),
+        supabase.from('finance_lookups').select('label').eq('list_key', 'item_status').order('sort_order'),
+        supabase.from('finance_lookups').select('label').eq('list_key', 'task_priority').order('sort_order'),
         supabase.from('profiles').select('id,full_name').order('full_name'),
       ]);
       if (custRes.data) setCustomers(custRes.data as { id: string; name: string }[]);
       if (lookupRes.data) setProjectTypes((lookupRes.data as { label: string }[]).map(l => l.label));
+      if (itemStatusRes.data?.length) setItemStatusOptions((itemStatusRes.data as { label: string }[]).map(l => l.label));
+      if (priorityRes.data?.length) setPriorityOptions((priorityRes.data as { label: string }[]).map(l => l.label));
       if (staffRes.data) setStaff((staffRes.data as any[]).filter(p => p.full_name) as StaffOption[]);
     })();
   }, [isOpen]);
@@ -344,7 +354,7 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
                             <td className="px-2 py-1.5"><MultiSelectStaff options={staff} value={it.assignee || ''} onChange={v => updateItem(it._key, { assignee: v })} /></td>
                             <td className="px-2 py-1.5">
                               <select className={cellInputCls} value={it.status || 'Đang làm'} onChange={e => updateItem(it._key, { status: e.target.value })}>
-                                {ITEM_STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                {itemStatusOptions.map(s => <option key={s} value={s}>{s}</option>)}
                               </select>
                             </td>
                             <td className="px-2 py-1.5"><input className={cellInputCls} value={it.note || ''} onChange={e => updateItem(it._key, { note: e.target.value })} /></td>
@@ -409,7 +419,7 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
                                       <td className="px-2 py-1.5"><input type="number" min={1} className={cellInputCls} value={t.days || 1} onChange={e => updateTask(it._key, t._key, { days: numOrZero(e.target.value) || 1 })} /></td>
                                       <td className="px-2 py-1.5">
                                         <select className={cellInputCls} value={t.priority || 'Trung bình'} onChange={e => updateTask(it._key, t._key, { priority: e.target.value })}>
-                                          {PRIORITY_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                                          {priorityOptions.map(p => <option key={p} value={p}>{p}</option>)}
                                         </select>
                                       </td>
                                       <td className="px-2 py-1.5">

@@ -25,6 +25,8 @@ const LOOKUP_KEYS = [
   { key: 'customer_status', label: 'Trạng thái khách hàng' },
   { key: 'supplier_type', label: 'Loại nhà cung cấp' },
   { key: 'supplier_status', label: 'Trạng thái nhà cung cấp' },
+  { key: 'item_status', label: 'Trạng thái hạng mục' },
+  { key: 'task_priority', label: 'Mức độ ưu tiên' },
 ];
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -735,6 +737,7 @@ function SuppliersTab({ db }: { db: ReturnType<typeof useFinanceData> }) {
 function SupplierModal({ supplier, db, onClose, onSave }: { supplier: Supplier | null; db: ReturnType<typeof useFinanceData>; onClose: () => void; onSave: (data: Partial<Supplier>) => Promise<void> }) {
   const [form, setForm] = useState({
     name: supplier?.name || '', phone: supplier?.phone || '', address: supplier?.address || '',
+    email: supplier?.email || '', contact_person: supplier?.contact_person || '', tax_code: supplier?.tax_code || '',
     supplier_type: supplier?.supplier_type || '', status: supplier?.status || '', note: supplier?.note || '',
   });
   const [saving, setSaving] = useState(false);
@@ -744,7 +747,10 @@ function SupplierModal({ supplier, db, onClose, onSave }: { supplier: Supplier |
       <div className="p-5 space-y-3">
         <Field label="Tên nhà cung cấp *"><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <Field label="Số điện thoại"><input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+        <Field label="Email"><input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+        <Field label="Người liên hệ"><input value={form.contact_person} onChange={e => setForm(f => ({ ...f, contact_person: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <Field label="Địa chỉ"><input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+        <Field label="Mã số thuế"><input value={form.tax_code} onChange={e => setForm(f => ({ ...f, tax_code: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Loại nhà cung cấp">
             <select value={form.supplier_type} onChange={e => setForm(f => ({ ...f, supplier_type: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
