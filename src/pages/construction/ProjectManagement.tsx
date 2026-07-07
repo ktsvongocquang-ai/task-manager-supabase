@@ -739,19 +739,30 @@ export function ProjectManagementAIModule({
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
   const tempTasksRef = useRef<CTask[]>([]);
+  // IDs we've deleted locally but the parent's externalTasks (loaded via realtime, which lags
+  // a beat behind our own supabase .delete() call) may still briefly include — filtered out of
+  // every incoming externalTasks snapshot until the parent itself catches up, otherwise a stale
+  // snapshot arriving right after a clear/delete silently resurrects the "deleted" tasks.
+  const locallyDeletedIdsRef = useRef<Set<string>>(new Set());
   const workflowStorageKey = `dqh_workflow_stages_${projectId || 'default'}`;
 
   // Sync from externalTasks: merge external status/progress with local pending edits.
   // Using refs avoids stale closure bugs when externalTasks changes mid-edit.
   useEffect(() => {
     if (externalTasks === undefined) return;
+    const deletedIds = locallyDeletedIdsRef.current;
+    const filteredExternal = deletedIds.size > 0 ? externalTasks.filter(t => !deletedIds.has(t.id)) : externalTasks;
+    if (deletedIds.size > 0) {
+      // Once the parent's own data no longer contains an id, it's caught up — stop filtering it.
+      locallyDeletedIdsRef.current = new Set([...deletedIds].filter(id => externalTasks.some(t => t.id === id)));
+    }
     setDisplayTasks(prev => {
       if (prev.length === 0) {
         // Initial load
-        return externalTasks;
+        return filteredExternal;
       }
       // Merge: apply pending local edits on top of fresh external data
-      const merged = externalTasks.map(ext => {
+      const merged = filteredExternal.map(ext => {
         const pending = pendingEditsRef.current[ext.id];
         if (!pending) return ext;
         return { ...ext, ...pending };
@@ -880,6 +891,7 @@ export function ProjectManagementAIModule({
     const idsToDelete = tasks.filter(t => !t.id.startsWith('temp-')).map(t => t.id);
     tempTasksRef.current = [];
     pendingEditsRef.current = {};
+    idsToDelete.forEach(id => locallyDeletedIdsRef.current.add(id));
     setDisplayTasks([]);
     setHasUnsaved(false);
     if (idsToDelete.length > 0) {
@@ -928,6 +940,7 @@ export function ProjectManagementAIModule({
     const isTemp = id.startsWith('temp-');
     delete pendingEditsRef.current[id];
     tempTasksRef.current = tempTasksRef.current.filter(t => t.id !== id);
+    if (!isTemp) locallyDeletedIdsRef.current.add(id);
     setDisplayTasks(prev => prev.filter(t => t.id !== id));
     setHasUnsaved(true);
     if (!isTemp) {
