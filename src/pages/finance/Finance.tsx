@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, ClipboardCheck, Link2 } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
 import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
 
-type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
+type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'RECONCILIATION' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatus, { label: string; bg: string }> = {
   unpaid: { label: 'Chưa thanh toán', bg: 'bg-slate-100 text-slate-600' },
@@ -31,6 +31,89 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 const inRange = (v: number, from: string, to: string) => (!from || v >= Number(from)) && (!to || v <= Number(to));
 const dateInRange = (d: string, from: string, to: string) => (!from || d >= from) && (!to || d <= to);
 
+type AccountingKind = 'expense' | 'income';
+type ReconciliationStatus = 'matched' | 'new_sheet' | 'new_app' | 'amount_diff' | 'date_diff' | 'missing_info' | 'duplicate_risk';
+
+type AccountingRow = {
+  id: string;
+  kind: AccountingKind;
+  projectName: string;
+  date: string;
+  amount: number;
+  description: string;
+  partyName: string;
+  accountingRef: string;
+  category: string;
+  sourceRow: number;
+};
+
+type ReconciliationRow = {
+  id: string;
+  status: ReconciliationStatus;
+  kind: AccountingKind;
+  projectName: string;
+  date: string;
+  appDate: string;
+  amount: number;
+  appAmount: number;
+  diff: number;
+  description: string;
+  appDescription: string;
+  partyName: string;
+  accountingRef: string;
+  note: string;
+};
+
+const RECONCILIATION_STATUS_META: Record<ReconciliationStatus, { label: string; bg: string; text: string }> = {
+  matched: { label: 'Khớp', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  new_sheet: { label: 'Mới từ kế toán', bg: 'bg-sky-50', text: 'text-sky-700' },
+  new_app: { label: 'Mới từ app', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+  amount_diff: { label: 'Lệch số tiền', bg: 'bg-rose-50', text: 'text-rose-700' },
+  date_diff: { label: 'Lệch ngày', bg: 'bg-amber-50', text: 'text-amber-700' },
+  missing_info: { label: 'Thiếu thông tin', bg: 'bg-slate-50', text: 'text-slate-600' },
+  duplicate_risk: { label: 'Trùng nghi ngờ', bg: 'bg-orange-50', text: 'text-orange-700' },
+};
+
+const normalizeKey = (value: unknown) => String(value ?? '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/đ/g, 'd')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+const normalizeMatchText = (value: unknown) => normalizeKey(value).replace(/\s+/g, ' ');
+const parseMoney = (value: unknown) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  const raw = String(value ?? '').trim();
+  if (!raw) return 0;
+  const cleaned = raw.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? Math.abs(n) : 0;
+};
+const parseDateValue = (value: unknown) => {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const excelDate = new Date(Math.round((value - 25569) * 86400 * 1000));
+    if (!Number.isNaN(excelDate.getTime())) return excelDate.toISOString().slice(0, 10);
+  }
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  const m = raw.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+  if (!m) return raw;
+  const year = m[3].length === 2 ? `20${m[3]}` : m[3];
+  return `${year}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+};
+const pickCell = (row: Record<string, any>, keys: string[]) => {
+  const entries = Object.entries(row);
+  for (const key of keys) {
+    const found = entries.find(([header]) => normalizeKey(header) === normalizeKey(key));
+    if (found && String(found[1] ?? '').trim() !== '') return found[1];
+  }
+  return '';
+};
+
 // ═══════════════════════════════════════════════════════════
 // MAIN PAGE
 // ═══════════════════════════════════════════════════════════
@@ -46,6 +129,7 @@ export const Finance = () => {
   const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
     { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
+    { id: 'RECONCILIATION', label: 'Đối chứng', icon: <ClipboardCheck className="w-4 h-4" /> },
     { id: 'PARTNERS', label: 'Khách hàng / NCC', icon: <Users className="w-4 h-4" /> },
     { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
     { id: 'INCOMES', label: 'Thu tiền', icon: <Wallet className="w-4 h-4" /> },
@@ -93,6 +177,7 @@ export const Finance = () => {
           {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
           <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} projectFilter={projectFilter} /></div>
+          <div className={tab === 'RECONCILIATION' ? '' : 'hidden'}><AccountingReconciliationTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'PARTNERS' ? '' : 'hidden'}><PartnersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
@@ -1303,6 +1388,323 @@ function IncomeModal({ income, db, defaultProjectId, onClose, onSave }: {
 // ═══════════════════════════════════════════════════════════
 // DANH MỤC
 // ═══════════════════════════════════════════════════════════
+
+function AccountingReconciliationTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceData>; projectFilter: string | null }) {
+  const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
+  const [sheetUrl, setSheetUrl] = useState('');
+  const [sheetRows, setSheetRows] = useState<AccountingRow[]>([]);
+  const [statusFilter, setStatusFilter] = useState<ReconciliationStatus | ''>('');
+  const [kindFilter, setKindFilter] = useState<AccountingKind | ''>('');
+  const [message, setMessage] = useState('');
+  const [loadingSheet, setLoadingSheet] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!selectedProjectId && db.projects[0]?.id) setSelectedProjectId(db.projects[0].id);
+  }, [db.projects, selectedProjectId]);
+
+  const selectedProject = db.projects.find(p => p.id === selectedProjectId);
+  const projectName = selectedProject?.name || '';
+
+  const appRows = useMemo<AccountingRow[]>(() => {
+    const projectExpenses = db.expenses.filter(e => !selectedProjectId || e.project_id === selectedProjectId);
+    const projectIncomes = db.incomes.filter(i => !selectedProjectId || i.project_id === selectedProjectId);
+    return [
+      ...projectExpenses.map(e => ({
+        id: e.id, kind: 'expense' as const,
+        projectName: db.projects.find(p => p.id === e.project_id)?.name || '',
+        date: e.date, amount: e.amount || 0, description: e.description || '',
+        partyName: e.supplier_name || (e.supplier_id ? db.suppliers.find(s => s.id === e.supplier_id)?.name || '' : ''),
+        accountingRef: '', category: e.category || e.expense_type || '', sourceRow: 0,
+      })),
+      ...projectIncomes.map(i => ({
+        id: i.id, kind: 'income' as const,
+        projectName: db.projects.find(p => p.id === i.project_id)?.name || '',
+        date: i.date, amount: i.amount || 0, description: i.description || '',
+        partyName: i.customer_id ? db.customers.find(c => c.id === i.customer_id)?.name || '' : '',
+        accountingRef: '', category: i.payment_method || '', sourceRow: 0,
+      })),
+    ];
+  }, [db.expenses, db.incomes, db.projects, db.suppliers, db.customers, selectedProjectId]);
+
+  const reconciliationRows = useMemo<ReconciliationRow[]>(() => {
+    const usedAppIds = new Set<string>();
+    const rows: ReconciliationRow[] = [];
+
+    const findCandidate = (sheet: AccountingRow) => {
+      const candidates = appRows.filter(a => a.kind === sheet.kind);
+      const sheetText = normalizeMatchText(sheet.description);
+      const sheetParty = normalizeMatchText(sheet.partyName);
+      const exact = candidates.find(a =>
+        a.date === sheet.date &&
+        a.amount === sheet.amount &&
+        (
+          normalizeMatchText(a.description).includes(sheetText.slice(0, 18)) ||
+          sheetText.includes(normalizeMatchText(a.description).slice(0, 18)) ||
+          (!!sheetParty && normalizeMatchText(a.partyName) === sheetParty)
+        )
+      );
+      if (exact) return { app: exact, status: 'matched' as ReconciliationStatus };
+
+      const sameDateAmount = candidates.filter(a => a.date === sheet.date && a.amount === sheet.amount);
+      if (sameDateAmount.length > 1) return { app: sameDateAmount[0], status: 'duplicate_risk' as ReconciliationStatus };
+      if (sameDateAmount.length === 1) return { app: sameDateAmount[0], status: 'matched' as ReconciliationStatus };
+
+      const sameAmount = candidates.find(a => a.amount === sheet.amount && (
+        normalizeMatchText(a.description).includes(sheetText.slice(0, 14)) ||
+        (!!sheetParty && normalizeMatchText(a.partyName) === sheetParty)
+      ));
+      if (sameAmount) return { app: sameAmount, status: 'date_diff' as ReconciliationStatus };
+
+      const sameDateText = candidates.find(a => a.date === sheet.date && (
+        normalizeMatchText(a.description).includes(sheetText.slice(0, 14)) ||
+        (!!sheetParty && normalizeMatchText(a.partyName) === sheetParty)
+      ));
+      if (sameDateText) return { app: sameDateText, status: 'amount_diff' as ReconciliationStatus };
+
+      return { app: null, status: 'new_sheet' as ReconciliationStatus };
+    };
+
+    sheetRows.forEach(sheet => {
+      if (!sheet.date || !sheet.amount || !sheet.description) {
+        rows.push({
+          id: `sheet-${sheet.id}`, status: 'missing_info', kind: sheet.kind,
+          projectName: sheet.projectName || projectName, date: sheet.date, appDate: '',
+          amount: sheet.amount, appAmount: 0, diff: sheet.amount,
+          description: sheet.description, appDescription: '', partyName: sheet.partyName,
+          accountingRef: sheet.accountingRef, note: `Dòng ${sheet.sourceRow}: thiếu ngày, số tiền hoặc nội dung.`,
+        });
+        return;
+      }
+
+      const result = findCandidate(sheet);
+      if (result.app) usedAppIds.add(result.app.id);
+      rows.push({
+        id: `sheet-${sheet.id}`, status: result.status, kind: sheet.kind,
+        projectName: sheet.projectName || projectName, date: sheet.date, appDate: result.app?.date || '',
+        amount: sheet.amount, appAmount: result.app?.amount || 0, diff: sheet.amount - (result.app?.amount || 0),
+        description: sheet.description, appDescription: result.app?.description || '',
+        partyName: sheet.partyName || result.app?.partyName || '', accountingRef: sheet.accountingRef,
+        note: result.status === 'new_sheet' ? 'Có trong bảng kế toán, chưa thấy bản ghi tương ứng trong app.' : '',
+      });
+    });
+
+    appRows.filter(app => !usedAppIds.has(app.id)).forEach(app => {
+      rows.push({
+        id: `app-${app.id}`, status: 'new_app', kind: app.kind, projectName: app.projectName,
+        date: '', appDate: app.date, amount: 0, appAmount: app.amount, diff: -app.amount,
+        description: '', appDescription: app.description, partyName: app.partyName, accountingRef: '',
+        note: 'Có trong app, chưa thấy trong bảng kế toán.',
+      });
+    });
+
+    return rows;
+  }, [appRows, sheetRows, projectName]);
+
+  const filteredRows = reconciliationRows.filter(r =>
+    (!statusFilter || r.status === statusFilter) &&
+    (!kindFilter || r.kind === kindFilter)
+  );
+
+  const summary = useMemo(() => {
+    const result = Object.keys(RECONCILIATION_STATUS_META).reduce((acc, key) => ({ ...acc, [key]: 0 }), {} as Record<ReconciliationStatus, number>);
+    reconciliationRows.forEach(r => { result[r.status] += 1; });
+    return result;
+  }, [reconciliationRows]);
+
+  const mapRows = (rows: Record<string, any>[]) => rows.map((row, index) => {
+    const typeText = normalizeKey(pickCell(row, ['Loại', 'Loại giao dịch', 'type', 'kind', 'Thu/Chi']));
+    const amount = parseMoney(pickCell(row, ['Số tiền', 'Số tiền chi', 'Số tiền thu', 'amount', 'Giá trị']));
+    const debit = parseMoney(pickCell(row, ['Chi', 'Phát sinh nợ', 'debit']));
+    const credit = parseMoney(pickCell(row, ['Thu', 'Phát sinh có', 'credit']));
+    const kind: AccountingKind = typeText.includes('thu') || typeText.includes('income') || credit > debit ? 'income' : 'expense';
+    return {
+      id: `${Date.now()}-${index}`, kind,
+      projectName: String(pickCell(row, ['Công trình', 'Tên công trình', 'project', 'project_name']) || projectName),
+      date: parseDateValue(pickCell(row, ['Ngày', 'Ngày chi', 'Ngày thu', 'date', 'Ngày hạch toán'])),
+      amount: amount || debit || credit,
+      description: String(pickCell(row, ['Nội dung', 'Nội dung chi', 'Nội dung thu', 'Diễn giải', 'description']) || '').trim(),
+      partyName: String(pickCell(row, ['Nhà cung cấp', 'NCC', 'Khách hàng', 'Đối tượng', 'vendor', 'customer']) || '').trim(),
+      accountingRef: String(pickCell(row, ['Mã chứng từ', 'Số chứng từ', 'Mã kế toán', 'accounting_ref', 'invoice_no']) || '').trim(),
+      category: String(pickCell(row, ['Hạng mục', 'Loại chi phí', 'Nhóm', 'category']) || '').trim(),
+      sourceRow: index + 2,
+    };
+  });
+
+  const csvToRows = (text: string): Record<string, any>[] => {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) return [];
+    const parseLine = (line: string) => {
+      const cells: string[] = [];
+      let current = '';
+      let quoted = false;
+      for (let i = 0; i < line.length; i += 1) {
+        const char = line[i];
+        if (char === '"' && line[i + 1] === '"') { current += '"'; i += 1; continue; }
+        if (char === '"') { quoted = !quoted; continue; }
+        if (char === ',' && !quoted) { cells.push(current); current = ''; continue; }
+        current += char;
+      }
+      cells.push(current);
+      return cells;
+    };
+    const headers = parseLine(lines[0]).map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const cells = parseLine(line);
+      return Object.fromEntries(headers.map((h, i) => [h, cells[i] ?? '']));
+    });
+  };
+
+  const buildCsvUrl = (url: string) => {
+    if (url.includes('output=csv') || url.endsWith('.csv')) return url;
+    const id = url.match(/\/spreadsheets\/d\/([^/]+)/)?.[1];
+    if (!id) return url;
+    const gid = url.match(/[?#&]gid=(\d+)/)?.[1] || '0';
+    return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  };
+
+  const loadFromSheetUrl = async () => {
+    if (!sheetUrl.trim()) return;
+    setLoadingSheet(true);
+    setMessage('');
+    try {
+      const res = await fetch(buildCsvUrl(sheetUrl.trim()));
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rows = csvToRows(await res.text());
+      setSheetRows(mapRows(rows));
+      setMessage(`Đã lấy ${rows.length} dòng từ Google Sheet/CSV.`);
+    } catch {
+      setMessage('Không đọc được link. Sheet cần bật quyền xem bằng link hoặc dùng link CSV/public.');
+    } finally {
+      setLoadingSheet(false);
+    }
+  };
+
+  const loadFromExcel = async (file: File) => {
+    const rows = await readExcelFile(file);
+    setSheetRows(mapRows(rows));
+    setMessage(`Đã lấy ${rows.length} dòng từ file Excel.`);
+  };
+
+  const exportReview = () => {
+    exportRowsToExcel(filteredRows.map(r => ({
+      'Trạng thái': RECONCILIATION_STATUS_META[r.status].label,
+      'Loại': r.kind === 'income' ? 'Thu' : 'Chi',
+      'Công trình': r.projectName,
+      'Ngày kế toán': r.date,
+      'Ngày app': r.appDate,
+      'Số tiền kế toán': r.amount,
+      'Số tiền app': r.appAmount,
+      'Chênh lệch': r.diff,
+      'Nội dung kế toán': r.description,
+      'Nội dung app': r.appDescription,
+      'Đối tượng': r.partyName,
+      'Mã chứng từ': r.accountingRef,
+      'Ghi chú review': r.note,
+    })), `Doi_chung_ke_toan_${todayStr()}.xlsx`, 'Doi chung');
+  };
+
+  const exportTemplate = () => {
+    exportRowsToExcel([{
+      'Loại': 'Chi', 'Ngày': todayStr(), 'Công trình': projectName || 'Tên công trình',
+      'Nội dung': 'VD: Mua vật tư đợt 1', 'Nhà cung cấp': 'Tên NCC',
+      'Số tiền': 1000000, 'Mã chứng từ': 'PC-001', 'Hạng mục': 'Vật tư',
+    }], 'Mau_doi_chung_ke_toan.xlsx', 'Mau');
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h2 className="text-sm font-bold text-slate-800">Đối chứng kế toán</h2>
+            <p className="text-xs text-slate-500 mt-1">Dán link Google Sheet hoặc nạp Excel để so sánh với dữ liệu Finance trong app.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={exportTemplate} className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><Download className="w-3.5 h-3.5" /> Mẫu</button>
+            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Excel</button>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) loadFromExcel(f); e.target.value = ''; }} />
+            <button onClick={exportReview} disabled={filteredRows.length === 0} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 disabled:opacity-40"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất review</button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_auto] gap-2 mt-4">
+          <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-xs">
+            <option value="">Tất cả công trình</option>
+            {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <div className="relative">
+            <Link2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <input value={sheetUrl} onChange={e => setSheetUrl(e.target.value)} placeholder="Dán link Google Sheet public hoặc link CSV..." className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs" />
+          </div>
+          <button onClick={loadFromSheetUrl} disabled={loadingSheet || !sheetUrl.trim()} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg disabled:opacity-40">
+            {loadingSheet ? 'Đang lấy...' : 'Lấy dữ liệu'}
+          </button>
+        </div>
+        {message && <p className="text-xs text-slate-500 mt-2">{message}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+        {(Object.keys(RECONCILIATION_STATUS_META) as ReconciliationStatus[]).map(status => (
+          <button key={status} onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+            className={`text-left rounded-xl border p-3 ${statusFilter === status ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 bg-white'}`}>
+            <p className={`text-[10px] font-bold uppercase ${RECONCILIATION_STATUS_META[status].text}`}>{RECONCILIATION_STATUS_META[status].label}</p>
+            <p className="text-lg font-bold text-slate-800 mt-1">{summary[status]}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-wrap items-center gap-2">
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value as ReconciliationStatus | '')} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
+          <option value="">Tất cả trạng thái</option>
+          {(Object.keys(RECONCILIATION_STATUS_META) as ReconciliationStatus[]).map(s => <option key={s} value={s}>{RECONCILIATION_STATUS_META[s].label}</option>)}
+        </select>
+        <select value={kindFilter} onChange={e => setKindFilter(e.target.value as AccountingKind | '')} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
+          <option value="">Thu + Chi</option>
+          <option value="expense">Chi</option>
+          <option value="income">Thu</option>
+        </select>
+        <button onClick={() => { setStatusFilter(''); setKindFilter(''); }} className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50">Đặt lại</button>
+        <span className="ml-auto text-xs text-slate-400">{filteredRows.length} / {reconciliationRows.length} dòng</span>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="bg-slate-50 text-slate-500 uppercase text-[10px]">
+            <tr>
+              <th className="text-left px-3 py-2.5 font-bold">Trạng thái</th>
+              <th className="text-left px-3 py-2.5 font-bold">Loại</th>
+              <th className="text-left px-3 py-2.5 font-bold">Ngày KT/App</th>
+              <th className="text-right px-3 py-2.5 font-bold">Số tiền KT</th>
+              <th className="text-right px-3 py-2.5 font-bold">Số tiền app</th>
+              <th className="text-left px-3 py-2.5 font-bold">Nội dung</th>
+              <th className="text-left px-3 py-2.5 font-bold">Đối tượng</th>
+              <th className="text-left px-3 py-2.5 font-bold">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filteredRows.map(row => (
+              <tr key={row.id} className="hover:bg-slate-50">
+                <td className="px-3 py-2.5 whitespace-nowrap"><span className={`px-2 py-1 rounded-full text-[10px] font-bold ${RECONCILIATION_STATUS_META[row.status].bg} ${RECONCILIATION_STATUS_META[row.status].text}`}>{RECONCILIATION_STATUS_META[row.status].label}</span></td>
+                <td className={`px-3 py-2.5 font-bold ${row.kind === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{row.kind === 'income' ? 'Thu' : 'Chi'}</td>
+                <td className="px-3 py-2.5 whitespace-nowrap"><span>{row.date || '--'}</span><span className="text-slate-300 mx-1">/</span><span>{row.appDate || '--'}</span></td>
+                <td className="px-3 py-2.5 text-right font-bold">{row.amount ? fmt(row.amount) : '--'}</td>
+                <td className="px-3 py-2.5 text-right font-bold">{row.appAmount ? fmt(row.appAmount) : '--'}</td>
+                <td className="px-3 py-2.5 min-w-[260px]">
+                  <p className="font-medium text-slate-700">{row.description || row.appDescription || '--'}</p>
+                  {row.description && row.appDescription && row.description !== row.appDescription && <p className="text-[10px] text-slate-400 mt-0.5">App: {row.appDescription}</p>}
+                </td>
+                <td className="px-3 py-2.5 text-slate-500">{row.partyName || '--'}</td>
+                <td className="px-3 py-2.5 text-slate-500 min-w-[180px]">{row.note || row.accountingRef || '--'}</td>
+              </tr>
+            ))}
+            {filteredRows.length === 0 && <tr><td colSpan={8} className="text-center text-slate-400 py-8">Chưa có dữ liệu đối chứng.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 function CategoriesTab({ db }: { db: ReturnType<typeof useFinanceData> }) {
   return (
