@@ -62,6 +62,8 @@ function ConstructionGantt({
   projectEndDate,
   onUpdateProjectDates,
   categoryOrder,
+  justCreatedId,
+  onClearJustCreated,
 }: {
   tasks: CTask[];
   selectedId: string | null;
@@ -74,6 +76,10 @@ function ConstructionGantt({
   projectEndDate?: string;
   onUpdateProjectDates?: (start?: string, end?: string) => void;
   categoryOrder?: string[];
+  // Task vừa bấm "+ Thêm việc" tạo ra — chỉ dùng để autoFocus ô tên ngay dòng đó, KHÔNG mở
+  // popup checklist/tiến độ (selectedId/onSelect) như khi click chọn 1 task có sẵn.
+  justCreatedId?: string | null;
+  onClearJustCreated?: () => void;
 }) {
   const { min, max } = useMemo(() => getDateRange(tasks, projectStartDate, projectEndDate), [tasks, projectStartDate, projectEndDate]);
   const days = useMemo(() => getDaysBetween(min, max), [min.toISOString(), max.toISOString()]);
@@ -352,6 +358,7 @@ function ConstructionGantt({
                 const te = getTaskEnd(task);
                 const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
                 const sel = selectedId === task.id;
+                const justCreated = justCreatedId === task.id;
                 const isOverdue = task.status !== 'DONE' && te && startOfDay(te) < todayDate;
                 const barColor = isOverdue ? '#ef4444' : (STATUS_META[task.status]?.bar || '#94a3b8');
                 const cellBg = sel ? 'bg-indigo-50' : 'bg-white';
@@ -388,7 +395,7 @@ function ConstructionGantt({
                         {readOnly ? (
                           <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
                         ) : (
-                          <input type="text" autoFocus={sel} onFocus={e => e.target.select()} className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
+                          <input type="text" autoFocus={justCreated} onFocus={e => e.target.select()} onBlur={() => justCreated && onClearJustCreated?.()} className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
                         )}
                       </div>
                     </td>
@@ -731,6 +738,9 @@ export function ProjectManagementAIModule({
   const [displayTasks, setDisplayTasks] = useState<CTask[]>([]);
   const [hasUnsaved, setHasUnsaved] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Task vừa tạo qua "+ Thêm việc" — chỉ để autoFocus ô tên, KHÔNG mở popup chi tiết
+  // (selectedId) như khi người dùng chủ động click chọn 1 task có sẵn.
+  const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
@@ -981,7 +991,7 @@ export function ProjectManagementAIModule({
     tempTasksRef.current = [...tempTasksRef.current, newTask];
     setDisplayTasks(prev => [...prev, newTask]);
     setHasUnsaved(true);
-    setSelectedId(newId);
+    setJustCreatedId(newId);
   };
 
   const handleSaveDates = async () => {
@@ -1226,6 +1236,8 @@ export function ProjectManagementAIModule({
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}          onReorderTasks={reordered => setDisplayTasks(reordered)}
           readOnly={readOnly}
+          justCreatedId={justCreatedId}
+          onClearJustCreated={() => setJustCreatedId(null)}
           categoryOrder={categoryOrder}
           projectStartDate={project?.startDate}
           projectEndDate={project?.handoverDate}
