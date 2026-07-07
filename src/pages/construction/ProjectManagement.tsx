@@ -164,6 +164,9 @@ function ConstructionGantt({
   const todayDate = startOfDay(new Date());
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  // Chỉ cho phép kéo-thả khi nhấn giữ đúng icon 6 chấm ở đầu dòng — nếu không, cả dòng sẽ
+  // "draggable" và người dùng dễ vô tình kéo lệch thứ tự khi chỉ định bấm vào 1 ô để sửa.
+  const [dragHandleId, setDragHandleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!readOnly && !projectStartDate && orderedTasks.length > 0) {
@@ -356,12 +359,12 @@ function ConstructionGantt({
                 return (
                   <tr
                     key={task.id}
-                    draggable={!readOnly}
+                    draggable={!readOnly && dragHandleId === task.id}
                     onDragStart={() => setDragId(task.id)}
                     onDragOver={e => { e.preventDefault(); setDragOverId(task.id); }}
                     onDragLeave={() => setDragOverId(null)}
                     onDrop={() => handleDrop(task.id)}
-                    onDragEnd={() => { setDragId(null); setDragOverId(null); }}
+                    onDragEnd={() => { setDragId(null); setDragOverId(null); setDragHandleId(null); }}
                     className={`group h-9 border-b border-slate-100 transition-colors
                       ${dragOverId === task.id ? 'border-t-2 border-t-indigo-400 bg-indigo-50/60' : ''}
                       ${dragId === task.id ? 'opacity-40' : ''}
@@ -372,12 +375,20 @@ function ConstructionGantt({
                     {/* Name — only this column opens the checklist/progress popup */}
                     <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden cursor-pointer`} style={{ left: CL.name, width: CW.name, minWidth: CW.name }} onClick={() => onSelect(task.id)}>
                       <div className="flex items-center gap-1.5 min-w-0">
-                        {!readOnly && <GripVertical size={12} className="text-slate-300 flex-none cursor-grab active:cursor-grabbing" />}
+                        {!readOnly && (
+                          <GripVertical
+                            size={12}
+                            className="text-slate-300 flex-none cursor-grab active:cursor-grabbing"
+                            onMouseDown={() => setDragHandleId(task.id)}
+                            onMouseUp={() => setDragHandleId(null)}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        )}
                         <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
                         {readOnly ? (
                           <span className="truncate text-slate-800" title={task.name}>{task.name}</span>
                         ) : (
-                          <input type="text" className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
+                          <input type="text" autoFocus={sel} onFocus={e => e.target.select()} className="w-full h-8 text-slate-800 bg-transparent outline-none hover:bg-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-300 rounded px-1 -ml-1" value={task.name} onChange={e => { e.stopPropagation(); onUpdateTask(task.id, { name: e.target.value }); }} onClick={e => e.stopPropagation()} />
                         )}
                       </div>
                     </td>
@@ -951,6 +962,10 @@ export function ProjectManagementAIModule({
   const handleCreateTask = (category: string) => {
     if (readOnly || !projectId) return;
     const newId = `temp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+    // Ngày bắt đầu mặc định lấy theo ngày bắt đầu của DỰ ÁN (không phải ngày hôm nay ngoài đời)
+    // — tránh việc thêm việc luôn rơi ra ngoài khoảng thời gian dự án khi tạo tiến độ thủ công
+    // cho 1 dự án có ngày bắt đầu ở quá khứ/tương lai xa. Vẫn chỉnh sửa được ngay sau đó.
+    const defaultStart = project?.startDate || format(new Date(), 'yyyy-MM-dd');
     const newTask: CTask = {
       id: newId,
       name: 'Công việc mới...',
@@ -960,8 +975,8 @@ export function ProjectManagementAIModule({
       days: 1, duration: 1,
       budget: 0, spent: 0,
       approved: false, dependencies: [], tags: [], issues: [], checklist: [], progress: 0,
-      startDate: format(new Date(), 'yyyy-MM-dd'),
-      plannedStart: format(new Date(), 'yyyy-MM-dd'),
+      startDate: defaultStart,
+      plannedStart: defaultStart,
     };
     tempTasksRef.current = [...tempTasksRef.current, newTask];
     setDisplayTasks(prev => [...prev, newTask]);
