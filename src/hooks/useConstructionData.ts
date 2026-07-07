@@ -14,6 +14,25 @@ export interface SupabaseProject {
   unexpected_costs: number; total_documents: number; days_off: number;
   total_diary_entries: number; created_at: string;
   client_password?: string | null;
+  customer_id?: string | null;
+  project_type?: string | null;
+}
+
+export interface SupabaseItem {
+  id: string; project_id: string; name: string;
+  start_date: string | null; end_date: string | null;
+  progress: number; budget: number; actual_cost: number;
+  assignee: string; status: string; note: string; created_at: string;
+}
+
+export interface NewItemTask {
+  name: string; startDate?: string; days?: number; status?: string; progress?: number; note?: string;
+}
+
+export interface NewProjectItem {
+  name: string; startDate?: string; endDate?: string; progress?: number;
+  budget?: number; actualCost?: number; assignee?: string; status?: string; note?: string;
+  tasks: NewItemTask[];
 }
 
 export interface SupabaseTask {
@@ -141,6 +160,50 @@ export const useConstructionData = () => {
       setProjects(prev => prev.map(p => p.id === projectId ? { ...p, ...updates } : p));
     }
     return !error;
+  };
+
+  // ── CREATE FULL PROJECT (wizard: Công trình → Hạng mục → Công việc, lưu tuần tự 1 lần ở bước cuối) ──
+  const createProjectStructure = async (
+    project: Partial<SupabaseProject>,
+    items: NewProjectItem[]
+  ): Promise<{ success: boolean; projectId?: string; error?: string }> => {
+    const { data: proj, error: pErr } = await supabase
+      .from('construction_projects')
+      .insert([project])
+      .select('id')
+      .single();
+    if (pErr || !proj) return { success: false, error: pErr?.message };
+
+    for (const item of items) {
+      const { data: itemRow, error: iErr } = await supabase
+        .from('construction_items')
+        .insert([{
+          project_id: proj.id, name: item.name,
+          start_date: item.startDate || null, end_date: item.endDate || null,
+          progress: item.progress || 0, budget: item.budget || 0, actual_cost: item.actualCost || 0,
+          assignee: item.assignee || '', status: item.status || 'Đang làm', note: item.note || '',
+        }])
+        .select('id')
+        .single();
+      if (iErr || !itemRow) {
+        console.error('[createProjectStructure] Create item error:', iErr);
+        continue;
+      }
+      if (item.tasks.length) {
+        const { error: tErr } = await supabase.from('construction_tasks').insert(
+          item.tasks.map(t => ({
+            project_id: proj.id, item_id: itemRow.id, category: item.name,
+            name: t.name, start_date: t.startDate || null, end_date: t.startDate || null,
+            days: t.days || 1, status: t.status || 'TODO', progress: t.progress || 0,
+            note: t.note || '', budget: 0, spent: 0, checklist: [], issues: [], tags: [],
+            dependencies: [], approved: false, subcontractor: '',
+          }))
+        );
+        if (tErr) console.error('[createProjectStructure] Create tasks error:', tErr);
+      }
+    }
+    await loadProjects();
+    return { success: true, projectId: proj.id };
   };
 
   // ── PROJECT DETAILS (tasks, logs, approvals, milestones, attendance, payments, phases) ──
@@ -638,7 +701,7 @@ export const useConstructionData = () => {
     projects, tasks, logs, approvals, milestones, subcontractors,
     attendance, notifications, paymentRecords, phases, loading,
     // Projects
-    loadProjects, createProject, updateProject,
+    loadProjects, createProject, updateProject, createProjectStructure,
     // Tasks
     loadProjectDetails, createTimelineTasks, replaceTimelineTasks, updateTaskStatusChecklist,
     updateTaskProgress, updateTaskDates, updateTaskCategory, deleteTask,

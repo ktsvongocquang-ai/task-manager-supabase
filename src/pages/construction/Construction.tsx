@@ -17,6 +17,7 @@ import { EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView
 import { ManagerDashboard } from './ManagerDashboard';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { ProjectAccountingSync } from './ProjectAccountingSync';
+import { CreateProjectWizard } from './CreateProjectWizard';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -1177,7 +1178,8 @@ export const Construction = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
   const [isShareQROpen, setIsShareQROpen] = useState(false);
-  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [isCreateModeOpen, setIsCreateModeOpen] = useState(false);
+  const [isCreateWizardOpen, setIsCreateWizardOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
@@ -1443,7 +1445,7 @@ export const Construction = () => {
                   <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm">
                     {userRole === 'MANAGER' && (
                       <>
-                        <button onClick={() => { setIsQuotationModalOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Plus className="w-4 h-4 text-emerald-500" /> Tạo Dự Án Mới</button>
+                        <button onClick={() => { setIsCreateModeOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Plus className="w-4 h-4 text-emerald-500" /> Tạo Dự Án Mới</button>
                         <button onClick={() => { setIsEditProjectOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><FileText className="w-4 h-4 text-indigo-500" /> Sửa Dự Án</button>
                     <button onClick={() => {
                       const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
@@ -1649,7 +1651,61 @@ export const Construction = () => {
 
       <ShareQRModal isOpen={isShareQROpen} onClose={() => setIsShareQROpen(false)} project={selectedProject} />
 
-      {/* CreateProjectModal removed — use ImportQuotationModal's create mode instead */}
+      {/* Mode-select modal: chọn AI hay tạo thủ công từng bước */}
+      <AnimatePresence>
+        {isCreateModeOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm flex items-center justify-center p-3">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <p className="text-sm font-bold text-slate-800">Tạo Dự Án Mới</p>
+                <button onClick={() => setIsCreateModeOpen(false)} className="p-1.5 hover:bg-slate-100 rounded-lg"><X className="w-4 h-4 text-slate-400" /></button>
+              </div>
+              <div className="p-4 space-y-2.5">
+                <button onClick={() => { setIsCreateModeOpen(false); setIsQuotationModalOpen(true); }}
+                  className="w-full text-left p-3.5 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 rounded-xl flex items-center gap-3 transition-colors">
+                  <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0"><Bot className="w-4 h-4 text-indigo-600" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Dùng AI đọc file / paste nội dung</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Tải báo giá PDF/Excel hoặc paste text, AI tự trích xuất hạng mục</p>
+                  </div>
+                </button>
+                <button onClick={() => { setIsCreateModeOpen(false); setIsCreateWizardOpen(true); }}
+                  className="w-full text-left p-3.5 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 rounded-xl flex items-center gap-3 transition-colors">
+                  <div className="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0"><Building2 className="w-4 h-4 text-emerald-600" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Tạo thủ công từng bước</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Nhập công trình → Hạng mục → Công việc → Kiểm tra</p>
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <CreateProjectWizard
+        isOpen={isCreateWizardOpen}
+        onClose={() => setIsCreateWizardOpen(false)}
+        onCreate={async (info, items) => {
+          const result = await db.createProjectStructure({
+            project_code: info.projectCode || '', name: info.name, address: info.address,
+            owner_name: info.customerName || '', engineer_name: '',
+            customer_id: info.customerId || null, project_type: info.projectType || null,
+            start_date: info.startDate || null, handover_date: info.handoverDate || null,
+            contract_value: info.contractValue || 0, budget: info.budget || 0,
+            status: info.status || 'preparing', progress: info.progress || 0,
+            spent: 0, note: info.note || '',
+          } as any, items);
+          if (result.success) {
+            showToast(`Đã tạo dự án "${info.name}" với ${items.length} hạng mục`, 'success');
+            setActiveTab('AI_GANTT');
+          } else {
+            showToast(result.error || 'Lỗi khi tạo dự án', 'error');
+          }
+        }}
+      />
 
       <ImportQuotationModal
         isOpen={isQuotationModalOpen}
