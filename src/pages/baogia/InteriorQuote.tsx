@@ -284,7 +284,7 @@ export default function InteriorQuote() {
     };
     persist([project, ...projects]);
     setActiveProjectId(project.id);
-    setTab('BOQ');
+    setTab('PROJECTS');
   };
 
   const cloneVersion = () => {
