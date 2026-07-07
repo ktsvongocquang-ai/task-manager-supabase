@@ -1163,7 +1163,7 @@ export function ProjectManagementAIModule({
                         <FileSpreadsheet className="w-4 h-4 text-indigo-500" /> Import AI (Excel / PDF)
                       </button>
                     )}
-                    <button onClick={() => { setShowCreateMenu(false); setLocalWorkflowOpen(true); }}
+                    <button onClick={handleStartFreshWorkflow}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
                       🔄 Tạo thủ công theo Flow đề xuất
                     </button>
