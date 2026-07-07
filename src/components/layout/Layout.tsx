@@ -61,7 +61,6 @@ const viewTitles: Record<string, string> = {
     '/customers': 'CRM',
     '/marketing': 'Marketing',
     '/bao-gia': 'Báo giá Nội thất',
-    '/price-book': 'Kho giá NCC',
     '/training': 'Đào tạo & Thư viện',
     '/portfolio': 'Portfolio',
 }
@@ -360,10 +359,9 @@ export const Layout = () => {
             items.push({ name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] });
         }
 
-        // Tab Báo giá Nội thất
+        // Tab Báo giá Nội thất (gộp chung Kho giá NCC làm 1 tab con trong trang)
         if (isAdminRole(role)) {
             items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
-            items.push({ name: 'Kho giá', path: '/price-book', icon: Database, matchPrefix: ['/price-book'] });
         }
 
         // Đào tạo & Thư viện

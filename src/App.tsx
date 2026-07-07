@@ -35,7 +35,6 @@ const QuoteGenerator = lazy(() => import('./pages/customers/QuoteGenerator'))
 const MyTasks = lazy(() => import('./pages/mytasks/MyTasks'))
 const MarketingApp = lazy(() => import('./pages/marketing/MarketingApp'))
 const InteriorQuote = lazy(() => import('./pages/baogia/InteriorQuote'))
-const PriceBook = lazy(() => import('./pages/pricebook/PriceBook'))
 const TrainingHub = lazy(() => import('./pages/training/TrainingHub'))
 
 function App() {
@@ -80,7 +79,6 @@ function App() {
             <Route path="marketing" element={<MarketingApp />} />
             <Route path="mytasks" element={<MyTasks />} />
             <Route path="bao-gia" element={<InteriorQuote />} />
-            <Route path="price-book" element={<PriceBook />} />
             <Route path="training" element={<TrainingHub />} />
             <Route path="portfolio" element={<PortfolioLanding isPreview={true} />} />
           </Route>
