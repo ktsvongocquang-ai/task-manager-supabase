@@ -1003,34 +1003,37 @@ export function ProjectManagementAIModule({
 
     let saveError: string | null = null;
 
-    // Upsert existing tasks
+    // Upsert existing tasks — CHỈ dùng cột thật sự tồn tại trong construction_tasks.
+    // "duration"/"planned_start"/"planned_end" KHÔNG phải cột thật (chỉ là field UI nội bộ,
+    // luôn được suy từ start_date/end_date/days khi tải lại) — gửi lên sẽ bị PostgREST từ
+    // chối cả request (400 "Could not find the 'duration' column..."), khiến MỌI lần lưu đều
+    // lỗi âm thầm và tasks mới không bao giờ thực sự được ghi xuống Supabase.
     if (existingTasks.length > 0) {
       const upserts = existingTasks.map(t => ({
         id: t.id, project_id: projectId,
-        planned_start: t.plannedStart || t.startDate,
-        planned_end: t.plannedEnd || t.endDate,
+        name: t.name,
         start_date: t.startDate || t.plannedStart,
         end_date: t.endDate || t.plannedEnd,
-        duration: t.duration || t.days,
-        days: t.days || t.duration,
-        name: t.name,
+        days: t.days || t.duration || 1,
       }));
       const { error } = await supabase.from('construction_tasks').upsert(upserts, { onConflict: 'id' });
       if (error) saveError = error.message;
     }
 
-    // Insert new temp tasks
+    // Insert new temp tasks — điền đủ các cột NOT NULL (dependencies/tags/issues/approved/
+    // subcontractor/spent) giống hệt createTimelineTasks/createProjectStructure đang dùng,
+    // tránh lỗi NOT NULL constraint khi thiếu cột.
     for (const t of newTasks) {
       const { data, error } = await supabase.from('construction_tasks').insert({
         project_id: projectId,
         name: t.name, category: t.category, status: t.status,
-        planned_start: t.plannedStart || t.startDate,
-        planned_end: t.plannedEnd || t.endDate,
         start_date: t.startDate || t.plannedStart,
         end_date: t.endDate || t.plannedEnd,
-        duration: t.duration || t.days,
-        days: t.days || t.duration,
-        budget: t.budget, checklist: t.checklist, progress: t.progress,
+        days: t.days || t.duration || 1,
+        budget: t.budget || 0, spent: t.spent || 0, progress: t.progress || 0,
+        checklist: t.checklist || [], dependencies: t.dependencies || [],
+        tags: t.tags || [], issues: t.issues || [], approved: t.approved || false,
+        subcontractor: t.subcontractor || '',
       }).select().single();
       if (error) { saveError = error.message; continue; }
       // Replace temp ID with real DB ID
@@ -1057,6 +1060,15 @@ export function ProjectManagementAIModule({
       setTimeout(() => setSaveMsg(''), 4000);
     }
   };
+
+  // Tự động lưu sau khi ngừng sửa ~1.2s — người dùng không còn phải nhớ bấm "Lưu Lịch Hình"
+  // mỗi lần thêm/sửa; nút Lưu vẫn còn để ép lưu ngay nếu muốn (tự ẩn khi không còn gì chờ lưu).
+  useEffect(() => {
+    if (!hasUnsaved || readOnly || saving) return;
+    const timer = setTimeout(() => { handleSaveDates(); }, 1200);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasUnsaved, tasks, readOnly, saving]);
 
   const handleExportPDF = async () => {
     setExporting(true);
