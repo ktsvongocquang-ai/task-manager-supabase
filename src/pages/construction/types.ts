@@ -4,7 +4,7 @@
 
 export type UserRole = 'HOMEOWNER' | 'ENGINEER' | 'MANAGER';
 export type TaskStatus = 'TODO' | 'DOING' | 'REVIEW' | 'DONE';
-export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS' | 'AI_GANTT';
+export type ViewTab = 'DASHBOARD' | 'KANBAN' | 'COST' | 'PROGRESS' | 'LOGS' | 'SUBS' | 'ATTENDANCE' | 'REPORTS' | 'DIARY' | 'PAYMENTS' | 'AI_GANTT' | 'PROJECTS_LIST';
 
 export interface Project {
   id: string; projectCode?: string; name: string; startDate: string; handoverDate: string; status: string;
@@ -16,6 +16,8 @@ export interface Project {
   client_token?: string | null;
   accountingSheetUrl?: string | null;
   accountingSheetId?: string | null;
+  customerId?: string | null;
+  projectType?: string | null;
 }
 
 export interface CTask {

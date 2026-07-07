@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,6 +18,7 @@ import { ManagerDashboard } from './ManagerDashboard';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { ProjectAccountingSync } from './ProjectAccountingSync';
 import { CreateProjectWizard } from './CreateProjectWizard';
+import { ProjectsListView } from './ProjectsListView';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -36,6 +37,8 @@ const mapProject = (p: SupabaseProject): Project => ({
   client_password: p.client_password || null,
   client_token: (p as any).client_token || null,
   accountingSheetUrl: (p as any).accounting_sheet_url || null,
+  customerId: p.customer_id || null,
+  projectType: p.project_type || null,
 });
 
 const mapMilestone = (m: SupabaseMilestone): Milestone => ({
@@ -1361,6 +1364,7 @@ export const Construction = () => {
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'PROJECTS_LIST', label: 'Công trình', icon: <List className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
@@ -1540,6 +1544,29 @@ export const Construction = () => {
                   <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
                 </div>
               </div>
+            )}
+
+            {activeTab === 'PROJECTS_LIST' && userRole === 'MANAGER' && (
+              <ProjectsListView
+                projects={dbProjects}
+                onOpenProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }}
+                onEditProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setIsEditProjectOpen(true); }}
+                onDeleteProject={p => {
+                  setConfirmDialog({
+                    title: 'Xóa dự án?',
+                    message: `Bạn có chắc muốn xóa dự án "${p.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
+                    confirmLabel: 'Xóa vĩnh viễn',
+                    confirmColor: 'bg-rose-600 hover:bg-rose-700',
+                    onConfirm: async () => {
+                      const ok = await db.deleteProject(p.id);
+                      if (ok) showToast('Đã xóa dự án', 'success');
+                      else showToast('Lỗi khi xóa dự án', 'error');
+                    },
+                  });
+                }}
+                onCreateNew={() => setIsCreateModeOpen(true)}
+                bulkCreateProjects={db.bulkCreateProjects}
+              />
             )}
             {/* Project Overview */}
             {activeTab === 'PROJECT' && (

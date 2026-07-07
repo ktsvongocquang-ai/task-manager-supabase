@@ -281,6 +281,7 @@ function CustomersTab({ db }: { db: ReturnType<typeof useFinanceData> }) {
 function CustomerModal({ customer, db, onClose, onSave }: { customer: Customer | null; db: ReturnType<typeof useFinanceData>; onClose: () => void; onSave: (data: Partial<Customer>) => Promise<void> }) {
   const [form, setForm] = useState({
     name: customer?.name || '', phone: customer?.phone || '', address: customer?.address || '',
+    email: customer?.email || '', contact_person: customer?.contact_person || '',
     customer_type: customer?.customer_type || '', status: customer?.status || '', note: customer?.note || '',
   });
   const [saving, setSaving] = useState(false);
@@ -290,6 +291,8 @@ function CustomerModal({ customer, db, onClose, onSave }: { customer: Customer |
       <div className="p-5 space-y-3">
         <Field label="Tên khách hàng *"><input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <Field label="Số điện thoại"><input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+        <Field label="Email"><input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+        <Field label="Người liên hệ"><input value={form.contact_person} onChange={e => setForm(f => ({ ...f, contact_person: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <Field label="Địa chỉ"><input value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Loại khách hàng">

@@ -27,6 +27,7 @@ export interface SupabaseItem {
 
 export interface NewItemTask {
   name: string; startDate?: string; days?: number; status?: string; progress?: number; note?: string;
+  assignee?: string; priority?: string;
 }
 
 export interface NewProjectItem {
@@ -195,7 +196,8 @@ export const useConstructionData = () => {
             project_id: proj.id, item_id: itemRow.id, category: item.name,
             name: t.name, start_date: t.startDate || null, end_date: t.startDate || null,
             days: t.days || 1, status: t.status || 'TODO', progress: t.progress || 0,
-            note: t.note || '', budget: 0, spent: 0, checklist: [], issues: [], tags: [],
+            note: t.note || '', assignee: t.assignee || '', priority: t.priority || 'Trung bình',
+            budget: 0, spent: 0, checklist: [], issues: [], tags: [],
             dependencies: [], approved: false, subcontractor: '',
           }))
         );
@@ -204,6 +206,14 @@ export const useConstructionData = () => {
     }
     await loadProjects();
     return { success: true, projectId: proj.id };
+  };
+
+  // ── BULK CREATE PROJECTS (Excel import ở trang danh sách Công trình) ──
+  const bulkCreateProjects = async (rows: Partial<SupabaseProject>[]): Promise<number> => {
+    const { data, error } = await supabase.from('construction_projects').insert(rows).select('id');
+    if (error) { console.error('[bulkCreateProjects] error:', error); return 0; }
+    await loadProjects();
+    return data?.length || 0;
   };
 
   // ── PROJECT DETAILS (tasks, logs, approvals, milestones, attendance, payments, phases) ──
@@ -701,7 +711,7 @@ export const useConstructionData = () => {
     projects, tasks, logs, approvals, milestones, subcontractors,
     attendance, notifications, paymentRecords, phases, loading,
     // Projects
-    loadProjects, createProject, updateProject, createProjectStructure,
+    loadProjects, createProject, updateProject, createProjectStructure, bulkCreateProjects,
     // Tasks
     loadProjectDetails, createTimelineTasks, replaceTimelineTasks, updateTaskStatusChecklist,
     updateTaskProgress, updateTaskDates, updateTaskCategory, deleteTask,

@@ -14,6 +14,7 @@ export interface FinanceProject {
 export interface Customer {
   id: string; name: string; phone: string | null; address: string | null;
   customer_type: string | null; status: string | null;
+  email: string | null; contact_person: string | null;
   note: string | null; created_at: string;
 }
 
