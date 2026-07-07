@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List, Layers
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,6 +19,7 @@ import { ProjectManagementAIModule } from './ProjectManagement';
 import { ProjectAccountingSync } from './ProjectAccountingSync';
 import { CreateProjectWizard } from './CreateProjectWizard';
 import { ProjectsListView } from './ProjectsListView';
+import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModal';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -1183,6 +1184,7 @@ export const Construction = () => {
   const [isShareQROpen, setIsShareQROpen] = useState(false);
   const [isCreateModeOpen, setIsCreateModeOpen] = useState(false);
   const [isCreateWizardOpen, setIsCreateWizardOpen] = useState(false);
+  const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; confirmLabel: string; confirmColor: string; onConfirm: () => void } | null>(null);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(DAILY_LOGS);
@@ -1706,6 +1708,14 @@ export const Construction = () => {
                     <p className="text-[11px] text-slate-400 mt-0.5">Nhập công trình → Hạng mục → Công việc → Kiểm tra</p>
                   </div>
                 </button>
+                <button onClick={() => { setIsCreateModeOpen(false); setIsBulkAddOpen(true); }}
+                  className="w-full text-left p-3.5 border border-slate-200 hover:border-amber-300 hover:bg-amber-50/50 rounded-xl flex items-center gap-3 transition-colors">
+                  <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center shrink-0"><Layers className="w-4 h-4 text-amber-600" /></div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Thêm nhiều công trình nhanh</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Tạo hàng loạt, kèm ảnh công trình + hồ sơ hợp đồng</p>
+                  </div>
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -1731,6 +1741,31 @@ export const Construction = () => {
           } else {
             showToast(result.error || 'Lỗi khi tạo dự án', 'error');
           }
+        }}
+      />
+
+      <BulkAddProjectsModal
+        isOpen={isBulkAddOpen}
+        onClose={() => setIsBulkAddOpen(false)}
+        onCreate={async (rows: BulkProjectRow[]) => {
+          const payload = rows.map(r => ({
+            project: {
+              name: r.name, address: r.address, owner_name: r.customerName, engineer_name: '',
+              customer_id: r.customerId || null, project_type: r.projectType || null,
+              start_date: r.startDate || null, handover_date: r.handoverDate || null,
+              contract_value: r.contractValue || 0, budget: r.budget || 0,
+              manager_name: r.managerName || '', status: r.status || 'preparing',
+              progress: r.progress || 0, spent: 0, note: r.note || '',
+            } as any,
+            photoFile: r.photoFile, contractFile: r.contractFile,
+          }));
+          const res = await db.createProjectsWithFiles(payload);
+          if (res.created > 0) {
+            showToast(`Đã tạo ${res.created} công trình${res.uploadErrors > 0 ? `, ${res.uploadErrors} file lỗi cần kiểm tra` : ''}`, 'success');
+          } else {
+            showToast('Không tạo được công trình nào', 'error');
+          }
+          return res;
         }}
       />
 

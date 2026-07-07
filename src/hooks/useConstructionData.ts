@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import { useAuthStore } from '../store/authStore';
+import { uploadFile } from '../utils/uploadUtils';
 
 // ═══════════════════════════════════════════════════════════
 // TYPES
@@ -16,6 +17,8 @@ export interface SupabaseProject {
   client_password?: string | null;
   customer_id?: string | null;
   project_type?: string | null;
+  photo_url?: string | null;
+  contract_doc_url?: string | null;
 }
 
 export interface SupabaseItem {
@@ -214,6 +217,31 @@ export const useConstructionData = () => {
     if (error) { console.error('[bulkCreateProjects] error:', error); return 0; }
     await loadProjects();
     return data?.length || 0;
+  };
+
+  // ── BULK CREATE PROJECTS WITH FILES ("Thêm nhiều công trình nhanh") ──
+  // Lưu tuần tự từng dòng (không phải 1 lần insert nhiều) để lấy id thật gắn đúng file cho từng công trình.
+  const createProjectsWithFiles = async (
+    rows: { project: Partial<SupabaseProject>; photoFile?: File; contractFile?: File }[]
+  ): Promise<{ created: number; uploadErrors: number }> => {
+    let created = 0, uploadErrors = 0;
+    for (const row of rows) {
+      const { data: proj, error } = await supabase.from('construction_projects').insert([row.project]).select('id').single();
+      if (error || !proj) { console.error('[createProjectsWithFiles] project error:', error); continue; }
+      created++;
+      const updates: Partial<SupabaseProject> = {};
+      if (row.photoFile) {
+        const url = await uploadFile(row.photoFile, 'project-media', `construction/${proj.id}/photo-${Date.now()}-${row.photoFile.name}`);
+        if (url) updates.photo_url = url; else uploadErrors++;
+      }
+      if (row.contractFile) {
+        const url = await uploadFile(row.contractFile, 'project-media', `construction/${proj.id}/contract-${Date.now()}-${row.contractFile.name}`);
+        if (url) updates.contract_doc_url = url; else uploadErrors++;
+      }
+      if (Object.keys(updates).length) await supabase.from('construction_projects').update(updates).eq('id', proj.id);
+    }
+    await loadProjects();
+    return { created, uploadErrors };
   };
 
   // ── PROJECT DETAILS (tasks, logs, approvals, milestones, attendance, payments, phases) ──
@@ -711,7 +739,7 @@ export const useConstructionData = () => {
     projects, tasks, logs, approvals, milestones, subcontractors,
     attendance, notifications, paymentRecords, phases, loading,
     // Projects
-    loadProjects, createProject, updateProject, createProjectStructure, bulkCreateProjects,
+    loadProjects, createProject, updateProject, createProjectStructure, bulkCreateProjects, createProjectsWithFiles,
     // Tasks
     loadProjectDetails, createTimelineTasks, replaceTimelineTasks, updateTaskStatusChecklist,
     updateTaskProgress, updateTaskDates, updateTaskCategory, deleteTask,
