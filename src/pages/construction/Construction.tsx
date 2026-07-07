@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, Folder
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -17,7 +17,6 @@ import { EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView
 import { ManagerDashboard } from './ManagerDashboard';
 import { ProjectManagementAIModule } from './ProjectManagement';
 import { ProjectAccountingSync } from './ProjectAccountingSync';
-import { GlobalProjectsOverview } from './GlobalProjectsOverview';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -1360,7 +1359,6 @@ export const Construction = () => {
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'PROJECTS_OVERVIEW', label: 'Tổng hợp CT', icon: <Folder className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
@@ -1539,12 +1537,6 @@ export const Construction = () => {
                 <div>
                   <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
                 </div>
-              </div>
-            )}
-            {/* Projects Overview */}
-            {activeTab === 'PROJECTS_OVERVIEW' && userRole === 'MANAGER' && (
-              <div className="space-y-8">
-                <GlobalProjectsOverview projects={dbProjects} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
               </div>
             )}
             {/* Project Overview */}
