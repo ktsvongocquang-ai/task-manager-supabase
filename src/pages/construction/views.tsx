@@ -1676,7 +1676,7 @@ export function NotificationSettings({ isOpen, onClose }: { isOpen: boolean; onC
 
 export function WorkflowManager({ isOpen, onClose, onSave, initialStages, storageKey = 'dqh_workflow_stages' }: {
   isOpen: boolean; onClose: () => void;
-  onSave?: (stages: WorkflowStage[], renames: {old: string, new: string}[]) => void;
+  onSave?: (stages: WorkflowStage[], renames: {old: string, new: string}[], removed?: string[]) => void;
   initialStages?: WorkflowStage[];
   storageKey?: string;
 }) {
@@ -1693,8 +1693,13 @@ export function WorkflowManager({ isOpen, onClose, onSave, initialStages, storag
   const [newStageName, setNewStageName] = React.useState('');
   const [newStageColor, setNewStageColor] = React.useState('#6366f1');
   const [dragIndex, setDragIndex] = React.useState<number | null>(null);
+  // Tên các giai đoạn GỐC đã bị xóa hẳn (không phải đổi tên) trong phiên sửa này — cần báo
+  // lại cho onSave để cha hỏi chuyển việc thuộc giai đoạn đó sang đâu, tránh rơi âm thầm
+  // vào nhóm "KHÁC".
+  const [removedNames, setRemovedNames] = React.useState<string[]>([]);
 
   React.useEffect(() => {
+    setRemovedNames([]);
     if (initialStages && initialStages.length > 0) {
       setStages(initialStages.map(s => ({ ...s, originalName: s.name })));
     } else {
@@ -1719,7 +1724,11 @@ export function WorkflowManager({ isOpen, onClose, onSave, initialStages, storag
   };
 
   const removeStage = (id: string) => {
-    setStages(prev => prev.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i + 1 })));
+    setStages(prev => {
+      const target = prev.find(s => s.id === id);
+      if (target?.originalName) setRemovedNames(names => [...names, target.originalName!]);
+      return prev.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i + 1 }));
+    });
   };
 
   const moveStage = (from: number, to: number) => {
@@ -1733,10 +1742,10 @@ export function WorkflowManager({ isOpen, onClose, onSave, initialStages, storag
     const renames = stages
       .filter(s => s.originalName && s.originalName !== s.name)
       .map(s => ({ old: s.originalName!, new: s.name }));
-      
+
     const toSave = stages.map(({ originalName, ...rest }) => rest);
     localStorage.setItem(storageKey, JSON.stringify(toSave));
-    onSave?.(toSave, renames);
+    onSave?.(toSave, renames, removedNames);
     onClose();
   };
 

@@ -730,6 +730,11 @@ export function ProjectManagementAIModule({
   // is unreachable before any task exists.
   const [localWorkflowOpen, setLocalWorkflowOpen] = useState(false);
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  // Giai đoạn (category) bị xóa hẳn khỏi Workflow (không phải đổi tên) mà vẫn còn việc bên
+  // trong — chờ user chọn giai đoạn mới cho từng nhóm trước khi áp dụng, tránh việc rơi
+  // âm thầm vào nhóm "KHÁC".
+  const [pendingReassign, setPendingReassign] = useState<{ from: string; count: number }[] | null>(null);
+  const [reassignTargets, setReassignTargets] = useState<Record<string, string>>({});
   const ganttRef = useRef<HTMLDivElement>(null);
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
@@ -829,7 +834,7 @@ export function ProjectManagementAIModule({
     return categoryOrder.map((name, i) => ({ id: `cat_${i}`, name, color: palette[i % palette.length], order: i + 1 }));
   }, [categoryOrder, workflowStorageKey]);
 
-  const handleWorkflowSave = (stages: WorkflowStage[], renames: { old: string; new: string }[]) => {
+  const handleWorkflowSave = (stages: WorkflowStage[], renames: { old: string; new: string }[], removed: string[] = []) => {
     if (!readOnly) {
       renames.forEach(({ old, new: next }) => {
         if (!next || old === next) return;
@@ -837,6 +842,52 @@ export function ProjectManagementAIModule({
       });
     }
     setCategoryOrder(stages.map(s => s.name));
+    if (!readOnly) {
+      // Giai đoạn nào bị xóa hẳn (không phải đổi tên) mà vẫn còn việc — hỏi chuyển đi đâu
+      // thay vì để rơi âm thầm vào nhóm "KHÁC" ở cuối bảng.
+      const renamedFrom = new Set(renames.map(r => r.old));
+      const affected = removed
+        .filter(name => !renamedFrom.has(name))
+        .map(from => ({ from, count: tasks.filter(t => (t.category || 'KHÁC') === from).length }))
+        .filter(o => o.count > 0);
+      if (affected.length > 0) {
+        setReassignTargets(Object.fromEntries(affected.map(a => [a.from, stages[0]?.name || 'KHÁC'])));
+        setPendingReassign(affected);
+      }
+    }
+  };
+
+  const confirmReassign = () => {
+    if (!pendingReassign) return;
+    pendingReassign.forEach(({ from }) => {
+      const target = reassignTargets[from];
+      if (!target) return;
+      tasks.filter(t => (t.category || 'KHÁC') === from).forEach(t => handleUpdateTask(t.id, { category: target }));
+    });
+    setPendingReassign(null);
+  };
+
+  // "Tạo thủ công theo Flow đề xuất": nếu tiến độ đang trống thì mở Workflow luôn; nếu đã có
+  // việc, đây là hành động TẠO MỚI TỪ ĐẦU nên phải xóa sạch việc cũ trước (xác nhận rõ ràng,
+  // không hoàn tác được) rồi mới mở Workflow với flow đề xuất mặc định.
+  const handleStartFreshWorkflow = async () => {
+    setShowCreateMenu(false);
+    if (tasks.length === 0) { setLocalWorkflowOpen(true); return; }
+    const ok = window.confirm(
+      `Thao tác này sẽ XÓA TOÀN BỘ ${tasks.length} công việc hiện tại của tiến độ này và tạo lại từ đầu theo flow mới. Không thể hoàn tác. Bạn có chắc chắn muốn tiếp tục?`
+    );
+    if (!ok) return;
+    const idsToDelete = tasks.filter(t => !t.id.startsWith('temp-')).map(t => t.id);
+    tempTasksRef.current = [];
+    pendingEditsRef.current = {};
+    setDisplayTasks([]);
+    setHasUnsaved(false);
+    if (idsToDelete.length > 0) {
+      await supabase.from('construction_tasks').delete().in('id', idsToDelete);
+    }
+    localStorage.removeItem(workflowStorageKey);
+    setCategoryOrder([]);
+    setLocalWorkflowOpen(true);
   };
 
   // Defined once so it can render from the loading/empty early-returns below too
@@ -1020,7 +1071,7 @@ export function ProjectManagementAIModule({
                     <FileSpreadsheet className="w-4 h-4 text-indigo-500" /> Import AI (Excel / PDF)
                   </button>
                 )}
-                <button onClick={() => { setShowCreateMenu(false); setLocalWorkflowOpen(true); }}
+                <button onClick={handleStartFreshWorkflow}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700">
                   🔄 Tạo thủ công theo Flow đề xuất
                 </button>
@@ -1185,6 +1236,35 @@ export function ProjectManagementAIModule({
 
       {/* Workflow (flow of hạng mục lớn — A, B, C ...) editor */}
       {workflowModal}
+
+      {/* Chuyển việc của giai đoạn vừa bị xóa khỏi Workflow sang giai đoạn khác */}
+      {pendingReassign && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" onClick={() => setPendingReassign(null)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-slate-800 mb-1">Chuyển công việc sang giai đoạn khác</h3>
+            <p className="text-xs text-slate-500 mb-4">Các giai đoạn sau đã bị xóa khỏi Workflow nhưng vẫn còn công việc bên trong — chọn giai đoạn mới cho từng nhóm trước khi tiếp tục.</p>
+            <div className="space-y-2.5 max-h-[50vh] overflow-y-auto">
+              {pendingReassign.map(({ from, count }) => (
+                <div key={from} className="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-700 truncate">{from}</p>
+                    <p className="text-[11px] text-slate-400">{count} công việc</p>
+                  </div>
+                  <select value={reassignTargets[from] || ''} onChange={e => setReassignTargets(prev => ({ ...prev, [from]: e.target.value }))}
+                    className="px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs shrink-0">
+                    {categoryOrder.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setPendingReassign(null)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Để nguyên (giữ nhóm KHÁC)</button>
+              <button onClick={confirmReassign} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg">Xác nhận chuyển</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
