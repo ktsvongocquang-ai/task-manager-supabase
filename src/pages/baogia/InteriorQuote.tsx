@@ -330,26 +330,40 @@ export default function InteriorQuote() {
     setLines(activeVersion.lines.filter(l => l.id !== id));
   };
 
+  const BOQ_ITEM_NAME_KEYS = ['Tên vật tư', 'Tên hạng mục', 'Tên công việc', 'Nội dung', 'Nội dung công việc', 'Diễn giải', 'Hạng mục công việc', 'name', 'item_name'];
+  const BOQ_UNIT_KEYS = ['Đơn vị', 'ĐVT', 'Đơn vị tính', 'unit'];
+  const BOQ_QUANTITY_KEYS = ['Khối lượng', 'KL', 'Số lượng', 'SL', 'quantity'];
+
   const parseImportedRows = (rows: Record<string, any>[]): QuoteLine[] => rows.map(row => ({
     ...emptyLine(),
-    category: String(pickCell(row, ['Bill', 'Nhóm', 'Hạng mục', 'category']) || '').trim(),
-    itemCode: String(pickCell(row, ['Mã vật tư', 'Mã hàng', 'item_code', 'price_key']) || '').trim(),
-    itemName: String(pickCell(row, ['Tên vật tư', 'Tên hạng mục', 'Nội dung', 'name', 'item_name']) || '').trim(),
+    category: String(pickCell(row, ['Bill', 'Nhóm', 'Hạng mục', 'Phần việc', 'category']) || '').trim(),
+    itemCode: String(pickCell(row, ['Mã vật tư', 'Mã hàng', 'Mã công việc', 'Mã', 'item_code', 'price_key']) || '').trim(),
+    itemName: String(pickCell(row, BOQ_ITEM_NAME_KEYS) || '').trim(),
     spec: String(pickCell(row, ['Quy cách', 'Thông số', 'spec']) || '').trim(),
-    unit: String(pickCell(row, ['Đơn vị', 'ĐVT', 'unit']) || '').trim(),
-    quantity: Number(pickCell(row, ['Khối lượng', 'KL', 'quantity']) || 0) || 0,
-    wasteFactor: Number(pickCell(row, ['Hao hụt', 'waste_factor']) || 1) || 1,
+    unit: String(pickCell(row, BOQ_UNIT_KEYS) || '').trim(),
+    quantity: Number(pickCell(row, BOQ_QUANTITY_KEYS) || 0) || 0,
+    wasteFactor: Number(pickCell(row, ['Hao hụt', 'Hệ số hao hụt', 'waste_factor']) || 1) || 1,
     source: 'ai' as QuoteSource,
     selectedPrice: money(pickCell(row, ['Đơn giá', 'unit_price', 'price'])),
     priceSource: (money(pickCell(row, ['Đơn giá', 'unit_price', 'price'])) > 0 ? 'manual' : 'none') as QuoteLine['priceSource'],
     note: String(pickCell(row, ['Ghi chú', 'note']) || '').trim(),
   })).filter(l => l.itemName);
 
+  const exportBoqTemplate = () => exportRowsToExcel([{
+    'Hạng mục': 'BILL 01 - ĐẬP PHÁ', 'Mã công việc': 'CV-001', 'Tên công việc': 'Tháo dỡ đồ gỗ cũ',
+    'Quy cách': '', 'Đơn vị': 'hệ', 'Khối lượng': 1, 'Hao hụt': 1, 'Đơn giá': 0, 'Ghi chú': '',
+  }], 'Mau_BOQ.xlsx', 'Mau BOQ');
+
   const importExcel = async (file: File) => {
     const rows = await readExcelFile(file);
     const parsed = parseImportedRows(rows);
+    if (parsed.length === 0 && rows.length > 0) {
+      const foundHeaders = Object.keys(rows[0] || {}).join(', ') || '(không có)';
+      setMessage(`Đọc được ${rows.length} dòng nhưng không dòng nào khớp cột "Tên công việc/Tên vật tư". Cột phát hiện trong file: ${foundHeaders}. Tải "Mẫu Excel" để xem đúng tên cột cần dùng.`);
+      return;
+    }
     setLines([...(activeVersion?.lines || []), ...parsed]);
-    setMessage(`Đã nhập ${parsed.length} dòng BOQ từ Excel.`);
+    setMessage(`Đã đọc ${rows.length} dòng, nhập được ${parsed.length} dòng BOQ hợp lệ${rows.length !== parsed.length ? ` (bỏ qua ${rows.length - parsed.length} dòng thiếu tên)` : ''}.`);
   };
 
   const applyPrices = () => {
@@ -648,6 +662,7 @@ export default function InteriorQuote() {
               </div>
               <div className="flex gap-2">
                 <button onClick={addLine} className="px-3 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"><Plus className="w-3.5 h-3.5" /> Dòng</button>
+                <button onClick={exportBoqTemplate} className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><Download className="w-3.5 h-3.5" /> Mẫu Excel</button>
                 <button onClick={() => fileInputRef.current?.click()} className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold rounded-lg flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Excel</button>
                 <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) importExcel(f); e.target.value = ''; }} />
               </div>
