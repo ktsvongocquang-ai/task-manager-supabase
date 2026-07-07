@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Tag, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
 import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
 
-type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'CUSTOMERS' | 'SUPPLIERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
+type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatus, { label: string; bg: string }> = {
   unpaid: { label: 'Chưa thanh toán', bg: 'bg-slate-100 text-slate-600' },
@@ -46,11 +46,9 @@ export const Finance = () => {
   const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
     { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
-    { id: 'CUSTOMERS', label: 'Khách hàng', icon: <Users className="w-4 h-4" /> },
-    { id: 'SUPPLIERS', label: 'Nhà cung cấp', icon: <Truck className="w-4 h-4" /> },
+    { id: 'PARTNERS', label: 'Khách hàng / NCC', icon: <Users className="w-4 h-4" /> },
     { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
     { id: 'INCOMES', label: 'Thu tiền', icon: <Wallet className="w-4 h-4" /> },
-    { id: 'CATEGORIES', label: 'Danh mục', icon: <Tag className="w-4 h-4" /> },
   ];
 
   return (
@@ -61,13 +59,19 @@ export const Finance = () => {
           <h1 className="text-lg font-bold text-slate-800">Tài chính</h1>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              {t.icon} {t.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setTab('CATEGORIES')} title="Danh mục"
+            className={`p-2.5 rounded-xl transition-all ${tab === 'CATEGORIES' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`}>
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -89,8 +93,7 @@ export const Finance = () => {
           {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
           <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} projectFilter={projectFilter} /></div>
-          <div className={tab === 'CUSTOMERS' ? '' : 'hidden'}><CustomersTab db={db} /></div>
-          <div className={tab === 'SUPPLIERS' ? '' : 'hidden'}><SuppliersTab db={db} /></div>
+          <div className={tab === 'PARTNERS' ? '' : 'hidden'}><PartnersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'CATEGORIES' ? '' : 'hidden'}><CategoriesTab db={db} /></div>
@@ -390,6 +393,30 @@ function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFin
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// KHÁCH HÀNG / NHÀ CUNG CẤP (tab gộp, chuyển qua lại bằng công tắc con)
+// ═══════════════════════════════════════════════════════════
+
+function PartnersTab({ db }: { db: ReturnType<typeof useFinanceData> }) {
+  const [sub, setSub] = useState<'CUSTOMERS' | 'SUPPLIERS'>('CUSTOMERS');
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit">
+        <button onClick={() => setSub('CUSTOMERS')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${sub === 'CUSTOMERS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <Users className="w-3.5 h-3.5" /> Khách hàng
+        </button>
+        <button onClick={() => setSub('SUPPLIERS')}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all ${sub === 'SUPPLIERS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <Truck className="w-3.5 h-3.5" /> Nhà cung cấp
+        </button>
+      </div>
+      <div className={sub === 'CUSTOMERS' ? '' : 'hidden'}><CustomersTab db={db} /></div>
+      <div className={sub === 'SUPPLIERS' ? '' : 'hidden'}><SuppliersTab db={db} /></div>
     </div>
   );
 }

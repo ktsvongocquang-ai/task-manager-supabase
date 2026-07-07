@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
 
 import type { UserRole, TaskStatus, ViewTab, CTask, Project, DailyLog, Milestone, Approval, Notification, Subcontractor, AttendanceData, FinanceData, ConstructionPhase, WeatherType } from './types';
 import { fmt, statusConfig, catColors } from './types';
@@ -16,7 +15,6 @@ import { PROJECTS, TASKS, MILESTONES, NOTIFICATIONS, FINANCE, DAILY_LOGS } from 
 import { EngineerDailyReport, ClientCountdown, SubcontractorView, AttendanceView, ReportsView, DailyLogView, ProjectOverview, NotificationSettings, WorkflowManager } from './views';
 import { ManagerDashboard } from './ManagerDashboard';
 import { ProjectManagementAIModule } from './ProjectManagement';
-import { ProjectAccountingSync } from './ProjectAccountingSync';
 import { CreateProjectWizard } from './CreateProjectWizard';
 import { ProjectsListView } from './ProjectsListView';
 import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModal';
@@ -1156,7 +1154,6 @@ const profileRoleToUserRole = (role?: string): UserRole => {
 export const Construction = () => {
   const db = useConstructionData();
   const { profile } = useAuthStore();
-  const navigate = useNavigate();
 
   // Derive initial role from URL param (QR share) or authenticated profile role
   const getInitialRole = (): UserRole => {
@@ -1362,7 +1359,6 @@ export const Construction = () => {
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
       { id: 'LOGS', label: 'Báo cáo', icon: <FileText className="w-4 h-4" /> },
-      { id: 'COST', label: 'Tài chính', icon: <DollarSign className="w-4 h-4" /> },
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
@@ -1370,7 +1366,6 @@ export const Construction = () => {
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
-      { id: 'COST', label: 'Tài chính', icon: <DollarSign className="w-4 h-4" /> },
     ];
   };
 
@@ -1605,33 +1600,6 @@ export const Construction = () => {
                 showToast(`Chuyển "${task.name}" → ${statusConfig[newStatus].label}`);
               }
             }} />}
-            {/* Tài chính — tóm tắt nhanh công trình này, chi tiết đầy đủ (Chi phí/Thu tiền/Khách hàng) nằm ở trang Tài chính riêng */}
-            {activeTab === 'COST' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-                    <p className="text-[10px] text-slate-400 font-bold">Giá trị hợp đồng</p>
-                    <p className="text-lg font-bold text-slate-800">{fmt(selectedProject.contractValue)}</p>
-                  </div>
-                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-                    <p className="text-[10px] text-slate-400 font-bold">Ngân sách</p>
-                    <p className="text-lg font-bold text-slate-800">{fmt(selectedProject.budget)}</p>
-                  </div>
-                  <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-                    <p className="text-[10px] text-slate-400 font-bold">Đã chi (thi công)</p>
-                    <p className="text-lg font-bold text-indigo-600">{fmt(tasks.reduce((s, t) => s + (t.spent || 0), 0))}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate(`/finance?project=${selectedProject.id}`)}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm mb-4">
-                  <DollarSign className="w-4 h-4" /> Xem chi tiết Tài chính (Chi phí, Thu tiền, Khách hàng) →
-                </button>
-                <div className="border-t border-slate-200 pt-4">
-                  <ProjectAccountingSync project={selectedProject} />
-                </div>
-              </div>
-            )}
             {/* Engineer Daily Report */}
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}
             {/* Diary tab — all roles */}
