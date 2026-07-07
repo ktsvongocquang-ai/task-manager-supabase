@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Tag, Download, Upload, FileSpreadsheet } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Tag, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
 import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
 
-type FinanceTab = 'DASHBOARD' | 'CUSTOMERS' | 'SUPPLIERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
+type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'CUSTOMERS' | 'SUPPLIERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatus, { label: string; bg: string }> = {
   unpaid: { label: 'Chưa thanh toán', bg: 'bg-slate-100 text-slate-600' },
@@ -39,12 +39,13 @@ export const Finance = () => {
   const [searchParams] = useSearchParams();
   const projectFilter = searchParams.get('project');
   const db = useFinanceData();
-  const [tab, setTab] = useState<FinanceTab>(projectFilter ? 'EXPENSES' : 'DASHBOARD');
+  const [tab, setTab] = useState<FinanceTab>(projectFilter ? 'PROJECTS' : 'DASHBOARD');
 
   useEffect(() => { db.loadAll(); }, [db.loadAll]);
 
   const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
     { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
     { id: 'CUSTOMERS', label: 'Khách hàng', icon: <Users className="w-4 h-4" /> },
     { id: 'SUPPLIERS', label: 'Nhà cung cấp', icon: <Truck className="w-4 h-4" /> },
     { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
@@ -87,6 +88,7 @@ export const Finance = () => {
           {tab === 'DASHBOARD' && <Dashboard db={db} />}
           {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
+          <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'CUSTOMERS' ? '' : 'hidden'}><CustomersTab db={db} /></div>
           <div className={tab === 'SUPPLIERS' ? '' : 'hidden'}><SuppliersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
@@ -104,6 +106,10 @@ export const Finance = () => {
 
 function Dashboard({ db }: { db: ReturnType<typeof useFinanceData> }) {
   const f = db.getCompanyFinance();
+  const [syncMsg, setSyncMsg] = useState('');
+  const upcomingCashflow = db.getUpcomingCashflow(30);
+  const unsyncedRecords = db.getUnsyncedPaymentRecords();
+  const pendingApprovals = db.approvals.filter(a => a.status === 'pending');
 
   const kpis = [
     { label: 'Tổng công trình', value: String(db.projects.length), color: 'text-slate-800' },
@@ -174,12 +180,218 @@ function Dashboard({ db }: { db: ReturnType<typeof useFinanceData> }) {
           )}
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <CalendarClock className="w-4 h-4 text-indigo-500" /> Dòng tiền 30 ngày tới
+            </h4>
+            <span className="text-[10px] font-bold text-slate-400">{upcomingCashflow.length} mục</span>
+          </div>
+          <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+            {upcomingCashflow.map(item => (
+              <div key={`${item.source}-${item.id}`} className="flex items-center justify-between gap-3 border-b border-slate-50 pb-2 last:border-0">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-700 truncate">{item.desc}</p>
+                  <p className="text-[10px] text-slate-400">
+                    {new Date(item.date).toLocaleDateString('vi-VN')}
+                    {item.date < todayStr() && <span className="ml-1 text-rose-500 font-bold">Quá hạn</span>}
+                  </p>
+                </div>
+                <span className={`text-xs font-bold whitespace-nowrap ${item.type === 'in' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {item.type === 'in' ? '+' : '-'}{fmt(item.amount)}
+                </span>
+              </div>
+            ))}
+            {upcomingCashflow.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Chưa có dòng tiền sắp tới</p>}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" /> Đề xuất chi phí
+            </h4>
+            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{pendingApprovals.length} chờ duyệt</span>
+          </div>
+          <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+            {pendingApprovals.map(a => (
+              <div key={a.id} className="border border-amber-100 bg-amber-50/50 rounded-lg p-3">
+                <p className="text-xs font-bold text-slate-800">{a.title}</p>
+                <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{a.detail}</p>
+                <div className="flex justify-end gap-1 mt-2">
+                  <button onClick={() => db.updateFinanceApproval(a.id, 'rejected')} className="px-2 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded">Từ chối</button>
+                  <button onClick={() => db.approveFinanceProposal(a.id)} className="px-2 py-1 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 rounded">Duyệt + tạo chi</button>
+                </div>
+              </div>
+            ))}
+            {pendingApprovals.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Không có đề xuất đang chờ</p>}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+            <RefreshCw className="w-4 h-4 text-sky-500" /> Đồng bộ dữ liệu cũ
+          </h4>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Còn {unsyncedRecords.length} giao dịch trong lịch sử thu/chi cũ chưa khớp với bảng Finance mới.
+          </p>
+          <button
+            onClick={async () => {
+              const result = await db.syncLegacyPaymentRecords();
+              setSyncMsg(`Đã tạo ${result.createdExpenses} chi phí, ${result.createdIncomes} phiếu thu.`);
+            }}
+            disabled={unsyncedRecords.length === 0}
+            className="mt-3 w-full px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-lg disabled:opacity-40"
+          >
+            Đồng bộ payment records
+          </button>
+          {syncMsg && <p className="text-[10px] text-emerald-600 font-medium mt-2">{syncMsg}</p>}
+        </div>
+      </div>
     </div>
   );
 }
 
 function EmptyChart() {
   return <div className="h-[220px] flex items-center justify-center text-xs text-slate-400">Chưa có dữ liệu</div>;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROJECT FINANCE DETAIL
+// ═══════════════════════════════════════════════════════════
+
+function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceData>; projectFilter: string | null }) {
+  const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
+  const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
+  const finance = project ? db.getProjectFinance(project.id) : null;
+  const milestones = project ? db.getProjectMilestones(project.id) : [];
+  const expenses = project ? db.expenses.filter(e => e.project_id === project.id) : [];
+  const incomes = project ? db.incomes.filter(i => i.project_id === project.id) : [];
+  const cashflow = project ? db.getUpcomingCashflow(30).filter(i => i.project_id === project.id) : [];
+  const paidMilestoneAmount = milestones.filter(m => m.payment_status === 'paid').reduce((s, m) => s + (m.payment_amount || 0), 0);
+  const totalMilestoneAmount = milestones.reduce((s, m) => s + (m.payment_amount || 0), 0);
+
+  if (!project || !finance) {
+    return <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">Chưa có công trình để xem tài chính.</div>;
+  }
+
+  const relatedSuppliers = db.suppliers
+    .map(s => {
+      const supplierExpenses = expenses.filter(e => e.supplier_id === s.id);
+      const cost = supplierExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const paid = supplierExpenses.reduce((sum, e) => sum + (e.amount_paid || 0), 0);
+      return { supplier: s, cost, paid, payable: Math.max(0, cost - paid), expenseCount: supplierExpenses.length };
+    })
+    .filter(x => x.expenseCount > 0);
+
+  const projectCards = [
+    { label: 'Giá trị hợp đồng', value: fmt(finance.contract), color: 'text-slate-800' },
+    { label: 'Đã thu', value: fmt(finance.income), color: 'text-emerald-600' },
+    { label: 'Còn phải thu', value: fmt(finance.debt), color: 'text-amber-600' },
+    { label: 'Chi phí', value: fmt(finance.cost), color: 'text-rose-600' },
+    { label: 'Đã trả NCC', value: fmt(finance.supplierPaid), color: 'text-indigo-600' },
+    { label: 'Còn phải trả NCC', value: fmt(finance.payable), color: 'text-amber-600' },
+    { label: 'Lợi nhuận dự kiến', value: fmt(finance.profit), color: finance.profit >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+    { label: 'Dòng tiền thực', value: fmt(finance.cashflow), color: finance.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="flex-1">
+          <p className="text-[10px] text-slate-400 font-bold uppercase">Tài chính công trình</p>
+          <h2 className="text-lg font-bold text-slate-800">{project.name}</h2>
+        </div>
+        <select value={project.id} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm min-w-[260px]">
+          {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {projectCards.map((card, i) => <SummaryCard key={i} label={card.label} value={card.value} color={card.color} />)}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mốc nghiệm thu & thu tiền
+            </h3>
+            <span className="text-[10px] font-bold text-indigo-600">{fmt(paidMilestoneAmount)} / {fmt(totalMilestoneAmount)}</span>
+          </div>
+          <div className="space-y-2">
+            {milestones.map(m => (
+              <div key={m.id} className={`p-3 rounded-lg border ${m.payment_status === 'paid' ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-200'}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-700 truncate">{m.name}</p>
+                    <p className="text-[10px] text-slate-400">{m.status === 'passed' ? 'Đã nghiệm thu' : m.status === 'pending_internal' ? 'Đang nghiệm thu' : 'Sắp tới'}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`text-xs font-bold ${m.payment_status === 'paid' ? 'text-emerald-600' : 'text-slate-700'}`}>{fmt(m.payment_amount)}</p>
+                    {m.payment_status === 'paid' ? (
+                      <p className="text-[9px] text-emerald-600 font-bold">Đã thu</p>
+                    ) : (
+                      <button onClick={() => db.createIncomeFromMilestone(m.id)} className="mt-1 px-2 py-1 bg-emerald-600 text-white rounded text-[10px] font-bold hover:bg-emerald-700">
+                        Ghi nhận thu
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {milestones.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Chưa có mốc thanh toán.</p>}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 mb-3">
+            <CalendarClock className="w-4 h-4 text-indigo-500" /> Dòng tiền 30 ngày của công trình
+          </h3>
+          <div className="space-y-2">
+            {cashflow.map(item => (
+              <div key={`${item.source}-${item.id}`} className="flex items-center justify-between border-b border-slate-50 pb-2 last:border-0">
+                <div>
+                  <p className="text-xs font-medium text-slate-700">{item.desc}</p>
+                  <p className="text-[10px] text-slate-400">
+                    {new Date(item.date).toLocaleDateString('vi-VN')}
+                    {item.date < todayStr() && <span className="ml-1 text-rose-500 font-bold">Quá hạn</span>}
+                  </p>
+                </div>
+                <span className={`text-xs font-bold ${item.type === 'in' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.type === 'in' ? '+' : '-'}{fmt(item.amount)}</span>
+              </div>
+            ))}
+            {cashflow.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Không có dòng tiền sắp tới.</p>}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <MiniFinanceList title="Thu gần nhất" rows={incomes.slice(0, 8).map(i => ({ id: i.id, date: i.date, desc: i.description || 'Phiếu thu', amount: i.amount, tone: 'in' }))} />
+        <MiniFinanceList title="Chi gần nhất" rows={expenses.slice(0, 8).map(e => ({ id: e.id, date: e.date, desc: e.description, amount: e.amount, tone: 'out' }))} />
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">NCC liên quan</h3>
+          <div className="space-y-2">
+            {relatedSuppliers.map(({ supplier, cost, payable }) => (
+              <div key={supplier.id} className="flex items-center justify-between border-b border-slate-50 pb-2 last:border-0">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-700 truncate">{supplier.name}</p>
+                  <p className="text-[10px] text-slate-400">{supplier.supplier_type || 'Nhà cung cấp'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-rose-600">{fmt(cost)}</p>
+                  <p className="text-[9px] text-amber-600">Còn {fmt(payable)}</p>
+                </div>
+              </div>
+            ))}
+            {relatedSuppliers.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Chưa có NCC phát sinh chi phí.</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -448,6 +660,7 @@ function SupplierModal({ supplier, db, onClose, onSave }: { supplier: Supplier |
 
 function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceData>; projectFilter: string | null }) {
   const [showModal, setShowModal] = useState(false);
+  const [showProposalModal, setShowProposalModal] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [fProject, setFProject] = useState(projectFilter || '');
   const [fCategory, setFCategory] = useState('');
@@ -484,6 +697,7 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const activeFilterCount = [fProject, fCategory, fType, fSupplier, fStatus, dateFrom, dateTo, amountFrom, amountTo, search].filter(Boolean).length;
 
   const projectName = (id: string) => db.projects.find(p => p.id === id)?.name || '--';
   const supplierName = (e: Expense) => e.supplier_id ? (db.suppliers.find(s => s.id === e.supplier_id)?.name || '--') : (e.supplier_name || '--');
@@ -538,6 +752,10 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
           <button onClick={() => fileInputRef.current?.click()} className="px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-lg flex items-center gap-1.5"><Upload className="w-3.5 h-3.5" /> Nhập từ Excel</button>
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleImport(f); e.target.value = ''; }} />
           <button onClick={handleExport} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất Excel</button>
+          <button onClick={() => setShowProposalModal(true)}
+            className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5" /> Đề xuất
+          </button>
           <button onClick={() => { setEditing(null); setShowModal(true); }}
             className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Thêm chi phí
@@ -545,15 +763,15 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Tìm nhanh theo nội dung..." className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs" />
-          </div>
-          <button onClick={resetFilters} className="text-xs font-bold text-slate-500 hover:text-indigo-600">↺ Đặt lại</button>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <FilterDock
+        title="Bộ lọc chi phí"
+        search={search}
+        searchPlaceholder="Tìm nhanh theo nội dung..."
+        activeCount={activeFilterCount}
+        resultText={`${filtered.length} / ${db.expenses.length} khoản chi`}
+        onSearchChange={(value) => { setSearch(value); setPage(1); }}
+        onReset={resetFilters}
+      >
           <select value={fProject} onChange={e => { setFProject(e.target.value); setPage(1); }} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
             <option value="">Tất cả công trình</option>
             {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -586,8 +804,7 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
             <span className="text-slate-400">-</span>
             <input type="number" value={amountTo} onChange={e => { setAmountTo(e.target.value); setPage(1); }} placeholder="Đến" className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg" />
           </div>
-        </div>
-      </div>
+      </FilterDock>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <SummaryCard label="Tổng chi phí (đang lọc)" value={fmt(filtered.reduce((s, e) => s + e.amount, 0))} color="text-rose-600" />
@@ -646,7 +863,64 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
             setShowModal(false);
           }} />
       )}
+
+      {showProposalModal && (
+        <ExpenseProposalModal db={db} defaultProjectId={projectFilter || undefined} onClose={() => setShowProposalModal(false)}
+          onSave={async (data) => {
+            await db.createExpenseProposal(data.project_id, data.title, data.reason, data.amount, data.category);
+            setShowProposalModal(false);
+          }} />
+      )}
     </div>
+  );
+}
+
+function ExpenseProposalModal({ db, defaultProjectId, onClose, onSave }: {
+  db: ReturnType<typeof useFinanceData>; defaultProjectId?: string;
+  onClose: () => void; onSave: (data: { project_id: string; title: string; reason: string; amount: number; category: string }) => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    project_id: defaultProjectId || db.projects[0]?.id || '',
+    title: '',
+    amount: '',
+    category: db.getLookupLabels('expense_type')[0] || 'Phát sinh',
+    reason: '',
+  });
+  const [saving, setSaving] = useState(false);
+  const canSave = form.project_id && form.title.trim() && Number(form.amount) > 0 && form.reason.trim();
+
+  return (
+    <ModalShell title="Đề xuất chi phí phát sinh" onClose={onClose}>
+      <div className="p-5 space-y-3">
+        <Field label="Công trình *">
+          <select value={form.project_id} onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+            {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+        </Field>
+        <Field label="Tiêu đề *"><input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="VD: Phát sinh vật tư chống thấm" /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Số tiền dự kiến *"><input type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+          <Field label="Loại chi phí">
+            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+              {db.getLookupLabels('expense_type').map(t => <option key={t} value={t}>{t}</option>)}
+              {!db.getLookupLabels('expense_type').includes('Phát sinh') && <option value="Phát sinh">Phát sinh</option>}
+            </select>
+          </Field>
+        </div>
+        <Field label="Lý do / ghi chú *"><textarea value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} rows={4} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
+      </div>
+      <ModalFooter onClose={onClose} disabled={!canSave} saving={saving} onSave={async () => {
+        setSaving(true);
+        await onSave({
+          project_id: form.project_id,
+          title: form.title,
+          reason: form.reason,
+          amount: Number(form.amount) || 0,
+          category: form.category || 'Phát sinh',
+        });
+        setSaving(false);
+      }} />
+    </ModalShell>
   );
 }
 
@@ -787,6 +1061,7 @@ function IncomesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDat
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const activeFilterCount = [fProject, fCustomer, fMethod, dateFrom, dateTo, amountFrom, amountTo, search].filter(Boolean).length;
 
   const projectName = (id: string) => db.projects.find(p => p.id === id)?.name || '--';
   const customerName = (id: string | null) => id ? (db.customers.find(c => c.id === id)?.name || '--') : '--';
@@ -845,15 +1120,15 @@ function IncomesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDat
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Tìm nhanh theo nội dung..." className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs" />
-          </div>
-          <button onClick={resetFilters} className="text-xs font-bold text-slate-500 hover:text-indigo-600">↺ Đặt lại</button>
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <FilterDock
+        title="Bộ lọc thu tiền"
+        search={search}
+        searchPlaceholder="Tìm nhanh theo nội dung..."
+        activeCount={activeFilterCount}
+        resultText={`${filtered.length} / ${db.incomes.length} phiếu thu`}
+        onSearchChange={(value) => { setSearch(value); setPage(1); }}
+        onReset={resetFilters}
+      >
           <select value={fProject} onChange={e => { setFProject(e.target.value); setPage(1); }} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
             <option value="">Tất cả công trình</option>
             {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -878,8 +1153,7 @@ function IncomesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDat
             <span className="text-slate-400">-</span>
             <input type="number" value={amountTo} onChange={e => { setAmountTo(e.target.value); setPage(1); }} placeholder="Đến" className="w-24 px-2 py-1.5 border border-slate-200 rounded-lg" />
           </div>
-        </div>
-      </div>
+      </FilterDock>
 
       <SummaryCard label="Tổng thu (đang lọc)" value={fmt(filtered.reduce((s, i) => s + i.amount, 0))} color="text-emerald-600" />
 
@@ -1060,6 +1334,82 @@ function LookupCard({ listKey, title, db }: { listKey: string; title: string; db
 // ═══════════════════════════════════════════════════════════
 // SHARED UI PIECES
 // ═══════════════════════════════════════════════════════════
+
+function FilterDock({
+  title,
+  search,
+  searchPlaceholder,
+  activeCount,
+  resultText,
+  onSearchChange,
+  onReset,
+  children,
+}: {
+  title: string;
+  search: string;
+  searchPlaceholder: string;
+  activeCount: number;
+  resultText: string;
+  onSearchChange: (value: string) => void;
+  onReset: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="sticky top-0 z-10 bg-white/95 backdrop-blur rounded-xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3 p-3 border-b border-slate-100">
+        <div className="flex items-center gap-2 min-w-[150px]">
+          <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <SlidersHorizontal className="w-4 h-4" />
+          </span>
+          <div>
+            <p className="text-xs font-bold text-slate-700">{title}</p>
+            <p className="text-[10px] text-slate-400">{resultText}</p>
+          </div>
+        </div>
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+          <input
+            value={search}
+            onChange={e => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300"
+          />
+        </div>
+        <button
+          onClick={onReset}
+          className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 whitespace-nowrap"
+        >
+          Đặt lại{activeCount > 0 ? ` (${activeCount})` : ''}
+        </button>
+      </div>
+      <div className="p-3 flex flex-wrap gap-2">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MiniFinanceList({ title, rows }: { title: string; rows: Array<{ id: string; date: string; desc: string; amount: number; tone: 'in' | 'out' }> }) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{title}</h3>
+      <div className="space-y-2">
+        {rows.map(row => (
+          <div key={row.id} className="flex items-center justify-between gap-3 border-b border-slate-50 pb-2 last:border-0">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-700 truncate">{row.desc}</p>
+              <p className="text-[10px] text-slate-400">{new Date(row.date).toLocaleDateString('vi-VN')}</p>
+            </div>
+            <span className={`text-xs font-bold whitespace-nowrap ${row.tone === 'in' ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {row.tone === 'in' ? '+' : '-'}{fmt(row.amount)}
+            </span>
+          </div>
+        ))}
+        {rows.length === 0 && <p className="text-xs text-slate-400 py-6 text-center">Chưa có dữ liệu.</p>}
+      </div>
+    </div>
+  );
+}
 
 function SummaryCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
