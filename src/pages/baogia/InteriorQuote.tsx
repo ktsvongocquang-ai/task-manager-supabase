@@ -18,6 +18,7 @@ import {
   Upload,
 } from 'lucide-react';
 import { flattenPriceBook, getItemPrice, MARGIN_STRATEGIES, formatVND, CATEGORY_LABELS, SUBCATEGORY_LABELS } from '../../constants/priceBook';
+import { ITEM_MASTER, ITEM_MASTER_BY_CODE } from '../../constants/itemMaster';
 import { exportRowsToExcel, readExcelFile } from '../../utils/excelIO';
 
 type QuoteTab = 'PROJECTS' | 'BOQ' | 'PRICEBOOK' | 'PRICING' | 'EXPORT';
@@ -371,14 +372,23 @@ export default function InteriorQuote() {
     if (!activeProject || !activeVersion) return;
     const internalPrices = flattenPriceBook(activeProject.type);
     const next = activeVersion.lines.map(line => {
+      // Nếu "Mã công việc" là mã Item Master (CV-xxx), mở rộng tên khớp bằng tên chuẩn +
+      // toàn bộ aliases — Kho giá NCC có thể được nhập với tên khác (alias) thay vì đúng
+      // tên chuẩn, nên chỉ so khớp itemName gốc thôi sẽ bỏ sót.
+      const master = ITEM_MASTER_BY_CODE[line.itemCode];
+      const nameVariants = new Set([normalizeKey(line.itemName)]);
+      if (master) {
+        nameVariants.add(normalizeKey(master.name));
+        master.aliases.forEach(a => nameVariants.add(normalizeKey(a)));
+      }
+
       const key = matchKey(line);
       const candidates = nccPrices
-        .filter(p => matchKey({
-          itemCode: p.itemCode,
-          itemName: p.standardName || p.itemName,
-          spec: p.spec,
-          unit: p.unit,
-        }) === key || normalizeKey(p.standardName || p.itemName).includes(normalizeKey(line.itemName)))
+        .filter(p => {
+          const pKey = matchKey({ itemCode: p.itemCode, itemName: p.standardName || p.itemName, spec: p.spec, unit: p.unit });
+          const pName = normalizeKey(p.standardName || p.itemName);
+          return pKey === key || pName.includes(normalizeKey(line.itemName)) || nameVariants.has(pName);
+        })
         .sort((a, b) => b.importedAt.localeCompare(a.importedAt));
 
       if (candidates[0]) {
@@ -391,7 +401,10 @@ export default function InteriorQuote() {
         };
       }
 
-      const itemKey = line.itemCode.split('.').pop() || line.itemCode;
+      // Mã CV-xxx không tồn tại trong Bảng giá nội bộ (dùng itemKey gốc dạng snake_case) —
+      // quy đổi qua "sourceKey" của Item Master trước khi tra, không thì tra thẳng như cũ
+      // (tương thích ngược với BOQ cũ chưa dùng mã CV-xxx).
+      const itemKey = master?.sourceKey || line.itemCode.split('.').pop() || line.itemCode;
       const internal = internalPrices.find(p => p.itemKey === itemKey || normalizeKey(p.displayName) === normalizeKey(line.itemName));
       const price = internal ? getItemPrice(internal.item, activeProject.tier) || 0 : 0;
       return price > 0 ? { ...line, selectedPrice: price, previousPrice: 0, priceSource: 'internal' as const } : line;
@@ -589,22 +602,41 @@ export default function InteriorQuote() {
   // cả khi Kho giá NCC còn trống). Người dùng tải file này rồi đính kèm/dán vào chat Claude trước
   // khi bóc khối lượng, để AI đặt "Tên công việc" đúng theo danh mục thay vì tự bịa.
   const exportItemMaster = () => {
-    const fromPriceBook = (['chung_cu', 'nha_o', 'shop'] as const).flatMap(type =>
-      flattenPriceBook(type).map(fp => ({
-        'Nguồn': 'Bảng giá nội bộ',
-        'Loại hình': type,
-        'Nhóm': CATEGORY_LABELS[fp.category] || fp.category,
-        'Nhóm nhỏ': SUBCATEGORY_LABELS[fp.subcategory] || fp.subcategory,
-        'Mã (item key)': fp.itemKey,
-        'Tên chuẩn': fp.displayName,
-        'Đơn vị': fp.item.don_vi || '',
-      }))
-    );
+    // Item Master thật (mã CV-xxx, tên có dấu, aliases) — hiện chỉ có bộ chung_cu (căn hộ
+    // cải tạo), dựng từ Item_Master_Antigraviti.xlsx. Nhà phố/Shop chưa có Item Master
+    // riêng nên vẫn tạm dùng Bảng giá nội bộ (flattenPriceBook) làm nguồn tên cho 2 loại
+    // hình đó cho tới khi có Item Master tương ứng.
+    const fromItemMaster = ITEM_MASTER.map(m => ({
+      'Nguồn': 'Item Master',
+      'Loại hình': m.projectType,
+      'Nhóm': m.category,
+      'Nhóm nhỏ': m.subcategory,
+      'Mã': m.code,
+      'Tên chuẩn': m.name,
+      'Đơn vị': m.unit,
+      'Aliases': m.aliases.join('; '),
+      'Ghi chú': m.note,
+    }));
+    const itemMasterProjectTypes = new Set(ITEM_MASTER.map(m => m.projectType));
+    const fromPriceBook = (['chung_cu', 'nha_o', 'shop'] as const)
+      .filter(type => !itemMasterProjectTypes.has(type))
+      .flatMap(type =>
+        flattenPriceBook(type).map(fp => ({
+          'Nguồn': 'Bảng giá nội bộ',
+          'Loại hình': type,
+          'Nhóm': CATEGORY_LABELS[fp.category] || fp.category,
+          'Nhóm nhỏ': SUBCATEGORY_LABELS[fp.subcategory] || fp.subcategory,
+          'Mã': fp.itemKey,
+          'Tên chuẩn': fp.displayName,
+          'Đơn vị': fp.item.don_vi || '',
+          'Aliases': '',
+          'Ghi chú': '',
+        }))
+      );
     const seen = new Set<string>();
     const dedupedPriceBook = fromPriceBook.filter(r => {
-      const key = r['Mã (item key)'];
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (seen.has(r['Mã'])) return false;
+      seen.add(r['Mã']);
       return true;
     });
     const fromKhoGia = latestPriceItems.map(item => ({
@@ -612,11 +644,13 @@ export default function InteriorQuote() {
       'Loại hình': '',
       'Nhóm': '',
       'Nhóm nhỏ': '',
-      'Mã (item key)': item.itemCode,
+      'Mã': item.itemCode,
       'Tên chuẩn': item.standardName || item.itemName,
       'Đơn vị': item.unit,
+      'Aliases': '',
+      'Ghi chú': '',
     }));
-    exportRowsToExcel([...fromKhoGia, ...dedupedPriceBook], `Danh_muc_ten_chuan_${todayStr()}.xlsx`, 'Danh muc ten chuan');
+    exportRowsToExcel([...fromKhoGia, ...fromItemMaster, ...dedupedPriceBook], `Danh_muc_ten_chuan_${todayStr()}.xlsx`, 'Danh muc ten chuan');
   };
 
   const exportPricePreview = () => exportRowsToExcel(filteredPricePreview.map(item => ({
