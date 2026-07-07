@@ -3,6 +3,7 @@ import { Search, Plus, Download, Upload, FileSpreadsheet, FolderOpen, Pencil, Tr
 import { supabase } from '../../services/supabase';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
+import { ProjectDossierModal } from './ProjectDossierModal';
 import type { Project } from './types';
 import { fmt } from './types';
 
@@ -27,9 +28,11 @@ interface Props {
   onDeleteProject: (p: Project) => void;
   onCreateNew: () => void;
   bulkCreateProjects: (rows: any[]) => Promise<number>;
+  refreshProjects?: () => Promise<void>;
 }
 
-export function ProjectsListView({ projects, onOpenProject, onEditProject, onDeleteProject, onCreateNew, bulkCreateProjects }: Props) {
+export function ProjectsListView({ projects, onOpenProject, onEditProject, onDeleteProject, onCreateNew, bulkCreateProjects, refreshProjects }: Props) {
+  const [dossierProject, setDossierProject] = useState<Project | null>(null);
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [search, setSearch] = useState('');
@@ -216,7 +219,7 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="flex items-center gap-1 justify-end">
-                    <button onClick={() => onOpenProject(p)} title="Mở" className="p-1.5 text-slate-400 hover:text-indigo-600"><FolderOpen className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setDossierProject(p)} title="Xem hồ sơ" className="p-1.5 text-slate-400 hover:text-indigo-600"><FolderOpen className="w-3.5 h-3.5" /></button>
                     <button onClick={() => onEditProject(p)} title="Sửa" className="p-1.5 text-slate-400 hover:text-indigo-600"><Pencil className="w-3.5 h-3.5" /></button>
                     <button onClick={() => onDeleteProject(p)} title="Xoá" className="p-1.5 text-slate-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
@@ -229,6 +232,16 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
       </div>
 
       <Pagination page={safePage} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={n => { setPageSize(n); setPage(1); }} />
+
+      {dossierProject && (
+        <ProjectDossierModal
+          project={dossierProject}
+          onClose={() => setDossierProject(null)}
+          onEditProject={onEditProject}
+          onViewKanban={onOpenProject}
+          onUpdated={refreshProjects}
+        />
+      )}
     </div>
   );
 }

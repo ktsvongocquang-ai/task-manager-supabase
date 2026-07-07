@@ -38,6 +38,8 @@ const mapProject = (p: SupabaseProject): Project => ({
   accountingSheetUrl: (p as any).accounting_sheet_url || null,
   customerId: p.customer_id || null,
   projectType: p.project_type || null,
+  photoUrl: p.photo_url || null,
+  contractDocUrl: p.contract_doc_url || null,
 });
 
 const mapMilestone = (m: SupabaseMilestone): Milestone => ({
@@ -1563,6 +1565,7 @@ export const Construction = () => {
                 }}
                 onCreateNew={() => setIsCreateModeOpen(true)}
                 bulkCreateProjects={db.bulkCreateProjects}
+                refreshProjects={db.loadProjects}
               />
             )}
             {/* Project Overview */}

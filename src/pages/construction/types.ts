@@ -18,6 +18,8 @@ export interface Project {
   accountingSheetId?: string | null;
   customerId?: string | null;
   projectType?: string | null;
+  photoUrl?: string | null;
+  contractDocUrl?: string | null;
 }
 
 export interface CTask {
