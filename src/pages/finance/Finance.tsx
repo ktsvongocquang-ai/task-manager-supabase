@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, ClipboardCheck, Link2, Receipt, PiggyBank, CreditCard, Layers, ListTree, ChevronRight, ChevronDown as ChevronDownIcon } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, ClipboardCheck, Link2, Receipt, CreditCard, Layers, ListTree, ChevronRight, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
 import { useBoqData, type BoqItem, type BoqNode, type BoqRowType } from '../../hooks/useBoqData';
 import { StatCard } from '../construction/ProjectDossierModal';
@@ -390,8 +390,7 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
   const vatTotal = expenses.reduce((s, e) => s + ((e as any).vat_amount || 0), 0);
   const actualIncVat = actualExVat + vatTotal;
   const boqSummary = boq.getProjectBoqSummary(project.id);
-  const plannedSpend = boqSummary.contract; // "Tổng kế hoạch chi" = Tổng BOQ ở Phase 1 (chưa có luồng duyệt đề xuất chi riêng — Phase 2/3)
-  const profitPlanned = finance.contract - plannedSpend;
+  const profitPlanned = finance.contract - boqSummary.contract;
   const profitActual = finance.contract - actualExVat;
 
   return (
@@ -412,7 +411,6 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <StatCard icon={<Wallet className="w-4 h-4 text-slate-600" />} label="Giá trị hợp đồng" value={fmt(finance.contract)} />
         <StatCard icon={<Layers className="w-4 h-4 text-indigo-500" />} label="Tổng BOQ / Thành tiền HĐ" value={fmt(boqSummary.contract)} />
-        <StatCard icon={<ClipboardCheck className="w-4 h-4 text-indigo-500" />} label="Tổng kế hoạch chi" value={fmt(plannedSpend)} />
         <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi chưa VAT" value={fmt(actualExVat)} tone="text-rose-600" />
         <StatCard icon={<Receipt className="w-4 h-4 text-amber-500" />} label="VAT đầu vào" value={fmt(vatTotal)} />
         <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi có VAT" value={fmt(actualIncVat)} tone="text-rose-600" />
@@ -421,7 +419,6 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
         <StatCard icon={<TrendingUp className="w-4 h-4 text-emerald-500" />} label="Đã thu khách" value={fmt(finance.income)} tone="text-emerald-600" />
         <StatCard icon={<CalendarClock className="w-4 h-4 text-amber-500" />} label="Còn phải thu khách" value={fmt(finance.debt)} tone="text-amber-600" />
         <StatCard icon={<TrendingUp className="w-4 h-4 text-sky-500" />} label="Thu vượt" value={fmt(finance.over)} tone="text-sky-600" />
-        <StatCard icon={<PiggyBank className="w-4 h-4 text-slate-400" />} label="Tạm ứng tồn" value="— (Phase 2)" tone="text-slate-400" />
         <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận dự kiến" value={fmt(profitPlanned)} tone={profitPlanned >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
         <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận thực tế" value={fmt(profitActual)} tone={profitActual >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
         <StatCard icon={<Wallet className="w-4 h-4" />} label="Dòng tiền hiện tại" value={fmt(finance.cashflow)} tone={finance.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
@@ -512,13 +509,6 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
 // BOQ / DỰ TOÁN - THỰC CHI
 // ═══════════════════════════════════════════════════════════
 
-const DOCUMENT_STATUS_LABEL: Record<string, string> = {
-  missing: 'Thiếu chứng từ', uploaded: 'Đã tải lên', verified: 'Đã xác minh', invalid: 'Không hợp lệ',
-};
-const INVOICE_STATUS_LABEL: Record<string, string> = {
-  no_vat: 'Không VAT', waiting_invoice: 'Chờ hoá đơn', has_invoice: 'Có hoá đơn',
-  invalid_invoice: 'Hoá đơn sai', no_invoice: 'Chưa có hoá đơn',
-};
 function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
   const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
@@ -635,8 +625,6 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
             )}
           </td>
           <td className="px-2 py-2 text-right text-xs font-bold text-slate-700 whitespace-nowrap">{fmt(node.contractAmount)}</td>
-          <td className="px-2 py-2 text-right text-[11px] text-slate-400 whitespace-nowrap">—</td>
-          <td className="px-2 py-2 text-right text-[11px] text-slate-400 whitespace-nowrap">—</td>
           <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostExVat)}</td>
           <td className="px-2 py-2 text-right text-xs text-amber-600 whitespace-nowrap">{fmt(node.vatAmount)}</td>
           <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostIncVat)}</td>
@@ -651,20 +639,6 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
               <select value={node.supplier_id || ''} onChange={e => commitField(node, 'supplier_id', e.target.value)} className="text-[11px] bg-transparent outline-none max-w-[100px]">
                 <option value="">—</option>
                 {db.suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
-            )}
-          </td>
-          <td className="px-2 py-2 text-xs whitespace-nowrap">
-            {!isGroup && (
-              <select value={node.document_status} onChange={e => commitField(node, 'document_status', e.target.value)} className="text-[11px] bg-transparent outline-none">
-                {Object.entries(DOCUMENT_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              </select>
-            )}
-          </td>
-          <td className="px-2 py-2 text-xs whitespace-nowrap">
-            {!isGroup && (
-              <select value={node.invoice_status} onChange={e => commitField(node, 'invoice_status', e.target.value)} className="text-[11px] bg-transparent outline-none">
-                {Object.entries(INVOICE_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             )}
           </td>
@@ -714,7 +688,7 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-        <table className="min-w-[1600px] w-full">
+        <table className="min-w-[1280px] w-full">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Hạng mục công việc</th>
@@ -722,8 +696,6 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">KL dự toán</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đơn giá báo giá</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Thành tiền HĐ</th>
-              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">KL thực tế</th>
-              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đơn giá thực chi</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí chưa VAT</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">VAT</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí có VAT</th>
@@ -732,8 +704,6 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chênh lệch</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">% chi/HĐ</th>
               <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">NCC</th>
-              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chứng từ</th>
-              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">VAT hoá đơn</th>
               <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Ghi chú</th>
               <th className="sticky right-0 z-20 bg-slate-50 px-2 py-2 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Thao tác</th>
             </tr>
@@ -741,13 +711,13 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
           <tbody>
             {tree.map(renderRow)}
             {tree.length === 0 && (
-              <tr><td colSpan={19} className="text-center text-xs text-slate-400 py-10">Chưa có hạng mục BOQ nào — bấm "Thêm nhóm" ở trên để bắt đầu.</td></tr>
+              <tr><td colSpan={15} className="text-center text-xs text-slate-400 py-10">Chưa có hạng mục BOQ nào — bấm "Thêm nhóm" ở trên để bắt đầu.</td></tr>
             )}
           </tbody>
         </table>
       </div>
       <p className="text-[11px] text-slate-400">
-        Cột "KL thực tế" / "Đơn giá thực chi" và các cảnh báo "Chưa phân bổ" sẽ có ở Phase 2 khi luồng Chi phí thực tế gắn trực tiếp vào từng dòng BOQ.
+        Cột "Chi phí chưa VAT/VAT/Đã thanh toán" sẽ có số liệu thật khi Phase 2 (Chi phí thực tế) gắn trực tiếp vào từng dòng BOQ — hiện tại luôn là 0 vì chưa có khoản chi nào liên kết.
       </p>
     </div>
   );
