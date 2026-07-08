@@ -186,7 +186,7 @@ export const Finance = () => {
           <div className={tab === 'BOQ' ? '' : 'hidden'}><BoqTab db={db} boq={boq} projectFilter={projectFilter} /></div>
           <div className={tab === 'RECONCILIATION' ? '' : 'hidden'}><AccountingReconciliationTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'PARTNERS' ? '' : 'hidden'}><PartnersTab db={db} /></div>
-          <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
+          <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} boq={boq} projectFilter={projectFilter} /></div>
           <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'CATEGORIES' ? '' : 'hidden'}><CategoriesTab db={db} /></div>
         </div>
@@ -1015,7 +1015,7 @@ function SupplierModal({ supplier, db, onClose, onSave }: { supplier: Supplier |
 // CHI PHÍ
 // ═══════════════════════════════════════════════════════════
 
-function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceData>; projectFilter: string | null }) {
+function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null }) {
   const [showModal, setShowModal] = useState(false);
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
@@ -1213,7 +1213,7 @@ function ExpensesTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceDa
       <Pagination page={safePage} pageSize={pageSize} total={filtered.length} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
 
       {showModal && (
-        <ExpenseModal expense={editing} db={db} defaultProjectId={projectFilter || undefined} onClose={() => setShowModal(false)}
+        <ExpenseModal expense={editing} db={db} boq={boq} defaultProjectId={projectFilter || undefined} onClose={() => setShowModal(false)}
           onSave={async (data) => {
             if (editing) await db.updateExpense(editing.id, data);
             else await db.createExpense(data as any);
@@ -1281,8 +1281,8 @@ function ExpenseProposalModal({ db, defaultProjectId, onClose, onSave }: {
   );
 }
 
-function ExpenseModal({ expense, db, defaultProjectId, onClose, onSave }: {
-  expense: Expense | null; db: ReturnType<typeof useFinanceData>; defaultProjectId?: string;
+function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
+  expense: Expense | null; db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; defaultProjectId?: string;
   onClose: () => void; onSave: (data: Partial<Expense>) => Promise<void>;
 }) {
   const [form, setForm] = useState({
@@ -1297,12 +1297,18 @@ function ExpenseModal({ expense, db, defaultProjectId, onClose, onSave }: {
     payment_status: (expense?.payment_status || 'unpaid') as PaymentStatus,
     amount_paid: String(expense?.amount_paid || ''),
     note: expense?.note || '',
+    boq_item_id: expense?.boq_item_id || '',
   });
   const [saving, setSaving] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const categories = db.projectCategories[form.project_id] || [];
   const expenseTypes = db.getLookupLabels('expense_type');
   const canSave = form.project_id && form.date && form.description.trim() && Number(form.amount) > 0;
+
+  useEffect(() => { if (form.project_id) boq.loadBoqItems(form.project_id); }, [form.project_id]);
+  // Chỉ dòng "item" mới được gắn chi phí — dòng group/subgroup tự cộng từ con,
+  // không phải nơi ghi nhận chi phí trực tiếp.
+  const boqItemOptions = boq.boqItems.filter(b => b.project_id === form.project_id && b.row_type === 'item');
 
   return (
     <>
@@ -1329,6 +1335,15 @@ function ExpenseModal({ expense, db, defaultProjectId, onClose, onSave }: {
               </select>
             </Field>
           </div>
+          <Field label="Hạng mục BOQ (để cộng dồn vào Dự toán - Thực chi)">
+            <select value={form.boq_item_id} onChange={e => setForm(f => ({ ...f, boq_item_id: e.target.value }))} disabled={!form.project_id} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm disabled:bg-slate-50">
+              <option value="">-- Chưa gắn hạng mục BOQ --</option>
+              {boqItemOptions.map(b => <option key={b.id} value={b.id}>{b.item_code} — {b.item_name || '(chưa đặt tên)'}</option>)}
+            </select>
+            {form.project_id && boqItemOptions.length === 0 && (
+              <p className="text-[10px] text-amber-600 mt-1">Công trình này chưa có hạng mục BOQ nào — vào tab "BOQ / Dự toán - Thực chi" để tạo trước.</p>
+            )}
+          </Field>
           <Field label="Nội dung chi *"><input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="VD: Mua xi măng, sắt thép..." /></Field>
           <Field label="Nhà cung cấp">
             <div className="flex gap-2">
@@ -1366,6 +1381,7 @@ function ExpenseModal({ expense, db, defaultProjectId, onClose, onSave }: {
             supplier_id: form.supplier_id || null, supplier_name: form.supplier_id ? null : (form.supplier_name || null),
             amount: Number(form.amount) || 0, payment_status: form.payment_status,
             amount_paid: Number(form.amount_paid) || 0, note: form.note || null,
+            boq_item_id: form.boq_item_id || null,
           });
           setSaving(false);
         }} />

@@ -37,6 +37,7 @@ export interface Expense {
   supplier_id: string | null; supplier_name: string | null;
   amount: number; amount_paid: number; payment_status: PaymentStatus;
   receipt_photos: string[]; note: string | null; created_at: string;
+  boq_item_id: string | null;
 }
 
 export interface Income {
@@ -115,6 +116,7 @@ const buildExpensePayload = (expense: Partial<Expense>) => {
     payment_status: status,
     receipt_photos: expense.receipt_photos,
     note: textOrNull(expense.note),
+    boq_item_id: textOrNull(expense.boq_item_id),
   });
 };
 
@@ -134,6 +136,7 @@ const buildExpenseUpdatePayload = (updates: Partial<Expense>, current?: Expense)
     payment_status: status,
     receipt_photos: updates.receipt_photos,
     note: updates.note === undefined ? undefined : textOrNull(updates.note),
+    boq_item_id: updates.boq_item_id === undefined ? undefined : textOrNull(updates.boq_item_id),
   });
 };
 

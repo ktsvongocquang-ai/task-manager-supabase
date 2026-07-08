@@ -58,6 +58,11 @@ export const useBoqData = () => {
   const [expensesByBoq, setExpensesByBoq] = useState<Record<string, LinkedExpense[]>>({});
   const [loading, setLoading] = useState(false);
 
+  // This hook instance is shared by both the BOQ tab and the Expense form
+  // (so the expense form can offer a per-project BOQ item picker) — loading
+  // one project's items must not evict another project's already-loaded rows,
+  // or switching projects in one place would make the other place's BOQ tab
+  // appear to have lost its data. Merge by project instead of replacing.
   const loadBoqItems = useCallback(async (projectId: string) => {
     setLoading(true);
     const { data, error } = await supabase
@@ -65,11 +70,13 @@ export const useBoqData = () => {
       .select('*')
       .eq('project_id', projectId)
       .order('sort_order', { ascending: true });
-    if (!error && data) setBoqItems(data as BoqItem[]);
+    if (!error && data) {
+      setBoqItems(prev => [...prev.filter(b => b.project_id !== projectId), ...(data as BoqItem[])]);
+    }
 
-    // Phase 1: construction_expenses.boq_item_id isn't populated by any UI yet
-    // (that's Phase 2's "Chi phí thực tế" flow) — this always resolves empty
-    // for now, but the rollup math below is correct and ready for when it isn't.
+    // Phase 1: construction_expenses.boq_item_id isn't populated by most UI yet
+    // (Phase 2's "Chi phí thực tế" flow) — resolves empty until an expense is
+    // linked, but the rollup math below is correct and ready for when it isn't.
     const { data: exp } = await supabase
       .from('construction_expenses')
       .select('boq_item_id, amount, amount_ex_vat, vat_amount, amount_paid')
@@ -80,7 +87,7 @@ export const useBoqData = () => {
       if (!e.boq_item_id) return;
       (grouped[e.boq_item_id] ||= []).push(e);
     });
-    setExpensesByBoq(grouped);
+    setExpensesByBoq(prev => ({ ...prev, ...grouped }));
     setLoading(false);
   }, []);
 
