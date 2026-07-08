@@ -299,12 +299,10 @@ function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof u
     })
     .filter(x => x.expenseCount > 0);
 
-  // Số thực chi chưa VAT dùng amount_ex_vat nếu kế toán đã tách VAT (Phase 2),
-  // fallback về amount (số cũ) cho các khoản chưa tách — đúng nguyên tắc
-  // "chi phí chưa VAT dùng để tính lợi nhuận".
+  // Không có UI nào nhập amount_ex_vat/vat_amount cho expense ở đâu cả (Phase 2
+  // "Chi phí thực tế" chưa xây) — actualExVat dùng amount thô, và các card
+  // "VAT đầu vào"/"Thực chi có VAT" đã bị bỏ vì không có chỗ nhập, luôn = 0/trùng.
   const actualExVat = expenses.reduce((s, e) => s + ((e as any).amount_ex_vat ?? e.amount ?? 0), 0);
-  const vatTotal = expenses.reduce((s, e) => s + ((e as any).vat_amount || 0), 0);
-  const actualIncVat = actualExVat + vatTotal;
   const boqSummary = boq.getProjectBoqSummary(project.id);
   const profitPlanned = finance.contract - boqSummary.contract;
   const profitActual = finance.contract - actualExVat;
@@ -348,9 +346,7 @@ function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof u
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <StatCard icon={<Wallet className="w-4 h-4 text-slate-600" />} label="Giá trị hợp đồng" value={fmt(finance.contract)} />
         <StatCard icon={<Layers className="w-4 h-4 text-indigo-500" />} label="Tổng BOQ / Thành tiền HĐ" value={fmt(boqSummary.contract)} />
-        <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi chưa VAT" value={fmt(actualExVat)} tone="text-rose-600" />
-        <StatCard icon={<Receipt className="w-4 h-4 text-amber-500" />} label="VAT đầu vào" value={fmt(vatTotal)} />
-        <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi có VAT" value={fmt(actualIncVat)} tone="text-rose-600" />
+        <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi" value={fmt(actualExVat)} tone="text-rose-600" />
         <StatCard icon={<CreditCard className="w-4 h-4 text-indigo-500" />} label="Đã thanh toán NCC" value={fmt(finance.supplierPaid)} tone="text-indigo-600" />
         <StatCard icon={<AlertTriangle className="w-4 h-4 text-amber-500" />} label="Còn phải trả NCC" value={fmt(finance.payable)} tone="text-amber-600" />
         <StatCard icon={<TrendingUp className="w-4 h-4 text-emerald-500" />} label="Đã thu khách" value={fmt(finance.income)} tone="text-emerald-600" />
@@ -560,8 +556,6 @@ function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceD
           </td>
           <td className="px-2 py-2 text-right text-xs font-bold text-slate-700 whitespace-nowrap">{fmt(node.contractAmount)}</td>
           <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostExVat)}</td>
-          <td className="px-2 py-2 text-right text-xs text-amber-600 whitespace-nowrap">{fmt(node.vatAmount)}</td>
-          <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostIncVat)}</td>
           <td className="px-2 py-2 text-right text-xs text-indigo-600 whitespace-nowrap">{fmt(node.paidAmount)}</td>
           <td className="px-2 py-2 text-right text-xs text-amber-600 whitespace-nowrap">{fmt(node.payableAmount)}</td>
           <td className={`px-2 py-2 text-right text-xs font-bold whitespace-nowrap ${node.variance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(node.variance)}</td>
@@ -623,9 +617,7 @@ function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceD
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">KL dự toán</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đơn giá báo giá</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Thành tiền HĐ</th>
-              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí chưa VAT</th>
-              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">VAT</th>
-              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí có VAT</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đã thanh toán</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Còn phải trả</th>
               <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chênh lệch</th>
@@ -638,13 +630,13 @@ function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceD
           <tbody>
             {tree.map(renderRow)}
             {tree.length === 0 && (
-              <tr><td colSpan={15} className="text-center text-xs text-slate-400 py-10">Chưa có hạng mục BOQ nào — bấm "Thêm nhóm" ở trên để bắt đầu.</td></tr>
+              <tr><td colSpan={13} className="text-center text-xs text-slate-400 py-10">Chưa có hạng mục BOQ nào — bấm "Thêm nhóm" ở trên để bắt đầu.</td></tr>
             )}
           </tbody>
         </table>
       </div>
       <p className="text-[11px] text-slate-400">
-        Cột "Chi phí chưa VAT/VAT/Đã thanh toán" sẽ có số liệu thật khi Phase 2 (Chi phí thực tế) gắn trực tiếp vào từng dòng BOQ — hiện tại luôn là 0 vì chưa có khoản chi nào liên kết.
+        Cột "Chi phí/Đã thanh toán" chỉ có số khi ghi chi phí (Chi phí thực tế / Ghi chi phí nhanh) và chọn đúng hạng mục BOQ tương ứng — nếu chưa gắn thì hạng mục đó luôn hiện 0.
       </p>
     </div>
   );
