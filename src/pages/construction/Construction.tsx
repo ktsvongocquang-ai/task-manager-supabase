@@ -21,6 +21,7 @@ import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModa
 import { QuickExpenseModal } from './QuickExpenseModal';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
+import { canAccessRoute } from '../../utils/permissions';
 import { aiConstructionService } from '../../services/aiConstructionService';
 import { supabase } from '../../services/supabase';
 
@@ -1411,14 +1412,14 @@ export const Construction = () => {
               {VIEW_TABS.map(tab => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${userRole === 'ENGINEER' ? 'flex-1' : ''} ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                   {tab.icon}
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto max-w-full">
           {/* Project Selector */}
           {userRole !== 'HOMEOWNER' && activeTab !== 'DASHBOARD' && (
             <div className="relative shrink-0">
@@ -1431,8 +1432,8 @@ export const Construction = () => {
           {/* Ghi chi phí nhanh — cho Quản lý thi công/Giám Sát ghi chi phí ngay
               tại công trường, không cần vào trang Tài chính riêng */}
           {['Admin', 'Quản lý thi công', 'Giám Sát'].includes(profile?.role || '') && (
-            <button onClick={() => setIsQuickExpenseOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors shrink-0 h-[36px]">
-              <Receipt className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ghi chi phí nhanh</span>
+            <button onClick={() => setIsQuickExpenseOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors shrink-0 h-[36px] whitespace-nowrap">
+              <Receipt className="w-3.5 h-3.5" /> <span>Ghi chi phí</span>
             </button>
           )}
           {/* Search */}
@@ -1444,7 +1445,7 @@ export const Construction = () => {
           )}
           {/* Primary Action: AI Tiến Độ */}
           {(userRole === 'MANAGER' || profile?.role === 'Admin') && (
-            <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[36px] shrink-0"><FileSpreadsheet className="w-4 h-4" /> <span className="hidden sm:inline">AI Tiến Độ</span></button>
+            <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[36px] shrink-0 whitespace-nowrap"><FileSpreadsheet className="w-4 h-4" /> <span>AI Tiến Độ</span></button>
           )}
           {/* ⋯ Menu */}
           {(userRole === 'MANAGER' || (!isSharedLink && profile?.role === 'Admin')) && (
@@ -1550,7 +1551,7 @@ export const Construction = () => {
             {activeTab === 'DASHBOARD' && userRole === 'MANAGER' && (
               <div className="space-y-8">
                 <div>
-                  <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
+                  <ManagerDashboard projects={dbProjects} finance={dbFinance} approvals={dbApprovals} notifications={dbNotifications} canViewFinance={canAccessRoute(profile?.role, '/finance')} onSelectProject={p => { setSelectedProject(p); db.loadProjectDetails(p.id); setActiveTab('KANBAN'); }} />
                 </div>
               </div>
             )}

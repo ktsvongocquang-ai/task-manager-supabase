@@ -11,11 +11,12 @@ interface Props {
   approvals: Approval[];
   notifications: Notification[];
   onSelectProject: (p: Project) => void;
+  canViewFinance?: boolean;
 }
 
 // Tổng quan Thi Công — chỉ số liệu công trình + 1 con số tổng quan tiền (giá trị hợp đồng).
 // Chi tiết chi phí/công nợ/NCC/khách hàng thuộc riêng module Tài chính (/finance), không lặp lại ở đây.
-export function ManagerDashboard({ projects, notifications, onSelectProject }: Props) {
+export function ManagerDashboard({ projects, notifications, onSelectProject, canViewFinance = false }: Props) {
   const navigate = useNavigate();
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status !== 'completed').length;
@@ -29,10 +30,15 @@ export function ManagerDashboard({ projects, notifications, onSelectProject }: P
           <Activity className="w-5 h-5 text-indigo-500" />
           TỔNG QUAN DỰ ÁN
         </h2>
-        <button onClick={() => navigate('/finance')}
-          className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors">
-          <DollarSign className="w-3.5 h-3.5" /> Xem chi tiết Tài chính <ChevronRight className="w-3.5 h-3.5" />
-        </button>
+        {/* Chỉ hiện với role có quyền vào /finance — trước đây hiện cho mọi
+            role rồi bị RoleGuard bật lại về /construction ngay khi bấm,
+            với Quản lý thi công/Giám Sát nút này chỉ là ngõ cụt. */}
+        {canViewFinance && (
+          <button onClick={() => navigate('/finance')}
+            className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors">
+            <DollarSign className="w-3.5 h-3.5" /> Xem chi tiết Tài chính <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Metric cards — chỉ số liệu thi công + 1 con số tổng quan tiền, không đi vào chi tiết tài chính */}
