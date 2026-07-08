@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, Plus, Download, Upload, FileSpreadsheet, FolderOpen, Pencil, Trash2 } from 'lucide-react';
+import { Search, Plus, Download, Upload, FileSpreadsheet, FolderOpen, Pencil, Trash2, SlidersHorizontal } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
@@ -36,6 +36,7 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
   const [customers, setCustomers] = useState<{ id: string; name: string }[]>([]);
   const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [fStatus, setFStatus] = useState('');
   const [fType, setFType] = useState('');
   const [fCustomer, setFCustomer] = useState('');
@@ -68,6 +69,8 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
     setSearch(''); setFStatus(''); setFType(''); setFCustomer(''); setFManager('');
     setDateFrom(''); setDateTo(''); setProgressFrom(''); setProgressTo(''); setPage(1);
   };
+
+  const activeFilterCount = [fStatus, fType, fCustomer, fManager, dateFrom, dateTo, progressFrom, progressTo].filter(Boolean).length;
 
   const filtered = projects.filter(p => {
     if (fStatus && p.status !== fStatus) return false;
@@ -154,8 +157,13 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Gõ tên, mã, trạng thái hoặc nội dung cần tìm..." className="w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg text-xs" />
           </div>
+          <button onClick={() => setShowFilters(v => !v)} className="flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-indigo-600 shrink-0">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> Bộ lọc
+            {activeFilterCount > 0 && <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px]">{activeFilterCount}</span>}
+          </button>
           <button onClick={resetFilters} className="text-xs font-bold text-slate-500 hover:text-indigo-600 shrink-0">↺ Đặt lại</button>
         </div>
+        {showFilters && (
         <div className="flex flex-wrap gap-2">
           <select value={fStatus} onChange={e => { setFStatus(e.target.value); setPage(1); }} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
             <option value="">Tất cả trạng thái</option>
@@ -186,6 +194,7 @@ export function ProjectsListView({ projects, onOpenProject, onEditProject, onDel
             <input type="number" min={0} max={100} value={progressTo} onChange={e => { setProgressTo(e.target.value); setPage(1); }} placeholder="Đến" className="w-16 px-2 py-1.5 border border-slate-200 rounded-lg" />
           </div>
         </div>
+        )}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
