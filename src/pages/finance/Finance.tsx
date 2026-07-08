@@ -10,7 +10,7 @@ import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
 
-type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'BOQ' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
+type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatus, { label: string; bg: string }> = {
   unpaid: { label: 'Chưa thanh toán', bg: 'bg-slate-100 text-slate-600' },
@@ -52,7 +52,6 @@ export const Finance = () => {
   const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
     { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
-    { id: 'BOQ', label: 'BOQ / Dự toán - Thực chi', icon: <ListTree className="w-4 h-4" /> },
     { id: 'PARTNERS', label: 'Khách hàng / NCC', icon: <Users className="w-4 h-4" /> },
     { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
     { id: 'INCOMES', label: 'Thu tiền', icon: <Wallet className="w-4 h-4" /> },
@@ -99,8 +98,7 @@ export const Finance = () => {
           {tab === 'DASHBOARD' && <Dashboard db={db} />}
           {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
-          <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} boq={boq} projectFilter={projectFilter} onOpenBoq={() => setTab('BOQ')} /></div>
-          <div className={tab === 'BOQ' ? '' : 'hidden'}><BoqTab db={db} boq={boq} projectFilter={projectFilter} /></div>
+          <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} boq={boq} projectFilter={projectFilter} /></div>
           <div className={tab === 'PARTNERS' ? '' : 'hidden'}><PartnersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} boq={boq} projectFilter={projectFilter} /></div>
           <div className={tab === 'INCOMES' ? '' : 'hidden'}><IncomesTab db={db} projectFilter={projectFilter} /></div>
@@ -273,9 +271,10 @@ function EmptyChart() {
 // PROJECT FINANCE DETAIL
 // ═══════════════════════════════════════════════════════════
 
-function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null; onOpenBoq: () => void }) {
+function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
+  const [subView, setSubView] = useState<'DASHBOARD' | 'BOQ'>('DASHBOARD');
   const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
   const finance = project ? db.getProjectFinance(project.id) : null;
   const milestones = project ? db.getProjectMilestones(project.id) : [];
@@ -320,9 +319,6 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
         <button onClick={() => setIsQuickExpenseOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold hover:bg-rose-100 transition-colors">
           <Receipt className="w-3.5 h-3.5" /> Ghi chi phí nhanh
         </button>
-        <button onClick={onOpenBoq} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">
-          <ListTree className="w-3.5 h-3.5" /> Xem BOQ chi tiết
-        </button>
         <select value={project.id} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm min-w-[260px]">
           {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
@@ -336,6 +332,19 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
         />
       )}
 
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit">
+        <button onClick={() => setSubView('DASHBOARD')} className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${subView === 'DASHBOARD' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <TrendingUp className="w-3.5 h-3.5" /> Tổng quan
+        </button>
+        <button onClick={() => setSubView('BOQ')} className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${subView === 'BOQ' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          <ListTree className="w-3.5 h-3.5" /> BOQ / Dự toán - Thực chi
+        </button>
+      </div>
+
+      {subView === 'BOQ' ? (
+        <BoqTabContent db={db} boq={boq} project={project} />
+      ) : (
+      <>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <StatCard icon={<Wallet className="w-4 h-4 text-slate-600" />} label="Giá trị hợp đồng" value={fmt(finance.contract)} />
         <StatCard icon={<Layers className="w-4 h-4 text-indigo-500" />} label="Tổng BOQ / Thành tiền HĐ" value={fmt(boqSummary.contract)} />
@@ -429,25 +438,22 @@ function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnTy
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════
-// BOQ / DỰ TOÁN - THỰC CHI
+// BOQ / DỰ TOÁN - THỰC CHI (sub-view trong tab Công trình — dùng chung
+// project đã chọn ở trên, không có project-picker riêng)
 // ═══════════════════════════════════════════════════════════
 
-function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null }) {
-  const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
-  const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
+function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; project: ReturnType<typeof useFinanceData>['projects'][number] }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [newGroupName, setNewGroupName] = useState('');
 
   useEffect(() => { if (project) boq.loadBoqItems(project.id); }, [project?.id]);
-
-  if (!project) {
-    return <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">Chưa có công trình để xem BOQ.</div>;
-  }
 
   const tree = boq.getBoqTree(project.id);
   const toggleCollapsed = (id: string) => setCollapsed(prev => {
@@ -593,17 +599,10 @@ function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceDa
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3">
-        <div className="flex-1">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">BOQ / Dự toán - Thực chi</p>
-          <h2 className="text-lg font-bold text-slate-800">{project.name}</h2>
-        </div>
+      <div className="flex justify-end">
         <button onClick={exportBoqTemplate} className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">
           <FileSpreadsheet className="w-3.5 h-3.5" /> Mẫu Excel
         </button>
-        <select value={project.id} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm min-w-[260px]">
-          {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-center gap-2">
@@ -1269,7 +1268,7 @@ function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
               {boqItemOptions.map(b => <option key={b.id} value={b.id}>{b.item_code} — {b.item_name || '(chưa đặt tên)'}</option>)}
             </select>
             {form.project_id && boqItemOptions.length === 0 && (
-              <p className="text-[10px] text-amber-600 mt-1">Công trình này chưa có hạng mục BOQ nào — vào tab "BOQ / Dự toán - Thực chi" để tạo trước.</p>
+              <p className="text-[10px] text-amber-600 mt-1">Công trình này chưa có hạng mục BOQ nào — vào tab "Công trình" → "BOQ / Dự toán - Thực chi" để tạo trước.</p>
             )}
           </Field>
           <Field label="Nội dung chi *"><input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="VD: Mua xi măng, sắt thép..." /></Field>

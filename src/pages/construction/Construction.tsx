@@ -1443,11 +1443,8 @@ export const Construction = () => {
               <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Tìm..." className="pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 h-[36px] w-32 xl:w-48" />
             </div>
           )}
-          {/* Primary Action: AI Tiến Độ */}
-          {(userRole === 'MANAGER' || profile?.role === 'Admin') && (
-            <button onClick={() => setIsQuotationModalOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-indigo-700 active:scale-95 transition-all h-[36px] shrink-0 whitespace-nowrap"><FileSpreadsheet className="w-4 h-4" /> <span>AI Tiến Độ</span></button>
-          )}
-          {/* ⋯ Menu */}
+          {/* ⋯ Menu (bao gồm "Tạo Dự Án Mới" → có sẵn lựa chọn AI đọc file — nút
+              riêng "AI Tiến Độ" ở đây bị trùng chức năng nên đã bỏ) */}
           {(userRole === 'MANAGER' || (!isSharedLink && profile?.role === 'Admin')) && (
             <div className="relative shrink-0">
               <button onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)} className="w-[36px] h-[36px] flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500">
