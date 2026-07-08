@@ -188,80 +188,96 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     }
 
-    const renderCard = (p: Profile) => {
+    const renderRow = (p: Profile) => {
         const brand = getRoleBrand(p.role)
         const hasProject = !!(p as any).construction_project_id
         return (
-            <div key={p.id} className="bg-white border border-border-main rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-center flex flex-col group relative">
-                            {/* Avatar */}
-                            <div className={`w-14 h-14 mx-auto rounded-full ${brand.color} text-white flex items-center justify-center text-lg font-bold mb-4 shadow-sm`}>
-                                {getInitials(p.full_name)}
-                            </div>
-
-                            {/* Info */}
-                            <h4 className="text-[15px] font-semibold text-text-main mb-1 truncate">{p.full_name}</h4>
-                            <p className="text-xs text-gray-500 mb-1 truncate">{p.position || 'Chức vụ'}</p>
-                            <p className="text-xs text-gray-400 mb-3 truncate">{p.email}</p>
-
-                            {/* Construction project badge for Khách hàng */}
+            <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-4 py-2 whitespace-nowrap">
+                    <div className="flex items-center gap-2.5">
+                        <div className={`w-7 h-7 shrink-0 rounded-full ${brand.color} text-white flex items-center justify-center text-[10px] font-bold`}>
+                            {getInitials(p.full_name)}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-text-main truncate leading-tight">{p.full_name}</p>
                             {p.role === 'Khách hàng' && (
-                                <p className={`text-[10px] font-bold mb-3 px-2 py-0.5 rounded-full inline-block mx-auto ${hasProject ? 'bg-teal-50 text-teal-600' : 'bg-amber-50 text-amber-600'}`}>
+                                <p className={`text-[10px] font-medium leading-tight ${hasProject ? 'text-teal-600' : 'text-amber-600'}`}>
                                     {hasProject ? '🏗️ Đã gắn công trình' : '⚠️ Chưa gắn công trình'}
                                 </p>
                             )}
-
-                            <div className="mt-auto flex flex-col items-center">
-                                {/* Role Badge */}
-                                <span className={`inline-flex px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider ${brand.badge}`}>
-                                    {p.role}
-                                </span>
-
-                                {/* Zalo Link Status */}
-                                <div className="flex items-center gap-1.5 mt-2.5">
-                                    {p.zalo_user_id ? (
-                                        <span className="inline-flex items-center gap-1 text-[10px] bg-sky-50 text-sky-600 px-2 py-1 rounded font-bold border border-sky-100">
-                                            <Send size={10} /> Zalo: {p.zalo_user_id}
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1 text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded font-medium border border-slate-100 border-dashed">
-                                            <Send size={10} /> Chưa có Zalo
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Actions */}
-                                {currentUserRole === 'Admin' && (
-                                    <div className="flex items-center justify-center gap-2 mt-5 border-t border-gray-100 pt-4 w-full">
-                                        {/* QR button — only for Khách hàng */}
-                                        {p.role === 'Khách hàng' && (
-                                            <button
-                                                onClick={() => setQrProfile(p)}
-                                                className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center hover:bg-emerald-100 transition-colors"
-                                                title="Xuất QR đăng nhập"
-                                            >
-                                                <QrCode size={16} />
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => onEdit(p)}
-                                            className="w-9 h-9 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center hover:bg-blue-100 transition-colors"
-                                            title="Chỉnh sửa"
-                                        >
-                                            <Edit3 size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => onDelete(p.id)}
-                                            className="w-9 h-9 bg-red-50 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors"
-                                            title="Xóa"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
                         </div>
+                    </div>
+                </td>
+                <td className="px-4 py-2 text-[12px] text-gray-500 truncate max-w-[140px]">{p.position || '—'}</td>
+                <td className="px-4 py-2 text-[12px] text-gray-500 truncate max-w-[200px]">{p.email}</td>
+                <td className="px-4 py-2 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${brand.badge}`}>
+                        {p.role}
+                    </span>
+                </td>
+                <td className="px-4 py-2 whitespace-nowrap">
+                    {p.zalo_user_id ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] bg-sky-50 text-sky-600 px-1.5 py-0.5 rounded font-bold border border-sky-100">
+                            <Send size={9} /> {p.zalo_user_id}
+                        </span>
+                    ) : (
+                        <span className="text-[10px] text-slate-300">—</span>
+                    )}
+                </td>
+                {currentUserRole === 'Admin' && (
+                    <td className="px-4 py-2 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                            {p.role === 'Khách hàng' && (
+                                <button
+                                    onClick={() => setQrProfile(p)}
+                                    className="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-md flex items-center justify-center hover:bg-emerald-100 transition-colors"
+                                    title="Xuất QR đăng nhập"
+                                >
+                                    <QrCode size={13} />
+                                </button>
+                            )}
+                            <button
+                                onClick={() => onEdit(p)}
+                                className="w-7 h-7 bg-blue-50 text-blue-500 rounded-md flex items-center justify-center hover:bg-blue-100 transition-colors"
+                                title="Chỉnh sửa"
+                            >
+                                <Edit3 size={13} />
+                            </button>
+                            <button
+                                onClick={() => onDelete(p.id)}
+                                className="w-7 h-7 bg-red-50 text-red-500 rounded-md flex items-center justify-center hover:bg-red-100 transition-colors"
+                                title="Xóa"
+                            >
+                                <Trash2 size={13} />
+                            </button>
+                        </div>
+                    </td>
+                )}
+            </tr>
         )
     }
+
+    const renderTable = (list: Profile[]) => (
+        <div className="overflow-x-auto rounded-xl border border-border-main bg-white shadow-sm">
+            <table className="min-w-full">
+                <thead className="bg-slate-50 border-b border-border-main">
+                    <tr>
+                        <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Họ tên</th>
+                        <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Chức vụ</th>
+                        <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Email</th>
+                        <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Vai trò</th>
+                        <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Zalo</th>
+                        {currentUserRole === 'Admin' && (
+                            <th className="px-4 py-2 text-right text-[10px] font-bold text-slate-500 uppercase tracking-wider">Thao tác</th>
+                        )}
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                    {list.map(renderRow)}
+                </tbody>
+            </table>
+        </div>
+    )
 
     const grouped = DEPARTMENTS.map(dept => ({
         ...dept,
@@ -287,11 +303,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
                                 <span className="text-xs text-slate-400 font-medium">({dept.profiles.length})</span>
                                 <ChevronDown size={16} className={`text-slate-400 transition-transform group-hover/header:text-slate-600 ${isCollapsed ? '-rotate-90' : ''}`} />
                             </button>
-                            {!isCollapsed && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                                    {dept.profiles.map(renderCard)}
-                                </div>
-                            )}
+                            {!isCollapsed && renderTable(dept.profiles)}
                         </section>
                     )
                 })}
@@ -308,11 +320,7 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
                                 <span className="text-xs text-slate-400 font-medium">({others.length})</span>
                                 <ChevronDown size={16} className={`text-slate-400 transition-transform group-hover/header:text-slate-600 ${isCollapsed ? '-rotate-90' : ''}`} />
                             </button>
-                            {!isCollapsed && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                                    {others.map(renderCard)}
-                                </div>
-                            )}
+                            {!isCollapsed && renderTable(others)}
                         </section>
                     )
                 })()}
