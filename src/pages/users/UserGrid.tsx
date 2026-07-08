@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type Profile } from '../../types'
-import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle, Send, ShieldCheck, Palette, HardHat, Megaphone, Handshake, Users as UsersIcon } from 'lucide-react'
+import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle, Send, ShieldCheck, Palette, HardHat, Megaphone, Handshake, Users as UsersIcon, ChevronDown } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../../services/supabase'
 
@@ -160,6 +160,16 @@ const DEPARTMENTS: { label: string; icon: typeof ShieldCheck; roles: string[] }[
 
 export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGridProps) => {
     const [qrProfile, setQrProfile] = useState<Profile | null>(null)
+    const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+
+    const toggleCollapsed = (label: string) => {
+        setCollapsed(prev => {
+            const next = new Set(prev)
+            if (next.has(label)) next.delete(label)
+            else next.add(label)
+            return next
+        })
+    }
 
     const getRoleBrand = (role: string) => {
         if (role === 'Admin') return { color: 'bg-orange-500', text: 'text-orange-500', badge: 'bg-orange-50 text-orange-600 border border-orange-200' }
@@ -264,30 +274,48 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
     return (
         <>
             <div className="space-y-8 pt-4">
-                {grouped.map(dept => (
-                    <section key={dept.label}>
-                        <div className="flex items-center gap-2 mb-4">
-                            <dept.icon size={16} className="text-slate-400" />
-                            <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">{dept.label}</h3>
-                            <span className="text-xs text-slate-400 font-medium">({dept.profiles.length})</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {dept.profiles.map(renderCard)}
-                        </div>
-                    </section>
-                ))}
+                {grouped.map(dept => {
+                    const isCollapsed = collapsed.has(dept.label)
+                    return (
+                        <section key={dept.label}>
+                            <button
+                                onClick={() => toggleCollapsed(dept.label)}
+                                className="flex items-center gap-2 mb-4 group/header"
+                            >
+                                <dept.icon size={16} className="text-slate-400" />
+                                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">{dept.label}</h3>
+                                <span className="text-xs text-slate-400 font-medium">({dept.profiles.length})</span>
+                                <ChevronDown size={16} className={`text-slate-400 transition-transform group-hover/header:text-slate-600 ${isCollapsed ? '-rotate-90' : ''}`} />
+                            </button>
+                            {!isCollapsed && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                    {dept.profiles.map(renderCard)}
+                                </div>
+                            )}
+                        </section>
+                    )
+                })}
 
-                {others.length > 0 && (
-                    <section>
-                        <div className="flex items-center gap-2 mb-4">
-                            <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Khác</h3>
-                            <span className="text-xs text-slate-400 font-medium">({others.length})</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                            {others.map(renderCard)}
-                        </div>
-                    </section>
-                )}
+                {others.length > 0 && (() => {
+                    const isCollapsed = collapsed.has('Khác')
+                    return (
+                        <section>
+                            <button
+                                onClick={() => toggleCollapsed('Khác')}
+                                className="flex items-center gap-2 mb-4 group/header"
+                            >
+                                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Khác</h3>
+                                <span className="text-xs text-slate-400 font-medium">({others.length})</span>
+                                <ChevronDown size={16} className={`text-slate-400 transition-transform group-hover/header:text-slate-600 ${isCollapsed ? '-rotate-90' : ''}`} />
+                            </button>
+                            {!isCollapsed && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                    {others.map(renderCard)}
+                                </div>
+                            )}
+                        </section>
+                    )
+                })()}
             </div>
 
             {/* QR Modal */}
