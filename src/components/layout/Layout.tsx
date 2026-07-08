@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense, lazy } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { canAccessRoute, isAdminRole, isConstructionOnlyRole, isManagerRole } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
@@ -45,7 +45,13 @@ import { BottomTabBar } from './BottomTabBar'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
 import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
-import { NotificationSettings as BotSettingsModal } from '../../pages/construction/views'
+
+// Lazy-loaded: pulls in construction/views.tsx (1800+ lines) which would
+// otherwise bloat the shared bundle loaded on every page for this
+// rarely-opened Admin-only modal.
+const BotSettingsModal = lazy(() =>
+    import('../../pages/construction/views').then(m => ({ default: m.NotificationSettings }))
+)
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -873,7 +879,9 @@ export const Layout = () => {
 
             {/* Bot Settings Modal (Zalo/Telegram) */}
             {isBotSettingsOpen && (
-                <BotSettingsModal isOpen={isBotSettingsOpen} onClose={() => setIsBotSettingsOpen(false)} />
+                <Suspense fallback={null}>
+                    <BotSettingsModal isOpen={isBotSettingsOpen} onClose={() => setIsBotSettingsOpen(false)} />
+                </Suspense>
             )}
 
             <BottomTabBar />

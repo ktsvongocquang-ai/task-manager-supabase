@@ -6,6 +6,7 @@ import { supabase } from '../../services/supabase'
 import type { Comment } from '../../types'
 import { formatDistanceToNow, parseISO } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { compressImageToBlob } from '../../utils/imageCompress'
 
 interface CommentSectionProps {
     taskId?: string | null;
@@ -84,9 +85,16 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ taskId, projectI
     }
 
     const uploadImage = async (file: File): Promise<string | null> => {
-        const ext = file.name.split('.').pop() || 'jpg'
+        let blob: File | Blob = file
+        let ext = file.name.split('.').pop() || 'jpg'
+        try {
+            blob = await compressImageToBlob(file, 2048, 0.85)
+            ext = 'webp'
+        } catch (e) {
+            console.error('Image compression failed, uploading original:', e)
+        }
         const path = `comments/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error } = await supabase.storage.from('chat-images').upload(path, file)
+        const { error } = await supabase.storage.from('chat-images').upload(path, blob)
         if (error) { console.error('Upload error:', error); return null }
         const { data } = supabase.storage.from('chat-images').getPublicUrl(path)
         return data.publicUrl

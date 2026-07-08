@@ -8,6 +8,7 @@ import {
 import { format } from 'date-fns';
 import { processHRQuestion, getDailyBriefing, type ChatMessage as AIChatMessage } from '../../services/hrAssistantService';
 import { createNotification } from '../../services/notifications';
+import { compressImageToBlob } from '../../utils/imageCompress';
 
 interface Message {
     id: string;
@@ -286,9 +287,16 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
         };
 
     const uploadImage = async (file: File): Promise<string | null> => {
-        const ext = file.name.split('.').pop() || 'jpg';
+        let blob: File | Blob = file;
+        let ext = file.name.split('.').pop() || 'jpg';
+        try {
+            blob = await compressImageToBlob(file, 2048, 0.85);
+            ext = 'webp';
+        } catch (e) {
+            console.error('Image compression failed, uploading original:', e);
+        }
         const path = `chat/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error } = await supabase.storage.from('chat-images').upload(path, file);
+        const { error } = await supabase.storage.from('chat-images').upload(path, blob);
         if (error) { console.error('Upload error:', error); return null; }
         return supabase.storage.from('chat-images').getPublicUrl(path).data.publicUrl;
     };

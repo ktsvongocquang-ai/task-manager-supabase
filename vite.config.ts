@@ -41,6 +41,13 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Rarely-visited routes: skip background precaching on first load to cut
+        // data usage. They still load normally (uncached) when a user opens them.
+        globIgnores: [
+          '**/assets/MarketingApp-*.js',
+          '**/assets/PortfolioLanding-*.js',
+          '**/assets/PrototypeBoard-*.js',
+        ],
         maximumFileSizeToCacheInBytes: 5000000,
         skipWaiting: true,
         clientsClaim: true,
