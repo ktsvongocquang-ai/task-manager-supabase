@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { type Profile } from '../../types'
-import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle, Send } from 'lucide-react'
+import { Edit3, Trash2, QrCode, X, Copy, Check, ExternalLink, AlertTriangle, Send, ShieldCheck, Palette, HardHat, Megaphone, Handshake, Users as UsersIcon } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { supabase } from '../../services/supabase'
 
@@ -149,6 +149,15 @@ function CustomerQRModal({ profile, onClose }: { profile: Profile; onClose: () =
     )
 }
 
+const DEPARTMENTS: { label: string; icon: typeof ShieldCheck; roles: string[] }[] = [
+    { label: 'Quản trị', icon: ShieldCheck, roles: ['Admin'] },
+    { label: 'Thiết kế', icon: Palette, roles: ['Quản lý thiết kế', 'Thiết kế'] },
+    { label: 'Thi công', icon: HardHat, roles: ['Quản lý thi công', 'Giám Sát'] },
+    { label: 'Kinh doanh', icon: Handshake, roles: ['Sale'] },
+    { label: 'Marketing', icon: Megaphone, roles: ['Marketing'] },
+    { label: 'Khách hàng', icon: UsersIcon, roles: ['Khách hàng'] },
+]
+
 export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGridProps) => {
     const [qrProfile, setQrProfile] = useState<Profile | null>(null)
 
@@ -169,14 +178,11 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     }
 
-    return (
-        <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 pt-4">
-                {profiles.map(p => {
-                    const brand = getRoleBrand(p.role)
-                    const hasProject = !!(p as any).construction_project_id
-                    return (
-                        <div key={p.id} className="bg-white border border-border-main rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-center flex flex-col group relative">
+    const renderCard = (p: Profile) => {
+        const brand = getRoleBrand(p.role)
+        const hasProject = !!(p as any).construction_project_id
+        return (
+            <div key={p.id} className="bg-white border border-border-main rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow text-center flex flex-col group relative">
                             {/* Avatar */}
                             <div className={`w-14 h-14 mx-auto rounded-full ${brand.color} text-white flex items-center justify-center text-lg font-bold mb-4 shadow-sm`}>
                                 {getInitials(p.full_name)}
@@ -244,8 +250,44 @@ export const UserGrid = ({ profiles, currentUserRole, onEdit, onDelete }: UserGr
                                 )}
                             </div>
                         </div>
-                    )
-                })}
+        )
+    }
+
+    const grouped = DEPARTMENTS.map(dept => ({
+        ...dept,
+        profiles: profiles.filter(p => dept.roles.includes(p.role)),
+    })).filter(dept => dept.profiles.length > 0)
+
+    const groupedRoles = new Set(DEPARTMENTS.flatMap(d => d.roles))
+    const others = profiles.filter(p => !groupedRoles.has(p.role))
+
+    return (
+        <>
+            <div className="space-y-8 pt-4">
+                {grouped.map(dept => (
+                    <section key={dept.label}>
+                        <div className="flex items-center gap-2 mb-4">
+                            <dept.icon size={16} className="text-slate-400" />
+                            <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">{dept.label}</h3>
+                            <span className="text-xs text-slate-400 font-medium">({dept.profiles.length})</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {dept.profiles.map(renderCard)}
+                        </div>
+                    </section>
+                ))}
+
+                {others.length > 0 && (
+                    <section>
+                        <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Khác</h3>
+                            <span className="text-xs text-slate-400 font-medium">({others.length})</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                            {others.map(renderCard)}
+                        </div>
+                    </section>
+                )}
             </div>
 
             {/* QR Modal */}
