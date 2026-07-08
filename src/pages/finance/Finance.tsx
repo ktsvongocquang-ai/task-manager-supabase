@@ -121,7 +121,6 @@ function Dashboard({ db }: { db: ReturnType<typeof useFinanceData> }) {
   const pendingApprovals = db.approvals.filter(a => a.status === 'pending');
 
   const kpis = [
-    { label: 'Tổng công trình', value: String(db.projects.length), color: 'text-slate-800' },
     { label: 'Tổng hợp đồng', value: fmt(f.contract), color: 'text-slate-800' },
     { label: 'Chi phí phát sinh', value: fmt(f.cost), color: 'text-rose-600' },
     { label: 'Đã thanh toán NCC', value: fmt(f.supplierPaid), color: 'text-indigo-600' },
@@ -939,7 +938,6 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [fProject, setFProject] = useState(projectFilter || '');
-  const [fCategory, setFCategory] = useState('');
   const [fType, setFType] = useState('');
   const [fSupplier, setFSupplier] = useState('');
   const [fStatus, setFStatus] = useState('');
@@ -953,16 +951,13 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
   const [importMsg, setImportMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const categories = useMemo(() => Array.from(new Set(db.expenses.map(e => e.category).filter(Boolean))) as string[], [db.expenses]);
-
   const resetFilters = () => {
-    setFProject(''); setFCategory(''); setFType(''); setFSupplier(''); setFStatus('');
+    setFProject(''); setFType(''); setFSupplier(''); setFStatus('');
     setDateFrom(''); setDateTo(''); setAmountFrom(''); setAmountTo(''); setSearch(''); setPage(1);
   };
 
   const filtered = db.expenses.filter(e =>
     (!fProject || e.project_id === fProject) &&
-    (!fCategory || e.category === fCategory) &&
     (!fType || e.expense_type === fType) &&
     (!fSupplier || e.supplier_id === fSupplier) &&
     (!fStatus || e.payment_status === fStatus) &&
@@ -973,14 +968,14 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const activeFilterCount = [fProject, fCategory, fType, fSupplier, fStatus, dateFrom, dateTo, amountFrom, amountTo, search].filter(Boolean).length;
+  const activeFilterCount = [fProject, fType, fSupplier, fStatus, dateFrom, dateTo, amountFrom, amountTo, search].filter(Boolean).length;
 
   const projectName = (id: string) => db.projects.find(p => p.id === id)?.name || '--';
   const supplierName = (e: Expense) => e.supplier_id ? (db.suppliers.find(s => s.id === e.supplier_id)?.name || '--') : (e.supplier_name || '--');
 
   const handleExport = () => {
     const rows = filtered.map(e => ({
-      'Ngày chi': e.date, 'Tên công trình': projectName(e.project_id), 'Hạng mục': e.category || '',
+      'Ngày chi': e.date, 'Tên công trình': projectName(e.project_id),
       'Loại chi phí': e.expense_type, 'Nội dung chi': e.description, 'Tên nhà cung cấp': supplierName(e),
       'Số tiền': e.amount, 'Đã thanh toán': e.amount_paid, 'Trạng thái thanh toán': PAYMENT_STATUS_LABEL[e.payment_status].label,
       'Ghi chú': e.note || '',
@@ -991,7 +986,7 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
   const handleTemplate = () => {
     exportRowsToExcel([{
       'Ngày chi': todayStr(), 'Tên công trình': db.projects[0]?.name || 'Tên công trình',
-      'Hạng mục': '', 'Loại chi phí': db.getLookupLabels('expense_type')[0] || 'Khác',
+      'Loại chi phí': db.getLookupLabels('expense_type')[0] || 'Khác',
       'Nội dung chi': 'VD: Mua xi măng, sắt thép', 'Tên nhà cung cấp': '', 'Số tiền': 1000000,
       'Trạng thái thanh toán': 'Chưa thanh toán', 'Ghi chú': '',
     }], 'Mau_Chi_phi.xlsx', 'Mẫu Chi phí');
@@ -1007,7 +1002,7 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
       const statusLabel = String(r['Trạng thái thanh toán'] || '').trim().toLowerCase();
       valid.push({
         project_id: project.id, date: String(r['Ngày chi'] || todayStr()),
-        category: r['Hạng mục'] || null, expense_type: String(r['Loại chi phí'] || 'Khác'),
+        expense_type: String(r['Loại chi phí'] || 'Khác'),
         description: String(r['Nội dung chi'] || ''), supplier_name: r['Tên nhà cung cấp'] || null,
         amount: Number(r['Số tiền']) || 0, payment_status: STATUS_LABEL_TO_KEY[statusLabel] || 'unpaid',
         note: r['Ghi chú'] || null,
@@ -1052,10 +1047,6 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
             <option value="">Tất cả công trình</option>
             {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-          <select value={fCategory} onChange={e => { setFCategory(e.target.value); setPage(1); }} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
-            <option value="">Tất cả hạng mục</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
           <select value={fType} onChange={e => { setFType(e.target.value); setPage(1); }} className="px-2.5 py-2 border border-slate-200 rounded-lg text-xs">
             <option value="">Tất cả loại chi phí</option>
             {db.getLookupLabels('expense_type').map(t => <option key={t} value={t}>{t}</option>)}
@@ -1094,7 +1085,6 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
             <tr>
               <th className="text-left px-3 py-2.5 font-bold">Ngày</th>
               <th className="text-left px-3 py-2.5 font-bold">Công trình</th>
-              <th className="text-left px-3 py-2.5 font-bold">Hạng mục</th>
               <th className="text-left px-3 py-2.5 font-bold">Loại</th>
               <th className="text-left px-3 py-2.5 font-bold">Nội dung</th>
               <th className="text-left px-3 py-2.5 font-bold">NCC</th>
@@ -1109,7 +1099,6 @@ function ExpensesTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFina
               <tr key={e.id} className="hover:bg-slate-50">
                 <td className="px-3 py-2.5 whitespace-nowrap">{new Date(e.date).toLocaleDateString('vi-VN')}</td>
                 <td className="px-3 py-2.5">{projectName(e.project_id)}</td>
-                <td className="px-3 py-2.5 text-slate-500">{e.category || '--'}</td>
                 <td className="px-3 py-2.5 text-slate-500">{e.expense_type}</td>
                 <td className="px-3 py-2.5 max-w-[200px] truncate">{e.description}</td>
                 <td className="px-3 py-2.5 text-slate-500">{supplierName(e)}</td>
@@ -1207,7 +1196,6 @@ function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
   const [form, setForm] = useState({
     project_id: expense?.project_id || defaultProjectId || '',
     date: expense?.date || todayStr(),
-    category: expense?.category || '',
     expense_type: expense?.expense_type || '',
     description: expense?.description || '',
     supplier_id: expense?.supplier_id || '',
@@ -1220,7 +1208,6 @@ function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
   });
   const [saving, setSaving] = useState(false);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
-  const categories = db.projectCategories[form.project_id] || [];
   const expenseTypes = db.getLookupLabels('expense_type');
   const canSave = form.project_id && form.date && form.description.trim() && Number(form.amount) > 0;
 
@@ -1235,25 +1222,19 @@ function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
         <div className="p-5 space-y-3 max-h-[65vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Công trình *">
-              <select value={form.project_id} onChange={e => setForm(f => ({ ...f, project_id: e.target.value, category: '' }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+              <select value={form.project_id} onChange={e => setForm(f => ({ ...f, project_id: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
                 <option value="">-- Chọn --</option>
                 {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </Field>
             <Field label="Ngày chi *"><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" /></Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Hạng mục">
-              <input list="expense-categories" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Chọn công trình trước" />
-              <datalist id="expense-categories">{categories.map(c => <option key={c} value={c} />)}</datalist>
-            </Field>
-            <Field label="Loại chi phí *">
-              <select value={form.expense_type} onChange={e => setForm(f => ({ ...f, expense_type: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
-                <option value="">-- Chọn --</option>
-                {expenseTypes.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </Field>
-          </div>
+          <Field label="Loại chi phí *">
+            <select value={form.expense_type} onChange={e => setForm(f => ({ ...f, expense_type: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+              <option value="">-- Chọn --</option>
+              {expenseTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </Field>
           <Field label="Hạng mục BOQ (để cộng dồn vào Dự toán - Thực chi)">
             <select value={form.boq_item_id} onChange={e => setForm(f => ({ ...f, boq_item_id: e.target.value }))} disabled={!form.project_id} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm disabled:bg-slate-50">
               <option value="">-- Chưa gắn hạng mục BOQ --</option>
@@ -1295,7 +1276,7 @@ function ExpenseModal({ expense, db, boq, defaultProjectId, onClose, onSave }: {
         <ModalFooter onClose={onClose} disabled={!canSave} saving={saving} onSave={async () => {
           setSaving(true);
           await onSave({
-            project_id: form.project_id, date: form.date, category: form.category || null,
+            project_id: form.project_id, date: form.date,
             expense_type: form.expense_type, description: form.description,
             supplier_id: form.supplier_id || null, supplier_name: form.supplier_id ? null : (form.supplier_name || null),
             amount: Number(form.amount) || 0, payment_status: form.payment_status,
@@ -1647,6 +1628,7 @@ function FilterDock({
   onReset: () => void;
   children: React.ReactNode;
 }) {
+  const [expanded, setExpanded] = useState(false);
   return (
     <div className="sticky top-0 z-10 bg-white/95 backdrop-blur rounded-xl border border-slate-200 shadow-sm">
       <div className="flex flex-col lg:flex-row lg:items-center gap-3 p-3 border-b border-slate-100">
@@ -1669,15 +1651,24 @@ function FilterDock({
           />
         </div>
         <button
+          onClick={() => setExpanded(v => !v)}
+          className="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 whitespace-nowrap"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" /> Bộ lọc
+          {activeCount > 0 && <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px]">{activeCount}</span>}
+        </button>
+        <button
           onClick={onReset}
           className="px-3 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50 whitespace-nowrap"
         >
           Đặt lại{activeCount > 0 ? ` (${activeCount})` : ''}
         </button>
       </div>
-      <div className="p-3 flex flex-wrap gap-2">
-        {children}
-      </div>
+      {expanded && (
+        <div className="p-3 flex flex-wrap gap-2">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
