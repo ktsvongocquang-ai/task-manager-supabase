@@ -1784,7 +1784,8 @@ export const Construction = () => {
           onClose={() => setIsEditProjectOpen(false)}
           onSave={async (updates) => {
             const ok = await db.updateProject(selectedProject.id, {
-              project_code: updates.projectCode || null,
+              // project_code cố định sau khi tạo — EditProjectModal không có
+              // field này nên KHÔNG được gửi lên đây (từng bị set null mỗi lần sửa).
               name: updates.name,
               address: updates.address,
               owner_name: updates.ownerName,

@@ -51,7 +51,7 @@ function Donut({ data, height = 180 }: { data: { name: string; value: number; co
   );
 }
 
-function StatCard({ icon, label, value, tone = 'text-slate-800' }: { icon: React.ReactNode; label: string; value: string; tone?: string }) {
+export function StatCard({ icon, label, value, tone = 'text-slate-800' }: { icon: React.ReactNode; label: string; value: string; tone?: string }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-start gap-2.5">
       <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">{icon}</div>

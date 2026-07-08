@@ -107,18 +107,22 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
     if (!isOpen) return;
     reset();
     (async () => {
-      const [custRes, lookupRes, itemStatusRes, priorityRes, staffRes] = await Promise.all([
+      const [custRes, lookupRes, itemStatusRes, priorityRes, staffRes, codeRes] = await Promise.all([
         supabase.from('customers').select('id,name').order('name'),
         supabase.from('finance_lookups').select('label').eq('list_key', 'project_type').order('sort_order'),
         supabase.from('finance_lookups').select('label').eq('list_key', 'item_status').order('sort_order'),
         supabase.from('finance_lookups').select('label').eq('list_key', 'task_priority').order('sort_order'),
         supabase.from('profiles').select('id,full_name').order('full_name'),
+        supabase.rpc('peek_next_project_code'),
       ]);
       if (custRes.data) setCustomers(custRes.data as { id: string; name: string }[]);
       if (lookupRes.data) setProjectTypes((lookupRes.data as { label: string }[]).map(l => l.label));
       if (itemStatusRes.data?.length) setItemStatusOptions((itemStatusRes.data as { label: string }[]).map(l => l.label));
       if (priorityRes.data?.length) setPriorityOptions((priorityRes.data as { label: string }[]).map(l => l.label));
       if (staffRes.data) setStaff((staffRes.data as any[]).filter(p => p.full_name) as StaffOption[]);
+      // Mã công trình chỉ là GỢI Ý — người dùng có thể sửa trước khi lưu; sau
+      // khi lưu, không có form nào cho sửa lại field này nữa (cố định).
+      if (codeRes.data) setF('projectCode', codeRes.data as string);
     })();
   }, [isOpen]);
 
@@ -262,8 +266,8 @@ export function CreateProjectWizard({ isOpen, onClose, onCreate }: Props) {
                       <input className={`mt-1 ${inputCls}`} value={form.name} onChange={e => setF('name', e.target.value)} placeholder="VD: Nhà cô Lan - Q.7" />
                     </div>
                     <div>
-                      <label className={labelCls}>Mã công trình</label>
-                      <input className={`mt-1 ${inputCls}`} value={form.projectCode} onChange={e => setF('projectCode', e.target.value)} placeholder="CT-001" />
+                      <label className={labelCls}>Mã công trình <span className="text-slate-400 font-normal normal-case">(cố định sau khi lưu)</span></label>
+                      <input className={`mt-1 ${inputCls}`} value={form.projectCode} onChange={e => setF('projectCode', e.target.value)} placeholder="CT0001" />
                     </div>
                     <div>
                       <label className={labelCls}>Loại công trình</label>

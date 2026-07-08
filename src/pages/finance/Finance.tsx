@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, ClipboardCheck, Link2 } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, ClipboardCheck, Link2, Receipt, PiggyBank, CreditCard, Layers, ListTree, ChevronRight, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
+import { useBoqData, type BoqItem, type BoqNode, type BoqRowType } from '../../hooks/useBoqData';
+import { StatCard } from '../construction/ProjectDossierModal';
 import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
 
-type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'RECONCILIATION' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
+type FinanceTab = 'DASHBOARD' | 'PROJECTS' | 'BOQ' | 'RECONCILIATION' | 'PARTNERS' | 'EXPENSES' | 'INCOMES' | 'CATEGORIES';
 
 const PAYMENT_STATUS_LABEL: Record<PaymentStatus, { label: string; bg: string }> = {
   unpaid: { label: 'Chưa thanh toán', bg: 'bg-slate-100 text-slate-600' },
@@ -124,6 +126,7 @@ export const Finance = () => {
   const [searchParams] = useSearchParams();
   const projectFilter = searchParams.get('project');
   const db = useFinanceData();
+  const boq = useBoqData();
   const [tab, setTab] = useState<FinanceTab>(projectFilter ? 'PROJECTS' : 'DASHBOARD');
 
   useEffect(() => { db.loadAll(); }, [db.loadAll]);
@@ -131,6 +134,7 @@ export const Finance = () => {
   const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
     { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
+    { id: 'BOQ', label: 'BOQ / Dự toán - Thực chi', icon: <ListTree className="w-4 h-4" /> },
     { id: 'RECONCILIATION', label: 'Đối chứng', icon: <ClipboardCheck className="w-4 h-4" /> },
     { id: 'PARTNERS', label: 'Khách hàng / NCC', icon: <Users className="w-4 h-4" /> },
     { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
@@ -178,7 +182,8 @@ export const Finance = () => {
           {tab === 'DASHBOARD' && <Dashboard db={db} />}
           {/* Các tab còn lại luôn được mount, chỉ ẩn/hiện bằng CSS — tránh unmount/remount làm
               mất bộ lọc, ô tìm kiếm, trang đang xem mỗi lần người dùng đổi qua tab khác rồi quay lại. */}
-          <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} projectFilter={projectFilter} /></div>
+          <div className={tab === 'PROJECTS' ? '' : 'hidden'}><ProjectFinanceTab db={db} boq={boq} projectFilter={projectFilter} onOpenBoq={() => setTab('BOQ')} /></div>
+          <div className={tab === 'BOQ' ? '' : 'hidden'}><BoqTab db={db} boq={boq} projectFilter={projectFilter} /></div>
           <div className={tab === 'RECONCILIATION' ? '' : 'hidden'}><AccountingReconciliationTab db={db} projectFilter={projectFilter} /></div>
           <div className={tab === 'PARTNERS' ? '' : 'hidden'}><PartnersTab db={db} /></div>
           <div className={tab === 'EXPENSES' ? '' : 'hidden'}><ExpensesTab db={db} projectFilter={projectFilter} /></div>
@@ -352,7 +357,7 @@ function EmptyChart() {
 // PROJECT FINANCE DETAIL
 // ═══════════════════════════════════════════════════════════
 
-function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFinanceData>; projectFilter: string | null }) {
+function ProjectFinanceTab({ db, boq, projectFilter, onOpenBoq }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null; onOpenBoq: () => void }) {
   const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
   const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
   const finance = project ? db.getProjectFinance(project.id) : null;
@@ -362,6 +367,8 @@ function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFin
   const cashflow = project ? db.getUpcomingCashflow(30).filter(i => i.project_id === project.id) : [];
   const paidMilestoneAmount = milestones.filter(m => m.payment_status === 'paid').reduce((s, m) => s + (m.payment_amount || 0), 0);
   const totalMilestoneAmount = milestones.reduce((s, m) => s + (m.payment_amount || 0), 0);
+
+  useEffect(() => { if (project) boq.loadBoqItems(project.id); }, [project?.id]);
 
   if (!project || !finance) {
     return <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">Chưa có công trình để xem tài chính.</div>;
@@ -376,16 +383,16 @@ function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFin
     })
     .filter(x => x.expenseCount > 0);
 
-  const projectCards = [
-    { label: 'Giá trị hợp đồng', value: fmt(finance.contract), color: 'text-slate-800' },
-    { label: 'Đã thu', value: fmt(finance.income), color: 'text-emerald-600' },
-    { label: 'Còn phải thu', value: fmt(finance.debt), color: 'text-amber-600' },
-    { label: 'Chi phí', value: fmt(finance.cost), color: 'text-rose-600' },
-    { label: 'Đã trả NCC', value: fmt(finance.supplierPaid), color: 'text-indigo-600' },
-    { label: 'Còn phải trả NCC', value: fmt(finance.payable), color: 'text-amber-600' },
-    { label: 'Lợi nhuận dự kiến', value: fmt(finance.profit), color: finance.profit >= 0 ? 'text-emerald-600' : 'text-rose-600' },
-    { label: 'Dòng tiền thực', value: fmt(finance.cashflow), color: finance.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600' },
-  ];
+  // Số thực chi chưa VAT dùng amount_ex_vat nếu kế toán đã tách VAT (Phase 2),
+  // fallback về amount (số cũ) cho các khoản chưa tách — đúng nguyên tắc
+  // "chi phí chưa VAT dùng để tính lợi nhuận".
+  const actualExVat = expenses.reduce((s, e) => s + ((e as any).amount_ex_vat ?? e.amount ?? 0), 0);
+  const vatTotal = expenses.reduce((s, e) => s + ((e as any).vat_amount || 0), 0);
+  const actualIncVat = actualExVat + vatTotal;
+  const boqSummary = boq.getProjectBoqSummary(project.id);
+  const plannedSpend = boqSummary.contract; // "Tổng kế hoạch chi" = Tổng BOQ ở Phase 1 (chưa có luồng duyệt đề xuất chi riêng — Phase 2/3)
+  const profitPlanned = finance.contract - plannedSpend;
+  const profitActual = finance.contract - actualExVat;
 
   return (
     <div className="space-y-4">
@@ -394,13 +401,30 @@ function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFin
           <p className="text-[10px] text-slate-400 font-bold uppercase">Tài chính công trình</p>
           <h2 className="text-lg font-bold text-slate-800">{project.name}</h2>
         </div>
+        <button onClick={onOpenBoq} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">
+          <ListTree className="w-3.5 h-3.5" /> Xem BOQ chi tiết
+        </button>
         <select value={project.id} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm min-w-[260px]">
           {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {projectCards.map((card, i) => <SummaryCard key={i} label={card.label} value={card.value} color={card.color} />)}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        <StatCard icon={<Wallet className="w-4 h-4 text-slate-600" />} label="Giá trị hợp đồng" value={fmt(finance.contract)} />
+        <StatCard icon={<Layers className="w-4 h-4 text-indigo-500" />} label="Tổng BOQ / Thành tiền HĐ" value={fmt(boqSummary.contract)} />
+        <StatCard icon={<ClipboardCheck className="w-4 h-4 text-indigo-500" />} label="Tổng kế hoạch chi" value={fmt(plannedSpend)} />
+        <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi chưa VAT" value={fmt(actualExVat)} tone="text-rose-600" />
+        <StatCard icon={<Receipt className="w-4 h-4 text-amber-500" />} label="VAT đầu vào" value={fmt(vatTotal)} />
+        <StatCard icon={<TrendingDown className="w-4 h-4 text-rose-500" />} label="Thực chi có VAT" value={fmt(actualIncVat)} tone="text-rose-600" />
+        <StatCard icon={<CreditCard className="w-4 h-4 text-indigo-500" />} label="Đã thanh toán NCC" value={fmt(finance.supplierPaid)} tone="text-indigo-600" />
+        <StatCard icon={<AlertTriangle className="w-4 h-4 text-amber-500" />} label="Còn phải trả NCC" value={fmt(finance.payable)} tone="text-amber-600" />
+        <StatCard icon={<TrendingUp className="w-4 h-4 text-emerald-500" />} label="Đã thu khách" value={fmt(finance.income)} tone="text-emerald-600" />
+        <StatCard icon={<CalendarClock className="w-4 h-4 text-amber-500" />} label="Còn phải thu khách" value={fmt(finance.debt)} tone="text-amber-600" />
+        <StatCard icon={<TrendingUp className="w-4 h-4 text-sky-500" />} label="Thu vượt" value={fmt(finance.over)} tone="text-sky-600" />
+        <StatCard icon={<PiggyBank className="w-4 h-4 text-slate-400" />} label="Tạm ứng tồn" value="— (Phase 2)" tone="text-slate-400" />
+        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận dự kiến" value={fmt(profitPlanned)} tone={profitPlanned >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
+        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận thực tế" value={fmt(profitActual)} tone={profitActual >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
+        <StatCard icon={<Wallet className="w-4 h-4" />} label="Dòng tiền hiện tại" value={fmt(finance.cashflow)} tone={finance.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -480,6 +504,251 @@ function ProjectFinanceTab({ db, projectFilter }: { db: ReturnType<typeof useFin
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOQ / DỰ TOÁN - THỰC CHI
+// ═══════════════════════════════════════════════════════════
+
+const DOCUMENT_STATUS_LABEL: Record<string, string> = {
+  missing: 'Thiếu chứng từ', uploaded: 'Đã tải lên', verified: 'Đã xác minh', invalid: 'Không hợp lệ',
+};
+const INVOICE_STATUS_LABEL: Record<string, string> = {
+  no_vat: 'Không VAT', waiting_invoice: 'Chờ hoá đơn', has_invoice: 'Có hoá đơn',
+  invalid_invoice: 'Hoá đơn sai', no_invoice: 'Chưa có hoá đơn',
+};
+function BoqTab({ db, boq, projectFilter }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; projectFilter: string | null }) {
+  const [selectedProjectId, setSelectedProjectId] = useState(projectFilter || db.projects[0]?.id || '');
+  const project = db.projects.find(p => p.id === selectedProjectId) || db.projects[0];
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [newGroupName, setNewGroupName] = useState('');
+
+  useEffect(() => { if (project) boq.loadBoqItems(project.id); }, [project?.id]);
+
+  if (!project) {
+    return <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">Chưa có công trình để xem BOQ.</div>;
+  }
+
+  const tree = boq.getBoqTree(project.id);
+  const toggleCollapsed = (id: string) => setCollapsed(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const handleAddGroup = async () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    await boq.createBoqGroup(project.id, name);
+    setNewGroupName('');
+  };
+
+  const handleAddChild = async (parent: BoqItem, childType: BoqRowType) => {
+    if (childType === 'subgroup') {
+      const name = prompt('Tên nhóm con:');
+      if (!name?.trim()) return;
+      await boq.createBoqSubgroup(project.id, parent, name.trim());
+    } else {
+      await boq.createBoqItemRow(project.id, parent, {});
+    }
+    setCollapsed(prev => { const next = new Set(prev); next.delete(parent.id); return next; });
+  };
+
+  const handleDelete = async (item: BoqItem) => {
+    if (!confirm(`Xoá "${item.item_name || item.item_code}"?`)) return;
+    const res = await boq.deleteBoqItem(item.id);
+    if (!res.success) alert(res.error || 'Không xoá được.');
+  };
+
+  const commitField = (item: BoqItem, field: keyof BoqItem, raw: string) => {
+    let value: any = raw;
+    if (field === 'estimated_quantity' || field === 'quoted_unit_price') {
+      value = raw === '' ? null : Number(raw.replace(/[^\d.-]/g, ''));
+      if (value !== null && Number.isNaN(value)) return;
+    } else if (field === 'supplier_id') {
+      value = raw === '' ? null : raw; // uuid column — '' would error, must be null
+    }
+    if (value === (item as any)[field]) return;
+    boq.updateBoqItem(item.id, { [field]: value } as Partial<BoqItem>);
+  };
+
+  const exportBoqTemplate = () => {
+    exportRowsToExcel([
+      { 'Mã dòng': 'A', 'Cấp': 0, 'Loại dòng': 'group', 'Tên hạng mục': 'Phần thô', 'ĐVT': '', 'KL dự toán': '', 'Đơn giá báo giá': '', 'Ghi chú': '' },
+      { 'Mã dòng': 'A.1', 'Cấp': 1, 'Loại dòng': 'item', 'Tên hạng mục': 'Tháo dỡ đồ gỗ cũ', 'ĐVT': 'm2', 'KL dự toán': 100, 'Đơn giá báo giá': 50000, 'Ghi chú': '' },
+    ], `Mau_BOQ_${project.name}.xlsx`, 'Mau BOQ');
+  };
+
+  const renderRow = (node: BoqNode): React.ReactNode => {
+    const isGroup = node.row_type !== 'item';
+    const isCollapsed = collapsed.has(node.id);
+    const overBudget = node.actualCostExVat > node.contractAmount && node.contractAmount > 0;
+    const nearLimit = !overBudget && node.pctSpent > 80;
+    const rowBg = overBudget ? 'bg-rose-50' : nearLimit ? 'bg-amber-50' : 'bg-white';
+    const indent = node.level * 16;
+
+    return (
+      <React.Fragment key={node.id}>
+        <tr className={`${rowBg} hover:bg-slate-50 border-b border-slate-100 group`}>
+          <td className="sticky left-0 z-10 bg-inherit px-3 py-2 min-w-[260px]" style={{ paddingLeft: 12 + indent }}>
+            <div className="flex items-center gap-1.5">
+              {node.children.length > 0 ? (
+                <button onClick={() => toggleCollapsed(node.id)} className="shrink-0 text-slate-400 hover:text-slate-600">
+                  {isCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronDownIcon className="w-3.5 h-3.5" />}
+                </button>
+              ) : <span className="w-3.5 shrink-0" />}
+              <span className="text-[10px] font-mono text-slate-400 shrink-0">{node.item_code}</span>
+              {isGroup ? (
+                <input
+                  key={`${node.id}-name`} defaultValue={node.item_name}
+                  onBlur={e => commitField(node, 'item_name', e.target.value)}
+                  className="text-xs font-bold text-slate-700 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none min-w-[120px]"
+                />
+              ) : (
+                <input
+                  key={`${node.id}-name`} defaultValue={node.item_name}
+                  onBlur={e => commitField(node, 'item_name', e.target.value)}
+                  placeholder="Tên công việc"
+                  className="text-xs text-slate-700 bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none min-w-[140px]"
+                />
+              )}
+            </div>
+          </td>
+          <td className="px-2 py-2 text-[11px] text-slate-500 whitespace-nowrap">
+            {!isGroup && (
+              <input key={`${node.id}-unit`} defaultValue={node.unit || ''} onBlur={e => commitField(node, 'unit', e.target.value)}
+                className="w-14 text-xs bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none" />
+            )}
+          </td>
+          <td className="px-2 py-2 text-right text-xs whitespace-nowrap">
+            {!isGroup && (
+              <input key={`${node.id}-qty`} type="text" defaultValue={node.estimated_quantity ?? ''} onBlur={e => commitField(node, 'estimated_quantity', e.target.value)}
+                className="w-20 text-xs text-right bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none" />
+            )}
+          </td>
+          <td className="px-2 py-2 text-right text-xs whitespace-nowrap">
+            {!isGroup && (
+              <input key={`${node.id}-price`} type="text" defaultValue={node.quoted_unit_price ?? ''} onBlur={e => commitField(node, 'quoted_unit_price', e.target.value)}
+                className="w-24 text-xs text-right bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none" />
+            )}
+          </td>
+          <td className="px-2 py-2 text-right text-xs font-bold text-slate-700 whitespace-nowrap">{fmt(node.contractAmount)}</td>
+          <td className="px-2 py-2 text-right text-[11px] text-slate-400 whitespace-nowrap">—</td>
+          <td className="px-2 py-2 text-right text-[11px] text-slate-400 whitespace-nowrap">—</td>
+          <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostExVat)}</td>
+          <td className="px-2 py-2 text-right text-xs text-amber-600 whitespace-nowrap">{fmt(node.vatAmount)}</td>
+          <td className="px-2 py-2 text-right text-xs text-rose-600 whitespace-nowrap">{fmt(node.actualCostIncVat)}</td>
+          <td className="px-2 py-2 text-right text-xs text-indigo-600 whitespace-nowrap">{fmt(node.paidAmount)}</td>
+          <td className="px-2 py-2 text-right text-xs text-amber-600 whitespace-nowrap">{fmt(node.payableAmount)}</td>
+          <td className={`px-2 py-2 text-right text-xs font-bold whitespace-nowrap ${node.variance >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(node.variance)}</td>
+          <td className={`px-2 py-2 text-right text-xs font-bold whitespace-nowrap ${overBudget ? 'text-rose-600' : nearLimit ? 'text-amber-600' : 'text-slate-500'}`}>
+            {node.contractAmount > 0 ? `${node.pctSpent.toFixed(0)}%` : '—'}
+          </td>
+          <td className="px-2 py-2 text-xs whitespace-nowrap">
+            {!isGroup && (
+              <select value={node.supplier_id || ''} onChange={e => commitField(node, 'supplier_id', e.target.value)} className="text-[11px] bg-transparent outline-none max-w-[100px]">
+                <option value="">—</option>
+                {db.suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            )}
+          </td>
+          <td className="px-2 py-2 text-xs whitespace-nowrap">
+            {!isGroup && (
+              <select value={node.document_status} onChange={e => commitField(node, 'document_status', e.target.value)} className="text-[11px] bg-transparent outline-none">
+                {Object.entries(DOCUMENT_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            )}
+          </td>
+          <td className="px-2 py-2 text-xs whitespace-nowrap">
+            {!isGroup && (
+              <select value={node.invoice_status} onChange={e => commitField(node, 'invoice_status', e.target.value)} className="text-[11px] bg-transparent outline-none">
+                {Object.entries(INVOICE_STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            )}
+          </td>
+          <td className="px-2 py-2 text-xs whitespace-nowrap">
+            <input key={`${node.id}-note`} defaultValue={node.note || ''} onBlur={e => commitField(node, 'note', e.target.value)}
+              className="w-24 text-[11px] bg-transparent border-b border-transparent hover:border-slate-200 focus:border-indigo-400 outline-none" />
+          </td>
+          <td className="sticky right-0 z-10 bg-inherit px-2 py-2 whitespace-nowrap">
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {node.row_type === 'group' && (
+                <button onClick={() => handleAddChild(node, 'subgroup')} title="Thêm nhóm con" className="p-1 text-indigo-500 hover:bg-indigo-50 rounded"><Plus className="w-3.5 h-3.5" /></button>
+              )}
+              {isGroup && (
+                <button onClick={() => handleAddChild(node, 'item')} title="Thêm công việc" className="p-1 text-emerald-500 hover:bg-emerald-50 rounded"><ListTree className="w-3.5 h-3.5" /></button>
+              )}
+              <button onClick={() => handleDelete(node)} title="Xoá" className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-3.5 h-3.5" /></button>
+            </div>
+          </td>
+        </tr>
+        {!isCollapsed && node.children.map(renderRow)}
+      </React.Fragment>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="flex-1">
+          <p className="text-[10px] text-slate-400 font-bold uppercase">BOQ / Dự toán - Thực chi</p>
+          <h2 className="text-lg font-bold text-slate-800">{project.name}</h2>
+        </div>
+        <button onClick={exportBoqTemplate} className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">
+          <FileSpreadsheet className="w-3.5 h-3.5" /> Mẫu Excel
+        </button>
+        <select value={project.id} onChange={e => setSelectedProjectId(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-lg text-sm min-w-[260px]">
+          {db.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-center gap-2">
+        <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddGroup()}
+          placeholder="Tên nhóm hạng mục mới (vd: Phần thô, Phần hoàn thiện...)"
+          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs" />
+        <button onClick={handleAddGroup} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
+          <Plus className="w-3.5 h-3.5" /> Thêm nhóm
+        </button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table className="min-w-[1600px] w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Hạng mục công việc</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">ĐVT</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">KL dự toán</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đơn giá báo giá</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Thành tiền HĐ</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">KL thực tế</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đơn giá thực chi</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí chưa VAT</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">VAT</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chi phí có VAT</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Đã thanh toán</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Còn phải trả</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chênh lệch</th>
+              <th className="px-2 py-2 text-right text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">% chi/HĐ</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">NCC</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Chứng từ</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">VAT hoá đơn</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Ghi chú</th>
+              <th className="sticky right-0 z-20 bg-slate-50 px-2 py-2 text-[10px] font-bold text-slate-500 uppercase whitespace-nowrap">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tree.map(renderRow)}
+            {tree.length === 0 && (
+              <tr><td colSpan={19} className="text-center text-xs text-slate-400 py-10">Chưa có hạng mục BOQ nào — bấm "Thêm nhóm" ở trên để bắt đầu.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[11px] text-slate-400">
+        Cột "KL thực tế" / "Đơn giá thực chi" và các cảnh báo "Chưa phân bổ" sẽ có ở Phase 2 khi luồng Chi phí thực tế gắn trực tiếp vào từng dòng BOQ.
+      </p>
     </div>
   );
 }
