@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List, Layers
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List, Layers, Receipt
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,6 +18,7 @@ import { ProjectManagementAIModule } from './ProjectManagement';
 import { CreateProjectWizard } from './CreateProjectWizard';
 import { ProjectsListView } from './ProjectsListView';
 import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModal';
+import { QuickExpenseModal } from './QuickExpenseModal';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { aiConstructionService } from '../../services/aiConstructionService';
@@ -1192,6 +1193,7 @@ export const Construction = () => {
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
   const [isWorkflowOpen, setIsWorkflowOpen] = useState(false);
+  const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
 
   const showToast = useCallback((message: string, type: ToastType = 'success') => setToast({ message, type }), []);
 
@@ -1425,6 +1427,13 @@ export const Construction = () => {
               </select>
               <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+          )}
+          {/* Ghi chi phí nhanh — cho Quản lý thi công/Giám Sát ghi chi phí ngay
+              tại công trường, không cần vào trang Tài chính riêng */}
+          {['Admin', 'Quản lý thi công', 'Giám Sát'].includes(profile?.role || '') && (
+            <button onClick={() => setIsQuickExpenseOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors shrink-0 h-[36px]">
+              <Receipt className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ghi chi phí nhanh</span>
+            </button>
           )}
           {/* Search */}
           {userRole !== 'HOMEOWNER' && (
@@ -1740,6 +1749,14 @@ export const Construction = () => {
           return res;
         }}
       />
+
+      {isQuickExpenseOpen && (
+        <QuickExpenseModal
+          projectId={selectedProject.id}
+          onClose={() => setIsQuickExpenseOpen(false)}
+          onSaved={(message) => showToast(message, 'success')}
+        />
+      )}
 
       <ImportQuotationModal
         isOpen={isQuotationModalOpen}
