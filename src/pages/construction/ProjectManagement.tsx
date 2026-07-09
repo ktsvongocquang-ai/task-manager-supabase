@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, memo } from 'react';
 import { supabase } from '../../services/supabase';
 import { parseISO, format, addDays, differenceInDays, startOfDay, isValid } from 'date-fns';
 import type { CTask, TaskStatus } from './types';
@@ -757,6 +757,8 @@ export function ProjectManagementAIModule({
   const [pendingReassign, setPendingReassign] = useState<{ from: string; count: number }[] | null>(null);
   const [reassignTargets, setReassignTargets] = useState<Record<string, string>>({});
   const ganttRef = useRef<HTMLDivElement>(null);
+  // Bảo toàn scroll position của Gantt khi selectedId thay đổi (mở/đóng panel checklist)
+  const ganttScrollRef = useRef<{ left: number; top: number }>({ left: 0, top: 0 });
   // Ref tracks pending local edits per task ID — always current, no stale closure issues
   const pendingEditsRef = useRef<Record<string, Partial<CTask>>>({});
   const tempTasksRef = useRef<CTask[]>([]);
@@ -834,6 +836,32 @@ export function ProjectManagementAIModule({
 
   const tasks = displayTasks;
   const selectedTask = tasks.find(t => t.id === selectedId) || null;
+
+  // Lưu scroll trước khi mở panel, restore sau khi re-render
+  const handleSelect = useCallback((id: string) => {
+    // Lưu scroll position hiện tại của Gantt wrapper
+    const el = ganttRef.current;
+    if (el) {
+      // Lấy phần tử overflow-auto thực (div bên trong, chứa table)
+      const scroller = el.querySelector('[style*="maxHeight"]') as HTMLElement | null || el;
+      ganttScrollRef.current = { left: scroller.scrollLeft, top: scroller.scrollTop };
+    }
+    setSelectedId(id);
+  }, []);
+
+  // Restore scroll sau khi panel mở (sau khi React commit re-render)
+  useEffect(() => {
+    if (!selectedId) return;
+    const el = ganttRef.current;
+    if (!el) return;
+    const scroller = el.querySelector('[style*="maxHeight"]') as HTMLElement | null || el;
+    const { left, top } = ganttScrollRef.current;
+    // requestAnimationFrame để đảm bảo DOM đã commit xong
+    requestAnimationFrame(() => {
+      scroller.scrollLeft = left;
+      scroller.scrollTop = top;
+    });
+  }, [selectedId]);
 
   // Load this project's saved Workflow flow (category order) once tasks are known.
   // Falls back to the order categories first appear in the loaded tasks.
@@ -1238,12 +1266,16 @@ export function ProjectManagementAIModule({
         </div>
       </div>
 
-      {/* Gantt */}
-      <div ref={ganttRef} className="overflow-x-auto rounded-xl print:overflow-visible print:border-none">
+      {/* Gantt — wrap trong div để bảo toàn scroll khi panel mở */}
+      <div
+        ref={ganttRef}
+        className="overflow-x-auto rounded-xl print:overflow-visible print:border-none"
+        style={{ contain: 'layout' }}
+      >
         <ConstructionGantt
           tasks={tasks}
           selectedId={selectedId}
-          onSelect={id => setSelectedId(id)}
+          onSelect={handleSelect}
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onCreateTask={handleCreateTask}          onReorderTasks={reordered => setDisplayTasks(reordered)}
