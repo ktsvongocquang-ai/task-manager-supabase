@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, Receipt, CreditCard, Layers, ListTree, ChevronRight, ChevronDown as ChevronDownIcon } from 'lucide-react';
+import { DollarSign, Users, Plus, Trash2, X, Search, Wallet, TrendingUp, TrendingDown, Truck, Download, Upload, FileSpreadsheet, SlidersHorizontal, CalendarClock, CheckCircle2, AlertTriangle, FolderKanban, RefreshCw, Settings, Receipt, CreditCard, Layers, ListTree, ChevronRight, ChevronDown as ChevronDownIcon, ClipboardPaste } from 'lucide-react';
 import { useFinanceData, type Customer, type Supplier, type Expense, type Income, type PaymentStatus } from '../../hooks/useFinanceData';
 import { useBoqData, type BoqItem, type BoqNode, type BoqRowType } from '../../hooks/useBoqData';
 import { StatCard } from '../construction/ProjectDossierModal';
 import { QuickExpenseModal } from '../construction/QuickExpenseModal';
+import { BoqJsonImportModal } from './BoqJsonImportModal';
 import { fmt } from '../construction/types';
 import { Pagination } from '../../components/Pagination';
 import { readExcelFile, exportRowsToExcel } from '../../utils/excelIO';
@@ -49,33 +50,40 @@ export const Finance = () => {
 
   useEffect(() => { db.loadAll(); }, [db.loadAll]);
 
-  const tabs: { id: FinanceTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'DASHBOARD', label: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'PROJECTS', label: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
-    { id: 'PARTNERS', label: 'Khách hàng / NCC', icon: <Users className="w-4 h-4" /> },
-    { id: 'EXPENSES', label: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
-    { id: 'INCOMES', label: 'Thu tiền', icon: <Wallet className="w-4 h-4" /> },
+  const tabs: { id: FinanceTab; label: string; shortLabel: string; icon: React.ReactNode }[] = [
+    { id: 'DASHBOARD', label: 'Tổng quan', shortLabel: 'Tổng quan', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'PROJECTS', label: 'Công trình', shortLabel: 'Công trình', icon: <FolderKanban className="w-4 h-4" /> },
+    { id: 'PARTNERS', label: 'Khách hàng / NCC', shortLabel: 'Đối tác', icon: <Users className="w-4 h-4" /> },
+    { id: 'EXPENSES', label: 'Chi phí', shortLabel: 'Chi phí', icon: <TrendingDown className="w-4 h-4" /> },
+    { id: 'INCOMES', label: 'Thu tiền', shortLabel: 'Thu tiền', icon: <Wallet className="w-4 h-4" /> },
   ];
 
   return (
     <div className="p-4 sm:p-6 max-w-[1500px] mx-auto flex flex-col h-full min-h-0 w-full">
-      <div className="flex-none space-y-4 mb-4">
+      <div className="flex-none space-y-3 mb-4">
         <div className="flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-indigo-500" />
           <h1 className="text-lg font-bold text-slate-800">Tài chính</h1>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-fit flex-wrap">
+        {/* Tab bar: flex-1 per tab, full-width — không cần scroll trên mobile */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 flex bg-slate-100 p-1 rounded-xl w-full">
             {tabs.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg transition-all ${tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                {t.icon} {t.label}
+                className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-0.5 sm:flex-row sm:gap-1.5 sm:px-3.5 sm:py-2 rounded-lg transition-all ${
+                  tab === t.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}>
+                <span className="flex-none">{t.icon}</span>
+                <span className="text-[9px] sm:text-xs font-bold leading-none truncate">
+                  <span className="sm:hidden">{t.shortLabel}</span>
+                  <span className="hidden sm:inline">{t.label}</span>
+                </span>
               </button>
             ))}
           </div>
           <button onClick={() => setTab('CATEGORIES')} title="Danh mục"
-            className={`p-2.5 rounded-xl transition-all ${tab === 'CATEGORIES' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`}>
+            className={`flex-none p-2.5 rounded-xl transition-all ${tab === 'CATEGORIES' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-700'}`}>
             <Settings className="w-4 h-4" />
           </button>
         </div>
@@ -228,9 +236,9 @@ function Dashboard({ db }: { db: ReturnType<typeof useFinanceData> }) {
               <div key={a.id} className="border border-amber-100 bg-amber-50/50 rounded-lg p-3">
                 <p className="text-xs font-bold text-slate-800">{a.title}</p>
                 <p className="text-[10px] text-slate-500 mt-1 line-clamp-2">{a.detail}</p>
-                <div className="flex justify-end gap-1 mt-2">
-                  <button onClick={() => db.updateFinanceApproval(a.id, 'rejected')} className="px-2 py-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded">Từ chối</button>
-                  <button onClick={() => db.approveFinanceProposal(a.id)} className="px-2 py-1 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 rounded">Duyệt + tạo chi</button>
+                <div className="flex justify-end gap-2 mt-3">
+                  <button onClick={() => db.updateFinanceApproval(a.id, 'rejected')} className="px-3 py-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">Từ chối</button>
+                  <button onClick={() => db.approveFinanceProposal(a.id)} className="px-3 py-2 text-xs font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">Duyệt ✓</button>
                 </div>
               </div>
             ))}
@@ -447,6 +455,7 @@ function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof u
 function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceData>; boq: ReturnType<typeof useBoqData>; project: ReturnType<typeof useFinanceData>['projects'][number] }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [newGroupName, setNewGroupName] = useState('');
+  const [showJsonImport, setShowJsonImport] = useState(false);
 
   useEffect(() => { if (project) boq.loadBoqItems(project.id); }, [project?.id]);
 
@@ -592,7 +601,10 @@ function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceD
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2 flex-wrap">
+        <button onClick={() => setShowJsonImport(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">
+          <ClipboardPaste className="w-3.5 h-3.5" /> Nhập BOQ
+        </button>
         <button onClick={exportBoqTemplate} className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors">
           <FileSpreadsheet className="w-3.5 h-3.5" /> Mẫu Excel
         </button>
@@ -637,6 +649,17 @@ function BoqTabContent({ db, boq, project }: { db: ReturnType<typeof useFinanceD
       <p className="text-[11px] text-slate-400">
         Cột "Chi phí/Đã thanh toán" chỉ có số khi ghi chi phí (Chi phí thực tế / Ghi chi phí nhanh) và chọn đúng hạng mục BOQ tương ứng — nếu chưa gắn thì hạng mục đó luôn hiện 0.
       </p>
+      {showJsonImport && (
+        <BoqJsonImportModal
+          projectName={project.name}
+          onClose={() => setShowJsonImport(false)}
+          onImport={async payload => {
+            const res = await boq.importBoqFromJson(project.id, payload);
+            if (res.success) setShowJsonImport(false);
+            return res;
+          }}
+        />
+      )}
     </div>
   );
 }

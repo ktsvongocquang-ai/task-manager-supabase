@@ -31,7 +31,7 @@ export const Projects = () => {
         link_hien_trang: '', link_du_an: '', link_presentation: '',
     })
 
-    const [unifiedProjectData, setUnifiedProjectData] = useState<{ project: Project, tab: 'tasks' | 'info' | 'timeline' } | null>(null)
+    const [unifiedProjectData, setUnifiedProjectData] = useState<{ project: Project, tab: 'dashboard' | 'tasks' | 'info' | 'timeline' } | null>(null)
     const [showTaskModal, setShowTaskModal] = useState(false)
     const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '', parent_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -178,7 +178,7 @@ export const Projects = () => {
         setShowModal(true)
     }
 
-    const openUnifiedModal = (p: Project, tab: 'tasks' | 'info' | 'timeline') => {
+    const openUnifiedModal = (p: Project, tab: 'dashboard' | 'tasks' | 'info' | 'timeline' = 'dashboard') => {
         setEditingProject(p)
         // Parse KPI fields from other_info
         let kpiBudget = 0, kpiScale = '', kpiProjectType = '';
@@ -625,7 +625,7 @@ export const Projects = () => {
                 {filteredProjects.map((project) => {
                     const progress = getProjectProgress(project.id);
                     return (
-                        <div key={project.id} onClick={() => openUnifiedModal(project, 'tasks')} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
+                        <div key={project.id} onClick={() => openUnifiedModal(project, 'dashboard')} className="glass-card p-6 shadow-sm hover:shadow-xl transition-all relative group transform hover:-translate-y-1 cursor-pointer">
                             {/* Progress Bar Top */}
                             <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100 rounded-t-2xl overflow-hidden">
                                 <div className={`h-full transition-all duration-500 ease-out ${progress === 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${progress}%` }}></div>

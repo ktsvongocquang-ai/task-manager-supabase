@@ -42,6 +42,37 @@ export interface BoqNode extends BoqItem {
   pctSpent: number;
 }
 
+export interface BoqImportItem {
+  code?: string | null;
+  name: string;
+  unit?: string | null;
+  quantity?: number | null;
+  quote_unit_price?: number | null;
+  quoted_unit_price?: number | null;
+  quote_amount?: number | null;
+  note?: string | null;
+}
+
+export interface BoqImportGroup {
+  code?: string | null;
+  name: string;
+  items?: BoqImportItem[];
+}
+
+export interface BoqImportPayload {
+  project_name?: string | null;
+  currency?: string | null;
+  source_type?: string | null;
+  boq_groups: BoqImportGroup[];
+  warnings?: string[];
+}
+
+export interface BoqImportResult {
+  success: boolean;
+  created: number;
+  error?: string;
+}
+
 interface LinkedExpense {
   amount: number | null;
   amount_ex_vat: number | null;
@@ -124,6 +155,121 @@ export const useBoqData = () => {
       project_id: projectId, row_type: 'item', level: parent.level + 1, item_code: code,
       item_name: '', parent_item_id: parent.id, ...fields,
     });
+  };
+
+  const importBoqFromJson = async (projectId: string, payload: BoqImportPayload): Promise<BoqImportResult> => {
+    const groups = Array.isArray(payload?.boq_groups) ? payload.boq_groups : [];
+    if (!groups.length) return { success: false, created: 0, error: 'JSON không có boq_groups.' };
+
+    const rows: Array<Partial<BoqItem> & {
+      project_id: string;
+      item_code: string;
+      row_type: BoqRowType;
+      item_name: string;
+      level: number;
+      parent_item_id: string | null;
+    }> = [];
+    let sortOrder = 0;
+
+    groups.forEach((group, groupIndex) => {
+      const groupCode = (group.code || String.fromCharCode(65 + groupIndex)).trim();
+      rows.push({
+        project_id: projectId,
+        item_code: groupCode,
+        row_type: 'group',
+        item_name: (group.name || `Nhóm ${groupCode}`).trim(),
+        level: 0,
+        parent_item_id: null,
+        sort_order: sortOrder++,
+        note: null,
+      });
+
+      (group.items || []).forEach((item, itemIndex) => {
+        const itemCode = (item.code || `${groupCode}.${itemIndex + 1}`).trim();
+        rows.push({
+          project_id: projectId,
+          item_code: itemCode,
+          row_type: 'item',
+          item_name: (item.name || `Dòng ${itemCode}`).trim(),
+          level: 1,
+          parent_item_id: null,
+          unit: item.unit || null,
+          estimated_quantity: item.quantity ?? null,
+          quoted_unit_price: item.quoted_unit_price ?? item.quote_unit_price ?? null,
+          note: item.note || null,
+          sort_order: sortOrder++,
+        });
+      });
+    });
+
+    const seenCodes = new Set<string>();
+    const duplicateImportCode = rows.find(r => {
+      if (seenCodes.has(r.item_code)) return true;
+      seenCodes.add(r.item_code);
+      return false;
+    });
+    if (duplicateImportCode) {
+      return { success: false, created: 0, error: `JSON bị trùng mã dòng "${duplicateImportCode.item_code}".` };
+    }
+
+    const groupCodes = new Set(rows.filter(r => r.row_type === 'group').map(r => r.item_code));
+    const itemWithoutParent = rows.find(r => {
+      if (r.row_type !== 'item') return false;
+      const parentCode = r.item_code.includes('.') ? r.item_code.split('.').slice(0, -1).join('.') : r.item_code.charAt(0);
+      const fallbackParentCode = Array.from(groupCodes).find(code => r.item_code.startsWith(`${code}.`));
+      return !groupCodes.has(parentCode) && !fallbackParentCode;
+    });
+    if (itemWithoutParent) {
+      return { success: false, created: 0, error: `Dòng "${itemWithoutParent.item_code}" không tìm được nhóm cha. Kiểm tra lại mã A, A.1, B.1...` };
+    }
+
+    const existingCodes = new Set(
+      boqItems.filter(b => b.project_id === projectId).map(b => b.item_code)
+    );
+    const duplicateCode = rows.find(r => existingCodes.has(r.item_code));
+    if (duplicateCode) {
+      return { success: false, created: 0, error: `Mã dòng "${duplicateCode.item_code}" đã tồn tại trong BOQ hiện tại.` };
+    }
+
+    const { data: insertedGroups, error: groupError } = await supabase
+      .from('project_boq_items')
+      .insert(rows.filter(r => r.row_type === 'group'))
+      .select();
+    if (groupError) return { success: false, created: 0, error: groupError.message };
+
+    const groupIdByCode = new Map<string, string>();
+    (insertedGroups || []).forEach((g: any) => groupIdByCode.set(g.item_code, g.id));
+
+    const itemRows = rows
+      .filter(r => r.row_type === 'item')
+      .map(r => {
+        const parentCode = r.item_code.includes('.') ? r.item_code.split('.').slice(0, -1).join('.') : r.item_code.charAt(0);
+        const fallbackParentCode = Array.from(groupCodes).find(code => r.item_code.startsWith(`${code}.`));
+        return {
+          ...r,
+          parent_item_id: groupIdByCode.get(parentCode) || (fallbackParentCode ? groupIdByCode.get(fallbackParentCode) : null) || null,
+        };
+      });
+
+    if (itemRows.length === 0) {
+      const inserted = (insertedGroups || []) as BoqItem[];
+      setBoqItems(prev => [...prev, ...inserted]);
+      return { success: true, created: inserted.length };
+    }
+
+    if (itemRows.some(r => !r.parent_item_id)) {
+      return { success: false, created: insertedGroups?.length || 0, error: 'Có dòng công việc không tìm được nhóm cha. Kiểm tra lại mã A, A.1, B.1...' };
+    }
+
+    const { data: insertedItems, error: itemError } = await supabase
+      .from('project_boq_items')
+      .insert(itemRows)
+      .select();
+    if (itemError) return { success: false, created: insertedGroups?.length || 0, error: itemError.message };
+
+    const inserted = [...(insertedGroups || []), ...(insertedItems || [])] as BoqItem[];
+    setBoqItems(prev => [...prev, ...inserted]);
+    return { success: true, created: inserted.length };
   };
 
   const updateBoqItem = async (id: string, updates: Partial<BoqItem>): Promise<boolean> => {
@@ -217,7 +363,7 @@ export const useBoqData = () => {
   return {
     boqItems, loading,
     loadBoqItems,
-    createBoqGroup, createBoqSubgroup, createBoqItemRow, updateBoqItem, deleteBoqItem,
+    createBoqGroup, createBoqSubgroup, createBoqItemRow, importBoqFromJson, updateBoqItem, deleteBoqItem,
     getBoqTree, getProjectBoqSummary,
   };
 };

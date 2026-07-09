@@ -10,7 +10,7 @@ export interface ClientProject {
   start_date: string | null
   progress: number
   status: string
-  client_password: string | null
+  has_password: boolean
   risk_level: string | null
   contract_value: number | null
   budget: number | null
@@ -32,30 +32,21 @@ export const useClientData = (token: string) => {
       setLoading(true)
       setError(null)
       try {
-        // Fetch project by client_token (public read — no auth needed)
-        const { data: proj, error: projErr } = await supabase
-          .from('construction_projects')
-          .select('id,name,owner_name,address,handover_date,start_date,progress,status,client_password,risk_level,contract_value,budget,spent')
-          .eq('client_token', token)
-          .single()
+        // Server-side RPC resolves exactly one project by token — the
+        // underlying tables are locked to authenticated users only, this
+        // is the sole anon-reachable read path. Never returns the raw
+        // client_password (see verify_client_password for that).
+        const { data, error: rpcErr } = await supabase.rpc('get_client_view_data', { p_token: token })
 
-        if (projErr || !proj) {
+        if (rpcErr || !data) {
           setError('Không tìm thấy công trình. Vui lòng kiểm tra lại mã QR.')
           return
         }
-        setProject(proj as ClientProject)
-
-        // Fetch related data in parallel
-        const [t, l, m, p] = await Promise.all([
-          supabase.from('construction_tasks').select('*').eq('project_id', proj.id).order('created_at'),
-          supabase.from('construction_daily_logs').select('*').eq('project_id', proj.id).order('date', { ascending: false }),
-          supabase.from('construction_milestones').select('*').eq('project_id', proj.id).order('sort_order'),
-          supabase.from('construction_payment_records').select('*').eq('project_id', proj.id).order('date', { ascending: false }),
-        ])
-        setTasks(t.data || [])
-        setLogs(l.data || [])
-        setMilestones(m.data || [])
-        setPayments(p.data || [])
+        setProject(data.project as ClientProject)
+        setTasks(data.tasks || [])
+        setLogs(data.logs || [])
+        setMilestones(data.milestones || [])
+        setPayments(data.payments || [])
       } catch (e: any) {
         setError(e.message || 'Đã xảy ra lỗi khi tải dữ liệu.')
       } finally {

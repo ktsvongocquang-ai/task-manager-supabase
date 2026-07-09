@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useClientData } from './useClientData'
+import { supabase } from '../../services/supabase'
 import { Lock, BarChart3, TrendingUp, FileText, DollarSign, Loader2, Building2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -28,34 +29,43 @@ export const ClientView = () => {
     if (error || !project) { setViewState('not_found'); return }
 
     // If no password set by manager, it's public
-    if (!project.client_password) {
+    if (!project.has_password) {
       setViewState('authed'); return
     }
 
-    // Check URL argument for automatic login
-    const searchParams = new URLSearchParams(window.location.search)
-    const urlPass = searchParams.get('p')
-    if (urlPass && urlPass === project.client_password) {
-      sessionStorage.setItem(SESSION_KEY, urlPass)
-      // Hide password from URL for better UX
-      window.history.replaceState({}, document.title, window.location.pathname)
-      setViewState('authed')
-      return
-    }
+    // The real password never reaches the browser — verified server-side
+    // via RPC so it stays inside the database.
+    const checkAccess = async () => {
+      // Check URL argument for automatic login
+      const searchParams = new URLSearchParams(window.location.search)
+      const urlPass = searchParams.get('p')
+      if (urlPass) {
+        const { data: ok } = await supabase.rpc('verify_client_password', { p_token: token, p_password: urlPass })
+        if (ok) {
+          sessionStorage.setItem(SESSION_KEY, urlPass)
+          // Hide password from URL for better UX
+          window.history.replaceState({}, document.title, window.location.pathname)
+          setViewState('authed')
+          return
+        }
+      }
 
-    // Check session
-    const saved = sessionStorage.getItem(SESSION_KEY)
-    if (saved === project.client_password) {
-      setViewState('authed')
-    } else {
+      // Check session
+      const saved = sessionStorage.getItem(SESSION_KEY)
+      if (saved) {
+        const { data: ok } = await supabase.rpc('verify_client_password', { p_token: token, p_password: saved })
+        if (ok) { setViewState('authed'); return }
+      }
       setViewState('gate')
     }
-  }, [loading, error, project, SESSION_KEY])
+    checkAccess()
+  }, [loading, error, project, SESSION_KEY, token])
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!project) return
-    if (pass === project.client_password) {
+    const { data: ok } = await supabase.rpc('verify_client_password', { p_token: token, p_password: pass })
+    if (ok) {
       sessionStorage.setItem(SESSION_KEY, pass)
       setViewState('authed')
       setWrong(false)

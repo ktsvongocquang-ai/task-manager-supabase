@@ -279,7 +279,7 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
                         <div className="mt-4 p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl">
                             <div className="flex justify-between items-center mb-3">
                                 <label className="block text-xs font-bold text-indigo-800 uppercase flex items-center gap-1.5">
-                                    <Sparkles size={14} className="text-indigo-500" /> AI Dự kiến Tiến độ
+                                    <Sparkles size={14} className="text-indigo-500" /> Dự kiến Tiến độ
                                 </label>
                                 <button
                                     type="button"

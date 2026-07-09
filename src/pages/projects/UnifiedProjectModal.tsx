@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { type Project, type Task } from '../../types';
-import { X, CheckSquare, Info, Clock, AlertCircle } from 'lucide-react';
+import { X, CheckSquare, Info, Clock, LayoutDashboard } from 'lucide-react';
 
 import { ProjectTasksTab } from './ProjectTasksTab';
 import { ProjectInfoTab } from './ProjectInfoTab';
 import { ProjectTimelineTab } from './ProjectTimelineTab';
+import { ProjectDashboardTab } from './ProjectDashboardTab';
 
 interface UnifiedProjectModalProps {
     isOpen: boolean;
@@ -31,11 +32,11 @@ interface UnifiedProjectModalProps {
     managerName?: string;
     onUpdateProjectStats?: () => void;
 
-    initialTab?: 'tasks' | 'info' | 'timeline';
+    initialTab?: 'dashboard' | 'tasks' | 'info' | 'timeline';
     canEdit?: boolean;
 }
 
-type TabType = 'tasks' | 'info' | 'timeline';
+type TabType = 'dashboard' | 'tasks' | 'info' | 'timeline';
 
 export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
     isOpen,
@@ -62,7 +63,7 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
     managerName,
     onUpdateProjectStats,
 
-    initialTab = 'tasks',
+    initialTab = 'dashboard',
     canEdit = true
 }) => {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab);
@@ -101,6 +102,13 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                             {/* Tab Switcher */}
                             <div className="bg-slate-200/50 p-1.5 rounded-2xl flex gap-1 shrink-0">
                                 <button
+                                    onClick={() => setActiveTab('dashboard')}
+                                    className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${activeTab === 'dashboard' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                                >
+                                    <LayoutDashboard size={14} strokeWidth={2.5} />
+                                    Dashboard
+                                </button>
+                                <button
                                     onClick={() => setActiveTab('tasks')}
                                     className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${activeTab === 'tasks' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                                 >
@@ -131,6 +139,16 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
 
                     {/* Tab Content Body */}
                     <div className="flex-1 overflow-hidden relative bg-white">
+                        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'dashboard' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
+                            <ProjectDashboardTab
+                                project={project}
+                                tasks={tasks}
+                                profiles={profiles}
+                                onEditTask={onEditTask}
+                                onAddTask={onAddTask}
+                                canEdit={canEdit}
+                            />
+                        </div>
                         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'tasks' ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'}`}>
                             <ProjectTasksTab 
                                 isOpen={activeTab === 'tasks'}

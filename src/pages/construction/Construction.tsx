@@ -323,9 +323,9 @@ function TaskDetailDrawer({ task, isOpen, onClose, onUpdate, userRole }: {
                     </div>
                     {item.required && <span className="text-rose-400 text-xs">*</span>}
                     {canEdit && (
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        <button onClick={() => { setEditingChecklistId(item.id); setEditingChecklistText(item.label); }} className="p-1 hover:bg-slate-200 rounded-md" title="Sửa"><FileText className="w-3 h-3 text-slate-400" /></button>
-                        <button onClick={() => deleteChecklistItem(item.id)} className="p-1 hover:bg-rose-100 rounded-md" title="Xóa"><X className="w-3 h-3 text-rose-400" /></button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => { setEditingChecklistId(item.id); setEditingChecklistText(item.label); }} className="p-1.5 hover:bg-slate-200 active:bg-slate-300 rounded-lg transition-colors" title="Sửa"><FileText className="w-3.5 h-3.5 text-slate-400" /></button>
+                        <button onClick={() => deleteChecklistItem(item.id)} className="p-1.5 hover:bg-rose-100 active:bg-rose-200 rounded-lg transition-colors" title="Xóa"><X className="w-3.5 h-3.5 text-rose-400" /></button>
                       </div>
                     )}
                   </div>
@@ -1397,131 +1397,159 @@ export const Construction = () => {
 
   return (
     <ErrorBoundary>
-    <div className="flex flex-col space-y-6 max-w-[1600px] mx-auto w-full" style={{ minHeight: 'calc(100vh - 120px)' }}>
-      {/* Header & Tabs */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 shrink-0">
-        {/* Left: View Tabs OR Homeowner Title */}
-        <div className="flex-1 w-full md:w-auto overflow-hidden">
-          {userRole === 'HOMEOWNER' ? (
-             <div>
-               <h1 className="text-xl font-bold text-slate-800">{isSharedLink ? selectedProject.name : 'Quản lý Thi công'}</h1>
-               <p className="text-sm text-slate-400 mt-0.5">{selectedProject.address}</p>
-             </div>
-          ) : (
-            <div className={`flex bg-slate-100 p-1 rounded-xl overflow-x-auto w-fit max-w-full`}>
-              {VIEW_TABS.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${userRole === 'ENGINEER' ? 'flex-1' : ''} ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                  {tab.icon}
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+    <div className="flex flex-col space-y-4 md:space-y-6 max-w-[1600px] mx-auto w-full pb-20 lg:pb-6" style={{ minHeight: 'calc(100vh - 120px)' }}>
+      {/* ── Header: Row 1 = project + actions, Row 2 = full-width tab bar ── */}
+      {userRole === 'HOMEOWNER' ? (
+        <div className="shrink-0">
+          <h1 className="text-xl font-bold text-slate-800">{isSharedLink ? selectedProject.name : 'Quản lý Thi công'}</h1>
+          <p className="text-sm text-slate-400 mt-0.5">{selectedProject.address}</p>
         </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 shrink-0">
 
-        <div className="flex items-center gap-2 overflow-x-auto max-w-full">
-          {/* Project Selector */}
-          {userRole !== 'HOMEOWNER' && activeTab !== 'DASHBOARD' && (
-            <div className="relative shrink-0">
-              <select value={selectedProject.id} onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }} className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none pr-8 h-[36px] max-w-[150px] sm:max-w-[200px] truncate">
-                {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
-          )}
-          {/* Ghi chi phí nhanh — cho Quản lý thi công/Giám Sát ghi chi phí ngay
-              tại công trường, không cần vào trang Tài chính riêng */}
-          {['Admin', 'Quản lý thi công', 'Giám Sát'].includes(profile?.role || '') && (
-            <button onClick={() => setIsQuickExpenseOpen(true)} className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors shrink-0 h-[36px] whitespace-nowrap">
-              <Receipt className="w-3.5 h-3.5" /> <span>Ghi chi phí</span>
-            </button>
-          )}
-          {/* Search */}
-          {userRole !== 'HOMEOWNER' && (
-            <div className="relative hidden lg:block shrink-0">
+          {/* Row 1: Project selector (left) + quick actions (right) */}
+          <div className="flex items-center gap-2">
+            {/* Project dropdown — chỉ hiện khi không ở DASHBOARD */}
+            {activeTab !== 'DASHBOARD' ? (
+              <div className="relative flex-1 min-w-0">
+                <select
+                  value={selectedProject.id}
+                  onChange={e => { const p = dbProjects.find(p => p.id === e.target.value) || dbProjects[0]; setSelectedProject(p); db.loadProjectDetails(p.id); }}
+                  className="w-full pl-3 pr-7 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white font-medium text-slate-700 appearance-none h-[36px] truncate"
+                >
+                  {dbProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            ) : (
+              <span className="flex-1 text-sm font-bold text-slate-700 truncate">{selectedProject.name}</span>
+            )}
+
+            {/* Ghi chi phí — icon only on mobile */}
+            {['Admin', 'Quản lý thi công', 'Giám Sát'].includes(profile?.role || '') && (
+              <button
+                onClick={() => setIsQuickExpenseOpen(true)}
+                className="w-9 h-9 flex items-center justify-center bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 active:scale-95 transition-all shrink-0"
+                title="Ghi chi phí nhanh"
+              >
+                <Receipt className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Search — desktop only */}
+            <div className="relative hidden lg:block">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Tìm..." className="pl-8 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 h-[36px] w-32 xl:w-48" />
             </div>
-          )}
-          {/* ⋯ Menu (bao gồm "Tạo Dự Án Mới" → có sẵn lựa chọn AI đọc file — nút
-              riêng "AI Tiến Độ" ở đây bị trùng chức năng nên đã bỏ) */}
-          {(userRole === 'MANAGER' || (!isSharedLink && profile?.role === 'Admin')) && (
-            <div className="relative shrink-0">
-              <button onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)} className="w-[36px] h-[36px] flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500">
-                <MoreVertical className="w-4 h-4" />
-              </button>
-              {isHeaderMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsHeaderMenuOpen(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm">
-                    {userRole === 'MANAGER' && (
-                      <>
-                        <button onClick={() => { setIsCreateModeOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Plus className="w-4 h-4 text-emerald-500" /> Tạo Dự Án Mới</button>
-                        <button onClick={() => { setIsEditProjectOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><FileText className="w-4 h-4 text-indigo-500" /> Sửa Dự Án</button>
-                    <button onClick={() => {
-                      const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
-                      if (pass !== null) {
-                        db.updateProject(selectedProject.id, { client_password: pass }).then(() => {
-                          setSelectedProject({ ...selectedProject, client_password: pass });
-                          showToast('Đã cập nhật mã Khách Hàng', 'success');
-                        });
-                      }
-                      setIsHeaderMenuOpen(false);
-                    }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Key className="w-4 h-4 text-amber-500" /> Mã Khách Hàng</button>
-                    <button onClick={() => { setIsShareQROpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><QrCode className="w-4 h-4 text-emerald-500" /> Chia sẻ QR</button>
-                    <button onClick={() => { setIsNotificationSettingsOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Bell className="w-4 h-4 text-sky-500" /> Thông báo Zalo/TG</button>
-                    <button onClick={() => { setIsWorkflowOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><ListChecks className="w-4 h-4 text-violet-500" /> Workflow</button>
-                    <div className="border-t border-slate-100 my-1" />
-                    <button onClick={() => {
-                      setConfirmDialog({
-                        title: 'Xóa dự án?',
-                        message: `Bạn có chắc muốn xóa dự án "${selectedProject.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
-                        confirmLabel: 'Xóa vĩnh viễn',
-                        confirmColor: 'bg-rose-600 hover:bg-rose-700',
-                        onConfirm: async () => {
-                          const ok = await db.deleteProject(selectedProject.id);
-                          if (ok) {
-                            showToast(`Đã xóa dự án "${selectedProject.name}"`, 'success');
-                            await db.loadProjects();
-                            const remaining = db.projects.filter(p => p.id !== selectedProject.id);
-                            if (remaining.length > 0) {
-                              const next = mapProject(remaining[0]);
-                              setSelectedProject(next);
-                              db.loadProjectDetails(next.id);
-                            } else {
-                              setSelectedProject(PROJECTS[0]);
+
+            {/* ⋯ Menu */}
+            {(userRole === 'MANAGER' || (!isSharedLink && profile?.role === 'Admin')) && (
+              <div className="relative shrink-0">
+                <button onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)} className="w-9 h-9 flex items-center justify-center border border-slate-200 rounded-xl hover:bg-slate-50 active:scale-95 transition-all text-slate-500">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {isHeaderMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsHeaderMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-sm">
+                      {userRole === 'MANAGER' && (
+                        <>
+                          <button onClick={() => { setIsCreateModeOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Plus className="w-4 h-4 text-emerald-500" /> Tạo Dự Án Mới</button>
+                          <button onClick={() => { setIsEditProjectOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><FileText className="w-4 h-4 text-indigo-500" /> Sửa Dự Án</button>
+                          <button onClick={() => {
+                            const pass = prompt('Nhập mật khẩu cho khách hàng duyệt web (để trống để hủy):', selectedProject.client_password || '');
+                            if (pass !== null) {
+                              db.updateProject(selectedProject.id, { client_password: pass }).then(() => {
+                                setSelectedProject({ ...selectedProject, client_password: pass });
+                                showToast('Đã cập nhật mã Khách Hàng', 'success');
+                              });
                             }
-                          } else {
-                            showToast('Lỗi khi xóa dự án', 'error');
-                          }
-                        },
-                      });
-                      setIsHeaderMenuOpen(false);
-                    }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-rose-50 text-rose-600"><X className="w-4 h-4" /> Xóa Dự Án</button>
-                      </>
-                    )}
-                    {!isSharedLink && profile?.role === 'Admin' && (
-                      <>
-                        <div className="border-t border-slate-100 my-1" />
-                        <div className="px-4 py-2">
-                          <p className="text-[10px] text-slate-400 font-bold mb-1.5">XEM VỚI VAI TRÒ</p>
-                          <div className="flex bg-slate-100 p-0.5 rounded-lg">
-                            {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
-                              <button key={role} onClick={() => { handleRoleChange(role); setIsHeaderMenuOpen(false); }} className={`flex-1 px-2 py-1 text-[10px] font-bold rounded-md transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>
-                                {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Giám Sát' : 'Quản lý'}
-                              </button>
-                            ))}
+                            setIsHeaderMenuOpen(false);
+                          }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Key className="w-4 h-4 text-amber-500" /> Mã Khách Hàng</button>
+                          <button onClick={() => { setIsShareQROpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><QrCode className="w-4 h-4 text-emerald-500" /> Chia sẻ QR</button>
+                          <button onClick={() => { setIsNotificationSettingsOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Bell className="w-4 h-4 text-sky-500" /> Thông báo Zalo/TG</button>
+                          <button onClick={() => { setIsWorkflowOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><ListChecks className="w-4 h-4 text-violet-500" /> Workflow</button>
+                          <div className="border-t border-slate-100 my-1" />
+                          <button onClick={() => {
+                            setConfirmDialog({
+                              title: 'Xóa dự án?',
+                              message: `Bạn có chắc muốn xóa dự án "${selectedProject.name}"? Toàn bộ dữ liệu (hạng mục, nhật ký, thanh toán,...) sẽ bị xóa vĩnh viễn.`,
+                              confirmLabel: 'Xóa vĩnh viễn',
+                              confirmColor: 'bg-rose-600 hover:bg-rose-700',
+                              onConfirm: async () => {
+                                const ok = await db.deleteProject(selectedProject.id);
+                                if (ok) {
+                                  showToast(`Đã xóa dự án "${selectedProject.name}"`, 'success');
+                                  await db.loadProjects();
+                                  const remaining = db.projects.filter(p => p.id !== selectedProject.id);
+                                  if (remaining.length > 0) {
+                                    const next = mapProject(remaining[0]);
+                                    setSelectedProject(next);
+                                    db.loadProjectDetails(next.id);
+                                  } else {
+                                    setSelectedProject(PROJECTS[0]);
+                                  }
+                                } else {
+                                  showToast('Lỗi khi xóa dự án', 'error');
+                                }
+                              },
+                            });
+                            setIsHeaderMenuOpen(false);
+                          }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-rose-50 text-rose-600"><X className="w-4 h-4" /> Xóa Dự Án</button>
+                        </>
+                      )}
+                      {!isSharedLink && profile?.role === 'Admin' && (
+                        <>
+                          <div className="border-t border-slate-100 my-1" />
+                          <div className="px-4 py-2">
+                            <p className="text-[10px] text-slate-400 font-bold mb-1.5">XEM VỚI VAI TRÒ</p>
+                            <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                              {(['HOMEOWNER', 'ENGINEER', 'MANAGER'] as UserRole[]).map(role => (
+                                <button key={role} onClick={() => { handleRoleChange(role); setIsHeaderMenuOpen(false); }} className={`flex-1 px-2 py-1 text-[10px] font-bold rounded-md transition-all ${userRole === role ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}>
+                                  {role === 'HOMEOWNER' ? 'Chủ nhà' : role === 'ENGINEER' ? 'Giám Sát' : 'Quản lý'}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Tab bar — flex-1 per tab → không cần scroll, vừa màn hình */}
+          <div className="flex bg-slate-100 p-1 rounded-xl w-full">
+            {VIEW_TABS.map(tab => {
+              // Rút gọn label cho mobile để vừa 5 tab trên 390px
+              const shortLabel: Record<string, string> = {
+                'Tổng quan': 'Tổng quan', 'Công trình': 'Công trình',
+                'Kanban': 'Kanban', 'Tiến độ': 'Tiến độ',
+                'Nhật ký': 'Nhật ký', 'Báo cáo': 'Báo cáo',
+                'Nhà của tôi': 'Nhà tôi', 'Thanh toán': 'Thanh toán',
+              };
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg transition-all ${
+                    activeTab === tab.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <span className="flex-none">{tab.icon}</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold leading-none text-center truncate w-full">
+                    <span className="sm:hidden">{shortLabel[tab.label] ?? tab.label}</span>
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
         </div>
-      </div>
+      )}
 
       {/* Stats (hide for homeowner, only show on KANBAN tab) */}
       {userRole !== 'HOMEOWNER' && activeTab === 'KANBAN' && (
