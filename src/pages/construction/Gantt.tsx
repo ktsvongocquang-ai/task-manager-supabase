@@ -423,6 +423,158 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
   };
   const TOTAL_LEFT = CL.action + CW.action;
 
+  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth < 768);
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // ─── Mobile Card List View ───────────────────────────────────────────────
+  if (isMobile) {
+    let mobileStt = 0;
+    return (
+      <div className="w-full space-y-3">
+        {/* Master timeline summary card */}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Tiến độ tổng thể</p>
+            <p className="text-[11px] text-emerald-600 mt-0.5">
+              {masterTask.startDate ? format(parseDate(masterTask.startDate) || new Date(), 'dd/MM/yyyy') : '--'}
+              {' → '}
+              {masterTask.endDate ? format(parseDate(masterTask.endDate) || new Date(), 'dd/MM/yyyy') : '--'}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-lg font-bold text-emerald-700">{masterTask.duration} ngày</p>
+          </div>
+        </div>
+
+        {/* Category groups */}
+        {Object.keys(grouped).map((cat, ci) => {
+          const catTasks = grouped[cat];
+          return (
+            <div key={cat} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              {/* Category header */}
+              <div className="flex items-center justify-between px-3 py-2 bg-slate-700 text-white">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {String.fromCharCode(65 + ci)}
+                  </span>
+                  <span className="text-xs font-bold uppercase tracking-wide">{cat}</span>
+                  <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">{catTasks.length}</span>
+                </div>
+                {!readOnly && onCreateTask && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }}
+                    className="flex items-center gap-1 px-2 py-1 bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-lg text-[10px] font-bold transition-colors"
+                  >
+                    <Plus size={11} /> Thêm
+                  </button>
+                )}
+              </div>
+
+              {/* Task cards */}
+              <div className="divide-y divide-slate-100">
+                {catTasks.map((task: CTask) => {
+                  mobileStt++;
+                  const ts = getTaskStart(task);
+                  const te = getTaskEnd(task);
+                  const dur = ts && te ? differenceInDays(te, ts) + 1 : task.duration || task.days || 0;
+                  const plannedEnd = task.plannedEnd ? parseISO(task.plannedEnd) : null;
+                  const isSlipped = !!(te && plannedEnd && startOfDay(te) > startOfDay(plannedEnd));
+                  const isOverdue = task.status !== 'DONE' && te && startOfDay(te) < todayDate;
+                  const barColor = isOverdue ? 'bg-red-400' : isSlipped ? 'bg-orange-400' : STATUS_META[task.status]?.bar ? '' : 'bg-slate-300';
+                  const statusMeta = STATUS_META[task.status];
+                  const isSelected = selectedId === task.id;
+
+                  // Calculate progress toward today
+                  const totalDays = ts && te ? differenceInDays(te, ts) : 0;
+                  const daysElapsed = ts ? Math.max(0, Math.min(totalDays, differenceInDays(todayDate, ts))) : 0;
+                  const autoProgress = totalDays > 0 ? Math.round((daysElapsed / totalDays) * 100) : 0;
+                  const displayProgress = task.progress ?? autoProgress;
+
+                  return (
+                    <div
+                      key={task.id}
+                      onClick={() => onSelect(task.id)}
+                      onDoubleClick={() => onDoubleClick && onDoubleClick(task.id)}
+                      className={`px-3 py-2.5 cursor-pointer transition-colors active:bg-slate-50 ${isSelected ? 'bg-indigo-50 border-l-2 border-l-indigo-500' : ''}`}
+                    >
+                      {/* Row 1: STT + Status dot + Name + Status badge */}
+                      <div className="flex items-start gap-2">
+                        <span className="text-[10px] text-slate-400 font-bold w-5 shrink-0 pt-0.5 text-right">{mobileStt}</span>
+                        <span className={`w-2 h-2 rounded-full shrink-0 mt-1 ${statusMeta?.dot || 'bg-slate-400'}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-sm font-medium leading-snug ${isSlipped ? 'text-red-700' : isOverdue ? 'text-red-600' : 'text-slate-800'}`}>
+                              {task.name || 'Công việc mới...'}
+                            </p>
+                            {statusMeta && (
+                              <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${statusMeta.dot?.replace('bg-', 'bg-').replace('500', '100')} text-slate-600`}>
+                                {statusMeta.label || task.status}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Row 2: Dates + duration */}
+                          <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500">
+                            {ts ? (
+                              <span className={isSlipped ? 'text-red-500 font-bold' : ''}>
+                                {format(ts, 'dd/MM')} → {te ? format(te, 'dd/MM/yy') : '--'}
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 italic">Chưa đặt ngày</span>
+                            )}
+                            {dur > 0 && (
+                              <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full text-[10px] font-bold">
+                                {dur}d
+                              </span>
+                            )}
+                            {isOverdue && (
+                              <span className="bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[10px] font-bold">Trễ</span>
+                            )}
+                            {isSlipped && !isOverdue && (
+                              <span className="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full text-[10px] font-bold">Lệch kế hoạch</span>
+                            )}
+                          </div>
+
+                          {/* Row 3: Progress bar */}
+                          {ts && te && (
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    task.status === 'DONE' ? 'bg-emerald-500' :
+                                    isOverdue ? 'bg-red-400' :
+                                    isSlipped ? 'bg-orange-400' : 'bg-indigo-500'
+                                  }`}
+                                  style={{ width: `${task.status === 'DONE' ? 100 : displayProgress}%` }}
+                                />
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-bold shrink-0">
+                                {task.status === 'DONE' ? '100%' : `${displayProgress}%`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {catTasks.length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-4 italic">Chưa có công việc</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // ─── Desktop/Tablet: full Gantt table ────────────────────────────────────
   return (
     <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
       <table className="border-collapse table-fixed" style={{ minWidth: `${TOTAL_LEFT + days.length * 30}px` }}>
