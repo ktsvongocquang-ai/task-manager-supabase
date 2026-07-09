@@ -26,3 +26,4 @@ dist-ssr
 .vercel
 set-env.js
 check_all_data.js  
+.env.vercel  

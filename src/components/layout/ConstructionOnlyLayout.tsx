@@ -16,6 +16,7 @@ export const ConstructionOnlyLayout = () => {
     const [isChangingPassword, setIsChangingPassword] = useState(false)
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [isTelegramOpen, setIsTelegramOpen] = useState(false)
+    const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false)
 
     const handleSignOut = async () => {
         await signOut()
@@ -100,9 +101,12 @@ export const ConstructionOnlyLayout = () => {
                             <RefreshCw size={16} />
                         </button>
 
-                        {/* Avatar + dropdown */}
-                        <div className="relative group">
-                            <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 active:scale-95 transition-all">
+                        {/* Avatar + dropdown (click-based, works on touchscreen) */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsAvatarMenuOpen(v => !v)}
+                                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100 active:scale-95 transition-all"
+                            >
                                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                     {getInitials(profile?.full_name)}
                                 </div>
@@ -111,47 +115,39 @@ export const ConstructionOnlyLayout = () => {
                                 </span>
                             </button>
 
-                            {/* Dropdown */}
-                            <div className="absolute right-0 top-full mt-1 w-44 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden">
-                                <div className="p-3 border-b border-slate-100">
-                                    <p className="text-xs font-bold text-slate-800 truncate">{profile?.full_name}</p>
-                                    <p className="text-[10px] text-slate-400 truncate">{profile?.email}</p>
-                                </div>
-                                <div className="p-1.5 space-y-0.5">
-                                    <button
-                                        onClick={() => setIsPasswordModalOpen(true)}
-                                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
-                                    >
-                                        <KeyRound size={14} className="text-slate-400" /> Đổi mật khẩu
-                                    </button>
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                    >
-                                        <LogOut size={14} /> Đăng xuất
-                                    </button>
-                                    <div className="border-t border-slate-100 mx-2 my-1" />
-                                    <button
-                                        onClick={() => setIsTelegramOpen(true)}
-                                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-sky-50 rounded-xl transition-colors"
-                                    >
-                                        <Send size={14} className="text-sky-500" /> Telegram ID
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const data = JSON.stringify(localStorage, null, 2);
-                                            const blob = new Blob([data], { type: 'application/json' });
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url; a.download = `dqh_backup_${new Date().toISOString().slice(0,10)}.json`;
-                                            a.click(); URL.revokeObjectURL(url);
-                                        }}
-                                        className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-emerald-50 rounded-xl transition-colors"
-                                    >
-                                        <Database size={14} className="text-emerald-500" /> Sao lưu Hệ thống
-                                    </button>
-                                </div>
-                            </div>
+                            {/* Dropdown — click to open, backdrop to close */}
+                            {isAvatarMenuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsAvatarMenuOpen(false)} />
+                                    <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 overflow-hidden">
+                                        <div className="p-3 border-b border-slate-100">
+                                            <p className="text-xs font-bold text-slate-800 truncate">{profile?.full_name}</p>
+                                            <p className="text-[10px] text-slate-400 truncate">{profile?.email}</p>
+                                        </div>
+                                        <div className="p-1.5 space-y-0.5">
+                                            <button
+                                                onClick={() => { setIsPasswordModalOpen(true); setIsAvatarMenuOpen(false); }}
+                                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                                            >
+                                                <KeyRound size={14} className="text-slate-400" /> Đổi mật khẩu
+                                            </button>
+                                            <button
+                                                onClick={() => { setIsTelegramOpen(true); setIsAvatarMenuOpen(false); }}
+                                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold text-slate-700 hover:bg-sky-50 rounded-xl transition-colors"
+                                            >
+                                                <Send size={14} className="text-sky-500" /> Telegram ID
+                                            </button>
+                                            <div className="border-t border-slate-100 mx-2 my-1" />
+                                            <button
+                                                onClick={() => { handleSignOut(); setIsAvatarMenuOpen(false); }}
+                                                className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                            >
+                                                <LogOut size={14} /> Đăng xuất
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
