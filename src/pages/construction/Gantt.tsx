@@ -574,26 +574,36 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
     );
   }
 
-  // ─── Desktop/Tablet: full Gantt table ────────────────────────────────────
+  // Mobile: compact column widths (hide BĐ, NGÀY, KT, %, Action)
+  const DAY_W = isMobile ? 22 : 30;
+  const MCW = isMobile
+    ? { stt: 28, name: 100, start: 0, dur: 0, end: 0, prog: 0, action: 0 }
+    : CW;
+  const MCL = isMobile
+    ? { stt: 0, name: 28, start: 128, dur: 128, end: 128, prog: 128, action: 128 }
+    : CL;
+  const MOBILE_TOTAL_LEFT = isMobile ? 128 : TOTAL_LEFT;
+
+  // ─── Gantt Table (both mobile compact + desktop full) ───────────────────
   return (
-    <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: '70vh' }}>
-      <table className="border-collapse table-fixed" style={{ minWidth: `${TOTAL_LEFT + days.length * 30}px` }}>
+    <div className="w-full border border-slate-200 rounded-xl overflow-auto bg-white shadow-sm text-[11px]" style={{ maxHeight: isMobile ? '65vh' : '70vh' }}>
+      <table className="border-collapse table-fixed" style={{ minWidth: `${MOBILE_TOTAL_LEFT + days.length * DAY_W}px` }}>
         <thead className="sticky top-0 z-40">
           {/* Row 1: Left headers (rowSpan=2) + Week headers */}
           <tr className="h-8 bg-slate-700 text-white">
-            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.stt, width: CW.stt, minWidth: CW.stt }}>STT</th>
-            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-2 font-bold max-md:text-[10px] max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>HẠNG MỤC / CÔNG VIỆC</th>
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>BẮT ĐẦU</th>
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>NGÀY</th>
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: CL.end, width: CW.end, minWidth: CW.end }}>KẾT THÚC</th>
-            <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>%</th>
-            {!readOnly && <th rowSpan={2} className="sticky max-md:!static z-50 bg-slate-700 text-center font-bold print:hidden" style={{ left: CL.action, width: CW.action, minWidth: CW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></th>}
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: MCL.stt, width: MCW.stt, minWidth: MCW.stt }}>STT</th>
+            <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-left px-1.5 font-bold overflow-hidden" style={{ left: MCL.name, width: MCW.name, minWidth: MCW.name, boxShadow: isMobile ? '3px 0 6px -2px rgba(0,0,0,0.2)' : 'none' }}>{isMobile ? 'CÔNG VIỆC' : 'HẠNG MỤC / CÔNG VIỆC'}</th>
+            {!isMobile && <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: MCL.start, width: MCW.start, minWidth: MCW.start }}>BẮT ĐẦU</th>}
+            {!isMobile && <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold" style={{ left: MCL.dur, width: MCW.dur, minWidth: MCW.dur }}>NGÀY</th>}
+            {!isMobile && <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: MCL.end, width: MCW.end, minWidth: MCW.end }}>KẾT THÚC</th>}
+            {!isMobile && <th rowSpan={2} className="sticky z-50 bg-slate-700 border-r border-slate-600 text-center font-bold print:hidden" style={{ left: MCL.prog, width: MCW.prog, minWidth: MCW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>%</th>}
+            {!isMobile && !readOnly && <th rowSpan={2} className="sticky z-50 bg-slate-700 text-center font-bold print:hidden" style={{ left: MCL.action, width: MCW.action, minWidth: MCW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></th>}
             {weeks.map((w, i) => (
-              <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">{w.label}</th>
+              <th key={i} colSpan={w.count} className="border-r border-slate-600 text-center font-bold text-[9px] uppercase tracking-wide px-1">{isMobile ? w.label.replace(/Tuần \d+ /, '') : w.label}</th>
             ))}
           </tr>
           {/* Row 2: Day numbers (left cols filled by rowSpan) */}
-          <tr className="h-8 bg-slate-50 text-slate-600">
+          <tr className="h-7 bg-slate-50 text-slate-600">
             {days.map((day, i) => {
               const isSun = day.getDay() === 0;
               const isSat = day.getDay() === 6;
@@ -601,9 +611,9 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
               return (
                 <th key={i} className={`border-r text-center font-normal relative
                   ${isToday ? 'bg-red-500 text-white border-red-500' : isSun ? 'bg-red-50 text-red-400 border-slate-200' : isSat ? 'bg-orange-50 text-orange-400 border-slate-200' : 'border-slate-200'}`}
-                  style={{ width: 30, minWidth: 30 }}>
-                  <div className="text-[10px] font-bold">{day.getDate()}</div>
-                  <div className="text-[8px] opacity-80">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>
+                  style={{ width: DAY_W, minWidth: DAY_W }}>
+                  <div className={isMobile ? 'text-[9px] font-bold' : 'text-[10px] font-bold'}>{day.getDate()}</div>
+                  {!isMobile && <div className="text-[8px] opacity-80">{['CN','T2','T3','T4','T5','T6','T7'][day.getDay()]}</div>}
                 </th>
               );
             })}
@@ -612,36 +622,50 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
         <tbody>
           {/* Master Project Timeline */}
           <tr className="h-9 bg-emerald-100/50 border-b border-emerald-200">
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 text-center" style={{ left: CL.stt }}></td>
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 px-2 font-bold text-emerald-800 text-xs tracking-wide" style={{ left: CL.name, width: CW.name, minWidth: CW.name }}>
-              {masterTask.name}
-            </td>
-            {!readOnly && <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: CL.note, width: CW.note, minWidth: CW.note }}></td>}
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: CL.start, width: CW.start, minWidth: CW.start }}>
-              {readOnly ? (
-                 <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.startDate ? format(parseDate(masterTask.startDate) || new Date(), 'dd/MM/yy') : ''}</div>
-              ) : (
-                 <TaskDateInput task={masterTask} isSlipped={false} handleStartChange={handleMasterStartChange} />
+            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 text-center" style={{ left: MCL.stt, width: MCW.stt, minWidth: MCW.stt }}></td>
+            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 px-1.5 font-bold text-emerald-800 text-xs tracking-wide" style={{ left: MCL.name, width: MCW.name, minWidth: MCW.name, boxShadow: isMobile ? '3px 0 6px -2px rgba(0,0,0,0.15)' : 'none' }}>
+              <span className="truncate block">{isMobile ? 'TỄỀN ĐỘ' : masterTask.name}</span>
+              {isMobile && (
+                <span className="text-[9px] text-emerald-600 font-normal">
+                  {masterTask.startDate ? format(parseDate(masterTask.startDate) || new Date(), 'dd/MM') : '--'}
+                  {' → '}
+                  {masterTask.endDate ? format(parseDate(masterTask.endDate) || new Date(), 'dd/MM/yy') : '--'}
+                </span>
               )}
             </td>
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: CL.dur, width: CW.dur, minWidth: CW.dur }}>
-              {readOnly ? (
-                 <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.duration}</div>
-              ) : (
-                 <TaskDurationInput task={masterTask} dur={masterTask.duration} isSlipped={false} handleDurChange={handleMasterDurChange} />
-              )}
-            </td>
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: CL.end, width: CW.end, minWidth: CW.end }}>
-              {readOnly ? (
-                 <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.endDate ? format(parseDate(masterTask.endDate) || new Date(), 'dd/MM/yy') : ''}</div>
-              ) : (
-                 <TaskEndDateInput task={masterTask} isSlipped={false} handleEndChange={handleMasterEndChange} />
-              )}
-            </td>
-            <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 text-center text-emerald-700 font-bold print:hidden" style={{ left: CL.prog, width: CW.prog, minWidth: CW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>
-              0%
-            </td>
-            {!readOnly && <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: CL.action, width: CW.action, minWidth: CW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></td>}
+            {!isMobile && (
+              <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: MCL.start, width: MCW.start, minWidth: MCW.start }}>
+                {readOnly ? (
+                   <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.startDate ? format(parseDate(masterTask.startDate) || new Date(), 'dd/MM/yy') : ''}</div>
+                ) : (
+                   <TaskDateInput task={masterTask} isSlipped={false} handleStartChange={handleMasterStartChange} />
+                )}
+              </td>
+            )}
+            {!isMobile && (
+              <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: MCL.dur, width: MCW.dur, minWidth: MCW.dur }}>
+                {readOnly ? (
+                   <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.duration}</div>
+                ) : (
+                   <TaskDurationInput task={masterTask} dur={masterTask.duration} isSlipped={false} handleDurChange={handleMasterDurChange} />
+                )}
+              </td>
+            )}
+            {!isMobile && (
+              <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: MCL.end, width: MCW.end, minWidth: MCW.end }}>
+                {readOnly ? (
+                   <div className="w-full h-9 flex items-center justify-center text-emerald-800">{masterTask.endDate ? format(parseDate(masterTask.endDate) || new Date(), 'dd/MM/yy') : ''}</div>
+                ) : (
+                   <TaskEndDateInput task={masterTask} isSlipped={false} handleEndChange={handleMasterEndChange} />
+                )}
+              </td>
+            )}
+            {!isMobile && (
+              <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 text-center text-emerald-700 font-bold print:hidden" style={{ left: MCL.prog, width: MCW.prog, minWidth: MCW.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.15)' : 'none' }}>
+                0%
+              </td>
+            )}
+            {!isMobile && !readOnly && <td className="sticky z-30 bg-emerald-100/50 border-r border-emerald-200 print:hidden" style={{ left: MCL.action, width: MCW.action, minWidth: MCW.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.15)' }}></td>}
             
             {days.map((day, i) => {
               const isToday = startOfDay(day).getTime() === todayDate.getTime();
@@ -658,10 +682,10 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
                   <div className="w-full h-full min-h-[36px] relative flex items-center py-2">
                     {(isStart || isBetween || isEnd) && (
                       <div 
-                        className="h-3 bg-[#0284c7] absolute"
+                        className={`${isMobile ? 'h-2.5' : 'h-3'} bg-[#0284c7] absolute`}
                         style={{
-                          left: isStart ? '5px' : '0',
-                          right: isEnd ? '5px' : '0',
+                          left: isStart ? '3px' : '0',
+                          right: isEnd ? '3px' : '0',
                           borderRadius: isStart && isEnd ? '4px' : isStart ? '4px 0 0 4px' : isEnd ? '0 4px 4px 0' : '0'
                         }}
                       />
@@ -677,13 +701,13 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
             <React.Fragment key={cat}>
               {/* Category header row */}
               <tr className="h-8 bg-slate-100">
-                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: CL.stt }}>{String.fromCharCode(65 + ci)}</td>
-                <td className="sticky z-30 bg-slate-100 px-2 text-slate-700 font-bold text-xs uppercase tracking-wide max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden" colSpan={readOnly ? 4 : 5} style={{ left: CL.name, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
-                  <div className="flex justify-between items-center pr-2">
-                    <span>{cat}</span>
+                <td className="sticky z-30 bg-slate-100 border-r border-slate-200 text-center text-slate-600 font-bold" style={{ left: MCL.stt, width: MCW.stt, minWidth: MCW.stt }}>{String.fromCharCode(65 + ci)}</td>
+                <td className="sticky z-30 bg-slate-100 px-1.5 text-slate-700 font-bold text-xs uppercase tracking-wide overflow-hidden" colSpan={1} style={{ left: MCL.name, width: MCW.name, minWidth: MCW.name, boxShadow: isMobile ? '3px 0 6px -2px rgba(0,0,0,0.08)' : '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+                  <div className="flex justify-between items-center">
+                    <span className="truncate">{cat}</span>
                     {!readOnly && onCreateTask && (
-                      <button onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }} className="print:hidden px-2 py-0.5 w-auto h-auto min-h-0 bg-white border border-slate-200 rounded text-[10px] text-slate-600 hover:bg-slate-50 flex items-center gap-1 shrink-0">
-                        <Plus size={10} /> Thêm việc
+                      <button onClick={(e) => { e.stopPropagation(); onCreateTask(cat); }} className="print:hidden px-1.5 py-0.5 ml-1 bg-white border border-slate-200 rounded text-[9px] text-slate-600 hover:bg-slate-50 flex items-center gap-0.5 shrink-0">
+                        <Plus size={9} /> Thêm
                       </button>
                     )}
                   </div>
@@ -730,8 +754,10 @@ export const ConstructionGantt = forwardRef(function ConstructionGantt(props: {
                     dragTaskForDate={dragTaskForDate}
                     resizeTaskForDur={resizeTaskForDur}
                     handleDropDate={handleDropDate}
-                    CL={CL}
-                    CW={CW}
+                    CL={MCL}
+                    CW={MCW}
+                    DAY_W={DAY_W}
+                    isMobile={isMobile}
                   />
                 );
               })}
@@ -752,7 +778,7 @@ const TaskRow = memo(({
   handleStartChange, handleEndChange, handleDurChange,
   setDragTaskForDate, setDragStartDay, setResizeTaskForDur, setResizeStartDay,
   dragTaskForDate, resizeTaskForDur, handleDropDate,
-  CL, CW
+  CL, CW, DAY_W, isMobile
 }: any) => {
   const ts = getTaskStart(task);
   const te = getTaskEnd(task);
@@ -785,12 +811,12 @@ const TaskRow = memo(({
       </td>
       {/* Name */}
       <td 
-        className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-2 max-md:!w-[140px] max-md:!min-w-[140px] overflow-hidden`} 
-        style={{ left: CL.name, width: CW.name, minWidth: CW.name }}
+        className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 px-1.5 overflow-hidden`} 
+        style={{ left: CL.name, width: CW.name, minWidth: CW.name, boxShadow: isMobile ? '3px 0 6px -2px rgba(0,0,0,0.12)' : 'none' }}
         onDoubleClick={(e) => { e.stopPropagation(); onDoubleClick && onDoubleClick(task.id); }}
       >
-        <div className="flex items-center gap-1.5 min-w-0">
-          {!readOnly && (
+        <div className="flex items-center gap-1 min-w-0">
+          {!readOnly && !isMobile && (
             <div 
               draggable
               onDragStart={(e) => {
@@ -803,9 +829,9 @@ const TaskRow = memo(({
               <GripVertical size={12} className="text-slate-300 block" />
             </div>
           )}
-          <span className={`w-2 h-2 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
-          {readOnly ? (
-            <span className="truncate text-slate-800" title={task.name}>{task.name || 'Công việc mới...'}</span>
+          <span className={`w-1.5 h-1.5 rounded-full flex-none ${STATUS_META[task.status]?.dot || 'bg-slate-400'}`} />
+          {readOnly || isMobile ? (
+            <span className="truncate text-slate-800 text-[11px]" title={task.name}>{task.name || 'Công việc mới...'}</span>
           ) : (
             <TaskNameInput 
               task={task}
@@ -830,8 +856,9 @@ const TaskRow = memo(({
           )}
         </div>
       </td>
-      {/* Start date */}
-      <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.start }}>
+      {/* Start date - hidden on mobile */}
+      {!isMobile && (
+      <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.start }}>
         {readOnly ? (
           <div className="w-full h-9 flex flex-col items-center justify-center">
             <div className={`text-[11px] ${isSlipped ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{ts ? format(ts, 'dd/MM/yy') : '--'}</div>
@@ -847,8 +874,10 @@ const TaskRow = memo(({
           />
         )}
       </td>
-      {/* Duration */}
-      <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.dur }}>
+      )}
+      {/* Duration - hidden on mobile */}
+      {!isMobile && (
+      <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0`} style={{ left: CL.dur }}>
         {readOnly ? (
           <div className="w-full h-9 flex flex-col items-center justify-center">
             <div className={`font-bold ${isSlipped ? 'text-red-500' : task.category === 'MASTER' ? 'text-emerald-600' : 'text-slate-600'}`}>{dur || '--'}</div>
@@ -865,8 +894,10 @@ const TaskRow = memo(({
           />
         )}
       </td>
-      {/* End Date */}
-      <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0 print:hidden`} style={{ left: CL.end }}>
+      )}
+      {/* End Date - hidden on mobile */}
+      {!isMobile && (
+      <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 border-r border-slate-100 p-0 print:hidden`} style={{ left: CL.end }}>
         {readOnly ? (
           <div className="w-full h-9 flex flex-col items-center justify-center">
             <div className={`text-[11px] ${isSlipped ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{te ? format(te, 'dd/MM/yy') : '--'}</div>
@@ -882,13 +913,16 @@ const TaskRow = memo(({
           />
         )}
       </td>
-      {/* Progress % */}
-      <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 text-center border-r border-slate-100 p-0 print:hidden`} style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.08)' : 'none' }}>
+      )}
+      {/* Progress % - hidden on mobile */}
+      {!isMobile && (
+      <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center border-r border-slate-100 p-0 print:hidden`} style={{ left: CL.prog, boxShadow: readOnly ? '3px 0 8px -2px rgba(0,0,0,0.08)' : 'none' }}>
         <div className={`font-bold flex items-center justify-center h-full text-[10px] ${task.progress === 100 ? 'text-emerald-600' : 'text-slate-600'}`}>{task.progress || 0}%</div>
       </td>
-      {/* Delete Action */}
-      {!readOnly && (
-         <td className={`sticky max-md:!static z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden`} style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
+      )}
+      {/* Delete Action - hidden on mobile */}
+      {!isMobile && !readOnly && (
+         <td className={`sticky z-30 ${cellBg} group-hover:bg-slate-50 text-center px-1 print:hidden`} style={{ left: CL.action, boxShadow: '3px 0 8px -2px rgba(0,0,0,0.08)' }}>
             <button onClick={(e) => { e.stopPropagation(); if(onDeleteTask) onDeleteTask(task.id); }} className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded mx-auto transition-colors" title="Xóa công tác">
               <Trash2 size={12} />
             </button>
@@ -908,10 +942,12 @@ const TaskRow = memo(({
           isFirst = dayStart.getTime() === s.getTime();
           isLast = dayStart.getTime() === e.getTime();
         }
+        const dw = DAY_W || 30;
         return (
-          <td key={i} className={`border-r p-0 relative min-w-[30px] w-[30px]
+          <td key={i} className={`border-r p-0 relative
             ${isToday ? 'border-red-400 bg-red-50/40' : 'border-slate-100'}
             ${!inRange && !isToday && (isSun || isSat) ? 'bg-red-50/20' : ''}`}
+            style={{ minWidth: dw, width: dw }}
             onDragOver={(e) => {
               if (dragTaskForDate || resizeTaskForDur) e.preventDefault();
             }}
