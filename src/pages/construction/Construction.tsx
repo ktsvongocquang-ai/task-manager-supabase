@@ -982,15 +982,20 @@ function EditProjectModal({ project, onClose, onSave }: {
     engineerName: project.engineerName || '', managerName: project.managerName || '',
     startDate: project.startDate || '', handoverDate: project.handoverDate || '',
     contractValue: String(project.contractValue || ''), budget: String(project.budget || ''),
+    projectType: project.projectType || '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [profiles, setProfiles] = useState<any[]>([]);
+  const [projectTypes, setProjectTypes] = useState<string[]>([]);
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
     supabase.from('profiles').select('id, full_name, role').then(({ data }) => {
       if (data) setProfiles(data);
+    });
+    supabase.from('finance_lookups').select('label').eq('list_key', 'project_type').order('sort_order').then(({ data }) => {
+      if (data) setProjectTypes(data.map((r: any) => r.label));
     });
   }, []);
 
@@ -1006,6 +1011,7 @@ function EditProjectModal({ project, onClose, onSave }: {
         contractValue: parseInt(form.contractValue.replace(/\D/g, '')) || 0,
         budget: parseInt(form.budget.replace(/\D/g, '')) || 0,
         accountingSheetUrl: form.accountingSheetUrl?.trim() || null,
+        projectType: form.projectType || null,
       });
       onClose();
     } catch (e: any) { setError(e.message || 'Lỗi khi cập nhật'); }
@@ -1038,6 +1044,14 @@ function EditProjectModal({ project, onClose, onSave }: {
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400"><X className="w-4 h-4" /></button>
         </div>
         <div className="px-5 py-4 space-y-3 overflow-y-auto flex-1">
+          <div>
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Loại công trình</label>
+            <select value={form.projectType} onChange={e => set('projectType', e.target.value)}
+              className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-200">
+              <option value="">-- Chọn --</option>
+              {projectTypes.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
           {fields.map(f => (
             <div key={f.key}>
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{f.label}</label>
@@ -1839,6 +1853,7 @@ export const Construction = () => {
               accounting_sheet_url: updates.accountingSheetUrl || null,
               start_date: updates.startDate || null,
               handover_date: updates.handoverDate || null,
+              project_type: updates.projectType || null,
             } as any);
             if (ok) {
               setSelectedProject(prev => ({ ...prev, ...updates }));
