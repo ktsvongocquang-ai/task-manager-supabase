@@ -803,10 +803,8 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                             {editingTask && (!shouldDisableTopFields() || editingTask.assignee_id === currentUserProfile?.id) && (
                                 <button onClick={() => {
                                     if (!editingTask) return;
-                                    if (window.confirm('Bạn có chắc muốn xóa công việc này?')) {
-                                        onDeleteTask?.(editingTask);
-                                        onClose();
-                                    }
+                                    onDeleteTask?.(editingTask);
+                                    onClose();
                                 }} className="p-1.5 sm:p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors bg-slate-50" title="Xóa">
                                     <Trash2 size={18} />
                                 </button>
@@ -841,6 +839,17 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
                         {/* Form Grid Layout - Ultra Compact */}
                         <div className="space-y-2">
+
+                            {/* Row 0: Dự án — trước đây có sẵn hàm handleProjectChange nhưng chưa gắn vào ô chọn nào,
+                                nên tạo việc mới không gán được đúng công trình/dự án. */}
+                            <div>
+                                <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Dự án</label>
+                                <select value={form.project_id} onChange={(e) => handleProjectChange(e.target.value)}
+                                    className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 cursor-pointer">
+                                    <option value="">-- Chọn dự án --</option>
+                                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
 
                             {/* Row 1: Dates inline */}
                             <div className="grid grid-cols-3 gap-2">
