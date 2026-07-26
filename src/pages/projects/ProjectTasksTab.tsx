@@ -2,8 +2,10 @@ import React, { useState } from 'react'
 import { type Project, type Task } from '../../types'
 import { openGoogleCalendar } from '../../utils/calendarUtils'
 import { getAssignableProfiles } from '../../utils/profileUtils'
-import { X, Copy, Edit3, Trash2, Plus, Check, ChevronDown, ChevronRight, Calendar, FileText, ListPlus, Zap } from 'lucide-react'
+import { X, Copy, Edit3, Trash2, Plus, Check, ChevronDown, ChevronRight, Calendar, FileText, ListPlus, Zap, GripVertical } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import type { DropResult } from '@hello-pangea/dnd'
 
 interface ProjectTasksTabProps {
     isOpen: boolean;
@@ -134,6 +136,12 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
         const aDone = a.status === 'Hoàn thành' ? 1 : 0;
         const bDone = b.status === 'Hoàn thành' ? 1 : 0;
         if (aDone !== bDone) return aDone - bDone;
+
+        const aOrder = a.sort_order;
+        const bOrder = b.sort_order;
+        if (aOrder != null && bOrder != null && aOrder !== bOrder) return aOrder - bOrder;
+        if (aOrder != null && bOrder == null) return -1;
+        if (aOrder == null && bOrder != null) return 1;
 
         const aCode = a.task_code || '';
         const bCode = b.task_code || '';
@@ -311,6 +319,42 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
         });
     };
 
+    const getPhaseTasks = (phase: { key: string; matchTargets: string[]; isRollup?: boolean }) => {
+        const phaseTasksRaw = isRollupProject
+            ? tasks.filter(t => t.parent_id === phase.key && !(t.status || '').includes('Chờ kích hoạt') && !(t.status || '').includes('Dự thảo'))
+            : tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
+
+        return isRollupProject
+            ? phaseTasksRaw.map(t => ({
+                ...t,
+                subTasks: [],
+                totalSub: 0,
+                completedSub: 0,
+                displayPct: t.completion_pct || 0
+              })).sort(sortAscendingByCode)
+            : phaseTasksRaw;
+    };
+
+    const handleDragEnd = (result: DropResult) => {
+        const { source, destination } = result;
+        if (!destination || !onUpdateTaskField) return;
+        if (source.droppableId !== destination.droppableId || source.index === destination.index) return;
+
+        const phase = activePhases.find(p => p.key === source.droppableId);
+        if (!phase) return;
+
+        const list = getPhaseTasks(phase);
+        const reordered = Array.from(list);
+        const [moved] = reordered.splice(source.index, 1);
+        reordered.splice(destination.index, 0, moved);
+
+        reordered.forEach((t, idx) => {
+            if ((t.sort_order ?? null) !== idx) {
+                onUpdateTaskField(t.id, 'sort_order', idx);
+            }
+        });
+    };
+
     return (
         <div className="w-full flex flex-col h-full bg-white sm:rounded-b-3xl pt-4">
 
@@ -360,21 +404,9 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
 
             {/* Task List Grouped by Phase */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-24 space-y-4 custom-scrollbar">
+                <DragDropContext onDragEnd={handleDragEnd}>
                 {activePhases.map(phase => {
-                    const phaseTasksRaw = isRollupProject
-                        ? tasks.filter(t => t.parent_id === phase.key && !(t.status || '').includes('Chờ kích hoạt') && !(t.status || '').includes('Dự thảo'))
-                        : tasksWithProgress.filter(t => phase.matchTargets.includes((t.target || '').toLowerCase()));
-
-                    // Sort rollup tasks (subtasks) by task_code
-                    const phaseTasks = isRollupProject
-                        ? phaseTasksRaw.map(t => ({
-                            ...t,
-                            subTasks: [],
-                            totalSub: 0,
-                            completedSub: 0,
-                            displayPct: t.completion_pct || 0
-                          })).sort((a, b) => (a.task_code || '').localeCompare(b.task_code || '', undefined, { numeric: true, sensitivity: 'base' }))
-                        : phaseTasksRaw;
+                    const phaseTasks = getPhaseTasks(phase);
 
                     const phaseCompleted = phaseTasks.filter(t => t.status?.includes('Hoàn thành')).length;
                     const phasePct = phaseTasks.length > 0 ? Math.round((phaseCompleted / phaseTasks.length) * 100) : 0;
@@ -547,6 +579,9 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                             {/* Phase Tasks */}
                             {isExpanded && (
                                 <div className="border-t border-slate-50">
+                                    <Droppable droppableId={phase.key} isDropDisabled={!canEdit || !onUpdateTaskField}>
+                                    {(droppableProvided) => (
+                                    <div ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
                                     {isEmpty && (
                                         <div className="p-4 text-center text-[11px] font-semibold text-slate-400">
                                             Chưa có công việc nào
@@ -563,14 +598,32 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                         if (isOverdue) dotColor = 'bg-rose-500';
 
                                         return (
-                                            <div 
+                                            <Draggable key={task.id} draggableId={task.id} index={idx} isDragDisabled={!canEdit || !onUpdateTaskField}>
+                                            {(dragProvided, dragSnapshot) => (
+                                            <div
                                                 id={`task-row-${task.id}`}
-                                                key={task.id} 
+                                                ref={dragProvided.innerRef}
+                                                {...dragProvided.draggableProps}
+                                                style={dragProvided.draggableProps.style}
                                                 onClick={() => onEditTask(task)}
                                                 className={`flex items-center gap-2 px-3 py-1.5 transition-all cursor-pointer group text-xs ${
+                                                    dragSnapshot.isDragging ? 'bg-white shadow-lg rounded-lg ring-1 ring-indigo-200' :
                                                     recentlyActivatedId === task.id ? 'bg-purple-100/90 border-l-4 border-l-purple-600 shadow-sm animate-pulse' : 'hover:bg-slate-50'
                                                 } ${idx !== phaseTasks.length - 1 ? 'border-b border-slate-100' : ''}`}
                                             >
+                                                {/* Drag handle + sequence number */}
+                                                {canEdit && onUpdateTaskField && (
+                                                    <div
+                                                        {...dragProvided.dragHandleProps}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="shrink-0 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
+                                                        title="Kéo để đổi vị trí"
+                                                    >
+                                                        <GripVertical size={13} />
+                                                    </div>
+                                                )}
+                                                <span className="text-[9px] font-bold text-slate-300 w-4 text-center shrink-0" title="Số thứ tự">{idx + 1}</span>
+
                                                 {/* Checkbox */}
                                                 <div 
                                                     className="shrink-0" 
@@ -682,12 +735,18 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
+                                            )}
+                                            </Draggable>
                                         )
                                     })}
+                                    {droppableProvided.placeholder}
+                                    </div>
+                                    )}
+                                    </Droppable>
                                     {canEdit && (
-                                        <QuickAddTaskRow 
-                                            onAdd={(name) => onBulkAddTasks?.(project.id, [name], phase.isRollup ? undefined : phase.key)} 
-                                            isRollupProject={!!phase.isRollup} 
+                                        <QuickAddTaskRow
+                                            onAdd={(name) => onBulkAddTasks?.(project.id, [name], phase.isRollup ? undefined : phase.key)}
+                                            isRollupProject={!!phase.isRollup}
                                         />
                                     )}
                                 </div>
@@ -695,6 +754,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                         </div>
                     )
                 })}
+                </DragDropContext>
 
                 {/* Unassigned Tasks */}
                 {(() => {

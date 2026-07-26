@@ -10,7 +10,6 @@ import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { UnifiedProjectModal } from './UnifiedProjectModal'
 import { DEFAULT_PHASES, detectPhase } from '../../utils/phaseUtils'
-import { ChevronRight } from 'lucide-react'
 
 const QuickAddInputRow: React.FC<{
     placeholder?: string;

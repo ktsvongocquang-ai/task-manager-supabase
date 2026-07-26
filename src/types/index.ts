@@ -77,6 +77,7 @@ export interface Task {
     task_code: string
     project_id: string
     parent_id?: string | null
+    sort_order?: number | null
     name: string
     description: string | null
     assignee_id: string | string[] | null

@@ -9,7 +9,6 @@ import { isLevel2ProjectTask, enrichTasks } from '../../utils/taskUtils'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { DropResult } from '@hello-pangea/dnd'
 import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
-import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
 
 const KANBAN_COLUMNS = [
     { id: 'Cần làm', title: 'Cần làm', matchStatuses: ['Cần làm', 'Chưa bắt đầu'] },
