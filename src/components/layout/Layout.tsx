@@ -444,7 +444,7 @@ export const Layout = () => {
                     </button>
 
                     {/* User Profile Card */}
-                    <div className="bg-gray-50 rounded-xl p-3 border border-border-main mb-4">
+                    <div className="group/profile relative bg-gray-50 rounded-xl p-3 border border-border-main mb-4">
                         <div className="flex items-center justify-between gap-1">
                             <button
                                 onClick={() => navigate('/profile')}
@@ -473,9 +473,9 @@ export const Layout = () => {
                                 <Bot size={18} className={isChatBotOpen ? '' : 'animate-pulse'} />
                             </button>
                         </div>
-                        {/* Secondary actions - only reachable when sidebar is expanded (hover/mobile) */}
-                        <div className="lg:hidden lg:group-hover/side:block">
-                        <div className="grid grid-cols-2 gap-2 mt-4">
+                        {/* Secondary actions - overlay flyout, only when hovering the avatar card itself (not the whole sidebar) so it never blocks nav items below; normal inline block on mobile */}
+                        <div className="lg:hidden lg:group-hover/profile:block lg:absolute lg:top-full lg:inset-x-0 lg:mt-2 lg:bg-white lg:rounded-xl lg:border lg:border-border-main lg:shadow-xl lg:p-3 lg:z-10">
+                        <div className="grid grid-cols-2 gap-2 mt-4 lg:mt-0">
                             <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
                             </button>
