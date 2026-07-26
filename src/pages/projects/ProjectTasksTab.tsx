@@ -6,6 +6,7 @@ import { X, Copy, Edit3, Trash2, Plus, Check, ChevronDown, ChevronRight, Calenda
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import type { DropResult } from '@hello-pangea/dnd'
+import { CompactDateInput } from '../../components/CompactDateInput'
 
 interface ProjectTasksTabProps {
     isOpen: boolean;
@@ -48,37 +49,6 @@ const formatCleanTaskCode = (code: string) => {
     const parts = code.split('-');
     if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
     return code;
-};
-
-// Shows only "dd/MM" (no year) while keeping a real native date input underneath
-// (invisible) so the browser's own calendar picker, keyboard entry, and paste
-// handling all keep working exactly as before - same overlay technique already
-// used for the assignee pill's <select>.
-const CompactDateInput: React.FC<{
-    value?: string | null;
-    onChange: (value: string) => void;
-    onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
-    className?: string;
-    labelClassName?: string;
-    title?: string;
-}> = ({ value, onChange, onPaste, className, labelClassName, title }) => {
-    let display = 'dd/mm';
-    if (value) {
-        try { display = format(parseISO(value), 'dd/MM'); } catch { display = 'dd/mm'; }
-    }
-    return (
-        <div className={`relative inline-flex items-center justify-center shrink-0 ${className || ''}`}>
-            <span className={labelClassName || 'text-[9px] font-semibold text-slate-500'}>{display}</span>
-            <input
-                type="date"
-                value={value || ''}
-                onChange={e => onChange(e.target.value)}
-                onPaste={onPaste}
-                title={title}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-        </div>
-    );
 };
 
 const QuickAddTaskRow: React.FC<{

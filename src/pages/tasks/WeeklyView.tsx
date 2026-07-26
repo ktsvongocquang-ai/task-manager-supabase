@@ -5,6 +5,7 @@ import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
 import { triggerSuccessConfetti, triggerFireworks } from '../../utils/confetti'
 import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
+import { CompactDateInput } from '../../components/CompactDateInput'
 
 interface Props {
     tasks: Task[]
@@ -658,12 +659,12 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-0.5">
                                                                     <span className="text-[9px] font-semibold text-slate-400 truncate">{getTaskSubtitle(t)}</span>
-                                                                    <input 
-                                                                        type="date"
+                                                                    <CompactDateInput
                                                                         value={t.due_date ? t.due_date.substring(0, 10) : ''}
-                                                                        onChange={(e) => updateDueDate(t.id, e.target.value || null)}
+                                                                        onChange={(v) => updateDueDate(t.id, v || null)}
                                                                         onClick={(e) => e.stopPropagation()}
-                                                                        className={`bg-transparent border-none p-0 focus:ring-0 cursor-pointer text-[9px] font-medium w-[80px] ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}
+                                                                        className="w-[40px]"
+                                                                        labelClassName={`text-[9px] font-medium ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -688,11 +689,11 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getTaskSubtitle(t)}</div>
                                                             </div>
-                                                            <input 
-                                                                type="date"
+                                                            <CompactDateInput
                                                                 value={t.due_date ? t.due_date.substring(0, 10) : ''}
-                                                                onChange={(e) => updateDueDate(t.id, e.target.value || null)}
-                                                                className={`bg-transparent border-none p-0 focus:ring-0 cursor-pointer text-[11px] font-semibold w-full max-w-[90px] ${isLate ? 'text-red-600' : 'text-slate-600'}`}
+                                                                onChange={(v) => updateDueDate(t.id, v || null)}
+                                                                className="w-full max-w-[60px]"
+                                                                labelClassName={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}
                                                             />
                                                             <div className="flex items-center gap-1.5">
                                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
