@@ -111,6 +111,43 @@ function Avatar({ name }: { name: string }) {
     )
 }
 
+const QuickAddInputRow: React.FC<{
+    placeholder?: string;
+    onAdd: (name: string) => Promise<void> | void;
+}> = ({ placeholder = "Nhập tên công việc & nhấn Enter...", onAdd }) => {
+    const [name, setName] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && name.trim() && !loading) {
+            e.preventDefault();
+            const text = name.trim();
+            setName('');
+            setLoading(true);
+            try {
+                await onAdd(text);
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-2 px-5 py-1.5 bg-slate-50/70 border-t border-slate-100 hover:bg-slate-100/70 transition-colors">
+            <div className="w-3.5 h-3.5 rounded border border-dashed border-slate-300 shrink-0"></div>
+            <input 
+                type="text" 
+                value={name}
+                disabled={loading}
+                onChange={e => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={loading ? "Đang lưu..." : placeholder}
+                className="flex-1 bg-transparent border-none focus:outline-none text-xs font-semibold text-slate-700 placeholder:text-slate-400 placeholder:font-medium"
+            />
+        </div>
+    );
+};
+
 // ─── main component ───────────────────────────────────────────────────────────
 
 export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, onEditTask, onDeleteTask }: Props) => {
@@ -124,6 +161,22 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [expandedDone, setExpandedDone] = useState<Set<string>>(new Set())
     const scrollRef = useRef<HTMLDivElement>(null)
+
+    const handleQuickAdd = async (group: any, name: string) => {
+        if (!name.trim()) return;
+        try {
+            const defaults = group.defaultValues || {};
+            const { error } = await supabase.from('tasks').insert({
+                name: name.trim(),
+                status: 'Cần làm',
+                ...defaults
+            });
+            if (error) throw error;
+            onRefresh();
+        } catch (err) {
+            console.error('Quick add task error:', err);
+        }
+    };
 
     const toggleDone = (key: string) => {
         setExpandedDone(prev => {
@@ -381,6 +434,14 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
         onRefresh()
     }
 
+    const updateDueDate = async (taskId: string, newDate: string | null) => {
+        setSaving(s => ({ ...s, [taskId]: true }))
+        const { error } = await supabase.from('tasks').update({ due_date: newDate || null }).eq('id', taskId)
+        if (error) { alert('Lỗi cập nhật: ' + error.message); setSaving(s => ({ ...s, [taskId]: false })); return; }
+        setSaving(s => ({ ...s, [taskId]: false }))
+        onRefresh()
+    }
+
     const updateSupporter = async (taskId: string, newSupporterId: string) => {
         setSaving(s => ({ ...s, [taskId]: true }))
         const { error } = await supabase.from('tasks').update({ supporter_id: newSupporterId || null }).eq('id', taskId)
@@ -573,7 +634,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                                 <div className="flex items-center gap-1 mt-0.5">
                                                                     <span className="text-[9px] font-semibold text-slate-400 truncate">{getTaskSubtitle(t)}</span>
-                                                                    <span className={`text-[9px] font-medium ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}>{fmtShort(d)}</span>
+                                                                    <input 
+                                                                        type="date"
+                                                                        value={t.due_date ? t.due_date.substring(0, 10) : ''}
+                                                                        onChange={(e) => updateDueDate(t.id, e.target.value || null)}
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className={`bg-transparent border-none p-0 focus:ring-0 cursor-pointer text-[9px] font-medium w-[80px] ${isLate ? 'text-red-600 font-bold' : 'text-slate-400'}`}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-1.5 shrink-0">
@@ -597,12 +664,17 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 </div>
                                                                 <div className="text-[9px] text-slate-400 mt-0.5 truncate">{getTaskSubtitle(t)}</div>
                                                             </div>
-                                                            <span className={`text-[11px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-600'}`}>{fmtShort(d)}</span>
+                                                            <input 
+                                                                type="date"
+                                                                value={t.due_date ? t.due_date.substring(0, 10) : ''}
+                                                                onChange={(e) => updateDueDate(t.id, e.target.value || null)}
+                                                                className={`bg-transparent border-none p-0 focus:ring-0 cursor-pointer text-[11px] font-semibold w-full max-w-[90px] ${isLate ? 'text-red-600' : 'text-slate-600'}`}
+                                                            />
                                                             <div className="flex items-center gap-1.5">
                                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                                 <span className="text-[10px] font-semibold text-slate-600 w-7 text-right">{saving[t.id] ? '...' : `${pct}%`}</span>
                                                             </div>
-                                                            <select value={getAssigneeId(t.supporter_id)} onChange={e => updateSupporter(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
+                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
                                                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
                                                             </select>
