@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
 import { RoleGuard } from './components/RoleGuard'
@@ -65,8 +65,37 @@ const InteriorQuote = safeLazy(() => import('./pages/baogia/InteriorQuote'))
 const TrainingHub = safeLazy(() => import('./pages/training/TrainingHub'))
 
 function App() {
+  // Right-click (or long-press on touch devices) any date input to copy its value —
+  // native <input type="date"> doesn't support selecting/copying its displayed text normally.
+  const [copyFeedback, setCopyFeedback] = useState<{ text: string; x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target instanceof HTMLInputElement && target.type === 'date' && target.value) {
+        e.preventDefault()
+        const [year, month, day] = target.value.split('-')
+        const formatted = `${day}/${month}/${year}`
+        navigator.clipboard.writeText(formatted).then(() => {
+          setCopyFeedback({ text: `Đã copy: ${formatted}`, x: e.clientX, y: e.clientY })
+          setTimeout(() => setCopyFeedback(null), 1500)
+        }).catch(() => {})
+      }
+    }
+    document.addEventListener('contextmenu', handleContextMenu)
+    return () => document.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
+
   return (
     <ConstructionProvider>
+      {copyFeedback && (
+        <div
+          className="fixed z-[9999] px-3 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-lg shadow-xl pointer-events-none animate-in fade-in zoom-in-95 duration-150"
+          style={{ left: copyFeedback.x + 12, top: copyFeedback.y - 12 }}
+        >
+          {copyFeedback.text}
+        </div>
+      )}
       <Router>
         <Routes>
           {/* Public Route */}
