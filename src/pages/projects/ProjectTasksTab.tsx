@@ -606,7 +606,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                 {...dragProvided.draggableProps}
                                                 style={dragProvided.draggableProps.style}
                                                 onClick={() => onEditTask(task)}
-                                                className={`grid grid-cols-[76px_minmax(0,1fr)_212px_200px] items-center gap-2 px-3 py-1.5 transition-all cursor-pointer group text-xs ${
+                                                className={`grid grid-cols-[76px_minmax(0,1fr)_70px_212px_200px] items-center gap-2 px-3 py-1.5 transition-all cursor-pointer group text-xs ${
                                                     dragSnapshot.isDragging ? 'bg-white shadow-lg rounded-lg ring-1 ring-indigo-200' :
                                                     recentlyActivatedId === task.id ? 'bg-purple-100/90 border-l-4 border-l-purple-600 shadow-sm animate-pulse' : 'hover:bg-slate-50'
                                                 } ${idx !== phaseTasks.length - 1 ? 'border-b border-slate-100' : ''}`}
@@ -646,7 +646,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     {!isCompleted && <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></div>}
                                                 </div>
 
-                                                {/* Col 2: title + code (flexible width, truncates - never shifts columns after it) */}
+                                                {/* Col 2: title (flexible width, truncates - never shifts columns after it) */}
                                                 <div className="flex items-center gap-1.5 min-w-0 group/title">
                                                     <h4 className={`text-xs font-semibold truncate min-w-0 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                                                         {formatCleanName(task.name)}
@@ -654,10 +654,12 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     {task.status === 'Kiểm duyệt' && !isCompleted && (
                                                         <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 text-purple-600 shrink-0 uppercase">Duyệt</span>
                                                     )}
-                                                    <span className="text-[10px] text-slate-400 shrink-0 hidden md:inline font-mono">{formatCleanTaskCode(task.task_code)}</span>
                                                 </div>
 
-                                                {/* Col 3: date range + duration (fixed width) */}
+                                                {/* Col 3: task code (fixed width - own column, aligned) */}
+                                                <span className="text-[10px] text-slate-400 hidden md:inline font-mono truncate">{formatCleanTaskCode(task.task_code)}</span>
+
+                                                {/* Col 4: date range + duration (fixed width) */}
                                                 {canEdit && onUpdateTaskField ? (
                                                     <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
                                                         <input
@@ -689,7 +691,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     </span>
                                                 )}
 
-                                                {/* Col 4: action icons + assignee pill (fixed width, right-aligned) */}
+                                                {/* Col 5: action icons + assignee pill (fixed width, right-aligned) */}
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-0.5 text-slate-400 hover:text-blue-500 bg-white rounded shadow-2xs border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
