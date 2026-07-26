@@ -606,63 +606,61 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                 {...dragProvided.draggableProps}
                                                 style={dragProvided.draggableProps.style}
                                                 onClick={() => onEditTask(task)}
-                                                className={`flex items-center gap-2 px-3 py-1.5 transition-all cursor-pointer group text-xs ${
+                                                className={`grid grid-cols-[76px_minmax(0,1fr)_212px_200px] items-center gap-2 px-3 py-1.5 transition-all cursor-pointer group text-xs ${
                                                     dragSnapshot.isDragging ? 'bg-white shadow-lg rounded-lg ring-1 ring-indigo-200' :
                                                     recentlyActivatedId === task.id ? 'bg-purple-100/90 border-l-4 border-l-purple-600 shadow-sm animate-pulse' : 'hover:bg-slate-50'
                                                 } ${idx !== phaseTasks.length - 1 ? 'border-b border-slate-100' : ''}`}
                                             >
-                                                {/* Drag handle + sequence number */}
-                                                {canEdit && onUpdateTaskField && (
-                                                    <div
-                                                        {...dragProvided.dragHandleProps}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        className="shrink-0 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
-                                                        title="Kéo để đổi vị trí"
-                                                    >
-                                                        <GripVertical size={13} />
-                                                    </div>
-                                                )}
-                                                <span className="text-[9px] font-bold text-slate-300 w-4 text-center shrink-0" title="Số thứ tự">{idx + 1}</span>
-
-                                                {/* Checkbox */}
-                                                <div 
-                                                    className="shrink-0" 
-                                                    onClick={(e) => { 
-                                                        e.stopPropagation(); 
-                                                        if (currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) {
-                                                            onToggleComplete(task);
-                                                        }
-                                                    }}
-                                                >
-                                                    {isCompleted ? (
-                                                        <div className="w-[16px] h-[16px] rounded bg-emerald-500 flex items-center justify-center shadow-2xs">
-                                                            <Check size={11} strokeWidth={4} className="text-white" />
+                                                {/* Col 1: drag handle + sequence number + checkbox + status dot (fixed width, always aligned) */}
+                                                <div className="flex items-center gap-2">
+                                                    {canEdit && onUpdateTaskField && (
+                                                        <div
+                                                            {...dragProvided.dragHandleProps}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="shrink-0 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
+                                                            title="Kéo để đổi vị trí"
+                                                        >
+                                                            <GripVertical size={13} />
                                                         </div>
-                                                    ) : (
-                                                        <div className="w-[16px] h-[16px] rounded border-2 border-slate-300 hover:border-emerald-400 transition-colors bg-white"></div>
                                                     )}
+                                                    <span className="text-[9px] font-bold text-slate-300 w-4 text-center shrink-0" title="Số thứ tự">{idx + 1}</span>
+
+                                                    <div
+                                                        className="shrink-0"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id || task.assignee_id === currentUserProfile?.id) {
+                                                                onToggleComplete(task);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {isCompleted ? (
+                                                            <div className="w-[16px] h-[16px] rounded bg-emerald-500 flex items-center justify-center shadow-2xs">
+                                                                <Check size={11} strokeWidth={4} className="text-white" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-[16px] h-[16px] rounded border-2 border-slate-300 hover:border-emerald-400 transition-colors bg-white"></div>
+                                                        )}
+                                                    </div>
+
+                                                    {!isCompleted && <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></div>}
                                                 </div>
 
-                                                {!isCompleted && <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></div>}
-
-                                                {/* Title */}
-                                                <div className="flex items-center gap-1.5 flex-1 min-w-[140px] group/title">
-                                                    <h4 className={`text-xs font-semibold truncate ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
+                                                {/* Col 2: title + code (flexible width, truncates - never shifts columns after it) */}
+                                                <div className="flex items-center gap-1.5 min-w-0 group/title">
+                                                    <h4 className={`text-xs font-semibold truncate min-w-0 ${isCompleted ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
                                                         {formatCleanName(task.name)}
                                                     </h4>
+                                                    {task.status === 'Kiểm duyệt' && !isCompleted && (
+                                                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 text-purple-600 shrink-0 uppercase">Duyệt</span>
+                                                    )}
+                                                    <span className="text-[10px] text-slate-400 shrink-0 hidden md:inline font-mono">{formatCleanTaskCode(task.task_code)}</span>
                                                 </div>
 
-                                                {task.status === 'Kiểm duyệt' && !isCompleted && (
-                                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 text-purple-600 shrink-0 uppercase">Duyệt</span>
-                                                )}
-
-                                                {/* Task Code */}
-                                                <span className="text-[10px] text-slate-400 shrink-0 hidden md:inline font-mono">{formatCleanTaskCode(task.task_code)}</span>
-
-                                                {/* Date pickers inline & duration */}
+                                                {/* Col 3: date range + duration (fixed width) */}
                                                 {canEdit && onUpdateTaskField ? (
-                                                    <div className="flex items-center gap-0.5 shrink-0" onClick={e => e.stopPropagation()}>
-                                                        <input 
+                                                    <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                                                        <input
                                                             type="date"
                                                             value={task.start_date || ''}
                                                             onChange={(e) => onUpdateTaskField(task.id, 'start_date', e.target.value)}
@@ -671,7 +669,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                             title="Ngày bắt đầu"
                                                         />
                                                         <span className="text-slate-300 text-[10px]">-</span>
-                                                        <input 
+                                                        <input
                                                             type="date"
                                                             value={task.due_date || ''}
                                                             onChange={(e) => onUpdateTaskField(task.id, 'due_date', e.target.value)}
@@ -686,28 +684,27 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <span className={`text-[10px] shrink-0 font-medium ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-400'}`}>
+                                                    <span className={`text-[10px] font-medium ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-400'}`}>
                                                         {task.start_date ? format(parseISO(task.start_date), 'dd/MM') : ''} - {task.due_date ? format(parseISO(task.due_date), 'dd/MM') : 'N/A'} {taskDuration ? `(${taskDuration}d)` : ''}
                                                     </span>
                                                 )}
 
-                                                {/* Right Side Actions & Assignee Pill */}
-                                                <div className="flex items-center justify-end gap-1.5 shrink-0 min-w-[70px]">
-                                                    {/* Action Buttons */}
+                                                {/* Col 4: action icons + assignee pill (fixed width, right-aligned) */}
+                                                <div className="flex items-center justify-end gap-1.5">
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-0.5 text-slate-400 hover:text-blue-500 bg-white rounded shadow-2xs border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
                                                         {canEdit && (
                                                             <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-0.5 text-slate-400 hover:text-indigo-600 bg-white rounded shadow-2xs border border-slate-100" title="Sao chép"><Copy size={12} /></button>
                                                         )}
                                                         {canEdit && (
-                                                            <button 
-                                                                onClick={(e) => { 
-                                                                    e.stopPropagation(); 
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
                                                                     if (window.confirm(`Bạn có chắc chắn muốn xóa công việc "${task.name}"?`)) {
                                                                         onDeleteTask(task.id);
-                                                                    } 
-                                                                }} 
-                                                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors" 
+                                                                    }
+                                                                }}
+                                                                className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                                                                 title="Xóa công việc"
                                                             >
                                                                 <Trash2 size={13} />
@@ -715,14 +712,13 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                         )}
                                                     </div>
 
-                                                    {/* Assignee Pill Badge */}
                                                     <div className="relative flex items-center gap-1.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200/70 rounded-full px-2 py-0.5 text-[10px] font-semibold text-slate-600 cursor-pointer shrink-0 transition-colors" title={`Người phụ trách: ${getAssigneeName(task.assignee_id)}`}>
                                                         <div className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[8px] font-bold flex items-center justify-center shrink-0">
                                                             {getAssigneeInitials(task.assignee_id)}
                                                         </div>
                                                         <span className="truncate max-w-[65px] text-[10px] font-semibold">{getAssigneeName(task.assignee_id) || 'Chưa gán'}</span>
                                                         {canEdit && (
-                                                            <select 
+                                                            <select
                                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                                                 value={Array.isArray(task.assignee_id) ? task.assignee_id[0] || '' : task.assignee_id || ''}
                                                                 onChange={(e) => { e.stopPropagation(); onUpdateAssignee(task.id, e.target.value); }}
