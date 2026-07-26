@@ -50,6 +50,37 @@ const formatCleanTaskCode = (code: string) => {
     return code;
 };
 
+// Shows only "dd/MM" (no year) while keeping a real native date input underneath
+// (invisible) so the browser's own calendar picker, keyboard entry, and paste
+// handling all keep working exactly as before - same overlay technique already
+// used for the assignee pill's <select>.
+const CompactDateInput: React.FC<{
+    value?: string | null;
+    onChange: (value: string) => void;
+    onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+    className?: string;
+    labelClassName?: string;
+    title?: string;
+}> = ({ value, onChange, onPaste, className, labelClassName, title }) => {
+    let display = 'dd/mm';
+    if (value) {
+        try { display = format(parseISO(value), 'dd/MM'); } catch { display = 'dd/mm'; }
+    }
+    return (
+        <div className={`relative inline-flex items-center justify-center shrink-0 ${className || ''}`}>
+            <span className={labelClassName || 'text-[9px] font-semibold text-slate-500'}>{display}</span>
+            <input
+                type="date"
+                value={value || ''}
+                onChange={e => onChange(e.target.value)}
+                onPaste={onPaste}
+                title={title}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+        </div>
+    );
+};
+
 const QuickAddTaskRow: React.FC<{
     onAdd: (name: string) => void;
     isRollupProject: boolean;
@@ -517,28 +548,20 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                                                         <div className="flex items-center gap-1">
                                                             <span className="text-[10px] font-bold text-slate-400">Bắt đầu:</span>
-                                                            <input 
-                                                                type="date"
-                                                                value={t.start_date || ''}
-                                                                onClick={e => e.stopPropagation()}
-                                                                onChange={e => {
-                                                                    e.stopPropagation();
-                                                                    handleActivateTemplateTask(t.id, e.target.value, t.due_date || undefined);
-                                                                }}
-                                                                className="px-1.5 py-0.5 bg-purple-50/50 border border-purple-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 h-6 cursor-pointer"
+                                                            <CompactDateInput
+                                                                value={t.start_date}
+                                                                onChange={v => handleActivateTemplateTask(t.id, v, t.due_date || undefined)}
+                                                                className="px-1.5 py-0.5 bg-purple-50/50 border border-purple-200 rounded h-6 min-w-[42px]"
+                                                                labelClassName="text-[11px] font-semibold text-slate-700"
                                                             />
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <span className="text-[10px] font-bold text-slate-400">Kết thúc:</span>
-                                                            <input 
-                                                                type="date"
-                                                                value={t.due_date || ''}
-                                                                onClick={e => e.stopPropagation()}
-                                                                onChange={e => {
-                                                                    e.stopPropagation();
-                                                                    handleActivateTemplateTask(t.id, t.start_date || undefined, e.target.value);
-                                                                }}
-                                                                className="px-1.5 py-0.5 bg-purple-50/50 border border-purple-200 rounded text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 h-6 cursor-pointer"
+                                                            <CompactDateInput
+                                                                value={t.due_date}
+                                                                onChange={v => handleActivateTemplateTask(t.id, t.start_date || undefined, v)}
+                                                                className="px-1.5 py-0.5 bg-purple-50/50 border border-purple-200 rounded h-6 min-w-[42px]"
+                                                                labelClassName="text-[11px] font-semibold text-slate-700"
                                                             />
                                                         </div>
                                                         <button
@@ -662,21 +685,21 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                 {/* Col 4: date range + duration (fixed width) */}
                                                 {canEdit && onUpdateTaskField ? (
                                                     <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                                                        <input
-                                                            type="date"
-                                                            value={task.start_date || ''}
-                                                            onChange={(e) => onUpdateTaskField(task.id, 'start_date', e.target.value)}
+                                                        <CompactDateInput
+                                                            value={task.start_date}
+                                                            onChange={(v) => onUpdateTaskField(task.id, 'start_date', v)}
                                                             onPaste={(e) => handleDatePaste(e, task.id, 'start_date', onUpdateTaskField)}
-                                                            className="bg-white hover:bg-slate-50 border border-slate-200 rounded px-1 text-[9px] font-semibold text-slate-500 cursor-pointer focus:ring-1 focus:ring-blue-500 h-5 w-[80px]"
+                                                            className="bg-white hover:bg-slate-50 border border-slate-200 rounded h-5 w-[42px]"
+                                                            labelClassName="text-[9px] font-semibold text-slate-500"
                                                             title="Ngày bắt đầu"
                                                         />
                                                         <span className="text-slate-300 text-[10px]">-</span>
-                                                        <input
-                                                            type="date"
-                                                            value={task.due_date || ''}
-                                                            onChange={(e) => onUpdateTaskField(task.id, 'due_date', e.target.value)}
+                                                        <CompactDateInput
+                                                            value={task.due_date}
+                                                            onChange={(v) => onUpdateTaskField(task.id, 'due_date', v)}
                                                             onPaste={(e) => handleDatePaste(e, task.id, 'due_date', onUpdateTaskField)}
-                                                            className={`bg-white hover:bg-slate-50 border border-slate-200 rounded px-1 text-[9px] font-semibold cursor-pointer focus:ring-1 focus:ring-blue-500 h-5 w-[80px] ${isOverdue ? 'text-rose-500 font-bold border-rose-200' : 'text-slate-500'}`}
+                                                            className="bg-white hover:bg-slate-50 border border-slate-200 rounded h-5 w-[42px]"
+                                                            labelClassName={`text-[9px] font-semibold ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-500'}`}
                                                             title="Hạn chót"
                                                         />
                                                         {taskDuration !== null && (
@@ -818,18 +841,18 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                         <span>{task.task_code}</span><span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span>
                                                         {canEdit && onUpdateTaskField ? (
                                                             <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                                                                <input 
-                                                                    type="date"
-                                                                    value={task.start_date || ''}
-                                                                    onChange={(e) => onUpdateTaskField(task.id, 'start_date', e.target.value)}
-                                                                    className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-1 text-[9px] font-semibold text-slate-500 cursor-pointer focus:ring-1 focus:ring-blue-500 h-5 min-w-[90px]"
+                                                                <CompactDateInput
+                                                                    value={task.start_date}
+                                                                    onChange={(v) => onUpdateTaskField(task.id, 'start_date', v)}
+                                                                    className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded h-5 min-w-[42px]"
+                                                                    labelClassName="text-[9px] font-semibold text-slate-500"
                                                                 />
                                                                 <span className="text-slate-300">-</span>
-                                                                <input 
-                                                                    type="date"
-                                                                    value={task.due_date || ''}
-                                                                    onChange={(e) => onUpdateTaskField(task.id, 'due_date', e.target.value)}
-                                                                    className={`bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-1 text-[9px] font-semibold cursor-pointer focus:ring-1 focus:ring-blue-500 h-5 min-w-[90px] ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-500'}`}
+                                                                <CompactDateInput
+                                                                    value={task.due_date}
+                                                                    onChange={(v) => onUpdateTaskField(task.id, 'due_date', v)}
+                                                                    className="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded h-5 min-w-[42px]"
+                                                                    labelClassName={`text-[9px] font-semibold ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-500'}`}
                                                                 />
                                                             </div>
                                                         ) : (
