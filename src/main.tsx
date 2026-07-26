@@ -48,18 +48,22 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
     if (this.state.hasError) {
       const handleForceReload = async () => {
         try {
-          if ('caches' in window) {
-            const keys = await caches.keys()
-            await Promise.all(keys.map(k => caches.delete(k)))
-          }
           if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations()
             for (const reg of registrations) {
               await reg.unregister()
             }
           }
+          if ('caches' in window) {
+            const keys = await caches.keys()
+            await Promise.all(keys.map(k => caches.delete(k)))
+          }
+          // Unregistering a service worker doesn't instantly release control of
+          // the current page - reloading in the same tick can still be served
+          // by the outgoing worker. Give the browser a beat to hand back control.
+          await new Promise(resolve => setTimeout(resolve, 300))
         } catch(e) {}
-        window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now()
+        window.location.replace(window.location.origin + window.location.pathname + '?v=' + Date.now())
       }
 
       return (
