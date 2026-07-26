@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2, CheckCircle2, Filter } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
 import { format } from 'date-fns'
@@ -157,6 +157,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const [filterPerson, setFilterPerson]   = useState('')
     const [filterProject, setFilterProject] = useState('')
     const [filterPhase, setFilterPhase]     = useState('')
+    const [isFilterOpen, setIsFilterOpen]   = useState(false)
     const [saving, setSaving] = useState<Record<string, boolean>>({})
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
     const [expandedDone, setExpandedDone] = useState<Set<string>>(new Set())
@@ -459,7 +460,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             {/* ── Header ── */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 md:px-5 py-3 md:py-4 border-b border-slate-100">
                 <div className="font-semibold text-slate-800 text-sm">
-                    Tuần {wn} — {fmtShort(mon)} đến {fmtShort(sun)}/{sun.getFullYear()}
+                    Tuần {wn} — {fmtShort(mon)} đến {fmtShort(sun)}
                 </div>
                 <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 custom-scrollbar-hide">
                     {onAddTask && (
@@ -501,46 +502,69 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
             </div>
 
             {/* ── Filters + Sort ── */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 flex-wrap">
-                <select
-                    value={filterPerson}
-                    onChange={e => setFilterPerson(e.target.value)}
-                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-slate-100 flex-wrap relative">
+                <button
+                    onClick={() => setIsFilterOpen(v => !v)}
+                    className={`hidden md:flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border transition-colors ${
+                        (filterPerson || filterProject || filterPhase)
+                            ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                    }`}
                 >
-                    <option value="">Tất cả nhân sự</option>
-                    {uniquePersonIds.map(id => {
-                        const p = profiles.find(x => x.id === id)
-                        return <option key={id} value={id}>{p?.full_name || p?.email || id}</option>
-                    })}
-                </select>
+                    <Filter size={13} /> Lọc
+                    {(filterPerson || filterProject || filterPhase) && (
+                        <span className="w-4 h-4 flex items-center justify-center bg-indigo-600 text-white text-[9px] font-bold rounded-full">
+                            {[filterPerson, filterProject, filterPhase].filter(Boolean).length}
+                        </span>
+                    )}
+                </button>
 
-                <select
-                    value={filterProject}
-                    onChange={e => setFilterProject(e.target.value)}
-                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
-                >
-                    <option value="">Tất cả dự án</option>
-                    {uniqueProjects.map(id => {
-                        const code = getProjectCode(id);
-                        const name = getProjectName(id);
-                        const cleanCode = code.replace(/\s+/g, '').toLowerCase();
-                        const cleanName = name.replace(/\s+/g, '').toLowerCase();
-                        const label = code ? (cleanName.includes(cleanCode) ? name : `${code} - ${name}`) : name;
-                        return <option key={id} value={id}>{label}</option>
-                    })}
-                </select>
+                {isFilterOpen && (
+                    <>
+                        <div className="fixed inset-0 z-20" onClick={() => setIsFilterOpen(false)}></div>
+                        <div className="absolute left-5 top-full mt-1 z-30 bg-white rounded-xl border border-slate-200 shadow-xl p-3 flex flex-col gap-2 w-[220px]">
+                            <select
+                                value={filterPerson}
+                                onChange={e => setFilterPerson(e.target.value)}
+                                className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20"
+                            >
+                                <option value="">Tất cả nhân sự</option>
+                                {uniquePersonIds.map(id => {
+                                    const p = profiles.find(x => x.id === id)
+                                    return <option key={id} value={id}>{p?.full_name || p?.email || id}</option>
+                                })}
+                            </select>
 
-                <select
-                    value={filterPhase}
-                    onChange={e => setFilterPhase(e.target.value)}
-                    className="hidden md:block h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20 flex-1 min-w-[130px] max-w-[200px]"
-                >
-                    <option value="">Tất cả giai đoạn</option>
-                    <option value="concept">Concept</option>
-                    <option value="3d">3D / Phối cảnh</option>
-                    <option value="2d">Triển khai 2D</option>
-                    <option value="construction">Thi công</option>
-                </select>
+                            <select
+                                value={filterProject}
+                                onChange={e => setFilterProject(e.target.value)}
+                                className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20"
+                            >
+                                <option value="">Tất cả dự án</option>
+                                {uniqueProjects.map(id => {
+                                    const code = getProjectCode(id);
+                                    const name = getProjectName(id);
+                                    const cleanCode = code.replace(/\s+/g, '').toLowerCase();
+                                    const cleanName = name.replace(/\s+/g, '').toLowerCase();
+                                    const label = code ? (cleanName.includes(cleanCode) ? name : `${code} - ${name}`) : name;
+                                    return <option key={id} value={id}>{label}</option>
+                                })}
+                            </select>
+
+                            <select
+                                value={filterPhase}
+                                onChange={e => setFilterPhase(e.target.value)}
+                                className="h-8 text-xs px-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/20"
+                            >
+                                <option value="">Tất cả giai đoạn</option>
+                                <option value="concept">Concept</option>
+                                <option value="3d">3D / Phối cảnh</option>
+                                <option value="2d">Triển khai 2D</option>
+                                <option value="construction">Thi công</option>
+                            </select>
+                        </div>
+                    </>
+                )}
 
                 <div className="flex items-center gap-1 ml-auto">
                     {([['time', 'Ngày'], ['project', 'Dự án'], ['person', 'Nhân sự'], ['alert', `Cần xử lý (${alerts.length})`]] as const).map(([key, label]) => {

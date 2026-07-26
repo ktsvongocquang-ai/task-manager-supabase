@@ -13,7 +13,6 @@ import { QuickAddTaskModal } from './QuickAddTaskModal'
 import { logActivity } from '../../services/activity'
 import { WeeklyView } from './WeeklyView'
 import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
-import { notifyTaskStatusChanged } from '../../services/taskNotificationService'
 
 export const Tasks = () => {
     const navigate = useNavigate();
@@ -69,7 +68,7 @@ export const Tasks = () => {
             setProfiles(pr || [])
             if (isInitialLoadRef.current && p) {
                 // By default expand projects that have tasks
-                const projectsWithTasks = new Set((t || []).map(x => x.project_id))
+                const projectsWithTasks = new Set(loadedTasks.map(x => x.project_id))
                 setExpandedProjects(projectsWithTasks)
                 isInitialLoadRef.current = false;
             }
