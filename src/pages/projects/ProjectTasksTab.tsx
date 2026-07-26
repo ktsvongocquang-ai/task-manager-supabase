@@ -691,8 +691,9 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                                                     </span>
                                                 )}
 
-                                                {/* Col 5: action icons + assignee pill (fixed width, right-aligned) */}
-                                                <div className="flex items-center justify-end gap-1.5">
+                                                {/* Col 5: action icons + assignee pill - each its own fixed sub-column so neither
+                                                    shifts based on the assignee name's length */}
+                                                <div className="grid grid-cols-[74px_120px] items-center gap-1.5">
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={(e) => { e.stopPropagation(); openGoogleCalendar(task); }} className="p-0.5 text-slate-400 hover:text-blue-500 bg-white rounded shadow-2xs border border-slate-100" title="Thêm vào Google Calendar"><Calendar size={12} /></button>
                                                         {canEdit && (
