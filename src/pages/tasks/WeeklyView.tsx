@@ -199,7 +199,7 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
     const { mon, sun } = getWeekRange(weekOffset, TODAY)
     const wn = getWeekNum(mon)
 
-    const getAssigneeId = (id: string | string[] | null): string => {
+    const getAssigneeId = (id: string | string[] | null | undefined): string => {
         if (!id) return ''
         return Array.isArray(id) ? id[0] : id
     }
