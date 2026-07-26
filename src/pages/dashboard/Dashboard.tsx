@@ -129,10 +129,11 @@ export const Dashboard = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true)
-            const [{ data: projects }, { data: tasks }, { data: profiles }] = await Promise.all([
+            const [{ data: projects }, { data: tasks }, { data: profiles }, { data: logs }] = await Promise.all([
                 supabase.from('projects').select('*'),
                 supabase.from('tasks').select('*'),
-                supabase.from('profiles').select('*')
+                supabase.from('profiles').select('*'),
+                supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
             ])
 
             let fetchedProjects = (projects || []) as Project[]
@@ -243,7 +244,6 @@ export const Dashboard = () => {
                 return t.priority === 'Cao' || t.priority === 'Khẩn cấp' || (t.due_date && new Date(t.due_date) < today)
             }).slice(0, 6))
 
-            const { data: logs } = await supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(50)
             let fetchedLogs = (logs || []) as ActivityLog[];
             if (profile?.role === 'Thiết kế') {
                 fetchedLogs = fetchedLogs.filter(log => !log.project_id || fetchedProjects.some(p => p.id === log.project_id));

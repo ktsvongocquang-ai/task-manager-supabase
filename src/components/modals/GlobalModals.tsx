@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
-import { AddEditProjectModal } from '../../pages/projects/AddEditProjectModal';
-import { AddEditTaskModal } from '../../pages/tasks/AddEditTaskModal';
 import { type Project } from '../../types';
+
+// Lazy-loaded: these pull in @hello-pangea/dnd + comment UI, only needed once
+// someone actually opens "Thêm nhanh" - shouldn't ship in every page's main bundle.
+const AddEditProjectModal = lazy(() =>
+    import('../../pages/projects/AddEditProjectModal').then(m => ({ default: m.AddEditProjectModal }))
+);
+const AddEditTaskModal = lazy(() =>
+    import('../../pages/tasks/AddEditTaskModal').then(m => ({ default: m.AddEditTaskModal }))
+);
 
 interface GlobalModalsProps {
     isProjectModalOpen: boolean;
@@ -121,52 +128,62 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
 
     return (
         <>
-            {/* Global Project Modal */}
-            <AddEditProjectModal
-                isOpen={isProjectModalOpen}
-                onClose={onCloseProjectModal}
-                onSave={handleSaveProject}
-                editingProject={null}
-                form={projectForm}
-                setForm={setProjectForm}
-                profiles={profiles}
-                currentUserProfile={profile}
-            />
+            {/* Global Project Modal - only mounted (and its chunk fetched) once actually opened */}
+            {isProjectModalOpen && (
+                <Suspense fallback={null}>
+                    <AddEditProjectModal
+                        isOpen={isProjectModalOpen}
+                        onClose={onCloseProjectModal}
+                        onSave={handleSaveProject}
+                        editingProject={null}
+                        form={projectForm}
+                        setForm={setProjectForm}
+                        profiles={profiles}
+                        currentUserProfile={profile}
+                    />
+                </Suspense>
+            )}
 
-            {/* Global Task Modal */}
-            <AddEditTaskModal
-                isOpen={isTaskModalOpen}
-                onClose={onCloseTaskModal}
-                onSaved={() => {
-                    onCloseTaskModal();
-                    if (window.location.pathname === '/tasks' || window.location.pathname === '/kanban') {
-                        window.location.reload();
-                    }
-                }}
-                editingTask={null}
-                initialData={taskModalInitialData}
-                projects={projects}
-                profiles={profiles}
-                currentUserProfile={profile}
-            />
+            {/* Global Task Modal - only mounted (and its chunk fetched) once actually opened */}
+            {isTaskModalOpen && (
+                <Suspense fallback={null}>
+                    <AddEditTaskModal
+                        isOpen={isTaskModalOpen}
+                        onClose={onCloseTaskModal}
+                        onSaved={() => {
+                            onCloseTaskModal();
+                            if (window.location.pathname === '/tasks' || window.location.pathname === '/kanban') {
+                                window.location.reload();
+                            }
+                        }}
+                        editingTask={null}
+                        initialData={taskModalInitialData}
+                        projects={projects}
+                        profiles={profiles}
+                        currentUserProfile={profile}
+                    />
+                </Suspense>
+            )}
 
             {/* Global Edit Task Modal from Chat */}
             {editingTask && (
-                <AddEditTaskModal
-                    isOpen={!!editingTask}
-                    onClose={() => setEditingTask(null)}
-                    onSaved={() => {
-                        setEditingTask(null);
-                        if (window.location.pathname === '/tasks' || window.location.pathname === '/kanban') {
-                            window.location.reload();
-                        }
-                    }}
-                    editingTask={editingTask}
-                    initialData={taskModalInitialData}
-                    projects={projects}
-                    profiles={profiles}
-                    currentUserProfile={profile}
-                />
+                <Suspense fallback={null}>
+                    <AddEditTaskModal
+                        isOpen={!!editingTask}
+                        onClose={() => setEditingTask(null)}
+                        onSaved={() => {
+                            setEditingTask(null);
+                            if (window.location.pathname === '/tasks' || window.location.pathname === '/kanban') {
+                                window.location.reload();
+                            }
+                        }}
+                        editingTask={editingTask}
+                        initialData={taskModalInitialData}
+                        projects={projects}
+                        profiles={profiles}
+                        currentUserProfile={profile}
+                    />
+                </Suspense>
             )}
         </>
     );

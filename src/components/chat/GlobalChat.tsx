@@ -106,14 +106,15 @@ export const GlobalChat: React.FC<GlobalChatProps> = ({ isOpen, onClose, current
     const [briefingLoaded, setBriefingLoaded] = useState(false);
     const aiEndRef = useRef<HTMLDivElement>(null);
 
-    // Fetch profiles if not provided
+    // Fetch profiles if not provided - deferred until the chat is actually opened,
+    // so this component doesn't fire a network request on every page load.
     useEffect(() => {
-        if (!profilesProp?.length) {
+        if (isOpen && !profilesProp?.length && profiles.length === 0) {
             supabase.from('profiles').select('id, full_name, role').then(({ data }) => {
                 if (data) setProfiles(data);
             });
         }
-    }, []);
+    }, [isOpen]);
 
     // Chat Chung - fetch + real-time
     useEffect(() => {
