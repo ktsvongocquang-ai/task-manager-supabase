@@ -97,17 +97,8 @@ export const Kanban = () => {
     }
 
     const handleDelete = async (t: Task) => {
-        if (t.status === 'Lưu trữ') {
-            if (['Admin'].includes(profile?.role?.trim() || '')) {
-                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
-                await supabase.from('tasks').delete().eq('id', t.id)
-                fetchAll()
-            }
-            return
-        }
-
-        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
-        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
+        if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return
+        await supabase.from('tasks').delete().eq('id', t.id)
         fetchAll()
     }
 

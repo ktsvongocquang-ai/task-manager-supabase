@@ -237,9 +237,9 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         </div>
 
                                                         {/* Right Side Avatar / Actions */}
-                                                        <div className="flex items-center gap-2 shrink-0">
+                                                        <div className="flex items-center justify-end gap-2 shrink-0 w-[70px]">
                                                             {/* Hidden Action Buttons visible on hover */}
-                                                            <div className="hidden group-hover:flex gap-1.5 animate-in fade-in mr-1">
+                                                            <div className="flex gap-1.5 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity mr-1">
                                                                 {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && (
                                                                     <button onClick={(e) => { e.stopPropagation(); onCopyTask(task); }} className="p-1 text-slate-400 hover:text-indigo-600 bg-white rounded shadow-sm border border-slate-100" title="Sao chép"><Copy size={12} /></button>
                                                                 )}
@@ -339,8 +339,8 @@ export const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({
                                                         </div>
 
                                                         {/* Avatar / Actions */}
-                                                        <div className="flex items-center gap-2 shrink-0">
-                                                            <div className="hidden group-hover:flex gap-1.5 mr-1">
+                                                        <div className="flex items-center justify-end gap-2 shrink-0 w-[70px]">
+                                                            <div className="flex gap-1.5 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity mr-1">
                                                                 {(currentUserProfile?.role === 'Admin' || project.manager_id === currentUserProfile?.id) && <button onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }} className="p-1 text-slate-400 hover:text-rose-600 bg-white rounded shadow-sm border border-slate-100" title="Xóa"><Trash2 size={12} /></button>}
                                                             </div>
                                                             <div className="relative w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center shadow-sm border border-amber-50" title="Nhấn để gán người phụ trách">

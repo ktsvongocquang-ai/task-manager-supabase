@@ -22,6 +22,8 @@ interface UnifiedProjectModalProps {
     onDeleteTask: (taskId: string) => void;
     onCopyTask: (task: Task) => void;
     onUpdateAssignee: (taskId: string, assigneeId: string) => void;
+    onBulkAddTasks?: (projectId: string, taskNames: string[], target?: string) => void;
+    onUpdateTaskField?: (taskId: string, field: string, value: any) => Promise<void>;
 
     // Props for Info Tab
     onSaveProject: (formData: any) => Promise<void>;
@@ -53,6 +55,8 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
     onDeleteTask,
     onCopyTask,
     onUpdateAssignee,
+    onBulkAddTasks,
+    onUpdateTaskField,
 
     // Info Props
     onSaveProject,
@@ -144,8 +148,19 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                                 project={project}
                                 tasks={tasks}
                                 profiles={profiles}
+                                currentUserProfile={currentUserProfile}
+                                onToggleComplete={onToggleComplete}
                                 onEditTask={onEditTask}
+                                onDeleteTask={onDeleteTask}
+                                onCopyTask={onCopyTask}
                                 onAddTask={onAddTask}
+                                onUpdateAssignee={onUpdateAssignee}
+                                onBulkAddTasks={onBulkAddTasks}
+                                onUpdateTaskField={onUpdateTaskField}
+                                onSwitchTab={setActiveTab}
+                                onClose={onClose}
+                                managerName={managerName}
+                                onUpdateProjectStats={onUpdateProjectStats}
                                 canEdit={canEdit}
                             />
                         </div>
@@ -163,6 +178,9 @@ export const UnifiedProjectModal: React.FC<UnifiedProjectModalProps> = ({
                                 onDeleteTask={onDeleteTask}
                                 onCopyTask={onCopyTask}
                                 onUpdateAssignee={onUpdateAssignee}
+                                onBulkAddTasks={onBulkAddTasks}
+                                onUpdateTaskField={onUpdateTaskField}
+                                onUpdateProjectStats={onUpdateProjectStats}
                                 canEdit={canEdit}
                             />
                         </div>

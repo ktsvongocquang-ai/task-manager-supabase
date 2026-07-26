@@ -13,29 +13,56 @@ export const GlobalLoadingFallback = () => (
   </div>
 );
 
+// Safe lazy import wrapper to automatically recover from outdated deployment chunk hashes
+const safeLazy = (importFn: () => Promise<any>) => {
+  return lazy(async () => {
+    try {
+      const component = await importFn();
+      sessionStorage.removeItem('retry_lazy_reload');
+      return component;
+    } catch (error: any) {
+      console.warn("Outdated chunk detected, refreshing page automatically...", error);
+      const isRefreshed = sessionStorage.getItem('retry_lazy_reload');
+      if (!isRefreshed) {
+        sessionStorage.setItem('retry_lazy_reload', 'true');
+        if ('caches' in window) {
+          try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+          } catch (e) {}
+        }
+        window.location.reload();
+        return new Promise(() => {});
+      }
+      sessionStorage.removeItem('retry_lazy_reload');
+      throw error;
+    }
+  });
+};
+
 // --- Lazy loaded components ---
-const ClientView = lazy(() => import('./pages/client/ClientView').then(m => ({ default: m.ClientView })))
-const PortfolioLanding = lazy(() => import('./pages/portfolio/PortfolioLanding').then(m => ({ default: m.PortfolioLanding })))
+const ClientView = safeLazy(() => import('./pages/client/ClientView').then(m => ({ default: m.ClientView })))
+const PortfolioLanding = safeLazy(() => import('./pages/portfolio/PortfolioLanding').then(m => ({ default: m.PortfolioLanding })))
 
-const Dashboard = lazy(() => import('./pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
-const Projects = lazy(() => import('./pages/projects/Projects').then(m => ({ default: m.Projects })))
-const PrototypeBoard = lazy(() => import('./pages/projects/PrototypeBoard').then(m => ({ default: m.PrototypeBoard })))
-const Tasks = lazy(() => import('./pages/tasks/Tasks').then(m => ({ default: m.Tasks })))
-const Users = lazy(() => import('./pages/users/Users').then(m => ({ default: m.Users })))
-const Profile = lazy(() => import('./pages/users/Profile').then(m => ({ default: m.Profile })))
-const Gantt = lazy(() => import('./pages/gantt/Gantt').then(m => ({ default: m.Gantt })))
-const History = lazy(() => import('./pages/history/History').then(m => ({ default: m.History })))
-const Kanban = lazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
-const Schedule = lazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
-const Construction = lazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
-const Finance = lazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
-const Customers = lazy(() => import('./pages/customers/Customers').then(m => ({ default: m.Customers })))
-const QuoteGenerator = lazy(() => import('./pages/customers/QuoteGenerator'))
+const Dashboard = safeLazy(() => import('./pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
+const Projects = safeLazy(() => import('./pages/projects/Projects').then(m => ({ default: m.Projects })))
+const PrototypeBoard = safeLazy(() => import('./pages/projects/PrototypeBoard').then(m => ({ default: m.PrototypeBoard })))
+const Tasks = safeLazy(() => import('./pages/tasks/Tasks').then(m => ({ default: m.Tasks })))
+const Users = safeLazy(() => import('./pages/users/Users').then(m => ({ default: m.Users })))
+const Profile = safeLazy(() => import('./pages/users/Profile').then(m => ({ default: m.Profile })))
+const Gantt = safeLazy(() => import('./pages/gantt/Gantt').then(m => ({ default: m.Gantt })))
+const History = safeLazy(() => import('./pages/history/History').then(m => ({ default: m.History })))
+const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
+const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
+const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
+const Finance = safeLazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
+const Customers = safeLazy(() => import('./pages/customers/Customers').then(m => ({ default: m.Customers })))
+const QuoteGenerator = safeLazy(() => import('./pages/customers/QuoteGenerator'))
 
-const MyTasks = lazy(() => import('./pages/mytasks/MyTasks'))
-const MarketingApp = lazy(() => import('./pages/marketing/MarketingApp'))
-const InteriorQuote = lazy(() => import('./pages/baogia/InteriorQuote'))
-const TrainingHub = lazy(() => import('./pages/training/TrainingHub'))
+const MyTasks = safeLazy(() => import('./pages/mytasks/MyTasks'))
+const MarketingApp = safeLazy(() => import('./pages/marketing/MarketingApp'))
+const InteriorQuote = safeLazy(() => import('./pages/baogia/InteriorQuote'))
+const TrainingHub = safeLazy(() => import('./pages/training/TrainingHub'))
 
 function App() {
   return (
@@ -61,7 +88,7 @@ function App() {
 
           {/* Protected Routes (Suspense handled inside Layout for nested routes) */}
           <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
-            <Route index element={<Navigate to="/tasks" replace />} />
+            <Route index element={<Navigate to="/projects" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="gantt" element={<Gantt />} />
             <Route path="kanban" element={<Kanban />} />

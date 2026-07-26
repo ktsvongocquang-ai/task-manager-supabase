@@ -236,8 +236,8 @@ export const Tasks = () => {
         const projCode = getProjectCode(projectId);
         if (!projCode) return `TASK-${Date.now().toString(36)}`;
 
-        const PHASE_SHORT: Record<string, string> = { concept: 'C', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
-        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey.toLowerCase()] || 'KH') : 'KH';
+        const PHASE_SHORT: Record<string, string> = { concept: 'CONCEPT', '3d': '3D', '2d': '2D', construction: 'TC', '_unassigned': 'KH' };
+        const phaseCode = phaseKey ? (PHASE_SHORT[phaseKey.toLowerCase()] || phaseKey.toUpperCase()) : 'KH';
         const prefix = `${projCode}-${phaseCode}`;
 
         let maxId = 0;
@@ -337,17 +337,8 @@ export const Tasks = () => {
     }
 
     const handleDelete = async (t: Task) => {
-        if (t.status === 'Lưu trữ') {
-            if (['Admin'].includes(profile?.role?.trim() || '')) {
-                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
-                await supabase.from('tasks').delete().eq('id', t.id)
-                fetchAll()
-            }
-            return
-        }
-
-        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
-        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
+        if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return
+        await supabase.from('tasks').delete().eq('id', t.id)
         fetchAll()
     }
 
@@ -711,12 +702,10 @@ export const Tasks = () => {
                                                                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(t.status)}`}
                                                                         disabled={!canEdit}
                                                                     >
-                                                                        {t.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
-                                                                        {t.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                                                         <option value="Cần làm">Cần làm</option>
+                                                                        <option value="Đang thực hiện">Đang thực hiện</option>
                                                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                                                         <option value="Hoàn thành">Hoàn thành</option>
-                                                                        <option value="Tạm dừng">Tạm dừng</option>
                                                                     </select>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[120px] min-w-[120px]">
@@ -794,24 +783,11 @@ export const Tasks = () => {
                                                                                 <button
                                                                                     onClick={(e) => { e.stopPropagation(); handleDelete(t); }}
                                                                                     className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity"
-                                                                                    title={t.status === 'Lưu trữ' ? "Xóa vĩnh viễn" : "Lưu trữ"}
+                                                                                    title="Xóa"
                                                                                 >
                                                                                     <Trash2 size={13} />
                                                                                 </button>
                                                                             </>
-                                                                        )}
-                                                                        {t.status === 'Lưu trữ' && profile?.role?.trim() === 'Admin' && (
-                                                                            <button
-                                                                                onClick={async (e) => {
-                                                                                    e.stopPropagation();
-                                                                                    await supabase.from('tasks').update({ status: 'Chưa bắt đầu' }).eq('id', t.id);
-                                                                                    fetchAll();
-                                                                                }}
-                                                                                className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100 hover:bg-indigo-100 transition-opacity"
-                                                                                title="Khôi phục"
-                                                                            >
-                                                                                <CheckCircle2 size={13} />
-                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 </td>
@@ -941,11 +917,10 @@ export const Tasks = () => {
                                                                                                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(child.status)}`}
                                                                                                 disabled={!canEdit}
                                                                                             >
-                                                                                                {child.status === 'Chưa bắt đầu' && <option value="Chưa bắt đầu">Chưa bắt đầu</option>}
-                                                                                                {child.status === 'Đang thực hiện' && <option value="Đang thực hiện">Đang thực hiện</option>}
                                                                                                 <option value="Cần làm">Cần làm</option>
+                                                                                                <option value="Đang thực hiện">Đang thực hiện</option>
+                                                                                                <option value="Chờ duyệt">Chờ duyệt</option>
                                                                                                 <option value="Hoàn thành">Hoàn thành</option>
-                                                                                                <option value="Tạm dừng">Tạm dừng</option>
                                                                                             </select>
                                                                                         </td>
 
@@ -1025,23 +1000,10 @@ export const Tasks = () => {
                                                                                                 <button
                                                                                                     onClick={(e) => { e.stopPropagation(); handleDelete(child); }}
                                                                                                     className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-red-50 text-red-500 rounded-lg flex items-center justify-center border border-red-100 hover:bg-red-100 transition-opacity shrink-0"
-                                                                                                    title={child.status === 'Lưu trữ' ? "Xóa vĩnh viễn" : "Lưu trữ"}
+                                                                                                    title="Xóa"
                                                                                                 >
                                                                                                     <Trash2 size={13} />
                                                                                                 </button>
-                                                                                                {child.status === 'Lưu trữ' && profile?.role?.trim() === 'Admin' && (
-                                                                                                    <button
-                                                                                                        onClick={async (e) => {
-                                                                                                            e.stopPropagation();
-                                                                                                            await supabase.from('tasks').update({ status: 'Chưa bắt đầu' }).eq('id', child.id);
-                                                                                                            fetchAll();
-                                                                                                        }}
-                                                                                                        className="opacity-0 group-hover:opacity-100 w-7 h-7 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center border border-indigo-100 hover:bg-indigo-100 transition-opacity shrink-0"
-                                                                                                        title="Khôi phục"
-                                                                                                    >
-                                                                                                        <CheckCircle2 size={13} />
-                                                                                                    </button>
-                                                                                                )}
                                                                                             </div>
                                                                                         </td>
                                                                                     </tr>

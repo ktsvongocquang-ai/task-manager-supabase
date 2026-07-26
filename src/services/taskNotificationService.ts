@@ -54,7 +54,6 @@ async function sendZalo(text: string, recipientZaloId?: string): Promise<boolean
   
   if (!targetId) {
     console.warn('[Notification] Zalo recipient ID missing');
-    alert('Lỗi Zalo: Không tìm thấy ID/SĐT Zalo của người nhận.');
     return false;
   }
 
@@ -73,13 +72,11 @@ async function sendZalo(text: string, recipientZaloId?: string): Promise<boolean
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.success) {
       console.warn('[Notification] Zalo Bot error:', data);
-      alert('Lỗi gửi Zalo Bot: ' + (data.error || 'Lỗi không xác định'));
       return false;
     }
     return true;
   } catch (e: any) {
     console.warn('[Notification] Zalo Bot error:', e);
-    alert('Lỗi hệ thống khi gọi Zalo Bot Server: ' + e?.message);
     return false;
   }
 }

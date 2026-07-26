@@ -2,8 +2,7 @@ export const DEFAULT_PHASES = [
     { key: 'concept', name: 'Concept', kpiPct: 15 },       // 15% of total KPI days
     { key: '3d', name: '3D / Phối cảnh', kpiPct: 35 },     // 35%
     { key: '2d', name: '2D / Triển khai', kpiPct: 27 },     // 27%
-    { key: 'construction', name: 'Construction / Hồ sơ TC', kpiPct: 23 }, // 23%
-    { key: '_unassigned', name: 'Khác / Bổ sung', kpiPct: 0 } // Fallback for unmatched tasks
+    { key: 'construction', name: 'Construction / Hồ sơ TC', kpiPct: 23 } // 23%
 ];
 
 // Auto-detect which phase a task belongs to from its target/name

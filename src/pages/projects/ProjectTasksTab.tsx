@@ -335,6 +335,7 @@ export const ProjectTasksTab: React.FC<ProjectTasksTabProps> = ({
                         <span className="text-[10px] font-semibold text-slate-400 uppercase">Quá hạn</span>
                     </div>
                 </div>
+                </div>
             )}
 
             {/* Action Bar */}

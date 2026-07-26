@@ -243,6 +243,10 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
             setActiveTab(initialTab || 'subtasks');
             if (editingTask) {
                 const today = new Date().toISOString().split('T')[0];
+                let initialStatus = editingTask.status || 'Cần làm';
+                if (initialStatus === 'Chờ kích hoạt' && (editingTask.start_date || editingTask.due_date)) {
+                    initialStatus = 'Cần làm';
+                }
                 setForm({
                     task_code: editingTask.task_code || initialData.task_code, 
                     project_id: editingTask.project_id || initialData.project_id, 
@@ -250,7 +254,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     description: editingTask.description || '',
                     assignee_id: Array.isArray(editingTask?.assignee_id) ? editingTask.assignee_id[0] : (editingTask?.assignee_id || currentUserProfile?.id || ''), 
                     supporter_id: editingTask.supporter_id || '', 
-                    status: editingTask.status || 'Cần làm', 
+                    status: initialStatus, 
                     priority: editingTask.priority || 'Trung bình',
                     start_date: editingTask.start_date ? editingTask.start_date.split('T')[0] : today, 
                     start_time: editingTask.start_time || '',
@@ -355,13 +359,18 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
 
     const handleSave = async () => {
         try {
+            let finalStatus = form.status;
+            if ((finalStatus === 'Chờ kích hoạt' || finalStatus === 'Dự thảo') && (form.start_date || form.due_date)) {
+                finalStatus = 'Cần làm';
+            }
+
             const payload = {
                 name: form.name,
                 task_code: form.task_code,
                 description: form.description || null,
                 assignee_id: form.assignee_id || null,
                 supporter_id: form.supporter_id || null,
-                status: form.status,
+                status: finalStatus,
                 priority: form.priority,
                 start_date: form.start_date || null,
                 start_time: form.start_time || null,
@@ -856,11 +865,43 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                                 <div>
                                     <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Bắt đầu</label>
                                     <input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                                        onPaste={(e) => {
+                                            const txt = e.clipboardData.getData('text/plain');
+                                            if (!txt) return;
+                                            const parts = txt.trim().split(/[\/\-\.]/);
+                                            if (parts.length === 3) {
+                                                let [d, m, y] = parts;
+                                                if (y.length === 2) y = `20${y}`;
+                                                if (d.length === 1) d = `0${d}`;
+                                                if (m.length === 1) m = `0${m}`;
+                                                const iso = `${y}-${m}-${d}`;
+                                                if (!isNaN(Date.parse(iso))) {
+                                                    e.preventDefault();
+                                                    setForm({ ...form, start_date: iso });
+                                                }
+                                            }
+                                        }}
                                         className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400" />
                                 </div>
                                 <div>
                                     <label className="block text-[9px] text-slate-400 uppercase mb-0.5">Hạn chót</label>
                                     <input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                                        onPaste={(e) => {
+                                            const txt = e.clipboardData.getData('text/plain');
+                                            if (!txt) return;
+                                            const parts = txt.trim().split(/[\/\-\.]/);
+                                            if (parts.length === 3) {
+                                                let [d, m, y] = parts;
+                                                if (y.length === 2) y = `20${y}`;
+                                                if (d.length === 1) d = `0${d}`;
+                                                if (m.length === 1) m = `0${m}`;
+                                                const iso = `${y}-${m}-${d}`;
+                                                if (!isNaN(Date.parse(iso))) {
+                                                    e.preventDefault();
+                                                    setForm({ ...form, due_date: iso });
+                                                }
+                                            }
+                                        }}
                                         className="w-full px-1.5 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-400" />
                                 </div>
                                 <div>

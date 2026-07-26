@@ -41,13 +41,67 @@ export const enrichTasks = (tasks: Task[], projects: Project[]): Task[] => {
                 const projCode = project.project_code || '';
                 return { ...task, task_code: `${projCode}-${taskNum}-${phaseName}` };
             }
-        } else if (!isRollup) {
-            const projName = project.name || '';
-            const currentCode = task.task_code || '';
-            if (projName && !currentCode.endsWith(projName)) {
-                return { ...task, task_code: `${currentCode}-${projName}` };
-            }
         }
         return task;
     });
+};
+
+/**
+ * Formats task_code to ensure it remains a clean, concise code string (e.g., DA001-01)
+ * Strips out messy appended project names or raw negative IDs like "-1460" or "-Villa Ms Trang".
+ */
+export const formatCleanTaskCode = (code: string | null | undefined): string => {
+    if (!code) return '';
+    let clean = code.trim();
+
+    // Strip trailing project name suffixes appended via dashes, e.g., "DQH-003-Villa Ms Trang" -> "DQH-003"
+    // Also handle raw negative ID strings or messy prefixes
+    clean = clean.replace(/^[-\s]+/, ''); // remove leading dashes/spaces
+    if (clean.includes('-')) {
+        const parts = clean.split('-');
+        // If second part is just numeric code, keep code part e.g. "DQH-003"
+        if (parts.length >= 2 && /^\d+$/.test(parts[1])) {
+            return `${parts[0]}-${parts[1]}`;
+        }
+        // If first part is alpha-numeric code, return it
+        if (/^[A-Z0-9]+$/i.test(parts[0])) {
+            return parts[0];
+        }
+    }
+    // If it's pure numbers, e.g. "1460", hide or format nicely
+    if (/^\d+$/.test(clean)) {
+        return `#${clean.slice(-4)}`;
+    }
+    return clean;
+};
+
+/**
+ * Cleans up and standardizes task title formatting across the entire app:
+ * - Strips leading dashes (- ), asterisks (* ), bullets (• ), dots (.) and leading whitespace
+ * - Capitalizes the first letter cleanly
+ * - Cleans up typos like "KHối Lượng" -> "Khối lượng"
+ */
+export const formatCleanTaskTitle = (name: string | null | undefined): string => {
+    if (!name) return 'Chưa có tên';
+    let clean = name.trim();
+
+    // Strip leading prefix like "HSTC- ", "HSTC_", "- ", "* ", "• ", "."
+    clean = clean.replace(/^(HSTC[-\s_]*)/i, '').replace(/^[-\*•\.\s]+/, '').trim();
+    if (!clean) return name;
+
+    // If text is ALL UPPERCASE (e.g. "MY HOUSE DAK LAK"), convert to Title Case ("My House Dak Lak")
+    if (clean === clean.toUpperCase() && clean.length > 3) {
+        clean = clean.split(' ').map(word => {
+            if (!word) return '';
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        }).join(' ');
+    } else {
+        // Capitalize first letter of sentence cleanly
+        clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
+
+    // Clean up internal typos like "KHối Lượng" -> "Khối lượng"
+    clean = clean.replace(/KHối/gi, 'Khối').replace(/Lượng/gi, 'lượng');
+
+    return clean;
 };

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { DEFAULT_PHASES, detectPhase, addWorkingDays, getNextWorkingDay } from '../../utils/phaseUtils'
 import { type Task, type Project } from '../../types'
@@ -7,7 +8,7 @@ import { format } from 'date-fns'
 import { QuickTaskModal } from './QuickTaskModal'
 import { Plus, Trash2 } from 'lucide-react'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
-import { isLevel2ProjectTask, enrichTasks } from '../../utils/taskUtils'
+import { isLevel2ProjectTask, enrichTasks, formatCleanTaskTitle } from '../../utils/taskUtils'
 
 const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
     'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
@@ -15,12 +16,14 @@ const MONTHS_VI = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', '
 const DAY_NAMES = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
 export const Gantt = () => {
+    const [searchParams] = useSearchParams()
+    const initialSearch = searchParams.get('search') || searchParams.get('project') || ''
     const [tasks, setTasks] = useState<Task[]>([])
     const [level2Tasks, setLevel2Tasks] = useState<Task[]>([])
     const [projects, setProjects] = useState<Project[]>([])
     const [loading, setLoading] = useState(true)
     const [currentDate, setCurrentDate] = useState(new Date())
-    const [search, setSearch] = useState('')
+    const [search, setSearch] = useState(initialSearch)
     const [zoom, setZoom] = useState(100)
     const [viewMode, setViewMode] = useState<'month' | 'week'>('week')
     const [profiles, setProfiles] = useState<any[]>([])
@@ -39,6 +42,43 @@ export const Gantt = () => {
     const [createModalInitialData, setCreateModalInitialData] = useState<{ project_id: string, target?: string, task_code?: string }>({ project_id: '' })
 
     const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const q = searchParams.get('search') || searchParams.get('project')
+        if (q) {
+            setSearch(q)
+        }
+    }, [searchParams])
+
+    useEffect(() => {
+        const activeProjectIds = new Set<string>()
+        if (selectedProjectId) {
+            activeProjectIds.add(selectedProjectId)
+        }
+        if (search.trim() && projects.length > 0) {
+            const q = search.trim().toLowerCase()
+            projects.filter(p => 
+                p.name?.toLowerCase().includes(q) || 
+                p.project_code?.toLowerCase().includes(q) || 
+                p.id === search
+            ).forEach(p => activeProjectIds.add(p.id))
+        }
+
+        if (activeProjectIds.size > 0) {
+            setExpandedProjects(prev => new Set([...prev, ...activeProjectIds]))
+            const phaseIds: string[] = []
+            activeProjectIds.forEach(id => {
+                DEFAULT_PHASES.forEach(ph => {
+                    phaseIds.push(`phase_${id}_${ph.key}`)
+                    phaseIds.push(ph.key)
+                })
+                level2Tasks.filter(l2 => l2.project_id === id).forEach(site => {
+                    phaseIds.push(`site_${id}_${site.id}`)
+                })
+            })
+            setExpandedPhases(prev => new Set([...prev, ...phaseIds]))
+        }
+    }, [selectedProjectId, search, projects, level2Tasks])
 
     
     useEffect(() => {
@@ -66,6 +106,8 @@ export const Gantt = () => {
 
             let fetchedProjects = (p || []) as Project[];
             let fetchedTasks = (t || []) as Task[];
+            // Filter out unactivated template draft tasks from Gantt!
+            fetchedTasks = fetchedTasks.filter(task => task.status !== 'Chờ kích hoạt' && task.status !== 'Dự thảo');
             fetchedTasks = enrichTasks(fetchedTasks, fetchedProjects);
             // Lưu task cấp 2 (HSTC-...) riêng cho Gantt thi công trước khi lọc bỏ
             const savedLevel2 = fetchedTasks.filter(task => isLevel2ProjectTask(task, fetchedProjects));
@@ -195,9 +237,19 @@ export const Gantt = () => {
     }
     const resetDate = () => setCurrentDate(new Date())
 
-    const filteredProjectsBase = selectedProjectId
-        ? projects.filter(p => p.id === selectedProjectId)
-        : projects;
+    const filteredProjectsBase = useMemo(() => {
+        let list = selectedProjectId ? projects.filter(p => p.id === selectedProjectId) : projects;
+        if (search.trim()) {
+            const q = search.trim().toLowerCase();
+            const matched = list.filter(p => 
+                p.name?.toLowerCase().includes(q) || 
+                p.project_code?.toLowerCase().includes(q) || 
+                p.id === search
+            );
+            if (matched.length > 0) return matched;
+        }
+        return list;
+    }, [projects, selectedProjectId, search]);
 
     // Filter tasks by assignee if selected
     const filteredTasks = useMemo(() => {
@@ -239,8 +291,8 @@ export const Gantt = () => {
         let items: any[] = []
 
         updatedProjects.forEach(p => {
-            const startDate = p.start_date || p.computed_start
-            const endDate = p.end_date || p.computed_end || p.start_date
+            const startDate = p.computed_start || p.start_date;
+            const endDate = p.computed_end || p.end_date || p.start_date;
 
             const start = parseDateStr(startDate);
             const end = parseDateStr(endDate);
@@ -314,7 +366,7 @@ export const Gantt = () => {
                         items.push({
                             id: fakeSiteId,
                             phaseKey: site.id,
-                            name: site.name || site.task_code,
+                            name: formatCleanTaskTitle(site.name || site.task_code),
                             startIndex: actualStartIndex,
                             duration: actualDuration,
                             actualStartIndex,
@@ -671,17 +723,8 @@ export const Gantt = () => {
     };
 
     const handleDelete = async (t: Task) => {
-        if (t.status === 'Lưu trữ') {
-            if (['Admin'].includes(currentUserProfile?.role?.trim() || '')) {
-                if (!confirm('Xóa vĩnh viễn nhiệm vụ này khỏi hệ thống?')) return
-                await supabase.from('tasks').delete().eq('id', t.id)
-                fetchData()
-            }
-            return
-        }
-
-        if (!confirm('Bạn có chắc chắn muốn chuyển nhiệm vụ này vào Lưu trữ?')) return
-        await supabase.from('tasks').update({ status: 'Lưu trữ' }).eq('id', t.id)
+        if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return
+        await supabase.from('tasks').delete().eq('id', t.id)
         fetchData()
     }
 
@@ -921,7 +964,7 @@ export const Gantt = () => {
                                                                 }
                                                             }}
                                                         >
-                                                            {item.name}
+                                                            {formatCleanTaskTitle(item.name)}
                                                         </span>
                                                         {/* Nút + tạo task (cấp 3) cho giai đoạn (cấp 2) - hiện khi hover */}
                                                         {item.type === 'phase' && (
@@ -934,6 +977,22 @@ export const Gantt = () => {
                                                                 title="Thêm nhiệm vụ"
                                                             >
                                                                 <Plus size={12} />
+                                                            </button>
+                                                        )}
+                                                        {/* Nút xóa task (cấp 3) - hiện khi hover */}
+                                                        {item.type === 'task' && item.task && (
+                                                            <button
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (window.confirm(`Bạn có chắc chắn muốn xóa nhiệm vụ "${item.name}"?`)) {
+                                                                        await supabase.from('tasks').delete().eq('id', item.id);
+                                                                        setTasks(prev => prev.filter(t => t.id !== item.id));
+                                                                    }
+                                                                }}
+                                                                className="w-4 h-4 flex-shrink-0 flex items-center justify-center rounded text-slate-300 opacity-0 group-hover/row:opacity-100 hover:text-rose-600 hover:bg-rose-50 transition-all ml-auto"
+                                                                title="Xóa nhiệm vụ"
+                                                            >
+                                                                <Trash2 size={12} />
                                                             </button>
                                                         )}
                                                     </div>
