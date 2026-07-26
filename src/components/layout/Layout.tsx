@@ -33,7 +33,8 @@ import {
     Link as LinkIcon,
     Bot,
     Settings,
-    DollarSign
+    DollarSign,
+    MoreHorizontal
 } from 'lucide-react'
 import { getUnreadNotificationCount, checkScheduledNotifications } from '../../services/notifications'
 import { NotificationsDropdown } from './NotificationsDropdown'
@@ -86,6 +87,7 @@ export const Layout = () => {
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false) // Added Mobile Sidebar state
     const [isChatBotOpen, setIsChatBotOpen] = useState(false) // Added AI Assistant state
     const [isBotSettingsOpen, setIsBotSettingsOpen] = useState(false) // Zalo/Telegram bot settings
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false) // Header "More" actions menu
     
     // Accordion sidebar state
     const [expandedNavs, setExpandedNavs] = useState<Record<string, boolean>>({ 'Thiết kế': true, 'Quản lý thiết kế': true, 'Công việc': true })
@@ -428,14 +430,14 @@ export const Layout = () => {
                 />
             )}
             
-            {/* Sidebar - Pro Glassmorphism Style */}
-            <aside className={`fixed left-0 top-0 h-full w-64 bg-sidebar-bg border-r border-border-main z-50 transform flex flex-col transition-transform duration-300 ease-in-out print:hidden ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
+            {/* Sidebar - Pro Glassmorphism Style. Collapses to an icon rail on desktop; hover to expand. */}
+            <aside className={`group/side fixed left-0 top-0 h-full w-64 lg:w-[72px] lg:hover:w-64 bg-sidebar-bg border-r border-border-main z-50 transform flex flex-col transition-all duration-300 ease-in-out overflow-x-hidden print:hidden ${isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}`}>
                 <div className="p-6 border-b border-border-main">
-                    <button onClick={() => setIsLauncherOpen(true)} className="flex items-center space-x-3 mb-6 w-full text-left group hover:opacity-80 transition-opacity">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-indigo-500/30 transition-shadow">
+                    <button onClick={() => setIsLauncherOpen(true)} className="group/logo flex items-center gap-3 mb-6 w-full text-left hover:opacity-80 transition-opacity">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover/logo:shadow-indigo-500/30 transition-shadow shrink-0">
                             <Rocket className="text-white" size={20} />
                         </div>
-                        <div>
+                        <div className="lg:hidden lg:group-hover/side:block min-w-0 whitespace-nowrap">
                             <h1 className="text-2xl font-bold text-[#7A1216] leading-none tracking-tight">DQH</h1>
                             <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-1 font-bold">Quản lý nâng tầm</p>
                         </div>
@@ -444,24 +446,24 @@ export const Layout = () => {
                     {/* User Profile Card */}
                     <div className="bg-gray-50 rounded-xl p-3 border border-border-main mb-4">
                         <div className="flex items-center justify-between gap-1">
-                            <button 
+                            <button
                                 onClick={() => navigate('/profile')}
-                                className="flex items-center space-x-2.5 flex-1 min-w-0 text-left hover:bg-gray-100 p-1.5 -ml-1 rounded-lg transition-colors group"
+                                className="group/avatar flex items-center gap-2.5 flex-1 min-w-0 text-left hover:bg-gray-100 p-1.5 -ml-1 rounded-lg transition-colors"
                                 title="Xem hồ sơ của bạn"
                             >
-                                <div className={`w-9 h-9 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover:scale-105 transition-transform shrink-0`}>
+                                <div className={`w-9 h-9 ${getRoleBrand(profile?.role).color} rounded-full flex items-center justify-center text-white font-bold shadow-sm group-hover/avatar:scale-105 transition-transform shrink-0`}>
                                     {getInitials(profile?.full_name)}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-text-main truncate group-hover:text-indigo-600 transition-colors leading-tight">{profile?.full_name || 'Người dùng'}</p>
-                                    <p className={`text-[11px] font-semibold ${getRoleBrand(profile?.role).text} leading-none mt-0.5`}>{profile?.role || 'Thiết kế'}</p>
+                                <div className="flex-1 min-w-0 lg:hidden lg:group-hover/side:block">
+                                    <p className="text-sm font-bold text-text-main truncate group-hover/avatar:text-indigo-600 transition-colors leading-tight whitespace-nowrap">{profile?.full_name || 'Người dùng'}</p>
+                                    <p className={`text-[11px] font-semibold ${getRoleBrand(profile?.role).text} leading-none mt-0.5 whitespace-nowrap`}>{profile?.role || 'Thiết kế'}</p>
                                 </div>
                             </button>
                             
-                            {/* AI Assistant Button */}
+                            {/* AI Assistant Button - only reachable when sidebar is expanded (hover/mobile) */}
                             <button
                                 onClick={() => setIsChatBotOpen(!isChatBotOpen)}
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 border shrink-0 ${
+                                className={`flex lg:hidden lg:group-hover/side:flex w-9 h-9 rounded-xl items-center justify-center transition-all duration-300 border shrink-0 ${
                                     isChatBotOpen
                                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20 active:scale-95'
                                         : 'bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50 hover:text-indigo-700 shadow-sm active:scale-95'
@@ -471,6 +473,8 @@ export const Layout = () => {
                                 <Bot size={18} className={isChatBotOpen ? '' : 'animate-pulse'} />
                             </button>
                         </div>
+                        {/* Secondary actions - only reachable when sidebar is expanded (hover/mobile) */}
+                        <div className="lg:hidden lg:group-hover/side:block">
                         <div className="grid grid-cols-2 gap-2 mt-4">
                             <button onClick={() => setIsPasswordModalOpen(true)} className="flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-gray-700 rounded-lg border border-border-main hover:bg-gray-100 transition-colors">
                                 <KeyRound size={14} /> Đổi mật khẩu
@@ -479,14 +483,14 @@ export const Layout = () => {
                                 <Send size={14} /> Telegram ID
                             </button>
                         </div>
-                        
+
                         {isAdminRole(profile?.role) && (
-                            <button 
-                                onClick={handleBackup} 
+                            <button
+                                onClick={handleBackup}
                                 disabled={isBackingUp}
                                 className={`mt-2 w-full flex items-center justify-center gap-1.5 py-2 px-2 bg-indigo-50 text-xs font-bold text-indigo-700 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors ${isBackingUp ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                <Database size={14} className={isBackingUp ? 'animate-spin' : ''} /> 
+                                <Database size={14} className={isBackingUp ? 'animate-spin' : ''} />
                                 {isBackingUp ? 'Đang sao lưu...' : 'Sao lưu Hệ thống'}
                             </button>
                         )}
@@ -494,6 +498,7 @@ export const Layout = () => {
                         <button onClick={handleSignOut} className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-white text-xs font-semibold text-red-600 rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
                             <LogOut size={14} /> Đăng xuất
                         </button>
+                        </div>
                     </div>
                 </div>
 
@@ -509,8 +514,8 @@ export const Layout = () => {
 
                         const linkContent = (
                             <>
-                                <item.icon className={`mr-3 ${isMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
-                                <span>{item.name}</span>
+                                <item.icon className={`shrink-0 mr-3 lg:mr-0 lg:group-hover/side:mr-3 ${isMatch(location.pathname) ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} size={18} />
+                                <span className="lg:hidden lg:group-hover/side:inline whitespace-nowrap">{item.name}</span>
                             </>
                         );
 
@@ -518,13 +523,14 @@ export const Layout = () => {
                             <NavLink
                                 key={item.path || item.name}
                                 to={item.path || '#'}
+                                title={item.name}
                                 onClick={() => {
                                     if (item.path !== '#') {
                                         setIsMobileSidebarOpen(false);
                                     }
                                 }}
                                 className={() =>
-                                    `group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
+                                    `group flex items-center lg:justify-center lg:group-hover/side:justify-start px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isMatch(location.pathname)
                                         ? 'bg-primary text-white shadow-sm'
                                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                     } ${item.mobileChildren ? 'hidden lg:flex' : 'flex'}`
@@ -606,8 +612,8 @@ export const Layout = () => {
                     })}
                 </nav>
 
-                {/* Sidebar Footer */}
-                <div className="p-6">
+                {/* Sidebar Footer - only reachable when sidebar is expanded (hover/mobile) */}
+                <div className="p-6 lg:hidden lg:group-hover/side:block">
                     <div className="glass-card p-4 text-center flex flex-col items-center justify-center gap-1 hover:bg-white/60 transition-colors">
                         <div className="text-sm font-bold text-slate-700 tracking-tight">App QLDA DQH</div>
                         <div className="text-[11px] font-semibold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">version 1.3</div>
@@ -619,7 +625,7 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-64 flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0 min-w-0">
+            <main className="flex-1 lg:ml-[72px] flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0 min-w-0">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex flex-col gap-3">
@@ -633,21 +639,13 @@ export const Layout = () => {
                             </div>
 
                             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                                {/* Refresh Button */}
-                                <button
-                                    onClick={handleRefresh}
-                                    className={`hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm border border-slate-100 ${isRefreshing ? 'animate-spin' : ''}`}
-                                    title="Làm mới dữ liệu"
-                                >
-                                    <RefreshCw size={18} strokeWidth={2.5} />
-                                </button>
-
                                 {/* Notification Bell */}
                                 <div className="relative">
                                     <button
                                         onClick={() => {
                                             setIsNotifOpen(!isNotifOpen);
                                             if (isChatOpen) setIsChatOpen(false);
+                                            if (isMoreMenuOpen) setIsMoreMenuOpen(false);
                                         }}
                                         className="relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
                                     >
@@ -672,26 +670,45 @@ export const Layout = () => {
                                     )}
                                 </div>
 
-                                {/* Bot Settings Button */}
-                                <button
-                                    onClick={() => setIsBotSettingsOpen(true)}
-                                    className="hidden lg:flex p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-violet-600 hover:bg-violet-50 transition-all shadow-sm border border-slate-100"
-                                    title="Cài đặt Zalo/Telegram Bot"
-                                >
-                                    <Settings size={18} strokeWidth={2.5} />
-                                </button>
+                                {/* More Actions (Làm mới / Chat / Cài đặt Bot) */}
+                                <div className="relative hidden lg:block">
+                                    <button
+                                        onClick={() => {
+                                            setIsMoreMenuOpen(!isMoreMenuOpen);
+                                            if (isNotifOpen) setIsNotifOpen(false);
+                                        }}
+                                        className="p-2 sm:p-2.5 rounded-xl bg-white text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all shadow-sm border border-slate-100"
+                                        title="Thêm"
+                                    >
+                                        <MoreHorizontal size={18} strokeWidth={2.5} />
+                                    </button>
 
-                                {/* Global Chat Button */}
-                                <button
-                                    onClick={() => {
-                                        setIsChatOpen(!isChatOpen);
-                                        if (isNotifOpen) setIsNotifOpen(false);
-                                    }}
-                                    className="hidden lg:flex relative p-2 sm:p-2.5 rounded-xl bg-slate-900/5 text-slate-600 hover:bg-slate-900/10 transition-all border border-slate-200/50"
-                                >
-                                    <MessageSquare size={18} strokeWidth={2.5} />
-                                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-blue-500 to-cyan-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white shadow-sm">0</span>
-                                </button>
+                                    {isMoreMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-[60]" onClick={() => setIsMoreMenuOpen(false)}></div>
+                                            <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-[70] animate-in fade-in zoom-in-95 duration-150">
+                                                <button
+                                                    onClick={() => { handleRefresh(); setIsMoreMenuOpen(false); }}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-slate-50 transition-colors"
+                                                >
+                                                    <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} /> Làm mới dữ liệu
+                                                </button>
+                                                <button
+                                                    onClick={() => { setIsChatOpen(!isChatOpen); setIsMoreMenuOpen(false); }}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-slate-50 transition-colors"
+                                                >
+                                                    <MessageSquare size={16} /> Chat nội bộ
+                                                </button>
+                                                <button
+                                                    onClick={() => { setIsBotSettingsOpen(true); setIsMoreMenuOpen(false); }}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-slate-50 transition-colors"
+                                                >
+                                                    <Settings size={16} /> Cài đặt Bot Zalo/Telegram
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
