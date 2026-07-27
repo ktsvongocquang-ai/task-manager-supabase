@@ -49,8 +49,6 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     currentUserProfile,
     onSuccess
 }) => {
-    if (!isOpen) return null;
-
     // --- State: Action Items ---
     const [projectCode, setProjectCode] = useState(`AI-${Math.floor(Math.random() * 10000)}`);
     const [projectName, setProjectName] = useState('');
@@ -151,6 +149,8 @@ export const GenerateAIProjectModal: React.FC<GenerateAIProjectModalProps> = ({
     const [generatedPhases, setGeneratedPhases] = useState<any[]>([]);
     const [generatedTasks, setGeneratedTasks] = useState<any[]>([]);
     const [showPreview, setShowPreview] = useState(false);
+
+    if (!isOpen) return null;
 
     // --- Timeline Calculator ---
 

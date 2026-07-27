@@ -23,6 +23,16 @@ export default function ProjectProfile({ project, floorPlans, onUploadFile, onOp
   const [activeTab, setActiveTab] = useState<'design' | 'construction'>('design');
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
+  // Filter plans based on selected chip
+  const filteredPlans = useMemo(() => {
+    if (!project) return [];
+    let plans = floorPlans.filter(fp => fp.projectId === project.id);
+    if (selectedFilter) {
+      plans = plans.filter(fp => fp.planType === selectedFilter);
+    }
+    return plans;
+  }, [floorPlans, project, selectedFilter]);
+
   if (!project) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-500 text-sm p-8 bg-[#1c1c1c]">
@@ -39,15 +49,6 @@ export default function ProjectProfile({ project, floorPlans, onUploadFile, onOp
       .map(fp => fp.planType)
   );
   const computedProgress = Math.round((uploadedTypes.size / DOC_CATEGORIES.length) * 100) || 83; // fallback to 83 for UI demo
-
-  // Filter plans based on selected chip
-  const filteredPlans = useMemo(() => {
-    let plans = floorPlans.filter(fp => fp.projectId === project.id);
-    if (selectedFilter) {
-      plans = plans.filter(fp => fp.planType === selectedFilter);
-    }
-    return plans;
-  }, [floorPlans, project.id, selectedFilter]);
 
   // Group plans by category to count
   const groupedCount = DOC_CATEGORIES.map(cat => ({

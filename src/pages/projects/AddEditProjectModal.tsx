@@ -40,11 +40,11 @@ export const AddEditProjectModal: React.FC<AddEditProjectModalProps> = ({
     profiles,
     currentUserProfile
 }) => {
-    if (!isOpen) return null;
-
     const [activeTab, setActiveTab] = React.useState<'manual' | 'ai'>('manual');
     const [isEstimatingTimeline, setIsEstimatingTimeline] = React.useState(false);
     const [timelineError, setTimelineError] = React.useState('');
+
+    if (!isOpen) return null;
 
     const addDaysSkipSundays = (startDate: Date, days: number) => {
         let d = new Date(startDate);

@@ -34,10 +34,6 @@ export const AdminChatBot = ({ userRole, userName, controlledIsOpen, onClose }: 
     const chatContainerRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
 
-    // Only show for Admin and Manager roles
-    const canAccess = userRole === 'Admin' || userRole === 'Quản lý thiết kế' || userRole === 'Quản lý thi công'
-    if (!canAccess) return null
-
     const scrollToBottom = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
     }, [])
@@ -52,6 +48,10 @@ export const AdminChatBot = ({ userRole, userName, controlledIsOpen, onClose }: 
         const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current
         setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100)
     }, [])
+
+    // Only show for Admin and Manager roles
+    const canAccess = userRole === 'Admin' || userRole === 'Quản lý thiết kế' || userRole === 'Quản lý thi công'
+    if (!canAccess) return null
 
     const handleSend = async (text?: string) => {
         const question = (text || input).trim()
