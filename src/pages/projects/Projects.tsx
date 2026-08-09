@@ -112,7 +112,7 @@ export const Projects = () => {
     const [showTaskModal, setShowTaskModal] = useState(false)
     const [taskModalInitialData, setTaskModalInitialData] = useState({ task_code: '', project_id: '', parent_id: '' })
     const [editingTask, setEditingTask] = useState<Task | null>(null)
-    const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list'>('cards')
+    const [projectViewMode, setProjectViewMode] = useState<'cards' | 'list' | 'quick'>('cards')
     const [expandedDoneProjects, setExpandedDoneProjects] = useState<Set<string>>(new Set())
     const [expandedPhases, setExpandedPhases] = useState<Set<string>>(new Set())
     const [collapsedRollupPhases, setCollapsedRollupPhases] = useState<Set<string>>(new Set())
@@ -724,6 +724,12 @@ export const Projects = () => {
                             >
                                 <List size={14} /> Danh sách
                             </button>
+                            <button
+                                onClick={() => setProjectViewMode('quick')}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${projectViewMode === 'quick' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
+                            >
+                                <FileText size={14} /> Nhanh
+                            </button>
                         </div>
 
                         {/* Scope Filter */}
@@ -1067,6 +1073,93 @@ export const Projects = () => {
                     );
                 })}
             </div>
+            )}
+
+            {/* Quick View - Notes-style: flat checklist per project, no phase grouping */}
+            {projectViewMode === 'quick' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 items-start">
+                {filteredProjects.map(project => {
+                    const isRollup = project.status === 'Thi công' || (project.name || '').toLowerCase().includes('tổng hợp');
+                    const scopedTasks = isRollup
+                        ? allTasks.filter(t => t.project_id === project.id && t.parent_id)
+                        : allTasks.filter(t => t.project_id === project.id && !t.parent_id && !(t.status || '').includes('Chờ kích hoạt') && !(t.status || '').includes('Dự thảo'));
+                    const quickActiveTasks = scopedTasks.filter(t => t.status !== 'Hoàn thành');
+                    const quickDoneTasks = scopedTasks.filter(t => t.status === 'Hoàn thành');
+                    const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
+                    const canEdit = isManagerOrAdmin || isMine;
+                    const isDoneExpanded = expandedDoneProjects.has(project.id);
+
+                    const QuickTaskRow = ({ t }: { t: Task }) => {
+                        const isDone = t.status === 'Hoàn thành'
+                        const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
+                        const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
+                        return (
+                            <div className={`flex items-start gap-2 px-4 py-1.5 border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleToggleTaskComplete(t); }}
+                                    className="mt-0.5 shrink-0"
+                                    title={isDone ? 'Đánh dấu chưa xong' : 'Đánh dấu hoàn thành'}
+                                >
+                                    {isDone ? (
+                                        <div className="w-[15px] h-[15px] rounded bg-emerald-500 flex items-center justify-center"><Check size={10} strokeWidth={4} className="text-white" /></div>
+                                    ) : (
+                                        <div className="w-[15px] h-[15px] rounded border-2 border-slate-300 hover:border-emerald-400 transition-colors bg-white"></div>
+                                    )}
+                                </button>
+                                <div className="flex-1 min-w-0">
+                                    <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500 truncate max-w-[45%]" title={assignee}><User size={10} className="shrink-0" />{assignee}</span>
+                                        <span className={`flex items-center gap-1 text-[10px] font-semibold shrink-0 ${isLate ? 'text-red-600' : 'text-slate-400'}`}><Calendar size={10} />{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <div key={project.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            {/* Project Header */}
+                            <div className="px-4 pt-3 pb-2.5 bg-slate-50/70 border-b border-slate-100">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>{project.status}</span>
+                                    {canEdit && (
+                                        <button onClick={() => openAddTaskModal(project.id)} className="text-[10px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">+ Thêm</button>
+                                    )}
+                                </div>
+                                <div className="flex items-start gap-1.5">
+                                    <h3 className="text-sm font-bold text-slate-800 leading-snug flex-1 min-w-0">{project.name}</h3>
+                                    <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold shrink-0 mt-0.5">{quickActiveTasks.length}</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">{project.project_code}</div>
+                            </div>
+
+                            {/* Flat task checklist */}
+                            <div>
+                                {quickActiveTasks.length === 0 && quickDoneTasks.length === 0 ? (
+                                    <div className="px-4 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
+                                ) : (
+                                    <>
+                                        {quickActiveTasks.map(t => <QuickTaskRow key={t.id} t={t} />)}
+                                        {quickDoneTasks.length > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={() => toggleDoneProject(project.id)}
+                                                    className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-slate-50 transition-colors border-t border-slate-50"
+                                                >
+                                                    <ChevronDown size={12} className={`text-slate-400 transition-transform duration-200 ${isDoneExpanded ? '' : '-rotate-90'}`} />
+                                                    <span className="text-[10px] text-slate-400">Hoàn tất {quickDoneTasks.length} mục</span>
+                                                </button>
+                                                {isDoneExpanded && quickDoneTasks.map(t => <QuickTaskRow key={t.id} t={t} />)}
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+                </div>
             )}
             </div>
 
