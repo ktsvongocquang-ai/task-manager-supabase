@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
-import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock, ChevronRight, FolderKanban } from 'lucide-react'
+import { Plus, Search, Edit3, Trash2, Copy, Calendar, Users, User, Eye, List, Link, FileText, ExternalLink, LayoutGrid, ChevronDown, Star, AlertCircle, Check, CheckCircle2, MoreVertical, Folder, BookOpen, RefreshCw, X, Bell, HardHat, Clock, ChevronRight, FolderKanban } from 'lucide-react'
 import { enrichTasks, formatCleanTaskTitle } from '../../utils/taskUtils'
 import { useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
@@ -934,9 +934,9 @@ export const Projects = () => {
                                     </button>
                                 </div>
                                 <div className="flex justify-between items-center mt-1 gap-2">
-                                    <span className="text-[10px] font-medium text-slate-500 truncate max-w-[45%]" title={assignee}>👤 {assignee}</span>
+                                    <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500 truncate max-w-[45%]" title={assignee}><User size={10} className="shrink-0" />{assignee}</span>
                                     <div className="flex items-center gap-1.5 shrink-0">
-                                        <span className={`text-[10px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-400'}`}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                        <span className={`flex items-center gap-1 text-[10px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-400'}`}><Calendar size={10} />{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
                                         <select
                                             value={t.status}
                                             onChange={(e) => handleUpdateTaskField(t.id, 'status', e.target.value)}
@@ -957,21 +957,23 @@ export const Projects = () => {
                     return (
                         <div key={project.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             {/* Project Header (Cấp 1) */}
-                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50/70">
-                                <div className="flex items-center gap-3">
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
-                                    <span className="text-sm font-bold text-slate-800">{project.name}</span>
-                                    <span className="text-[10px] text-slate-400 font-medium">{project.project_code}</span>
-                                    <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">{activeTasks.length}</span>
+                            <div className="px-4 pt-3 pb-2.5 bg-slate-50/70 border-b border-slate-100">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border whitespace-nowrap ${getStatusBadge(project.status)}`}>{project.status}</span>
+                                    {(() => {
+                                        const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
+                                        const canEdit = isManagerOrAdmin || isMine;
+                                        if (!canEdit) return null;
+                                        return (
+                                            <button onClick={() => openAddTaskModal(project.id)} className="text-[10px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">+ Thêm</button>
+                                        );
+                                    })()}
                                 </div>
-                                {(() => {
-                                    const isMine = project.manager_id === profile?.id || filteredAllTasks.some(t => t.project_id === project.id);
-                                    const canEdit = isManagerOrAdmin || isMine;
-                                    if (!canEdit) return null;
-                                    return (
-                                        <button onClick={() => openAddTaskModal(project.id)} className="text-[11px] font-bold text-emerald-600 hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">+ Thêm</button>
-                                    );
-                                })()}
+                                <div className="flex items-start gap-1.5">
+                                    <h3 className="text-sm font-bold text-slate-800 leading-snug flex-1 min-w-0">{project.name}</h3>
+                                    <span className="text-[10px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-full font-bold shrink-0 mt-0.5">{activeTasks.length}</span>
+                                </div>
+                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">{project.project_code}</div>
                             </div>
 
                             {projTasks.length === 0 ? (
