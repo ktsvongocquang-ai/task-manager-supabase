@@ -860,7 +860,7 @@ export const Projects = () => {
 
                 {/* List View - Tasks grouped by project → phase/parent → task */}
                 {projectViewMode === 'list' && (
-                    <div className="divide-y divide-slate-100">
+                    <div className="space-y-4 p-4">
                 {filteredProjects.map(project => {
                     const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id && !(t.status || '').includes('Chờ kích hoạt') && !(t.status || '').includes('Dự thảo'));
                     const isRollup = project.status === 'Thi công' || (project.name || '').toLowerCase().includes('tổng hợp');
@@ -984,9 +984,9 @@ export const Projects = () => {
                     }
 
                     return (
-                        <div key={project.id} className="border-b border-slate-100 last:border-0">
+                        <div key={project.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             {/* Project Header (Cấp 1) */}
-                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 sticky top-0 z-10">
+                            <div className="flex items-center justify-between px-5 py-3 bg-slate-50/70">
                                 <div className="flex items-center gap-3">
                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${getStatusBadge(project.status)}`}>{project.status}</span>
                                     <span className="text-sm font-bold text-slate-800">{project.name}</span>
