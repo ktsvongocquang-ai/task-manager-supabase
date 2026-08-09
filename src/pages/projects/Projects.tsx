@@ -860,7 +860,7 @@ export const Projects = () => {
 
                 {/* List View - Tasks grouped by project → phase/parent → task */}
                 {projectViewMode === 'list' && (
-                    <div className="space-y-4 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 items-start">
                 {filteredProjects.map(project => {
                     const projTasks = allTasks.filter(t => t.project_id === project.id && !t.parent_id && !(t.status || '').includes('Chờ kích hoạt') && !(t.status || '').includes('Dự thảo'));
                     const isRollup = project.status === 'Thi công' || (project.name || '').toLowerCase().includes('tổng hợp');
@@ -917,66 +917,37 @@ export const Projects = () => {
                         const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
                         const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
                         return (
-                            <div className={`border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
-                                <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px_32px] gap-2 px-5 pl-12 py-2 items-center">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                        <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
-                                    </div>
-                                    <div className="text-[11px] text-slate-500 truncate">{(t as any).description || '—'}</div>
-                                    <input
-                                        type="date"
-                                        value={t.due_date ? t.due_date.split('T')[0] : ''}
-                                        onChange={(e) => handleUpdateTaskField(t.id, 'due_date', e.target.value || null)}
-                                        className={`text-[11px] font-semibold bg-transparent border-none p-0 cursor-pointer focus:ring-0 w-[75px] ${isLate ? 'text-red-600' : 'text-slate-600'}`}
-                                    />
-                                    <span className="text-[11px] font-semibold text-slate-600">{t.completion_pct || 0}%</span>
-                                    <select
-                                        value={Array.isArray(t.assignee_id) ? t.assignee_id[0] || '' : t.assignee_id || ''}
-                                        onChange={(e) => handleUpdateAssignee(t.id, e.target.value)}
-                                        className="text-[11px] text-slate-600 bg-transparent border-none p-0 cursor-pointer focus:ring-0 truncate w-full"
-                                    >
-                                        <option value="">Chưa gán</option>
-                                        {profiles.map(p => (
-                                            <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        value={t.status}
-                                        onChange={(e) => handleUpdateTaskField(t.id, 'status', e.target.value)}
-                                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md text-center border-none focus:ring-0 cursor-pointer ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Chờ duyệt' ? 'bg-purple-100 text-purple-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}
-                                    >
-                                        <option value="Cần làm">Cần làm</option>
-                                        <option value="Đang thực hiện">Đang thực hiện</option>
-                                        <option value="Chờ duyệt">Chờ duyệt</option>
-                                        <option value="Hoàn thành">Hoàn thành</option>
-                                    </select>
-                                    <button 
-                                        onClick={(e) => { 
-                                            e.stopPropagation(); 
+                            <div className={`px-4 pl-8 py-2 border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className={`text-xs font-semibold truncate cursor-pointer flex-1 min-w-0 ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             if (window.confirm(`Bạn có chắc chắn muốn xóa công việc "${t.name}"?`)) {
                                                 handleDeleteTask(t.id);
-                                            } 
-                                        }} 
-                                        className="p-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors flex items-center justify-center" 
+                                            }
+                                        }}
+                                        className="p-0.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors flex items-center justify-center shrink-0"
                                         title="Xóa công việc"
                                     >
-                                        <Trash2 size={13} />
+                                        <Trash2 size={12} />
                                     </button>
                                 </div>
-                                <div className="md:hidden flex flex-col gap-1.5 px-4 py-3">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <div className={`text-sm font-semibold truncate cursor-pointer flex-1 ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
-                                        <div className="flex items-center gap-1">
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{t.status}</span>
-                                            <button onClick={(e) => { e.stopPropagation(); if (window.confirm(`Bạn có chắc muốn xóa công việc "${t.name}"?`)) handleDeleteTask(t.id); }} className="p-1 text-slate-400 hover:text-rose-600"><Trash2 size={13} /></button>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[11px] text-slate-500">
-                                        <span className="truncate max-w-[150px]">👤 {assignee}</span>
-                                        <div className="flex items-center gap-3 font-semibold">
-                                            <span className={isLate ? 'text-red-600' : ''}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
-                                            <span className="text-indigo-600 bg-indigo-50 px-1.5 rounded">{t.completion_pct || 0}%</span>
-                                        </div>
+                                <div className="flex justify-between items-center mt-1 gap-2">
+                                    <span className="text-[10px] font-medium text-slate-500 truncate max-w-[45%]" title={assignee}>👤 {assignee}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className={`text-[10px] font-semibold ${isLate ? 'text-red-600' : 'text-slate-400'}`}>🗓 {t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                        <select
+                                            value={t.status}
+                                            onChange={(e) => handleUpdateTaskField(t.id, 'status', e.target.value)}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md text-center border-none focus:ring-0 cursor-pointer ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Chờ duyệt' ? 'bg-purple-100 text-purple-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}
+                                        >
+                                            <option value="Cần làm">Cần làm</option>
+                                            <option value="Đang thực hiện">Đang thực hiện</option>
+                                            <option value="Chờ duyệt">Chờ duyệt</option>
+                                            <option value="Hoàn thành">Hoàn thành</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -1007,11 +978,6 @@ export const Projects = () => {
                                 <div className="px-5 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
                             ) : (
                                 <div>
-                                    {/* Table Header */}
-                                    <div className="hidden md:grid grid-cols-[1fr_1fr_80px_80px_100px_100px] gap-2 px-5 pl-12 py-1.5 bg-slate-50/50 border-b border-slate-100">
-                                        {['Nhiệm vụ','Mô tả','Hạn chót','Tiến độ','Phụ trách','Trạng thái'].map(h => <span key={h} className="text-[9px] font-semibold text-slate-400 uppercase">{h}</span>)}
-                                    </div>
-
                                     {/* Phase Groups / Parent Task Groups (Cấp 2) */}
                                     {activeGroups.map(phase => {
                                         const phaseTasks = phase.isRollup
