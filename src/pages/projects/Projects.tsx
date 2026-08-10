@@ -1125,8 +1125,8 @@ export const Projects = () => {
                                 </button>
                                 <div className="flex-1 min-w-0">
                                     <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
-                                    <div className="flex items-center gap-2 mt-0.5" onClick={e => e.stopPropagation()}>
-                                        <div className="relative flex items-center gap-1 shrink-0 max-w-[45%]">
+                                    <div className="flex items-center justify-between gap-2 mt-0.5" onClick={e => e.stopPropagation()}>
+                                        <div className="relative flex items-center gap-1 shrink-0 max-w-[35%]">
                                             <User size={10} className="shrink-0 text-slate-400" />
                                             <select
                                                 value={Array.isArray(t.assignee_id) ? t.assignee_id[0] || '' : t.assignee_id || ''}
@@ -1139,13 +1139,25 @@ export const Projects = () => {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div className={`flex items-center gap-1 shrink-0 ${isLate ? 'text-red-600' : 'text-slate-400'}`}>
-                                            <Calendar size={10} className="shrink-0" />
-                                            <CompactDateInput
-                                                value={t.due_date}
-                                                onChange={(v) => handleUpdateTaskField(t.id, 'due_date', v || null)}
-                                                labelClassName="text-[10px] font-semibold"
-                                            />
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <div className={`flex items-center gap-1 shrink-0 ${isLate ? 'text-red-600' : 'text-slate-400'}`}>
+                                                <Calendar size={10} className="shrink-0" />
+                                                <CompactDateInput
+                                                    value={t.due_date}
+                                                    onChange={(v) => handleUpdateTaskField(t.id, 'due_date', v || null)}
+                                                    labelClassName="text-[10px] font-semibold"
+                                                />
+                                            </div>
+                                            <select
+                                                value={t.status}
+                                                onChange={(e) => handleUpdateTaskField(t.id, 'status', e.target.value)}
+                                                className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md text-center border-none focus:ring-0 cursor-pointer ${isDone ? 'bg-emerald-100 text-emerald-700' : t.status === 'Chờ duyệt' ? 'bg-purple-100 text-purple-700' : t.status === 'Đang thực hiện' ? 'bg-blue-100 text-blue-700' : t.status === 'Cần làm' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}
+                                            >
+                                                <option value="Cần làm">Cần làm</option>
+                                                <option value="Đang thực hiện">Đang thực hiện</option>
+                                                <option value="Chờ duyệt">Chờ duyệt</option>
+                                                <option value="Hoàn thành">Hoàn thành</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
