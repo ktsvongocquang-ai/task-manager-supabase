@@ -787,6 +787,12 @@ export const Dashboard = () => {
                     const proj = allProjects.find(p => p.id === pId)
                     return proj ? `${proj.project_code}-${String(tasks.length + 1).padStart(2, '0')}` : ''
                 }}
+                onDeleteTask={async (task) => {
+                    if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return;
+                    await supabase.from('tasks').delete().eq('id', task.id);
+                    fetchDashboardData();
+                    closePopup();
+                }}
             />
         </div>
     )

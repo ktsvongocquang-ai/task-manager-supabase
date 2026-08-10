@@ -564,6 +564,12 @@ export const Schedule = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 generateNextTaskCode={generateNextTaskCode}
+                onDeleteTask={async (task) => {
+                    if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return;
+                    await supabase.from('tasks').delete().eq('id', task.id);
+                    setShowModal(false);
+                    fetchAll();
+                }}
             />
         </div>
     )

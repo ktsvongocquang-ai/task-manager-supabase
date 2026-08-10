@@ -182,6 +182,11 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
                         projects={projects}
                         profiles={profiles}
                         currentUserProfile={profile}
+                        onDeleteTask={async (task) => {
+                            if (!confirm('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.')) return;
+                            await supabase.from('tasks').delete().eq('id', task.id);
+                            setEditingTask(null);
+                        }}
                     />
                 </Suspense>
             )}

@@ -1245,6 +1245,7 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
                     profiles={profiles}
                     currentUserProfile={currentUserProfile}
                     generateNextTaskCode={generateNextTaskCode}
+                    onDeleteTask={(task) => { setDrilledSubtask(null); removeSubTask(task.id); }}
                 />
             )}
         </>

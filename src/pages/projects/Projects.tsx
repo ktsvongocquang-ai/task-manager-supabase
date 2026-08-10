@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
 import { type Project, type Task } from '../../types'
@@ -17,6 +17,19 @@ const QuickAddInputRow: React.FC<{
 }> = ({ placeholder = "Nhập tên công việc & nhấn Enter...", onAdd }) => {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const wasLoadingRef = useRef(false);
+
+    // Disabling the input during the save mid-typing blurs it natively. `loading`
+    // flipping back to false only guarantees React has scheduled the re-render,
+    // not that the DOM's `disabled` attribute is already cleared - focusing must
+    // wait until that commit actually lands, hence this effect instead of calling
+    // .focus() right after setLoading(false). Only refocus on a true->false
+    // transition (a save just finished), not on initial mount.
+    useEffect(() => {
+        if (wasLoadingRef.current && !loading) inputRef.current?.focus();
+        wasLoadingRef.current = loading;
+    }, [loading]);
 
     const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && name.trim() && !loading) {
@@ -35,8 +48,9 @@ const QuickAddInputRow: React.FC<{
     return (
         <div className="flex items-center gap-2 px-5 pl-12 py-1.5 bg-slate-50/70 border-t border-slate-100 hover:bg-slate-100/70 transition-colors">
             <div className="w-3.5 h-3.5 rounded border border-dashed border-slate-300 shrink-0"></div>
-            <input 
-                type="text" 
+            <input
+                ref={inputRef}
+                type="text"
                 value={name}
                 disabled={loading}
                 onChange={e => setName(e.target.value)}
@@ -1241,6 +1255,7 @@ export const Projects = () => {
                 profiles={profiles}
                 currentUserProfile={profile}
                 generateNextTaskCode={generateNextTaskCode}
+                onDeleteTask={(task) => handleDeleteTask(task.id)}
             />
         </div>
     )
