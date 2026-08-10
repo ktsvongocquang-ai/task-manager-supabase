@@ -904,12 +904,15 @@ export const Projects = () => {
                             isRollup: true,
                             parentTask: pt
                           }))
-                        : DEFAULT_PHASES.map(p => ({
-                            key: p.key,
-                            name: p.name,
-                            isRollup: false,
-                            parentTask: null
-                          }));
+                        : [
+                            ...DEFAULT_PHASES.map(p => ({
+                                key: p.key,
+                                name: p.name,
+                                isRollup: false,
+                                parentTask: null
+                            })),
+                            { key: '_unassigned', name: 'Chưa phân loại', isRollup: false, parentTask: null }
+                          ];
 
                     const togglePhase = (phaseId: string, isRollupPhase: boolean) => {
                         if (isRollupPhase) {
