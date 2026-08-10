@@ -10,6 +10,7 @@ import { AddEditProjectModal } from './AddEditProjectModal'
 import { AddEditTaskModal } from '../tasks/AddEditTaskModal'
 import { UnifiedProjectModal } from './UnifiedProjectModal'
 import { DEFAULT_PHASES, detectPhase } from '../../utils/phaseUtils'
+import { CompactDateInput } from '../../components/CompactDateInput'
 
 const QuickAddInputRow: React.FC<{
     placeholder?: string;
@@ -1106,7 +1107,6 @@ export const Projects = () => {
                     const QuickTaskRow = ({ t }: { t: Task }) => {
                         const isDone = t.status === 'Hoàn thành'
                         const isLate = t.due_date && new Date(t.due_date) < new Date() && !isDone
-                        const assignee = profiles.find(p => p.id === (Array.isArray(t.assignee_id) ? t.assignee_id[0] : t.assignee_id))?.full_name || 'Chưa gán'
                         return (
                             <div className={`flex items-start gap-2 px-4 py-1.5 border-b border-slate-50 hover:bg-slate-50/50 ${isDone ? 'opacity-60' : ''}`}>
                                 <button
@@ -1122,9 +1122,28 @@ export const Projects = () => {
                                 </button>
                                 <div className="flex-1 min-w-0">
                                     <div className={`text-xs font-semibold truncate cursor-pointer ${isDone ? 'line-through text-slate-400' : 'text-slate-800 hover:text-indigo-600'}`} onClick={() => openEditTaskModal(t)}>{formatCleanTaskTitle(t.name)}</div>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500 truncate max-w-[45%]" title={assignee}><User size={10} className="shrink-0" />{assignee}</span>
-                                        <span className={`flex items-center gap-1 text-[10px] font-semibold shrink-0 ${isLate ? 'text-red-600' : 'text-slate-400'}`}><Calendar size={10} />{t.due_date ? format(parseISO(t.due_date), 'dd/MM') : '—'}</span>
+                                    <div className="flex items-center gap-2 mt-0.5" onClick={e => e.stopPropagation()}>
+                                        <div className="relative flex items-center gap-1 shrink-0 max-w-[45%]">
+                                            <User size={10} className="shrink-0 text-slate-400" />
+                                            <select
+                                                value={Array.isArray(t.assignee_id) ? t.assignee_id[0] || '' : t.assignee_id || ''}
+                                                onChange={(e) => handleUpdateAssignee(t.id, e.target.value)}
+                                                className="text-[10px] font-medium text-slate-500 bg-transparent border-none p-0 focus:ring-0 cursor-pointer truncate"
+                                            >
+                                                <option value="">Chưa gán</option>
+                                                {profiles.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className={`flex items-center gap-1 shrink-0 ${isLate ? 'text-red-600' : 'text-slate-400'}`}>
+                                            <Calendar size={10} className="shrink-0" />
+                                            <CompactDateInput
+                                                value={t.due_date}
+                                                onChange={(v) => handleUpdateTaskField(t.id, 'due_date', v || null)}
+                                                labelClassName="text-[10px] font-semibold"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
