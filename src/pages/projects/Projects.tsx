@@ -1136,11 +1136,17 @@ export const Projects = () => {
 
                             {/* Flat task checklist */}
                             <div>
-                                {quickActiveTasks.length === 0 && quickDoneTasks.length === 0 ? (
+                                {quickActiveTasks.length === 0 && quickDoneTasks.length === 0 && !canEdit ? (
                                     <div className="px-4 py-3 text-xs text-slate-400 italic">Chưa có nhiệm vụ</div>
                                 ) : (
                                     <>
                                         {quickActiveTasks.map(t => <QuickTaskRow key={t.id} t={t} />)}
+                                        {canEdit && !isRollup && (
+                                            <QuickAddInputRow
+                                                placeholder="Nhập tên nhiệm vụ & nhấn Enter..."
+                                                onAdd={(taskName) => handleQuickAddProjectTask(project.id, taskName)}
+                                            />
+                                        )}
                                         {quickDoneTasks.length > 0 && (
                                             <>
                                                 <button
