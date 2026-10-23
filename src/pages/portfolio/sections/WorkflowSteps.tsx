@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader } from './shared';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 interface WorkflowStep {
   step: string;
@@ -15,12 +15,9 @@ export function WorkflowSteps() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_workflow_steps')
-      .select('step_no,title,duration,executor,details')
-      .order('sort_order')
+    strapiFetch('/api/workflow-steps?sort=sort_order')
       .then(({ data }) => {
-        setSteps((data || []).map(row => ({
+        setSteps((data || []).map((row: any) => ({
           step: row.step_no, title: row.title, duration: row.duration || '', executor: row.executor || '', details: row.details || '',
         })));
       })

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 type Category = 'apartment' | 'house_villa';
 type Standard = 'dqh' | 'jux';
@@ -53,12 +53,10 @@ export function PricingComparison() {
   const [rows, setRows] = useState<Record<string, StandardSpec> | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_pricing_standards')
-      .select('category,standard,construction_time,design_style,material_partners')
+    strapiFetch('/api/pricing-standards')
       .then(({ data }) => {
         const map: Record<string, StandardSpec> = {};
-        (data || []).forEach(row => {
+        (data || []).forEach((row: any) => {
           map[`${row.category}:${row.standard}`] = {
             constructionTime: row.construction_time,
             designStyle: row.design_style,

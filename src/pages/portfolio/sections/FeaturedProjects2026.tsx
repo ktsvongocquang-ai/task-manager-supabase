@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Reveal, SectionHeader, NeedsInput } from './shared';
 import { CaseStudyModal, type CaseStudyData } from './CaseStudyModal';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 type Category = 'apartment' | 'house_villa';
 
@@ -45,17 +45,13 @@ export function FeaturedProjects2026() {
   const [byCategory, setByCategory] = useState<Record<Category, FeaturedProject[]> | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_featured_projects')
-      .select('id,category,title,style,info,project_type,construction_time,image_url,case_study')
-      .eq('is_published', true)
-      .order('sort_order')
+    strapiFetch('/api/featured-projects?sort=sort_order&filters[is_published][$eq]=true')
       .then(({ data }) => {
         const grouped: Record<Category, FeaturedProject[]> = { apartment: [], house_villa: [] };
-        (data || []).forEach(row => {
+        (data || []).forEach((row: any) => {
           const cat: Category = row.category === 'apartment' ? 'apartment' : 'house_villa';
           const cs = row.case_study as Partial<CaseStudyData> | null;
-          const base = emptyCaseStudy(row.id, row.title);
+          const base = emptyCaseStudy(row.documentId, row.title);
           grouped[cat].push({
             title: row.title,
             style: row.style || '[cần điền: style thiết kế]',
@@ -63,7 +59,7 @@ export function FeaturedProjects2026() {
             type: row.project_type || '[cần điền: loại công trình]',
             constructionTime: row.construction_time || '[cần điền: thời gian thi công]',
             image: row.image_url,
-            caseStudy: cs ? { ...base, ...cs, id: row.id, title: row.title } : base,
+            caseStudy: cs ? { ...base, ...cs, id: row.documentId, title: row.title } : base,
           });
         });
         setByCategory(grouped);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 interface CompanyInfoRow {
   founded_date: string | null;
@@ -17,11 +17,7 @@ export function CompanyInfo() {
   const [info, setInfo] = useState<CompanyInfoRow | null | undefined>(undefined);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_company_info')
-      .select('*')
-      .eq('id', 1)
-      .maybeSingle()
+    strapiFetch('/api/company-info')
       .then(({ data }) => setInfo(data))
       .catch(() => setInfo(null));
   }, []);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 interface TeamMember {
   name: string;
@@ -25,13 +25,10 @@ export function TeamSection() {
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_team_members')
-      .select('group_key,name,role')
-      .order('sort_order')
+    strapiFetch('/api/team-members?sort=sort_order')
       .then(({ data }) => {
         const byGroup: Record<string, TeamMember[]> = {};
-        (data || []).forEach(row => {
+        (data || []).forEach((row: any) => {
           if (!byGroup[row.group_key]) byGroup[row.group_key] = [];
           byGroup[row.group_key].push({ name: row.name, role: row.role || '' });
         });

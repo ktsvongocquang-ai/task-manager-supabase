@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
-import { landingSupabase } from './landingSupabase';
+import { strapiFetch } from './strapiClient';
 
 type Category = 'apartment' | 'house_villa';
 type Standard = 'dqh' | 'jux';
@@ -24,12 +24,10 @@ export function PriceCalculator() {
   const [rates, setRates] = useState<Record<string, { min: number; max: number }> | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_price_rates')
-      .select('category,standard,min_price_per_m2,max_price_per_m2')
+    strapiFetch('/api/price-rates')
       .then(({ data }) => {
         const map: Record<string, { min: number; max: number }> = {};
-        (data || []).forEach(row => {
+        (data || []).forEach((row: any) => {
           if (row.min_price_per_m2 != null && row.max_price_per_m2 != null) {
             map[`${row.category}:${row.standard}`] = { min: Number(row.min_price_per_m2), max: Number(row.max_price_per_m2) };
           }

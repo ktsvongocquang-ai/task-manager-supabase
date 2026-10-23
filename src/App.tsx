@@ -43,14 +43,6 @@ const safeLazy = (importFn: () => Promise<any>) => {
 // --- Lazy loaded components ---
 const ClientView = safeLazy(() => import('./pages/client/ClientView').then(m => ({ default: m.ClientView })))
 const PortfolioLanding = safeLazy(() => import('./pages/portfolio/PortfolioLanding').then(m => ({ default: m.PortfolioLanding })))
-const AdminLayout = safeLazy(() => import('./pages/portfolio/admin/AdminLayout').then(m => ({ default: m.AdminLayout })))
-const AdminProjects = safeLazy(() => import('./pages/portfolio/admin/AdminProjects').then(m => ({ default: m.AdminProjects })))
-const AdminPricing = safeLazy(() => import('./pages/portfolio/admin/AdminPricing').then(m => ({ default: m.AdminPricing })))
-const AdminWorkflow = safeLazy(() => import('./pages/portfolio/admin/AdminWorkflow').then(m => ({ default: m.AdminWorkflow })))
-const AdminTeam = safeLazy(() => import('./pages/portfolio/admin/AdminTeam').then(m => ({ default: m.AdminTeam })))
-const AdminCompany = safeLazy(() => import('./pages/portfolio/admin/AdminCompany').then(m => ({ default: m.AdminCompany })))
-const AdminRates = safeLazy(() => import('./pages/portfolio/admin/AdminRates').then(m => ({ default: m.AdminRates })))
-const AdminUsers = safeLazy(() => import('./pages/portfolio/admin/AdminUsers').then(m => ({ default: m.AdminUsers })))
 
 const Dashboard = safeLazy(() => import('./pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
 const Projects = safeLazy(() => import('./pages/projects/Projects').then(m => ({ default: m.Projects })))
@@ -122,23 +114,6 @@ function App() {
               <PortfolioLanding />
             </Suspense>
           } />
-
-          {/* Landing page admin — auth riêng (Supabase project "DQH MIROR"),
-              KHÔNG dùng AuthGuard/RoleGuard của app chính */}
-          <Route path="/landing-admin" element={
-            <Suspense fallback={<GlobalLoadingFallback />}>
-              <AdminLayout />
-            </Suspense>
-          }>
-            <Route index element={<Navigate to="/landing-admin/projects" replace />} />
-            <Route path="projects" element={<AdminProjects />} />
-            <Route path="pricing" element={<AdminPricing />} />
-            <Route path="workflow" element={<AdminWorkflow />} />
-            <Route path="team" element={<AdminTeam />} />
-            <Route path="company" element={<AdminCompany />} />
-            <Route path="rates" element={<AdminRates />} />
-            <Route path="users" element={<AdminUsers />} />
-          </Route>
 
           {/* Protected Routes (Suspense handled inside Layout for nested routes) */}
           <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
