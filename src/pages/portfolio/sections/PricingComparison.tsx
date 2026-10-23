@@ -1,79 +1,47 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
+import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
 type Standard = 'dqh' | 'jux';
 
 interface StandardSpec {
-  label: string; // tên chuẩn hiển thị
-  suitableFor: string; // phù hợp cho loại công trình nào
-  constructionTime: string;
-  designStyle: string;
-  materialPartners: string; // đối tác vật liệu
+  constructionTime: string | null;
+  designStyle: string | null;
+  materialPartners: string | null;
 }
-
-// [cần điền] — số liệu thời gian/đối tác vật liệu thật theo từng chuẩn.
-const STANDARDS: Record<Category, Record<Standard, StandardSpec>> = {
-  house_villa: {
-    dqh: {
-      label: 'Chuẩn DQH',
-      suitableFor: 'Nhà phố & công trình kiến trúc nhà vườn',
-      constructionTime: '[cần điền: thời gian thi công]',
-      designStyle: '[cần điền: style thiết kế]',
-      materialPartners: '[cần điền: đối tác vật liệu]',
-    },
-    jux: {
-      label: 'Chuẩn JUX',
-      suitableFor: 'Chung cư / căn hộ',
-      constructionTime: '[cần điền: thời gian thi công]',
-      designStyle: '[cần điền: style thiết kế]',
-      materialPartners: '[cần điền: đối tác vật liệu]',
-    },
-  },
-  apartment: {
-    dqh: {
-      label: 'Chuẩn DQH',
-      suitableFor: 'Nhà phố & công trình kiến trúc nhà vườn',
-      constructionTime: '[cần điền: thời gian thi công]',
-      designStyle: '[cần điền: style thiết kế]',
-      materialPartners: '[cần điền: đối tác vật liệu]',
-    },
-    jux: {
-      label: 'Chuẩn JUX',
-      suitableFor: 'Chung cư / căn hộ',
-      constructionTime: '[cần điền: thời gian thi công]',
-      designStyle: '[cần điền: style thiết kế]',
-      materialPartners: '[cần điền: đối tác vật liệu]',
-    },
-  },
-};
 
 const CATEGORY_LABEL: Record<Category, string> = {
   apartment: 'Chung cư',
   house_villa: 'Nhà phố / Villa',
 };
+const STANDARD_LABEL: Record<Standard, string> = { dqh: 'Chuẩn DQH', jux: 'Chuẩn JUX' };
+const STANDARD_SUITABLE: Record<Standard, string> = {
+  dqh: 'Nhà phố & công trình kiến trúc nhà vườn',
+  jux: 'Chung cư / căn hộ',
+};
 
-function StandardCard({ spec }: { spec: StandardSpec }) {
-  const isPlaceholder = (v: string) => v.startsWith('[cần điền');
+function StandardCard({ standard, spec }: { standard: Standard; spec?: StandardSpec }) {
+  const field = (v: string | null | undefined, label: string) => (v ? <span className="text-[#2C2920] text-sm">{v}</span> : <NeedsInput label={label} />);
   return (
     <div className="bg-white border border-[#2C2920]/10 rounded-sm p-8 space-y-6">
       <div>
-        <h3 className="font-serif text-2xl font-light text-[#2C2920]">{spec.label}</h3>
-        <p className="text-xs text-[#8A8070] mt-1">{spec.suitableFor}</p>
+        <h3 className="font-serif text-2xl font-light text-[#2C2920]">{STANDARD_LABEL[standard]}</h3>
+        <p className="text-xs text-[#8A8070] mt-1">{STANDARD_SUITABLE[standard]}</p>
       </div>
       <div className="h-px bg-[#2C2920]/10" />
       <dl className="space-y-4 text-xs">
         <div>
           <dt className="text-[#8A8070] font-semibold uppercase tracking-wide mb-1">Thời gian thi công</dt>
-          <dd className="text-[#2C2920] text-sm">{isPlaceholder(spec.constructionTime) ? <NeedsInput label="thời gian thi công" /> : spec.constructionTime}</dd>
+          <dd>{field(spec?.constructionTime, 'thời gian thi công')}</dd>
         </div>
         <div>
           <dt className="text-[#8A8070] font-semibold uppercase tracking-wide mb-1">Style thiết kế</dt>
-          <dd className="text-[#2C2920] text-sm">{isPlaceholder(spec.designStyle) ? <NeedsInput label="style thiết kế" /> : spec.designStyle}</dd>
+          <dd>{field(spec?.designStyle, 'style thiết kế')}</dd>
         </div>
         <div>
           <dt className="text-[#8A8070] font-semibold uppercase tracking-wide mb-1">Đối tác vật liệu</dt>
-          <dd className="text-[#2C2920] text-sm">{isPlaceholder(spec.materialPartners) ? <NeedsInput label="đối tác vật liệu" /> : spec.materialPartners}</dd>
+          <dd>{field(spec?.materialPartners, 'đối tác vật liệu')}</dd>
         </div>
       </dl>
     </div>
@@ -82,16 +50,30 @@ function StandardCard({ spec }: { spec: StandardSpec }) {
 
 export function PricingComparison() {
   const [category, setCategory] = useState<Category>('house_villa');
-  const specs = STANDARDS[category];
+  const [rows, setRows] = useState<Record<string, StandardSpec> | null>(null);
+
+  useEffect(() => {
+    landingSupabase
+      .from('landing_pricing_standards')
+      .select('category,standard,construction_time,design_style,material_partners')
+      .then(({ data }) => {
+        const map: Record<string, StandardSpec> = {};
+        (data || []).forEach(row => {
+          map[`${row.category}:${row.standard}`] = {
+            constructionTime: row.construction_time,
+            designStyle: row.design_style,
+            materialPartners: row.material_partners,
+          };
+        });
+        setRows(map);
+      })
+      .catch(() => setRows({}));
+  }, []);
 
   return (
     <section id="section-1" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
       <div className="max-w-6xl mx-auto">
-        <SectionHeader
-          eyebrow="(CAM KẾT MINH BẠCH)"
-          title="Chi phí thiết kế & thi công"
-          accent="theo từng chuẩn dịch vụ"
-        />
+        <SectionHeader eyebrow="(CAM KẾT MINH BẠCH)" title="Chi phí thiết kế & thi công" accent="theo từng chuẩn dịch vụ" />
 
         <div className="flex gap-2 mb-12 border-b border-[#2C2920]/10">
           {(Object.keys(CATEGORY_LABEL) as Category[]).map(cat => (
@@ -99,9 +81,7 @@ export function PricingComparison() {
               key={cat}
               onClick={() => setCategory(cat)}
               className={`px-5 py-3 text-xs tracking-[0.12em] uppercase font-bold transition-colors border-b-2 -mb-px cursor-pointer ${
-                category === cat
-                  ? 'border-[#B8913A] text-[#2C2920]'
-                  : 'border-transparent text-[#8A8070] hover:text-[#2C2920]'
+                category === cat ? 'border-[#B8913A] text-[#2C2920]' : 'border-transparent text-[#8A8070] hover:text-[#2C2920]'
               }`}
             >
               {CATEGORY_LABEL[cat]}
@@ -109,10 +89,14 @@ export function PricingComparison() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <StandardCard spec={specs.dqh} />
-          <StandardCard spec={specs.jux} />
-        </div>
+        {!rows ? (
+          <p className="text-xs text-[#8A8070]">Đang tải...</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <StandardCard standard="dqh" spec={rows[`${category}:dqh`]} />
+            <StandardCard standard="jux" spec={rows[`${category}:jux`]} />
+          </div>
+        )}
       </div>
     </section>
   );

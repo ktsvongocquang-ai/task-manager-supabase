@@ -1,26 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
+import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
 type Standard = 'dqh' | 'jux';
-
-// [cần điền] — đơn giá/m2 thật (VNĐ), khoảng min–max. Để `null` khi chưa có
-// số thật: UI sẽ báo "chưa có đơn giá" thay vì hiện số bịa — tuyệt đối không
-// để lộ giá giả cho khách thật xem nhầm là giá chính thức.
-const UNIT_PRICE_PER_M2: Record<Category, Record<Standard, { min: number; max: number } | null>> = {
-  house_villa: { dqh: null, jux: null },
-  apartment: { dqh: null, jux: null },
-};
 
 const CATEGORY_LABEL: Record<Category, string> = {
   apartment: 'Chung cư',
   house_villa: 'Nhà phố / Villa',
 };
-
-const STANDARD_LABEL: Record<Standard, string> = {
-  dqh: 'Chuẩn DQH',
-  jux: 'Chuẩn JUX',
-};
+const STANDARD_LABEL: Record<Standard, string> = { dqh: 'Chuẩn DQH', jux: 'Chuẩn JUX' };
 
 function formatVnd(n: number) {
   return n.toLocaleString('vi-VN') + ' đ';
@@ -30,8 +19,27 @@ export function PriceCalculator() {
   const [category, setCategory] = useState<Category>('house_villa');
   const [standard, setStandard] = useState<Standard>('dqh');
   const [area, setArea] = useState('');
+  // Đơn giá/m2 thật lấy từ Supabase (project DQH MIROR) — không bịa số khi
+  // chưa có hàng cho tổ hợp category+standard này.
+  const [rates, setRates] = useState<Record<string, { min: number; max: number }> | null>(null);
 
-  const range = UNIT_PRICE_PER_M2[category][standard];
+  useEffect(() => {
+    landingSupabase
+      .from('landing_price_rates')
+      .select('category,standard,min_price_per_m2,max_price_per_m2')
+      .then(({ data }) => {
+        const map: Record<string, { min: number; max: number }> = {};
+        (data || []).forEach(row => {
+          if (row.min_price_per_m2 != null && row.max_price_per_m2 != null) {
+            map[`${row.category}:${row.standard}`] = { min: Number(row.min_price_per_m2), max: Number(row.max_price_per_m2) };
+          }
+        });
+        setRates(map);
+      })
+      .catch(() => setRates({}));
+  }, []);
+
+  const range = rates ? rates[`${category}:${standard}`] : undefined;
   const areaNum = Number(area);
 
   const estimate = useMemo(() => {
@@ -93,7 +101,9 @@ export function PriceCalculator() {
           </div>
 
           <div className="pt-6 border-t border-[#2C2920]/10 text-center">
-            {!range ? (
+            {!rates ? (
+              <p className="text-xs text-[#8A8070]">Đang tải...</p>
+            ) : !range ? (
               <div className="space-y-2">
                 <NeedsInput label={`đơn giá/m² — ${CATEGORY_LABEL[category]} / ${STANDARD_LABEL[standard]}`} />
                 <p className="text-xs text-[#8A8070]">Chưa có đơn giá chính thức cho tổ hợp này — vui lòng liên hệ DQH để được báo giá trực tiếp.</p>
