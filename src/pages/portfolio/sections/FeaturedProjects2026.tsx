@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Reveal, SectionHeader, NeedsInput } from './shared';
+import { CaseStudyModal, type CaseStudyData } from './CaseStudyModal';
 
 type Category = 'apartment' | 'house_villa';
 
@@ -10,6 +11,28 @@ interface FeaturedProject {
   type: string; // loại công trình (vd: Căn hộ 2PN, Nhà phố 1 trệt 3 lầu...)
   constructionTime: string; // thời gian thi công
   image: string | null;
+  caseStudy: CaseStudyData;
+}
+
+// Khung rỗng cho "Xem Album Kể Chuyện (Case Study)" — giữ nguyên tính năng
+// deep-dive 5 giai đoạn của bản cũ (xem CaseStudyModal.tsx), chỉ chưa có nội
+// dung/ảnh thật nên để trống, CaseStudyModal tự hiện khung chờ ảnh khi field
+// là null.
+function emptyCaseStudy(id: string, title: string, location: string, area: string, style: string): CaseStudyData {
+  return {
+    id, title, location, area, style,
+    coverImage: null,
+    introText: '[cần điền: câu giới thiệu ngắn về công trình]',
+    floorPlan: { text: '[cần điền: câu chuyện mặt bằng — vấn đề & cách giải quyết]', sitePhoto: null, blueprint: null },
+    design3D: { text: '[cần điền: câu chuyện phối cảnh 3D]', images: [] },
+    tailoring: { text: '[cần điền: câu chuyện tinh chỉnh & chọn vật liệu]', steps: [] },
+    structural: { text: '[cần điền: câu chuyện thi công phần thô]', imgMain: null },
+    material: { text: '[cần điền: câu chuyện lựa chọn vật liệu]', samples: [] },
+    fixedInterior: { text: '[cần điền: câu chuyện nội thất cố định]', imgMain: null },
+    looseFurniture: { text: '[cần điền: câu chuyện nội thất rời]', imgMain: null },
+    details: { items: [] },
+    finalize: { text: '[cần điền: câu chuyện bàn giao]', images: [] },
+  };
 }
 
 // [cần điền] — thay toàn bộ bằng công trình thật đã hoàn thiện năm 2026,
@@ -23,6 +46,7 @@ const FEATURED_PROJECTS_2026: Record<Category, FeaturedProject[]> = {
       type: '[cần điền: loại căn hộ]',
       constructionTime: '[cần điền: thời gian thi công]',
       image: null,
+      caseStudy: emptyCaseStudy('apt-1', '[cần điền: tên dự án chung cư 1]', '[cần điền]', '[cần điền]', '[cần điền]'),
     },
     {
       title: '[cần điền: tên dự án chung cư 2]',
@@ -31,6 +55,7 @@ const FEATURED_PROJECTS_2026: Record<Category, FeaturedProject[]> = {
       type: '[cần điền: loại căn hộ]',
       constructionTime: '[cần điền: thời gian thi công]',
       image: null,
+      caseStudy: emptyCaseStudy('apt-2', '[cần điền: tên dự án chung cư 2]', '[cần điền]', '[cần điền]', '[cần điền]'),
     },
   ],
   house_villa: [
@@ -41,6 +66,7 @@ const FEATURED_PROJECTS_2026: Record<Category, FeaturedProject[]> = {
       type: '[cần điền: loại công trình]',
       constructionTime: '[cần điền: thời gian thi công]',
       image: null,
+      caseStudy: emptyCaseStudy('house-1', '[cần điền: tên dự án nhà phố/villa 1]', '[cần điền]', '[cần điền]', '[cần điền]'),
     },
     {
       title: '[cần điền: tên dự án nhà phố/villa 2]',
@@ -49,6 +75,7 @@ const FEATURED_PROJECTS_2026: Record<Category, FeaturedProject[]> = {
       type: '[cần điền: loại công trình]',
       constructionTime: '[cần điền: thời gian thi công]',
       image: null,
+      caseStudy: emptyCaseStudy('house-2', '[cần điền: tên dự án nhà phố/villa 2]', '[cần điền]', '[cần điền]', '[cần điền]'),
     },
   ],
 };
@@ -60,6 +87,7 @@ const CATEGORY_LABEL: Record<Category, string> = {
 
 export function FeaturedProjects2026() {
   const [category, setCategory] = useState<Category>('apartment');
+  const [openStudy, setOpenStudy] = useState<CaseStudyData | null>(null);
   const projects = FEATURED_PROJECTS_2026[category];
 
   return (
@@ -92,7 +120,10 @@ export function FeaturedProjects2026() {
           {projects.map((proj, idx) => (
             <Reveal key={idx} delay={idx * 80}>
               <div className="group">
-                <div className="overflow-hidden aspect-[16/10] relative mb-6 rounded-sm bg-[#F5F2EC]">
+                <div
+                  onClick={() => setOpenStudy(proj.caseStudy)}
+                  className="overflow-hidden aspect-[16/10] relative mb-6 rounded-sm bg-[#F5F2EC] cursor-pointer"
+                >
                   {proj.image ? (
                     <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   ) : (
@@ -105,7 +136,10 @@ export function FeaturedProjects2026() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-serif text-2xl font-light text-[#2C2920] group-hover:text-[#B8913A] transition-colors">
+                  <h3
+                    onClick={() => setOpenStudy(proj.caseStudy)}
+                    className="font-serif text-2xl font-light text-[#2C2920] group-hover:text-[#B8913A] transition-colors cursor-pointer"
+                  >
                     {proj.title}
                   </h3>
                   <div className="h-px w-10 bg-[#B8913A]/30 group-hover:w-20 transition-all duration-500" />
@@ -119,12 +153,20 @@ export function FeaturedProjects2026() {
                     <dt className="text-[#8A8070] font-semibold">Thời gian thi công</dt>
                     <dd className="text-[#2C2920]">{proj.constructionTime}</dd>
                   </dl>
+                  <button
+                    onClick={() => setOpenStudy(proj.caseStudy)}
+                    className="text-[10px] tracking-[0.12em] uppercase text-[#B8913A] hover:text-[#2C2920] transition-colors font-bold flex items-center gap-1.5 cursor-pointer pt-2"
+                  >
+                    ↗ Xem Album Kể chuyện (Case Study)
+                  </button>
                 </div>
               </div>
             </Reveal>
           ))}
         </div>
       </div>
+
+      {openStudy && <CaseStudyModal study={openStudy} onClose={() => setOpenStudy(null)} />}
     </section>
   );
 }
