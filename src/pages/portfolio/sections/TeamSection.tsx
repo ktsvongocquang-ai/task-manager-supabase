@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader, NeedsInput } from './shared';
 import { landingSupabase } from './landingSupabase';
+import { TeamMemberModal, type TeamMemberData } from './TeamMemberModal';
 
-interface TeamMember {
-  name: string;
-  role: string;
-  experience: string;
-}
+type TeamMember = TeamMemberData;
 
 interface TeamGroup {
   key: string;
@@ -24,17 +21,25 @@ const GROUP_ORDER = ['design', 'construction', 'workshop'];
 
 export function TeamSection() {
   const [groups, setGroups] = useState<TeamGroup[] | null>(null);
+  const [openMember, setOpenMember] = useState<TeamMember | null>(null);
 
   useEffect(() => {
     landingSupabase
       .from('landing_team_members')
-      .select('group_key,name,role,experience')
+      .select('group_key,name,role,experience,avatar_url,bio,highlights')
       .order('sort_order')
       .then(({ data }) => {
         const byGroup: Record<string, TeamMember[]> = {};
         (data || []).forEach(row => {
           if (!byGroup[row.group_key]) byGroup[row.group_key] = [];
-          byGroup[row.group_key].push({ name: row.name, role: row.role || '', experience: row.experience || '' });
+          byGroup[row.group_key].push({
+            name: row.name,
+            role: row.role || '',
+            experience: row.experience || '',
+            avatarUrl: row.avatar_url,
+            bio: row.bio || '',
+            highlights: row.highlights || [],
+          });
         });
         setGroups(GROUP_ORDER.map(key => ({
           key,
@@ -65,10 +70,23 @@ export function TeamSection() {
                 {group.members.length > 0 ? (
                   <ul className="space-y-4">
                     {group.members.map((m, idx) => (
-                      <li key={idx} className="flex flex-col gap-1 pb-4 border-b border-[#2C2920]/5 last:border-b-0 last:pb-0">
-                        <span className="text-sm font-semibold text-[#2C2920]">{m.name}</span>
-                        <span className="text-xs text-[#8A8070]">{m.role}</span>
-                        {m.experience && <span className="text-xs text-[#2C2920]/70 leading-relaxed mt-1">{m.experience}</span>}
+                      <li key={idx}>
+                        <button
+                          onClick={() => setOpenMember(m)}
+                          className="w-full flex items-center gap-3 text-left cursor-pointer group pb-4 border-b border-[#2C2920]/5 last:border-b-0 last:pb-0"
+                        >
+                          {m.avatarUrl ? (
+                            <img src={m.avatarUrl} alt={m.name} className="w-11 h-11 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-11 h-11 rounded-full bg-[#F5F2EC] text-[#2C2920] flex items-center justify-center font-serif text-sm shrink-0">
+                              {m.name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <span className="block text-sm font-semibold text-[#2C2920] group-hover:text-[#B8913A] transition-colors">{m.name}</span>
+                            <span className="block text-xs text-[#8A8070]">{m.role}</span>
+                          </div>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -80,6 +98,8 @@ export function TeamSection() {
           </div>
         )}
       </div>
+
+      {openMember && <TeamMemberModal member={openMember} onClose={() => setOpenMember(null)} />}
     </section>
   );
 }
