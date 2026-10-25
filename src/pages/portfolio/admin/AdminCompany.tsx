@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { landingSupabase } from '../sections/landingSupabase';
+import { ImageUploadField } from './ImageUploadField';
 
-const FIELDS: { key: string; label: string }[] = [
+const TEXT_FIELDS: { key: string; label: string }[] = [
   { key: 'founded_date', label: 'Ngày thành lập' },
   { key: 'scale_value', label: 'Quy mô (giá trị hiện)' },
   { key: 'scale_note', label: 'Quy mô (ghi chú nhỏ)' },
@@ -13,9 +14,18 @@ const FIELDS: { key: string; label: string }[] = [
   { key: 'tax_code', label: 'Mã số thuế' },
 ];
 
+const STORY_BLOCKS: { textKey: string; imageKey: string; label: string }[] = [
+  { textKey: 'history_text', imageKey: 'history_image', label: 'Lịch sử hình thành' },
+  { textKey: 'vision_text', imageKey: 'vision_image', label: 'Tầm nhìn' },
+  { textKey: 'philosophy_text', imageKey: 'philosophy_image', label: 'Triết lý làm nghề' },
+];
+
+const input = 'w-full border border-[#2C2920]/15 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#B8913A]';
+const label = 'block text-[10px] uppercase tracking-wide text-[#8A8070] font-semibold mb-1';
+
 export function AdminCompany() {
   const { canWrite } = useOutletContext<{ canWrite: boolean }>();
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [form, setForm] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -26,6 +36,8 @@ export function AdminCompany() {
       setLoading(false);
     });
   }, []);
+
+  const set = (key: string, val: string | null) => setForm(prev => ({ ...prev, [key]: val }));
 
   const save = async () => {
     setSaving(true);
@@ -41,15 +53,37 @@ export function AdminCompany() {
     <div className="max-w-xl">
       <h1 className="font-serif text-2xl mb-1">Thông tin công ty</h1>
       <p className="text-xs text-[#8A8070] mb-6">Chỉ 1 bộ thông tin duy nhất hiển thị ở phần "Thông tin công ty" của landing page.</p>
+
+      <h2 className="font-serif text-lg mb-3">Kể chuyện thương hiệu</h2>
+      <div className="space-y-6 mb-8">
+        {STORY_BLOCKS.map(b => (
+          <div key={b.textKey} className="bg-white border border-[#2C2920]/10 rounded-lg p-4 space-y-3">
+            <p className="text-xs font-bold text-[#2C2920]">{b.label}</p>
+            <ImageUploadField label="Ảnh nền (full-màn-hình)" value={form[b.imageKey]} onChange={url => set(b.imageKey, url)} />
+            <div>
+              <label className={label}>Nội dung</label>
+              <textarea
+                className={input}
+                rows={3}
+                value={form[b.textKey] || ''}
+                onChange={e => set(b.textKey, e.target.value)}
+                disabled={!canWrite}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="font-serif text-lg mb-3">Thông tin pháp lý & liên hệ</h2>
       <div className="space-y-4">
-        {FIELDS.map(f => (
+        {TEXT_FIELDS.map(f => (
           <div key={f.key}>
-            <label className="block text-[10px] uppercase tracking-wide text-[#8A8070] font-semibold mb-1">{f.label}</label>
+            <label className={label}>{f.label}</label>
             <input
               value={form[f.key] || ''}
-              onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
+              onChange={e => set(f.key, e.target.value)}
               disabled={!canWrite}
-              className="w-full border border-[#2C2920]/15 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#B8913A]"
+              className={input}
             />
           </div>
         ))}
