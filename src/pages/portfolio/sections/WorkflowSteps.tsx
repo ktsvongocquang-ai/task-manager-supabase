@@ -92,7 +92,7 @@ export function WorkflowSteps() {
 
   return (
     <section id="section-2" className="px-6 md:px-16 py-20 bg-[#F8F5F0] border-b border-[#2C2920]/5">
-      <div className="max-w-5xl mx-auto flex flex-col gap-9">
+      <div className="max-w-6xl mx-auto flex flex-col gap-9">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2.5">(QUY TRÌNH)</p>

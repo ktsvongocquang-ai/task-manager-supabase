@@ -7,7 +7,6 @@ type Category = 'apartment' | 'house_villa';
 type Standard = 'dqh' | 'jux';
 
 interface StandardSpec {
-  standardLabel: string | null;
   standardSub: string | null;
   constructionTime: string | null;
   designStyle: string | null;
@@ -25,7 +24,6 @@ const CATEGORY_LABEL: Record<Category, string> = {
 // Mỗi category chỉ có đúng 1 chuẩn dịch vụ áp dụng — tránh hiện 2 thẻ gây
 // hiểu lầm "được chọn 1 trong 2" khi thực tế DQH/JUX tách theo loại công trình.
 const CATEGORY_STANDARD: Record<Category, Standard> = { apartment: 'jux', house_villa: 'dqh' };
-const STANDARD_FALLBACK_LABEL: Record<Standard, string> = { dqh: 'Chuẩn DQH', jux: 'Chuẩn JUX' };
 
 function segToCategory(seg: string | null): Category {
   if (seg === 'can-ho' || seg === 'nha-pho-du-an') return 'apartment';
@@ -37,7 +35,7 @@ function formatVnd(n: number) {
   return (n / 1_000_000).toLocaleString('vi-VN') + ' triệu';
 }
 
-function StandardCard({ spec, standard, onOpenKhaiToan }: { spec?: StandardSpec; standard: Standard; onOpenKhaiToan: () => void }) {
+function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: StandardSpec; categoryLabel: string; onOpenKhaiToan: () => void }) {
   const hasPrice = spec?.designMinPrice != null && spec?.designMaxPrice != null;
 
   const detailRows = [
@@ -51,7 +49,7 @@ function StandardCard({ spec, standard, onOpenKhaiToan }: { spec?: StandardSpec;
       <div className="grid gap-8 lg:gap-12 p-7 md:p-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}>
         <div className="flex flex-col gap-6">
           <div>
-            <h3 className="font-serif text-2xl md:text-3xl font-light text-[#2C2920]">{spec?.standardLabel || STANDARD_FALLBACK_LABEL[standard]}</h3>
+            <h3 className="font-serif text-2xl md:text-3xl font-light text-[#2C2920]">{categoryLabel}</h3>
             {spec?.standardSub && <p className="text-sm text-[#8A8070] mt-1.5">{spec.standardSub}</p>}
           </div>
 
@@ -109,14 +107,14 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
 
   useEffect(() => {
     Promise.all([
-      landingSupabase.from('landing_pricing_standards').select('category,standard,standard_label,standard_sub,construction_time,design_style,material_partners'),
+      landingSupabase.from('landing_pricing_standards').select('category,standard,standard_sub,construction_time,design_style,material_partners'),
       landingSupabase
         .from('landing_price_rates')
         .select('category,standard,design_min_price_per_m2,design_max_price_per_m2,min_price_per_m2,max_price_per_m2'),
     ])
       .then(([standardsRes, ratesRes]) => {
         const empty = (): StandardSpec => ({
-          standardLabel: null, standardSub: null,
+          standardSub: null,
           constructionTime: null, designStyle: null, materialPartners: null,
           designMinPrice: null, designMaxPrice: null, constructionMinPrice: null, constructionMaxPrice: null,
         });
@@ -124,7 +122,6 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
         (standardsRes.data || []).forEach(row => {
           map[`${row.category}:${row.standard}`] = {
             ...empty(),
-            standardLabel: row.standard_label,
             standardSub: row.standard_sub,
             constructionTime: row.construction_time,
             designStyle: row.design_style,
@@ -148,7 +145,7 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
 
   return (
     <section id="section-1" className="px-6 md:px-16 py-20 bg-[#F5F2EC] border-b border-[#2C2920]/5">
-      <div className="max-w-5xl mx-auto flex flex-col gap-10">
+      <div className="max-w-6xl mx-auto flex flex-col gap-10">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2.5">(CHI PHÍ THAM KHẢO)</p>
@@ -168,7 +165,7 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
         {!rows ? (
           <p className="text-xs text-[#8A8070]">Đang tải...</p>
         ) : (
-          <StandardCard spec={rows[`${category}:${standard}`]} standard={standard} onOpenKhaiToan={onOpenKhaiToan} />
+          <StandardCard spec={rows[`${category}:${standard}`]} categoryLabel={CATEGORY_LABEL[category]} onOpenKhaiToan={onOpenKhaiToan} />
         )}
       </div>
     </section>
