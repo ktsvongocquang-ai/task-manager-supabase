@@ -48,13 +48,18 @@ export function Reveal({ children, delay = 0, threshold = 0.12 }: { children: Re
 
 // Tiêu đề section dùng lại ở cả 6 phần: dòng eyebrow nhỏ + heading 2 dòng,
 // dòng 2 in nghiêng màu vàng đồng — đúng pattern "(NĂNG LỰC THIẾT KẾ)" /
-// "Thiết kế có gu & Công trình thành công" của bản cũ.
+// "Thiết kế có gu & Công trình thành công" của bản cũ. Cỡ chữ/độ đậm/khoảng
+// cách tiết chế lại (font-semibold thay vì bold, mb ngắn hơn) cho đúng tinh
+// thần "quiet luxury" — tránh tiêu đề quá to/đậm/chiếm nhiều khoảng trống
+// trên mobile. `action` để gắn thêm 1 control (vd SegmentedToggle) cùng hàng
+// với tiêu đề trên desktop, tự rớt xuống dưới trên mobile.
 export function SectionHeader({
   eyebrow,
   title,
   accent,
   center,
   dark,
+  action,
 }: {
   eyebrow: string;
   title: string;
@@ -62,14 +67,18 @@ export function SectionHeader({
   center?: boolean;
   /** true khi section nền tối (vd bg-[#1A1814]) — đổi màu chữ chính sang sáng để đủ tương phản. */
   dark?: boolean;
+  action?: React.ReactNode;
 }) {
   return (
-    <div className={`mb-16 md:mb-24 ${center ? 'text-center' : ''}`}>
-      <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">{eyebrow}</p>
-      <h2 className={`font-sans font-bold text-4xl md:text-5xl tracking-tight leading-[1.1] ${dark ? 'text-[#F5F2EC]' : 'text-[#2C2920]'}`}>
-        {title}
-        {accent && <><br /><span className="font-serif italic font-light text-[#B8913A]">{accent}</span></>}
-      </h2>
+    <div className={`mb-10 md:mb-16 flex flex-wrap items-end gap-x-8 gap-y-5 ${center ? 'justify-center text-center' : 'justify-between'}`}>
+      <div>
+        <p className="text-[11px] tracking-[0.22em] uppercase text-[#8A8070] mb-3 font-medium">{eyebrow}</p>
+        <h2 className={`font-sans font-semibold text-[32px] sm:text-4xl md:text-[44px] tracking-tight leading-[1.1] ${dark ? 'text-[#F5F2EC]' : 'text-[#2C2920]'}`}>
+          {title}
+          {accent && <><br /><span className="font-serif italic font-light text-[#B8913A]">{accent}</span></>}
+        </h2>
+      </div>
+      {action}
     </div>
   );
 }

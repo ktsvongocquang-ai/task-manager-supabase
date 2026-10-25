@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SegmentedToggle } from './shared';
+import { SectionHeader, SegmentedToggle } from './shared';
 import { landingSupabase } from './landingSupabase';
 
 type ProcessType = 'noi_that' | 'xay_dung';
@@ -92,22 +92,20 @@ export function WorkflowSteps() {
 
   return (
     <section id="section-2" className="px-6 md:px-16 py-14 md:py-20 bg-[#F8F5F0] border-b border-[#2C2920]/5">
-      <div className="max-w-6xl mx-auto flex flex-col gap-9">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">(QUY TRÌNH)</p>
-            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight leading-[1.1] text-[#2C2920]">
-              Quy trình làm việc<br />
-              <span className="font-serif italic font-light text-[#B8913A]">từ khảo sát đến bàn giao</span>
-            </h2>
-          </div>
-          <SegmentedToggle
-            ariaLabel="Loại hình quy trình"
-            value={processType}
-            onChange={v => { setProcessType(v); setOpenIndex(0); }}
-            options={(Object.keys(PROCESS_LABEL) as ProcessType[]).map(p => ({ value: p, label: PROCESS_LABEL[p] }))}
-          />
-        </div>
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+        <SectionHeader
+          eyebrow="(QUY TRÌNH)"
+          title="Quy trình làm việc"
+          accent="từ khảo sát đến bàn giao"
+          action={
+            <SegmentedToggle
+              ariaLabel="Loại hình quy trình"
+              value={processType}
+              onChange={v => { setProcessType(v); setOpenIndex(0); }}
+              options={(Object.keys(PROCESS_LABEL) as ProcessType[]).map(p => ({ value: p, label: PROCESS_LABEL[p] }))}
+            />
+          }
+        />
 
         {allSteps === null ? (
           <p className="text-xs text-[#8A8070]">Đang tải...</p>
@@ -148,12 +146,12 @@ export function WorkflowSteps() {
                         <button
                           onClick={() => setOpenIndex(isOpen ? -1 : idx)}
                           aria-expanded={isOpen}
-                          className="w-full min-h-[56px] flex items-center gap-4 py-3.5 bg-transparent border-0 text-left cursor-pointer"
+                          className="w-full min-h-[56px] flex items-start gap-4 py-3.5 bg-transparent border-0 text-left cursor-pointer"
                         >
-                          <span className="shrink-0 w-7 font-serif italic text-lg text-[#B8913A]">{String(idx + 1).padStart(2, '0')}</span>
-                          <span className="flex-1 min-w-0 text-[15px] font-medium text-[#2C2920] truncate">{step.title}</span>
-                          <span className="text-xs text-[#8A8070] whitespace-nowrap">{step.durationLabel}</span>
-                          <span aria-hidden className="shrink-0 w-4 text-center text-[#B8913A]">{isOpen ? '−' : '+'}</span>
+                          <span className="shrink-0 w-7 pt-px font-serif italic text-lg text-[#B8913A]">{String(idx + 1).padStart(2, '0')}</span>
+                          <span className="flex-1 min-w-0 text-[15px] font-medium text-[#2C2920] leading-snug pt-0.5">{step.title}</span>
+                          <span className="shrink-0 pt-0.5 text-xs text-[#8A8070] whitespace-nowrap">{step.durationLabel}</span>
+                          <span aria-hidden className="shrink-0 w-4 pt-0.5 text-center text-[#B8913A]">{isOpen ? '−' : '+'}</span>
                         </button>
                         {isOpen && (
                           <div className="pl-11 pr-2 pb-4 flex flex-col gap-1.5">

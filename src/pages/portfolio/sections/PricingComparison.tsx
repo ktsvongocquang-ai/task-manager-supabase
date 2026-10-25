@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SegmentedToggle } from './shared';
+import { SectionHeader, SegmentedToggle } from './shared';
 import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
@@ -31,8 +31,11 @@ function segToCategory(seg: string | null): Category {
   return 'house_villa';
 }
 
+// Chỉ trả về số (không kèm "triệu") — ghép 2 số bằng dấu gạch ngang sát nhau
+// ("0,35–0,85") rồi mới ghi đơn vị 1 lần bên dưới, tránh chữ "triệu" lặp lại
+// 2 lần khiến dòng giá bị tràn/xuống dòng giữa chừng trên mobile hẹp.
 function formatVnd(n: number) {
-  return (n / 1_000_000).toLocaleString('vi-VN') + ' triệu';
+  return (n / 1_000_000).toLocaleString('vi-VN');
 }
 
 function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: StandardSpec; categoryLabel: string; onOpenKhaiToan: () => void }) {
@@ -55,17 +58,17 @@ function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: Standard
 
           {hasPrice ? (
             <div className="grid grid-cols-2 gap-px bg-[#2C2920]/10 border border-[#2C2920]/10">
-              <div className="bg-[#F8F5F0] p-5 flex flex-col gap-1.5">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#8A8070]">Thiết kế</span>
-                <span className="font-serif text-2xl leading-none text-[#B8913A]">{formatVnd(spec!.designMinPrice!)} – {formatVnd(spec!.designMaxPrice!)}</span>
-                <span className="text-xs text-[#8A8070]">/ m²</span>
+              <div className="bg-[#F8F5F0] px-4 py-4 md:px-5 md:py-5 flex flex-col gap-1">
+                <span className="text-[10px] tracking-[0.16em] uppercase text-[#8A8070]">Thiết kế</span>
+                <span className="font-serif text-xl md:text-2xl leading-tight text-[#B8913A] whitespace-nowrap">{formatVnd(spec!.designMinPrice!)}–{formatVnd(spec!.designMaxPrice!)}</span>
+                <span className="text-[11px] text-[#8A8070]">triệu / m²</span>
               </div>
-              <div className="bg-[#F8F5F0] p-5 flex flex-col gap-1.5">
-                <span className="text-[11px] tracking-[0.18em] uppercase text-[#8A8070]">Thi công</span>
-                <span className="font-serif text-2xl leading-none text-[#B8913A]">
-                  {spec?.constructionMinPrice != null && spec?.constructionMaxPrice != null ? `${formatVnd(spec.constructionMinPrice)} – ${formatVnd(spec.constructionMaxPrice)}` : '—'}
+              <div className="bg-[#F8F5F0] px-4 py-4 md:px-5 md:py-5 flex flex-col gap-1">
+                <span className="text-[10px] tracking-[0.16em] uppercase text-[#8A8070]">Thi công</span>
+                <span className="font-serif text-xl md:text-2xl leading-tight text-[#B8913A] whitespace-nowrap">
+                  {spec?.constructionMinPrice != null && spec?.constructionMaxPrice != null ? `${formatVnd(spec.constructionMinPrice)}–${formatVnd(spec.constructionMaxPrice)}` : '—'}
                 </span>
-                <span className="text-xs text-[#8A8070]">/ m²</span>
+                <span className="text-[11px] text-[#8A8070]">triệu / m²</span>
               </div>
             </div>
           ) : (
@@ -76,11 +79,11 @@ function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: Standard
         </div>
 
         {detailRows.length > 0 && (
-          <dl className="self-end grid grid-cols-[110px_minmax(0,1fr)] text-sm">
-            {detailRows.map((row, i) => (
-              <div key={row.label} className="contents">
-                <dt className={`text-[11px] tracking-[0.14em] uppercase text-[#8A8070] pt-4 pb-3.5 border-t border-[#2C2920]/10 ${i === detailRows.length - 1 ? 'border-b' : ''}`}>{row.label}</dt>
-                <dd className={`m-0 text-[#2C2920] py-3.5 border-t border-[#2C2920]/10 ${i === detailRows.length - 1 ? 'border-b' : ''}`}>{row.value}</dd>
+          <dl className="self-end flex flex-col gap-3 text-sm pt-5 border-t border-[#2C2920]/10">
+            {detailRows.map(row => (
+              <div key={row.label} className="flex items-baseline gap-4">
+                <dt className="shrink-0 w-[84px] text-[10px] tracking-[0.14em] uppercase text-[#8A8070]">{row.label}</dt>
+                <dd className="m-0 text-[#2C2920] leading-snug">{row.value}</dd>
               </div>
             ))}
           </dl>
@@ -145,22 +148,20 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
 
   return (
     <section id="section-1" className="px-6 md:px-16 py-14 md:py-20 bg-[#F5F2EC] border-b border-[#2C2920]/5">
-      <div className="max-w-6xl mx-auto flex flex-col gap-10">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">(CHI PHÍ THAM KHẢO)</p>
-            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight leading-[1.1] text-[#2C2920]">
-              Chi phí thiết kế &amp; thi công<br />
-              <span className="font-serif italic font-light text-[#B8913A]">theo chuẩn dịch vụ</span>
-            </h2>
-          </div>
-          <SegmentedToggle
-            ariaLabel="Loại công trình"
-            value={category}
-            onChange={setCategory}
-            options={(Object.keys(CATEGORY_LABEL) as Category[]).map(c => ({ value: c, label: CATEGORY_LABEL[c] }))}
-          />
-        </div>
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+        <SectionHeader
+          eyebrow="(CHI PHÍ THAM KHẢO)"
+          title="Chi phí thiết kế & thi công"
+          accent="theo chuẩn dịch vụ"
+          action={
+            <SegmentedToggle
+              ariaLabel="Loại công trình"
+              value={category}
+              onChange={setCategory}
+              options={(Object.keys(CATEGORY_LABEL) as Category[]).map(c => ({ value: c, label: CATEGORY_LABEL[c] }))}
+            />
+          }
+        />
 
         {!rows ? (
           <p className="text-xs text-[#8A8070]">Đang tải...</p>
