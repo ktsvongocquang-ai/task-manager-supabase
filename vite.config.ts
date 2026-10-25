@@ -62,7 +62,8 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5000000,
         skipWaiting: true,
         clientsClaim: true,
-        cleanupOutdatedCaches: true
+        cleanupOutdatedCaches: true,
+        navigateFallbackDenylist: [/^\/khai-toan\//]
       }
     })
   ],

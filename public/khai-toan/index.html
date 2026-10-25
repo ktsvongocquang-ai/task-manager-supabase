@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Công cụ khái toán chi phí và tiến độ thi công nội thất theo cấu hình thực tế.">
+  <title>Khái Toán Nội Thất</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Khái Toán Nội Thất">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><strong>KHAI TOAN</strong><small>NỘI THẤT &amp; TIẾN ĐỘ</small></span>
+    </a>
+    <div class="header-actions">
+      <span class="status-pill"><span class="status-dot"></span>Tự động cập nhật</span>
+      <button class="button ghost" id="themeToggle" type="button" aria-label="Đổi giao diện">◑ <span>Giao diện</span></button>
+      <button class="button primary" id="printBtn" type="button">↓ <span>Xuất PDF</span></button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <span class="eyebrow">CÔNG CỤ DỰ TOÁN SƠ BỘ</span>
+        <h1>Từ nhu cầu đến ngân sách<br><em>trong vài phút.</em></h1>
+      </div>
+      <p>Điều chỉnh quy mô, vật liệu và phạm vi thi công. Bảng chi phí cùng kế hoạch gói đầu sẽ được tính lại tức thời.</p>
+    </section>
+
+    <div class="workspace">
+      <form class="config-panel" id="estimateForm">
+        <section class="panel project-panel">
+          <div class="panel-heading">
+            <div><span class="step">01</span><h2>Thông tin công trình</h2></div>
+            <button type="button" class="text-button" id="resetBtn">Làm mới</button>
+          </div>
+          <div class="field-grid">
+            <label class="field wide">
+              <span>Tên dự án / Chủ đầu tư</span>
+              <input id="clientName" name="clientName" value="Căn hộ mẫu Riverside" autocomplete="off">
+            </label>
+            <label class="field area-field">
+              <span>Diện tích thông thủy</span>
+              <div class="input-suffix"><input id="area" name="area" type="number" min="35" max="350" step="1" value="85"><b>m²</b></div>
+            </label>
+            <label class="field">
+              <span>Phòng ngủ</span>
+              <select id="bedCount" name="bedCount">
+                <option value="1">1 phòng ngủ</option>
+                <option value="2" selected>2 phòng ngủ</option>
+                <option value="3">3 phòng ngủ</option>
+                <option value="4">4 phòng ngủ</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Phòng vệ sinh</span>
+              <select id="bathCount" name="bathCount">
+                <option value="1">1 WC</option>
+                <option value="2" selected>2 WC</option>
+                <option value="3">3 WC</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Ngày dự kiến khởi công</span>
+              <input id="startDate" name="startDate" type="date">
+            </label>
+          </div>
+          <div class="segmented-block">
+            <span class="field-label">Phân khúc vật tư</span>
+            <div class="segmented">
+              <label><input type="radio" name="tier" value="standard" checked><span>Tiêu chuẩn<small>Cân bằng chi phí</small></span></label>
+              <label><input type="radio" name="tier" value="luxury"><span>Cao cấp<small>Vật liệu chọn lọc</small></span></label>
+            </div>
+          </div>
+          <div class="segmented-block">
+            <span class="field-label">Phong cách thiết kế</span>
+            <div class="segmented">
+              <label><input type="radio" name="style" value="modern" checked><span>Hiện đại<small>Tối ưu công năng</small></span></label>
+              <label><input type="radio" name="style" value="modern_luxury"><span>Modern Luxury<small>Chi tiết cao cấp</small></span></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel option-panel">
+          <div class="panel-heading"><div><span class="step">02</span><h2>Phạm vi thi công</h2></div><span class="subtle">Chọn các hạng mục cần làm</span></div>
+
+          <div class="option-section">
+            <h3><span>01</span>Cải tạo thô &amp; trần tường</h3>
+            <label class="check-card accent">
+              <input type="checkbox" id="demolition" checked>
+              <span class="check-ui"></span>
+              <span><strong>Phá dỡ &amp; xây mới</strong><small>Tháo dỡ, xây trát, vận chuyển phế thải</small></span>
+              <b>Theo m²</b>
+            </label>
+            <div class="mini-segment" id="demoLevelGroup">
+              <span>Mức độ cải tạo</span>
+              <label><input type="radio" name="demoLevel" value="20"><i>20%</i></label>
+              <label><input type="radio" name="demoLevel" value="50"><i>50%</i></label>
+              <label><input type="radio" name="demoLevel" value="100" checked><i>100%</i></label>
+            </div>
+            <div class="check-row">
+              <label class="check-card"><input type="checkbox" id="wcRenovation" checked><span class="check-ui"></span><span><strong>Cải tạo WC</strong><small>Chống thấm, ốp lát, cấp thoát nước</small></span></label>
+              <label class="check-card"><input type="checkbox" id="ceiling" checked><span class="check-ui"></span><span><strong>Trần thạch cao mới</strong><small>Khung chống ẩm, khe rèm âm</small></span></label>
+              <label class="check-card"><input type="checkbox" id="painting" checked><span class="check-ui"></span><span><strong>Sơn bả tường trần</strong><small>Bả phẳng, lót kháng kiềm, sơn phủ</small></span></label>
+              <label class="field"><span>Cầu thang</span><select name="staircase"><option value="none">Không cải tạo</option><option value="basic">Gói tiêu chuẩn</option><option value="luxury">Gói cao cấp</option></select></label>
+            </div>
+          </div>
+
+          <div class="option-section">
+            <h3><span>02</span>Hoàn thiện sàn</h3>
+            <div class="option-grid three">
+              <label class="choice-card"><input type="radio" name="flooring" value="none"><span><strong>Giữ hiện trạng</strong><small>Không cải tạo sàn</small></span></label>
+              <label class="choice-card"><input type="radio" name="flooring" value="standard" checked><span><strong>Tầm trung</strong><small>Gỗ 12 mm / gạch chuẩn</small></span></label>
+              <label class="choice-card"><input type="radio" name="flooring" value="luxury"><span><strong>Cao cấp</strong><small>Gỗ xương cá / porcelain</small></span></label>
+            </div>
+          </div>
+
+          <div class="option-section">
+            <h3><span>03</span>MEP &amp; chiếu sáng</h3>
+            <label class="field-label">Hệ thống đèn</label>
+            <div class="option-grid three compact">
+              <label class="choice-card"><input type="radio" name="lighting" value="none"><span><strong>Không gồm đèn</strong></span></label>
+              <label class="choice-card"><input type="radio" name="lighting" value="standard"><span><strong>Tiêu chuẩn</strong><small>Downlight &amp; LED hắt</small></span></label>
+              <label class="choice-card"><input type="radio" name="lighting" value="luxury" checked><span><strong>Cao cấp</strong><small>Spotlight &amp; ray nam châm</small></span></label>
+            </div>
+            <label class="field-label top-gap">Điện &amp; công tắc</label>
+            <div class="option-grid three compact">
+              <label class="choice-card"><input type="radio" name="electrical" value="none"><span><strong>Giữ hiện trạng</strong></span></label>
+              <label class="choice-card"><input type="radio" name="electrical" value="light_mod"><span><strong>Cải tạo nhẹ</strong><small>Đổi đầu đấu</small></span></label>
+              <label class="choice-card"><input type="radio" name="electrical" value="full_mod" checked><span><strong>Đi mới toàn bộ</strong><small>Dây, ổ cắm &amp; PCCC</small></span></label>
+            </div>
+            <label class="field-label top-gap">Điện thông minh</label>
+            <div class="option-grid three compact">
+              <label class="choice-card"><input type="radio" name="smarthome" value="none" checked><span><strong>Không sử dụng</strong></span></label>
+              <label class="choice-card"><input type="radio" name="smarthome" value="standard"><span><strong>Gói cơ bản</strong><small>Đèn, rèm, cảm biến</small></span></label>
+              <label class="choice-card"><input type="radio" name="smarthome" value="luxury"><span><strong>Gói cao cấp</strong><small>Scene &amp; an ninh</small></span></label>
+            </div>
+          </div>
+
+          <div class="option-section">
+            <h3><span>04</span>Nội thất &amp; vật liệu</h3>
+            <label class="field-label">Đồ gỗ liền tường</label>
+            <div class="option-grid two">
+              <label class="choice-card"><input type="radio" name="wood" value="none"><span><strong>Không gồm đồ gỗ</strong><small>Chủ đầu tư tự trang bị</small></span></label>
+              <label class="choice-card"><input type="radio" name="wood" value="melamine_economy"><span><strong>Melamine kinh tế</strong><small>MDF chống ẩm KES / Vanachai</small></span></label>
+              <label class="choice-card"><input type="radio" name="wood" value="melamine_standard" checked><span><strong>Melamine tiêu chuẩn</strong><small>An Cường / Minh Long, thùng WPB</small></span></label>
+              <label class="choice-card"><input type="radio" name="wood" value="laminate"><span><strong>Laminate &amp; sơn</strong><small>Phối kính Slim, hoàn thiện cao cấp</small></span></label>
+            </div>
+            <label class="field-label top-gap">Đồ rời may đo</label>
+            <div class="option-grid three compact">
+              <label class="choice-card"><input type="radio" name="loose" value="none"><span><strong>Không gồm</strong></span></label>
+              <label class="choice-card"><input type="radio" name="loose" value="standard" checked><span><strong>Tiêu chuẩn</strong><small>Sofa, bàn, giường</small></span></label>
+              <label class="choice-card"><input type="radio" name="loose" value="luxury"><span><strong>Cao cấp</strong><small>Da, đá, inox PVD</small></span></label>
+            </div>
+            <label class="field-label top-gap">Đá hoàn thiện</label>
+            <div class="option-grid three compact">
+              <label class="choice-card"><input type="radio" name="stone" value="none"><span><strong>Không gồm</strong></span></label>
+              <label class="choice-card"><input type="radio" name="stone" value="standard_stone" checked><span><strong>Thạch anh</strong><small>Vicostone / Vasta</small></span></label>
+              <label class="choice-card"><input type="radio" name="stone" value="luxury_stone"><span><strong>Đá nung kết</strong><small>Neolith / Dekton</small></span></label>
+            </div>
+          </div>
+
+          <div class="option-section">
+            <h3><span>05</span>Thiết bị &amp; tiện nghi</h3>
+            <div class="equipment-grid">
+              <div>
+                <label class="field-label">Thiết bị bếp</label>
+                <select name="appliances">
+                  <option value="none">Không bao gồm</option>
+                  <option value="basic" selected>Gói Garis tiêu chuẩn</option>
+                  <option value="luxury">Hafele / Blum cao cấp</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Thiết bị WC</label>
+                <select name="wcEquipment">
+                  <option value="none" selected>Không bao gồm</option>
+                  <option value="basic">Gói tiêu chuẩn</option>
+                  <option value="luxury">Gói cao cấp</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Rèm cửa</label>
+                <select name="curtain">
+                  <option value="none">Không bao gồm</option>
+                  <option value="normal" selected>Rèm hai lớp</option>
+                  <option value="electric">Rèm điện thông minh</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Điều hòa</label>
+                <select name="ac">
+                  <option value="none" selected>Không bao gồm</option>
+                  <option value="wall">Treo tường Inverter</option>
+                  <option value="ducted">Âm trần nối ống gió</option>
+                </select>
+              </div>
+            </div>
+            <label class="check-card top-gap"><input type="checkbox" id="freshAir"><span class="check-ui"></span><span><strong>Hệ thống cấp khí tươi</strong><small>Thu hồi nhiệt, lọc bụi mịn, cân chỉnh lưu lượng</small></span><b>Thiết bị bổ sung</b></label>
+          </div>
+        </section>
+      </form>
+
+      <aside class="results">
+        <section class="summary-card panel">
+          <div class="summary-top">
+            <div><span class="eyebrow">TỔNG MỨC ĐẦU TƯ</span><strong id="grandTotal">0 ₫</strong></div>
+            <span class="rate-badge" id="rateBadge">0 triệu/m²</span>
+          </div>
+          <div class="summary-meta" id="summaryMeta"></div>
+          <div class="kpi-grid">
+            <div><span>Thi công thực tế</span><strong id="workDays">0 ngày</strong></div>
+            <div><span>Ngày bàn giao</span><strong id="handoverDate">-</strong></div>
+            <div><span>Số hạng mục</span><strong id="itemCount">0</strong></div>
+          </div>
+        </section>
+
+        <section class="detail-card panel">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="cost" type="button">Chi phí</button>
+            <button class="tab" data-tab="schedule" type="button">Tiến độ</button>
+            <button class="tab" data-tab="plans" type="button">Phương án <span id="planCount">0</span></button>
+          </div>
+
+          <div class="tab-panel active" id="tab-cost">
+            <div class="table-head"><span>Hạng mục</span><span>Thành tiền</span></div>
+            <div class="breakdown" id="breakdown"></div>
+            <div class="total-row"><span>Tổng khái toán</span><strong id="grandTotalBottom">0 ₫</strong></div>
+            <p class="disclaimer">Chi phí mang tính tham khảo sơ bộ, chưa thay thế báo giá khảo sát và hồ sơ kỹ thuật.</p>
+          </div>
+
+          <div class="tab-panel" id="tab-schedule">
+            <div class="schedule-summary">
+              <div><span id="scheduleWork">0</span><small>ngày làm việc</small></div>
+              <div><span id="scheduleCalendar">0</span><small>ngày lịch</small></div>
+            </div>
+            <div class="phase-legend"><i class="rough"></i>Thô <i class="finish"></i>Hoàn thiện</div>
+            <div class="timeline" id="timeline"></div>
+          </div>
+
+          <div class="tab-panel" id="tab-plans">
+            <div class="plan-toolbar">
+              <div><strong>So sánh phương án</strong><small>Lưu tối đa 6 cấu hình trong trình duyệt</small></div>
+              <button type="button" class="button primary small" id="savePlanBtn">+ Lưu phương án</button>
+            </div>
+            <div id="plansList" class="plans-list"></div>
+            <button type="button" class="text-button danger" id="clearPlansBtn">Xóa tất cả phương án</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <button class="assistant-toggle" id="assistantToggle" type="button" aria-label="Mở trợ lý">💬</button>
+  <section class="assistant" id="assistantPanel" aria-hidden="true">
+    <header><div><span>💬</span><div><strong>Trợ lý khái toán</strong><small>Hỗ trợ nhanh theo cấu hình</small></div></div><button type="button" id="assistantClose">×</button></header>
+    <div class="assistant-body" id="assistantBody">
+      <p class="bot-message">Chào bạn! Tôi có thể giải thích từng chi phí, tiến độ hoặc gợi ý cách tối ưu ngân sách.</p>
+      <div class="quick-replies">
+        <button type="button">Vì sao chi phí thay đổi?</button>
+        <button type="button">Gợi ý tiết kiệm ngân sách</button>
+        <button type="button">Tiến độ được tính thế nào?</button>
+      </div>
+    </div>
+    <form id="assistantForm"><input id="assistantInput" placeholder="Nhập câu hỏi..." autocomplete="off"><button>↑</button></form>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+</body>
+</html>
