@@ -5,6 +5,7 @@ import { landingSupabase } from './landingSupabase';
 interface TeamMember {
   name: string;
   role: string;
+  experience: string;
 }
 
 interface TeamGroup {
@@ -27,13 +28,13 @@ export function TeamSection() {
   useEffect(() => {
     landingSupabase
       .from('landing_team_members')
-      .select('group_key,name,role')
+      .select('group_key,name,role,experience')
       .order('sort_order')
       .then(({ data }) => {
         const byGroup: Record<string, TeamMember[]> = {};
         (data || []).forEach(row => {
           if (!byGroup[row.group_key]) byGroup[row.group_key] = [];
-          byGroup[row.group_key].push({ name: row.name, role: row.role || '' });
+          byGroup[row.group_key].push({ name: row.name, role: row.role || '', experience: row.experience || '' });
         });
         setGroups(GROUP_ORDER.map(key => ({
           key,
@@ -62,11 +63,12 @@ export function TeamSection() {
                 </div>
                 <div className="h-px bg-[#2C2920]/10" />
                 {group.members.length > 0 ? (
-                  <ul className="space-y-3">
+                  <ul className="space-y-4">
                     {group.members.map((m, idx) => (
-                      <li key={idx} className="flex flex-col gap-1">
+                      <li key={idx} className="flex flex-col gap-1 pb-4 border-b border-[#2C2920]/5 last:border-b-0 last:pb-0">
                         <span className="text-sm font-semibold text-[#2C2920]">{m.name}</span>
                         <span className="text-xs text-[#8A8070]">{m.role}</span>
+                        {m.experience && <span className="text-xs text-[#2C2920]/70 leading-relaxed mt-1">{m.experience}</span>}
                       </li>
                     ))}
                   </ul>

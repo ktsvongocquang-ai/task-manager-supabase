@@ -9,6 +9,8 @@ interface StandardSpec {
   constructionTime: string | null;
   designStyle: string | null;
   materialPartners: string | null;
+  minPrice: number | null;
+  maxPrice: number | null;
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
@@ -20,15 +22,34 @@ const STANDARD_SUITABLE: Record<Standard, string> = {
   dqh: 'Nhà phố & công trình kiến trúc nhà vườn',
   jux: 'Chung cư / căn hộ',
 };
+// Mỗi category chỉ có đúng 1 chuẩn dịch vụ áp dụng — tránh hiện 2 thẻ gây
+// hiểu lầm "được chọn 1 trong 2" khi thực tế DQH/JUX tách theo loại công trình.
+const CATEGORY_STANDARD: Record<Category, Standard> = { apartment: 'jux', house_villa: 'dqh' };
+
+function formatVnd(n: number) {
+  return (n / 1_000_000).toLocaleString('vi-VN') + ' triệu';
+}
 
 function StandardCard({ standard, spec }: { standard: Standard; spec?: StandardSpec }) {
   const field = (v: string | null | undefined, label: string) => (v ? <span className="text-[#2C2920] text-sm">{v}</span> : <NeedsInput label={label} />);
   return (
-    <div className="bg-white border border-[#2C2920]/10 rounded-sm p-8 space-y-6">
+    <div className="bg-white border border-[#2C2920]/10 rounded-sm p-8 md:p-10 space-y-6 max-w-xl mx-auto">
       <div>
         <h3 className="font-serif text-2xl font-light text-[#2C2920]">{STANDARD_LABEL[standard]}</h3>
         <p className="text-xs text-[#8A8070] mt-1">{STANDARD_SUITABLE[standard]}</p>
       </div>
+
+      <div className="bg-[#F8F5F0] rounded-sm p-5 text-center">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold mb-1">Đơn giá tham khảo</p>
+        {spec?.minPrice != null && spec?.maxPrice != null ? (
+          <p className="font-serif text-2xl text-[#B8913A]">
+            {formatVnd(spec.minPrice)} – {formatVnd(spec.maxPrice)} <span className="text-sm text-[#8A8070] font-sans">/ m²</span>
+          </p>
+        ) : (
+          <NeedsInput label="đơn giá/m²" />
+        )}
+      </div>
+
       <div className="h-px bg-[#2C2920]/10" />
       <dl className="space-y-4 text-xs">
         <div>
@@ -44,6 +65,7 @@ function StandardCard({ standard, spec }: { standard: Standard; spec?: StandardS
           <dd>{field(spec?.materialPartners, 'đối tác vật liệu')}</dd>
         </div>
       </dl>
+      <p className="text-[11px] text-[#8A8070] italic">Đơn giá tham khảo — xem khái toán chi tiết ở phần "Báo giá chi phí xây nhà" bên dưới.</p>
     </div>
   );
 }
@@ -53,22 +75,33 @@ export function PricingComparison() {
   const [rows, setRows] = useState<Record<string, StandardSpec> | null>(null);
 
   useEffect(() => {
-    landingSupabase
-      .from('landing_pricing_standards')
-      .select('category,standard,construction_time,design_style,material_partners')
-      .then(({ data }) => {
+    Promise.all([
+      landingSupabase.from('landing_pricing_standards').select('category,standard,construction_time,design_style,material_partners'),
+      landingSupabase.from('landing_price_rates').select('category,standard,min_price_per_m2,max_price_per_m2'),
+    ])
+      .then(([standardsRes, ratesRes]) => {
         const map: Record<string, StandardSpec> = {};
-        (data || []).forEach(row => {
+        (standardsRes.data || []).forEach(row => {
           map[`${row.category}:${row.standard}`] = {
             constructionTime: row.construction_time,
             designStyle: row.design_style,
             materialPartners: row.material_partners,
+            minPrice: null,
+            maxPrice: null,
           };
+        });
+        (ratesRes.data || []).forEach(row => {
+          const key = `${row.category}:${row.standard}`;
+          if (!map[key]) map[key] = { constructionTime: null, designStyle: null, materialPartners: null, minPrice: null, maxPrice: null };
+          map[key].minPrice = row.min_price_per_m2;
+          map[key].maxPrice = row.max_price_per_m2;
         });
         setRows(map);
       })
       .catch(() => setRows({}));
   }, []);
+
+  const standard = CATEGORY_STANDARD[category];
 
   return (
     <section id="section-1" className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
@@ -89,14 +122,7 @@ export function PricingComparison() {
           ))}
         </div>
 
-        {!rows ? (
-          <p className="text-xs text-[#8A8070]">Đang tải...</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <StandardCard standard="dqh" spec={rows[`${category}:dqh`]} />
-            <StandardCard standard="jux" spec={rows[`${category}:jux`]} />
-          </div>
-        )}
+        {!rows ? <p className="text-xs text-[#8A8070]">Đang tải...</p> : <StandardCard standard={standard} spec={rows[`${category}:${standard}`]} />}
       </div>
     </section>
   );

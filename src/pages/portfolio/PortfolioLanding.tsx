@@ -244,8 +244,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <CompanyInfo />
       <PriceCalculator />
 
-      {/* ── TIẾN ĐỘ CÔNG TRÌNH THẬT (chỉ hiện khi link share gắn với 1 project_id thật — không phải 1 trong 6 phần chính) ── */}
-      {portfolio?.project_id && (
+      {/* ── TIẾN ĐỘ CÔNG TRÌNH THẬT (chỉ hiện khi link share gắn với 1 project_id thật
+           VÀ project đó đã có dữ liệu — ẩn hẳn thay vì hiện khối rỗng gây rối mắt) ── */}
+      {portfolio?.project_id && (loadingProject || (realProject && realTasks.length > 0)) && (
         <section className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
           <div className="max-w-3xl mx-auto">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
@@ -254,7 +255,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             </h2>
             {loadingProject ? (
               <div className="text-center py-10 font-mono text-xs text-[#8A8070]">Đang tải tiến độ thực tế...</div>
-            ) : realProject && realTasks.length > 0 ? (
+            ) : (
               <div className="space-y-8">
                 {realTasks.map((t, idx) => (
                   <div key={idx} className="space-y-2">
@@ -268,8 +269,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-center text-xs text-[#8A8070] py-10">Chưa có dữ liệu tiến độ cho công trình này.</p>
             )}
           </div>
         </section>

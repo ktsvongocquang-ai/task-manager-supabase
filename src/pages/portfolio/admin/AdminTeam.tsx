@@ -22,6 +22,7 @@ export function AdminTeam() {
           { key: 'group_key', label: 'Nhóm', type: 'select', options: GROUP_OPTS },
           { key: 'name', label: 'Tên' },
           { key: 'role', label: 'Vai trò' },
+          { key: 'experience', label: 'Lịch sử kinh nghiệm', type: 'textarea' },
           { key: 'sort_order', label: 'Thứ tự', type: 'number' },
         ]}
       />
