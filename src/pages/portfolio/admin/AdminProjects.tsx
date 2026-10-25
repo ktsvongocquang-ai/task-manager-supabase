@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { landingSupabase } from '../sections/landingSupabase';
+import { ImageUploadField } from './ImageUploadField';
+import { CaseStudyEditor } from './CaseStudyEditor';
+import type { CaseStudyData } from '../sections/CaseStudyModal';
 
 interface ProjectRow {
   id: string;
@@ -11,7 +14,7 @@ interface ProjectRow {
   project_type: string | null;
   construction_time: string | null;
   image_url: string | null;
-  case_study: any;
+  case_study: CaseStudyData | null;
   sort_order: number;
   is_published: boolean;
 }
@@ -21,20 +24,7 @@ const EMPTY: Omit<ProjectRow, 'id'> = {
 };
 
 function ProjectForm({ value, onChange, canWrite }: { value: Omit<ProjectRow, 'id'>; onChange: (v: Omit<ProjectRow, 'id'>) => void; canWrite: boolean }) {
-  const [caseStudyText, setCaseStudyText] = useState(value.case_study ? JSON.stringify(value.case_study, null, 2) : '');
-  const [jsonError, setJsonError] = useState('');
-
-  const set = (key: string, val: any) => onChange({ ...value, [key]: val });
-
-  const applyCaseStudy = () => {
-    if (!caseStudyText.trim()) { set('case_study', null); setJsonError(''); return; }
-    try {
-      set('case_study', JSON.parse(caseStudyText));
-      setJsonError('');
-    } catch {
-      setJsonError('JSON không hợp lệ — chưa lưu được phần Case Study.');
-    }
-  };
+  const set = <K extends keyof typeof value>(key: K, val: (typeof value)[K]) => onChange({ ...value, [key]: val });
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -77,24 +67,14 @@ function ProjectForm({ value, onChange, canWrite }: { value: Omit<ProjectRow, 'i
         <input type="number" value={value.sort_order} onChange={e => set('sort_order', Number(e.target.value))} disabled={!canWrite} className="w-full border border-[#2C2920]/15 rounded px-3 py-2 text-sm" />
       </div>
       <div className="sm:col-span-2">
-        <label className="block text-[10px] uppercase tracking-wide text-[#8A8070] font-semibold mb-1">Link ảnh bìa</label>
-        <input value={value.image_url || ''} onChange={e => set('image_url', e.target.value)} placeholder="https://..." disabled={!canWrite} className="w-full border border-[#2C2920]/15 rounded px-3 py-2 text-sm" />
+        <ImageUploadField label="Ảnh bìa (thẻ công trình)" value={value.image_url} onChange={url => set('image_url', url || '')} />
       </div>
-      <div className="sm:col-span-2">
-        <label className="block text-[10px] uppercase tracking-wide text-[#8A8070] font-semibold mb-1">
-          Case Study (nâng cao — JSON, để trống nếu chưa có "Xem Album Kể Chuyện")
-        </label>
-        <textarea
-          value={caseStudyText}
-          onChange={e => setCaseStudyText(e.target.value)}
-          onBlur={applyCaseStudy}
-          disabled={!canWrite}
-          rows={6}
-          placeholder='{"introText": "...", "floorPlan": {"text": "...", "sitePhoto": null, "blueprint": null}, ...}'
-          className="w-full border border-[#2C2920]/15 rounded px-3 py-2 text-xs font-mono"
-        />
-        {jsonError && <p className="text-xs text-rose-600 mt-1">{jsonError}</p>}
-      </div>
+      <CaseStudyEditor
+        value={value.case_study}
+        onChange={cs => set('case_study', cs)}
+        defaultTitle={value.title}
+        defaultStyle={value.style || ''}
+      />
     </div>
   );
 }
