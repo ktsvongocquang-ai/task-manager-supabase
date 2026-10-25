@@ -14,13 +14,13 @@ export const GlobalLoadingFallback = () => (
 );
 
 // Safe lazy import wrapper to automatically recover from outdated deployment chunk hashes
-const safeLazy = (importFn: () => Promise<any>) => {
+const safeLazy = <T extends React.ComponentType<Record<string, unknown>>>(importFn: () => Promise<{ default: T }>) => {
   return lazy(async () => {
     try {
       const component = await importFn();
       sessionStorage.removeItem('retry_lazy_reload');
       return component;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn("Outdated chunk detected, refreshing page automatically...", error);
       const isRefreshed = sessionStorage.getItem('retry_lazy_reload');
       if (!isRefreshed) {
@@ -29,7 +29,9 @@ const safeLazy = (importFn: () => Promise<any>) => {
           try {
             const keys = await caches.keys();
             await Promise.all(keys.map(k => caches.delete(k)));
-          } catch (e) {}
+          } catch {
+            void 0;
+          }
         }
         window.location.reload();
         return new Promise(() => {});
@@ -42,7 +44,7 @@ const safeLazy = (importFn: () => Promise<any>) => {
 
 // --- Lazy loaded components ---
 const ClientView = safeLazy(() => import('./pages/client/ClientView').then(m => ({ default: m.ClientView })))
-const PortfolioLanding = safeLazy(() => import('./pages/portfolio/PortfolioLanding').then(m => ({ default: m.PortfolioLanding })))
+const LandingPageV2 = safeLazy(() => import('./pages/portfolio/lp/LandingPageV2').then(m => ({ default: m.LandingPageV2 })))
 
 const Dashboard = safeLazy(() => import('./pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
 const Projects = safeLazy(() => import('./pages/projects/Projects').then(m => ({ default: m.Projects })))
@@ -108,10 +110,10 @@ function App() {
             </Suspense>
           } />
           
-          {/* Public Portfolio Landing page */}
+          {/* Public Landing page bán hàng — LP v2 */}
           <Route path="/p/:token" element={
             <Suspense fallback={<GlobalLoadingFallback />}>
-              <PortfolioLanding />
+              <LandingPageV2 />
             </Suspense>
           } />
 
@@ -136,7 +138,7 @@ function App() {
             <Route path="mytasks" element={<MyTasks />} />
             <Route path="bao-gia" element={<InteriorQuote />} />
             <Route path="training" element={<TrainingHub />} />
-            <Route path="portfolio" element={<PortfolioLanding isPreview={true} />} />
+            <Route path="portfolio" element={<LandingPageV2 />} />
           </Route>
 
           {/* Catch all */}
