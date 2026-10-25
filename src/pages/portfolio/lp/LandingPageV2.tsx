@@ -114,7 +114,14 @@ export function LandingPageV2() {
         onViewProjects={() => scrollTo('projects')}
       />
       <ProjectsBlock seg={seg} onBookVisit={() => goToOffer('xem_cong_trinh')} />
-      <Estimator seg={seg} setSeg={handleSetSeg} onNeedDetail={payload => goToOffer('bang_chi_tiet', payload)} />
+      <Estimator
+        seg={seg}
+        setSeg={handleSetSeg}
+        sale={sale}
+        nguon={nguon}
+        utm={utm}
+        onNeedDetail={payload => goToOffer('bang_chi_tiet', payload)}
+      />
       <Architect page={page} />
       <Offer
         page={page}
