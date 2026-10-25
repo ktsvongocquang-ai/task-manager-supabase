@@ -88,14 +88,14 @@ export function SegmentedToggle<T extends string>({
   ariaLabel: string;
 }) {
   return (
-    <div role="group" aria-label={ariaLabel} className="flex gap-1 p-1 border border-[#2C2920]/15 rounded-sm bg-white shrink-0">
+    <div role="group" aria-label={ariaLabel} className="flex gap-1 p-1 border border-[#2C2920]/15 rounded-sm bg-white shrink-0 max-w-full overflow-x-auto">
       {options.map(opt => (
         <button
           key={opt.value}
           type="button"
           aria-pressed={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className={`min-h-[44px] px-4 sm:px-5 text-[11px] sm:text-xs font-semibold tracking-[0.1em] uppercase rounded-sm transition-colors cursor-pointer ${
+          className={`min-h-[44px] px-3 sm:px-5 text-[11px] sm:text-xs font-semibold tracking-[0.1em] uppercase rounded-sm transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
             value === opt.value ? 'bg-[#1A1814] text-[#F8F5F0]' : 'bg-transparent text-[#2C2920] hover:bg-[#F5F2EC]'
           }`}
         >
