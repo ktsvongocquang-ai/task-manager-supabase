@@ -38,7 +38,10 @@ function formatVnd(n: number) {
   return (n / 1_000_000).toLocaleString('vi-VN');
 }
 
-function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: StandardSpec; categoryLabel: string; onOpenKhaiToan: () => void }) {
+// Không hiện lại tên loại công trình trong card (vd "Nhà phố · Villa") —
+// SegmentedToggle ngay phía trên đã thể hiện rõ đang chọn gì, lặp lại ở đây
+// chỉ tốn thêm 1 dòng tiêu đề + khoảng trống mà không thêm thông tin mới.
+function StandardCard({ spec, onOpenKhaiToan }: { spec?: StandardSpec; onOpenKhaiToan: () => void }) {
   const hasPrice = spec?.designMinPrice != null && spec?.designMaxPrice != null;
 
   const detailRows = [
@@ -49,12 +52,9 @@ function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: Standard
 
   return (
     <div className="bg-white border border-[#2C2920]/10 rounded-sm">
-      <div className="grid gap-8 lg:gap-12 p-7 md:p-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}>
-        <div className="flex flex-col gap-6">
-          <div>
-            <h3 className="font-serif text-2xl md:text-3xl font-light text-[#2C2920]">{categoryLabel}</h3>
-            {spec?.standardSub && <p className="text-sm text-[#8A8070] mt-1.5">{spec.standardSub}</p>}
-          </div>
+      <div className="grid gap-6 lg:gap-12 p-7 md:p-9" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}>
+        <div className="flex flex-col gap-5">
+          {spec?.standardSub && <p className="text-sm text-[#8A8070]">{spec.standardSub}</p>}
 
           {hasPrice ? (
             <div className="grid grid-cols-2 gap-6 border-t border-[#2C2920]/10 pt-5">
@@ -148,11 +148,10 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
 
   return (
     <section id="section-1" className="px-6 md:px-16 py-14 md:py-20 bg-[#F5F2EC] border-b border-[#2C2920]/5">
-      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+      <div className="max-w-6xl mx-auto">
         <SectionHeader
           eyebrow="(CHI PHÍ THAM KHẢO)"
           title="Chi phí thiết kế & thi công"
-          accent="theo chuẩn dịch vụ"
           action={
             <SegmentedToggle
               ariaLabel="Loại công trình"
@@ -166,7 +165,7 @@ export function PricingComparison({ onOpenKhaiToan }: { onOpenKhaiToan: () => vo
         {!rows ? (
           <p className="text-xs text-[#8A8070]">Đang tải...</p>
         ) : (
-          <StandardCard spec={rows[`${category}:${standard}`]} categoryLabel={CATEGORY_LABEL[category]} onOpenKhaiToan={onOpenKhaiToan} />
+          <StandardCard spec={rows[`${category}:${standard}`]} onOpenKhaiToan={onOpenKhaiToan} />
         )}
       </div>
     </section>

@@ -92,7 +92,7 @@ export function WorkflowSteps() {
 
   return (
     <section id="section-2" className="px-6 md:px-16 py-14 md:py-20 bg-[#F8F5F0] border-b border-[#2C2920]/5">
-      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+      <div className="max-w-6xl mx-auto">
         <SectionHeader
           eyebrow="(QUY TRÌNH)"
           title="Quy trình làm việc"
@@ -110,7 +110,7 @@ export function WorkflowSteps() {
         {allSteps === null ? (
           <p className="text-xs text-[#8A8070]">Đang tải...</p>
         ) : steps.length === 0 ? null : (
-          <>
+          <div className="flex flex-col gap-6">
             {/* ── thẻ tổng quan ── */}
             <div className="flex flex-col gap-4 p-7 md:p-8 bg-white border border-[#2C2920]/10 rounded-sm">
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
@@ -131,7 +131,7 @@ export function WorkflowSteps() {
             </div>
 
             {/* ── 2 cột bước, đánh số liên tục ── */}
-            <div className="grid gap-y-6 gap-x-12" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))' }}>
+            <div className="grid gap-y-4 gap-x-12" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))' }}>
               {[
                 { name: 'GIAI ĐOẠN THIẾT KẾ', col: designSteps },
                 { name: 'GIAI ĐOẠN THI CÔNG & BÀN GIAO', col: otherSteps },
@@ -146,7 +146,7 @@ export function WorkflowSteps() {
                         <button
                           onClick={() => setOpenIndex(isOpen ? -1 : idx)}
                           aria-expanded={isOpen}
-                          className="w-full min-h-[56px] flex items-start gap-4 py-3.5 bg-transparent border-0 text-left cursor-pointer"
+                          className="w-full min-h-[48px] flex items-start gap-4 py-3 bg-transparent border-0 text-left cursor-pointer"
                         >
                           <span className="shrink-0 w-7 pt-px font-serif italic text-lg text-[#B8913A]">{String(idx + 1).padStart(2, '0')}</span>
                           <span className="flex-1 min-w-0 text-[15px] font-medium text-[#2C2920] leading-snug pt-0.5">{step.title}</span>
@@ -186,7 +186,7 @@ export function WorkflowSteps() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </section>

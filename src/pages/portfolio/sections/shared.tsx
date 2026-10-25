@@ -77,7 +77,7 @@ export function SectionHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className={`mb-10 md:mb-16 flex flex-wrap items-end gap-x-8 gap-y-5 ${center ? 'justify-center text-center' : 'justify-between'}`}>
+    <div className={`mb-8 md:mb-12 flex flex-wrap items-end gap-x-8 gap-y-5 ${center ? 'justify-center text-center' : 'justify-between'}`}>
       <div>
         <p className="text-[11px] tracking-[0.22em] uppercase text-[#8A8070] mb-3 font-medium">{eyebrow}</p>
         <h2 className={`font-sans font-semibold text-[32px] sm:text-4xl md:text-[44px] tracking-tight leading-[1.1] ${dark ? 'text-[#F5F2EC]' : 'text-[#2C2920]'}`}>
