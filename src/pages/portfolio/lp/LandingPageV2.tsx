@@ -98,6 +98,7 @@ export function LandingPageV2() {
       </header>
 
       <Hero
+        page={page}
         seg={seg}
         setSeg={handleSetSeg}
         onEstimate={() => scrollTo('estimator')}
