@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SectionHeader, SegmentedToggle } from './shared';
+import { SectionHeader, SegmentedToggle, LABEL_CLS, VALUE_CLS } from './shared';
 import { landingSupabase } from './landingSupabase';
 
 type ProcessType = 'noi_that' | 'xay_dung';
@@ -137,7 +137,7 @@ export function WorkflowSteps() {
                 { name: 'GIAI ĐOẠN THI CÔNG & BÀN GIAO', col: otherSteps },
               ].map(({ name, col }) => (
                 <div key={name} className="flex flex-col">
-                  <p className="text-[11px] tracking-[0.2em] uppercase text-[#8A8070] mb-2">{name}</p>
+                  <p className={`${LABEL_CLS} mb-2`}>{name}</p>
                   {col.map(step => {
                     const idx = steps.indexOf(step);
                     const isOpen = openIndex === idx;
@@ -155,7 +155,7 @@ export function WorkflowSteps() {
                         </button>
                         {isOpen && (
                           <div className="pl-11 pr-2 pb-4 flex flex-col gap-1.5">
-                            {step.owner && <p className="m-0 text-[11px] tracking-[0.12em] uppercase text-[#8A8070]">{step.owner}</p>}
+                            {step.owner && <p className={`m-0 ${LABEL_CLS}`}>{step.owner}</p>}
                             {step.description && <p className="m-0 text-sm leading-relaxed text-[#2C2920]">{step.description}</p>}
                           </div>
                         )}
@@ -168,19 +168,19 @@ export function WorkflowSteps() {
 
             {/* ── bảo hành ── */}
             {warranty.length > 0 && (
-              <div className="flex flex-col gap-4 p-7 md:p-8 bg-[#EDE7DF] rounded-sm">
+              <div className="flex flex-col gap-5 p-7 md:p-8 bg-white border border-[#2C2920]/10 rounded-sm">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                  <p className="m-0 font-serif text-2xl text-[#2C2920]">Bảo hành theo hạng mục</p>
+                  <p className="m-0 font-serif text-2xl font-light text-[#2C2920]">Bảo hành theo hạng mục</p>
                   <p className="m-0 text-[13px] text-[#2C2920]/70">Phiếu bảo hành kèm hợp đồng, ghi rõ điều kiện áp dụng.</p>
                 </div>
-                <div className="grid gap-px bg-[#2C2920]/10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
+                <div className="grid gap-x-8 gap-y-4 pt-5 border-t border-[#2C2920]/10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
                   {warranty
                     .map(w => ({ item: w.item, term: processType === 'noi_that' ? w.noiThatTerm : w.xayDungTerm }))
                     .filter(w => !!w.term)
                     .map(w => (
-                      <div key={w.item} className="bg-[#F8F5F0] p-4 flex flex-col gap-1.5">
-                        <span className="text-[11px] tracking-[0.14em] uppercase text-[#8A8070]">{w.item}</span>
-                        <span className="text-[15px] text-[#2C2920]">{w.term}</span>
+                      <div key={w.item} className="flex flex-col gap-1">
+                        <span className={LABEL_CLS}>{w.item}</span>
+                        <span className={VALUE_CLS}>{w.term}</span>
                       </div>
                     ))}
                 </div>

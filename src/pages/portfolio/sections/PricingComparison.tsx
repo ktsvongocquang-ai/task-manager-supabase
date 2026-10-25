@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { SectionHeader, SegmentedToggle } from './shared';
+import { SectionHeader, SegmentedToggle, LABEL_CLS, VALUE_CLS } from './shared';
 import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
@@ -57,22 +57,22 @@ function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: Standard
           </div>
 
           {hasPrice ? (
-            <div className="grid grid-cols-2 gap-px bg-[#2C2920]/10 border border-[#2C2920]/10">
-              <div className="bg-[#F8F5F0] px-4 py-4 md:px-5 md:py-5 flex flex-col gap-1">
-                <span className="text-[10px] tracking-[0.16em] uppercase text-[#8A8070]">Thiết kế</span>
+            <div className="grid grid-cols-2 gap-6 border-t border-[#2C2920]/10 pt-5">
+              <div className="flex flex-col gap-1">
+                <span className={LABEL_CLS}>Thiết kế</span>
                 <span className="font-serif text-xl md:text-2xl leading-tight text-[#B8913A] whitespace-nowrap">{formatVnd(spec!.designMinPrice!)}–{formatVnd(spec!.designMaxPrice!)}</span>
-                <span className="text-[11px] text-[#8A8070]">triệu / m²</span>
+                <span className="text-xs text-[#8A8070]">triệu / m²</span>
               </div>
-              <div className="bg-[#F8F5F0] px-4 py-4 md:px-5 md:py-5 flex flex-col gap-1">
-                <span className="text-[10px] tracking-[0.16em] uppercase text-[#8A8070]">Thi công</span>
+              <div className="flex flex-col gap-1">
+                <span className={LABEL_CLS}>Thi công</span>
                 <span className="font-serif text-xl md:text-2xl leading-tight text-[#B8913A] whitespace-nowrap">
                   {spec?.constructionMinPrice != null && spec?.constructionMaxPrice != null ? `${formatVnd(spec.constructionMinPrice)}–${formatVnd(spec.constructionMaxPrice)}` : '—'}
                 </span>
-                <span className="text-[11px] text-[#8A8070]">triệu / m²</span>
+                <span className="text-xs text-[#8A8070]">triệu / m²</span>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#8A8070] italic bg-[#F8F5F0] border border-[#2C2920]/10 rounded-sm p-5">
+            <p className="text-sm text-[#8A8070] italic border-t border-[#2C2920]/10 pt-5">
               Đơn giá theo diện tích thực tế — tính nhanh bên dưới.
             </p>
           )}
@@ -82,15 +82,15 @@ function StandardCard({ spec, categoryLabel, onOpenKhaiToan }: { spec?: Standard
           <dl className="self-end flex flex-col gap-3 text-sm pt-5 border-t border-[#2C2920]/10">
             {detailRows.map(row => (
               <div key={row.label} className="flex items-baseline gap-4">
-                <dt className="shrink-0 w-[84px] text-[10px] tracking-[0.14em] uppercase text-[#8A8070]">{row.label}</dt>
-                <dd className="m-0 text-[#2C2920] leading-snug">{row.value}</dd>
+                <dt className={`shrink-0 w-[84px] ${LABEL_CLS}`}>{row.label}</dt>
+                <dd className={`m-0 ${VALUE_CLS}`}>{row.value}</dd>
               </div>
             ))}
           </dl>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 px-7 md:px-9 py-5 bg-[#EDE7DF]">
+      <div className="flex flex-wrap items-center justify-between gap-4 px-7 md:px-9 py-5 border-t border-[#2C2920]/10">
         <p className="m-0 text-[13px] italic text-[#2C2920]/70">Đơn giá tham khảo. Báo giá chính xác theo bản vẽ thực tế.</p>
         <button
           onClick={onOpenKhaiToan}

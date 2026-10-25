@@ -2,6 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 
 // Dùng chung cho mọi section mới (phần 1-6) lẫn PortfolioLanding.tsx — giữ
 // đúng bảng màu/hiệu ứng fade-in đã có từ bản cũ để đồng bộ thương hiệu.
+// 2 token chữ dùng chung cho mọi khối "nhãn nhỏ + giá trị" (Chi phí, Quy
+// trình, Công ty...) — trước đây mỗi nơi tự chọn 1 cỡ/tracking riêng (10px
+// vs 11px, tracking 0.14em vs 0.16em vs 0.2em...) khiến các thẻ cạnh nhau
+// nhìn không đồng bộ dù cùng vai trò hiển thị.
+export const LABEL_CLS = 'text-[10px] tracking-[0.16em] uppercase text-[#8A8070] font-semibold';
+export const VALUE_CLS = 'text-sm text-[#2C2920] leading-snug';
+
 export const COLORS = {
   cream: '#F5F2EC',
   warmWhite: '#F8F5F0',
@@ -75,7 +82,9 @@ export function SectionHeader({
         <p className="text-[11px] tracking-[0.22em] uppercase text-[#8A8070] mb-3 font-medium">{eyebrow}</p>
         <h2 className={`font-sans font-semibold text-[32px] sm:text-4xl md:text-[44px] tracking-tight leading-[1.1] ${dark ? 'text-[#F5F2EC]' : 'text-[#2C2920]'}`}>
           {title}
-          {accent && <><br /><span className="font-serif italic font-light text-[#B8913A]">{accent}</span></>}
+          {/* font-normal (không dùng font-light) — chữ nghiêng mảnh quá dễ làm
+              mất dấu tiếng Việt, nhất là ở cỡ nhỏ trên mobile. */}
+          {accent && <><br /><span className="font-serif italic font-normal text-[#B8913A]">{accent}</span></>}
         </h2>
       </div>
       {action}
