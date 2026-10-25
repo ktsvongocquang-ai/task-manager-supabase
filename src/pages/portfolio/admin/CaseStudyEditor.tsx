@@ -19,55 +19,87 @@ function emptyCaseStudy(title: string, style: string): CaseStudyData {
     style: style || '',
     coverImage: null,
     introText: '',
-    floorPlan: { text: '', sitePhoto: null, blueprint: null },
+    floorPlan: { text: '', sitePhotos: [], blueprint: null, link: '' },
     design3D: { text: '', images: [] },
-    tailoring: { text: '', steps: [] },
-    structural: { text: '', imgMain: null },
+    tailoring: { text: '', steps: [], link: '' },
+    structural: { text: '', images: [], link: '' },
     material: { text: '', samples: [] },
-    fixedInterior: { text: '', extraText: '', imgMain: null },
-    looseFurniture: { text: '', imgMain: null },
+    fixedInterior: { text: '', extraText: '', images: [], link: '' },
+    looseFurniture: { text: '', images: [] },
     details: { items: [] },
-    finalize: { text: '', images: [] },
+    finalize: { text: '', images: [], videoUrl: '', link: '' },
   };
 }
 
 const input = 'w-full border border-[#2C2920]/15 rounded px-3 py-2 text-sm';
 const label = 'block text-[10px] uppercase tracking-wide text-[#8A8070] font-semibold mb-1';
 
+// Upload nhiều ảnh cùng lúc (chọn nhiều file trong 1 lần), mỗi ảnh có nút tải
+// về + xoá + di chuyển trái/phải để sắp lại thứ tự hiển thị trên landing page.
 function ImageList({ images, onChange }: { images: string[]; onChange: (next: string[]) => void }) {
-  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [error, setError] = useState('');
 
-  const addFile = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadLandingImage(file);
-      onChange([...images, url]);
-    } catch {
-      // bỏ qua, thử lại
-    } finally {
-      setUploading(false);
+  const addFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setError('');
+    const list = Array.from(files);
+    setProgress({ done: 0, total: list.length });
+    const uploaded: string[] = [];
+    for (const file of list) {
+      try {
+        uploaded.push(await uploadLandingImage(file));
+      } catch {
+        setError(`Tải ảnh thất bại: ${file.name}`);
+      }
+      setProgress(p => (p ? { ...p, done: p.done + 1 } : p));
     }
+    onChange([...images, ...uploaded]);
+    setProgress(null);
+  };
+
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= images.length) return;
+    const next = [...images];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
   };
 
   return (
     <div>
       <div className="flex flex-wrap gap-2 mb-2">
         {images.map((img, i) => (
-          <div key={i} className="relative">
+          <div key={img + i} className="relative group">
             <img src={img} alt="" className="w-16 h-16 object-cover rounded border border-[#2C2920]/10" />
             <button
               type="button"
               onClick={() => onChange(images.filter((_, idx) => idx !== i))}
               className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] leading-4 cursor-pointer"
+              title="Xoá ảnh"
             >
               ✕
             </button>
+            <a
+              href={img}
+              download
+              target="_blank"
+              rel="noreferrer"
+              className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-[#1A1814]/80 text-white text-[9px] leading-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Tải ảnh về"
+            >
+              ⬇
+            </a>
+            <div className="absolute top-0.5 left-0.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button type="button" disabled={i === 0} onClick={() => move(i, -1)} className="w-4 h-4 rounded-full bg-white/90 text-[#1A1814] text-[9px] leading-4 disabled:opacity-30 cursor-pointer" title="Chuyển trái">‹</button>
+              <button type="button" disabled={i === images.length - 1} onClick={() => move(i, 1)} className="w-4 h-4 rounded-full bg-white/90 text-[#1A1814] text-[9px] leading-4 disabled:opacity-30 cursor-pointer" title="Chuyển phải">›</button>
+            </div>
           </div>
         ))}
       </div>
-      <input type="file" accept="image/*" onChange={e => addFile(e.target.files?.[0])} className="text-[11px]" />
-      {uploading && <p className="text-[11px] text-[#8A8070] mt-1">Đang tải...</p>}
+      <input type="file" accept="image/*" multiple onChange={e => addFiles(e.target.files)} className="text-[11px]" />
+      {progress && <p className="text-[11px] text-[#8A8070] mt-1">Đang tải {progress.done}/{progress.total}...</p>}
+      {error && <p className="text-[11px] text-rose-600 mt-1">{error}</p>}
     </div>
   );
 }
@@ -146,9 +178,10 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Câu chuyện mặt bằng (vấn đề & cách giải quyết)</label>
           <textarea className={input} rows={3} value={v.floorPlan.text} onChange={e => setNested('floorPlan', { text: e.target.value })} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <ImageUploadField label="Ảnh bản vẽ ý tưởng" value={v.floorPlan.blueprint} onChange={url => setNested('floorPlan', { blueprint: url })} compact />
-          <ImageUploadField label="Ảnh hiện trạng" value={v.floorPlan.sitePhoto} onChange={url => setNested('floorPlan', { sitePhoto: url })} compact />
+        <ImageUploadField label="Ảnh bản vẽ ý tưởng" value={v.floorPlan.blueprint} onChange={url => setNested('floorPlan', { blueprint: url })} compact />
+        <div>
+          <label className={label}>Ảnh hiện trạng (nhiều ảnh)</label>
+          <ImageList images={v.floorPlan.sitePhotos} onChange={sitePhotos => setNested('floorPlan', { sitePhotos })} />
         </div>
         <div>
           <label className={label}>Câu chuyện phối cảnh 3D</label>
@@ -157,6 +190,10 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
         <div>
           <label className={label}>Ảnh phối cảnh 3D (nhiều ảnh)</label>
           <ImageList images={v.design3D.images} onChange={images => setNested('design3D', { images })} />
+        </div>
+        <div>
+          <label className={label}>Link tham khảo (tuỳ chọn — bài viết, bản vẽ đầy đủ...)</label>
+          <input className={input} placeholder="https://..." value={v.floorPlan.link || ''} onChange={e => setNested('floorPlan', { link: e.target.value })} />
         </div>
       </Accordion>
 
@@ -267,6 +304,10 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
             </button>
           </div>
         </div>
+        <div>
+          <label className={label}>Link tham khảo (tuỳ chọn)</label>
+          <input className={input} placeholder="https://..." value={v.tailoring.link || ''} onChange={e => setNested('tailoring', { link: e.target.value })} />
+        </div>
       </Accordion>
 
       <Accordion title="Phase 03 — Thi công phần thô">
@@ -274,7 +315,14 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Câu chuyện thi công phần thô</label>
           <textarea className={input} rows={3} value={v.structural.text} onChange={e => setNested('structural', { text: e.target.value })} />
         </div>
-        <ImageUploadField label="Ảnh thi công phần thô" value={v.structural.imgMain} onChange={url => setNested('structural', { imgMain: url })} />
+        <div>
+          <label className={label}>Ảnh thi công phần thô (nhiều ảnh)</label>
+          <ImageList images={v.structural.images} onChange={images => setNested('structural', { images })} />
+        </div>
+        <div>
+          <label className={label}>Link tham khảo (tuỳ chọn)</label>
+          <input className={input} placeholder="https://..." value={v.structural.link || ''} onChange={e => setNested('structural', { link: e.target.value })} />
+        </div>
       </Accordion>
 
       <Accordion title="Phase 04 — Lắp ráp nội thất">
@@ -286,12 +334,22 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Đoạn mở rộng (tuỳ chọn)</label>
           <textarea className={input} rows={2} value={v.fixedInterior.extraText || ''} onChange={e => setNested('fixedInterior', { extraText: e.target.value })} />
         </div>
-        <ImageUploadField label="Ảnh nội thất cố định" value={v.fixedInterior.imgMain} onChange={url => setNested('fixedInterior', { imgMain: url })} compact />
+        <div>
+          <label className={label}>Ảnh nội thất cố định (nhiều ảnh)</label>
+          <ImageList images={v.fixedInterior.images} onChange={images => setNested('fixedInterior', { images })} />
+        </div>
         <div>
           <label className={label}>Câu chuyện nội thất rời</label>
           <textarea className={input} rows={2} value={v.looseFurniture.text} onChange={e => setNested('looseFurniture', { text: e.target.value })} />
         </div>
-        <ImageUploadField label="Ảnh nội thất rời" value={v.looseFurniture.imgMain} onChange={url => setNested('looseFurniture', { imgMain: url })} compact />
+        <div>
+          <label className={label}>Ảnh nội thất rời (nhiều ảnh)</label>
+          <ImageList images={v.looseFurniture.images} onChange={images => setNested('looseFurniture', { images })} />
+        </div>
+        <div>
+          <label className={label}>Link tham khảo (tuỳ chọn)</label>
+          <input className={input} placeholder="https://..." value={v.fixedInterior.link || ''} onChange={e => setNested('fixedInterior', { link: e.target.value })} />
+        </div>
         <div>
           <label className={label}>Danh sách mộc nội thất rời đã phối hợp</label>
           <div className="space-y-2">
@@ -345,6 +403,14 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
         <div>
           <label className={label}>Ảnh bàn giao (nhiều ảnh)</label>
           <ImageList images={v.finalize.images} onChange={images => setNested('finalize', { images })} />
+        </div>
+        <div>
+          <label className={label}>Link video bàn giao (Youtube/Drive/Vimeo...)</label>
+          <input className={input} placeholder="https://youtube.com/..." value={v.finalize.videoUrl || ''} onChange={e => setNested('finalize', { videoUrl: e.target.value })} />
+        </div>
+        <div>
+          <label className={label}>Link tham khảo khác (tuỳ chọn)</label>
+          <input className={input} placeholder="https://..." value={v.finalize.link || ''} onChange={e => setNested('finalize', { link: e.target.value })} />
         </div>
       </Accordion>
     </div>

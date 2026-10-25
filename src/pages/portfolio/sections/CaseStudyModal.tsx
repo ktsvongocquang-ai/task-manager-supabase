@@ -17,15 +17,43 @@ export interface CaseStudyData {
   style: string;
   coverImage: string | null;
   introText: string;
-  floorPlan: { text: string; sitePhoto: string | null; blueprint: string | null };
+  floorPlan: { text: string; sitePhotos: string[]; blueprint: string | null; link?: string };
   design3D: { text: string; images: string[] };
-  tailoring: { text: string; steps: { title: string; desc: string }[] };
-  structural: { text: string; imgMain: string | null };
+  tailoring: { text: string; steps: { title: string; desc: string }[]; link?: string };
+  structural: { text: string; images: string[]; link?: string };
   material: { text: string; samples: { name: string; desc: string; img: string | null }[] };
-  fixedInterior: { text: string; extraText?: string; imgMain: string | null };
-  looseFurniture: { text: string; imgMain: string | null };
+  fixedInterior: { text: string; extraText?: string; images: string[]; link?: string };
+  looseFurniture: { text: string; images: string[] };
   details: { items: { num: number; name: string }[] };
-  finalize: { text: string; images: string[] };
+  finalize: { text: string; images: string[]; videoUrl?: string; link?: string };
+}
+
+// Dữ liệu cũ (trước khi thêm multi-ảnh/link) dùng field đơn: sitePhoto,
+// structural.imgMain, fixedInterior.imgMain, looseFurniture.imgMain. Chuẩn
+// hoá về mảng mỗi lần đọc — không mất ảnh cũ đã lưu, không cần migrate DB
+// (case_study là cột jsonb tự do).
+type LegacyCaseStudyData = Partial<CaseStudyData> & {
+  floorPlan?: Partial<CaseStudyData['floorPlan']> & { sitePhoto?: string | null };
+  structural?: Partial<CaseStudyData['structural']> & { imgMain?: string | null };
+  fixedInterior?: Partial<CaseStudyData['fixedInterior']> & { imgMain?: string | null };
+  looseFurniture?: Partial<CaseStudyData['looseFurniture']> & { imgMain?: string | null };
+};
+
+export function normalizeCaseStudy(raw: LegacyCaseStudyData): CaseStudyData {
+  const arr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : typeof v === 'string' && v ? [v] : []);
+  return {
+    id: raw.id || '', title: raw.title || '', location: raw.location || '', area: raw.area || '', style: raw.style || '',
+    coverImage: raw.coverImage ?? null, introText: raw.introText || '',
+    floorPlan: { text: raw.floorPlan?.text || '', blueprint: raw.floorPlan?.blueprint ?? null, link: raw.floorPlan?.link, sitePhotos: arr(raw.floorPlan?.sitePhotos ?? raw.floorPlan?.sitePhoto) },
+    design3D: { text: raw.design3D?.text || '', images: arr(raw.design3D?.images) },
+    tailoring: { text: raw.tailoring?.text || '', steps: raw.tailoring?.steps || [], link: raw.tailoring?.link },
+    structural: { text: raw.structural?.text || '', link: raw.structural?.link, images: arr(raw.structural?.images ?? raw.structural?.imgMain) },
+    material: { text: raw.material?.text || '', samples: raw.material?.samples || [] },
+    fixedInterior: { text: raw.fixedInterior?.text || '', extraText: raw.fixedInterior?.extraText, link: raw.fixedInterior?.link, images: arr(raw.fixedInterior?.images ?? raw.fixedInterior?.imgMain) },
+    looseFurniture: { text: raw.looseFurniture?.text || '', images: arr(raw.looseFurniture?.images ?? raw.looseFurniture?.imgMain) },
+    details: { items: raw.details?.items || [] },
+    finalize: { text: raw.finalize?.text || '', videoUrl: raw.finalize?.videoUrl, link: raw.finalize?.link, images: arr(raw.finalize?.images) },
+  };
 }
 
 const DEFAULT_PAIN_POINTS = [
@@ -88,6 +116,33 @@ const HandoverFallback = () => (
   </FallbackCard>
 );
 
+// Lưới ảnh dùng chung cho các khối nhiều ảnh (3D, thi công, nội thất...) —
+// tự chọn số cột hợp lý theo số ảnh thực có (1-6+). Khai báo ở module scope
+// (không lồng trong PhaseVisuals) để tránh tạo lại component mỗi lần render.
+function ImgGrid({
+  imgs, altPrefix, placeholder, imageErrors, onImageError,
+}: {
+  imgs: (string | null | undefined)[];
+  altPrefix: string;
+  placeholder: string;
+  imageErrors: Record<string, boolean>;
+  onImageError: (url: string) => void;
+}) {
+  const ok = (url: string | null | undefined) => !!url && !imageErrors[url];
+  const cols = imgs.length <= 1 ? 1 : imgs.length === 2 ? 2 : imgs.length <= 4 ? 2 : 3;
+  return (
+    <div className="w-full h-full grid gap-1 p-2 bg-[#161412]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+      {imgs.map((img, idx) => (
+        <div key={idx} className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm min-h-[60px]">
+          {ok(img) ? <img src={img!} className="w-full h-full object-cover" alt={`${altPrefix} ${idx + 1}`} onError={() => onImageError(img!)} /> : (
+            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 text-center px-1">{placeholder} 0{idx + 1}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PhaseVisuals({
   stage, index, study, imageErrors, onImageError,
 }: {
@@ -101,16 +156,16 @@ function PhaseVisuals({
 
   if (index === 0) {
     const bp = study.floorPlan.blueprint;
-    const sp = study.floorPlan.sitePhoto;
-    if (!ok(bp) && !ok(sp)) return <BlueprintFallback />;
+    const sps = study.floorPlan.sitePhotos || [];
+    if (!ok(bp) && !sps.some(ok)) return <BlueprintFallback />;
     return (
       <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
         <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
           {ok(bp) ? <img src={bp!} className="w-full h-full object-cover opacity-85" alt="Blueprint" onError={() => onImageError(bp!)} /> : <BlueprintFallback />}
         </div>
-        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-          {ok(sp) ? <img src={sp!} className="w-full h-full object-cover" alt="Site" onError={() => onImageError(sp!)} /> : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2">Hiện trạng công trình</div>
+        <div className="relative w-full h-full">
+          {sps.some(ok) ? <ImgGrid imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError} /> : (
+            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Hiện trạng công trình</div>
           )}
         </div>
       </div>
@@ -120,43 +175,29 @@ function PhaseVisuals({
   if (index === 1) {
     const imgs = study.design3D.images || [];
     if (!imgs.some(ok)) return <Design3DFallback />;
-    return (
-      <div className="w-full h-full grid grid-cols-2 sm:grid-cols-3 gap-1 p-2 bg-[#161412]">
-        {imgs.map((img, idx) => (
-          <div key={idx} className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-            {ok(img) ? <img src={img} className="w-full h-full object-cover" alt={`3D Render ${idx + 1}`} onError={() => onImageError(img)} /> : (
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500">RENDER 3D 0{idx + 1}</div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
+    return <ImgGrid imgs={imgs} altPrefix="3D Render" placeholder="RENDER 3D" imageErrors={imageErrors} onImageError={onImageError} />;
   }
 
   if (index === 2) {
-    const img = study.structural.imgMain;
-    if (!ok(img)) return <ConstructionFallback />;
-    return (
-      <div className="relative w-full h-full bg-[#161412] p-1">
-        <img src={img!} className="w-full h-full object-cover rounded-sm" alt="Rough Construction" onError={() => onImageError(img!)} />
-      </div>
-    );
+    const imgs = study.structural.images || [];
+    if (!imgs.some(ok)) return <ConstructionFallback />;
+    return <ImgGrid imgs={imgs} altPrefix="Rough Construction" placeholder="THI CÔNG" imageErrors={imageErrors} onImageError={onImageError} />;
   }
 
   if (index === 3) {
-    const fi = study.fixedInterior.imgMain;
-    const lf = study.looseFurniture.imgMain;
-    if (!ok(fi) && !ok(lf)) return <AssemblyFallback />;
+    const fi = study.fixedInterior.images || [];
+    const lf = study.looseFurniture.images || [];
+    if (!fi.some(ok) && !lf.some(ok)) return <AssemblyFallback />;
     return (
       <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
-        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-          {ok(fi) ? <img src={fi!} className="w-full h-full object-cover" alt="Fixed Interior" onError={() => onImageError(fi!)} /> : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2">Nội thất cố định</div>
+        <div className="relative w-full h-full">
+          {fi.some(ok) ? <ImgGrid imgs={fi} altPrefix="Fixed Interior" placeholder="NỘI THẤT CỐ ĐỊNH" imageErrors={imageErrors} onImageError={onImageError} /> : (
+            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất cố định</div>
           )}
         </div>
-        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-          {ok(lf) ? <img src={lf!} className="w-full h-full object-cover" alt="Loose Furniture" onError={() => onImageError(lf!)} /> : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2">Nội thất rời</div>
+        <div className="relative w-full h-full">
+          {lf.some(ok) ? <ImgGrid imgs={lf} altPrefix="Loose Furniture" placeholder="NỘI THẤT RỜI" imageErrors={imageErrors} onImageError={onImageError} /> : (
+            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất rời</div>
           )}
         </div>
       </div>
@@ -196,6 +237,7 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
       title: 'Ý TƯỞNG & MẶT BẰNG', subtitle: 'CONCEPT & LAYOUT',
       painPoint: DEFAULT_PAIN_POINTS[0],
       storyText: [study.introText, study.floorPlan.text, study.design3D.text].filter(Boolean).join('\n\n'),
+      link: study.floorPlan.link,
       techChecklist: [
         { label: 'Sai số đo đạc phần thô', value: 'Dưới 5mm (dùng máy quét laser 3D hiện trường)' },
         { label: 'Mật độ không gian thở (Void ratio)', value: 'Đạt chuẩn Solid:Void = 3:1 tối ưu luồng khí' },
@@ -206,12 +248,14 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
       title: 'TINH CHỈNH & VẬT LIỆU', subtitle: 'MATERIAL & TAILORING',
       painPoint: DEFAULT_PAIN_POINTS[1],
       storyText: [study.tailoring.text, study.material.text].filter(Boolean).join('\n\n'),
+      link: study.tailoring.link,
       techChecklist: (study.tailoring.steps || []).map(st => ({ label: st.title, value: st.desc })),
     },
     {
       title: 'THI CÔNG PHẦN THÔ', subtitle: 'ROUGH CONSTRUCTION',
       painPoint: DEFAULT_PAIN_POINTS[2],
       storyText: study.structural.text,
+      link: study.structural.link,
       techChecklist: [
         { label: 'Chống nứt góc tường', value: 'Đóng lưới thép mắt cáo 100% điểm tiếp giáp trước khi tô vữa' },
         { label: 'Chống thấm toilet', value: 'Màng chống thấm polymer 3 lớp đặc chủng, ngâm thử nước 72h' },
@@ -222,6 +266,7 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
       title: 'LẮP RÁP NỘI THẤT', subtitle: 'INTERIOR ASSEMBLY',
       painPoint: DEFAULT_PAIN_POINTS[3],
       storyText: [study.fixedInterior.text, study.fixedInterior.extraText, study.looseFurniture.text].filter(Boolean).join('\n\n'),
+      link: study.fixedInterior.link,
       techChecklist: [
         { label: 'Khe cạnh dán ABS gỗ', value: 'Mịn phẳng tuyệt đối ≤ 0.5mm, dùng máy dán cạnh tự động' },
         { label: 'Bản lề hơi giảm chấn', value: '100% Häfele đóng mở êm dịu, không tiếng động' },
@@ -233,6 +278,8 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
       title: 'BÀN GIAO THỰC TẾ', subtitle: 'FINAL HANDOVER',
       painPoint: DEFAULT_PAIN_POINTS[4],
       storyText: study.finalize.text,
+      link: study.finalize.link,
+      videoUrl: study.finalize.videoUrl,
       techChecklist: [
         { label: 'Bảo hành kết cấu công trình', value: '10 năm cam kết bằng văn bản ký kết chính thức' },
         { label: 'Checklist bàn giao chìa khoá', value: 'Rà soát 120 điểm nghiệm thu cùng chủ nhà' },
@@ -352,9 +399,21 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
                         })}
                       </div>
 
-                      <button onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))} className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5 w-fit">
-                        {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <button onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))} className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5 w-fit">
+                          {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
+                        </button>
+                        {'videoUrl' in stg && stg.videoUrl && (
+                          <a href={stg.videoUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest text-[#1A1814] hover:text-[#B8913A] uppercase font-bold flex items-center gap-1 transition-colors w-fit">
+                            ▶ Xem video bàn giao
+                          </a>
+                        )}
+                        {stg.link && (
+                          <a href={stg.link} target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest text-[#8A8070] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors w-fit">
+                            ↗ Xem thêm
+                          </a>
+                        )}
+                      </div>
 
                       {isExpanded && (
                         <div className="space-y-6 pt-5 border-t border-dashed border-[#2C2920]/15">
