@@ -19,7 +19,7 @@ export function AdminWorkflow() {
         <h1 className="font-serif text-2xl mb-1">Quy trình làm việc</h1>
         <p className="text-xs text-[#8A8070] mb-6">
           2 quy trình riêng: <strong>Nội thất &amp; hoàn thiện</strong> và <strong>Xây dựng trọn gói</strong>. days_min/days_max dùng để tự tính thanh tổng quan tiến độ trên landing page —
-          nhập đúng số ngày thực tế của từng bước. sort_order quyết định thứ tự + cách đánh số 01, 02... liên tục qua 2 cột (Thiết kế / Thi công &amp; bàn giao).
+          nhập đúng số ngày thực tế của từng bước. <strong>sort_order</strong> quyết định thứ tự — số "01, 02..." trên landing page tự đánh theo vị trí này, liên tục qua 2 cột (Thiết kế / Thi công &amp; bàn giao).
         </p>
         <CrudTable
           table="landing_process_steps"
@@ -29,7 +29,6 @@ export function AdminWorkflow() {
           fields={[
             { key: 'process_type', label: 'Quy trình', type: 'select', options: PROCESS_TYPE_OPTS },
             { key: 'phase', label: 'Giai đoạn', type: 'select', options: PHASE_OPTS },
-            { key: 'step_no', label: 'Số bước', type: 'number' },
             { key: 'title', label: 'Tiêu đề' },
             { key: 'duration_label', label: 'Thời gian (hiển thị)' },
             { key: 'days_min', label: 'Số ngày — ít nhất', type: 'number' },
