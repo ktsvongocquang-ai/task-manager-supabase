@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Reveal, SectionHeader, NeedsInput } from './shared';
-import { CaseStudyModal, type CaseStudyData } from './CaseStudyModal';
+import { CaseStudyModal, normalizeCaseStudy, type CaseStudyData } from './CaseStudyModal';
 import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
@@ -27,13 +27,13 @@ function emptyCaseStudy(id: string, title: string): CaseStudyData {
     id, title, location: '[cần điền]', area: '[cần điền]', style: '[cần điền]',
     coverImage: null,
     introText: '[cần điền: câu giới thiệu ngắn về công trình]',
-    floorPlan: { text: '[cần điền: câu chuyện mặt bằng — vấn đề & cách giải quyết]', sitePhoto: null, blueprint: null },
+    floorPlan: { text: '[cần điền: câu chuyện mặt bằng — vấn đề & cách giải quyết]', sitePhotos: [], blueprint: null },
     design3D: { text: '[cần điền: câu chuyện phối cảnh 3D]', images: [] },
     tailoring: { text: '[cần điền: câu chuyện tinh chỉnh & chọn vật liệu]', steps: [] },
-    structural: { text: '[cần điền: câu chuyện thi công phần thô]', imgMain: null },
+    structural: { text: '[cần điền: câu chuyện thi công phần thô]', images: [] },
     material: { text: '[cần điền: câu chuyện lựa chọn vật liệu]', samples: [] },
-    fixedInterior: { text: '[cần điền: câu chuyện nội thất cố định]', imgMain: null },
-    looseFurniture: { text: '[cần điền: câu chuyện nội thất rời]', imgMain: null },
+    fixedInterior: { text: '[cần điền: câu chuyện nội thất cố định]', images: [] },
+    looseFurniture: { text: '[cần điền: câu chuyện nội thất rời]', images: [] },
     details: { items: [] },
     finalize: { text: '[cần điền: câu chuyện bàn giao]', images: [] },
   };
@@ -63,7 +63,7 @@ export function FeaturedProjects2026() {
             type: row.project_type || '[cần điền: loại công trình]',
             constructionTime: row.construction_time || '[cần điền: thời gian thi công]',
             image: row.image_url,
-            caseStudy: cs ? { ...base, ...cs, id: row.id, title: row.title } : base,
+            caseStudy: cs ? normalizeCaseStudy({ ...base, ...cs, id: row.id, title: row.title }) : base,
           });
         });
         setByCategory(grouped);
