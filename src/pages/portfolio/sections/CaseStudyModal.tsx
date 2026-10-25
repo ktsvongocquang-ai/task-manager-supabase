@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Modal "Xem Album Kể Chuyện (Case Study)" — port nguyên trạng từ
@@ -120,21 +120,36 @@ const HandoverFallback = () => (
 // tự chọn số cột hợp lý theo số ảnh thực có (1-6+). Khai báo ở module scope
 // (không lồng trong PhaseVisuals) để tránh tạo lại component mỗi lần render.
 function ImgGrid({
-  imgs, altPrefix, placeholder, imageErrors, onImageError,
+  imgs, altPrefix, placeholder, imageErrors, onImageError, onImageClick,
 }: {
   imgs: (string | null | undefined)[];
   altPrefix: string;
   placeholder: string;
   imageErrors: Record<string, boolean>;
   onImageError: (url: string) => void;
+  onImageClick?: (imgs: string[], index: number) => void;
 }) {
   const ok = (url: string | null | undefined) => !!url && !imageErrors[url];
+  const okImgs = imgs.filter((img): img is string => ok(img));
   const cols = imgs.length <= 1 ? 1 : imgs.length === 2 ? 2 : imgs.length <= 4 ? 2 : 3;
   return (
     <div className="w-full h-full grid gap-1 p-2 bg-[#161412]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
       {imgs.map((img, idx) => (
-        <div key={idx} className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm min-h-[60px]">
-          {ok(img) ? <img src={img!} className="w-full h-full object-cover" alt={`${altPrefix} ${idx + 1}`} onError={() => onImageError(img!)} /> : (
+        <div
+          key={idx}
+          className={`relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm min-h-[60px] group ${ok(img) && onImageClick ? 'cursor-zoom-in' : ''}`}
+          onClick={() => ok(img) && onImageClick?.(okImgs, okImgs.indexOf(img!))}
+        >
+          {ok(img) ? (
+            <>
+              <img src={img!} className="w-full h-full object-cover" alt={`${altPrefix} ${idx + 1}`} onError={() => onImageError(img!)} />
+              {onImageClick && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-lg">⤢</span>
+                </div>
+              )}
+            </>
+          ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 text-center px-1">{placeholder} 0{idx + 1}</div>
           )}
         </div>
@@ -144,13 +159,14 @@ function ImgGrid({
 }
 
 function PhaseVisuals({
-  stage, index, study, imageErrors, onImageError,
+  stage, index, study, imageErrors, onImageError, onImageClick,
 }: {
   stage: { image: string | null; subImage?: string | null; subImages?: string[] };
   index: number;
   study: CaseStudyData;
   imageErrors: Record<string, boolean>;
   onImageError: (url: string) => void;
+  onImageClick?: (imgs: string[], index: number) => void;
 }) {
   const ok = (url: string | null | undefined) => !!url && !imageErrors[url];
 
@@ -160,11 +176,14 @@ function PhaseVisuals({
     if (!ok(bp) && !sps.some(ok)) return <BlueprintFallback />;
     return (
       <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
-        <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
+        <div
+          className={`relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm ${ok(bp) && onImageClick ? 'cursor-zoom-in' : ''}`}
+          onClick={() => ok(bp) && onImageClick?.([bp!], 0)}
+        >
           {ok(bp) ? <img src={bp!} className="w-full h-full object-cover opacity-85" alt="Blueprint" onError={() => onImageError(bp!)} /> : <BlueprintFallback />}
         </div>
         <div className="relative w-full h-full">
-          {sps.some(ok) ? <ImgGrid imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError} /> : (
+          {sps.some(ok) ? <ImgGrid imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Hiện trạng công trình</div>
           )}
         </div>
@@ -175,13 +194,13 @@ function PhaseVisuals({
   if (index === 1) {
     const imgs = study.design3D.images || [];
     if (!imgs.some(ok)) return <Design3DFallback />;
-    return <ImgGrid imgs={imgs} altPrefix="3D Render" placeholder="RENDER 3D" imageErrors={imageErrors} onImageError={onImageError} />;
+    return <ImgGrid imgs={imgs} altPrefix="3D Render" placeholder="RENDER 3D" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
   }
 
   if (index === 2) {
     const imgs = study.structural.images || [];
     if (!imgs.some(ok)) return <ConstructionFallback />;
-    return <ImgGrid imgs={imgs} altPrefix="Rough Construction" placeholder="THI CÔNG" imageErrors={imageErrors} onImageError={onImageError} />;
+    return <ImgGrid imgs={imgs} altPrefix="Rough Construction" placeholder="THI CÔNG" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
   }
 
   if (index === 3) {
@@ -191,12 +210,12 @@ function PhaseVisuals({
     return (
       <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
         <div className="relative w-full h-full">
-          {fi.some(ok) ? <ImgGrid imgs={fi} altPrefix="Fixed Interior" placeholder="NỘI THẤT CỐ ĐỊNH" imageErrors={imageErrors} onImageError={onImageError} /> : (
+          {fi.some(ok) ? <ImgGrid imgs={fi} altPrefix="Fixed Interior" placeholder="NỘI THẤT CỐ ĐỊNH" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất cố định</div>
           )}
         </div>
         <div className="relative w-full h-full">
-          {lf.some(ok) ? <ImgGrid imgs={lf} altPrefix="Loose Furniture" placeholder="NỘI THẤT RỜI" imageErrors={imageErrors} onImageError={onImageError} /> : (
+          {lf.some(ok) ? <ImgGrid imgs={lf} altPrefix="Loose Furniture" placeholder="NỘI THẤT RỜI" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất rời</div>
           )}
         </div>
@@ -204,24 +223,56 @@ function PhaseVisuals({
     );
   }
 
-  const imgs = study.finalize.images || [];
-  if (!imgs.some(ok)) return <HandoverFallback />;
+  const imgs = (study.finalize.images || []).filter((img): img is string => ok(img));
+  if (imgs.length === 0) return <HandoverFallback />;
+  return <ImgGrid imgs={imgs} altPrefix="Bàn giao" placeholder="BÀN GIAO" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
+}
+
+// Phóng to ảnh khi bấm vào bất kỳ ảnh nào trong album — điều hướng trái/phải
+// trong cùng bộ ảnh, tải về, Esc để đóng.
+function Lightbox({ images, index, onClose, onNav }: { images: string[]; index: number; onClose: () => void; onNav: (i: number) => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight' && index < images.length - 1) onNav(index + 1);
+      if (e.key === 'ArrowLeft' && index > 0) onNav(index - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [index, images.length, onClose, onNav]);
+
   return (
-    <div className="w-full h-full grid grid-rows-2 gap-1 p-1 bg-[#161412]">
-      <div className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-        {ok(imgs[0]) ? <img src={imgs[0]} className="w-full h-full object-cover" alt="Handover" onError={() => onImageError(imgs[0])} /> : (
-          <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500">BÀN GIAO TOÀN CẢNH</div>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-1">
-        {[imgs[1], imgs[2]].map((img, i) => (
-          <div key={i} className="relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm">
-            {ok(img) ? <img src={img} className="w-full h-full object-cover" alt={`Chi tiết ${i + 1}`} onError={() => onImageError(img)} /> : (
-              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500">CHI TIẾT 0{i + 1}</div>
-            )}
-          </div>
-        ))}
-      </div>
+    <div className="fixed inset-0 bg-black/95 z-[1200] flex items-center justify-center p-4 md:p-10" onClick={onClose}>
+      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">
+        &times;
+      </button>
+      <a
+        href={images[index]} download target="_blank" rel="noreferrer"
+        onClick={e => e.stopPropagation()}
+        className="absolute top-5 right-20 text-white/80 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5"
+      >
+        ⬇ Tải ảnh
+      </a>
+      {images.length > 1 && (
+        <>
+          <button
+            disabled={index === 0}
+            onClick={e => { e.stopPropagation(); onNav(index - 1); }}
+            className="absolute left-3 md:left-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer"
+          >
+            ←
+          </button>
+          <button
+            disabled={index === images.length - 1}
+            onClick={e => { e.stopPropagation(); onNav(index + 1); }}
+            className="absolute right-3 md:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer"
+          >
+            →
+          </button>
+          <span className="absolute bottom-5 text-white/60 text-[11px] tracking-widest">{index + 1} / {images.length}</span>
+        </>
+      )}
+      <img src={images[index]} alt="" onClick={e => e.stopPropagation()} className="max-w-full max-h-full object-contain cursor-default" />
     </div>
   );
 }
@@ -230,6 +281,7 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
   const [activeStage, setActiveStage] = useState(0);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const stages = [
@@ -377,7 +429,11 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
                 return (
                   <div key={sIdx} id={`stage-section-${sIdx}`} className="relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 scroll-mt-6 border-b border-[#2C2920]/10 pb-12 last:border-b-0">
                     <div className="w-full md:sticky md:top-4 md:h-[45vh] self-start overflow-hidden rounded-sm bg-[#161412] border border-[#2C2920]/10 shadow-md flex items-center justify-center p-0 relative min-h-[250px] md:min-h-[300px]">
-                      <PhaseVisuals stage={{ image: null }} index={sIdx} study={study} imageErrors={imageErrors} onImageError={url => setImageErrors(prev => ({ ...prev, [url]: true }))} />
+                      <PhaseVisuals
+                        stage={{ image: null }} index={sIdx} study={study} imageErrors={imageErrors}
+                        onImageError={url => setImageErrors(prev => ({ ...prev, [url]: true }))}
+                        onImageClick={(imgs, idx) => setLightbox({ images: imgs, index: idx })}
+                      />
                       <div className="absolute bottom-3 right-3 bg-[#161412]/80 border border-white/10 px-2 py-0.5 rounded-sm text-[8px] tracking-widest text-[#D4BC95] uppercase font-bold">PHASE 0{sIdx + 1} VISUALS</div>
                     </div>
 
@@ -506,6 +562,15 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
           <span className="text-[9px] font-semibold tracking-wider text-[#8A8070]">PHASE 0{activeStage + 1} / 05</span>
         </div>
       </div>
+
+      {lightbox && (
+        <Lightbox
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onNav={i => setLightbox(prev => (prev ? { ...prev, index: i } : prev))}
+        />
+      )}
     </div>
   );
 }
