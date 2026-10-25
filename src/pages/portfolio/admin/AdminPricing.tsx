@@ -18,6 +18,8 @@ export function AdminPricing() {
         fields={[
           { key: 'category', label: 'Loại công trình', type: 'select', options: CATEGORY_OPTS },
           { key: 'standard', label: 'Chuẩn', type: 'select', options: STANDARD_OPTS },
+          { key: 'standard_label', label: 'Tên hiển thị (vd: Chuẩn DQH)' },
+          { key: 'standard_sub', label: 'Mô tả ngắn' },
           { key: 'construction_time', label: 'Thời gian thi công' },
           { key: 'design_style', label: 'Style thiết kế' },
           { key: 'material_partners', label: 'Đối tác vật liệu', type: 'textarea' },

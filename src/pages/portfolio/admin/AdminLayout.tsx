@@ -5,7 +5,7 @@ import { AdminLogin } from './AdminLogin';
 const NAV = [
   { to: '/landing-admin/projects', label: 'Công trình tiêu biểu' },
   { to: '/landing-admin/pricing', label: 'Chi phí DQH / JUX' },
-  { to: '/landing-admin/workflow', label: 'Quy trình làm việc' },
+  { to: '/landing-admin/workflow', label: 'Quy trình & bảo hành' },
   { to: '/landing-admin/team', label: 'Đội ngũ nhân sự' },
   { to: '/landing-admin/company', label: 'Thông tin công ty' },
   { to: '/landing-admin/rates', label: 'Đơn giá calculator' },

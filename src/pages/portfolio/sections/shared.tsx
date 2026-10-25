@@ -74,6 +74,38 @@ export function SectionHeader({
   );
 }
 
+// Hàng nút chuyển (segmented control) dùng chung cho Chi phí & Quy trình —
+// cùng hàng với tiêu đề section, bên phải. aria-pressed cho a11y.
+export function SegmentedToggle<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div role="group" aria-label={ariaLabel} className="flex gap-1 p-1 border border-[#2C2920]/15 rounded-sm bg-white shrink-0">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          aria-pressed={value === opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`min-h-[44px] px-4 sm:px-5 text-[11px] sm:text-xs font-semibold tracking-[0.1em] uppercase rounded-sm transition-colors cursor-pointer ${
+            value === opt.value ? 'bg-[#1A1814] text-[#F8F5F0]' : 'bg-transparent text-[#2C2920] hover:bg-[#F5F2EC]'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Nhãn [cần điền] hiện trực tiếp trên UI cho mọi chỗ còn thiếu dữ liệu thật
 // (giá, ảnh, tên người, đơn giá/m2...) — dễ thấy khi preview, dễ tìm (Ctrl+F
 // "cần điền") khi điền nội dung thật sau này, không lẫn với placeholder mờ
