@@ -45,6 +45,15 @@ const safeLazy = <T extends React.ComponentType<Record<string, unknown>>>(import
 // --- Lazy loaded components ---
 const ClientView = safeLazy(() => import('./pages/client/ClientView').then(m => ({ default: m.ClientView })))
 const LandingPageV2 = safeLazy(() => import('./pages/portfolio/lp/LandingPageV2').then(m => ({ default: m.LandingPageV2 })))
+const AdminLanding = safeLazy(() => import('./pages/portfolio/admin/AdminLanding').then(m => ({ default: m.AdminLanding })))
+const AdminContent = safeLazy(() => import('./pages/portfolio/admin/AdminContent').then(m => ({ default: m.AdminContent })))
+const AdminSegments = safeLazy(() => import('./pages/portfolio/admin/AdminSegments').then(m => ({ default: m.AdminSegments })))
+const AdminProjectsLP = safeLazy(() => import('./pages/portfolio/admin/AdminProjectsLP').then(m => ({ default: m.AdminProjectsLP })))
+const AdminStyles = safeLazy(() => import('./pages/portfolio/admin/AdminStyles').then(m => ({ default: m.AdminStyles })))
+const AdminRatesLP = safeLazy(() => import('./pages/portfolio/admin/AdminRatesLP').then(m => ({ default: m.AdminRatesLP })))
+const AdminSales = safeLazy(() => import('./pages/portfolio/admin/AdminSales').then(m => ({ default: m.AdminSales })))
+const AdminLeads = safeLazy(() => import('./pages/portfolio/admin/AdminLeads').then(m => ({ default: m.AdminLeads })))
+const AdminReports = safeLazy(() => import('./pages/portfolio/admin/AdminReports').then(m => ({ default: m.AdminReports })))
 
 const Dashboard = safeLazy(() => import('./pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
 const Projects = safeLazy(() => import('./pages/projects/Projects').then(m => ({ default: m.Projects })))
@@ -139,6 +148,17 @@ function App() {
             <Route path="bao-gia" element={<InteriorQuote />} />
             <Route path="training" element={<TrainingHub />} />
             <Route path="portfolio" element={<LandingPageV2 />} />
+            <Route path="admin/landing" element={<AdminLanding />}>
+              <Route index element={<Navigate to="content" replace />} />
+              <Route path="content" element={<AdminContent />} />
+              <Route path="segments" element={<AdminSegments />} />
+              <Route path="projects" element={<AdminProjectsLP />} />
+              <Route path="styles" element={<AdminStyles />} />
+              <Route path="rates" element={<AdminRatesLP />} />
+              <Route path="sales" element={<AdminSales />} />
+              <Route path="leads" element={<AdminLeads />} />
+              <Route path="reports" element={<AdminReports />} />
+            </Route>
           </Route>
 
           {/* Catch all */}

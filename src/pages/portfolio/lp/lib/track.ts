@@ -14,6 +14,9 @@ function getSessionId(): string {
 
 // NV10.4 — ghi sự kiện vào lp_events, không chặn giao diện khi lỗi.
 export function track(event: string, payload?: Record<string, unknown>) {
+  // NV10.6 — chỗ gọi Meta Pixel / GA4 sau này (chưa gắn):
+  // if (window.fbq) window.fbq('trackCustom', event, payload);
+  // if (window.gtag) window.gtag('event', event, payload);
   try {
     const seg = sessionStorage.getItem('lp_seg') || undefined;
     const sale_code = sessionStorage.getItem('lp_sale') || undefined;

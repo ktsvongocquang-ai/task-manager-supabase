@@ -20,6 +20,7 @@ const ROUTE_ACCESS: Record<string, AppRole[]> = {
     '/training':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing', 'Quản lý thi công', 'Giám Sát'],
     '/portfolio': ['Admin', 'Marketing'],
     '/bao-gia':      ['Admin'],
+    '/admin/landing': ['Admin'],
 }
 
 export const getDefaultRoute = (role?: string | null): string => {
