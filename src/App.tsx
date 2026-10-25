@@ -123,6 +123,15 @@ function App() {
             </Suspense>
           } />
 
+          {/* Link chính duy nhất — tạm thời bỏ yêu cầu token/PIN riêng từng
+              khách để có 1 link công khai chung dùng ngay (isPreview=true
+              bỏ qua bước fetch portfolio_shares + màn hình nhập PIN). */}
+          <Route path="/p" element={
+            <Suspense fallback={<GlobalLoadingFallback />}>
+              <PortfolioLanding isPreview={true} />
+            </Suspense>
+          } />
+
           {/* Landing page admin — auth riêng (Supabase project "DQH MIROR"),
               KHÔNG dùng AuthGuard/RoleGuard của app chính */}
           <Route path="/landing-admin" element={
