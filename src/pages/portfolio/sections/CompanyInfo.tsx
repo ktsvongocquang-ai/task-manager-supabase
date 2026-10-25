@@ -29,10 +29,10 @@ function StoryBlock({ label, text, image, needs }: { label: string; text: string
   if (!text && !image) return null;
   return (
     <Reveal>
-      <div className="relative min-h-[70vh] flex items-center overflow-hidden">
+      <div className="relative min-h-[48vh] md:min-h-[70vh] flex items-center overflow-hidden">
         {image && <img src={image} alt={label} className="absolute inset-0 w-full h-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-t from-[#161412] via-[#161412]/60 to-[#161412]/20" />
-        <div className="relative z-10 px-6 md:px-16 py-20 max-w-3xl">
+        <div className="relative z-10 px-6 md:px-16 py-12 md:py-20 max-w-3xl">
           <p className="text-[11px] tracking-[0.25em] uppercase text-[#D4BC95] font-bold mb-4">{label}</p>
           {text ? (
             <p className="font-serif text-2xl md:text-4xl font-light text-white leading-snug">{text}</p>
@@ -67,7 +67,7 @@ export function CompanyInfo() {
 
   return (
     <section id="section-4" className="bg-[#1A1814] text-white border-b border-white/5">
-      <div className="px-6 md:px-16 pt-32 pb-16">
+      <div className="px-6 md:px-16 pt-16 md:pt-32 pb-10 md:pb-16">
         <div className="max-w-6xl mx-auto">
           <SectionHeader eyebrow="(HỒ SƠ NĂNG LỰC)" title="Thông tin công ty" accent="DQH Architects" dark />
         </div>
@@ -83,7 +83,7 @@ export function CompanyInfo() {
             ))}
           </div>
 
-          <div className="px-6 md:px-16 pt-20 pb-32">
+          <div className="px-6 md:px-16 pt-12 md:pt-20 pb-16 md:pb-32">
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {stats.map((stat, idx) => (

@@ -54,6 +54,11 @@ export function AdminCompany() {
       <h1 className="font-serif text-2xl mb-1">Thông tin công ty</h1>
       <p className="text-xs text-[#8A8070] mb-6">Chỉ 1 bộ thông tin duy nhất hiển thị ở phần "Thông tin công ty" của landing page.</p>
 
+      <h2 className="font-serif text-lg mb-3">Ảnh bìa trang chủ (Hero)</h2>
+      <div className="bg-white border border-[#2C2920]/10 rounded-lg p-4 mb-8">
+        <ImageUploadField label="Ảnh nền đầu trang (hiện ngay khi mở link)" value={form.hero_image} onChange={url => set('hero_image', url)} />
+      </div>
+
       <h2 className="font-serif text-lg mb-3">Kể chuyện thương hiệu</h2>
       <div className="space-y-6 mb-8">
         {STORY_BLOCKS.map(b => (

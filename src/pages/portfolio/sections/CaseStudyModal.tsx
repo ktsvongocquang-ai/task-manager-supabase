@@ -173,17 +173,25 @@ function PhaseVisuals({
   if (index === 0) {
     const bp = study.floorPlan.blueprint;
     const sps = study.floorPlan.sitePhotos || [];
-    if (!ok(bp) && !sps.some(ok)) return <BlueprintFallback />;
+    // Gộp bản vẽ + ảnh hiện trạng thành 1 bộ ảnh duy nhất khi mở lightbox —
+    // trước đây bản vẽ mở riêng lẻ 1 ảnh nên không có nút sang ngang.
+    const combined = [bp, ...sps].filter((img): img is string => ok(img));
+    if (combined.length === 0) return <BlueprintFallback />;
     return (
       <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
         <div
           className={`relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm ${ok(bp) && onImageClick ? 'cursor-zoom-in' : ''}`}
-          onClick={() => ok(bp) && onImageClick?.([bp!], 0)}
+          onClick={() => ok(bp) && onImageClick?.(combined, combined.indexOf(bp!))}
         >
           {ok(bp) ? <img src={bp!} className="w-full h-full object-cover opacity-85" alt="Blueprint" onError={() => onImageError(bp!)} /> : <BlueprintFallback />}
         </div>
         <div className="relative w-full h-full">
-          {sps.some(ok) ? <ImgGrid imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
+          {sps.some(ok) ? (
+            <ImgGrid
+              imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError}
+              onImageClick={(imgs, idx) => onImageClick?.(combined, combined.indexOf(imgs[idx]))}
+            />
+          ) : (
             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Hiện trạng công trình</div>
           )}
         </div>
@@ -565,19 +573,20 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
                 <h4 className="font-extrabold text-3xl tracking-widest text-white leading-none">THANK YOU</h4>
                 <p className="font-serif italic text-[#D4BC95] text-xs">for watching</p>
               </div>
-              <div className="pt-4 border-t border-white/10 relative z-10 text-[8px] text-stone-300 uppercase tracking-widest flex flex-col gap-2 text-left">
-                <div className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-stone-500 font-semibold">Hotline:</span>
-                  <a href="tel:0987897494" className="hover:text-[#D4BC95] transition-colors">098 789 7494</a>
-                </div>
-                <div className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-stone-500 font-semibold">Website:</span>
-                  <a href="https://dqh.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors lowercase">dqh.vercel.app</a>
-                </div>
-                <div className="flex justify-between border-b border-white/5 pb-1">
-                  <span className="text-stone-500 font-semibold">Facebook:</span>
-                  <a href="https://facebook.com/DQH.Architects" target="_blank" rel="noopener noreferrer" className="hover:text-[#D4BC95] transition-colors">DQH.Architects</a>
-                </div>
+              <div className="pt-5 border-t border-white/10 relative z-10 flex flex-col sm:flex-row gap-2.5 justify-center">
+                <a
+                  href="tel:0987897494"
+                  className="inline-flex items-center justify-center gap-2 bg-[#B8913A] hover:bg-[#D4BC95] text-[#1A1814] text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors cursor-pointer"
+                >
+                  &#9742; Gọi ngay 098 789 7494
+                </a>
+                <a
+                  href="https://zalo.me/0987897494"
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm border border-white/15 transition-colors cursor-pointer"
+                >
+                  Chat Zalo
+                </a>
               </div>
             </div>
           </div>

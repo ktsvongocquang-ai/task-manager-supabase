@@ -74,7 +74,7 @@ export function FeaturedProjects2026() {
   const projects = byCategory?.[category] || [];
 
   return (
-    <section id="section-0" className="px-6 md:px-16 py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+    <section id="section-0" className="px-6 md:px-16 py-16 md:py-32 bg-[#F8F5F0] border-b border-[#2C2920]/5">
       <div className="max-w-6xl mx-auto">
         <SectionHeader eyebrow="(NĂNG LỰC THI CÔNG 2026)" title="Công trình tiêu biểu" accent="năm 2026" />
 

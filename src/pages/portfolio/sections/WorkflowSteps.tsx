@@ -91,12 +91,12 @@ export function WorkflowSteps() {
   }).filter(p => p.max > 0 || p.min > 0);
 
   return (
-    <section id="section-2" className="px-6 md:px-16 py-20 bg-[#F8F5F0] border-b border-[#2C2920]/5">
+    <section id="section-2" className="px-6 md:px-16 py-14 md:py-20 bg-[#F8F5F0] border-b border-[#2C2920]/5">
       <div className="max-w-6xl mx-auto flex flex-col gap-9">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2.5">(QUY TRÌNH)</p>
-            <h2 className="font-sans font-bold text-4xl md:text-[44px] tracking-tight leading-[1.05] text-[#2C2920]">
+            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-4">(QUY TRÌNH)</p>
+            <h2 className="font-sans font-bold text-4xl md:text-5xl tracking-tight leading-[1.1] text-[#2C2920]">
               Quy trình làm việc<br />
               <span className="font-serif italic font-light text-[#B8913A]">từ khảo sát đến bàn giao</span>
             </h2>

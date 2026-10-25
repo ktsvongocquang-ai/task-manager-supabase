@@ -57,7 +57,7 @@ export function TeamSection() {
   }, []);
 
   return (
-    <section id="section-3" className="px-6 md:px-16 py-32 bg-[#1A1814] text-white border-b border-white/5">
+    <section id="section-3" className="px-6 md:px-16 py-16 md:py-32 bg-[#1A1814] text-white border-b border-white/5">
       <div className="max-w-6xl mx-auto">
         <SectionHeader eyebrow="(BỘ MÁY TỔ CHỨC)" title="Đội ngũ nhân sự" accent="Design & Build trọn vẹn" dark />
         <p className="max-w-2xl mx-auto text-center text-sm md:text-base text-white/60 leading-relaxed mb-16">

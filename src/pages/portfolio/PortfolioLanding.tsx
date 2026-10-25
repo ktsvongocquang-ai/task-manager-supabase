@@ -8,6 +8,10 @@ import { PricingComparison } from './sections/PricingComparison';
 import { WorkflowSteps } from './sections/WorkflowSteps';
 import { TeamSection } from './sections/TeamSection';
 import { CompanyInfo } from './sections/CompanyInfo';
+import { KhaiToanWorkspace } from './KhaiToanWorkspace';
+import { landingSupabase } from './sections/landingSupabase';
+
+const FALLBACK_HERO_IMAGE = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trang /p/:token — dựng lại 2026-10 theo cấu trúc 6 phần catalog/so sánh
@@ -26,6 +30,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [authenticated, setAuthenticated] = useState(isPreview);
   const [showShareManager, setShowShareManager] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [khaiToanOpen, setKhaiToanOpen] = useState(false);
+  const [heroImage, setHeroImage] = useState<string | null>(null);
 
   // Tiến độ công trình thật (chỉ có khi link share gắn với 1 project_id thật)
   const [realProject, setRealProject] = useState<any>(null);
@@ -36,6 +42,16 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    landingSupabase
+      .from('landing_company_info')
+      .select('hero_image')
+      .eq('id', 1)
+      .maybeSingle()
+      .then(({ data }) => setHeroImage(data?.hero_image || null))
+      .catch(() => setHeroImage(null));
   }, []);
 
   useEffect(() => {
@@ -147,6 +163,9 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   }
 
   const navLinks = ['Công trình', 'Chi phí', 'Quy trình', 'Đội ngũ', 'Công ty'];
+  const navLinkClass = `text-xs tracking-[0.12em] uppercase transition-colors duration-300 font-medium ${
+    isScrolled ? 'text-[#8A8070] hover:text-[#2C2920]' : 'text-[#C4C0B8] hover:text-[#F8F5F0]'
+  }`;
 
   return (
     <div className="font-sans antialiased bg-[#F8F5F0] text-[#2C2920] selection:bg-[#B8913A] selection:text-white relative">
@@ -158,18 +177,23 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         <a href="#" className={`font-serif text-xl font-semibold tracking-wide transition-colors duration-300 ${isScrolled ? 'text-[#2C2920]' : 'text-[#F5F2EC]'}`}>
           DQH <span className="font-light italic text-[#B8913A]">Signature</span>
         </a>
-        <div className="hidden lg:flex gap-9">
-          {navLinks.map((label, idx) => (
-            <a
-              key={idx}
-              href={`#section-${idx}`}
-              className={`text-xs tracking-[0.12em] uppercase transition-colors duration-300 font-medium ${
-                isScrolled ? 'text-[#8A8070] hover:text-[#2C2920]' : 'text-[#C4C0B8] hover:text-[#F8F5F0]'
-              }`}
-            >
+        <div className="hidden lg:flex gap-9 items-center">
+          {navLinks.slice(0, 2).map((label, idx) => (
+            <a key={idx} href={`#section-${idx}`} className={navLinkClass}>
               {label}
             </a>
           ))}
+          <button onClick={() => setKhaiToanOpen(true)} className={`${navLinkClass} cursor-pointer`}>
+            Khái toán
+          </button>
+          {navLinks.slice(2).map((label, i) => {
+            const idx = i + 2;
+            return (
+              <a key={idx} href={`#section-${idx}`} className={navLinkClass}>
+                {label}
+              </a>
+            );
+          })}
         </div>
         <a
           href="#contact"
@@ -185,7 +209,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <section
         className="min-h-screen pt-28 pb-16 flex flex-col justify-center px-6 md:px-16 relative overflow-hidden"
         style={{
-          backgroundImage: 'linear-gradient(to right, rgba(26, 24, 20, 0.95) 0%, rgba(26, 24, 20, 0.75) 45%, rgba(14, 14, 12, 0.4) 100%), url("https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80")',
+          backgroundImage: `linear-gradient(to right, rgba(26, 24, 20, 0.95) 0%, rgba(26, 24, 20, 0.75) 45%, rgba(14, 14, 12, 0.4) 100%), url("${heroImage || FALLBACK_HERO_IMAGE}")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -237,7 +261,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       {/* ── 6 PHẦN CHÍNH ── */}
       <FeaturedProjects2026 />
-      <PricingComparison />
+      <PricingComparison onOpenKhaiToan={() => setKhaiToanOpen(true)} />
       <WorkflowSteps />
       <TeamSection />
       <CompanyInfo />
@@ -245,7 +269,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       {/* ── TIẾN ĐỘ CÔNG TRÌNH THẬT (chỉ hiện khi link share gắn với 1 project_id thật
            VÀ project đó đã có dữ liệu — ẩn hẳn thay vì hiện khối rỗng gây rối mắt) ── */}
       {portfolio?.project_id && (loadingProject || (realProject && realTasks.length > 0)) && (
-        <section className="px-6 md:px-16 py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
+        <section className="px-6 md:px-16 py-16 md:py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
           <div className="max-w-3xl mx-auto">
             <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
             <h2 className="font-sans font-bold text-3xl md:text-4xl tracking-tight text-[#2C2920] mb-12">
@@ -273,10 +297,10 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       )}
 
       {/* ── FORM LIÊN HỆ ── */}
-      <section id="contact-section" className="px-6 md:px-16 py-24 bg-[#1A1814] text-[#F8F5F0]">
+      <section id="contact-section" className="px-6 md:px-16 py-16 md:py-24 bg-[#1A1814] text-[#F8F5F0]">
         <div className="max-w-xl mx-auto space-y-8">
           <div id="contact" className="border-b border-[#FAF8F4]/10 pb-4">
-            <h3 className="font-serif text-2xl font-light text-[#B8913A]">Đăng ký tư vấn Quiet Luxury</h3>
+            <h3 className="font-serif text-2xl font-light text-[#B8913A]">Đăng ký tư vấn thiết kế &amp; thi công</h3>
             <p className="text-xs text-[#C4C0B8] mt-2">Đội ngũ KTS của DQH sẽ liên hệ trực tiếp trong vòng 2 giờ để trao đổi sâu về định hướng không gian của gia đình.</p>
           </div>
           <form onSubmit={(e) => { e.preventDefault(); alert('✅ Gửi yêu cầu thành công. DQH sẽ liên hệ anh/chị ngay!'); }} className="space-y-6">
@@ -345,6 +369,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           </div>
         </div>
       )}
+
+      <KhaiToanWorkspace open={khaiToanOpen} onClose={() => setKhaiToanOpen(false)} />
     </div>
   );
 }
