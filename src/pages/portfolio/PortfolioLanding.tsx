@@ -15,10 +15,10 @@ const FALLBACK_HERO_IMAGE = 'https://images.unsplash.com/photo-1618221195710-dd6
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trang /p/:token — dựng lại 2026-10 theo cấu trúc 6 phần catalog/so sánh
-// (Công trình tiêu biểu → Chi phí DQH/JUX → Quy trình → Đội ngũ → Công ty →
-// Calculator ước tính giá), thay cho bản kể chuyện "Quiet Luxury" cũ.
-// Giữ nguyên hoàn toàn cơ chế xác thực/token/PIN + hiển thị tiến độ công
-// trình thật (phần không nằm trong yêu cầu thay đổi) — xem PHASE 4 bên dưới.
+// (Công trình tiêu biểu → Chi phí DQH/JUX → Quy trình → Đội ngũ → Công ty),
+// thay cho bản kể chuyện "Quiet Luxury" cũ. Giữ nguyên cơ chế xác thực/
+// token/PIN. Khối "Tiến độ công trình thật" (gắn với project_id thật) đã bỏ
+// theo yêu cầu — không cần thiết cho bản landing page dùng chung.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean }) {
@@ -32,11 +32,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [isScrolled, setIsScrolled] = useState(false);
   const [khaiToanOpen, setKhaiToanOpen] = useState(false);
   const [heroImage, setHeroImage] = useState<string | null>(null);
-
-  // Tiến độ công trình thật (chỉ có khi link share gắn với 1 project_id thật)
-  const [realProject, setRealProject] = useState<any>(null);
-  const [realTasks, setRealTasks] = useState<any[]>([]);
-  const [loadingProject, setLoadingProject] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -89,30 +84,10 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       setPortfolio(data);
       if (!data.passcode) setAuthenticated(true);
-      if (data.project_id) fetchRealProjectData(data.project_id);
     } catch {
       setError('Đã xảy ra lỗi.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  // NOTE: bảng construction_daily_logs có thể là tên bảng lệch (field-app
-  // dùng daily_logs, không tiền tố construction_) — nghi vấn bug riêng,
-  // KHÔNG sửa trong lần dựng lại trang này, chỉ port nguyên trạng.
-  const fetchRealProjectData = async (projectId: string) => {
-    setLoadingProject(true);
-    try {
-      const [projRes, tasksRes] = await Promise.all([
-        supabase.from('construction_projects').select('*').eq('id', projectId).single(),
-        supabase.from('construction_tasks').select('*').eq('project_id', projectId).order('created_at'),
-      ]);
-      if (projRes.data) setRealProject(projRes.data);
-      if (tasksRes.data) setRealTasks(tasksRes.data);
-    } catch (err) {
-      console.error('Lỗi khi tải dữ liệu công trình thực tế:', err);
-    } finally {
-      setLoadingProject(false);
     }
   };
 
@@ -265,36 +240,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <WorkflowSteps />
       <TeamSection />
       <CompanyInfo />
-
-      {/* ── TIẾN ĐỘ CÔNG TRÌNH THẬT (chỉ hiện khi link share gắn với 1 project_id thật
-           VÀ project đó đã có dữ liệu — ẩn hẳn thay vì hiện khối rỗng gây rối mắt) ── */}
-      {portfolio?.project_id && (loadingProject || (realProject && realTasks.length > 0)) && (
-        <section className="px-6 md:px-16 py-16 md:py-32 bg-[#F5F2EC] border-b border-[#2C2920]/5">
-          <div className="max-w-3xl mx-auto">
-            <p className="text-xs tracking-[0.22em] uppercase text-[#8A8070] mb-2">(đồng hành dài lâu)</p>
-            <h2 className="font-sans font-bold text-3xl md:text-4xl tracking-tight text-[#2C2920] mb-12">
-              Tiến độ công trình <span className="font-serif italic font-light text-[#B8913A]">{realProject?.name || ''}</span>
-            </h2>
-            {loadingProject ? (
-              <div className="text-center py-10 font-mono text-xs text-[#8A8070]">Đang tải tiến độ thực tế...</div>
-            ) : (
-              <div className="space-y-8">
-                {realTasks.map((t, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <div className="flex justify-between items-baseline text-xs">
-                      <span className="font-bold text-[#2C2920] uppercase tracking-wider">{t.name}</span>
-                      <span className="font-serif text-lg italic text-[#B8913A] font-light">{t.progress || 0}%</span>
-                    </div>
-                    <div className="h-[1.5px] w-full bg-[#2C2920]/10 relative">
-                      <div style={{ width: `${t.progress || 0}%` }} className="h-full bg-[#B8913A]" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       {/* ── FORM LIÊN HỆ ── */}
       <section id="contact-section" className="px-6 md:px-16 py-16 md:py-24 bg-[#1A1814] text-[#F8F5F0]">

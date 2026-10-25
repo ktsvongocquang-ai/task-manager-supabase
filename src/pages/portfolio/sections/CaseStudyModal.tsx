@@ -287,20 +287,22 @@ function Lightbox({ images, index, onClose, onNav }: { images: string[]; index: 
 
 // Thumbnail video bàn giao — đặt ở cuối album (trước khối "Thank you"), không
 // nhúng ngay trong nội dung Phase 05 nữa. Lấy thumbnail thật nếu là Youtube,
-// còn lại dùng nền placeholder có icon Play.
-function getYouTubeThumbnail(url: string): string | null {
+// còn lại dùng nền placeholder có icon Play. Bấm vào KHÔNG rời trang sang
+// Youtube nữa — mở overlay phát ngay tại landing page (iframe nhúng nếu là
+// Youtube, thẻ <video> gốc nếu là link file video trực tiếp).
+function getYouTubeId(url: string): string | null {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
-  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+  return m ? m[1] : null;
 }
 
-function VideoThumbnail({ url }: { url: string }) {
-  const thumb = getYouTubeThumbnail(url);
+function VideoThumbnail({ url, onPlay }: { url: string; onPlay: () => void }) {
+  const ytId = getYouTubeId(url);
+  const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null;
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative block w-full max-w-2xl mx-auto aspect-video rounded-sm overflow-hidden border border-white/10 shadow-xl bg-[#1A1814] mt-16"
+    <button
+      type="button"
+      onClick={onPlay}
+      className="group relative block w-full max-w-2xl mx-auto aspect-video rounded-sm overflow-hidden border border-white/10 shadow-xl bg-[#1A1814] mt-16 cursor-pointer"
     >
       {thumb ? (
         <img src={thumb} alt="Video bàn giao" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -313,7 +315,41 @@ function VideoThumbnail({ url }: { url: string }) {
         </div>
       </div>
       <span className="absolute bottom-3 left-3 text-[9px] tracking-widest text-white uppercase font-bold bg-black/50 px-2.5 py-1.5 rounded-sm">&#9654; Xem video bàn giao</span>
-    </a>
+    </button>
+  );
+}
+
+// Overlay phát video ngay trên landing page — nhúng iframe Youtube
+// (autoplay) nếu nhận ra link Youtube, còn lại coi là link file video trực
+// tiếp và phát bằng thẻ <video> gốc của trình duyệt.
+function VideoPlayerOverlay({ url, onClose }: { url: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const ytId = getYouTubeId(url);
+
+  return (
+    <div className="fixed inset-0 bg-black/95 z-[1300] flex items-center justify-center p-4 md:p-10" onClick={onClose}>
+      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">
+        &times;
+      </button>
+      <div className="w-full max-w-4xl aspect-video" onClick={e => e.stopPropagation()}>
+        {ytId ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
+            title="Video bàn giao"
+            className="w-full h-full border-0 rounded-sm"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video src={url} controls autoPlay className="w-full h-full rounded-sm bg-black" />
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -322,6 +358,7 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const stages = [
@@ -562,7 +599,7 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
               })}
             </div>
 
-            {study.finalize.videoUrl && <VideoThumbnail url={study.finalize.videoUrl} />}
+            {study.finalize.videoUrl && <VideoThumbnail url={study.finalize.videoUrl} onPlay={() => setVideoOpen(true)} />}
 
             <div className="bg-[#161412] text-white p-8 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden max-w-2xl mx-auto mt-6">
               <div className="relative z-10 space-y-1">
@@ -608,6 +645,10 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
           onClose={() => setLightbox(null)}
           onNav={i => setLightbox(prev => (prev ? { ...prev, index: i } : prev))}
         />
+      )}
+
+      {videoOpen && study.finalize.videoUrl && (
+        <VideoPlayerOverlay url={study.finalize.videoUrl} onClose={() => setVideoOpen(false)} />
       )}
     </div>
   );
