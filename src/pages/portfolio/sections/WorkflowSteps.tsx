@@ -119,12 +119,13 @@ export function WorkflowSteps() {
                 <span className="font-serif text-3xl md:text-[38px] leading-none text-[#2C2920]">{monthsRange(steps)}</span>
                 <span className="text-sm text-[#8A8070]">{PROCESS_HINT[processType]}</span>
               </div>
-              <div className="flex gap-1 flex-wrap">
+              <div className="flex gap-3 flex-wrap">
                 {phaseStats.map(p => (
-                  <div key={p.phase} style={{ flex: `${p.flex} 1 0` }} className="flex flex-col gap-2 min-w-[90px] md:min-w-[110px]">
+                  <div key={p.phase} style={{ flex: `${p.flex} 1 0` }} className="flex flex-col gap-2 min-w-[72px]">
                     <div className="h-1.5 rounded-sm" style={{ background: PHASE_COLOR[p.phase] }} />
-                    <span className="text-[13px] text-[#2C2920] whitespace-nowrap">
-                      <span className="font-semibold">{PHASE_LABEL[p.phase]}</span> · {p.min === p.max ? p.max : `${p.min}–${p.max}`} ngày
+                    <span className="text-[13px] text-[#2C2920] leading-snug">
+                      <span className="font-semibold">{PHASE_LABEL[p.phase]}</span>
+                      <span className="block md:inline text-[#8A8070] md:text-[#2C2920]"><span className="hidden md:inline"> · </span>{p.min === p.max ? p.max : `${p.min}–${p.max}`} ngày</span>
                     </span>
                   </div>
                 ))}
