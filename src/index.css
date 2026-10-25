@@ -22,6 +22,17 @@
   --color-ql-stone-light: #C4C0B8;
   --color-ql-gold: #B8913A;
   --color-ql-gold-light: #D4BC95;
+
+  /* Landing page v2 (/p/:slug) — design tokens riêng, không dùng chung với phần còn lại của app */
+  --color-lp-gold: #B08A4A;
+  --color-lp-red: #7A1818;
+  --color-lp-espresso: #1E1915;
+  --color-lp-greige: #EDE7DF;
+  --color-lp-ink: #2A2420;
+  --color-lp-muted: #8A8077;
+  --font-lp-serif: "Cormorant Garamond", "Georgia", serif;
+  --font-lp-sans: "Jost", "system-ui", sans-serif;
+  --radius-lp: 2px;
 }
 
 :root {
