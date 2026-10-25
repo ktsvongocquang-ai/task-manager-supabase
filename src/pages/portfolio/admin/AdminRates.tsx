@@ -20,8 +20,10 @@ export function AdminRates() {
         fields={[
           { key: 'category', label: 'Loại công trình', type: 'select', options: CATEGORY_OPTS },
           { key: 'standard', label: 'Chuẩn', type: 'select', options: STANDARD_OPTS },
-          { key: 'min_price_per_m2', label: 'Giá thấp nhất / m² (VNĐ)', type: 'number' },
-          { key: 'max_price_per_m2', label: 'Giá cao nhất / m² (VNĐ)', type: 'number' },
+          { key: 'design_min_price_per_m2', label: 'Thiết kế — giá thấp nhất / m²', type: 'number' },
+          { key: 'design_max_price_per_m2', label: 'Thiết kế — giá cao nhất / m²', type: 'number' },
+          { key: 'min_price_per_m2', label: 'Thi công — giá thấp nhất / m²', type: 'number' },
+          { key: 'max_price_per_m2', label: 'Thi công — giá cao nhất / m²', type: 'number' },
         ]}
       />
     </div>

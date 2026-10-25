@@ -8,7 +8,6 @@ import { PricingComparison } from './sections/PricingComparison';
 import { WorkflowSteps } from './sections/WorkflowSteps';
 import { TeamSection } from './sections/TeamSection';
 import { CompanyInfo } from './sections/CompanyInfo';
-import { PriceCalculator } from './sections/PriceCalculator';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trang /p/:token — dựng lại 2026-10 theo cấu trúc 6 phần catalog/so sánh
@@ -147,7 +146,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
     );
   }
 
-  const navLinks = ['Công trình', 'Chi phí', 'Quy trình', 'Đội ngũ', 'Công ty', 'Báo giá'];
+  const navLinks = ['Công trình', 'Chi phí', 'Quy trình', 'Đội ngũ', 'Công ty'];
 
   return (
     <div className="font-sans antialiased bg-[#F8F5F0] text-[#2C2920] selection:bg-[#B8913A] selection:text-white relative">
@@ -228,8 +227,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               <a href="#section-0" className="bg-[#B8913A] hover:bg-[#B8913A]/85 text-[#1A1814] text-xs tracking-[0.15em] uppercase px-8 py-3.5 font-sans font-semibold transition-all duration-300 cursor-pointer rounded-sm">
                 Xem công trình tiêu biểu
               </a>
-              <a href="#section-5" className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer">
-                Ước tính chi phí →
+              <a href="#section-1" className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer">
+                Xem chi phí thiết kế & thi công →
               </a>
             </div>
           </Reveal>
@@ -242,7 +241,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <WorkflowSteps />
       <TeamSection />
       <CompanyInfo />
-      <PriceCalculator />
 
       {/* ── TIẾN ĐỘ CÔNG TRÌNH THẬT (chỉ hiện khi link share gắn với 1 project_id thật
            VÀ project đó đã có dữ liệu — ẩn hẳn thay vì hiện khối rỗng gây rối mắt) ── */}

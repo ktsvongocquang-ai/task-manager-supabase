@@ -9,8 +9,10 @@ interface StandardSpec {
   constructionTime: string | null;
   designStyle: string | null;
   materialPartners: string | null;
-  minPrice: number | null;
-  maxPrice: number | null;
+  designMinPrice: number | null;
+  designMaxPrice: number | null;
+  constructionMinPrice: number | null;
+  constructionMaxPrice: number | null;
 }
 
 const CATEGORY_LABEL: Record<Category, string> = {
@@ -39,15 +41,29 @@ function StandardCard({ standard, spec }: { standard: Standard; spec?: StandardS
         <p className="text-xs text-[#8A8070] mt-1">{STANDARD_SUITABLE[standard]}</p>
       </div>
 
-      <div className="bg-[#F8F5F0] rounded-sm p-5 text-center">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold mb-1">Đơn giá tham khảo</p>
-        {spec?.minPrice != null && spec?.maxPrice != null ? (
-          <p className="font-serif text-2xl text-[#B8913A]">
-            {formatVnd(spec.minPrice)} – {formatVnd(spec.maxPrice)} <span className="text-sm text-[#8A8070] font-sans">/ m²</span>
-          </p>
-        ) : (
-          <NeedsInput label="đơn giá/m²" />
-        )}
+      <div className="bg-[#F8F5F0] rounded-sm p-5 grid grid-cols-2 gap-4 text-center divide-x divide-[#2C2920]/10">
+        <div>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold mb-1">Chi phí thiết kế</p>
+          {spec?.designMinPrice != null && spec?.designMaxPrice != null ? (
+            <p className="font-serif text-xl text-[#B8913A]">
+              {formatVnd(spec.designMinPrice)} – {formatVnd(spec.designMaxPrice)}
+              <span className="block text-[11px] text-[#8A8070] font-sans">/ m²</span>
+            </p>
+          ) : (
+            <NeedsInput label="giá thiết kế/m²" />
+          )}
+        </div>
+        <div>
+          <p className="text-[10px] tracking-[0.2em] uppercase text-[#8A8070] font-semibold mb-1">Chi phí thi công</p>
+          {spec?.constructionMinPrice != null && spec?.constructionMaxPrice != null ? (
+            <p className="font-serif text-xl text-[#B8913A]">
+              {formatVnd(spec.constructionMinPrice)} – {formatVnd(spec.constructionMaxPrice)}
+              <span className="block text-[11px] text-[#8A8070] font-sans">/ m²</span>
+            </p>
+          ) : (
+            <NeedsInput label="giá thi công/m²" />
+          )}
+        </div>
       </div>
 
       <div className="h-px bg-[#2C2920]/10" />
@@ -65,7 +81,7 @@ function StandardCard({ standard, spec }: { standard: Standard; spec?: StandardS
           <dd>{field(spec?.materialPartners, 'đối tác vật liệu')}</dd>
         </div>
       </dl>
-      <p className="text-[11px] text-[#8A8070] italic">Đơn giá tham khảo — xem khái toán chi tiết ở phần "Báo giá chi phí xây nhà" bên dưới.</p>
+      <p className="text-[11px] text-[#8A8070] italic">Đơn giá tham khảo — liên hệ DQH để được báo giá chính xác theo bản vẽ thực tế.</p>
     </div>
   );
 }
@@ -77,24 +93,36 @@ export function PricingComparison() {
   useEffect(() => {
     Promise.all([
       landingSupabase.from('landing_pricing_standards').select('category,standard,construction_time,design_style,material_partners'),
-      landingSupabase.from('landing_price_rates').select('category,standard,min_price_per_m2,max_price_per_m2'),
+      landingSupabase
+        .from('landing_price_rates')
+        .select('category,standard,design_min_price_per_m2,design_max_price_per_m2,min_price_per_m2,max_price_per_m2'),
     ])
       .then(([standardsRes, ratesRes]) => {
+        const empty = (): StandardSpec => ({
+          constructionTime: null,
+          designStyle: null,
+          materialPartners: null,
+          designMinPrice: null,
+          designMaxPrice: null,
+          constructionMinPrice: null,
+          constructionMaxPrice: null,
+        });
         const map: Record<string, StandardSpec> = {};
         (standardsRes.data || []).forEach(row => {
           map[`${row.category}:${row.standard}`] = {
+            ...empty(),
             constructionTime: row.construction_time,
             designStyle: row.design_style,
             materialPartners: row.material_partners,
-            minPrice: null,
-            maxPrice: null,
           };
         });
         (ratesRes.data || []).forEach(row => {
           const key = `${row.category}:${row.standard}`;
-          if (!map[key]) map[key] = { constructionTime: null, designStyle: null, materialPartners: null, minPrice: null, maxPrice: null };
-          map[key].minPrice = row.min_price_per_m2;
-          map[key].maxPrice = row.max_price_per_m2;
+          if (!map[key]) map[key] = empty();
+          map[key].designMinPrice = row.design_min_price_per_m2;
+          map[key].designMaxPrice = row.design_max_price_per_m2;
+          map[key].constructionMinPrice = row.min_price_per_m2;
+          map[key].constructionMaxPrice = row.max_price_per_m2;
         });
         setRows(map);
       })
