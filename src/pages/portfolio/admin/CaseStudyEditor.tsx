@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ImageUploadField } from './ImageUploadField';
-import { uploadImageToStorage } from '../../../services/supabase';
+import { uploadLandingImage } from './uploadLandingImage';
 import type { CaseStudyData } from '../sections/CaseStudyModal';
 
 interface Props {
@@ -41,7 +41,7 @@ function ImageList({ images, onChange }: { images: string[]; onChange: (next: st
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadImageToStorage(file);
+      const url = await uploadLandingImage(file);
       onChange([...images, url]);
     } catch {
       // bỏ qua, thử lại

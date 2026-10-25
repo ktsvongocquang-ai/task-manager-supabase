@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { uploadImageToStorage } from '../../../services/supabase';
+import { uploadLandingImage } from './uploadLandingImage';
 
 interface Props {
   label: string;
@@ -17,7 +17,7 @@ export function ImageUploadField({ label, value, onChange, compact }: Props) {
     setError('');
     setUploading(true);
     try {
-      const url = await uploadImageToStorage(file);
+      const url = await uploadLandingImage(file);
       onChange(url);
     } catch {
       setError('Tải ảnh thất bại, thử lại.');
