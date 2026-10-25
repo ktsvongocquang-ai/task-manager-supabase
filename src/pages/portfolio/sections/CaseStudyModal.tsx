@@ -277,6 +277,38 @@ function Lightbox({ images, index, onClose, onNav }: { images: string[]; index: 
   );
 }
 
+// Thumbnail video bàn giao — đặt ở cuối album (trước khối "Thank you"), không
+// nhúng ngay trong nội dung Phase 05 nữa. Lấy thumbnail thật nếu là Youtube,
+// còn lại dùng nền placeholder có icon Play.
+function getYouTubeThumbnail(url: string): string | null {
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return m ? `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` : null;
+}
+
+function VideoThumbnail({ url }: { url: string }) {
+  const thumb = getYouTubeThumbnail(url);
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative block w-full max-w-2xl mx-auto aspect-video rounded-sm overflow-hidden border border-white/10 shadow-xl bg-[#1A1814] mt-16"
+    >
+      {thumb ? (
+        <img src={thumb} alt="Video bàn giao" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2C2920] to-[#1A1814]" />
+      )}
+      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/15 transition-colors">
+        <div className="w-16 h-16 rounded-full bg-[#B8913A] group-hover:scale-110 transition-transform flex items-center justify-center shadow-xl">
+          <span className="text-[#1A1814] text-2xl ml-1">&#9654;</span>
+        </div>
+      </div>
+      <span className="absolute bottom-3 left-3 text-[9px] tracking-widest text-white uppercase font-bold bg-black/50 px-2.5 py-1.5 rounded-sm">&#9654; Xem video bàn giao</span>
+    </a>
+  );
+}
+
 export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClose: () => void }) {
   const [activeStage, setActiveStage] = useState(0);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
@@ -459,11 +491,6 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
                         <button onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))} className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5 w-fit">
                           {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
                         </button>
-                        {'videoUrl' in stg && stg.videoUrl && (
-                          <a href={stg.videoUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest text-[#1A1814] hover:text-[#B8913A] uppercase font-bold flex items-center gap-1 transition-colors w-fit">
-                            ▶ Xem video bàn giao
-                          </a>
-                        )}
                         {stg.link && (
                           <a href={stg.link} target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest text-[#8A8070] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors w-fit">
                             ↗ Xem thêm
@@ -527,7 +554,9 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
               })}
             </div>
 
-            <div className="bg-[#161412] text-white p-8 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden max-w-2xl mx-auto mt-16">
+            {study.finalize.videoUrl && <VideoThumbnail url={study.finalize.videoUrl} />}
+
+            <div className="bg-[#161412] text-white p-8 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden max-w-2xl mx-auto mt-6">
               <div className="relative z-10 space-y-1">
                 <span className="tracking-[0.35em] text-[10px] uppercase text-[#D4BC95] font-extrabold block">DQH ARCHITECTS</span>
                 <span className="block text-[6px] tracking-[0.3em] uppercase text-stone-400">living space build &amp; success orientation</span>
