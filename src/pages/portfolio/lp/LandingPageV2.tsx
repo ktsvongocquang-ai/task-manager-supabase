@@ -71,6 +71,15 @@ export function LandingPageV2() {
     track('pick_segment', { seg: next });
   };
 
+  // NV5/NV6/NV8 — các lối vào khác nhau tới form Offer đều set sẵn intent tương ứng
+  const [offerIntent, setOfferIntent] = useState<'offer' | 'xem_cong_trinh' | 'bang_chi_tiet'>('offer');
+  const [estimateResult, setEstimateResult] = useState<Record<string, unknown> | null>(null);
+  const goToOffer = (intent: typeof offerIntent, payload?: Record<string, unknown>) => {
+    setOfferIntent(intent);
+    if (payload) setEstimateResult(payload);
+    scrollTo('offer');
+  };
+
   useSeo({
     title: `DQH Architects — ${seg ? SEG_TITLE[seg] : 'Thiết kế & thi công trọn gói'}`,
     description:
@@ -89,7 +98,7 @@ export function LandingPageV2() {
             DQH <span className="italic text-lp-gold">Signature</span>
           </span>
           <button
-            onClick={() => scrollTo('offer')}
+            onClick={() => goToOffer('offer')}
             className="inline-flex items-center justify-center px-5 py-2.5 rounded-lp border border-white/70 text-white font-lp-sans text-xs font-semibold uppercase tracking-[0.12em] hover:bg-white/10 transition-colors cursor-pointer"
           >
             Đặt lịch tư vấn
@@ -104,10 +113,19 @@ export function LandingPageV2() {
         onEstimate={() => scrollTo('estimator')}
         onViewProjects={() => scrollTo('projects')}
       />
-      <ProjectsBlock seg={seg} onBookVisit={() => scrollTo('offer')} />
-      <Estimator seg={seg} setSeg={handleSetSeg} onNeedDetail={() => {}} />
+      <ProjectsBlock seg={seg} onBookVisit={() => goToOffer('xem_cong_trinh')} />
+      <Estimator seg={seg} setSeg={handleSetSeg} onNeedDetail={payload => goToOffer('bang_chi_tiet', payload)} />
       <Architect page={page} />
-      <Offer page={page} seg={seg} sale={sale} nguon={nguon} utm={utm} formRef={formRef} />
+      <Offer
+        page={page}
+        seg={seg}
+        sale={sale}
+        nguon={nguon}
+        utm={utm}
+        intent={offerIntent}
+        estimate={estimateResult}
+        formRef={formRef}
+      />
       <Footer page={page} seg={seg} />
 
       <StickyBar phone={phone} zalo={zalo} visible={!isFormVisible} onEstimate={() => scrollTo('estimator')} />

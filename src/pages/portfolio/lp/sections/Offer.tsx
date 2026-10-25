@@ -8,6 +8,8 @@ interface Props {
   sale?: string;
   nguon?: string;
   utm: Record<string, string>;
+  intent: 'offer' | 'xem_cong_trinh' | 'bang_chi_tiet';
+  estimate: Record<string, unknown> | null;
   formRef: RefObject<HTMLDivElement | null>;
 }
 
