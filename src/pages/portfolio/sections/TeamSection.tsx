@@ -14,7 +14,7 @@ function MemberCard({ member, onOpen }: { member: TeamMember; onOpen: () => void
       {member.avatarUrl ? (
         <img
           src={member.avatarUrl}
-          alt={member.name}
+          alt={`${member.name} – ${member.role} – DQH Architects`}
           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
         />
       ) : (
@@ -34,6 +34,7 @@ function MemberCard({ member, onOpen }: { member: TeamMember; onOpen: () => void
 export function TeamSection() {
   const [members, setMembers] = useState<TeamMember[] | null>(null);
   const [openMember, setOpenMember] = useState<TeamMember | null>(null);
+  const [showAllMobile, setShowAllMobile] = useState(false);
 
   useEffect(() => {
     landingSupabase
@@ -61,7 +62,7 @@ export function TeamSection() {
       <div className="max-w-6xl mx-auto">
         <SectionHeader eyebrow="(BỘ MÁY TỔ CHỨC)" title="Đội ngũ nhân sự" accent="Design & Build trọn vẹn" dark />
         <p className="max-w-2xl mx-auto text-center text-sm md:text-base text-white/60 leading-relaxed mb-16">
-          Đội ngũ kiến trúc sư, kỹ sư và nghệ nhân nhiều năm kinh nghiệm, đồng hành cùng bạn từ bản vẽ đầu tiên đến ngày bàn giao.
+          Đội ngũ kiến trúc sư, kỹ sư và thợ lành nghề của DQH đồng hành cùng bạn từ bản vẽ đầu tiên đến ngày bàn giao.
         </p>
 
         {!members ? (
@@ -71,11 +72,25 @@ export function TeamSection() {
             <NeedsInput label="đội ngũ nhân sự" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {members.map((m, idx) => (
-              <MemberCard key={idx} member={m} onOpen={() => setOpenMember(m)} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              {members.map((m, idx) => (
+                <div key={idx} className={!showAllMobile && idx >= 6 ? 'hidden md:block' : ''}>
+                  <MemberCard member={m} onOpen={() => setOpenMember(m)} />
+                </div>
+              ))}
+            </div>
+            {members.length > 6 && (
+              <div className="flex justify-center mt-8 md:hidden">
+                <button
+                  onClick={() => setShowAllMobile(v => !v)}
+                  className="text-xs tracking-[0.12em] uppercase text-[#D4BC95] font-semibold border border-white/15 rounded-sm px-6 py-3 cursor-pointer hover:bg-white/5 transition-colors"
+                >
+                  {showAllMobile ? 'Thu gọn' : `Xem toàn bộ đội ngũ (${members.length})`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

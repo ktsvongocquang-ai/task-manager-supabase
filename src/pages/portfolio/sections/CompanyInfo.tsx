@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SectionHeader, NeedsInput, Reveal } from './shared';
+import { SectionHeader, NeedsInput, Reveal, useLandingAdmin } from './shared';
 import { landingSupabase } from './landingSupabase';
 
 interface CompanyInfoRow {
@@ -46,6 +46,7 @@ function StoryBlock({ label, text, image, needs }: { label: string; text: string
 }
 
 export function CompanyInfo() {
+  const isAdmin = useLandingAdmin();
   const [info, setInfo] = useState<CompanyInfoRow | null | undefined>(undefined);
 
   useEffect(() => {
@@ -58,12 +59,16 @@ export function CompanyInfo() {
       .catch(() => setInfo(null));
   }, []);
 
+  // Năm hoạt động tính thẳng từ founded_date (lấy 4 số cuối) thay vì hardcode
+  // "4+ năm" — tự đúng theo thời gian, không cần sửa code mỗi năm.
+  const foundedYear = info?.founded_date?.match(/\d{4}/)?.[0];
+
   const stats = [
-    { label: 'Thời gian thành lập', value: info?.founded_date, note: info?.founded_date ? '4+ năm hoạt động' : null, needs: 'ngày thành lập' },
+    { label: 'Thời gian thành lập', value: info?.founded_date, note: foundedYear ? `Hoạt động từ năm ${foundedYear}` : null, needs: 'ngày thành lập' },
     { label: 'Quy mô', value: info?.scale_value, note: info?.scale_note, needs: 'quy mô (số nhân sự / xưởng)' },
     { label: 'Địa chỉ', value: info?.address_value, note: info?.address_note, needs: 'địa chỉ showroom / văn phòng' },
     { label: 'Thể loại công trình', value: info?.project_types, note: null, needs: 'VD: nhà phố, villa, chung cư, resort...' },
-  ];
+  ].filter(stat => stat.value || isAdmin);
 
   return (
     <section id="section-4" className="bg-[#1A1814] text-white border-b border-white/5">
@@ -104,7 +109,7 @@ export function CompanyInfo() {
               {(info?.legal_name || info?.tax_code) && (
                 <p className="text-xs text-[#8A8070] mt-12 pt-8 border-t border-white/10">
                   <strong className="text-[#C4C0B8]">{info?.legal_name}</strong>
-                  {info?.tax_code && <> — Mã số thuế: {info.tax_code} do Sở Kế hoạch và Đầu tư TP.HCM cấp.</>} Mọi giao dịch hợp đồng thiết kế, báo giá và thi công đều được thực hiện minh bạch qua pháp nhân doanh nghiệp.
+                  {info?.tax_code && <> — Mã số thuế: {info.tax_code} do Sở Kế hoạch và Đầu tư TP.HCM cấp.</>} Mọi hợp đồng thiết kế, báo giá và thi công đều ký qua pháp nhân doanh nghiệp.
                 </p>
               )}
             </div>

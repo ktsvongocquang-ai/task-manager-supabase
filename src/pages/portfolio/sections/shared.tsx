@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+
+// true chỉ khi người xem đang đăng nhập với quyền chỉnh sửa landing page
+// (Admin/Marketing) — dùng để: (1) hiện thanh công cụ "Xem trước/Chia sẻ",
+// (2) hiện nhãn đỏ [cần điền] của NeedsInput. Khách công khai ở /p luôn thấy
+// false nên không bao giờ lộ nhãn debug hay thanh biên tập ra trang thật.
+export const LandingAdminContext = createContext(false);
+export const useLandingAdmin = () => useContext(LandingAdminContext);
 
 // Dùng chung cho mọi section mới (phần 1-6) lẫn PortfolioLanding.tsx — giữ
 // đúng bảng màu/hiệu ứng fade-in đã có từ bản cũ để đồng bộ thương hiệu.
@@ -53,6 +60,28 @@ export function Reveal({ children, delay = 0, threshold = 0.12 }: { children: Re
   );
 }
 
+// Dùng riêng cho nội dung LUÔN hiện ngay khi tải trang (vd hero — đã nằm
+// trong viewport đầu tiên, không cần chờ IntersectionObserver). Khác Reveal:
+// không bắt đầu từ "gần như vô hình" (opacity 0 + dịch chuyển 24px) mà từ
+// opacity 0.4 tại chỗ, rõ dần trong ≤350ms — tránh cảm giác chữ "biến mất"
+// lúc mới vào trang. Tôn trọng prefers-reduced-motion: hiện ngay, không animate.
+export function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const [visible, setVisible] = useState(false);
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const t = setTimeout(() => setVisible(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  if (reduced) return <>{children}</>;
+  return (
+    <div style={{ opacity: visible ? 1 : 0.4, transition: 'opacity 350ms ease-out' }}>
+      {children}
+    </div>
+  );
+}
+
 // Tiêu đề section dùng lại ở cả 6 phần: dòng eyebrow nhỏ + heading 2 dòng,
 // dòng 2 in nghiêng màu vàng đồng — đúng pattern "(NĂNG LỰC THIẾT KẾ)" /
 // "Thiết kế có gu & Công trình thành công" của bản cũ. Cỡ chữ/độ đậm/khoảng
@@ -64,6 +93,7 @@ export function SectionHeader({
   eyebrow,
   title,
   accent,
+  caption,
   center,
   dark,
   action,
@@ -71,6 +101,8 @@ export function SectionHeader({
   eyebrow: string;
   title: string;
   accent?: string;
+  /** dòng chú thích nhỏ dưới tiêu đề, vd giải thích ký hiệu DQH/JUX. */
+  caption?: string;
   center?: boolean;
   /** true khi section nền tối (vd bg-[#1A1814]) — đổi màu chữ chính sang sáng để đủ tương phản. */
   dark?: boolean;
@@ -86,6 +118,7 @@ export function SectionHeader({
               mất dấu tiếng Việt, nhất là ở cỡ nhỏ trên mobile. */}
           {accent && <><br /><span className="font-serif italic font-normal text-[#B8913A]">{accent}</span></>}
         </h2>
+        {caption && <p className={`text-xs mt-3 ${dark ? 'text-white/50' : 'text-[#8A8070]'}`}>{caption}</p>}
       </div>
       {action}
     </div>
@@ -128,7 +161,12 @@ export function SegmentedToggle<T extends string>({
 // (giá, ảnh, tên người, đơn giá/m2...) — dễ thấy khi preview, dễ tìm (Ctrl+F
 // "cần điền") khi điền nội dung thật sau này, không lẫn với placeholder mờ
 // kiểu "..." dễ bị bỏ sót.
+// Chỉ hiện nhãn đỏ debug này với người có quyền chỉnh sửa (xem
+// LandingAdminContext) — khách xem trang công khai sẽ không render gì cả
+// (block cha tự ẩn theo, không để lộ "[cần điền: ...]" lên trang thật).
 export function NeedsInput({ label }: { label: string }) {
+  const isAdmin = useLandingAdmin();
+  if (!isAdmin) return null;
   return (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-rose-600 bg-rose-50 border border-rose-200 rounded px-1.5 py-0.5">
       [cần điền: {label}]

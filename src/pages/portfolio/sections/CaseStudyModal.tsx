@@ -612,13 +612,13 @@ export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClo
               </div>
               <div className="pt-5 border-t border-white/10 relative z-10 flex flex-col sm:flex-row gap-2.5 justify-center">
                 <a
-                  href="tel:0987897494"
+                  href="tel:0982914368"
                   className="inline-flex items-center justify-center gap-2 bg-[#B8913A] hover:bg-[#D4BC95] text-[#1A1814] text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors cursor-pointer"
                 >
-                  &#9742; Gọi ngay 098 789 7494
+                  &#9742; Gọi ngay 098 291 4368
                 </a>
                 <a
-                  href="https://zalo.me/0987897494"
+                  href="https://zalo.me/0982914368"
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm border border-white/15 transition-colors cursor-pointer"
                 >

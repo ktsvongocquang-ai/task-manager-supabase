@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { useAuthStore } from '../../store/authStore';
 import { PortfolioManager } from './PortfolioManager';
-import { Reveal } from './sections/shared';
+import { FadeIn, LandingAdminContext } from './sections/shared';
 import { FeaturedProjects2026 } from './sections/FeaturedProjects2026';
 import { PricingComparison } from './sections/PricingComparison';
 import { WorkflowSteps } from './sections/WorkflowSteps';
 import { TeamSection } from './sections/TeamSection';
 import { CompanyInfo } from './sections/CompanyInfo';
+import { FAQSection } from './sections/FAQSection';
 import { KhaiToanWorkspace } from './KhaiToanWorkspace';
 import { landingSupabase } from './sections/landingSupabase';
 
-const FALLBACK_HERO_IMAGE = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80';
+// Ảnh thật công trình "[JUX] Retreat Villa" (landing_featured_projects) —
+// thay cho ảnh stock Unsplash chung chung trước đây. Dùng khi chưa có
+// hero_image riêng trong landing_company_info.
+const FALLBACK_HERO_IMAGE = 'https://yiuokvszyaqqjksshybn.supabase.co/storage/v1/object/public/landing-media/1792997882267-3xybecv.webp';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Trang /p/:token — dựng lại 2026-10 theo cấu trúc 6 phần catalog/so sánh
@@ -32,6 +37,17 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
   const [isScrolled, setIsScrolled] = useState(false);
   const [khaiToanOpen, setKhaiToanOpen] = useState(false);
   const [heroImage, setHeroImage] = useState<string | null>(null);
+  const { profile, checkSession } = useAuthStore();
+  // Thanh công cụ biên tập + nhãn [cần điền] chỉ hiện cho người có quyền sửa
+  // landing page (cùng 2 role được phép vào /portfolio nội bộ — xem
+  // utils/permissions.ts). Khách bấm link chia sẻ /p không có session nên
+  // profile luôn null → mặc định ẩn, an toàn theo hướng "fail closed".
+  const canEditLanding = profile?.role === 'Admin' || profile?.role === 'Marketing';
+
+  useEffect(() => {
+    checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -137,12 +153,13 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
     );
   }
 
-  const navLinks = ['Công trình', 'Chi phí', 'Quy trình', 'Đội ngũ', 'Công ty'];
+  const navLinks = ['Công trình', 'Chi phí', 'Quy trình', 'Đội ngũ', 'Công ty', 'Hỏi đáp'];
   const navLinkClass = `text-xs tracking-[0.12em] uppercase transition-colors duration-300 font-medium ${
     isScrolled ? 'text-[#8A8070] hover:text-[#2C2920]' : 'text-[#C4C0B8] hover:text-[#F8F5F0]'
   }`;
 
   return (
+    <LandingAdminContext.Provider value={canEditLanding}>
     <div className="font-sans antialiased bg-[#F8F5F0] text-[#2C2920] selection:bg-[#B8913A] selection:text-white relative">
 
       {/* ── NAVBAR ── */}
@@ -190,29 +207,35 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         }}
       >
         <div className="relative z-10 max-w-[720px] w-full mx-auto md:mx-0">
-          <Reveal>
+          <FadeIn>
             <p className="text-[9px] tracking-[0.3em] uppercase text-[#8A8070] mb-8 font-sans font-medium">
               INTERIOR DESIGN &amp; BUILD STUDIO · TP.HCM
             </p>
-          </Reveal>
-          <Reveal delay={100}>
+          </FadeIn>
+          <FadeIn delay={60}>
             <h1 className="font-sans font-bold text-[clamp(2.8rem,7vw,5.2rem)] leading-[1.05] tracking-tight mb-6 text-[#F5F2EC]">
               Define<br />
               <span className="font-serif italic font-light text-[#B8913A]">Quality</span><br />
               Housing
             </h1>
-          </Reveal>
-          <Reveal delay={200}>
-            <p className="font-serif italic font-light text-[clamp(1.2rem,2.5vw,1.75rem)] text-[#B8913A] mb-14">
+          </FadeIn>
+          <FadeIn delay={120}>
+            <p className="font-serif italic font-light text-[clamp(1.2rem,2.5vw,1.75rem)] text-[#B8913A] mb-4">
               "Làm nghề tử tế."
             </p>
-          </Reveal>
-          <Reveal delay={300}>
-            <div className="flex gap-16 md:gap-24 flex-wrap mb-14 max-w-[600px]">
+          </FadeIn>
+          <FadeIn delay={150}>
+            <p className="text-sm md:text-base text-[#C4C0B8] mb-14 max-w-[540px]">
+              Mỗi công trình là một bản thiết kế độc bản — cá nhân hóa từ ý tưởng đến từng chi tiết hoàn thiện, cho căn hộ, nhà phố, biệt thự tại TP.HCM.
+            </p>
+          </FadeIn>
+          <FadeIn delay={180}>
+            <div className="flex gap-x-10 gap-y-6 md:gap-x-16 flex-wrap mb-14 max-w-[640px]">
               {[
                 { label: 'MÔ HÌNH', value: 'Design & Build' },
-                { label: 'PHÂN KHÚC', value: 'Cao cấp' },
-                { label: 'CHUẨN DỊCH VỤ', value: 'DQH · JUX' },
+                { label: 'PHÂN KHÚC', value: 'Nhà phố · Biệt thự 4–8 tỷ' },
+                { label: 'THIẾT KẾ', value: 'Độc bản, không sao chép' },
+                { label: 'HOÀN THIỆN', value: 'Sắc nét chuẩn showroom' },
               ].map((m, i) => (
                 <div key={i} className="space-y-1">
                   <p className="text-[9px] tracking-[0.25em] uppercase text-[#8A8070] font-sans font-medium">{m.label}</p>
@@ -220,8 +243,8 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 </div>
               ))}
             </div>
-          </Reveal>
-          <Reveal delay={400}>
+          </FadeIn>
+          <FadeIn delay={220}>
             <div className="flex items-center gap-6 flex-wrap">
               <a href="#section-0" className="bg-[#B8913A] hover:bg-[#B8913A]/85 text-[#1A1814] text-xs tracking-[0.15em] uppercase px-8 py-3.5 font-sans font-semibold transition-all duration-300 cursor-pointer rounded-sm">
                 Xem công trình tiêu biểu
@@ -230,7 +253,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
                 Xem chi phí thiết kế & thi công →
               </a>
             </div>
-          </Reveal>
+          </FadeIn>
         </div>
       </section>
 
@@ -240,6 +263,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       <WorkflowSteps />
       <TeamSection />
       <CompanyInfo />
+      <FAQSection />
 
       {/* ── FORM LIÊN HỆ ── */}
       <section id="contact-section" className="px-6 md:px-16 py-16 md:py-24 bg-[#1A1814] text-[#F8F5F0]">
@@ -256,33 +280,56 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
               </div>
               <div>
                 <label className="block text-[9px] tracking-[0.2em] uppercase text-[#8A8070] mb-2 font-semibold">Số điện thoại</label>
-                <input type="tel" required placeholder="0900 000 000" className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors" />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  placeholder="0900 000 000"
+                  pattern="0[0-9]{9}"
+                  onInvalid={e => (e.target as HTMLInputElement).setCustomValidity('Vui lòng nhập số điện thoại 10 số, bắt đầu bằng 0')}
+                  onInput={e => (e.target as HTMLInputElement).setCustomValidity('')}
+                  className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors"
+                />
               </div>
             </div>
             <div>
               <label className="block text-[9px] tracking-[0.2em] uppercase text-[#8A8070] mb-2 font-semibold">Lời nhắn / Yêu cầu không gian</label>
               <textarea rows={2} placeholder="Mô tả sơ bộ về dự án của anh/chị..." className="w-full bg-transparent border-b border-[#FAF8F4]/15 py-2.5 text-xs text-white placeholder-stone-600 focus:outline-none focus:border-[#B8913A] transition-colors resize-none" />
             </div>
-            <button type="submit" className="w-full sm:w-auto text-xs tracking-[0.15em] uppercase text-[#1A1814] bg-[#B8913A] hover:bg-[#B8913A]/85 py-3.5 px-10 transition-all duration-300 font-semibold rounded-sm cursor-pointer">
-              Gửi yêu cầu tư vấn
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button type="submit" className="flex-1 text-xs tracking-[0.15em] uppercase text-[#1A1814] bg-[#B8913A] hover:bg-[#B8913A]/85 py-3.5 px-10 transition-all duration-300 font-semibold rounded-sm cursor-pointer">
+                Gửi yêu cầu tư vấn
+              </button>
+              <a
+                href="https://zalo.me/0982914368"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center text-xs tracking-[0.15em] uppercase text-white bg-white/10 hover:bg-white/20 border border-white/15 py-3.5 px-10 transition-all duration-300 font-semibold rounded-sm cursor-pointer"
+              >
+                Nhắn Zalo
+              </a>
+            </div>
           </form>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="bg-[#1A1814] px-6 md:px-16 py-10 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-[#FAF8F4]/10 text-[#C4C0B8] text-xs">
-        <p className="font-serif text-lg font-light tracking-wide text-white">DQH <span className="italic text-[#B8913A]">Signature</span></p>
-        <p>© 2020 – 2026 DQH Architects. Bảo lưu mọi quyền.</p>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-[#B8913A]">Instagram</a>
-          <a href="#" className="hover:text-[#B8913A]">Facebook</a>
-          <a href="#" className="hover:text-[#B8913A]">Behance</a>
+      <footer className="bg-[#1A1814] px-6 md:px-16 py-10 border-t border-[#FAF8F4]/10 text-[#C4C0B8] text-xs">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="font-serif text-lg font-light tracking-wide text-white">DQH <span className="italic text-[#B8913A]">Signature</span></p>
+          <p>© 2020 – 2026 DQH Architects. Bảo lưu mọi quyền.</p>
+          <div className="flex gap-6">
+            <a href="https://www.facebook.com/DQHArchitects" target="_blank" rel="noopener noreferrer" className="hover:text-[#B8913A]">Facebook</a>
+            <a href="https://www.youtube.com/@dqharchitects" target="_blank" rel="noopener noreferrer" className="hover:text-[#B8913A]">Youtube</a>
+          </div>
         </div>
+        <p className="text-center md:text-left mt-6 pt-6 border-t border-[#FAF8F4]/10">
+          Zalo/Hotline: <a href="tel:0982914368" className="hover:text-[#B8913A]">0982 914 368</a> · 105-107 Trần Văn Dư, P.13, Tân Bình, TP.HCM · <a href="https://dqharchitects.vn" target="_blank" rel="noopener noreferrer" className="hover:text-[#B8913A]">dqharchitects.vn</a>
+        </p>
       </footer>
 
-      {/* ── FLOATING PREVIEW ANCHOR CONTROL (chỉ hiện khi xem trước nội bộ qua /portfolio) ── */}
-      {isPreview && (
+      {/* ── FLOATING PREVIEW ANCHOR CONTROL (chỉ hiện với người có quyền sửa landing, không hiện với khách bấm link chia sẻ) ── */}
+      {isPreview && canEditLanding && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#1A1814]/90 backdrop-blur-md border border-[#FAF8F4]/10 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-stone-100 text-sm font-sans animate-fade-in transition-all">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -299,7 +346,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
       )}
 
       {/* ── SHARING MANAGER PANEL MODAL ── */}
-      {isPreview && showShareManager && (
+      {isPreview && canEditLanding && showShareManager && (
         <div className="fixed inset-0 bg-[#1A1814]/90 z-[999] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] overflow-y-auto relative">
             <button
@@ -317,5 +364,6 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
 
       <KhaiToanWorkspace open={khaiToanOpen} onClose={() => setKhaiToanOpen(false)} />
     </div>
+    </LandingAdminContext.Provider>
   );
 }
