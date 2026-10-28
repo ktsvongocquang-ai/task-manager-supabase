@@ -329,6 +329,25 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         </p>
       </footer>
 
+      {/* ── FLOATING ZALO QUICK-CONTACT (luôn hiện, góc phải dưới) ── */}
+      <a
+        href="https://zalo.me/0982914368"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Nhắn Zalo cho DQH Architects"
+        className="group fixed bottom-6 right-5 md:right-8 z-[90] flex items-center gap-0 hover:gap-3 bg-[#1A1814] hover:bg-[#1A1814] border border-[#B8913A]/40 hover:border-[#B8913A] text-white rounded-full shadow-2xl shadow-black/30 transition-all duration-300 ease-out overflow-hidden"
+      >
+        <span className="max-w-0 group-hover:max-w-[140px] opacity-0 group-hover:opacity-100 whitespace-nowrap text-[11px] tracking-[0.1em] uppercase font-semibold text-[#E8DCC4] transition-all duration-300 ease-out pl-0 group-hover:pl-5">
+          Nhắn Zalo ngay
+        </span>
+        <span className="shrink-0 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 md:w-[22px] md:h-[22px]" aria-hidden="true">
+            <path d="M12 2.5C6.48 2.5 2 6.3 2 11c0 2.64 1.42 5 3.66 6.57-.12.9-.45 2.2-1.16 3.33a.4.4 0 0 0 .46.6c1.6-.5 2.93-1.3 3.73-1.86A12.1 12.1 0 0 0 12 19.5c5.52 0 10-3.8 10-8.5s-4.48-8.5-10-8.5Z" stroke="#B8913A" strokeWidth="1.4" />
+            <path d="M8.2 13.2V9.4h2.75M8.2 11.3h2.4M13 9.4v3.8M16 9.4h-2.1c-.8 0-1.3.52-1.3 1.2v.3c0 .68.5 1.2 1.3 1.2H16M13.6 11.9H16" stroke="#B8913A" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </a>
+
       {/* ── FLOATING PREVIEW ANCHOR CONTROL (chỉ hiện với người có quyền sửa landing, không hiện với khách bấm link chia sẻ) ── */}
       {isPreview && canEditLanding && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-[#1A1814]/90 backdrop-blur-md border border-[#FAF8F4]/10 px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-5 text-stone-100 text-sm font-sans animate-fade-in transition-all">
