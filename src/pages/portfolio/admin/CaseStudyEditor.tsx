@@ -27,7 +27,12 @@ interface EditableCaseStudy {
   looseFurniture: { text: string; images: string[] };
   details: { items: { num: number; name: string }[] };
   finalize: { text: string; images: string[]; videoUrl: string; link: string; compareRenderImage: string | null; compareRealImage: string | null; fear: string; story: string };
+  hiddenPhases: PhaseKey[];
 }
+
+// Khoá giai đoạn khớp PHASE_ORDER/PHASE_META bên CaseStudyModal.tsx — đổi ở
+// đây thì phải đổi đồng bộ bên đó.
+type PhaseKey = 'concept' | 'material' | 'rough' | 'assembly' | 'handover';
 
 function emptyCaseStudy(title: string, style: string): EditableCaseStudy {
   return {
@@ -48,6 +53,7 @@ function emptyCaseStudy(title: string, style: string): EditableCaseStudy {
     looseFurniture: { text: '', images: [] },
     details: { items: [] },
     finalize: { text: '', images: [], videoUrl: '', link: '', compareRenderImage: null, compareRealImage: null, fear: '', story: '' },
+    hiddenPhases: [],
   };
 }
 
@@ -143,6 +149,18 @@ function FearStoryFields({ fear, story, onFearChange, onStoryChange }: { fear: s
   );
 }
 
+// Checkbox tắt 1 giai đoạn khỏi "Nhật ký thi công" trên trang — dùng khi giai
+// đoạn có nội dung nhưng admin thấy không đáng kể, tránh dàn trải quá nhiều
+// giai đoạn mỏng. Khác với việc ẩn tự động khi giai đoạn hoàn toàn trống.
+function HidePhaseToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-xs font-semibold text-[#8A5A3A] cursor-pointer bg-[#FDF3EA] border border-[#8A5A3A]/20 rounded px-3 py-2">
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} className="w-4 h-4" />
+      Ẩn giai đoạn này trên trang (không hiện trong Nhật ký thi công)
+    </label>
+  );
+}
+
 function Accordion({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(!!defaultOpen);
   return (
@@ -206,10 +224,13 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
     looseFurniture: obj(base.looseFurniture, raw.looseFurniture),
     details: obj(base.details, raw.details),
     finalize: obj(base.finalize, raw.finalize),
+    hiddenPhases: Array.isArray(raw.hiddenPhases) ? (raw.hiddenPhases as PhaseKey[]) : base.hiddenPhases,
   };
   const set = <K extends keyof EditableCaseStudy>(key: K, val: EditableCaseStudy[K]) => onChange({ ...v, [key]: val });
   const setNested = <K extends keyof EditableCaseStudy>(key: K, patch: Partial<EditableCaseStudy[K]>) =>
     onChange({ ...v, [key]: { ...(v[key] as object), ...patch } } as EditableCaseStudy);
+  const togglePhaseHidden = (phase: PhaseKey, hide: boolean) =>
+    set('hiddenPhases', hide ? [...v.hiddenPhases, phase] : v.hiddenPhases.filter(k => k !== phase));
 
   return (
     <div className="sm:col-span-2 space-y-4">
@@ -241,6 +262,7 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
       </Accordion>
 
       <Accordion title="Phase 01 — Ý tưởng & Mặt bằng">
+        <HidePhaseToggle checked={v.hiddenPhases.includes('concept')} onChange={hide => togglePhaseHidden('concept', hide)} />
         <div>
           <label className={label}>Câu chuyện mặt bằng (vấn đề & cách giải quyết)</label>
           <textarea className={input} rows={3} value={v.floorPlan.text} onChange={e => setNested('floorPlan', { text: e.target.value })} />
@@ -271,6 +293,7 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
       </Accordion>
 
       <Accordion title="Phase 02 — Tinh chỉnh & Vật liệu">
+        <HidePhaseToggle checked={v.hiddenPhases.includes('material')} onChange={hide => togglePhaseHidden('material', hide)} />
         <div>
           <label className={label}>Câu chuyện tinh chỉnh</label>
           <textarea className={input} rows={2} value={v.tailoring.text} onChange={e => setNested('tailoring', { text: e.target.value })} />
@@ -389,6 +412,7 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
       </Accordion>
 
       <Accordion title="Phase 03 — Thi công phần thô">
+        <HidePhaseToggle checked={v.hiddenPhases.includes('rough')} onChange={hide => togglePhaseHidden('rough', hide)} />
         <div>
           <label className={label}>Câu chuyện thi công phần thô</label>
           <textarea className={input} rows={3} value={v.structural.text} onChange={e => setNested('structural', { text: e.target.value })} />
@@ -409,6 +433,7 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
       </Accordion>
 
       <Accordion title="Phase 04 — Lắp ráp nội thất">
+        <HidePhaseToggle checked={v.hiddenPhases.includes('assembly')} onChange={hide => togglePhaseHidden('assembly', hide)} />
         <div>
           <label className={label}>Câu chuyện nội thất cố định</label>
           <textarea className={input} rows={2} value={v.fixedInterior.text} onChange={e => setNested('fixedInterior', { text: e.target.value })} />
@@ -484,6 +509,7 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
       </Accordion>
 
       <Accordion title="Phase 05 — Bàn giao thực tế">
+        <HidePhaseToggle checked={v.hiddenPhases.includes('handover')} onChange={hide => togglePhaseHidden('handover', hide)} />
         <div>
           <label className={label}>Câu chuyện bàn giao</label>
           <textarea className={input} rows={3} value={v.finalize.text} onChange={e => setNested('finalize', { text: e.target.value })} />

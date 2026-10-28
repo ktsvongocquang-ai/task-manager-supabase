@@ -112,6 +112,9 @@ export type RawCaseStudy = LegacyShape & {
   phases?: Array<Partial<CaseStudyPhase>>;
   ending?: { src: string; alt?: string } | null;
   video?: { src: string; poster?: string } | null;
+  // Giai đoạn admin chủ động tắt (checkbox trong CaseStudyEditor) — ẩn trên
+  // trang dù có nội dung, tránh dàn trải khi 1 giai đoạn không đáng kể.
+  hiddenPhases?: CaseStudyPhase['key'][];
 };
 
 function phasesFromNewShape(raw: NonNullable<RawCaseStudy['phases']>): CaseStudyPhase[] {
@@ -192,6 +195,9 @@ export function normalizeCaseStudy(raw: RawCaseStudy): CaseStudyData {
   // Bàn giao chỉ giữ khi có ảnh THỰC TẾ (type 'real') hoặc cặp so sánh —
   // tuyệt đối không gọi phối cảnh là ảnh bàn giao thực tế.
   phases = phases.filter(p => p.key !== 'handover' || p.images.some(i => i.type === 'real') || !!p.compare);
+  // Admin chủ động ẩn giai đoạn (checkbox) dù có nội dung — tránh dàn trải.
+  const hidden = new Set(raw.hiddenPhases || []);
+  phases = phases.filter(p => !hidden.has(p.key));
   phases.sort((a, b) => PHASE_ORDER.indexOf(a.key) - PHASE_ORDER.indexOf(b.key));
 
   const legacyVideo = raw.finalize?.videoUrl;
