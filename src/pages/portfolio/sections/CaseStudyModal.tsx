@@ -343,29 +343,55 @@ function BeforeAfterSlider({ render, real }: { render: { src: string; alt?: stri
   );
 }
 
-// ── Lưới ảnh 1 giai đoạn: không khung đen, bố cục theo số lượng (1/2/3-4) ──
+// Nhịp dàn trang kiểu tạp chí — xen kẽ 1 ảnh lớn (hero, tỉ lệ điện ảnh) / 3 ảnh
+// nhỏ (vuông) / 2 ảnh vừa (dọc) thay vì lưới đều. Lặp lại nhịp này cho tới khi
+// hết ảnh, nên hiện được TẤT CẢ ảnh thay vì cắt còn 4 như lưới cũ.
+const MAGAZINE_RHYTHM = [1, 3, 2, 2, 3, 1] as const;
+const CHUNK_STYLE: Record<number, { aspect: string; cols: string }> = {
+  1: { aspect: 'aspect-[21/9]', cols: 'grid-cols-1' },
+  2: { aspect: 'aspect-[3/4]', cols: 'grid-cols-2' },
+  3: { aspect: 'aspect-square', cols: 'grid-cols-3' },
+};
+
 function PhaseImageGrid({ images, onOpen, colorReveal }: { images: CaseStudyImage[]; onOpen: (i: number) => void; colorReveal?: boolean }) {
-  const n = images.length;
-  if (n === 0) return null;
+  if (images.length === 0) return null;
+
+  const chunks: CaseStudyImage[][] = [];
+  let cursor = 0;
+  let rhythmIdx = 0;
+  while (cursor < images.length) {
+    const size = MAGAZINE_RHYTHM[rhythmIdx % MAGAZINE_RHYTHM.length];
+    chunks.push(images.slice(cursor, cursor + size));
+    cursor += size;
+    rhythmIdx++;
+  }
+
+  let globalIdx = 0;
   return (
-    <div className="grid grid-cols-3 gap-2 md:gap-3">
-      {images.slice(0, 4).map((im, i) => {
-        const span = n === 1 ? 'col-span-3' : n === 2 ? (i === 0 ? 'col-span-2' : 'col-span-1') : i === 0 ? 'col-span-3' : 'col-span-1';
-        const aspect = n === 1 ? 'aspect-[4/3]' : i === 0 && n > 1 ? 'aspect-[16/10]' : 'aspect-square';
-        const isSite = im.type === 'site';
-        const filterClass = isSite ? 'grayscale contrast-[1.05]' : im.type === 'real' && colorReveal !== undefined
-          ? `transition-[filter] duration-[900ms] ease-out ${colorReveal ? 'grayscale-0' : 'grayscale'}`
-          : '';
+    <div className="space-y-2 md:space-y-3">
+      {chunks.map((chunk, ci) => {
+        const style = CHUNK_STYLE[chunk.length] || CHUNK_STYLE[3];
         return (
-          <button key={i} type="button" onClick={() => onOpen(i)} className={`relative overflow-hidden rounded-[2px] group cursor-zoom-in ${span} ${aspect}`}>
-            <img src={vercelImg(im.src, n === 1 ? 1000 : 600)} alt={im.alt || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] ${filterClass}`} />
-            {im.type === 'render' && (
-              <span className="absolute top-2 left-2 bg-[#161412]/80 text-white text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold">Phối cảnh thiết kế</span>
-            )}
-            {im.caption && (
-              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white text-[9px] px-2 py-1.5">{im.caption}</span>
-            )}
-          </button>
+          <div key={ci} className={`grid ${style.cols} gap-2 md:gap-3`}>
+            {chunk.map(im => {
+              const i = globalIdx++;
+              const isSite = im.type === 'site';
+              const filterClass = isSite ? 'grayscale contrast-[1.05]' : im.type === 'real' && colorReveal !== undefined
+                ? `transition-[filter] duration-[900ms] ease-out ${colorReveal ? 'grayscale-0' : 'grayscale'}`
+                : '';
+              return (
+                <button key={i} type="button" onClick={() => onOpen(i)} className={`relative overflow-hidden rounded-[2px] group cursor-zoom-in w-full ${style.aspect}`}>
+                  <img src={vercelImg(im.src, chunk.length === 1 ? 1400 : 700)} alt={im.alt || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] ${filterClass}`} />
+                  {im.type === 'render' && (
+                    <span className="absolute top-2 left-2 bg-[#161412]/80 text-white text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold">Phối cảnh thiết kế</span>
+                  )}
+                  {im.caption && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white text-[9px] px-2 py-1.5">{im.caption}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         );
       })}
     </div>
