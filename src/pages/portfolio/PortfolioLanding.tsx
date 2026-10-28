@@ -233,7 +233,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <div className="flex gap-x-10 gap-y-6 md:gap-x-16 flex-wrap mb-14 max-w-[640px]">
               {[
                 { label: 'MÔ HÌNH', value: 'Design & Build' },
-                { label: 'PHÂN KHÚC', value: 'Căn hộ · Nhà phố · Biệt thự 4–8 tỷ' },
+                { label: 'PHÂN KHÚC', value: 'Căn hộ · Nhà phố · Biệt thự' },
                 { label: 'THIẾT KẾ', value: 'Độc bản, không sao chép' },
                 { label: 'HOÀN THIỆN', value: 'Sắc nét chuẩn showroom' },
               ].map((m, i) => (
