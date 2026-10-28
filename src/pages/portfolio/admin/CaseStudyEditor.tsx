@@ -178,7 +178,35 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
     );
   }
 
-  const v = value as unknown as EditableCaseStudy;
+  // Dữ liệu thật trong DB có thể thiếu field mới hơn bản ghi (vd case_study cũ
+  // chưa từng có "palette", hoặc thiếu fear/story) — ép kiểu thẳng không đủ,
+  // phải điền đè lên nền emptyCaseStudy() để mọi field con luôn tồn tại trước
+  // khi .map()/.length ở form bên dưới, tránh crash "Cannot read … of undefined".
+  const base = emptyCaseStudy(defaultTitle, defaultStyle);
+  const raw = value as Record<string, unknown>;
+  // obj(): gộp đè lên nền mặc định, nhưng key nào trong raw là null/undefined
+  // (field con bị thiếu hẳn HOẶC DB lưu null tường minh) thì vẫn giữ nguyên
+  // giá trị mặc định (mảng rỗng/chuỗi rỗng) thay vì ghi đè thành null.
+  const obj = <T extends object>(def: T, part: unknown): T => {
+    const p = (part || {}) as Partial<T>;
+    const out = { ...def };
+    (Object.keys(def) as (keyof T)[]).forEach(k => { if (p[k] != null) out[k] = p[k] as T[typeof k]; });
+    return out;
+  };
+  const v: EditableCaseStudy = {
+    ...base,
+    ...raw,
+    palette: (raw.palette as EditableCaseStudy['palette']) || base.palette,
+    floorPlan: obj(base.floorPlan, raw.floorPlan),
+    design3D: obj(base.design3D, raw.design3D),
+    tailoring: obj(base.tailoring, raw.tailoring),
+    structural: obj(base.structural, raw.structural),
+    material: obj(base.material, raw.material),
+    fixedInterior: obj(base.fixedInterior, raw.fixedInterior),
+    looseFurniture: obj(base.looseFurniture, raw.looseFurniture),
+    details: obj(base.details, raw.details),
+    finalize: obj(base.finalize, raw.finalize),
+  };
   const set = <K extends keyof EditableCaseStudy>(key: K, val: EditableCaseStudy[K]) => onChange({ ...v, [key]: val });
   const setNested = <K extends keyof EditableCaseStudy>(key: K, patch: Partial<EditableCaseStudy[K]>) =>
     onChange({ ...v, [key]: { ...(v[key] as object), ...patch } } as EditableCaseStudy);
