@@ -233,7 +233,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
             <div className="flex gap-x-10 gap-y-6 md:gap-x-16 flex-wrap mb-14 max-w-[640px]">
               {[
                 { label: 'MÔ HÌNH', value: 'Design & Build' },
-                { label: 'PHÂN KHÚC', value: 'Nhà phố · Biệt thự 4–8 tỷ' },
+                { label: 'PHÂN KHÚC', value: 'Căn hộ · Nhà phố · Biệt thự 4–8 tỷ' },
                 { label: 'THIẾT KẾ', value: 'Độc bản, không sao chép' },
                 { label: 'HOÀN THIỆN', value: 'Sắc nét chuẩn showroom' },
               ].map((m, i) => (
@@ -246,13 +246,14 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
           </FadeIn>
           <FadeIn delay={220}>
             <div className="flex items-center gap-6 flex-wrap">
-              <a href="#section-0" className="bg-[#B8913A] hover:bg-[#B8913A]/85 text-[#1A1814] text-xs tracking-[0.15em] uppercase px-8 py-3.5 font-sans font-semibold transition-all duration-300 cursor-pointer rounded-sm">
-                Xem công trình tiêu biểu
-              </a>
-              <a href="#section-1" className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer">
-                Xem chi phí thiết kế & thi công →
+              <button onClick={() => setKhaiToanOpen(true)} className="bg-[#B8913A] hover:bg-[#B8913A]/85 text-[#1A1814] text-xs tracking-[0.15em] uppercase px-8 py-3.5 font-sans font-semibold transition-all duration-300 cursor-pointer rounded-sm">
+                Khái toán chi phí ngay
+              </button>
+              <a href="#section-0" className="inline-flex items-center gap-2 text-xs tracking-[0.15em] uppercase text-[#C4C0B8] hover:text-[#F5F2EC] hover:gap-3 font-sans font-semibold transition-all duration-300 cursor-pointer">
+                Xem công trình tiêu biểu →
               </a>
             </div>
+            <p className="mt-4 text-[10px] tracking-[0.15em] uppercase text-[#8A8070]">Miễn phí · 2 phút · Không cần để lại thông tin</p>
           </FadeIn>
         </div>
       </section>

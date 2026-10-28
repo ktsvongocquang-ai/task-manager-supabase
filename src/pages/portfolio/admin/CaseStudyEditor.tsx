@@ -1,16 +1,35 @@
 import { useState } from 'react';
 import { ImageUploadField } from './ImageUploadField';
 import { uploadLandingImage } from './uploadLandingImage';
-import type { CaseStudyData } from '../sections/CaseStudyModal';
+import type { RawCaseStudy } from '../sections/CaseStudyModal';
 
 interface Props {
-  value: CaseStudyData | null;
-  onChange: (next: CaseStudyData | null) => void;
+  value: RawCaseStudy | null;
+  onChange: (next: RawCaseStudy | null) => void;
   defaultTitle: string;
   defaultStyle: string;
 }
 
-function emptyCaseStudy(title: string, style: string): CaseStudyData {
+// Form này chỉnh sửa đúng "vùng" cố định của RawCaseStudy (floorPlan/design3D/
+// tailoring/...) — khai báo lại với các field con bắt buộc (không optional)
+// để code trong form khỏi phải ?. mọi nơi. emptyCaseStudy() luôn trả đủ field
+// nên cast này an toàn ở mọi điểm vào/ra của form.
+interface EditableCaseStudy {
+  id: string; title: string; location: string; area: string; style: string;
+  coverImage: string | null; introText: string;
+  palette: { hex: string; name: string }[];
+  floorPlan: { text: string; sitePhotos: string[]; blueprint: string | null; planBeforeImage: string | null; link: string; fear: string; story: string };
+  design3D: { text: string; images: string[] };
+  tailoring: { text: string; steps: { title: string; desc: string }[]; link: string; fear: string; story: string };
+  structural: { text: string; images: string[]; link: string; fear: string; story: string };
+  material: { text: string; samples: { name: string; desc: string; img: string | null }[] };
+  fixedInterior: { text: string; extraText: string; images: string[]; link: string; fear: string; story: string };
+  looseFurniture: { text: string; images: string[] };
+  details: { items: { num: number; name: string }[] };
+  finalize: { text: string; images: string[]; videoUrl: string; link: string; compareRenderImage: string | null; compareRealImage: string | null; fear: string; story: string };
+}
+
+function emptyCaseStudy(title: string, style: string): EditableCaseStudy {
   return {
     id: '',
     title,
@@ -19,15 +38,16 @@ function emptyCaseStudy(title: string, style: string): CaseStudyData {
     style: style || '',
     coverImage: null,
     introText: '',
-    floorPlan: { text: '', sitePhotos: [], blueprint: null, link: '' },
+    palette: [],
+    floorPlan: { text: '', sitePhotos: [], blueprint: null, planBeforeImage: null, link: '', fear: '', story: '' },
     design3D: { text: '', images: [] },
-    tailoring: { text: '', steps: [], link: '' },
-    structural: { text: '', images: [], link: '' },
+    tailoring: { text: '', steps: [], link: '', fear: '', story: '' },
+    structural: { text: '', images: [], link: '', fear: '', story: '' },
     material: { text: '', samples: [] },
-    fixedInterior: { text: '', extraText: '', images: [], link: '' },
+    fixedInterior: { text: '', extraText: '', images: [], link: '', fear: '', story: '' },
     looseFurniture: { text: '', images: [] },
     details: { items: [] },
-    finalize: { text: '', images: [], videoUrl: '', link: '' },
+    finalize: { text: '', images: [], videoUrl: '', link: '', compareRenderImage: null, compareRealImage: null, fear: '', story: '' },
   };
 }
 
@@ -104,6 +124,25 @@ function ImageList({ images, onChange }: { images: string[]; onChange: (next: st
   );
 }
 
+// "Nỗi lo gia chủ" + "câu chuyện đầy đủ" — 2 field chạm trực tiếp vào mục
+// tiêu chuyển đổi khách hàng: fear phải đúng nỗi băn khoăn thật của khách
+// ở giai đoạn này (không có thì dùng câu mặc định chung), story là bài kể
+// dài hơn mở qua nút "[+] Đọc câu chuyện đầy đủ" — nơi thuyết phục sâu.
+function FearStoryFields({ fear, story, onFearChange, onStoryChange }: { fear: string; story: string; onFearChange: (v: string) => void; onStoryChange: (v: string) => void }) {
+  return (
+    <div className="pt-3 border-t border-dashed border-[#2C2920]/15 space-y-3">
+      <div>
+        <label className={label}>Nỗi lo của gia chủ ở giai đoạn này (để trống = dùng câu mặc định chung)</label>
+        <textarea className={input} rows={2} placeholder="VD: Gia chủ lo không gian bị lạnh lẽo, trống trải nếu quá tối giản..." value={fear} onChange={e => onFearChange(e.target.value)} />
+      </div>
+      <div>
+        <label className={label}>Câu chuyện đầy đủ (mở qua nút "[+] Đọc câu chuyện đầy đủ" — nơi thuyết phục sâu, để trống thì ẩn nút)</label>
+        <textarea className={input} rows={4} value={story} onChange={e => onStoryChange(e.target.value)} />
+      </div>
+    </div>
+  );
+}
+
 function Accordion({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(!!defaultOpen);
   return (
@@ -139,10 +178,10 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
     );
   }
 
-  const v = value!;
-  const set = <K extends keyof CaseStudyData>(key: K, val: CaseStudyData[K]) => onChange({ ...v, [key]: val });
-  const setNested = <K extends keyof CaseStudyData>(key: K, patch: Partial<CaseStudyData[K]>) =>
-    onChange({ ...v, [key]: { ...(v[key] as object), ...patch } } as CaseStudyData);
+  const v = value as unknown as EditableCaseStudy;
+  const set = <K extends keyof EditableCaseStudy>(key: K, val: EditableCaseStudy[K]) => onChange({ ...v, [key]: val });
+  const setNested = <K extends keyof EditableCaseStudy>(key: K, patch: Partial<EditableCaseStudy[K]>) =>
+    onChange({ ...v, [key]: { ...(v[key] as object), ...patch } } as EditableCaseStudy);
 
   return (
     <div className="sm:col-span-2 space-y-4">
@@ -178,9 +217,10 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Câu chuyện mặt bằng (vấn đề & cách giải quyết)</label>
           <textarea className={input} rows={3} value={v.floorPlan.text} onChange={e => setNested('floorPlan', { text: e.target.value })} />
         </div>
-        <ImageUploadField label="Ảnh bản vẽ ý tưởng" value={v.floorPlan.blueprint} onChange={url => setNested('floorPlan', { blueprint: url })} compact />
+        <ImageUploadField label="Ảnh bản vẽ ý tưởng / Phương án bố trí (hiện bên cạnh ảnh hiện trạng bên dưới)" value={v.floorPlan.blueprint} onChange={url => setNested('floorPlan', { blueprint: url })} compact />
+        <ImageUploadField label="Ảnh mặt bằng Hiện trạng (trước) — ghép cặp trước/sau với ảnh ở trên" value={v.floorPlan.planBeforeImage} onChange={url => setNested('floorPlan', { planBeforeImage: url })} compact />
         <div>
-          <label className={label}>Ảnh hiện trạng (nhiều ảnh)</label>
+          <label className={label}>Ảnh hiện trạng thực tế (nhiều ảnh, khác với ảnh mặt bằng trước ở trên)</label>
           <ImageList images={v.floorPlan.sitePhotos} onChange={sitePhotos => setNested('floorPlan', { sitePhotos })} />
         </div>
         <div>
@@ -195,6 +235,11 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Link tham khảo (tuỳ chọn — bài viết, bản vẽ đầy đủ...)</label>
           <input className={input} placeholder="https://..." value={v.floorPlan.link || ''} onChange={e => setNested('floorPlan', { link: e.target.value })} />
         </div>
+        <FearStoryFields
+          fear={v.floorPlan.fear} story={v.floorPlan.story}
+          onFearChange={fear => setNested('floorPlan', { fear })}
+          onStoryChange={story => setNested('floorPlan', { story })}
+        />
       </Accordion>
 
       <Accordion title="Phase 02 — Tinh chỉnh & Vật liệu">
@@ -308,6 +353,11 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Link tham khảo (tuỳ chọn)</label>
           <input className={input} placeholder="https://..." value={v.tailoring.link || ''} onChange={e => setNested('tailoring', { link: e.target.value })} />
         </div>
+        <FearStoryFields
+          fear={v.tailoring.fear} story={v.tailoring.story}
+          onFearChange={fear => setNested('tailoring', { fear })}
+          onStoryChange={story => setNested('tailoring', { story })}
+        />
       </Accordion>
 
       <Accordion title="Phase 03 — Thi công phần thô">
@@ -323,6 +373,11 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
           <label className={label}>Link tham khảo (tuỳ chọn)</label>
           <input className={input} placeholder="https://..." value={v.structural.link || ''} onChange={e => setNested('structural', { link: e.target.value })} />
         </div>
+        <FearStoryFields
+          fear={v.structural.fear} story={v.structural.story}
+          onFearChange={fear => setNested('structural', { fear })}
+          onStoryChange={story => setNested('structural', { story })}
+        />
       </Accordion>
 
       <Accordion title="Phase 04 — Lắp ráp nội thất">
@@ -393,6 +448,11 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
             </button>
           </div>
         </div>
+        <FearStoryFields
+          fear={v.fixedInterior.fear} story={v.fixedInterior.story}
+          onFearChange={fear => setNested('fixedInterior', { fear })}
+          onStoryChange={story => setNested('fixedInterior', { story })}
+        />
       </Accordion>
 
       <Accordion title="Phase 05 — Bàn giao thực tế">
@@ -411,6 +471,33 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
         <div>
           <label className={label}>Link tham khảo khác (tuỳ chọn)</label>
           <input className={input} placeholder="https://..." value={v.finalize.link || ''} onChange={e => setNested('finalize', { link: e.target.value })} />
+        </div>
+        <div className="pt-3 border-t border-dashed border-[#2C2920]/15 space-y-3">
+          <p className="text-xs font-bold text-[#2C2920]">Thanh kéo so sánh Phối cảnh ↔ Thực tế (tuỳ chọn — chỉ hiện khi đủ cả 2 ảnh, nên dùng ảnh CÙNG góc chụp)</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ImageUploadField label="Ảnh phối cảnh thiết kế (render)" value={v.finalize.compareRenderImage} onChange={url => setNested('finalize', { compareRenderImage: url })} compact />
+            <ImageUploadField label="Ảnh thực tế bàn giao (cùng góc)" value={v.finalize.compareRealImage} onChange={url => setNested('finalize', { compareRealImage: url })} compact />
+          </div>
+        </div>
+        <FearStoryFields
+          fear={v.finalize.fear} story={v.finalize.story}
+          onFearChange={fear => setNested('finalize', { fear })}
+          onStoryChange={story => setNested('finalize', { story })}
+        />
+      </Accordion>
+
+      <Accordion title="Bảng màu vật liệu (tuỳ chọn — hiện ở Phase 02)">
+        <div className="space-y-2">
+          {v.palette.map((c, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input type="color" value={c.hex} onChange={e => set('palette', v.palette.map((p, idx) => (idx === i ? { ...p, hex: e.target.value } : p)))} className="w-10 h-9 border border-[#2C2920]/15 rounded cursor-pointer" />
+              <input className={`${input} flex-1`} placeholder="Tên màu, vd: Gỗ óc chó" value={c.name} onChange={e => set('palette', v.palette.map((p, idx) => (idx === i ? { ...p, name: e.target.value } : p)))} />
+              <button type="button" onClick={() => set('palette', v.palette.filter((_, idx) => idx !== i))} className="text-rose-600 text-xs cursor-pointer shrink-0">Xoá</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => set('palette', [...v.palette, { hex: '#B08A4A', name: '' }])} className="text-xs text-[#B8913A] font-bold cursor-pointer">
+            + Thêm màu
+          </button>
         </div>
       </Accordion>
     </div>

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Công cụ khái toán chi phí và tiến độ thi công nội thất theo cấu hình thực tế.">
-  <title>Khái Toán Nội Thất</title>
+  <title>Khái Toán Nội Thất | DQH Architects</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,9 +13,9 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#" aria-label="Khái Toán Nội Thất">
-      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span><strong>KHAI TOAN</strong><small>NỘI THẤT &amp; TIẾN ĐỘ</small></span>
+    <a class="brand" href="#" aria-label="DQH Architects — Khái Toán Nội Thất">
+      <span class="brand-mark" aria-hidden="true">DQH</span>
+      <span><strong>KHÁI TOÁN</strong><small>NỘI THẤT &amp; TIẾN ĐỘ</small></span>
     </a>
     <div class="header-actions">
       <span class="status-pill"><span class="status-dot"></span>Tự động cập nhật</span>
@@ -43,18 +43,18 @@
           <div class="field-grid">
             <label class="field wide">
               <span>Tên dự án / Chủ đầu tư</span>
-              <input id="clientName" name="clientName" value="Căn hộ mẫu Riverside" autocomplete="off">
+              <input id="clientName" name="clientName" value="CĂN HỘ LANDMARK" autocomplete="off">
             </label>
             <label class="field area-field">
               <span>Diện tích thông thủy</span>
-              <div class="input-suffix"><input id="area" name="area" type="number" min="35" max="350" step="1" value="85"><b>m²</b></div>
+              <div class="input-suffix"><input id="area" name="area" type="number" min="35" max="350" step="1" value="100"><b>m²</b></div>
             </label>
             <label class="field">
               <span>Phòng ngủ</span>
               <select id="bedCount" name="bedCount">
                 <option value="1">1 phòng ngủ</option>
-                <option value="2" selected>2 phòng ngủ</option>
-                <option value="3">3 phòng ngủ</option>
+                <option value="2">2 phòng ngủ</option>
+                <option value="3" selected>3 phòng ngủ</option>
                 <option value="4">4 phòng ngủ</option>
               </select>
             </label>
@@ -68,7 +68,7 @@
             </label>
             <label class="field">
               <span>Ngày dự kiến khởi công</span>
-              <input id="startDate" name="startDate" type="date">
+              <input id="startDate" name="startDate" type="date" value="2026-04-11">
             </label>
           </div>
           <div class="segmented-block">
@@ -119,6 +119,11 @@
               <label class="choice-card"><input type="radio" name="flooring" value="standard" checked><span><strong>Tầm trung</strong><small>Gỗ 12 mm / gạch chuẩn</small></span></label>
               <label class="choice-card"><input type="radio" name="flooring" value="luxury"><span><strong>Cao cấp</strong><small>Gỗ xương cá / porcelain</small></span></label>
             </div>
+            <label class="field-label top-gap">Chất liệu sàn</label>
+            <div class="option-grid two compact">
+              <label class="choice-card"><input type="radio" name="floorMaterial" value="wood" checked><span><strong>Sàn gỗ</strong><small>Gỗ công nghiệp / xương cá</small></span></label>
+              <label class="choice-card"><input type="radio" name="floorMaterial" value="tile"><span><strong>Sàn gạch</strong><small>Gạch chuẩn / porcelain</small></span></label>
+            </div>
           </div>
 
           <div class="option-section">
@@ -126,8 +131,8 @@
             <label class="field-label">Hệ thống đèn</label>
             <div class="option-grid three compact">
               <label class="choice-card"><input type="radio" name="lighting" value="none"><span><strong>Không gồm đèn</strong></span></label>
-              <label class="choice-card"><input type="radio" name="lighting" value="standard"><span><strong>Tiêu chuẩn</strong><small>Downlight &amp; LED hắt</small></span></label>
-              <label class="choice-card"><input type="radio" name="lighting" value="luxury" checked><span><strong>Cao cấp</strong><small>Spotlight &amp; ray nam châm</small></span></label>
+              <label class="choice-card"><input type="radio" name="lighting" value="standard"><span><strong>Tiêu chuẩn</strong><small>Đèn Chip Afaco phổ thông · Downlight &amp; LED hắt</small></span></label>
+              <label class="choice-card"><input type="radio" name="lighting" value="luxury" checked><span><strong>Cao cấp</strong><small>Đèn Chip Philips CRI 95 · Spotlight &amp; ray nam châm</small></span></label>
             </div>
             <label class="field-label top-gap">Điện &amp; công tắc</label>
             <div class="option-grid three compact">
@@ -178,11 +183,11 @@
                 </select>
               </div>
               <div>
-                <label class="field-label">Thiết bị WC</label>
+                <label class="field-label">Thiết bị vệ sinh</label>
                 <select name="wcEquipment">
                   <option value="none" selected>Không bao gồm</option>
-                  <option value="basic">Gói tiêu chuẩn</option>
-                  <option value="luxury">Gói cao cấp</option>
+                  <option value="basic">Inax (phổ thông)</option>
+                  <option value="luxury">Toto / Moen (cao cấp)</option>
                 </select>
               </div>
               <div>
@@ -201,8 +206,17 @@
                   <option value="ducted">Âm trần nối ống gió</option>
                 </select>
               </div>
+              <div>
+                <label class="field-label">Loa âm trần</label>
+                <select name="speaker">
+                  <option value="none" selected>Không bao gồm</option>
+                  <option value="basic">Gói cơ bản</option>
+                  <option value="luxury">Gói cao cấp</option>
+                </select>
+              </div>
             </div>
-            <label class="check-card top-gap"><input type="checkbox" id="freshAir"><span class="check-ui"></span><span><strong>Hệ thống cấp khí tươi</strong><small>Thu hồi nhiệt, lọc bụi mịn, cân chỉnh lưu lượng</small></span><b>Thiết bị bổ sung</b></label>
+            <label class="check-card spaced"><input type="checkbox" id="freshAir"><span class="check-ui"></span><span><strong>Hệ thống cấp khí tươi</strong><small>Thu hồi nhiệt, lọc bụi mịn, cân chỉnh lưu lượng</small></span><b>Thiết bị bổ sung</b></label>
+            <label class="check-card"><input type="checkbox" id="epoxyGrout"><span class="check-ui"></span><span><strong>Keo ron Epoxy</strong><small>Chống thấm ron gạch, chống bám bẩn khu ướt</small></span><b>Thiết bị bổ sung</b></label>
           </div>
         </section>
       </form>

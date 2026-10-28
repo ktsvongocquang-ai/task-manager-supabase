@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { landingSupabase } from '../sections/landingSupabase';
 import { ImageUploadField } from './ImageUploadField';
 import { CaseStudyEditor } from './CaseStudyEditor';
-import { normalizeCaseStudy, type CaseStudyData } from '../sections/CaseStudyModal';
+import type { RawCaseStudy } from '../sections/CaseStudyModal';
 
 interface ProjectRow {
   id: string;
@@ -14,7 +14,7 @@ interface ProjectRow {
   project_type: string | null;
   construction_time: string | null;
   image_url: string | null;
-  case_study: CaseStudyData | null;
+  case_study: RawCaseStudy | null;
   sort_order: number;
   is_published: boolean;
 }
@@ -93,7 +93,7 @@ export function AdminProjects() {
 
   const startEdit = (row?: ProjectRow) => {
     setError('');
-    if (row) { setEditingId(row.id); setDraft({ ...row, case_study: row.case_study ? normalizeCaseStudy(row.case_study) : null }); }
+    if (row) { setEditingId(row.id); setDraft({ ...row, case_study: row.case_study || null }); }
     else { setEditingId('new'); setDraft(EMPTY); }
   };
 

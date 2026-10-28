@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Reveal, SectionHeader, NeedsInput, useLandingAdmin } from './shared';
-import { CaseStudyModal, normalizeCaseStudy, type CaseStudyData } from './CaseStudyModal';
+import { CaseStudyModal, normalizeCaseStudy, vercelImg, type CaseStudyData, type RawCaseStudy } from './CaseStudyModal';
 import { landingSupabase } from './landingSupabase';
 
 type Category = 'apartment' | 'house_villa';
@@ -40,31 +40,7 @@ function formatConstructionTime(raw: string): string {
   return /^\d+$/.test(raw.trim()) ? `${raw.trim()} ngày` : raw;
 }
 
-// Khung rỗng cho "Xem Album Kể Chuyện" khi hàng chưa có cột case_study (jsonb)
-// trong Supabase — CaseStudyModal tự hiện khung chờ ảnh khi field là null.
-// Chữ "[cần điền: ...]" chỉ hiện cho admin xem trước; khách công khai thấy
-// chuỗi rỗng (CaseStudyModal/FallbackCard tự xử lý text rỗng gọn gàng hơn).
-function emptyCaseStudy(id: string, title: string, isAdmin: boolean): CaseStudyData {
-  const need = (label: string) => (isAdmin ? `[cần điền: ${label}]` : '');
-  return {
-    id, title,
-    location: isAdmin ? '[cần điền]' : '', area: isAdmin ? '[cần điền]' : '', style: isAdmin ? '[cần điền]' : '',
-    coverImage: null,
-    introText: need('câu giới thiệu ngắn về công trình'),
-    floorPlan: { text: need('câu chuyện mặt bằng — vấn đề & cách giải quyết'), sitePhotos: [], blueprint: null },
-    design3D: { text: need('câu chuyện phối cảnh 3D'), images: [] },
-    tailoring: { text: need('câu chuyện tinh chỉnh & chọn vật liệu'), steps: [] },
-    structural: { text: need('câu chuyện thi công phần thô'), images: [] },
-    material: { text: need('câu chuyện lựa chọn vật liệu'), samples: [] },
-    fixedInterior: { text: need('câu chuyện nội thất cố định'), images: [] },
-    looseFurniture: { text: need('câu chuyện nội thất rời'), images: [] },
-    details: { items: [] },
-    finalize: { text: need('câu chuyện bàn giao'), images: [] },
-  };
-}
-
 export function FeaturedProjects2026() {
-  const isAdmin = useLandingAdmin();
   const [category, setCategory] = useState<Category>('apartment');
   const [openStudy, setOpenStudy] = useState<CaseStudyData | null>(null);
   const [byCategory, setByCategory] = useState<Record<Category, FeaturedProject[]> | null>(null);
@@ -79,8 +55,7 @@ export function FeaturedProjects2026() {
         const grouped: Record<Category, FeaturedProject[]> = { apartment: [], house_villa: [] };
         (data || []).forEach(row => {
           const cat: Category = row.category === 'apartment' ? 'apartment' : 'house_villa';
-          const cs = row.case_study as Partial<CaseStudyData> | null;
-          const base = emptyCaseStudy(row.id, row.title, isAdmin);
+          const cs = (row.case_study || {}) as RawCaseStudy;
           grouped[cat].push({
             title: row.title,
             style: row.style || null,
@@ -88,13 +63,13 @@ export function FeaturedProjects2026() {
             type: row.project_type || null,
             constructionTime: row.construction_time ? formatConstructionTime(row.construction_time) : null,
             image: row.image_url,
-            caseStudy: cs ? normalizeCaseStudy({ ...base, ...cs, id: row.id, title: row.title }) : base,
+            caseStudy: normalizeCaseStudy({ ...cs, id: row.id, title: row.title }),
           });
         });
         setByCategory(grouped);
       })
       .catch(() => setByCategory({ apartment: [], house_villa: [] }));
-  }, [isAdmin]);
+  }, []);
 
   const projects = byCategory?.[category] || [];
 
@@ -130,7 +105,7 @@ export function FeaturedProjects2026() {
                 <div className="group">
                   <div onClick={() => setOpenStudy(proj.caseStudy)} className="overflow-hidden aspect-[16/10] relative mb-6 rounded-sm bg-[#F5F2EC] cursor-pointer">
                     {proj.image ? (
-                      <img src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <img src={vercelImg(proj.image || undefined, 800)} alt={proj.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center border border-dashed border-[#2C2920]/15">
                         <NeedsInput label="ảnh công trình" />

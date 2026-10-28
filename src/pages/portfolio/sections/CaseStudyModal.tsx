@@ -1,244 +1,223 @@
 import { useEffect, useRef, useState } from 'react';
 
+// Route ảnh Supabase Storage qua Vercel Image Optimization: resize đúng kích thước
+// hiển thị, tự convert webp/avif theo trình duyệt, cache ở edge (origin Supabase đang
+// trả Cache-Control: no-cache nên không cache được — đây là nguyên nhân chính gây chậm).
+export function vercelImg(src: string | undefined, width: number, quality = 75): string {
+  if (!src || !/^https?:\/\//.test(src)) return src || '';
+  return `/_vercel/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Modal "Xem Album Kể Chuyện (Case Study)" — port nguyên trạng từ
-// PortfolioLanding.tsx bản cũ (PhaseVisuals + 5 fallback SVG + lightbox 5
-// giai đoạn), theo yêu cầu KHÔNG LÀM MẤT tính năng này khi dựng lại trang.
-// Khác bản cũ: painPoint không còn gắn cứng theo 4 dự án demo cũ (Lumé/
-// Horizon/Verena/Arden) — dùng painPoint chung theo từng giai đoạn, lấy từ
-// CaseStudyData.stagesPainPoints nếu có, fallback về câu mô tả chung.
+// "Case Study Journal" — dựng lại 2026-10-28 theo spec KTS Võ Ngọc Quang:
+// data model theo phases[] (thay vì field cố định floorPlan/design3D/...),
+// 60/40 không khung đen, 1 vùng cuộn duy nhất, ẩn giai đoạn rỗng, slider
+// so sánh phối cảnh/thực tế, ảnh công trường đen trắng, khối mở đầu + kết.
+//
+// Dữ liệu CŨ trong Supabase (case_study jsonb, field cố định) vẫn đọc được
+// nguyên trạng — normalizeCaseStudy() tự suy ra phases[] từ field cũ, không
+// cần migrate DB. Muốn khai báo trực tiếp theo schema mới (phases[], palette,
+// compare, fear, proof...) thì chỉ cần thêm field `phases` vào JSON, hàm này
+// sẽ dùng thẳng field mới thay vì suy luận từ field cũ.
 // ─────────────────────────────────────────────────────────────────────────────
 
+export type CaseStudyImageType = 'site' | 'real' | 'render' | 'plan';
+export interface CaseStudyImage { src: string; alt?: string; type: CaseStudyImageType; caption?: string }
+export interface CaseStudyPhase {
+  key: 'concept' | 'material' | 'rough' | 'assembly' | 'handover';
+  fear: string;
+  body?: string;
+  proof?: string[];
+  story?: string;
+  images: CaseStudyImage[];
+  planBefore?: { src: string; alt?: string };
+  planAfter?: { src: string; alt?: string };
+  materials?: { src: string; alt?: string; name: string }[];
+  compare?: { render: { src: string; alt?: string }; real: { src: string; alt?: string } };
+}
 export interface CaseStudyData {
   id: string;
   title: string;
-  location: string;
-  area: string;
-  style: string;
-  coverImage: string | null;
-  introText: string;
-  floorPlan: { text: string; sitePhotos: string[]; blueprint: string | null; link?: string };
-  design3D: { text: string; images: string[] };
-  tailoring: { text: string; steps: { title: string; desc: string }[]; link?: string };
-  structural: { text: string; images: string[]; link?: string };
-  material: { text: string; samples: { name: string; desc: string; img: string | null }[] };
-  fixedInterior: { text: string; extraText?: string; images: string[]; link?: string };
-  looseFurniture: { text: string; images: string[] };
-  details: { items: { num: number; name: string }[] };
-  finalize: { text: string; images: string[]; videoUrl?: string; link?: string };
+  location?: string;
+  area?: string;
+  style?: string;
+  constructionTime?: string;
+  cover: { src: string; alt?: string; type: 'real' | 'render' } | null;
+  intro?: string;
+  palette?: { hex: string; name: string }[];
+  phases: CaseStudyPhase[];
+  ending?: { src: string; alt?: string } | null;
+  video?: { src: string; poster?: string } | null;
 }
 
-// Dữ liệu cũ (trước khi thêm multi-ảnh/link) dùng field đơn: sitePhoto,
-// structural.imgMain, fixedInterior.imgMain, looseFurniture.imgMain. Chuẩn
-// hoá về mảng mỗi lần đọc — không mất ảnh cũ đã lưu, không cần migrate DB
-// (case_study là cột jsonb tự do).
-type LegacyCaseStudyData = Partial<CaseStudyData> & {
-  floorPlan?: Partial<CaseStudyData['floorPlan']> & { sitePhoto?: string | null };
-  structural?: Partial<CaseStudyData['structural']> & { imgMain?: string | null };
-  fixedInterior?: Partial<CaseStudyData['fixedInterior']> & { imgMain?: string | null };
-  looseFurniture?: Partial<CaseStudyData['looseFurniture']> & { imgMain?: string | null };
+const PHASE_META: Record<CaseStudyPhase['key'], { title: string; subtitle: string; menuLabel: string }> = {
+  concept: { title: 'Ý TƯỞNG & MẶT BẰNG', subtitle: 'CONCEPT & LAYOUT', menuLabel: 'Ý tưởng & mặt bằng' },
+  material: { title: 'TINH CHỈNH & VẬT LIỆU', subtitle: 'MATERIAL & TAILORING', menuLabel: 'Tinh chỉnh & vật liệu' },
+  rough: { title: 'THI CÔNG PHẦN THÔ', subtitle: 'ROUGH CONSTRUCTION', menuLabel: 'Thi công phần thô' },
+  assembly: { title: 'LẮP RÁP NỘI THẤT', subtitle: 'INTERIOR ASSEMBLY', menuLabel: 'Lắp ráp nội thất' },
+  handover: { title: 'BÀN GIAO THỰC TẾ', subtitle: 'FINAL HANDOVER', menuLabel: 'Bàn giao thực tế' },
+};
+const PHASE_ORDER: CaseStudyPhase['key'][] = ['concept', 'material', 'rough', 'assembly', 'handover'];
+const DEFAULT_FEARS: Record<CaseStudyPhase['key'], string> = {
+  concept: 'Gia chủ còn băn khoăn giữa việc giữ tối giản và tránh không gian bị lạnh lẽo, trống trải.',
+  material: 'Lo ngại vật liệu thực tế lệch pha với phối cảnh 3D, phát sinh chi phí ngoài dự kiến.',
+  rough: 'Rủi ro nứt tường, thấm sàn nếu không kiểm soát kỹ từng điểm tiếp giáp kết cấu.',
+  assembly: 'Nội thất gia công cẩu thả, lắp đặt lệch khe shadow gap làm mất tính thẩm mỹ tổng thể.',
+  handover: 'Bàn giao vội vã, bỏ sót lỗi nhỏ khiến gia chủ phải tự phát hiện và yêu cầu sửa lại.',
 };
 
-export function normalizeCaseStudy(raw: LegacyCaseStudyData): CaseStudyData {
-  const arr = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && !!x) : typeof v === 'string' && v ? [v] : []);
+// Chuỗi bắt đầu bằng [MẪU]/TODO/lorem coi như trống — không hiển thị cho khách.
+function isPlaceholder(s: unknown): boolean {
+  if (typeof s !== 'string') return true;
+  const t = s.trim();
+  if (!t) return true;
+  return /^(\[MẪU\]|TODO|lorem)/i.test(t);
+}
+function clean(s: unknown): string {
+  return isPlaceholder(s) ? '' : (s as string).trim();
+}
+function cleanList(arr: unknown): string[] {
+  return (Array.isArray(arr) ? arr : []).map(clean).filter(Boolean);
+}
+function toImgs(arr: unknown, type: CaseStudyImageType, altPrefix: string): CaseStudyImage[] {
+  const list = Array.isArray(arr) ? arr : arr ? [arr] : [];
+  return list.filter((s): s is string => typeof s === 'string' && !!s).map((src, i) => ({ src, type, alt: `${altPrefix} ${i + 1}` }));
+}
+
+// Dữ liệu cũ (floorPlan/design3D/tailoring/structural/material/fixedInterior/
+// looseFurniture/details/finalize) — giữ nguyên interface để không phải sửa
+// cách admin lưu case_study hiện có.
+interface LegacyShape {
+  coverImage?: string | null; introText?: string;
+  // fear/story: override riêng từng giai đoạn — fear thay câu "nỗi lo gia chủ"
+  // mặc định (DEFAULT_FEARS), story là bài kể dài mở qua nút "[+] Đọc câu
+  // chuyện đầy đủ". Gắn vào field đại diện mỗi giai đoạn (floorPlan=concept,
+  // tailoring=material, structural=rough, fixedInterior=assembly, finalize=handover).
+  floorPlan?: { text?: string; sitePhotos?: string[]; sitePhoto?: string; blueprint?: string | null; planBeforeImage?: string | null; link?: string; fear?: string; story?: string };
+  design3D?: { text?: string; images?: string[] };
+  tailoring?: { text?: string; steps?: { title: string; desc: string }[]; link?: string; fear?: string; story?: string };
+  structural?: { text?: string; images?: string[]; imgMain?: string | null; link?: string; fear?: string; story?: string };
+  material?: { text?: string; samples?: { name: string; desc: string; img: string | null }[] };
+  fixedInterior?: { text?: string; extraText?: string; images?: string[]; imgMain?: string | null; link?: string; fear?: string; story?: string };
+  looseFurniture?: { text?: string; images?: string[]; imgMain?: string | null };
+  details?: { items?: { num: number; name: string }[] };
+  finalize?: { text?: string; images?: string[]; videoUrl?: string; link?: string; compareRenderImage?: string | null; compareRealImage?: string | null; fear?: string; story?: string };
+}
+
+export type RawCaseStudy = LegacyShape & {
+  id?: string; title?: string; location?: string; area?: string; style?: string; constructionTime?: string;
+  cover?: { src?: string; alt?: string; type?: 'real' | 'render' } | null;
+  intro?: string;
+  palette?: { hex: string; name: string }[];
+  phases?: Array<Partial<CaseStudyPhase>>;
+  ending?: { src: string; alt?: string } | null;
+  video?: { src: string; poster?: string } | null;
+};
+
+function phasesFromNewShape(raw: NonNullable<RawCaseStudy['phases']>): CaseStudyPhase[] {
+  return raw
+    .filter((p): p is Partial<CaseStudyPhase> & { key: CaseStudyPhase['key'] } => !!p.key)
+    .map(p => ({
+      key: p.key,
+      fear: clean(p.fear) || DEFAULT_FEARS[p.key],
+      body: clean(p.body) || undefined,
+      proof: cleanList(p.proof),
+      story: clean(p.story) || undefined,
+      images: (p.images || []).filter(im => im?.src),
+      planBefore: p.planBefore?.src ? p.planBefore : undefined,
+      planAfter: p.planAfter?.src ? p.planAfter : undefined,
+      materials: (p.materials || []).filter(m => m?.src && clean(m.name)),
+      compare: p.compare?.render?.src && p.compare?.real?.src ? p.compare : undefined,
+    }));
+}
+
+function phasesFromLegacy(raw: LegacyShape): CaseStudyPhase[] {
+  const fp = raw.floorPlan || {};
+  const d3 = raw.design3D || {};
+  const tl = raw.tailoring || {};
+  const mt = raw.material || {};
+  const st = raw.structural || {};
+  const fi = raw.fixedInterior || {};
+  const lf = raw.looseFurniture || {};
+  const dt = raw.details || {};
+  const fz = raw.finalize || {};
+
+  const concept: CaseStudyPhase = {
+    key: 'concept', fear: clean(fp.fear) || DEFAULT_FEARS.concept, story: clean(fp.story) || undefined,
+    body: [clean(fp.text), clean(d3.text)].filter(Boolean).join(' ') || undefined,
+    images: [...toImgs(fp.sitePhotos?.length ? fp.sitePhotos : fp.sitePhoto, 'site', 'Hiện trạng'), ...toImgs(d3.images, 'render', 'Phối cảnh ý tưởng')],
+    planAfter: fp.blueprint ? { src: fp.blueprint, alt: 'Mặt bằng bố trí' } : undefined,
+    planBefore: fp.planBeforeImage ? { src: fp.planBeforeImage, alt: 'Hiện trạng' } : undefined,
+  };
+  const material: CaseStudyPhase = {
+    key: 'material', fear: clean(tl.fear) || DEFAULT_FEARS.material, story: clean(tl.story) || undefined,
+    body: [clean(tl.text), clean(mt.text)].filter(Boolean).join(' ') || undefined,
+    images: [],
+    materials: (mt.samples || []).filter(s => s?.img && clean(s.name)).map(s => ({ src: s.img as string, alt: s.name, name: s.name })),
+    proof: (tl.steps || []).map(s => (clean(s.title) && clean(s.desc) ? `${clean(s.title)}: ${clean(s.desc)}` : '')).filter(Boolean),
+  };
+  const rough: CaseStudyPhase = {
+    key: 'rough', fear: clean(st.fear) || DEFAULT_FEARS.rough, story: clean(st.story) || undefined,
+    body: clean(st.text) || undefined,
+    images: toImgs(st.images?.length ? st.images : st.imgMain, 'site', 'Thi công phần thô'),
+  };
+  const assembly: CaseStudyPhase = {
+    key: 'assembly', fear: clean(fi.fear) || DEFAULT_FEARS.assembly, story: clean(fi.story) || undefined,
+    body: [clean(fi.text), clean(fi.extraText), clean(lf.text)].filter(Boolean).join(' ') || undefined,
+    images: [...toImgs(fi.images?.length ? fi.images : fi.imgMain, 'site', 'Nội thất cố định'), ...toImgs(lf.images?.length ? lf.images : lf.imgMain, 'site', 'Nội thất rời')],
+    proof: (dt.items || []).map(it => clean(it.name)).filter(Boolean),
+  };
+  const handover: CaseStudyPhase = {
+    key: 'handover', fear: clean(fz.fear) || DEFAULT_FEARS.handover, story: clean(fz.story) || undefined,
+    body: clean(fz.text) || undefined,
+    images: toImgs(fz.images, 'real', 'Bàn giao'),
+    compare: fz.compareRenderImage && fz.compareRealImage
+      ? { render: { src: fz.compareRenderImage, alt: 'Phối cảnh thiết kế' }, real: { src: fz.compareRealImage, alt: 'Thực tế bàn giao' } }
+      : undefined,
+  };
+  return [concept, material, rough, assembly, handover];
+}
+
+export function normalizeCaseStudy(raw: RawCaseStudy): CaseStudyData {
+  let phases = Array.isArray(raw.phases) && raw.phases.length ? phasesFromNewShape(raw.phases) : phasesFromLegacy(raw);
+
+  // Ẩn giai đoạn không có GÌ để hiện (không ảnh, không mặt bằng, không vật
+  // liệu, không cặp so sánh, không chữ kể chuyện nào) — không bao giờ hiện ô
+  // trống/chữ giữ chỗ. Có chữ thật (body/proof/story) thì vẫn giữ giai đoạn
+  // dù thiếu ảnh — nội dung viết tay không nên mất chỉ vì chưa kịp gắn ảnh.
+  phases = phases.filter(p =>
+    p.images.length > 0 || !!p.materials?.length || !!p.planBefore || !!p.planAfter || !!p.compare ||
+    !!p.body || !!p.story || (p.proof && p.proof.length > 0)
+  );
+  // Bàn giao chỉ giữ khi có ảnh THỰC TẾ (type 'real') hoặc cặp so sánh —
+  // tuyệt đối không gọi phối cảnh là ảnh bàn giao thực tế.
+  phases = phases.filter(p => p.key !== 'handover' || p.images.some(i => i.type === 'real') || !!p.compare);
+  phases.sort((a, b) => PHASE_ORDER.indexOf(a.key) - PHASE_ORDER.indexOf(b.key));
+
+  const legacyVideo = raw.finalize?.videoUrl;
+  const firstRealImg = phases.flatMap(p => p.images).find(i => i.type === 'real');
+  const coverSrc = clean(raw.cover?.src) || clean(raw.coverImage) || firstRealImg?.src || '';
+
   return {
-    id: raw.id || '', title: raw.title || '', location: raw.location || '', area: raw.area || '', style: raw.style || '',
-    coverImage: raw.coverImage ?? null, introText: raw.introText || '',
-    floorPlan: { text: raw.floorPlan?.text || '', blueprint: raw.floorPlan?.blueprint ?? null, link: raw.floorPlan?.link, sitePhotos: arr(raw.floorPlan?.sitePhotos ?? raw.floorPlan?.sitePhoto) },
-    design3D: { text: raw.design3D?.text || '', images: arr(raw.design3D?.images) },
-    tailoring: { text: raw.tailoring?.text || '', steps: raw.tailoring?.steps || [], link: raw.tailoring?.link },
-    structural: { text: raw.structural?.text || '', link: raw.structural?.link, images: arr(raw.structural?.images ?? raw.structural?.imgMain) },
-    material: { text: raw.material?.text || '', samples: raw.material?.samples || [] },
-    fixedInterior: { text: raw.fixedInterior?.text || '', extraText: raw.fixedInterior?.extraText, link: raw.fixedInterior?.link, images: arr(raw.fixedInterior?.images ?? raw.fixedInterior?.imgMain) },
-    looseFurniture: { text: raw.looseFurniture?.text || '', images: arr(raw.looseFurniture?.images ?? raw.looseFurniture?.imgMain) },
-    details: { items: raw.details?.items || [] },
-    finalize: { text: raw.finalize?.text || '', videoUrl: raw.finalize?.videoUrl, link: raw.finalize?.link, images: arr(raw.finalize?.images) },
+    id: raw.id || '',
+    // Bỏ nhãn "[DQH]"/"[JUX]" ở đầu tên khi hiển thị trong Case Study Journal
+    // — ký hiệu chuẩn dịch vụ chỉ cần thiết ở danh sách công trình ngoài trang.
+    title: clean(raw.title).replace(/^\[[^\]]+\]\s*/, ''),
+    location: clean(raw.location) || undefined,
+    area: clean(raw.area) || undefined,
+    style: clean(raw.style) || undefined,
+    constructionTime: clean(raw.constructionTime) || undefined,
+    cover: coverSrc ? { src: coverSrc, alt: clean(raw.title), type: raw.cover?.type === 'render' ? 'render' : 'real' } : null,
+    intro: clean(raw.intro ?? raw.introText) || undefined,
+    palette: (raw.palette || []).filter(c => c?.hex && clean(c.name)),
+    phases,
+    ending: raw.ending?.src ? raw.ending : null,
+    video: raw.video?.src ? raw.video : legacyVideo ? { src: legacyVideo } : null,
   };
 }
 
-const DEFAULT_PAIN_POINTS = [
-  'Gia chủ còn băn khoăn giữa việc giữ tối giản và tránh không gian bị lạnh lẽo, trống trải.',
-  'Lo ngại vật liệu thực tế lệch pha với phối cảnh 3D, phát sinh chi phí ngoài dự kiến.',
-  'Rủi ro nứt tường, thấm sàn nếu không kiểm soát kỹ từng điểm tiếp giáp kết cấu.',
-  'Nội thất gia công cẩu thả, lắp đặt lệch khe shadow gap làm mất tính thẩm mỹ tổng thể.',
-  'Bàn giao vội vã, bỏ sót lỗi nhỏ khiến gia chủ phải tự phát hiện và yêu cầu sửa lại.',
-];
-
-// ── ARCHITECTURAL VECTOR FALLBACK CARDS FOR BLOCKED/MISSING IMAGE URLS ──
-const GridBg = () => (
-  <>
-    <path d="M 0,20 L 100,20 M 0,40 L 100,40 M 0,60 L 100,60 M 0,80 L 100,80" strokeWidth="0.2" opacity="0.3" />
-    <path d="M 20,0 L 20,100 M 40,0 L 40,100 M 60,0 L 60,100 M 80,0 L 80,100" strokeWidth="0.2" opacity="0.3" />
-  </>
-);
-
-const FallbackCard = ({ label, sub, children }: { label: string; sub: string; children?: React.ReactNode }) => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-[#161412] text-white/90">
-    <svg className="w-12 h-12 stroke-[#B8913A] stroke-[0.75] fill-none opacity-80 mb-2" viewBox="0 0 100 100">
-      <GridBg />
-      {children}
-    </svg>
-    <span className="font-sans text-[8px] tracking-[0.2em] text-[#B8913A] font-bold uppercase text-center">{label}</span>
-    <span className="text-[6px] text-stone-400 mt-0.5 uppercase tracking-widest text-center">{sub}</span>
-  </div>
-);
-
-const BlueprintFallback = () => (
-  <FallbackCard label="BẢN VẼ Ý TƯỞNG 2D" sub="Architectural Layout Schematic">
-    <rect x="25" y="25" width="50" height="50" strokeWidth="1" />
-    <line x1="25" y1="50" x2="75" y2="50" strokeWidth="0.75" />
-    <line x1="50" y1="25" x2="50" y2="75" strokeWidth="0.75" />
-    <circle cx="50" cy="50" r="1.5" fill="#B8913A" />
-  </FallbackCard>
-);
-const Design3DFallback = () => (
-  <FallbackCard label="PHỐI CẢNH 3D" sub="3D Space Rendering & Scale Models">
-    <path d="M 50,25 L 75,37.5 L 75,62.5 L 50,75 L 25,62.5 L 25,37.5 Z" strokeWidth="1" />
-    <line x1="50" y1="25" x2="50" y2="75" strokeWidth="1" />
-  </FallbackCard>
-);
-const ConstructionFallback = () => (
-  <FallbackCard label="THI CÔNG PHẦN THÔ" sub="MEP Grid & Concrete Structural Works">
-    <rect x="20" y="30" width="60" height="40" strokeWidth="0.75" strokeDasharray="2,2" />
-    <line x1="20" y1="50" x2="80" y2="50" strokeWidth="0.75" />
-  </FallbackCard>
-);
-const AssemblyFallback = () => (
-  <FallbackCard label="LẮP RÁP JOINERY" sub="Custom Fitting & Millwork Assembly">
-    <rect x="25" y="35" width="50" height="30" strokeWidth="1" />
-    <line x1="25" y1="45" x2="75" y2="45" strokeWidth="0.75" />
-  </FallbackCard>
-);
-const HandoverFallback = () => (
-  <FallbackCard label="BÀN GIAO THỰC TẾ" sub="Completed Project">
-    <polygon points="50,20 80,45 20,45" strokeWidth="1" />
-    <rect x="25" y="45" width="50" height="30" strokeWidth="1" />
-  </FallbackCard>
-);
-
-// Lưới ảnh dùng chung cho các khối nhiều ảnh (3D, thi công, nội thất...) —
-// tự chọn số cột hợp lý theo số ảnh thực có (1-6+). Khai báo ở module scope
-// (không lồng trong PhaseVisuals) để tránh tạo lại component mỗi lần render.
-function ImgGrid({
-  imgs, altPrefix, placeholder, imageErrors, onImageError, onImageClick,
-}: {
-  imgs: (string | null | undefined)[];
-  altPrefix: string;
-  placeholder: string;
-  imageErrors: Record<string, boolean>;
-  onImageError: (url: string) => void;
-  onImageClick?: (imgs: string[], index: number) => void;
-}) {
-  const ok = (url: string | null | undefined) => !!url && !imageErrors[url];
-  const okImgs = imgs.filter((img): img is string => ok(img));
-  const cols = imgs.length <= 1 ? 1 : imgs.length === 2 ? 2 : imgs.length <= 4 ? 2 : 3;
-  return (
-    <div className="w-full h-full grid gap-1 p-2 bg-[#161412]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-      {imgs.map((img, idx) => (
-        <div
-          key={idx}
-          className={`relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm min-h-[60px] group ${ok(img) && onImageClick ? 'cursor-zoom-in' : ''}`}
-          onClick={() => ok(img) && onImageClick?.(okImgs, okImgs.indexOf(img!))}
-        >
-          {ok(img) ? (
-            <>
-              <img src={img!} className="w-full h-full object-cover" alt={`${altPrefix} ${idx + 1}`} onError={() => onImageError(img!)} />
-              {onImageClick && (
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-lg">⤢</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 text-center px-1">{placeholder} 0{idx + 1}</div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PhaseVisuals({
-  stage, index, study, imageErrors, onImageError, onImageClick,
-}: {
-  stage: { image: string | null; subImage?: string | null; subImages?: string[] };
-  index: number;
-  study: CaseStudyData;
-  imageErrors: Record<string, boolean>;
-  onImageError: (url: string) => void;
-  onImageClick?: (imgs: string[], index: number) => void;
-}) {
-  const ok = (url: string | null | undefined) => !!url && !imageErrors[url];
-
-  if (index === 0) {
-    const bp = study.floorPlan.blueprint;
-    const sps = study.floorPlan.sitePhotos || [];
-    // Gộp bản vẽ + ảnh hiện trạng thành 1 bộ ảnh duy nhất khi mở lightbox —
-    // trước đây bản vẽ mở riêng lẻ 1 ảnh nên không có nút sang ngang.
-    const combined = [bp, ...sps].filter((img): img is string => ok(img));
-    if (combined.length === 0) return <BlueprintFallback />;
-    return (
-      <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
-        <div
-          className={`relative w-full h-full bg-[#1A1814] overflow-hidden rounded-sm ${ok(bp) && onImageClick ? 'cursor-zoom-in' : ''}`}
-          onClick={() => ok(bp) && onImageClick?.(combined, combined.indexOf(bp!))}
-        >
-          {ok(bp) ? <img src={bp!} className="w-full h-full object-cover opacity-85" alt="Blueprint" onError={() => onImageError(bp!)} /> : <BlueprintFallback />}
-        </div>
-        <div className="relative w-full h-full">
-          {sps.some(ok) ? (
-            <ImgGrid
-              imgs={sps} altPrefix="Hiện trạng" placeholder="HIỆN TRẠNG" imageErrors={imageErrors} onImageError={onImageError}
-              onImageClick={(imgs, idx) => onImageClick?.(combined, combined.indexOf(imgs[idx]))}
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Hiện trạng công trình</div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (index === 1) {
-    const imgs = study.design3D.images || [];
-    if (!imgs.some(ok)) return <Design3DFallback />;
-    return <ImgGrid imgs={imgs} altPrefix="3D Render" placeholder="RENDER 3D" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
-  }
-
-  if (index === 2) {
-    const imgs = study.structural.images || [];
-    if (!imgs.some(ok)) return <ConstructionFallback />;
-    return <ImgGrid imgs={imgs} altPrefix="Rough Construction" placeholder="THI CÔNG" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
-  }
-
-  if (index === 3) {
-    const fi = study.fixedInterior.images || [];
-    const lf = study.looseFurniture.images || [];
-    if (!fi.some(ok) && !lf.some(ok)) return <AssemblyFallback />;
-    return (
-      <div className="w-full h-full grid grid-cols-2 gap-1 p-2 bg-[#161412]">
-        <div className="relative w-full h-full">
-          {fi.some(ok) ? <ImgGrid imgs={fi} altPrefix="Fixed Interior" placeholder="NỘI THẤT CỐ ĐỊNH" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất cố định</div>
-          )}
-        </div>
-        <div className="relative w-full h-full">
-          {lf.some(ok) ? <ImgGrid imgs={lf} altPrefix="Loose Furniture" placeholder="NỘI THẤT RỜI" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} /> : (
-            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-stone-500 uppercase tracking-widest text-center p-2 bg-[#1A1814] rounded-sm">Nội thất rời</div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const imgs = (study.finalize.images || []).filter((img): img is string => ok(img));
-  if (imgs.length === 0) return <HandoverFallback />;
-  return <ImgGrid imgs={imgs} altPrefix="Bàn giao" placeholder="BÀN GIAO" imageErrors={imageErrors} onImageError={onImageError} onImageClick={onImageClick} />;
-}
-
-// Phóng to ảnh khi bấm vào bất kỳ ảnh nào trong album — điều hướng trái/phải
-// trong cùng bộ ảnh, tải về, Esc để đóng.
-function Lightbox({ images, index, onClose, onNav }: { images: string[]; index: number; onClose: () => void; onNav: (i: number) => void }) {
+// ── Lightbox dùng chung, giữ nguyên hành vi cũ (←→, Esc, tải ảnh) ──
+function Lightbox({ images, index, onClose, onNav }: { images: CaseStudyImage[]; index: number; onClose: () => void; onNav: (i: number) => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -249,102 +228,41 @@ function Lightbox({ images, index, onClose, onNav }: { images: string[]; index: 
     return () => window.removeEventListener('keydown', onKey);
   }, [index, images.length, onClose, onNav]);
 
+  const img = images[index];
   return (
     <div className="fixed inset-0 bg-black/95 z-[1200] flex items-center justify-center p-4 md:p-10" onClick={onClose}>
-      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">
-        &times;
-      </button>
-      <a
-        href={images[index]} download target="_blank" rel="noreferrer"
-        onClick={e => e.stopPropagation()}
-        className="absolute top-5 right-20 text-white/80 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5"
-      >
-        ⬇ Tải ảnh
-      </a>
+      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">&times;</button>
+      <a href={img.src} download target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="absolute top-5 right-20 text-white/80 hover:text-white text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5">⬇ Tải ảnh</a>
       {images.length > 1 && (
         <>
-          <button
-            disabled={index === 0}
-            onClick={e => { e.stopPropagation(); onNav(index - 1); }}
-            className="absolute left-3 md:left-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer"
-          >
-            ←
-          </button>
-          <button
-            disabled={index === images.length - 1}
-            onClick={e => { e.stopPropagation(); onNav(index + 1); }}
-            className="absolute right-3 md:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer"
-          >
-            →
-          </button>
+          <button disabled={index === 0} onClick={e => { e.stopPropagation(); onNav(index - 1); }} className="absolute left-3 md:left-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer">←</button>
+          <button disabled={index === images.length - 1} onClick={e => { e.stopPropagation(); onNav(index + 1); }} className="absolute right-3 md:right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white disabled:opacity-20 disabled:cursor-default flex items-center justify-center cursor-pointer">→</button>
           <span className="absolute bottom-5 text-white/60 text-[11px] tracking-widest">{index + 1} / {images.length}</span>
         </>
       )}
-      <img src={images[index]} alt="" onClick={e => e.stopPropagation()} className="max-w-full max-h-full object-contain cursor-default" />
+      <img src={vercelImg(img.src, 1600)} alt={img.alt || ''} decoding="async" onClick={e => e.stopPropagation()} className="max-w-full max-h-full object-contain cursor-default" />
     </div>
   );
 }
 
-// Thumbnail video bàn giao — đặt ở cuối album (trước khối "Thank you"), không
-// nhúng ngay trong nội dung Phase 05 nữa. Lấy thumbnail thật nếu là Youtube,
-// còn lại dùng nền placeholder có icon Play. Bấm vào KHÔNG rời trang sang
-// Youtube nữa — mở overlay phát ngay tại landing page (iframe nhúng nếu là
-// Youtube, thẻ <video> gốc nếu là link file video trực tiếp).
 function getYouTubeId(url: string): string | null {
   const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
 }
 
-function VideoThumbnail({ url, onPlay }: { url: string; onPlay: () => void }) {
-  const ytId = getYouTubeId(url);
-  const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null;
-  return (
-    <button
-      type="button"
-      onClick={onPlay}
-      className="group relative block w-full max-w-2xl mx-auto aspect-video rounded-sm overflow-hidden border border-white/10 shadow-xl bg-[#1A1814] mt-16 cursor-pointer"
-    >
-      {thumb ? (
-        <img src={thumb} alt="Video bàn giao" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2C2920] to-[#1A1814]" />
-      )}
-      <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/15 transition-colors">
-        <div className="w-16 h-16 rounded-full bg-[#B8913A] group-hover:scale-110 transition-transform flex items-center justify-center shadow-xl">
-          <span className="text-[#1A1814] text-2xl ml-1">&#9654;</span>
-        </div>
-      </div>
-      <span className="absolute bottom-3 left-3 text-[9px] tracking-widest text-white uppercase font-bold bg-black/50 px-2.5 py-1.5 rounded-sm">&#9654; Xem video bàn giao</span>
-    </button>
-  );
-}
-
-// Overlay phát video ngay trên landing page — nhúng iframe Youtube
-// (autoplay) nếu nhận ra link Youtube, còn lại coi là link file video trực
-// tiếp và phát bằng thẻ <video> gốc của trình duyệt.
 function VideoPlayerOverlay({ url, onClose }: { url: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
   const ytId = getYouTubeId(url);
-
   return (
     <div className="fixed inset-0 bg-black/95 z-[1300] flex items-center justify-center p-4 md:p-10" onClick={onClose}>
-      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">
-        &times;
-      </button>
+      <button onClick={onClose} aria-label="Đóng" className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xl font-light cursor-pointer">&times;</button>
       <div className="w-full max-w-4xl aspect-video" onClick={e => e.stopPropagation()}>
         {ytId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-            title="Video bàn giao"
-            className="w-full h-full border-0 rounded-sm"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <iframe src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`} title="Video bàn giao" className="w-full h-full border-0 rounded-sm" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
         ) : (
           <video src={url} controls autoPlay className="w-full h-full rounded-sm bg-black" />
         )}
@@ -353,303 +271,472 @@ function VideoPlayerOverlay({ url, onClose }: { url: string; onClose: () => void
   );
 }
 
-export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClose: () => void }) {
-  const [activeStage, setActiveStage] = useState(0);
-  const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
-  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
-  const [lightbox, setLightbox] = useState<{ images: string[]; index: number } | null>(null);
-  const [videoOpen, setVideoOpen] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+// ── Thanh kéo so sánh Phối cảnh ↔ Thực tế (chuột/chạm/bàn phím) ──
+function BeforeAfterSlider({ render, real }: { render: { src: string; alt?: string }; real: { src: string; alt?: string } }) {
+  const [pos, setPos] = useState(50);
+  const ref = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
 
-  const stages = [
-    {
-      title: 'Ý TƯỞNG & MẶT BẰNG', subtitle: 'CONCEPT & LAYOUT',
-      painPoint: DEFAULT_PAIN_POINTS[0],
-      storyText: [study.introText, study.floorPlan.text, study.design3D.text].filter(Boolean).join('\n\n'),
-      link: study.floorPlan.link,
-      techChecklist: [
-        { label: 'Sai số đo đạc phần thô', value: 'Dưới 5mm (dùng máy quét laser 3D hiện trường)' },
-        { label: 'Mật độ không gian thở (Void ratio)', value: 'Đạt chuẩn Solid:Void = 3:1 tối ưu luồng khí' },
-        { label: 'Thiết kế giấu cột chịu lực', value: '100% cột bê tông được giấu chìm âm tường thạch cao' },
-      ],
-    },
-    {
-      title: 'TINH CHỈNH & VẬT LIỆU', subtitle: 'MATERIAL & TAILORING',
-      painPoint: DEFAULT_PAIN_POINTS[1],
-      storyText: [study.tailoring.text, study.material.text].filter(Boolean).join('\n\n'),
-      link: study.tailoring.link,
-      techChecklist: (study.tailoring.steps || []).map(st => ({ label: st.title, value: st.desc })),
-    },
-    {
-      title: 'THI CÔNG PHẦN THÔ', subtitle: 'ROUGH CONSTRUCTION',
-      painPoint: DEFAULT_PAIN_POINTS[2],
-      storyText: study.structural.text,
-      link: study.structural.link,
-      techChecklist: [
-        { label: 'Chống nứt góc tường', value: 'Đóng lưới thép mắt cáo 100% điểm tiếp giáp trước khi tô vữa' },
-        { label: 'Chống thấm toilet', value: 'Màng chống thấm polymer 3 lớp đặc chủng, ngâm thử nước 72h' },
-        { label: 'Mockup ánh sáng hiện trường', value: 'Lắp thử hệ LED 2700K/3000K trước khi đóng trần thạch cao' },
-      ],
-    },
-    {
-      title: 'LẮP RÁP NỘI THẤT', subtitle: 'INTERIOR ASSEMBLY',
-      painPoint: DEFAULT_PAIN_POINTS[3],
-      storyText: [study.fixedInterior.text, study.fixedInterior.extraText, study.looseFurniture.text].filter(Boolean).join('\n\n'),
-      link: study.fixedInterior.link,
-      techChecklist: [
-        { label: 'Khe cạnh dán ABS gỗ', value: 'Mịn phẳng tuyệt đối ≤ 0.5mm, dùng máy dán cạnh tự động' },
-        { label: 'Bản lề hơi giảm chấn', value: '100% Häfele đóng mở êm dịu, không tiếng động' },
-        { label: 'Độ chuẩn xác Shadow Gap', value: 'Khe âm thạch cao 3mm và chân tủ 2mm thẳng tắp' },
-      ],
-      detailsItems: study.details.items || [],
-    },
-    {
-      title: 'BÀN GIAO THỰC TẾ', subtitle: 'FINAL HANDOVER',
-      painPoint: DEFAULT_PAIN_POINTS[4],
-      storyText: study.finalize.text,
-      link: study.finalize.link,
-      videoUrl: study.finalize.videoUrl,
-      techChecklist: [
-        { label: 'Bảo hành kết cấu công trình', value: '10 năm cam kết bằng văn bản ký kết chính thức' },
-        { label: 'Checklist bàn giao chìa khoá', value: 'Rà soát 120 điểm nghiệm thu cùng chủ nhà' },
-        { label: 'Thời gian xử lý sự cố bảo trì', value: 'Có mặt hiện trường xử lý trong vòng 24-48h' },
-      ],
-    },
-  ];
-
-  const scrollToStage = (idx: number) => {
-    const container = scrollContainerRef.current;
-    const el = document.getElementById(`stage-section-${idx}`);
-    if (container && el) {
-      const containerTop = container.getBoundingClientRect().top;
-      const elTop = el.getBoundingClientRect().top;
-      container.scrollTo({ top: container.scrollTop + (elTop - containerTop), behavior: 'smooth' });
-      setActiveStage(idx);
-    }
+  const setFromClientX = (clientX: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setPos(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100)));
   };
 
-  const handleScroll = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    let currentActive = 0;
-    let minDiff = Infinity;
-    for (let i = 0; i < stages.length; i++) {
-      const el = document.getElementById(`stage-section-${i}`);
-      if (el) {
-        const diff = Math.abs(el.getBoundingClientRect().top - container.getBoundingClientRect().top);
-        if (diff < minDiff) { minDiff = diff; currentActive = i; }
-      }
-    }
-    setActiveStage(currentActive);
-  };
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => { if (dragging.current) setFromClientX(e.clientX); };
+    const onUp = () => { dragging.current = false; };
+    const onTouchMove = (e: TouchEvent) => { if (dragging.current && e.touches[0]) setFromClientX(e.touches[0].clientX); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, []);
 
   return (
-    <div className="fixed inset-0 bg-[#161412]/95 z-[1000] flex items-center justify-center p-0 md:p-6 lg:p-10 font-sans text-[#2C2920] backdrop-blur-md overflow-hidden">
-      <button onClick={onClose} className="absolute top-4 right-4 md:top-6 md:right-6 z-[1050] bg-[#FAF8F4] hover:bg-[#B8913A] hover:text-[#FAF8F4] text-[#1A1814] w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl font-light text-xl cursor-pointer">
+    <div ref={ref} className="relative w-full aspect-[4/3] overflow-hidden rounded-[2px] select-none bg-[#161412]">
+      <img src={vercelImg(render.src, 900)} alt={render.alt || 'Phối cảnh thiết kế'} loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+      <span className="absolute top-3 left-3 bg-[#161412]/80 text-white text-[9px] uppercase tracking-widest px-2 py-1 rounded-sm font-bold">Phối cảnh thiết kế</span>
+      <img
+        src={vercelImg(real.src, 900)}
+        alt={real.alt || 'Thực tế bàn giao'}
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}
+        draggable={false}
+      />
+      <span className="absolute top-3 right-3 bg-[#B8913A] text-[#1A1814] text-[9px] uppercase tracking-widest px-2 py-1 rounded-sm font-bold" style={{ opacity: pos > 18 ? 1 : 0 }}>Thực tế bàn giao</span>
+      <div className="absolute top-0 bottom-0 w-[2px] bg-white pointer-events-none" style={{ left: `${pos}%` }} />
+      <button
+        type="button"
+        role="slider"
+        aria-label="Kéo để so sánh phối cảnh thiết kế và thực tế bàn giao"
+        aria-valuenow={Math.round(pos)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        onMouseDown={() => { dragging.current = true; }}
+        onTouchStart={() => { dragging.current = true; }}
+        onKeyDown={e => {
+          if (e.key === 'ArrowLeft') setPos(p => Math.max(0, p - 5));
+          if (e.key === 'ArrowRight') setPos(p => Math.min(100, p + 5));
+        }}
+        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white shadow-lg border border-[#2C2920]/10 flex items-center justify-center cursor-ew-resize focus:outline-none focus:ring-2 focus:ring-[#B8913A]"
+        style={{ left: `${pos}%` }}
+      >
+        <span className="text-[#2C2920] text-sm">⇔</span>
+      </button>
+    </div>
+  );
+}
+
+// ── Lưới ảnh 1 giai đoạn: không khung đen, bố cục theo số lượng (1/2/3-4) ──
+function PhaseImageGrid({ images, onOpen, colorReveal }: { images: CaseStudyImage[]; onOpen: (i: number) => void; colorReveal?: boolean }) {
+  const n = images.length;
+  if (n === 0) return null;
+  return (
+    <div className="grid grid-cols-3 gap-2 md:gap-3">
+      {images.slice(0, 4).map((im, i) => {
+        const span = n === 1 ? 'col-span-3' : n === 2 ? (i === 0 ? 'col-span-2' : 'col-span-1') : i === 0 ? 'col-span-3' : 'col-span-1';
+        const aspect = n === 1 ? 'aspect-[4/3]' : i === 0 && n > 1 ? 'aspect-[16/10]' : 'aspect-square';
+        const isSite = im.type === 'site';
+        const filterClass = isSite ? 'grayscale contrast-[1.05]' : im.type === 'real' && colorReveal !== undefined
+          ? `transition-[filter] duration-[900ms] ease-out ${colorReveal ? 'grayscale-0' : 'grayscale'}`
+          : '';
+        return (
+          <button key={i} type="button" onClick={() => onOpen(i)} className={`relative overflow-hidden rounded-[2px] group cursor-zoom-in ${span} ${aspect}`}>
+            <img src={vercelImg(im.src, n === 1 ? 1000 : 600)} alt={im.alt || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] ${filterClass}`} />
+            {im.type === 'render' && (
+              <span className="absolute top-2 left-2 bg-[#161412]/80 text-white text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold">Phối cảnh thiết kế</span>
+            )}
+            {im.caption && (
+              <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white text-[9px] px-2 py-1.5">{im.caption}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+  }, []);
+  return reduced;
+}
+
+// Mờ dần + trượt lên khi vào viewport, chạy 1 lần, tắt khi reduced-motion.
+function RevealOnView({ children, className }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) { setVisible(true); return; }
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [reduced]);
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(12px)', transition: 'opacity 450ms ease-out, transform 450ms ease-out' }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function StatRow({ study }: { study: CaseStudyData }) {
+  const items = [study.area, study.location, study.style, study.constructionTime].filter(Boolean);
+  if (items.length === 0) return null;
+  return <p className="text-[10px] md:text-xs text-white/75 uppercase tracking-widest font-semibold">{items.join(' · ')}</p>;
+}
+
+export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClose: () => void }) {
+  const [activeKey, setActiveKey] = useState<string>(study.phases[0]?.key || 'intro');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [lightbox, setLightbox] = useState<{ images: CaseStudyImage[]; index: number } | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [handoverRevealed, setHandoverRevealed] = useState(false);
+  // Thanh tiến trình đổi liên tục khi cuộn (60 lần/giây) — nếu để React state thì
+  // MỖI frame sẽ re-render lại toàn bộ cây component (mọi section + ảnh bên dưới),
+  // đó là nguyên nhân chính gây giật khi cuộn. Ghi thẳng vào DOM qua ref, bỏ qua React.
+  const progressRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const handoverRef = useRef<HTMLDivElement | null>(null);
+  const reduced = useReducedMotion();
+
+  const sections = [{ key: 'intro', label: null as string | null }, ...study.phases.map(p => ({ key: p.key, label: PHASE_META[p.key].menuLabel })), { key: 'ending', label: null }];
+
+  // Khoá cuộn body khi mở, mở hash #case-<id> để gửi link thẳng, Esc đóng.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const prevHash = window.location.hash;
+    if (study.id) window.history.replaceState(null, '', `#case-${study.id}`);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      if (window.location.hash.startsWith('#case-')) window.history.replaceState(null, '', window.location.pathname + window.location.search + (prevHash.startsWith('#case-') ? '' : prevHash));
+      window.removeEventListener('keydown', onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [study.id]);
+
+  // Giai đoạn bàn giao: đen trắng → màu khi cuộn tới (1 lần), bỏ qua nếu reduced-motion.
+  useEffect(() => {
+    if (reduced) { setHandoverRevealed(true); return; }
+    const el = handoverRef.current;
+    if (!el) { setHandoverRevealed(true); return; }
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setHandoverRevealed(true); obs.disconnect(); } }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [reduced]);
+
+  const scrollToSection = (key: string) => {
+    const el = document.getElementById(`cs-section-${key}`);
+    const container = scrollRef.current;
+    if (el && container) {
+      const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+      container.scrollTo({ top: top - 8, behavior: reduced ? 'auto' : 'smooth' });
+    }
+    setActiveKey(key);
+  };
+
+  // getBoundingClientRect() trên từng section là layout read — chạy thẳng
+  // trên mỗi sự kiện scroll (bắn hàng chục lần/giây khi vuốt) sẽ giật máy yếu/
+  // mobile. Gộp lại chỉ tính 1 lần mỗi khung hình bằng requestAnimationFrame.
+  const scrollRaf = useRef<number | null>(null);
+  const handleScroll = () => {
+    if (scrollRaf.current !== null) return;
+    scrollRaf.current = requestAnimationFrame(() => {
+      scrollRaf.current = null;
+      const container = scrollRef.current;
+      if (!container) return;
+      const top = container.getBoundingClientRect().top;
+      let current = sections[0].key;
+      let minDiff = Infinity;
+      for (const s of sections) {
+        const el = document.getElementById(`cs-section-${s.key}`);
+        if (!el) continue;
+        const diff = Math.abs(el.getBoundingClientRect().top - top);
+        if (diff < minDiff) { minDiff = diff; current = s.key; }
+      }
+      setActiveKey(current);
+      const scrolled = container.scrollTop / Math.max(1, container.scrollHeight - container.clientHeight);
+      const pct = Math.min(100, Math.max(0, scrolled * 100));
+      if (progressRef.current) progressRef.current.style.width = pct + '%';
+    });
+  };
+  useEffect(() => () => { if (scrollRaf.current !== null) cancelAnimationFrame(scrollRaf.current); }, []);
+
+  return (
+    <div className="fixed inset-0 z-[1000] bg-[#F7F4EF] text-[#2B211C] font-sans">
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-stone-200 z-[1050]">
+        <div ref={progressRef} className="h-full bg-[#B08A4A]" style={{ width: '0%' }} />
+      </div>
+      <button onClick={onClose} aria-label="Đóng" className="fixed top-4 right-4 md:top-6 md:right-6 z-[1060] bg-[#2B211C] hover:bg-[#B08A4A] text-white w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center transition-colors shadow-lg text-xl font-light cursor-pointer">
         &times;
       </button>
 
-      <div className="w-full h-full md:max-w-6xl md:h-[90vh] bg-[#FAF8F4] rounded-sm shadow-2xl overflow-hidden relative flex flex-col border border-[#2C2920]/15">
-        <div className="bg-[#FAF8F4] px-6 py-4 border-b border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
-          <div className="flex items-center gap-2">
-            <span className="font-serif text-sm font-semibold text-[#1A1814]">DQH ARCHITECTS</span>
-            <span className="text-[10px] text-[#8A8070] uppercase tracking-wider">Case Study Journal</span>
-          </div>
-          <span className="text-[9px] text-[#8A8070] uppercase tracking-widest font-semibold text-right">{study.title}</span>
-        </div>
-
-        <div className="h-[2px] w-full bg-stone-200 relative shrink-0">
-          <div className="absolute top-0 left-0 h-full bg-[#B8913A] transition-all duration-500" style={{ width: `${(activeStage + 1) * 20}%` }} />
-        </div>
-
-        <div className="flex-1 flex overflow-hidden w-full relative">
-          <div className="hidden md:flex w-60 border-r border-[#2C2920]/10 p-6 bg-[#FAF8F4] flex-col justify-between shrink-0 h-full">
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <span className="text-[8px] tracking-[0.25em] text-[#8A8070] font-bold uppercase block">NHẬT KÝ THI CÔNG</span>
-                <h4 className="font-extrabold text-xs text-[#1A1814] uppercase tracking-wider leading-none">DQH QUALITY PROOF</h4>
-              </div>
-              <div className="h-[1px] w-full bg-[#2C2920]/10" />
-              <div className="space-y-4">
-                {stages.map((stg, sIdx) => (
-                  <button key={sIdx} onClick={() => scrollToStage(sIdx)} className={`flex items-start gap-3 w-full text-left py-1.5 transition-all duration-300 cursor-pointer ${activeStage === sIdx ? 'text-[#B8913A] translate-x-1 font-bold' : 'text-[#8A8070] hover:text-[#1A1814]'}`}>
-                    <span className={`font-mono text-[9px] tracking-wider ${activeStage === sIdx ? 'text-[#B8913A]' : 'text-stone-400'}`}>0{sIdx + 1}</span>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] uppercase tracking-wider truncate leading-tight">{stg.title}</span>
-                      <span className="text-[7px] tracking-widest text-[#8A8070] uppercase truncate mt-0.5">{stg.subtitle}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+      <div ref={scrollRef} onScroll={handleScroll} className="h-full overflow-y-auto overscroll-contain">
+        {/* ── Header + nav ngang mobile (sticky) ── */}
+        <div className="sticky top-0 z-[1040] bg-[#F7F4EF]/95 backdrop-blur-sm border-b border-[#2B211C]/10">
+          <div className="px-5 md:px-8 py-3 flex items-center justify-between">
+            <div className="flex items-baseline gap-2 min-w-0">
+              <span className="font-serif text-sm font-semibold shrink-0">DQH ARCHITECTS</span>
+              <span className="text-[9px] text-[#6E625A] uppercase tracking-wider hidden sm:inline">Case Study Journal</span>
             </div>
+            <span className="text-[9px] text-[#6E625A] uppercase tracking-widest font-semibold truncate ml-3">{study.title}</span>
           </div>
+          <div className="lg:hidden flex gap-1 px-5 md:px-8 pb-3 overflow-x-auto no-scrollbar">
+            {study.phases.map((p, i) => (
+              <button
+                key={p.key}
+                onClick={() => scrollToSection(p.key)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide cursor-pointer transition-colors ${activeKey === p.key ? 'bg-[#2B211C] text-white' : 'bg-[#2B211C]/5 text-[#6E625A]'}`}
+              >
+                {String(i + 1).padStart(2, '0')}
+              </button>
+            ))}
+          </div>
+        </div>
 
-          <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-8 space-y-12 scroll-smooth bg-[#FAF8F4]">
-            <div className="relative w-full h-[25vh] md:h-[40vh] rounded-sm overflow-hidden mb-6 border border-[#2C2920]/10 shadow-lg">
-              {study.coverImage && (
-                <img src={study.coverImage} alt={study.title} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; }} />
+        <div className="flex max-w-[1400px] mx-auto">
+          {/* ── Menu trái, desktop ── */}
+          <nav className="hidden lg:block w-60 shrink-0 sticky top-[57px] self-start h-[calc(100vh-57px)] overflow-y-auto px-8 py-10">
+            <div className="space-y-1">
+              <span className="text-[8px] tracking-[0.25em] text-[#6E625A] font-bold uppercase block">NHẬT KÝ THI CÔNG</span>
+              <h4 className="font-extrabold text-xs uppercase tracking-wider leading-none">DQH QUALITY PROOF</h4>
+            </div>
+            <div className="h-px w-full bg-[#2B211C]/10 my-6" />
+            <div className="space-y-4">
+              {study.phases.map((p, i) => (
+                <button key={p.key} onClick={() => scrollToSection(p.key)} className={`flex items-start gap-3 w-full text-left py-1 transition-all cursor-pointer ${activeKey === p.key ? 'text-[#B08A4A] translate-x-1 font-bold' : 'text-[#6E625A] hover:text-[#2B211C]'}`}>
+                  <span className={`font-mono text-[9px] tracking-wider pt-0.5 ${activeKey === p.key ? 'text-[#B08A4A]' : 'text-stone-400'}`}>{String(i + 1).padStart(2, '0')}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] uppercase tracking-wider leading-tight">{PHASE_META[p.key].title}</span>
+                    <span className="text-[8px] tracking-widest text-[#6E625A] uppercase mt-0.5">{PHASE_META[p.key].subtitle}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* ── Nội dung ── */}
+          <div className="flex-1 min-w-0 pb-24 lg:pb-16">
+            {/* 00 — Mở đầu */}
+            <section id="cs-section-intro" className="relative scroll-mt-24">
+              <div className="relative w-full h-[55vh] md:h-[70vh] overflow-hidden">
+                {study.cover && <img src={vercelImg(study.cover.src, 1600)} alt={study.cover.alt || study.title} decoding="async" fetchPriority="high" className="w-full h-full object-cover" />}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(to top, #161412 0%, rgba(22,20,18,0.78) 28%, rgba(22,20,18,0.28) 58%, rgba(22,20,18,0) 85%)' }}
+                />
+                {study.cover?.type === 'render' && (
+                  <span className="absolute top-5 left-5 bg-[#161412]/80 text-white text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-sm font-bold">Phối cảnh thiết kế</span>
+                )}
+                <div className="absolute inset-x-0 bottom-0 px-5 md:px-10 pb-8 md:pb-12">
+                  <span className="text-[9px] tracking-[0.3em] uppercase text-[#D4BC95] font-extrabold block mb-2">JOURNAL OF ARCHITECTURAL FINISHING</span>
+                  <h1 className="font-extrabold text-3xl md:text-6xl tracking-tight text-white uppercase leading-[1.02] mb-2">{study.title}</h1>
+                  <StatRow study={study} />
+                </div>
+              </div>
+              {study.intro && (
+                <RevealOnView className="max-w-2xl mx-auto text-center px-5 py-10 md:py-14">
+                  <p className="font-serif italic text-sm md:text-base text-[#B08A4A] leading-relaxed">"{study.intro}"</p>
+                </RevealOnView>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#161412]/95 via-[#161412]/45 to-transparent flex flex-col justify-end p-5 md:p-8">
-                <span className="text-[9px] tracking-[0.3em] uppercase text-[#D4BC95] font-extrabold block mb-1">JOURNAL OF ARCHITECTURAL FINISHING</span>
-                <h2 className="font-extrabold text-xl md:text-3xl tracking-tight text-white uppercase leading-none mb-1.5">{study.title}</h2>
-                <p className="text-[9px] text-stone-300 uppercase tracking-widest font-semibold">{study.location} · {study.area} · {study.style}</p>
-              </div>
-            </div>
+            </section>
 
-            <div className="max-w-2xl mx-auto text-center space-y-3 pb-8 border-b border-[#2C2920]/10">
-              <p className="font-serif italic text-xs md:text-sm text-[#B8913A] leading-relaxed">"{study.introText}"</p>
-            </div>
-
-            <div className="space-y-16 md:space-y-24 pb-12">
-              {stages.map((stg, sIdx) => {
-                const isExpanded = !!expandedDetails[`stage-${sIdx}`];
-                return (
-                  <div key={sIdx} id={`stage-section-${sIdx}`} className="relative grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 scroll-mt-6 border-b border-[#2C2920]/10 pb-12 last:border-b-0">
-                    <div className="w-full md:sticky md:top-4 md:h-[45vh] self-start overflow-hidden rounded-sm bg-[#161412] border border-[#2C2920]/10 shadow-md flex items-center justify-center p-0 relative min-h-[250px] md:min-h-[300px]">
-                      <PhaseVisuals
-                        stage={{ image: null }} index={sIdx} study={study} imageErrors={imageErrors}
-                        onImageError={url => setImageErrors(prev => ({ ...prev, [url]: true }))}
-                        onImageClick={(imgs, idx) => setLightbox({ images: imgs, index: idx })}
-                      />
-                      <div className="absolute bottom-3 right-3 bg-[#161412]/80 border border-white/10 px-2 py-0.5 rounded-sm text-[8px] tracking-widest text-[#D4BC95] uppercase font-bold">PHASE 0{sIdx + 1} VISUALS</div>
-                    </div>
-
-                    <div className="space-y-5 flex flex-col justify-start">
-                      <div className="space-y-1">
-                        <span className="text-[9px] text-[#B8913A] font-bold tracking-widest block">PHASE 0{sIdx + 1} / 05</span>
-                        <h3 className="font-extrabold text-base md:text-lg text-[#1A1814] tracking-wide uppercase">{stg.title}</h3>
-                        <span className="block text-[9px] text-[#8A8070] tracking-widest font-medium">{stg.subtitle}</span>
-                      </div>
-
-                      <blockquote className="font-serif italic text-xs text-[#B8913A] pl-4 border-l-2 border-[#B8913A] py-1.5 pr-2 bg-[#B8913A]/5 rounded-r-sm leading-relaxed">
-                        "{stg.painPoint}"
-                      </blockquote>
-
-                      <div className="space-y-4 text-xs text-[#2C2920] leading-relaxed">
-                        {stg.storyText.split('\n\n').filter(Boolean).map((pText, pIdx) => {
-                          if (!isExpanded && pIdx > 0) return null;
-                          return <p key={pIdx}>{pText}</p>;
-                        })}
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                        <button onClick={() => setExpandedDetails(prev => ({ ...prev, [`stage-${sIdx}`]: !prev[`stage-${sIdx}`] }))} className="text-[9px] tracking-widest text-[#B8913A] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors cursor-pointer border-b border-transparent hover:border-[#1A1814] pb-0.5 w-fit">
-                          {isExpanded ? '[-] Thu gọn nhật ký' : '[+] Đọc câu chuyện đầy đủ'}
-                        </button>
-                        {stg.link && (
-                          <a href={stg.link} target="_blank" rel="noopener noreferrer" className="text-[9px] tracking-widest text-[#8A8070] hover:text-[#1A1814] uppercase font-bold flex items-center gap-1 transition-colors w-fit">
-                            ↗ Xem thêm
-                          </a>
-                        )}
-                      </div>
-
-                      {isExpanded && (
-                        <div className="space-y-6 pt-5 border-t border-dashed border-[#2C2920]/15">
-                          {sIdx === 1 && study.material.samples.length > 0 && (
-                            <div className="space-y-3">
-                              <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">KHAY MẪU VẬT LIỆU THỰC TẾ</span>
-                              <div className="grid grid-cols-2 gap-2">
-                                {study.material.samples.map((samp, sampIdx) => (
-                                  <div key={sampIdx} className="bg-white p-1.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex gap-2.5 items-center">
-                                    <div className="w-9 h-9 rounded-sm overflow-hidden shrink-0 bg-stone-100 flex items-center justify-center">
-                                      {samp.img && !imageErrors[samp.img] ? (
-                                        <img src={samp.img} className="w-full h-full object-cover" alt={samp.name} onError={() => setImageErrors(prev => ({ ...prev, [samp.img!]: true }))} />
-                                      ) : <span className="text-[7px] text-stone-400 font-mono">MAT</span>}
-                                    </div>
-                                    <div className="min-w-0">
-                                      <span className="block text-[8px] text-[#8A8070] uppercase truncate font-medium">{samp.desc}</span>
-                                      <span className="block text-[9px] font-bold text-[#2C2920] truncate">{samp.name}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
+            {/* 01–05 giai đoạn */}
+            {study.phases.map((phase, pIdx) => {
+              const meta = PHASE_META[phase.key];
+              const isExpanded = !!expanded[phase.key];
+              const isHandover = phase.key === 'handover';
+              return (
+                <section
+                  key={phase.key}
+                  id={`cs-section-${phase.key}`}
+                  ref={isHandover ? handoverRef : undefined}
+                  className="scroll-mt-24 px-5 md:px-10 py-14 md:py-20 border-t border-[#2B211C]/10"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-[60%_1fr] gap-8 lg:gap-12">
+                    <RevealOnView className="lg:sticky lg:top-[72px] self-start space-y-4">
+                      {phase.key === 'concept' && (phase.planBefore || phase.planAfter) ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {phase.planBefore && (
+                            <div className="space-y-1.5">
+                              <img src={vercelImg(phase.planBefore.src, 700)} alt={phase.planBefore.alt || 'Hiện trạng'} loading="lazy" decoding="async" className="w-full aspect-[4/3] object-cover rounded-[2px] bg-white" />
+                              <span className="block text-[9px] uppercase tracking-widest text-[#6E625A] font-semibold">Hiện trạng</span>
                             </div>
                           )}
-
-                          {sIdx === 3 && stg.detailsItems && stg.detailsItems.length > 0 && (
-                            <div className="space-y-3">
-                              <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">DANH SÁCH MỘC NỘI THẤT RỜI ĐÃ PHỐI HỢP</span>
-                              <div className="grid grid-cols-1 gap-1">
-                                {stg.detailsItems.map((det, dIdx) => (
-                                  <div key={dIdx} className="flex items-center gap-3 bg-white p-1.5 border border-[#2C2920]/5 rounded-sm">
-                                    <div className="w-[18px] h-[18px] rounded-full bg-[#1A1814] text-white flex items-center justify-center text-[8px] font-bold shrink-0">{det.num}</div>
-                                    <span className="text-[9px] text-[#2C2920] font-medium">{det.name}</span>
-                                  </div>
-                                ))}
-                              </div>
+                          {phase.planAfter && (
+                            <div className="space-y-1.5">
+                              <img src={vercelImg(phase.planAfter.src, 700)} alt={phase.planAfter.alt || 'Phương án bố trí'} loading="lazy" decoding="async" className="w-full aspect-[4/3] object-cover rounded-[2px] bg-white" />
+                              <span className="block text-[9px] uppercase tracking-widest text-[#6E625A] font-semibold">Phương án bố trí</span>
                             </div>
                           )}
-
-                          <div className="space-y-3">
-                            <span className="block text-[8px] tracking-[0.2em] uppercase text-[#1A1814] font-bold">BẰNG CHỨNG KỸ THUẬT (DQH QUALITY PROOF)</span>
-                            <div className="space-y-2">
-                              {stg.techChecklist.map((item, cIdx) => (
-                                <div key={cIdx} className="bg-white p-2.5 rounded-sm border border-[#2C2920]/5 shadow-sm flex flex-col gap-0.5">
-                                  <span className="font-bold text-[9px] text-[#1A1814] uppercase tracking-wide">{item.label}</span>
-                                  <span className="text-[9px] text-[#8A8070] leading-relaxed">{item.value}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                        </div>
+                      ) : null}
+                      {phase.images.length > 0 && (
+                        <PhaseImageGrid
+                          images={phase.images}
+                          onOpen={i => setLightbox({ images: phase.images, index: i })}
+                          colorReveal={isHandover ? handoverRevealed : undefined}
+                        />
+                      )}
+                      {phase.key === 'material' && phase.materials && phase.materials.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {phase.materials.map((m, i) => (
+                            <button key={i} type="button" onClick={() => setLightbox({ images: phase.materials!.map(mm => ({ src: mm.src, alt: mm.name, type: 'site' as const })), index: i })} className="space-y-1.5 text-left cursor-zoom-in">
+                              <img src={vercelImg(m.src, 300)} alt={m.alt || m.name} loading="lazy" decoding="async" className="w-full aspect-square object-cover rounded-[2px]" />
+                              <span className="block text-[10px] font-semibold text-[#2B211C]">{m.name}</span>
+                            </button>
+                          ))}
                         </div>
                       )}
-                    </div>
+                      {phase.key === 'material' && study.palette && study.palette.length > 0 && (
+                        <div className="flex gap-3 pt-1">
+                          {study.palette.map((c, i) => (
+                            <div key={i} className="space-y-1.5">
+                              <div className="w-12 h-12 rounded-full border border-[#2B211C]/10 shadow-sm" style={{ backgroundColor: c.hex }} />
+                              <span className="block text-[8px] uppercase tracking-wide text-[#6E625A] text-center">{c.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {phase.compare && <BeforeAfterSlider render={phase.compare.render} real={phase.compare.real} />}
+                    </RevealOnView>
+
+                    <RevealOnView className="space-y-5">
+                      <div className="space-y-1">
+                        <span className="text-[9px] text-[#B08A4A] font-bold tracking-widest block">PHASE {String(pIdx + 1).padStart(2, '0')} / {String(study.phases.length).padStart(2, '0')}</span>
+                        <h2 className="font-extrabold text-xl md:text-2xl tracking-wide uppercase">{meta.title}</h2>
+                        <span className="block text-[9px] text-[#6E625A] tracking-widest font-medium">{meta.subtitle}</span>
+                      </div>
+
+                      <blockquote className="font-serif italic text-xs md:text-sm text-[#B08A4A] pl-4 border-l-2 border-[#B08A4A] py-2 pr-2 bg-[#B08A4A]/5 rounded-r-sm leading-relaxed">
+                        "{phase.fear}"
+                      </blockquote>
+
+                      {phase.body && <p className="text-sm text-[#2B211C] leading-relaxed">{phase.body}</p>}
+
+                      {phase.proof && phase.proof.length > 0 && (
+                        <ul className="space-y-1.5">
+                          {phase.proof.map((pr, i) => (
+                            <li key={i} className="flex items-start gap-2 text-xs text-[#2B211C]">
+                              <span className="text-[#B08A4A] mt-0.5 shrink-0">—</span>
+                              <span>{pr}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {phase.story && (
+                        <div>
+                          <button onClick={() => setExpanded(prev => ({ ...prev, [phase.key]: !prev[phase.key] }))} className="text-[9px] tracking-widest text-[#B08A4A] hover:text-[#2B211C] uppercase font-bold flex items-center gap-1 transition-colors cursor-pointer border-b border-transparent hover:border-[#2B211C] pb-0.5 w-fit">
+                            {isExpanded ? '[-] Thu gọn' : '[+] Đọc câu chuyện đầy đủ'}
+                          </button>
+                          {isExpanded && (
+                            <div className="pt-4 space-y-3 text-xs text-[#2B211C] leading-relaxed">
+                              {phase.story.split('\n\n').filter(Boolean).map((para, i) => <p key={i}>{para}</p>)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </RevealOnView>
                   </div>
-                );
-              })}
-            </div>
+                </section>
+              );
+            })}
 
-            {study.finalize.videoUrl && <VideoThumbnail url={study.finalize.videoUrl} onPlay={() => setVideoOpen(true)} />}
+            {/* KẾT */}
+            <section id="cs-section-ending" className="scroll-mt-24 relative">
+              <div className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden">
+                {(study.ending?.src || study.cover?.src) && (
+                  <img src={vercelImg(study.ending?.src || study.cover!.src, 1200)} alt={study.ending?.alt || study.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                )}
+                <div className="absolute inset-0 bg-[#161412]/60" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+                  <RevealOnView>
+                    <StatRow study={study} />
+                    <p className="mt-5 max-w-md text-sm md:text-base text-white font-serif italic leading-relaxed">
+                      Anh/chị đang chuẩn bị làm nhà? DQH khảo sát hiện trạng và gửi khái toán sơ bộ miễn phí tại TP.HCM.
+                    </p>
+                    <div className="mt-7 flex flex-col sm:flex-row gap-3 items-center justify-center">
+                      <a href="https://zalo.me/0982914368" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 bg-[#B08A4A] hover:bg-[#D4BC95] text-[#1A1814] text-xs font-bold uppercase tracking-widest px-7 py-3.5 rounded-sm transition-colors cursor-pointer">
+                        Nhắn Zalo
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => { onClose(); setTimeout(() => document.getElementById('contact')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }), 50); }}
+                        className="inline-flex items-center justify-center gap-2 bg-transparent hover:bg-white/10 text-white border border-white/40 text-xs font-bold uppercase tracking-widest px-7 py-3.5 rounded-sm transition-colors cursor-pointer"
+                      >
+                        Nhận khảo sát miễn phí
+                      </button>
+                    </div>
+                    <p className="mt-4 text-[11px] text-white/70 tracking-wide">Hotline 0982 914 368</p>
+                  </RevealOnView>
+                </div>
+              </div>
 
-            <div className="bg-[#161412] text-white p-8 rounded-sm text-center space-y-4 shadow-xl relative overflow-hidden max-w-2xl mx-auto mt-6">
-              <div className="relative z-10 space-y-1">
-                <span className="tracking-[0.35em] text-[10px] uppercase text-[#D4BC95] font-extrabold block">DQH ARCHITECTS</span>
-                <span className="block text-[6px] tracking-[0.3em] uppercase text-stone-400">living space build &amp; success orientation</span>
-              </div>
-              <div className="relative z-10 space-y-1 py-2">
-                <h4 className="font-extrabold text-3xl tracking-widest text-white leading-none">THANK YOU</h4>
-                <p className="font-serif italic text-[#D4BC95] text-xs">for watching</p>
-              </div>
-              <div className="pt-5 border-t border-white/10 relative z-10 flex flex-col sm:flex-row gap-2.5 justify-center">
-                <a
-                  href="tel:0982914368"
-                  className="inline-flex items-center justify-center gap-2 bg-[#B8913A] hover:bg-[#D4BC95] text-[#1A1814] text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-colors cursor-pointer"
-                >
-                  &#9742; Gọi ngay 098 291 4368
-                </a>
-                <a
-                  href="https://zalo.me/0982914368"
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm border border-white/15 transition-colors cursor-pointer"
-                >
-                  Chat Zalo
-                </a>
-              </div>
-            </div>
+              {study.video && (
+                <RevealOnView className="max-w-2xl mx-auto px-5 py-10">
+                  <button type="button" onClick={() => setVideoOpen(true)} className="group relative block w-full aspect-video rounded-sm overflow-hidden border border-[#2B211C]/10 shadow-lg bg-[#161412] cursor-pointer">
+                    {study.video.poster ? (
+                      <img src={vercelImg(study.video.poster, 1200)} alt="Video bàn giao" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity" />
+                    ) : getYouTubeId(study.video.src) ? (
+                      <img src={`https://img.youtube.com/vi/${getYouTubeId(study.video.src)}/hqdefault.jpg`} alt="Video bàn giao" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity" />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#2C2920] to-[#1A1814]" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/15 transition-colors">
+                      <div className="w-14 h-14 rounded-full bg-[#B08A4A] group-hover:scale-110 transition-transform flex items-center justify-center shadow-xl">
+                        <span className="text-[#1A1814] text-xl ml-1">&#9654;</span>
+                      </div>
+                    </div>
+                  </button>
+                </RevealOnView>
+              )}
+            </section>
           </div>
-        </div>
-
-        <div className="bg-[#FAF8F4] px-6 py-4 border-t border-[#2C2920]/10 flex items-center justify-between shrink-0 z-20">
-          <div className="flex gap-2">
-            <button disabled={activeStage === 0} onClick={() => scrollToStage(activeStage - 1)} className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer">←</button>
-            <button disabled={activeStage === stages.length - 1} onClick={() => scrollToStage(activeStage + 1)} className="w-8 h-8 rounded-full border border-[#2C2920]/10 flex items-center justify-center hover:bg-[#B8913A] hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#2C2920] transition-colors cursor-pointer">→</button>
-          </div>
-          <span className="text-[9px] font-semibold tracking-wider text-[#8A8070]">PHASE 0{activeStage + 1} / 05</span>
         </div>
       </div>
 
-      {lightbox && (
-        <Lightbox
-          images={lightbox.images}
-          index={lightbox.index}
-          onClose={() => setLightbox(null)}
-          onNav={i => setLightbox(prev => (prev ? { ...prev, index: i } : prev))}
-        />
-      )}
+      {/* ← → chỉ hiện mobile/tablet */}
+      <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[1050] flex items-center gap-3 bg-[#2B211C]/90 backdrop-blur-sm rounded-full px-3 py-2 shadow-xl">
+        <button
+          disabled={sections.findIndex(s => s.key === activeKey) <= 0}
+          onClick={() => { const i = sections.findIndex(s => s.key === activeKey); if (i > 0) scrollToSection(sections[i - 1].key); }}
+          className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center disabled:opacity-30 cursor-pointer"
+        >←</button>
+        <span className="text-[9px] text-white/80 tracking-widest font-semibold px-1">{sections.findIndex(s => s.key === activeKey) + 1}/{sections.length}</span>
+        <button
+          disabled={sections.findIndex(s => s.key === activeKey) >= sections.length - 1}
+          onClick={() => { const i = sections.findIndex(s => s.key === activeKey); if (i < sections.length - 1) scrollToSection(sections[i + 1].key); }}
+          className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center disabled:opacity-30 cursor-pointer"
+        >→</button>
+      </div>
 
-      {videoOpen && study.finalize.videoUrl && (
-        <VideoPlayerOverlay url={study.finalize.videoUrl} onClose={() => setVideoOpen(false)} />
+      {lightbox && (
+        <Lightbox images={lightbox.images} index={lightbox.index} onClose={() => setLightbox(null)} onNav={i => setLightbox(prev => (prev ? { ...prev, index: i } : prev))} />
       )}
+      {videoOpen && study.video && <VideoPlayerOverlay url={study.video.src} onClose={() => setVideoOpen(false)} />}
     </div>
   );
 }

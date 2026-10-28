@@ -1,11 +1,11 @@
 (() => {
   "use strict";
-  document.title = "Khai Toan Noi That";
+  document.title = "Khái Toán Nội Thất | DQH Architects";
 
   // Chế độ nhúng trong workspace Landing Page DQH — đọc trước khi dựng UI.
   const isEmbedded = new URLSearchParams(location.search).get("embed") === "1";
 
-  document.body.innerHTML = `<header class="topbar"><a class="brand" href="#" aria-label="Khái Toán Nội Thất"><span class="brand-mark"><i></i><i></i><i></i></span><span><strong>KHAI TOAN</strong><small>NỘI THẤT &amp; TIẾN ĐỘ</small></span></a><div class="header-actions"><span class="status-pill"><span class="status-dot"></span>Tự động cập nhật</span><button class="button ghost" id="themeToggle" type="button">◑ <span>Giao diện</span></button><button class="button primary" id="printBtn" type="button">↓ <span>Xuất PDF</span></button></div></header>
+  document.body.innerHTML = `<header class="topbar"><a class="brand" href="#" aria-label="DQH Architects — Khái Toán Nội Thất"><span class="brand-mark">DQH</span><span><strong>KHÁI TOÁN</strong><small>NỘI THẤT &amp; TIẾN ĐỘ</small></span></a><div class="header-actions"><span class="status-pill"><span class="status-dot"></span>Tự động cập nhật</span><button class="button ghost" id="themeToggle" type="button">◑ <span>Giao diện</span></button><button class="button primary" id="printBtn" type="button">↓ <span>Xuất PDF</span></button></div></header>
 <main class="page">
 <section class="intro"><div><span class="eyebrow">CÔNG CỤ DỰ TOÁN SƠ BỘ</span><h1>Từ nhu cầu đến ngân sách<br><em>trong vài phút.</em></h1></div><p>Điều chỉnh quy mô, vật liệu và phạm vi thi công. Bảng chi phí cùng kế hoạch gói đầu sẽ được tính lại tức thời.</p></section>
 <div class="workspace">
@@ -13,11 +13,11 @@
 <section class="panel project-panel">
 <div class="panel-heading"><div><span class="step">01</span><h2>Thông tin công trình</h2></div><button type="button" class="text-button" id="resetBtn">Làm mới</button></div>
 <div class="field-grid">
-<label class="field wide"><span>Tên dự án / Chủ đầu tư</span><input id="clientName" name="clientName" value="Căn hộ mẫu Riverside" autocomplete="off"></label>
-<label class="field area-field"><span>Diện tích thông thủy</span><div class="input-suffix"><input id="area" name="area" type="number" min="35" max="350" value="85"><b>m²</b></div></label>
-<label class="field"><span>Phòng ngủ</span><select id="bedCount" name="bedCount"><option value="1">1 phòng</option><option value="2" selected>2 phòng</option><option value="3">3 phòng</option><option value="4">4 phòng</option></select></label>
+<label class="field wide"><span>Tên dự án / Chủ đầu tư</span><input id="clientName" name="clientName" value="CĂN HỘ LANDMARK" autocomplete="off"></label>
+<label class="field area-field"><span>Diện tích thông thủy</span><div class="input-suffix"><input id="area" name="area" type="number" min="35" max="350" value="100"><b>m²</b></div></label>
+<label class="field"><span>Phòng ngủ</span><select id="bedCount" name="bedCount"><option value="1">1 phòng</option><option value="2">2 phòng</option><option value="3" selected>3 phòng</option><option value="4">4 phòng</option></select></label>
 <label class="field"><span>Phòng vệ sinh</span><select id="bathCount" name="bathCount"><option value="1">1 WC</option><option value="2" selected>2 WC</option><option value="3">3 WC</option></select></label>
-<label class="field"><span>Ngày dự kiến khởi công</span><input id="startDate" name="startDate" type="date"></label>
+<label class="field"><span>Ngày dự kiến khởi công</span><input id="startDate" name="startDate" type="date" value="2026-04-11"></label>
 </div>
 <div class="segmented-block"><span class="field-label">Phân khúc vật tư</span><div class="segmented"><label><input type="radio" name="tier" value="standard" checked><span>Tiêu chuẩn<small>Cân bằng chi phí</small></span></label><label><input type="radio" name="tier" value="luxury"><span>Cao cấp<small>Vật liệu chọn lọc</small></span></label></div></div>
 <div class="segmented-block"><span class="field-label">Phong cách thiết kế</span><div class="segmented"><label><input type="radio" name="style" value="modern" checked><span>Hiện đại<small>Tối ưu công năng</small></span></label><label><input type="radio" name="style" value="modern_luxury"><span>Modern Luxury<small>Chi tiết cao cấp</small></span></label></div></div>
@@ -29,9 +29,10 @@
 <div class="mini-segment"><span>Mức độ cải tạo</span><label><input type="radio" name="demoLevel" value="20"><i>20%</i></label><label><input type="radio" name="demoLevel" value="50"><i>50%</i></label><label><input type="radio" name="demoLevel" value="100" checked><i>100%</i></label></div>
 <div class="check-row"><label class="check-card"><input type="checkbox" id="wcRenovation" checked><span class="check-ui"></span><span><strong>Cải tạo WC</strong><small>Chống thấm, ốp lát, cấp thoát nước</small></span></label><label class="check-card"><input type="checkbox" id="ceiling" checked><span class="check-ui"></span><span><strong>Trần thạch cao mới</strong><small>Khung chống ẩm, khe rèm âm</small></span></label><label class="check-card"><input type="checkbox" id="painting" checked><span class="check-ui"></span><span><strong>Sơn bả tường trần</strong><small>Bả phẳng, lót kháng kiềm, sơn phủ</small></span></label><label class="field"><span>Cầu thang</span><select name="staircase"><option value="none">Không cải tạo</option><option value="basic">Gói tiêu chuẩn</option><option value="luxury">Gói cao cấp</option></select></label></div>
 </div>
-<div class="option-section"><h3><span>02</span>Hoàn thiện sàn</h3><div class="option-grid three"><label class="choice-card"><input type="radio" name="flooring" value="none"><span><strong>Giữ hiện trạng</strong><small>Không cải tạo sàn</small></span></label><label class="choice-card"><input type="radio" name="flooring" value="standard" checked><span><strong>Tầm trung</strong><small>Gỗ 12 mm / gạch chuẩn</small></span></label><label class="choice-card"><input type="radio" name="flooring" value="luxury"><span><strong>Cao cấp</strong><small>Gỗ xương cá / porcelain</small></span></label></div></div>
+<div class="option-section"><h3><span>02</span>Hoàn thiện sàn</h3><div class="option-grid three"><label class="choice-card"><input type="radio" name="flooring" value="none"><span><strong>Giữ hiện trạng</strong><small>Không cải tạo sàn</small></span></label><label class="choice-card"><input type="radio" name="flooring" value="standard" checked><span><strong>Tầm trung</strong><small>Gỗ 12 mm / gạch chuẩn</small></span></label><label class="choice-card"><input type="radio" name="flooring" value="luxury"><span><strong>Cao cấp</strong><small>Gỗ xương cá / porcelain</small></span></label></div>
+<label class="field-label top-gap">Chất liệu sàn</label><div class="option-grid two compact"><label class="choice-card"><input type="radio" name="floorMaterial" value="wood" checked><span><strong>Sàn gỗ</strong><small>Gỗ công nghiệp / xương cá</small></span></label><label class="choice-card"><input type="radio" name="floorMaterial" value="tile"><span><strong>Sàn gạch</strong><small>Gạch chuẩn / porcelain</small></span></label></div></div>
 <div class="option-section"><h3><span>03</span>MEP &amp; chiếu sáng</h3>
-<label class="field-label">Hệ thống đèn</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="lighting" value="none"><span><strong>Không gồm</strong></span></label><label class="choice-card"><input type="radio" name="lighting" value="standard"><span><strong>Tiêu chuẩn</strong><small>Downlight &amp; LED hắt</small></span></label><label class="choice-card"><input type="radio" name="lighting" value="luxury" checked><span><strong>Cao cấp</strong><small>Spotlight &amp; ray nam châm</small></span></label></div>
+<label class="field-label">Hệ thống đèn</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="lighting" value="none"><span><strong>Không gồm</strong></span></label><label class="choice-card"><input type="radio" name="lighting" value="standard"><span><strong>Tiêu chuẩn</strong><small>Đèn Chip Afaco phổ thông · Downlight &amp; LED hắt</small></span></label><label class="choice-card"><input type="radio" name="lighting" value="luxury" checked><span><strong>Cao cấp</strong><small>Đèn Chip Philips CRI 95 · Spotlight &amp; ray nam châm</small></span></label></div>
 <label class="field-label top-gap">Điện &amp; công tắc</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="electrical" value="none"><span><strong>Giữ hiện trạng</strong></span></label><label class="choice-card"><input type="radio" name="electrical" value="light_mod"><span><strong>Cải tạo nhẹ</strong></span></label><label class="choice-card"><input type="radio" name="electrical" value="full_mod" checked><span><strong>Đi mới toàn bộ</strong></span></label></div>
 <label class="field-label top-gap">Điện thông minh</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="smarthome" value="none" checked><span><strong>Không sử dụng</strong></span></label><label class="choice-card"><input type="radio" name="smarthome" value="standard"><span><strong>Gói cơ bản</strong></span></label><label class="choice-card"><input type="radio" name="smarthome" value="luxury"><span><strong>Gói cao cấp</strong></span></label></div>
 </div>
@@ -40,8 +41,9 @@
 <label class="field-label top-gap">Đồ rời may đo</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="loose" value="none"><span><strong>Không gồm</strong></span></label><label class="choice-card"><input type="radio" name="loose" value="standard" checked><span><strong>Tiêu chuẩn</strong></span></label><label class="choice-card"><input type="radio" name="loose" value="luxury"><span><strong>Cao cấp</strong></span></label></div>
 <label class="field-label top-gap">Đá hoàn thiện</label><div class="option-grid three compact"><label class="choice-card"><input type="radio" name="stone" value="none"><span><strong>Không gồm</strong></span></label><label class="choice-card"><input type="radio" name="stone" value="standard_stone" checked><span><strong>Thạch anh</strong></span></label><label class="choice-card"><input type="radio" name="stone" value="luxury_stone"><span><strong>Đá nung kết</strong></span></label></div>
 </div>
-<div class="option-section"><h3><span>05</span>Thiết bị &amp; tiện nghi</h3><div class="equipment-grid"><div><label class="field-label">Thiết bị bếp</label><select name="appliances"><option value="none">Không bao gồm</option><option value="basic" selected>Gói tiêu chuẩn</option><option value="luxury">Gói cao cấp</option></select></div><div><label class="field-label">Thiết bị WC</label><select name="wcEquipment"><option value="none" selected>Không bao gồm</option><option value="basic">Gói tiêu chuẩn</option><option value="luxury">Gói cao cấp</option></select></div><div><label class="field-label">Rèm cửa</label><select name="curtain"><option value="none">Không bao gồm</option><option value="normal" selected>Rèm hai lớp</option><option value="electric">Rèm điện</option></select></div><div><label class="field-label">Điều hòa</label><select name="ac"><option value="none" selected>Không bao gồm</option><option value="wall">Treo tường Inverter</option><option value="ducted">Âm trần nối ống gió</option></select></div></div>
-<label class="check-card top-gap"><input type="checkbox" id="freshAir"><span class="check-ui"></span><span><strong>Hệ thống cấp khí tươi</strong><small>Thu hồi nhiệt, lọc bụi mịn</small></span><b>Thiết bị bổ sung</b></label></div>
+<div class="option-section"><h3><span>05</span>Thiết bị &amp; tiện nghi</h3><div class="equipment-grid"><div><label class="field-label">Thiết bị bếp</label><select name="appliances"><option value="none">Không bao gồm</option><option value="basic" selected>Gói tiêu chuẩn</option><option value="luxury">Gói cao cấp</option></select></div><div><label class="field-label">Thiết bị vệ sinh</label><select name="wcEquipment"><option value="none" selected>Không bao gồm</option><option value="basic">Inax (phổ thông)</option><option value="luxury">Toto / Moen (cao cấp)</option></select></div><div><label class="field-label">Rèm cửa</label><select name="curtain"><option value="none">Không bao gồm</option><option value="normal" selected>Rèm hai lớp</option><option value="electric">Rèm điện</option></select></div><div><label class="field-label">Điều hòa</label><select name="ac"><option value="none" selected>Không bao gồm</option><option value="wall">Treo tường Inverter</option><option value="ducted">Âm trần nối ống gió</option></select></div><div><label class="field-label">Loa âm trần</label><select name="speaker"><option value="none" selected>Không bao gồm</option><option value="basic">Gói cơ bản</option><option value="luxury">Gói cao cấp</option></select></div></div>
+<label class="check-card spaced"><input type="checkbox" id="freshAir"><span class="check-ui"></span><span><strong>Hệ thống cấp khí tươi</strong><small>Thu hồi nhiệt, lọc bụi mịn</small></span><b>Thiết bị bổ sung</b></label>
+<label class="check-card"><input type="checkbox" id="epoxyGrout"><span class="check-ui"></span><span><strong>Keo ron Epoxy</strong><small>Chống thấm ron gạch, chống bám bẩn khu ướt</small></span><b>Thiết bị bổ sung</b></label></div>
 </section>
 </form>
 <aside class="results">
@@ -78,7 +80,11 @@
       curtain: { normal: 400000, electric: 700000 },
       ac: { wall: 45000000, ducted: 70000000 },
       freshAir: 32500000,
-      smarthome: { standard: 350000, luxury: 1000000 }
+      smarthome: { standard: 350000, luxury: 1000000 },
+      // Giá Loa âm trần & Keo ron Epoxy là ƯỚC TÍNH THAM KHẢO (chưa có báo giá
+      // nhà cung cấp thật) — cần xác nhận/điều chỉnh lại trước khi dùng báo giá chính thức.
+      speaker: { basic: 8000000, luxury: 18000000 },
+      epoxyGrout: 3000000
     },
     luxury: {
       demolition: 500000, ceiling: 750000, painting: 550000,
@@ -94,7 +100,9 @@
       curtain: { normal: 400000, electric: 700000 },
       ac: { wall: 53000000, ducted: 90000000 },
       freshAir: 44000000,
-      smarthome: { standard: 450000, luxury: 1250000 }
+      smarthome: { standard: 450000, luxury: 1250000 },
+      speaker: { basic: 10000000, luxury: 24000000 },
+      epoxyGrout: 3800000
     }
   };
   const labels = {
@@ -112,8 +120,9 @@
     lighting: "Hệ thống chiếu sáng", electrical: "Hệ thống điện", smarthome: "Điện thông minh",
     wood: "Đồ gỗ liền tường", loose: "Đồ rời may đo", stone: "Đá hoàn thiện",
     appliances: "Thiết bị bếp", wcEquipment: "Thiết bị vệ sinh", curtain: "Rèm cửa",
-    ac: "Điều hòa", freshAir: "Hệ thống cấp khí tươi"
+    ac: "Điều hòa", freshAir: "Hệ thống cấp khí tươi", speaker: "Loa âm trần", epoxyGrout: "Keo ron Epoxy"
   };
+  const wcEquipmentLabels = { basic: "Inax (phổ thông)", luxury: "Toto / Moen (cao cấp)" };
 
   function value(name) {
     const el = form.elements[name];
@@ -183,7 +192,12 @@
     if (staircase !== "none") add("staircase", r.staircase[staircase]);
     if (on("ceiling")) add("ceiling", r.ceiling * area);
     if (on("painting")) add("painting", r.painting * area);
-    const flooring = value("flooring"); if (flooring !== "none") add("flooring", r.flooring[flooring] * area);
+    const flooring = value("flooring");
+    if (flooring !== "none") {
+      // Gạch thường rẻ hơn gỗ cùng phân khúc ~15% — hệ số ƯỚC TÍNH tham khảo thị trường chung.
+      const floorMaterial = value("floorMaterial") || "wood";
+      add("flooring", r.flooring[flooring] * area * (floorMaterial === "tile" ? 0.85 : 1));
+    }
     const lighting = value("lighting"); if (lighting !== "none") add("lighting", r.lighting[lighting] * area);
     const electrical = value("electrical"); if (electrical !== "none") add("electrical", r.electrical[electrical] * area);
     const smarthome = value("smarthome"); if (smarthome !== "none") add("smarthome", r.smarthome[smarthome] * 85);
@@ -212,6 +226,8 @@
     const roomFactor = (beds + 1) / 4, effectiveAC = area <= 100 ? Math.max(area, 45) : 100 + (area - 100) * .15;
     const ac = value("ac"); if (ac !== "none") add("ac", r.ac[ac] * effectiveAC / 100 * roomFactor);
     if (on("freshAir")) add("freshAir", r.freshAir * effectiveAC / 100 * roomFactor);
+    const speaker = value("speaker"); if (speaker !== "none") add("speaker", r.speaker[speaker] * roomFactor);
+    if (on("epoxyGrout")) add("epoxyGrout", r.epoxyGrout * baths);
     const total = items.reduce((sum, x) => sum + x.amount, 0);
     const schedule = buildSchedule(area, items);
     current = { area, beds, baths, tier, style, items, total, schedule };
@@ -225,7 +241,7 @@
     push("Khảo sát & chốt hồ sơ", 0, 3, "rough");
     if (keys.has("demolition")) { push("Phá dỡ & vận chuyển", 3, 6 * factor * dm, "rough"); base = 3 + Math.round(4 * factor * dm); }
     if (keys.has("wc") || keys.has("staircase") || keys.has("demolition")) push("Xây trát & chống thấm", base, 7 * factor, "rough");
-    if (keys.has("electrical") || keys.has("ac") || keys.has("freshAir")) push("MEP âm tường trần", base + 2, (value("electrical") === "full_mod" ? 11 : 6) * factor, "rough");
+    if (keys.has("electrical") || keys.has("ac") || keys.has("freshAir") || keys.has("speaker")) push("MEP âm tường trần", base + 2, (value("electrical") === "full_mod" ? 11 : 6) * factor, "rough");
     const finish = base + Math.round(8 * factor);
     if (keys.has("ceiling")) push("Thi công trần", finish, 10 * factor, "finish");
     if (keys.has("painting")) push("Bả & sơn hoàn thiện", finish + 4, 12 * factor, "finish");
@@ -233,7 +249,7 @@
     if (keys.has("flooring")) push("Hoàn thiện sàn", finish + 12, 6 * factor, "finish");
     if (keys.has("lighting") || keys.has("electrical")) push("Lắp đèn & thiết bị điện", finish + 15, 5 * factor, "finish");
     if (keys.has("wood")) push("Lắp đặt đồ gỗ", finish + 16, 9 * factor, "finish");
-    if (keys.has("stone") || keys.has("appliances") || keys.has("wcEquipment")) push("Lắp thiết bị & đá", finish + 20, 6 * factor, "finish");
+    if (keys.has("stone") || keys.has("appliances") || keys.has("wcEquipment") || keys.has("epoxyGrout")) push("Lắp thiết bị & đá", finish + 20, 6 * factor, "finish");
     if (keys.has("loose") || keys.has("curtain")) push("Lắp đồ rời & rèm", finish + 25, 4 * factor, "finish");
     push("Vệ sinh, nghiệm thu & bàn giao", finish + 29, 4 * factor, "finish");
     const maxDay = Math.max(...tasks.map(x => x.start + x.duration));
@@ -246,8 +262,12 @@
       if (x.key === "demolition") return "Mức cải tạo " + value("demoLevel") + "% • " + area + " m²";
       if (x.key === "wc") return baths + " WC • chống thấm & ốp lát";
       if (x.key === "ceiling" || x.key === "painting") return area + " m²";
-      const map = { flooring: value("flooring"), lighting: value("lighting"), electrical: value("electrical"), smarthome: value("smarthome"), wood: value("wood"), loose: value("loose"), stone: value("stone"), appliances: value("appliances"), wcEquipment: value("wcEquipment"), curtain: value("curtain"), ac: value("ac"), staircase: value("staircase") };
-      return labels[map[x.key]] || (x.key === "freshAir" ? "Thu hồi nhiệt & lọc bụi mịn" : "");
+      if (x.key === "wcEquipment") return wcEquipmentLabels[value("wcEquipment")] || "";
+      if (x.key === "freshAir") return "Thu hồi nhiệt & lọc bụi mịn";
+      if (x.key === "epoxyGrout") return "Chống thấm ron gạch khu ướt";
+      if (x.key === "flooring") return labels[value("flooring")] + " · " + (value("floorMaterial") === "tile" ? "Sàn gạch" : "Sàn gỗ");
+      const map = { flooring: value("flooring"), lighting: value("lighting"), electrical: value("electrical"), smarthome: value("smarthome"), wood: value("wood"), loose: value("loose"), stone: value("stone"), appliances: value("appliances"), curtain: value("curtain"), ac: value("ac"), staircase: value("staircase"), speaker: value("speaker") };
+      return labels[map[x.key]] || "";
     };
     $("#grandTotal").textContent = money(total); $("#grandTotalBottom").textContent = money(total);
     $("#rateBadge").textContent = compact(total / area) + "/m²";
