@@ -48,6 +48,12 @@ export interface CaseStudyData {
   phases: CaseStudyPhase[];
   ending?: { src: string; alt?: string } | null;
   video?: { src: string; poster?: string } | null;
+  // Chế độ "Tạp chí" — công trình chỉ có ảnh phối cảnh (chưa thi công/chưa có
+  // ảnh thực tế), khung "Nhật ký thi công" nhiều giai đoạn sai ngữ cảnh. Bật
+  // cờ này thì bỏ hẳn sidebar Phase, chỉ cuộn chuỗi ảnh theo đúng thứ tự đã
+  // soạn sẵn (ảnh thường đã có caption in sẵn trong file, vd bộ FB carousel).
+  magazineMode?: boolean;
+  magazineImages?: string[];
 }
 
 const PHASE_META: Record<CaseStudyPhase['key'], { title: string; subtitle: string; menuLabel: string }> = {
@@ -115,6 +121,8 @@ export type RawCaseStudy = LegacyShape & {
   // Giai đoạn admin chủ động tắt (checkbox trong CaseStudyEditor) — ẩn trên
   // trang dù có nội dung, tránh dàn trải khi 1 giai đoạn không đáng kể.
   hiddenPhases?: CaseStudyPhase['key'][];
+  magazineMode?: boolean;
+  magazineImages?: string[];
 };
 
 function phasesFromNewShape(raw: NonNullable<RawCaseStudy['phases']>): CaseStudyPhase[] {
@@ -219,6 +227,8 @@ export function normalizeCaseStudy(raw: RawCaseStudy): CaseStudyData {
     phases,
     ending: raw.ending?.src ? raw.ending : null,
     video: raw.video?.src ? raw.video : legacyVideo ? { src: legacyVideo } : null,
+    magazineMode: !!raw.magazineMode,
+    magazineImages: (raw.magazineImages || []).filter((s): s is string => typeof s === 'string' && !!s),
   };
 }
 
@@ -437,7 +447,44 @@ function StatRow({ study }: { study: CaseStudyData }) {
   return <p className="text-[10px] md:text-xs text-white/75 uppercase tracking-widest font-semibold">{items.join(' · ')}</p>;
 }
 
+// Chế độ "Tạp chí" — không sidebar, không Phase, không khung "Nhật ký thi
+// công": chỉ cuộn chuỗi ảnh đã soạn sẵn thứ tự (ảnh thường tự mang caption in
+// sẵn, nên không cần thêm text đè lên). Dùng cho công trình chỉ có ảnh phối
+// cảnh, chưa có ảnh thi công/bàn giao thực tế.
+function MagazineView({ study, onClose }: { study: CaseStudyData; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[1000] bg-[#F7F4EF] text-[#2B211C] font-sans">
+      <button onClick={onClose} aria-label="Đóng" className="fixed top-4 right-4 md:top-6 md:right-6 z-[1060] bg-[#2B211C] hover:bg-[#B08A4A] text-white w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center transition-colors shadow-lg text-xl font-light cursor-pointer">
+        &times;
+      </button>
+      <div className="h-full overflow-y-auto overscroll-contain">
+        <div className="sticky top-0 z-[1040] bg-[#F7F4EF]/95 backdrop-blur-sm border-b border-[#2B211C]/10 px-5 md:px-8 py-3 flex items-center justify-between">
+          <span className="font-serif text-sm font-semibold shrink-0">DQH ARCHITECTS</span>
+          <span className="text-[9px] text-[#6E625A] uppercase tracking-widest font-semibold truncate ml-3">{study.title}</span>
+        </div>
+        <div className="max-w-2xl mx-auto px-0 md:px-5 pb-24 pt-6 md:pt-10">
+          {(study.area || study.location || study.style || study.intro) && (
+            <div className="px-5 md:px-0 mb-8 space-y-3">
+              <h2 className="font-serif text-2xl md:text-3xl leading-tight">{study.title}</h2>
+              <StatRow study={study} />
+              {study.intro && <p className="text-sm text-[#4A4038] leading-relaxed">{study.intro}</p>}
+            </div>
+          )}
+          <div className="space-y-2 md:space-y-3">
+            {(study.magazineImages || []).map((src, i) => (
+              <img key={i} src={vercelImg(src, 1200)} alt={`${study.title} ${i + 1}`} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" className="w-full h-auto block" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CaseStudyModal({ study, onClose }: { study: CaseStudyData; onClose: () => void }) {
+  if (study.magazineMode && study.magazineImages && study.magazineImages.length > 0) {
+    return <MagazineView study={study} onClose={onClose} />;
+  }
   const [activeKey, setActiveKey] = useState<string>(study.phases[0]?.key || 'intro');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [lightbox, setLightbox] = useState<{ images: CaseStudyImage[]; index: number } | null>(null);

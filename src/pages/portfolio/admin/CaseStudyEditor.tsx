@@ -28,6 +28,8 @@ interface EditableCaseStudy {
   details: { items: { num: number; name: string }[] };
   finalize: { text: string; images: string[]; videoUrl: string; link: string; compareRenderImage: string | null; compareRealImage: string | null; fear: string; story: string };
   hiddenPhases: PhaseKey[];
+  magazineMode: boolean;
+  magazineImages: { src: string; alt?: string }[];
 }
 
 // Khoá giai đoạn khớp PHASE_ORDER/PHASE_META bên CaseStudyModal.tsx — đổi ở
@@ -54,6 +56,8 @@ function emptyCaseStudy(title: string, style: string): EditableCaseStudy {
     details: { items: [] },
     finalize: { text: '', images: [], videoUrl: '', link: '', compareRenderImage: null, compareRealImage: null, fear: '', story: '' },
     hiddenPhases: [],
+    magazineMode: false,
+    magazineImages: [],
   };
 }
 
@@ -225,6 +229,8 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
     details: obj(base.details, raw.details),
     finalize: obj(base.finalize, raw.finalize),
     hiddenPhases: Array.isArray(raw.hiddenPhases) ? (raw.hiddenPhases as PhaseKey[]) : base.hiddenPhases,
+    magazineMode: typeof raw.magazineMode === 'boolean' ? raw.magazineMode : base.magazineMode,
+    magazineImages: Array.isArray(raw.magazineImages) ? (raw.magazineImages as string[]) : base.magazineImages,
   };
   const set = <K extends keyof EditableCaseStudy>(key: K, val: EditableCaseStudy[K]) => onChange({ ...v, [key]: val });
   const setNested = <K extends keyof EditableCaseStudy>(key: K, patch: Partial<EditableCaseStudy[K]>) =>
@@ -238,6 +244,20 @@ export function CaseStudyEditor({ value, onChange, defaultTitle, defaultStyle }:
         <input type="checkbox" checked={true} onChange={e => toggle(e.target.checked)} className="w-4 h-4" />
         Album Kể Chuyện (Case Study) — tắt sẽ xoá toàn bộ nội dung bên dưới
       </label>
+
+      <div className="bg-[#FDF3EA] border border-[#8A5A3A]/20 rounded-lg p-4 space-y-3">
+        <label className="flex items-center gap-2 text-xs font-semibold text-[#8A5A3A] cursor-pointer">
+          <input type="checkbox" checked={v.magazineMode} onChange={e => set('magazineMode', e.target.checked)} className="w-4 h-4" />
+          Chế độ Tạp chí — công trình chỉ có ảnh phối cảnh (chưa thi công/chưa có ảnh thực tế)
+        </label>
+        <p className="text-[11px] text-[#8A5A3A]/80">Bật thì bỏ hẳn khung "Nhật ký thi công" nhiều giai đoạn (Phase 01-05) bên dưới, chỉ hiện đúng thứ tự ảnh dưới đây — dùng khi ảnh đã có caption in sẵn (vd bộ ảnh đăng Facebook).</p>
+        {v.magazineMode && (
+          <div>
+            <label className={label}>Ảnh tạp chí (nhiều ảnh, đúng thứ tự hiển thị — chọn nhiều file 1 lần hoặc kéo trái/phải để sắp lại)</label>
+            <ImageList images={v.magazineImages} onChange={magazineImages => set('magazineImages', magazineImages)} />
+          </div>
+        )}
+      </div>
 
       <Accordion title="Thông tin chung" defaultOpen>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
