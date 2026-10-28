@@ -381,7 +381,7 @@ function PhaseImageGrid({ images, onOpen, colorReveal }: { images: CaseStudyImag
                 : '';
               return (
                 <button key={i} type="button" onClick={() => onOpen(i)} className={`relative overflow-hidden rounded-[2px] group cursor-zoom-in w-full ${style.aspect}`}>
-                  <img src={vercelImg(im.src, chunk.length === 1 ? 1400 : 700)} alt={im.alt || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] ${filterClass}`} />
+                  <img src={vercelImg(im.src, chunk.length === 1 ? 1600 : 700)} alt={im.alt || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02] ${filterClass}`} />
                   {im.type === 'render' && (
                     <span className="absolute top-2 left-2 bg-[#161412]/80 text-white text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm font-bold">Phối cảnh thiết kế</span>
                   )}
