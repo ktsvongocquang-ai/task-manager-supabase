@@ -338,7 +338,7 @@ export function PortfolioLanding({ isPreview = false }: { isPreview?: boolean })
         className="group fixed bottom-6 right-5 md:right-8 z-[90] flex items-center gap-0 hover:gap-3 bg-[#1A1814] hover:bg-[#1A1814] border border-[#B8913A]/40 hover:border-[#B8913A] text-white rounded-full shadow-2xl shadow-black/30 transition-all duration-300 ease-out overflow-hidden"
       >
         <span className="max-w-0 group-hover:max-w-[140px] opacity-0 group-hover:opacity-100 whitespace-nowrap text-[11px] tracking-[0.1em] uppercase font-semibold text-[#E8DCC4] transition-all duration-300 ease-out pl-0 group-hover:pl-5">
-          Nhắn Zalo ngay
+          Giải đáp trực tiếp
         </span>
         <span className="shrink-0 w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 md:w-[22px] md:h-[22px]" aria-hidden="true">
