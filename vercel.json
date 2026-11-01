@@ -20,11 +20,14 @@
     "functions": {
         "api/khai-toan/pdf.js": {
             "maxDuration": 30,
-            "memory": 1769,
             "includeFiles": "public/khai-toan/{calc.js,print-template.js,fonts/*.ttf}"
         }
     },
     "rewrites": [
+        {
+            "source": "/api/fb-ads-reports",
+            "destination": "/api/fb-ads-analyze"
+        },
         {
             "source": "/(.*)",
             "destination": "/index.html"

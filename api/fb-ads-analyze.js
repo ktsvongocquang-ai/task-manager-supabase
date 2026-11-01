@@ -1,7 +1,10 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
+// GET /api/fb-ads-reports is rewritten here (vercel.json) to stay under the Hobby 12-function limit.
+import fbAdsReportsHandler from '../lib/fb-ads-reports.js';
 
 export default async function handler(req, res) {
+    if (req.method === 'GET') return fbAdsReportsHandler(req, res);
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
