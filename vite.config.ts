@@ -63,7 +63,9 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
-        navigateFallbackDenylist: [/^\/khai-toan\//]
+        // Không cho service worker trả trang app (index.html) khi mở trực tiếp các link
+        // API (vd link PDF khái toán /api/khai-toan/...pdf gửi khách) hay công cụ Khái toán.
+        navigateFallbackDenylist: [/^\/khai-toan\//, /^\/api\//]
       }
     })
   ],
