@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 // GET /api/fb-ads-reports is rewritten here (vercel.json) to stay under the Hobby 12-function limit.
 import fbAdsReportsHandler from '../lib/fb-ads-reports.js';
@@ -24,6 +23,8 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Missing GEMINI_API_KEY in server environment.' });
         }
 
+        // Lazy import: a missing package must not crash the GET /api/fb-ads-reports route sharing this function.
+        const { GoogleGenerativeAI, SchemaType } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const ai = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const currentDate = new Date().toISOString().split('T')[0];
