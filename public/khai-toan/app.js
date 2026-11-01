@@ -65,64 +65,10 @@
   const form = $("#estimateForm");
   const storageKey = "khai-toan-plans-v1";
   let current = null;
-  const t = {
-    standard: {
-      demolition: 400000, ceiling: 600000, painting: 400000,
-      flooring: { standard: 520000, luxury: 850000 },
-      lighting: { standard: 350000, luxury: 500000 },
-      electrical: { light_mod: 150000, full_mod: 400000 },
-      wood: { melamine_economy: 3100000, melamine_standard: 3600000, laminate: 4300000 },
-      loose: { standard: 1000000, luxury: 1200000 },
-      stone: { standard_stone: 800000, luxury_stone: 1600000 },
-      staircase: { basic: 45000000, luxury: 70000000 },
-      appliances: { basic: 45000000, luxury: 85000000 },
-      wcEquipment: { basic: 15000000, luxury: 30000000 },
-      curtain: { normal: 400000, electric: 700000 },
-      ac: { wall: 45000000, ducted: 70000000 },
-      freshAir: 32500000,
-      smarthome: { standard: 350000, luxury: 1000000 },
-      // Giá Loa âm trần & Keo ron Epoxy là ƯỚC TÍNH THAM KHẢO (chưa có báo giá
-      // nhà cung cấp thật) — cần xác nhận/điều chỉnh lại trước khi dùng báo giá chính thức.
-      speaker: { basic: 8000000, luxury: 18000000 },
-      epoxyGrout: 3000000
-    },
-    luxury: {
-      demolition: 500000, ceiling: 750000, painting: 550000,
-      flooring: { standard: 650000, luxury: 1100000 },
-      lighting: { standard: 450000, luxury: 650000 },
-      electrical: { light_mod: 200000, full_mod: 450000 },
-      wood: { melamine_economy: 3500000, melamine_standard: 4000000, laminate: 4700000 },
-      loose: { standard: 1100000, luxury: 1300000 },
-      stone: { standard_stone: 1000000, luxury_stone: 2200000 },
-      staircase: { basic: 45000000, luxury: 70000000 },
-      appliances: { basic: 45000000, luxury: 85000000 },
-      wcEquipment: { basic: 15000000, luxury: 30000000 },
-      curtain: { normal: 400000, electric: 700000 },
-      ac: { wall: 53000000, ducted: 90000000 },
-      freshAir: 44000000,
-      smarthome: { standard: 450000, luxury: 1250000 },
-      speaker: { basic: 10000000, luxury: 24000000 },
-      epoxyGrout: 3800000
-    }
-  };
-  const labels = {
-    standard: "Tiêu chuẩn", luxury: "Cao cấp", modern: "Hiện đại",
-    modern_luxury: "Modern Luxury", melamine_economy: "Gỗ Melamine kinh tế",
-    melamine_standard: "Gỗ Melamine tiêu chuẩn", laminate: "Gỗ Laminate & sơn",
-    standard_stone: "Đá thạch anh", luxury_stone: "Đá nung kết",
-    light_mod: "Điện cải tạo nhẹ", full_mod: "Điện đi mới toàn bộ",
-    basic: "Tiêu chuẩn", normal: "Rèm hai lớp", electric: "Rèm điện",
-    wall: "Điều hòa treo tường", ducted: "Điều hòa âm trần"
-  };
-  const itemNames = {
-    demolition: "Phá dỡ & xây mới", wc: "Cải tạo khu vệ sinh", staircase: "Cải tạo cầu thang",
-    ceiling: "Trần thạch cao", painting: "Sơn bả tường trần", flooring: "Hoàn thiện sàn",
-    lighting: "Hệ thống chiếu sáng", electrical: "Hệ thống điện", smarthome: "Điện thông minh",
-    wood: "Đồ gỗ liền tường", loose: "Đồ rời may đo", stone: "Đá hoàn thiện",
-    appliances: "Thiết bị bếp", wcEquipment: "Thiết bị vệ sinh", curtain: "Rèm cửa",
-    ac: "Điều hòa", freshAir: "Hệ thống cấp khí tươi", speaker: "Loa âm trần", epoxyGrout: "Keo ron Epoxy"
-  };
-  const wcEquipmentLabels = { basic: "Inax (phổ thông)", luxury: "Toto / Moen (cao cấp)" };
+  // Logic tính toán + đơn giá nằm ở calc.js (dùng chung với API PDF phía máy chủ).
+  const K = window.KhaiToanCalc;
+  const labels = K.LABELS, itemNames = K.ITEM_NAMES;
+  const { money, compact, dateText, mondayIfWeekend, addWorkdays } = K;
 
   function value(name) {
     const el = form.elements[name];
@@ -132,150 +78,66 @@
   }
   function n(id, fallback = 0) { return Number($("#" + id)?.value) || fallback; }
   function on(id) { return !!$("#" + id)?.checked; }
-  function money(amount) {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Math.round(amount));
-  }
-  function compact(amount) {
-    return amount >= 1e9
-      ? (amount / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + " tỷ"
-      : (amount / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + " triệu";
-  }
-  function dateText(date) {
-    return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
-  }
   function iso(date) {
     const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
     return local.toISOString().slice(0, 10);
   }
-  function mondayIfWeekend(date) {
-    const d = new Date(date); d.setHours(12, 0, 0, 0);
-    if (d.getDay() === 6) d.setDate(d.getDate() + 2);
-    if (d.getDay() === 0) d.setDate(d.getDate() + 1);
-    return d;
-  }
-  function addWorkdays(date, days) {
-    const d = new Date(date); let left = Math.max(0, days);
-    while (left > 0) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) left--; }
-    return d;
-  }
-  function areaFactor(area) {
-    if (area <= 80) return Math.max(.92, .82 + area / 80 * .18);
-    if (area <= 100) return 1 + (area - 80) / 20 * .25;
-    if (area <= 150) return 1.25 + (area - 100) / 50 * .25;
-    if (area <= 200) return 1.5 + (area - 150) / 50 * .22;
-    return 1.72 + (area - 200) / 100 * .3;
-  }
   function autoRooms() {
-    const a = n("area", 85);
-    const rooms = a < 55 ? [1, 1] : a <= 90 ? [2, 2] : a <= 125 ? [3, 2] : [4, 3];
+    const rooms = K.autoRooms(n("area", 85));
     $("#bedCount").value = String(rooms[0]); $("#bathCount").value = String(rooms[1]);
   }
+  // Đọc form thành đầu vào chuẩn của KhaiToanCalc.calculate (giữ nguyên cách đọc cũ).
+  function readForm() {
+    const scope = {
+      demolition: on("demolition"), demoLevel: value("demoLevel"), wcRenovation: on("wcRenovation"),
+      ceiling: on("ceiling"), painting: on("painting"), freshAir: on("freshAir"), epoxyGrout: on("epoxyGrout")
+    };
+    ["staircase", "flooring", "floorMaterial", "lighting", "electrical", "smarthome", "wood", "loose", "stone",
+      "appliances", "wcEquipment", "curtain", "ac", "speaker"].forEach(k => { scope[k] = value(k); });
+    return {
+      area: n("area", 85), beds: n("bedCount", 2), baths: n("bathCount", 2),
+      tier: value("tier") || "standard", style: value("style") || "modern",
+      startDate: value("startDate"), scope
+    };
+  }
   function calculate() {
-    const area = Math.min(350, Math.max(35, n("area", 85)));
-    const beds = n("bedCount", 2), baths = n("bathCount", 2);
-    const tier = value("tier") || "standard", style = value("style") || "modern";
-    const r = structuredClone(t[tier]);
-    if (style === "modern_luxury") {
-      r.ceiling += 120000; r.lighting.luxury += 150000;
-      Object.keys(r.wood).forEach(k => r.wood[k] += 650000);
-      Object.keys(r.loose).forEach(k => r.loose[k] += 200000);
-      Object.keys(r.stone).forEach(k => r.stone[k] += 250000);
-    }
-    const items = [];
-    const add = (key, amount) => { if (amount > 0) items.push({ key, amount: Math.round(amount) }); };
-    if (on("demolition")) {
-      const level = Number(value("demoLevel") || 100), factor = level === 20 ? 1 : level === 50 ? 1.35 : 1.75;
-      add("demolition", r.demolition * factor * area);
-    }
-    if (on("wcRenovation")) add("wc", 28000000 * baths);
-    const staircase = value("staircase");
-    if (staircase !== "none") add("staircase", r.staircase[staircase]);
-    if (on("ceiling")) add("ceiling", r.ceiling * area);
-    if (on("painting")) add("painting", r.painting * area);
-    const flooring = value("flooring");
-    if (flooring !== "none") {
-      // Gạch thường rẻ hơn gỗ cùng phân khúc ~15% — hệ số ƯỚC TÍNH tham khảo thị trường chung.
-      const floorMaterial = value("floorMaterial") || "wood";
-      add("flooring", r.flooring[flooring] * area * (floorMaterial === "tile" ? 0.85 : 1));
-    }
-    const lighting = value("lighting"); if (lighting !== "none") add("lighting", r.lighting[lighting] * area);
-    const electrical = value("electrical"); if (electrical !== "none") add("electrical", r.electrical[electrical] * area);
-    const smarthome = value("smarthome"); if (smarthome !== "none") add("smarthome", r.smarthome[smarthome] * 85);
-    const wood = value("wood");
-    if (wood !== "none") {
-      const factor = Math.max(.5, .5 + .4 * (beds / 2) + .1 * (baths / 2));
-      add("wood", r.wood[wood] * area * factor);
-    }
-    const loose = value("loose");
-    if (loose !== "none") {
-      const effective = area <= 75 ? Math.max(area, 60) : 75 + (area - 75) * .25;
-      add("loose", r.loose[loose] * effective * (.55 + .45 * (beds / 2)));
-    }
-    const stone = value("stone");
-    if (stone !== "none") {
-      const effective = area <= 70 ? Math.max(area, 55) : 70 + (area - 70) * .3;
-      add("stone", r.stone[stone] * effective * (.75 + .25 * (baths / 2)));
-    }
-    const appliances = value("appliances"); if (appliances !== "none") add("appliances", r.appliances[appliances]);
-    const wcEquipment = value("wcEquipment"); if (wcEquipment !== "none") add("wcEquipment", r.wcEquipment[wcEquipment] * baths);
-    const curtain = value("curtain");
-    if (curtain !== "none") {
-      const effective = area <= 75 ? Math.max(area, 60) : 75 + (area - 75) * .25;
-      add("curtain", r.curtain[curtain] * effective * (.35 + .65 * (beds / 2)));
-    }
-    const roomFactor = (beds + 1) / 4, effectiveAC = area <= 100 ? Math.max(area, 45) : 100 + (area - 100) * .15;
-    const ac = value("ac"); if (ac !== "none") add("ac", r.ac[ac] * effectiveAC / 100 * roomFactor);
-    if (on("freshAir")) add("freshAir", r.freshAir * effectiveAC / 100 * roomFactor);
-    const speaker = value("speaker"); if (speaker !== "none") add("speaker", r.speaker[speaker] * roomFactor);
-    if (on("epoxyGrout")) add("epoxyGrout", r.epoxyGrout * baths);
-    const total = items.reduce((sum, x) => sum + x.amount, 0);
-    const schedule = buildSchedule(area, items);
-    current = { area, beds, baths, tier, style, items, total, schedule };
+    current = K.calculate(readForm());
     render();
   }
-  function buildSchedule(area, items) {
-    const factor = areaFactor(area), keys = new Set(items.map(x => x.key));
-    const demoLevel = Number(value("demoLevel") || 100), dm = demoLevel === 20 ? .6 : demoLevel === 50 ? 1 : 1.5;
-    const tasks = []; const push = (name, start, duration, phase) => tasks.push({ name, start, duration: Math.max(2, Math.round(duration)), phase });
-    let base = 0;
-    push("Khảo sát & chốt hồ sơ", 0, 3, "rough");
-    if (keys.has("demolition")) { push("Phá dỡ & vận chuyển", 3, 6 * factor * dm, "rough"); base = 3 + Math.round(4 * factor * dm); }
-    if (keys.has("wc") || keys.has("staircase") || keys.has("demolition")) push("Xây trát & chống thấm", base, 7 * factor, "rough");
-    if (keys.has("electrical") || keys.has("ac") || keys.has("freshAir") || keys.has("speaker")) push("MEP âm tường trần", base + 2, (value("electrical") === "full_mod" ? 11 : 6) * factor, "rough");
-    const finish = base + Math.round(8 * factor);
-    if (keys.has("ceiling")) push("Thi công trần", finish, 10 * factor, "finish");
-    if (keys.has("painting")) push("Bả & sơn hoàn thiện", finish + 4, 12 * factor, "finish");
-    if (keys.has("wood")) push("Sản xuất đồ gỗ tại xưởng", 5, 26 * factor, "finish");
-    if (keys.has("flooring")) push("Hoàn thiện sàn", finish + 12, 6 * factor, "finish");
-    if (keys.has("lighting") || keys.has("electrical")) push("Lắp đèn & thiết bị điện", finish + 15, 5 * factor, "finish");
-    if (keys.has("wood")) push("Lắp đặt đồ gỗ", finish + 16, 9 * factor, "finish");
-    if (keys.has("stone") || keys.has("appliances") || keys.has("wcEquipment") || keys.has("epoxyGrout")) push("Lắp thiết bị & đá", finish + 20, 6 * factor, "finish");
-    if (keys.has("loose") || keys.has("curtain")) push("Lắp đồ rời & rèm", finish + 25, 4 * factor, "finish");
-    push("Vệ sinh, nghiệm thu & bàn giao", finish + 29, 4 * factor, "finish");
-    const maxDay = Math.max(...tasks.map(x => x.start + x.duration));
-    const start = mondayIfWeekend(new Date(value("startDate") + "T12:00:00")), end = addWorkdays(start, maxDay);
-    return { tasks, workDays: maxDay, calendarDays: Math.round((end - start) / 86400000) + 1, start, end };
-  }
   function render() {
-    const { total, area, tier, style, items, schedule, baths } = current;
-    const detailFor = x => {
-      if (x.key === "demolition") return "Mức cải tạo " + value("demoLevel") + "% • " + area + " m²";
-      if (x.key === "wc") return baths + " WC • chống thấm & ốp lát";
-      if (x.key === "ceiling" || x.key === "painting") return area + " m²";
-      if (x.key === "wcEquipment") return wcEquipmentLabels[value("wcEquipment")] || "";
-      if (x.key === "freshAir") return "Thu hồi nhiệt & lọc bụi mịn";
-      if (x.key === "epoxyGrout") return "Chống thấm ron gạch khu ướt";
-      if (x.key === "flooring") return labels[value("flooring")] + " · " + (value("floorMaterial") === "tile" ? "Sàn gạch" : "Sàn gỗ");
-      const map = { flooring: value("flooring"), lighting: value("lighting"), electrical: value("electrical"), smarthome: value("smarthome"), wood: value("wood"), loose: value("loose"), stone: value("stone"), appliances: value("appliances"), curtain: value("curtain"), ac: value("ac"), staircase: value("staircase"), speaker: value("speaker") };
-      return labels[map[x.key]] || "";
-    };
+    const { total, area, tier, style, items, schedule } = current;
     $("#grandTotal").textContent = money(total); $("#grandTotalBottom").textContent = money(total);
     $("#rateBadge").textContent = compact(total / area) + "/m²";
     $("#summaryMeta").textContent = area + " m² • " + labels[tier] + " • " + labels[style];
     $("#workDays").textContent = schedule.workDays + " ngày"; $("#handoverDate").textContent = dateText(schedule.end); $("#itemCount").textContent = items.length;
-    $("#breakdown").innerHTML = items.map(x => '<div class="cost-row"><div><strong>' + itemNames[x.key] + '</strong><small>' + detailFor(x) + '</small></div><b>' + money(x.amount) + '</b></div>').join("");
+    $("#breakdown").innerHTML = items.map(x => '<div class="cost-row"><div><strong>' + itemNames[x.key] + '</strong><small>' + K.detailFor(x, current) + '</small></div><b>' + money(x.amount) + '</b></div>').join("");
     $("#scheduleWork").textContent = schedule.workDays; $("#scheduleCalendar").textContent = schedule.calendarDays;
     $("#timeline").innerHTML = schedule.tasks.map(x => { const begin = addWorkdays(schedule.start, x.start), end = addWorkdays(begin, x.duration - 1); return '<div class="timeline-row ' + x.phase + '"><div><strong>' + x.name + '</strong><small>' + dateText(begin) + ' → ' + dateText(end) + '</small></div><b>' + x.duration + ' ngày</b></div>'; }).join("");
+  }
+  // Xuất PDF: in mẫu dùng chung (print-template.js) trong iframe ẩn để giống bản máy chủ.
+  // Lỗi bất kỳ (trình duyệt cũ, chưa nạp mẫu...) -> quay về window.print() như cũ.
+  function printEstimate() {
+    try {
+      if (!window.KhaiToanPrint || !current) throw new Error("no template");
+      const html = window.KhaiToanPrint.renderHtml(current, {
+        clientName: $("#clientName").value.trim(), showSchedule: false,
+        fontBaseUrl: new URL("./fonts/", location.href).href
+      });
+      const frame = document.createElement("iframe");
+      frame.setAttribute("aria-hidden", "true");
+      frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+      document.body.appendChild(frame);
+      const cleanup = () => setTimeout(() => frame.remove(), 1000);
+      frame.onload = () => {
+        const w = frame.contentWindow;
+        const go = () => { try { w.focus(); w.addEventListener("afterprint", cleanup); w.print(); } catch (e) { frame.remove(); window.print(); } };
+        (w.document.fonts && w.document.fonts.ready ? w.document.fonts.ready : Promise.resolve()).then(go, go);
+        setTimeout(() => frame.isConnected && frame.remove(), 120000);
+      };
+      frame.srcdoc = html;
+    } catch (e) {
+      window.print();
+    }
   }
   function serialize() {
     const data = {};
@@ -329,7 +191,7 @@
   form.addEventListener("input", e => { if (e.target.id === "area") { clearTimeout(form.timer); form.timer = setTimeout(calculate, 80); } else calculate(); });
   form.addEventListener("change", calculate);
   $$(".tab").forEach(x => x.addEventListener("click", () => activateTab(x.dataset.tab)));
-  $("#printBtn").addEventListener("click", () => window.print());
+  $("#printBtn").addEventListener("click", printEstimate);
   $("#themeToggle").addEventListener("click", () => { document.body.classList.toggle("dark"); localStorage.setItem("khai-theme", document.body.classList.contains("dark") ? "dark" : "light"); });
   $("#resetBtn").addEventListener("click", () => { form.reset(); setInitialDate(); autoRooms(); calculate(); toast("Đã khôi phục cấu hình mặc định"); });
   $("#savePlanBtn").addEventListener("click", () => {
@@ -350,5 +212,20 @@
   $("#assistantForm").addEventListener("submit", e => { e.preventDefault(); const input = $("#assistantInput"), q = input.value.trim(); if (!q) return; addChat(q, true); input.value = ""; setTimeout(() => addChat(answer(q), false), 180); });
   function setInitialDate() { const d = new Date(); d.setDate(d.getDate() + 7); $("#startDate").value = iso(mondayIfWeekend(d)); }
   if (localStorage.getItem("khai-theme") === "dark") document.body.classList.add("dark");
-  setInitialDate(); calculate(); renderPlans();
+  // ?cfg=<base64url JSON> (cùng định dạng body của API PDF): mở sẵn cấu hình đã điền,
+  // dùng làm link gửi khách qua Messenger. Cấu hình sai thì bỏ qua, giữ mặc định.
+  function applyCfgParam() {
+    const raw = new URLSearchParams(location.search).get("cfg");
+    if (!raw) return false;
+    try {
+      const v = K.validateRequest(K.decodeCfg(raw));
+      if (!v.ok) return false;
+      const c = v.value, data = { area: String(c.area), bedCount: String(c.beds), bathCount: String(c.baths), startDate: c.startDate, tier: c.tier, style: c.style };
+      Object.keys(c.scope).forEach(k => { data[k] = typeof c.scope[k] === "boolean" ? c.scope[k] : String(c.scope[k]); });
+      if (c.clientName) data.clientName = c.clientName;
+      applyData(data);
+      return true;
+    } catch (e) { return false; }
+  }
+  setInitialDate(); if (!applyCfgParam()) calculate(); renderPlans();
 })();

@@ -8,11 +8,15 @@
     "api-dev": "node local-api-server.js",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "khai-toan:dev": "node scripts/khai-toan-dev-server.mjs",
+    "test:khai-toan": "node --test tests/khai-toan/calc.test.mjs",
+    "test:khai-toan:browser": "node --test --test-force-exit tests/khai-toan/api.test.mjs tests/khai-toan/parity.browser.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.43.0",
     "@hello-pangea/dnd": "^18.0.1",
+    "@sparticuz/chromium": "^153.0.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
@@ -30,6 +34,7 @@
     "nodemailer": "^8.0.3",
     "pdfjs-dist": "^6.0.227",
     "postcss": "^8.5.6",
+    "puppeteer-core": "^24.43.1",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

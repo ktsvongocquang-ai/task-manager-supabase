@@ -1,0 +1,19 @@
+{
+  "clientName": "Chị Nguyễn Thị Hoa, căn hộ Vinhomes Grand Park",
+  "phone": "0909 123 456",
+  "area": 70,
+  "beds": 2,
+  "baths": 2,
+  "tier": "standard",
+  "style": "modern",
+  "startDate": "2026-11-09",
+  "scope": {
+    "demolition": true, "demoLevel": 100, "wcRenovation": true, "ceiling": true, "painting": true,
+    "staircase": "none", "flooring": "standard", "floorMaterial": "wood",
+    "lighting": "luxury", "electrical": "full_mod", "smarthome": "none",
+    "wood": "melamine_standard", "loose": "standard", "stone": "standard_stone",
+    "appliances": "basic", "wcEquipment": "none", "curtain": "normal", "ac": "none", "speaker": "none",
+    "freshAir": false, "epoxyGrout": false
+  },
+  "showSchedule": false
+}
