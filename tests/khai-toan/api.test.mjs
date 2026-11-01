@@ -27,7 +27,10 @@ after(async () => { await closeBrowser(); server.close(); });
 
 test('Thiếu khoá -> 401', async () => { assert.equal((await post(body70, null)).status, 401); });
 test('Sai khoá -> 401', async () => { assert.equal((await post(body70, 'sai')).status, 401); });
-test('GET -> 405', async () => { assert.equal((await fetch(url)).status, 405); });
+test('GET không tham số -> 400 (GET công khai cần cấu hình); PUT -> 405', async () => {
+  assert.equal((await fetch(url)).status, 400);
+  assert.equal((await fetch(url, { method: 'PUT' })).status, 405);
+});
 test('area = 10 -> 400 kèm thông báo rõ', async () => {
   const r = await post({ area: 10, beds: 2, baths: 2, tier: 'standard', style: 'modern' });
   assert.equal(r.status, 400);

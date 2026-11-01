@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "khai-toan:dev": "node scripts/khai-toan-dev-server.mjs",
     "test:khai-toan": "node --test tests/khai-toan/calc.test.mjs",
-    "test:khai-toan:browser": "node --test --test-force-exit tests/khai-toan/api.test.mjs tests/khai-toan/parity.browser.test.mjs"
+    "test:khai-toan:browser": "node --test --test-force-exit tests/khai-toan/api.test.mjs tests/khai-toan/api-get.test.mjs tests/khai-toan/parity.browser.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.43.0",

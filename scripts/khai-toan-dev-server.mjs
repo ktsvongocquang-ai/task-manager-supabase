@@ -5,6 +5,8 @@ import handler from '../api/khai-toan/pdf.js';
 
 const port = Number(process.env.PORT || 3210);
 http.createServer((req, res) => {
-  if (req.url.split('?')[0] === '/api/khai-toan/pdf') return handler(req, res);
+  const p = req.url.split('?')[0];
+  // Giống rewrite trong vercel.json: /api/khai-toan/<tên>.pdf -> /api/khai-toan/pdf
+  if (p === '/api/khai-toan/pdf' || /^\/api\/khai-toan\/[^/]+\.pdf$/.test(p)) return handler(req, res);
   res.statusCode = 404; res.end('Not found');
 }).listen(port, () => console.log(`Khai toan PDF API: http://localhost:${port}/api/khai-toan/pdf`));

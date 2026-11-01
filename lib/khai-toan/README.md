@@ -71,6 +71,20 @@ Tạo khoá ngẫu nhiên: `node -e "console.log(require('crypto').randomBytes(3
 - `400` sai dữ liệu, `401` thiếu hoặc sai khoá, `405` sai phương thức, `429` quá tần suất, `503` chưa cấu hình khoá, `500` lỗi tạo PDF.
 - PDF **không được lưu** ở máy chủ (trả thẳng trong response), log chỉ ghi diện tích, dung lượng, thời gian; không ghi tên hay số điện thoại.
 
+## Link công khai (GET, không cần khoá): dành cho trợ lý chat
+
+```
+https://dqh.vercel.app/api/khai-toan/pdf?area=60&beds=2&baths=2&tier=standard&style=modern
+https://dqh.vercel.app/api/khai-toan/khai-toan-60m2.pdf?area=60&beds=2&baths=2&tier=standard&style=modern   (cùng kết quả, có đuôi .pdf)
+```
+
+- Bắt buộc: `area` (35-350), `beds` (1-4), `baths` (1-3), `tier` (standard | luxury), `style` (modern | modern_luxury).
+- Tuỳ chọn: `name` (tối đa 40 ký tự), `ac` (none|wall|ducted), `smarthome` (none|standard|luxury), `speaker` (none|basic|luxury), `freshAir` (true|false). Phạm vi khác dùng mặc định.
+- Trả `application/pdf`, `Content-Disposition: inline; filename="khai-toan-<area>m2.pdf"`: bấm là mở ngay trên điện thoại. Hỗ trợ cả HEAD (cho trình xem trước link).
+- Luôn ẩn tiến độ. Tham số lạ hoặc sai trả 400 kèm `details`. Riêng các tham số theo dõi (`fbclid`, `utm_*`, `zarsrc`...) mà Zalo hay Messenger tự gắn thêm thì được bỏ qua.
+- Chống lạm dụng: giới hạn `KHAI_TOAN_PUBLIC_RATE_LIMIT` lần/phút/IP (mặc định 10), vượt thì trả 429. Bản PDF được cache theo cấu hình: CDN Vercel cache theo URL (`s-maxage` đến 0 giờ, giờ VN), mỗi instance còn cache thêm 1 giờ theo cấu hình đã chuẩn hoá. Vì vậy cùng cấu hình thì không render lại.
+- Lưu ý: tên khách (`name`) nằm trên URL và trong bản cache CDN đến hết ngày. Không đưa số điện thoại vào link.
+
 ## Ví dụ curl
 
 ```bash

@@ -17,7 +17,16 @@ description: Tạo file PDF khái toán nội thất DQH theo cấu hình khách
 Tuỳ chọn: `clientName` (tên khách hoặc tên căn hộ), `startDate` (YYYY-MM-DD), `scope` (xem mục 4).
 KHÔNG đặt `showSchedule: true`: tiến độ chưa được duyệt để gửi khách.
 
-## 2. Tạo PDF
+## 2. Cách nhanh nhất: gửi link PDF (không cần khoá, không cần shell)
+Ghép link rồi gửi thẳng cho khách (Zalo hoặc Messenger), khách bấm là mở PDF:
+```
+https://dqh.vercel.app/api/khai-toan/khai-toan-<area>m2.pdf?area=<area>&beds=<beds>&baths=<baths>&tier=<standard|luxury>&style=<modern|modern_luxury>
+```
+Tuỳ chọn thêm: `&name=<tên, tối đa 40 ký tự, mã hoá URL>`, `&ac=none|wall|ducted`, `&smarthome=none|standard|luxury`, `&speaker=none|basic|luxury`, `&freshAir=true|false`.
+Ví dụ: `https://dqh.vercel.app/api/khai-toan/khai-toan-60m2.pdf?area=60&beds=2&baths=2&tier=standard&style=modern&ac=ducted`
+KHÔNG đưa số điện thoại vào link. Muốn gửi file đính kèm Zalo thay vì link thì làm theo mục 2b.
+
+## 2b. Tạo file PDF để đính kèm (cần shell + khoá)
 Chạy:
 ```bash
 /opt/javis/scripts/khai-toan-pdf.sh '{"clientName":"Chị Hoa","area":70,"beds":2,"baths":2,"tier":"standard","style":"modern"}'

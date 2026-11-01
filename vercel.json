@@ -25,6 +25,10 @@
     },
     "rewrites": [
         {
+            "source": "/api/khai-toan/(.*)\\.pdf",
+            "destination": "/api/khai-toan/pdf"
+        },
+        {
             "source": "/api/fb-ads-reports",
             "destination": "/api/fb-ads-analyze"
         },
