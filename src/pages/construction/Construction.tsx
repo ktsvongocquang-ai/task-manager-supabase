@@ -20,6 +20,7 @@ import { ProjectsListView } from './ProjectsListView';
 import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModal';
 import { QuickExpenseModal } from './QuickExpenseModal';
 import { SupervisorStation } from './SupervisorStation';
+import { useSearchParams } from 'react-router-dom';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { canAccessRoute } from '../../utils/permissions';
@@ -1179,6 +1180,8 @@ const profileRoleToUserRole = (role?: string): UserRole => {
   return 'MANAGER'; // Admin, Quản lý thiết kế
 };
 
+const KNOWN_TABS: ViewTab[] = ['DASHBOARD', 'KANBAN', 'PROGRESS', 'LOGS', 'SUBS', 'ATTENDANCE', 'REPORTS', 'DIARY', 'PAYMENTS', 'AI_GANTT', 'PROJECTS_LIST', 'STATION'];
+
 export const Construction = () => {
   const db = useConstructionData();
   const { profile } = useAuthStore();
@@ -1191,11 +1194,26 @@ export const Construction = () => {
   };
 
   const [userRole, setUserRole] = useState<UserRole>(getInitialRole);
+  // Tab đồng bộ với URL (?tab=STATION…) để thanh dưới điện thoại và menu thao tác nhanh mở đúng chỗ.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<ViewTab>(() => {
+    if (urlTab && KNOWN_TABS.includes(urlTab as ViewTab)) return urlTab as ViewTab;
     const initial = getInitialRole();
     if (initial === 'ENGINEER') return 'STATION';
     return 'DASHBOARD';
   });
+  useEffect(() => {
+    if (urlTab && KNOWN_TABS.includes(urlTab as ViewTab) && urlTab !== activeTab) setActiveTab(urlTab as ViewTab);
+  }, [urlTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('role') === 'homeowner') return;
+    if (searchParams.get('tab') === activeTab) return;
+    const next = new URLSearchParams(searchParams); next.set('tab', activeTab);
+    setSearchParams(next, { replace: true });
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  const quickAction = searchParams.get('do');
+  const clearQuickAction = () => { const next = new URLSearchParams(searchParams); next.delete('do'); setSearchParams(next, { replace: true }); };
   // isSharedLink: true when accessed via QR link OR when user is a Khách hàng role
   const [isSharedLink, setIsSharedLink] = useState(
     () => new URLSearchParams(window.location.search).get('role') === 'homeowner' || profile?.role === 'Khách hàng'
@@ -1547,8 +1565,8 @@ export const Construction = () => {
             )}
           </div>
 
-          {/* Row 2: Tab bar — flex-1 per tab → không cần scroll, vừa màn hình */}
-          <div className="flex bg-slate-100 p-1 rounded-xl w-full">
+          {/* Row 2: Tab bar — trên điện thoại đã có thanh dưới nên ẩn, chỉ hiện trên máy tính */}
+          <div className="hidden lg:flex bg-slate-100 p-1 rounded-xl w-full">
             {VIEW_TABS.map(tab => {
               // Rút gọn label cho mobile để vừa 5 tab trên 390px
               const shortLabel: Record<string, string> = {
@@ -1668,7 +1686,7 @@ export const Construction = () => {
             }} />}
             {/* Trạm giám sát: nộp nhật ký, việc trong ngày, quy trình, biểu mẫu */}
             {activeTab === 'STATION' && userRole !== 'HOMEOWNER' && (
-              <SupervisorStation projects={dbProjects} profile={profile} notify={(m, t) => showToast(m, t)} onDataChanged={() => { db.loadProjects?.(); if (selectedProject?.id) db.loadProjectDetails(selectedProject.id); }} />
+              <SupervisorStation projects={dbProjects} profile={profile} action={quickAction} onActionDone={clearQuickAction} notify={(m, t) => showToast(m, t)} onDataChanged={() => { db.loadProjects?.(); if (selectedProject?.id) db.loadProjectDetails(selectedProject.id); }} />
             )}
             {/* Engineer Daily Report */}
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}

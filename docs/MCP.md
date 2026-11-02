@@ -21,7 +21,7 @@ Script/Zalo ─REST─► /api/v1/*  ─┘
    - XOÁ `VITE_SUPABASE_SERVICE_ROLE_KEY` (biến có tiền tố `VITE_` bị nhúng vào JS công khai).
    - THÊM `SUPABASE_SERVICE_ROLE_KEY` = key mới (không chọn "expose to browser").
    - (tuỳ chọn) `SUPABASE_URL`; nếu không có sẽ dùng `VITE_SUPABASE_URL`.
-4. Deploy, rồi kiểm tra: `https://sdqh.vercel.app/api/v1/health` → `{"ok":true,...}`.
+4. Deploy, rồi kiểm tra: `https://dqh.vercel.app/api/v1/health` → `{"ok":true,...}`.
 
 ## 2. Tạo khoá cho trợ lý
 
@@ -40,7 +40,7 @@ node scripts/create-ai-key.mjs --name "Claude của Quang" --scopes read,write -
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http dqh https://sdqh.vercel.app/api/mcp --header "Authorization: Bearer dqh_..."
+claude mcp add --transport http dqh https://dqh.vercel.app/api/mcp --header "Authorization: Bearer dqh_..."
 ```
 
 **claude.ai / Claude Desktop (connector tuỳ chỉnh):** ô "Request headers" (nhập `Bearer dqh_...`) hiện chỉ mở cho một số tổ chức và là khoá dùng chung cho cả tổ chức. Nếu không thấy ô này, dùng Claude Code, hoặc tạm dùng `mcp-remote` như dưới. Muốn mỗi người đăng nhập riêng trên claude.ai / ChatGPT thì cần thêm lớp OAuth (việc tiếp theo).
@@ -51,7 +51,7 @@ claude mcp add --transport http dqh https://sdqh.vercel.app/api/mcp --header "Au
   "mcpServers": {
     "dqh": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://sdqh.vercel.app/api/mcp", "--header", "Authorization: Bearer dqh_..."]
+      "args": ["-y", "mcp-remote", "https://dqh.vercel.app/api/mcp", "--header", "Authorization: Bearer dqh_..."]
     }
   }
 }
@@ -69,7 +69,7 @@ mỗi lệnh gửi kèm `sender` = người đang nhắn, nên việc giao / nh�
    `node scripts/create-ai-key.mjs --name "Bot Javis" --scopes read,write,delegate`
 2. Trong Javis → *Tự thêm MCP server* → **Qua link**:
    - Tên gợi nhớ: `dqh`
-   - Link MCP: `https://sdqh.vercel.app/api/mcp`
+   - Link MCP: `https://dqh.vercel.app/api/mcp`
    - API key (header): ô trái `Authorization`, ô phải `Bearer dqh_...` → **Lưu và kiểm tra** (phải thấy 10 tool).
 3. Dán vào phần hướng dẫn (system prompt) của bot trong Javis:
    > Bạn là trợ lý dự án DQH. Mỗi lần gọi tool DQH, luôn truyền `sender` = `telegram:<chat id người nhắn>` hoặc `zalo:<user id người nhắn>`.
@@ -88,13 +88,13 @@ Thông báo giao việc: Telegram nếu người nhận đã liên kết, không
 Cùng một "bộ não" (`lib/core/chat.js`, Gemini + 10 tool ở dưới). Giao/sửa việc: bot gửi bản xem trước, người nhắn trả lời **OK** mới ghi.
 
 - **Zalo qua bot Render** (đang dùng): bot Render chỉ còn là đường truyền.
-  - Tin đến: bot gọi `POST https://sdqh.vercel.app/api/generate-grok-news?job=zalo_webhook` (đường cũ, đã trỏ sang `/api/v1/zalo/webhook`) với `{sender_id, text}`, nhận về `{reply_message}`.
+  - Tin đến: bot gọi `POST https://dqh.vercel.app/api/generate-grok-news?job=zalo_webhook` (đường cũ, đã trỏ sang `/api/v1/zalo/webhook`) với `{sender_id, text}`, nhận về `{reply_message}`.
   - Tin đi: app gọi `ZALO_BOT_URL/api/send-message` `{phone, message}`.
   - Nên đặt `ZALO_BOT_SECRET` ở cả hai bên (header `x-bot-secret`), nếu không ai biết đường dẫn cũng nhắn giả danh được.
   - Nhắc việc 3 lần/ngày của bot Render (`remind-all`) đã bỏ; thay bằng tin sáng 07:00 + nhắc nhật ký 16:30 của app.
 - **Zalo OA** (nếu chuyển sang OA): đặt webhook OA về `/api/v1/zalo/webhook` (hoặc `/api/admin` như cũ), `ZALO_MODE=oa`.
 - **Telegram bot trực tiếp**: đặt `TELEGRAM_WEBHOOK_SECRET`, rồi gọi một lần
-  `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://sdqh.vercel.app/api/v1/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`.
+  `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://dqh.vercel.app/api/v1/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`.
   Bot chỉ trả lời tin nhắn riêng, không trả lời trong nhóm.
 - Liên kết tài khoản: nhân sự nhắn **email đăng nhập app** cho bot một lần.
 - Cần `GEMINI_API_KEY` (đã có trong dự án). Đổi mô hình bằng `CHAT_MODEL`.

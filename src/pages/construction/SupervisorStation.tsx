@@ -31,7 +31,7 @@ function useCountdown() {
   return { late: ms < 0, label: `${h > 0 ? h + ' giờ ' : ''}${m} phút`, weekday: ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][now.getUTCDay()] };
 }
 
-export function SupervisorStation({ projects, profile, notify, onDataChanged }: { projects: Project[]; profile: Profile; notify?: Notify; onDataChanged?: () => void }) {
+export function SupervisorStation({ projects, profile, notify, onDataChanged, action, onActionDone }: { projects: Project[]; profile: Profile; notify?: Notify; onDataChanged?: () => void; action?: string | null; onActionDone?: () => void }) {
   const say: Notify = notify || ((m) => alert(m));
   const [tab, setTab] = useState<Tab>('today');
   const [siteTab, setSiteTab] = useState<'materials' | 'changes'>('materials');
@@ -102,6 +102,21 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
   };
 
   const pending = active.filter(p => !submitted.has(p.id));
+
+  // Thao tác nhanh từ menu góc trên (?do=diary|GS-06|GS-08|materials|task)
+  useEffect(() => {
+    if (!action || loading) return;
+    if (action === 'diary') {
+      setTab('today');
+      if (pending.length === 1) setDiaryFor(pending[0]);
+      else if (!pending.length && active.length) say('Đã nộp đủ nhật ký hôm nay', 'success');
+      // nhiều công trình chưa nộp: để danh sách hiện ra cho chọn
+    } else if (action === 'materials') { setTab('site'); setSiteTab('materials'); }
+    else if (action === 'changes') { setTab('site'); setSiteTab('changes'); }
+    else if (action === 'task') setNewTaskOpen(true);
+    else { const f = FORMS.find(x => x.code === action); if (f) setOpenForm(f); }
+    onActionDone?.();
+  }, [action, loading]); // eslint-disable-line react-hooks/exhaustive-deps
   const openForms = (f: SupervisorForm) => f.kind === 'diary' ? (setTab('today'), pending[0] && setDiaryFor(pending[0])) : f.kind === 'task' ? setNewTaskOpen(true) : setOpenForm(f);
   const lateCount = groups[0].items.length;
   const tabs: { id: Tab; label: string; icon: any; badge?: number }[] = [
