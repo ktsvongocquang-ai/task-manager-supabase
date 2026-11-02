@@ -21,8 +21,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       disable: IS_PUBLIC,
-      registerType: 'autoUpdate',
-      injectRegister: 'script',
+      // 'prompt' + đăng ký thủ công trong main.tsx: tự quyết lúc nào an toàn để tải lại.
+      registerType: 'prompt',
+      injectRegister: false,
       manifest: {
         name: 'DQH Quản Lý',
         short_name: 'DQH App',
@@ -64,7 +65,7 @@ export default defineConfig({
           '**/assets/proxy-*.js',
         ],
         maximumFileSizeToCacheInBytes: 5000000,
-        skipWaiting: true,
+        skipWaiting: false, // chờ main.tsx cho phép (khi app đang ẩn) mới kích hoạt bản mới
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         // Không cho service worker trả trang app (index.html) khi mở trực tiếp các link
