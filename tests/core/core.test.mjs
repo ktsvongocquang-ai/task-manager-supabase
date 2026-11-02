@@ -10,7 +10,7 @@ import { listTasks, planCreateTask, createTask, updateTask } from '../../lib/cor
 import { projectStatus } from '../../lib/core/projects.js';
 import { addLog, searchLogs } from '../../lib/core/logs.js';
 import { reportOverdue, reportDaily } from '../../lib/core/reports.js';
-import { handleMcp, TOOLS } from '../../lib/core/mcp.js';
+import { handleMcp, TOOLS, callTool } from '../../lib/core/mcp.js';
 import { hashKey } from '../../lib/core/auth.js';
 import handler, { routeOf } from '../../api/v1.js';
 import { handleChatMessage, toolDeclarations } from '../../lib/core/chat.js';
@@ -144,8 +144,8 @@ test('MCP: initialize, 10 tool, xem trước rồi mới ghi, khoá chỉ đọc
   assert.equal(init.result.protocolVersion, '2025-06-18');
   assert.equal(await handleMcp({ jsonrpc: '2.0', method: 'notifications/initialized' }, writer()), null);
   const list = await handleMcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' }, writer());
-  assert.equal(list.result.tools.length, 10);
-  assert.equal(TOOLS.length, 10);
+  assert.equal(list.result.tools.length, 12);
+  assert.equal(TOOLS.length, 12);
 
   const args = { title: 'Kiểm tra điện', project: 'Q7', assignee: 'Thắng', due_date: '2026-11-06' };
   const pv = await handleMcp({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'create_task', arguments: args } }, writer());
@@ -201,7 +201,7 @@ test('HTTP: không khoá -> 401; khoá đúng -> đọc được; khoá thu hồ
   const noWrite = await call('POST', '/api/v1/tasks', { headers: { authorization: 'Bearer ' + key }, body: { title: 'x' } });
   assert.equal(noWrite.status, 403);
   const mcp = await call('POST', '/api/mcp', { headers: { authorization: 'Bearer ' + key }, body: { jsonrpc: '2.0', id: 1, method: 'tools/list' } });
-  assert.equal(mcp.body.result.tools.length, 10);
+  assert.equal(mcp.body.result.tools.length, 12);
   F.tables.ai_api_keys[0].revoked_at = '2026-01-01';
   assert.equal((await call('GET', '/api/v1/tasks', { headers: { authorization: 'Bearer ' + key } })).status, 401);
   assert.equal((await call('POST', '/api/send-telegram', { body: { userId: P.thang, message: 'x' } })).status, 401);
@@ -276,7 +276,7 @@ test('kênh chat Zalo/Telegram: liên kết bằng email, hỏi việc, giao vi�
   assert.equal(await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'không', llm: script([]) }), 'Đã huỷ, không ghi gì.');
 
   const decl = toolDeclarations();
-  assert.equal(decl.length, 10);
+  assert.equal(decl.length, 12);
   assert.ok(decl.every(d => !d.parametersJsonSchema.properties.sender && !d.parametersJsonSchema.properties.confirm));
 });
 
@@ -308,4 +308,24 @@ test('đọc sổ kế toán Google Sheets: số tiền, ngày, cột Thu/Chi, k
   assert.equal(parseLedger(rows, 'Thu chi')[1].row_hash, e[1].row_hash, 'cùng dòng -> cùng mã, chạy lại không nhân đôi');
   const e2 = parseLedger([['Ngày', 'Nội dung', 'Số tiền', 'Loại'], ['2026-08-06', 'Nhân công', '8.000.000', 'Chi'], ['2026-08-07', 'Đợt 2', '200.000.000', 'Thu']]);
   assert.deepEqual(e2.map(x => x.kind), ['chi', 'thu']);
+});
+
+test('vật tư + phát sinh qua trợ lý: báo thiếu, hàng về, lập phát sinh chờ khách; khoá chỉ đọc bị chặn ghi', async () => {
+  F.tables.site_materials = []; F.tables.change_orders = [];
+  const add = await callTool('materials', { action: 'add', project: 'Q7', name: 'Gạch 60x60', quantity: 20, unit: 'm²', need_by: '2026-11-05' }, writer());
+  assert.equal(add.trang_thai, 'Cần đặt');
+  const choose = await callTool('materials', { action: 'add', project: 'Q7', name: 'Đá bếp', owner_choice: 'Chọn trắng vân mây hay đen tia chớp' }, writer());
+  assert.equal(choose.trang_thai, 'Chờ chủ nhà chốt');
+  const list = await callTool('materials', { project: 'Q7' }, reader());
+  assert.equal(list.length, 2);
+  await callTool('materials', { action: 'set_status', id: F.tables.site_materials[0].id, status: 'da_ve' }, writer());
+  assert.equal((await callTool('materials', { project: 'Q7' }, reader())).length, 1, 'đã về thì không còn trong danh sách chưa về');
+  await assert.rejects(callTool('materials', { action: 'add', project: 'Q7', name: 'x' }, reader()), e => e.status === 403);
+  await assert.rejects(callTool('materials', { action: 'add', project: 'Thảo Điền', name: 'x' }, writer()), e => e.status === 404 || e.status === 400);
+  const co = await callTool('change_orders', { action: 'create', project: 'Q7', title: 'Thêm tủ giày', cost: 12000000, extra_days: 2 }, writer());
+  assert.equal(co.ma, 'PS-01');
+  assert.match(co.trang_thai, /Chờ khách/);
+  const co2 = await callTool('change_orders', { action: 'create', project: 'Q7', title: 'Đổi đèn', cost: 0 }, writer());
+  assert.equal(co2.ma, 'PS-02');
+  assert.equal((await callTool('change_orders', { project: 'Q7', status: 'cho_khach' }, reader())).length, 2);
 });

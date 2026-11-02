@@ -90,6 +90,6 @@ export function seed(today) {
     v_logs: [
       { id: 'l1', source: 'construction_diary', project_id: PR.ct, kind: 'nhat_ky', log_date: today, content: 'Thiếu gạch 60x60, thang máy chưa bàn giao', is_issue: true, author_id: P.thang },
     ],
-    ai_api_keys: [], ai_audit_log: [], ai_cron_runs: [], ai_chat_pending: [],
+    ai_api_keys: [], ai_audit_log: [], ai_cron_runs: [], ai_chat_pending: [], site_materials: [], change_orders: [],
   };
 }

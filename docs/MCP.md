@@ -14,7 +14,7 @@ Script/Zalo ─REST─► /api/v1/*  ─┘
 
 ## 1. Cài đặt (làm 1 lần)
 
-1. **Supabase → SQL Editor**: chạy `supabase/migrations/20261102_ai_api_mcp.sql`
+1. **Supabase → SQL Editor**: chạy lần lượt `supabase/migrations/20261102_ai_api_mcp.sql` rồi `20261103_vat_tu_phat_sinh.sql`
    (chỉ thêm view, 3 bảng mới `ai_notes`, `ai_api_keys`, `ai_audit_log`, và vài cột thiếu ở `daily_logs`; không xoá gì).
 2. **Supabase → Settings → API**: tạo service role key mới, vô hiệu key cũ (key cũ có thể đã lộ ra frontend).
 3. **Vercel → Settings → Environment Variables**:
@@ -107,7 +107,7 @@ Cùng một "bộ não" (`lib/core/chat.js`, Gemini + 10 tool ở dưới). Giao
 - Chạy tự động 22:00 hằng ngày; chạy tay: `POST /api/v1/accounting/sync?project=<id>` (khoá có quyền write). Chạy lại không nhân đôi.
 - Kế toán vẫn nhập ở Sheets; app chỉ đọc.
 
-## 4. 10 tool
+## 4. 12 tool
 
 | Nhóm | Tool | Ví dụ câu nói |
 |---|---|---|
@@ -118,6 +118,8 @@ Cùng một "bộ não" (`lib/core/chat.js`, Gemini + 10 tool ở dưới). Giao
 | | `update_task` | "Việc đi ống điện tầng 2 xong rồi" |
 | Ghi chép | `add_log` | "Nhật ký Q7: đội anh Cường 3 người, bắn vách bếp 70%, thiếu cây U nhôm, mai gắn giường master" |
 | | `search_logs` | "Tuần trước Q7 có vấn đề gì?" |
+| Công trường | `materials` | "Q7 còn thiếu vật tư gì?", "báo thiếu 20m² gạch 60x60 WC tầng 2, cần trước thứ 5", "gạch Q7 về rồi" |
+| | `change_orders` | "Lập phát sinh thêm tủ giày nhà Q7, 12 triệu, thêm 2 ngày" (chỉ lập phiếu, khách đồng ý trên link) |
 | Báo cáo | `report_daily` | "Báo cáo hôm nay" — kèm danh sách công trình **chưa nộp nhật ký** |
 | | `report_weekly` | "Báo cáo tuần này" |
 | | `report_overdue` | "Ai đang trễ việc?" |

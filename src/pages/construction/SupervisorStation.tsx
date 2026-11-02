@@ -2,15 +2,17 @@
 // tra quy trình và điền biểu mẫu GS-01 → GS-10. Dữ liệu ghi thẳng vào bảng của app (daily_logs,
 // construction_tasks, ai_notes) nên Kanban, Nhật ký và trợ lý AI đều thấy ngay.
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { Clock, FileText, ListChecks, BookOpen, FolderOpen, CheckCircle2, AlertTriangle, Camera, X, Plus, Play, Check, ChevronRight, Loader2 } from 'lucide-react';
+import { Package, FilePlus2, LayoutTemplate, Clock, FileText, ListChecks, BookOpen, FolderOpen, CheckCircle2, AlertTriangle, Camera, X, Plus, Play, Check, ChevronRight, Loader2 } from 'lucide-react';
 import { supabase, uploadImageToStorage } from '../../services/supabase';
 import type { Project } from './types';
+import { Sheet, inputCls, Label, SaveBtn } from './stationUi';
+import { MaterialsPanel, ChangeOrdersPanel, TemplateModal } from './SiteModules';
 import { FORMS, SOP_GROUPS, ISSUE_TYPES, SUPPORT_FROM, formatForm, type SupervisorForm, type FormField } from './supervisorForms';
 
 type Notify = (msg: string, type?: 'success' | 'error' | 'info') => void;
 type Profile = { id?: string; full_name?: string | null; role?: string | null } | null | undefined;
 type STask = { id: string; project_id: string; name: string; status: string; start_date: string | null; end_date: string | null; progress: number | null; assignee: string | null };
-type Tab = 'report' | 'tasks' | 'sop' | 'forms';
+type Tab = 'report' | 'tasks' | 'materials' | 'changes' | 'sop' | 'forms';
 
 const vnNow = () => new Date(Date.now() + 7 * 3600_000);
 const todayVN = () => vnNow().toISOString().slice(0, 10);
@@ -47,6 +49,7 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
   const [diaryFor, setDiaryFor] = useState<Project | null>(null);
   const [openForm, setOpenForm] = useState<SupervisorForm | null>(null);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(false);
   const cd = useCountdown();
   const today = todayVN();
 
@@ -95,6 +98,8 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
   const tabs: { id: Tab; label: string; icon: any }[] = [
     { id: 'report', label: 'Báo cáo', icon: FileText },
     { id: 'tasks', label: 'Việc', icon: ListChecks },
+    { id: 'materials', label: 'Vật tư', icon: Package },
+    { id: 'changes', label: 'Phát sinh', icon: FilePlus2 },
     { id: 'sop', label: 'Quy trình', icon: BookOpen },
     { id: 'forms', label: 'Biểu mẫu', icon: FolderOpen },
   ];
@@ -112,7 +117,7 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
       </div>
 
       {/* Thanh chọn */}
-      <div className="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-slate-100 p-1 rounded-xl">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} className={`flex flex-col sm:flex-row items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold transition-all ${tab === t.id ? 'bg-white text-[#7A1216] shadow-sm' : 'text-slate-500'}`}>
             <t.icon className="w-4 h-4" />{t.label}
@@ -142,6 +147,8 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
             );
           })}
           <div className="grid grid-cols-2 gap-3 pt-1">
+            <button onClick={() => setTab('materials')} className="rounded-2xl p-4 text-left bg-white border border-slate-200 hover:border-slate-300"><p className="text-[11px] font-bold text-[#7A1216]">VẬT TƯ</p><p className="font-bold text-slate-800 text-sm leading-snug">Báo thiếu, theo dõi hàng về</p></button>
+            <button onClick={() => setTab('changes')} className="rounded-2xl p-4 text-left bg-white border border-slate-200 hover:border-slate-300"><p className="text-[11px] font-bold text-[#7A1216]">PHÁT SINH</p><p className="font-bold text-slate-800 text-sm leading-snug">Lập phiếu, chờ khách đồng ý</p></button>
             {['GS-06', 'GS-08'].map(code => { const f = FORMS.find(x => x.code === code)!; return (
               <button key={code} onClick={() => setOpenForm(f)} className="rounded-2xl p-4 text-left bg-white border border-slate-200 hover:border-slate-300">
                 <p className="text-[11px] font-bold text-[#7A1216]">{f.code}</p>
@@ -156,7 +163,10 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
       {/* VIỆC */}
       {tab === 'tasks' && !loading && active.length > 0 && (
         <div className="space-y-4">
-          <button onClick={() => setNewTaskOpen(true)} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#7A1216] text-white font-semibold text-sm"><Plus className="w-4 h-4" /> Giao việc cho tổ (GS-04)</button>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setNewTaskOpen(true)} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-[#7A1216] text-white font-semibold text-sm"><Plus className="w-4 h-4" /> Giao việc cho tổ</button>
+            <button onClick={() => setTemplateOpen(true)} className="flex items-center justify-center gap-2 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-sm"><LayoutTemplate className="w-4 h-4" /> Nạp mẫu tiến độ</button>
+          </div>
           {groups.map(g => g.items.length > 0 && (
             <div key={g.key}>
               <p className={`inline-block text-xs font-bold px-2 py-0.5 rounded-md mb-2 ${g.tone}`}>{g.label} · {g.items.length}</p>
@@ -177,6 +187,12 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
           {groups.every(g => !g.items.length) && <p className="text-sm text-slate-500">Không có việc nào trễ, đến hạn hoặc đang làm.</p>}
         </div>
       )}
+
+      {/* VẬT TƯ */}
+      {tab === 'materials' && !loading && active.length > 0 && <MaterialsPanel projects={active} profile={profile} say={say} />}
+
+      {/* PHÁT SINH */}
+      {tab === 'changes' && !loading && active.length > 0 && <ChangeOrdersPanel projects={active} profile={profile} say={say} onScheduled={() => { load(); onDataChanged?.(); }} />}
 
       {/* QUY TRÌNH */}
       {tab === 'sop' && (
@@ -216,32 +232,11 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged }: 
 
       {diaryFor && <DiaryModal project={diaryFor} profile={profile} tasks={tasks.filter(t => t.project_id === diaryFor.id)} onClose={() => setDiaryFor(null)} onSaved={() => { setDiaryFor(null); say('Đã nộp nhật ký', 'success'); load(); onDataChanged?.(); }} say={say} />}
       {openForm && <NoteFormModal form={openForm} projects={active} profile={profile} onClose={() => setOpenForm(null)} onSaved={() => { setOpenForm(null); say(`Đã lưu ${openForm.code}`, 'success'); }} say={say} />}
+      {templateOpen && <TemplateModal projects={active} say={say} onClose={() => setTemplateOpen(false)} onSaved={() => { setTemplateOpen(false); say('Đã nạp mẫu tiến độ', 'success'); load(); onDataChanged?.(); }} />}
       {newTaskOpen && <NewTaskModal projects={active} onClose={() => setNewTaskOpen(false)} onSaved={() => { setNewTaskOpen(false); say('Đã giao việc', 'success'); load(); onDataChanged?.(); }} say={say} />}
     </div>
   );
 }
-
-/* ---------- Khung modal dùng chung ---------- */
-function Sheet({ title, sub, onClose, children, footer }: { title: string; sub?: string; onClose: () => void; children: any; footer: any }) {
-  return (
-    <div className="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-lg max-h-[92vh] rounded-t-2xl sm:rounded-2xl flex flex-col">
-        <div className="p-4 border-b border-slate-100 flex items-start justify-between gap-3">
-          <div className="min-w-0"><p className="font-bold text-slate-900">{title}</p>{sub && <p className="text-xs text-slate-500 truncate">{sub}</p>}</div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100"><X className="w-5 h-5 text-slate-500" /></button>
-        </div>
-        <div className="p-4 overflow-y-auto space-y-3">{children}</div>
-        <div className="p-4 border-t border-slate-100" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>{footer}</div>
-      </div>
-    </div>
-  );
-}
-const inputCls = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7A1216]/20';
-const Label = ({ children, req }: { children: any; req?: boolean }) => <label className="block text-xs font-semibold text-slate-700 mb-1">{children}{req && <span className="text-rose-600"> *</span>}</label>;
-const SaveBtn = ({ busy, onClick, label }: { busy: boolean; onClick: () => void; label: string }) => (
-  <button disabled={busy} onClick={onClick} className="w-full py-3 rounded-xl bg-[#7A1216] text-white font-semibold text-sm disabled:opacity-60 flex items-center justify-center gap-2">{busy && <Loader2 className="w-4 h-4 animate-spin" />}{label}</button>
-);
 
 /* ---------- GS-07 Nhật ký ngày ---------- */
 function DiaryModal({ project, profile, tasks, onClose, onSaved, say }: { project: Project; profile: Profile; tasks: STask[]; onClose: () => void; onSaved: () => void; say: Notify }) {

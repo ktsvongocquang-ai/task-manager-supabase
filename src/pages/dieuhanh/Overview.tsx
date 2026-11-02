@@ -24,6 +24,7 @@ export function Overview() {
   const navigate = useNavigate();
   const [state, setState] = useState<{ loading: boolean; error?: string; projects: VProject[]; tasks: VTask[]; logs: VLog[]; people: Person[] }>({ loading: true, projects: [], tasks: [], logs: [], people: [] });
   const today = vnToday();
+  const [site, setSite] = useState<{ lateMat: number; waitingCO: number } | null>(null);
 
   const load = async () => {
     setState(s => ({ ...s, loading: true, error: undefined }));
@@ -36,6 +37,11 @@ export function Overview() {
     ]);
     const err = p.error || t.error || l.error;
     if (err) return setState({ loading: false, error: /v_projects|v_tasks|v_logs|does not exist|schema cache/i.test(err.message) ? 'Chưa chạy file cập nhật dữ liệu (supabase/migrations/20261102_ai_api_mcp.sql) nên chưa có số liệu tổng hợp.' : err.message, projects: [], tasks: [], logs: [], people: [] });
+    const [m, c] = await Promise.all([
+      supabase.from('site_materials').select('id', { count: 'exact', head: true }).not('status', 'in', '(da_ve,huy)').lt('need_by', today),
+      supabase.from('change_orders').select('id', { count: 'exact', head: true }).eq('status', 'cho_khach'),
+    ]);
+    setSite(m.error || c.error ? null : { lateMat: m.count || 0, waitingCO: c.count || 0 });
     setState({ loading: false, projects: (p.data || []) as VProject[], tasks: (t.data || []) as VTask[], logs: (l.data || []) as VLog[], people: (pe.data || []) as Person[] });
   };
   useEffect(() => { load(); }, []);
@@ -90,12 +96,16 @@ export function Overview() {
 
       {!state.error && (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
             {[
               { label: 'Có việc trễ', value: red, cls: 'text-rose-700' },
               { label: 'Cần để ý', value: amber, cls: 'text-amber-700' },
               { label: 'Ổn', value: green, cls: 'text-emerald-700' },
               { label: 'Chưa nộp nhật ký hôm nay', value: missing.length, cls: missing.length ? 'text-rose-700' : 'text-slate-900' },
+              ...(site ? [
+                { label: 'Vật tư quá hạn cần có', value: site.lateMat, cls: site.lateMat ? 'text-rose-700' : 'text-slate-900' },
+                { label: 'Phát sinh chờ khách đồng ý', value: site.waitingCO, cls: site.waitingCO ? 'text-amber-700' : 'text-slate-900' },
+              ] : []),
             ].map(k => (
               <div key={k.label} className="bg-white border border-slate-200 rounded-2xl p-4">
                 <p className={`text-3xl font-bold ${k.cls}`}>{state.loading ? '…' : k.value}</p>
