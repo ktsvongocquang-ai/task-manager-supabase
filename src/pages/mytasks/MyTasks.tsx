@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { AssignedTasks } from './AssignedTasks';
 import { 
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, Mic, MicOff, Sparkles, Loader2,
@@ -1639,14 +1640,17 @@ export default function MyTasks() {
           </div>
         </div>
 
-        {/* Smart Quick Add */}
+        {/* Việc dự án được giao (bảng tasks) — luôn ở đầu trang "Tiêu điểm" */}
+        {viewMode === 'focus' && profile?.id && <AssignedTasks userId={profile.id} />}
+
+        {/* Việc cá nhân */}
         {viewMode === 'focus' && (
           <form onSubmit={handleAddTask} className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-3 transition-all focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent mb-4">
             <div className="flex-1 flex items-center gap-3 w-full px-2">
               <Plus className="w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Thêm việc mới (VD: Mua hoa tặng vợ...)"
+                placeholder="Thêm việc cá nhân (VD: Gọi lại khách anh Tùng…)"
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 className="w-full py-2 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-base"
