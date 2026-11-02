@@ -35,7 +35,8 @@ export function PrintSchedule() {
   const groups = useMemo(() => {
     const m = new Map<string, T[]>();
     for (const t of tasks) { const k = t.category || 'Khác'; if (!m.has(k)) m.set(k, []); m.get(k)!.push(t); }
-    return [...m];
+    // Nhóm theo thứ tự hạng mục (tên có số thứ tự "1. …" lên trước), "Khác" cuối cùng.
+    return [...m].sort(([x], [y]) => (x === 'Khác' ? 1 : 0) - (y === 'Khác' ? 1 : 0) || x.localeCompare(y, 'vi', { numeric: true }));
   }, [tasks]);
 
   const dated = tasks.filter(t => t.start_date);
