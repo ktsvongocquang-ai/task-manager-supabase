@@ -30,6 +30,8 @@ export function fakeDb(seed) {
       try {
         tables[this.t] ??= [];
         if (this.op === 'insert') {
+          if (this.t === 'ai_cron_runs' && tables[this.t].some(r => r.job === this.row.job && r.run_date === this.row.run_date))
+            return Promise.resolve({ data: null, error: { code: '23505', message: 'duplicate' } }).then(ok, bad);
           const rows = (Array.isArray(this.row) ? this.row : [this.row]).map(r => ({ id: `new-${++n}`, ...r }));
           tables[this.t].push(...rows); log.inserts.push({ table: this.t, rows });
           return Promise.resolve({ data: rows.map(r => ({ id: r.id })), error: null }).then(ok, bad);
@@ -83,6 +85,6 @@ export function seed(today) {
     v_logs: [
       { id: 'l1', source: 'construction_diary', project_id: PR.ct, kind: 'nhat_ky', log_date: today, content: 'Thiếu gạch 60x60, thang máy chưa bàn giao', is_issue: true, author_id: P.thang },
     ],
-    ai_api_keys: [], ai_audit_log: [],
+    ai_api_keys: [], ai_audit_log: [], ai_cron_runs: [],
   };
 }

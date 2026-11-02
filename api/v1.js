@@ -12,6 +12,7 @@
 //  GET   /api/v1/reports/daily|weekly|overdue   ?date&assignee | ?week_of
 //  POST  /api/mcp                               MCP (JSON-RPC, Streamable HTTP, không trạng thái)
 //  POST  /api/send-telegram                     (app nội bộ, cần đăng nhập)
+//  GET   /api/v1/cron/diary-reminder|daily-report|weekly-report   (Vercel Cron, header Bearer CRON_SECRET)
 //
 // Xác thực AI: Authorization: Bearer dqh_...  (tạo bằng: node scripts/create-ai-key.mjs)
 import { CoreError } from '../lib/core/db.js';
@@ -22,6 +23,8 @@ import { addLog, searchLogs } from '../lib/core/logs.js';
 import { reportDaily, reportWeekly, reportOverdue } from '../lib/core/reports.js';
 import { handleMcp } from '../lib/core/mcp.js';
 import { sendTelegram } from '../lib/core/notify.js';
+import crypto from 'node:crypto';
+import { runDiaryReminder, runDailyReport, runWeeklyReport } from '../lib/core/cron.js';
 
 // ── Giới hạn tần suất cơ bản theo khoá/IP (bộ nhớ của từng instance) ──
 const WINDOW_MS = 60_000;
@@ -86,6 +89,19 @@ export default async function handler(req, res) {
       if (limited('u:' + user.id)) return send(res, 429, { error: 'Gửi quá nhiều, thử lại sau 1 phút' });
       const b = await readJson(req);
       return send(res, 200, await sendTelegram({ userId: b.userId, message: b.message, taskUrl: b.taskUrl }));
+    }
+
+    // Vercel Cron: Authorization: Bearer <CRON_SECRET>
+    if (parts[0] === 'cron') {
+      const secret = process.env.CRON_SECRET;
+      const got = String(req.headers?.authorization || '');
+      const ok = secret && got.length === `Bearer ${secret}`.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(`Bearer ${secret}`));
+      if (!ok) return send(res, 401, { error: 'Sai CRON_SECRET' });
+      const q = { ...query, force: bool(query.force) };
+      if (parts[1] === 'diary-reminder') return send(res, 200, await runDiaryReminder(q));
+      if (parts[1] === 'daily-report') return send(res, 200, await runDailyReport(q));
+      if (parts[1] === 'weekly-report') return send(res, 200, await runWeeklyReport(q));
+      return send(res, 404, { error: 'Không có job này' });
     }
 
     // Từ đây trở đi: khoá API của trợ lý AI.

@@ -154,6 +154,13 @@ test('MCP: initialize, 10 tool, xem trước rồi mới ghi, khoá chỉ đọc
   assert.equal(ok.result.isError, false);
   assert.deepEqual(F.log.inserts.map(i => i.table), ['construction_tasks', 'ai_audit_log']);
 
+  const args2 = { content: 'Họp giao ban', request_id: 'r-1' };
+  await handleMcp({ jsonrpc: '2.0', id: 41, method: 'tools/call', params: { name: 'add_log', arguments: args2 } }, writer());
+  const dup = await handleMcp({ jsonrpc: '2.0', id: 42, method: 'tools/call', params: { name: 'add_log', arguments: args2 } }, writer());
+  assert.match(dup.result.content[0].text, /da_ghi_truoc_do/);
+  assert.equal(F.log.inserts.filter(i => i.table === 'ai_notes').length, 1, 'gọi lại cùng request_id không ghi trùng');
+  assert.ok(ok.result.structuredContent);
+
   const denied = await handleMcp({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { name: 'create_task', arguments: { ...args, confirm: true } } }, reader());
   assert.equal(denied.result.isError, true);
   assert.match(denied.result.content[0].text, /không có quyền ghi/);
@@ -195,4 +202,23 @@ test('HTTP: không khoá -> 401; khoá đúng -> đọc được; khoá thu hồ
   F.tables.ai_api_keys[0].revoked_at = '2026-01-01';
   assert.equal((await call('GET', '/api/v1/tasks', { headers: { authorization: 'Bearer ' + key } })).status, 401);
   assert.equal((await call('POST', '/api/send-telegram', { body: { userId: P.thang, message: 'x' } })).status, 401);
+});
+
+test('cron: nhắc công trình chưa nộp nhật ký, cần CRON_SECRET', async () => {
+  F.tables.v_logs = [];
+  F.tables.v_projects[1].owner_id = P.thang;
+  assert.equal((await call('GET', '/api/v1?__path=cron/diary-reminder')).status, 401);
+  process.env.CRON_SECRET = 's3cret';
+  const r = await call('GET', '/api/v1?__path=cron/diary-reminder', { headers: { authorization: 'Bearer s3cret' } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body.missing, ['Căn hộ Sunrise Q7']);
+  const again = await call('GET', '/api/v1?__path=cron/diary-reminder', { headers: { authorization: 'Bearer s3cret' } });
+  assert.equal(again.body.skipped, 'đã chạy hôm nay', 'cron chạy trùng không gửi lần 2');
+  assert.equal((await call('GET', '/api/v1?__path=cron/diary-reminder', { headers: { authorization: 'Bearer sai' } })).status, 401);
+  delete process.env.CRON_SECRET;
+});
+
+test('giao việc qua AI trả về trạng thái thông báo cho người nhận', async () => {
+  const r = await createTask({ title: 'Đo hiện trạng', project: 'Q7', assignee: 'Thắng' }, writer().actor);
+  assert.ok(['không gửi', 'người nhận chưa liên kết Telegram'].includes(r.thong_bao));
 });

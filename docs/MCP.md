@@ -43,7 +43,9 @@ node scripts/create-ai-key.mjs --name "Claude của Quang" --scopes read,write -
 claude mcp add --transport http dqh https://dqh.vercel.app/api/mcp --header "Authorization: Bearer dqh_..."
 ```
 
-**Claude Desktop** (`claude_desktop_config.json`, dùng cầu nối `mcp-remote`):
+**claude.ai / Claude Desktop (connector tuỳ chỉnh):** ô "Request headers" (nhập `Bearer dqh_...`) hiện chỉ mở cho một số tổ chức và là khoá dùng chung cho cả tổ chức. Nếu không thấy ô này, dùng Claude Code, hoặc tạm dùng `mcp-remote` như dưới. Muốn mỗi người đăng nhập riêng trên claude.ai / ChatGPT thì cần thêm lớp OAuth (việc tiếp theo).
+
+**Claude Desktop qua `mcp-remote`** (cầu nối tạm, `claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -93,7 +95,18 @@ Header: `Authorization: Bearer dqh_...`
 | `GET /api/v1/logs/search?q=` | tìm ghi chép |
 | `GET /api/v1/reports/daily` · `weekly` · `overdue` | báo cáo (có trường `text` đọc được ngay) |
 
-## 6. Kiểm thử
+## 6. Lịch tự động (Vercel Cron, giờ UTC)
+
+| Job | Lịch trong vercel.json | Giờ VN | Việc |
+|---|---|---|---|
+| diary-reminder | `30 9 * * 1-6` | 16:30 T2–T7 | Nhắn riêng giám sát + nhóm: công trình chưa nộp nhật ký |
+| daily-report | `30 10 * * 1-6` | 17:30 T2–T7 | Báo cáo ngày vào nhóm |
+| weekly-report | `45 10 * * 6` | 17:45 T7 | Báo cáo tuần vào nhóm |
+
+Cần biến môi trường: `CRON_SECRET` (≥16 ký tự), `TELEGRAM_BOT_TOKEN`, `TELEGRAM_GROUP_CHAT_ID` (số âm, lấy bằng `getUpdates` sau khi thêm bot vào nhóm).
+Gói Hobby: cron có thể chạy lệch trong vòng 1 giờ; gói Pro chạy đúng phút. Mỗi job chỉ gửi 1 lần/ngày (bảng `ai_cron_runs`), chạy tay lại thì thêm `&force=1`.
+
+## 7. Kiểm thử
 
 ```bash
 node --test tests/core/core.test.mjs
@@ -102,6 +115,8 @@ Chạy trên Supabase giả trong bộ nhớ: tìm người có/không dấu, gh
 khoá chỉ đọc bị chặn ghi, khoá thu hồi bị chặn, định tuyến qua rewrite của Vercel.
 
 ## Giới hạn hiện tại
+
+- Lệnh ghi qua MCP nhận `request_id`: AI gọi lại cùng mã (mạng chập chờn) sẽ không ghi trùng.
 
 - Khoá API đọc được dữ liệu của mọi dự án (không theo RLS từng người) — chỉ cấp cho trợ lý của quản lý.
 - Gói Vercel Hobby tối đa 12 function: thư mục `api/` đang dùng đúng 12 (`send-telegram` đã gộp vào `api/v1.js`).

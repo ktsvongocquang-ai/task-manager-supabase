@@ -153,6 +153,18 @@ create table if not exists public.ai_audit_log (
   created_at timestamptz not null default now()
 );
 create index if not exists ai_audit_log_created_idx on public.ai_audit_log(created_at desc);
+alter table public.ai_audit_log add column if not exists request_id text;
+create unique index if not exists ai_audit_log_request_uidx on public.ai_audit_log(key_id, tool, request_id) where request_id is not null and ok;
+
+-- Cron của Vercel có thể chạy trùng hoặc lỡ: mỗi job chỉ gửi 1 lần/ngày.
+create table if not exists public.ai_cron_runs (
+  job text not null,
+  run_date date not null,
+  result jsonb,
+  created_at timestamptz not null default now(),
+  primary key (job, run_date)
+);
+alter table public.ai_cron_runs enable row level security;
 
 -- Chỉ server (service role) được đụng vào 2 bảng này: bật RLS, không tạo policy nào.
 alter table public.ai_api_keys enable row level security;
