@@ -58,15 +58,15 @@ async function sendZalo(text: string, recipientZaloId?: string): Promise<boolean
   }
 
   try {
-    const res = await fetch('https://zalo-bot-server.onrender.com/api/send-message', {
+    // Gửi qua server của app (cần đăng nhập); server mới giữ mã bí mật của bot Zalo.
+    const { supabase } = await import('./supabase');
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess?.session?.access_token;
+    if (!token) return false;
+    const res = await fetch('/api/v1/notify/zalo', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        phone: targetId,
-        message: text,
-      }),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ to: targetId, message: text }),
     });
     
     const data = await res.json().catch(() => ({}));

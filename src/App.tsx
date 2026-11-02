@@ -2,6 +2,14 @@ import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
 import { RoleGuard } from './components/RoleGuard'
+import { useAuthStore } from './store/authStore'
+import { getDefaultRoute } from './utils/permissions'
+
+/** Mở app là vào đúng màn hình chính của vai trò. */
+const HomeRedirect = () => {
+  const role = useAuthStore(s => s.profile?.role)
+  return <Navigate to={getDefaultRoute(role)} replace />
+}
 import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
 import { ConstructionProvider } from './contexts/ConstructionContext'
@@ -61,14 +69,13 @@ const Profile = safeLazy(() => import('./pages/users/Profile').then(m => ({ defa
 const Gantt = safeLazy(() => import('./pages/gantt/Gantt').then(m => ({ default: m.Gantt })))
 const History = safeLazy(() => import('./pages/history/History').then(m => ({ default: m.History })))
 const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
+const PrintSchedule = safeLazy(() => import('./pages/construction/PrintSchedule').then(m => ({ default: m.PrintSchedule })))
+const Overview = safeLazy(() => import('./pages/dieuhanh/Overview').then(m => ({ default: m.Overview })))
 const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
 const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
 const Finance = safeLazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
-const Customers = safeLazy(() => import('./pages/customers/Customers').then(m => ({ default: m.Customers })))
-const QuoteGenerator = safeLazy(() => import('./pages/customers/QuoteGenerator'))
 
 const MyTasks = safeLazy(() => import('./pages/mytasks/MyTasks'))
-const MarketingApp = safeLazy(() => import('./pages/marketing/MarketingApp'))
 const InteriorQuote = safeLazy(() => import('./pages/baogia/InteriorQuote'))
 const TrainingHub = safeLazy(() => import('./pages/training/TrainingHub'))
 
@@ -108,6 +115,15 @@ function App() {
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
+
+          {/* Bản in tiến độ A3/A4 — cần đăng nhập, không có khung menu */}
+          <Route path="/in-tien-do/:id" element={
+            <AuthGuard>
+              <Suspense fallback={<GlobalLoadingFallback />}>
+                <PrintSchedule />
+              </Suspense>
+            </AuthGuard>
+          } />
 
           {/* Public client landing page — NO auth required */}
           <Route path="/c/:token" element={
@@ -151,7 +167,8 @@ function App() {
 
           {/* Protected Routes (Suspense handled inside Layout for nested routes) */}
           <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
-            <Route index element={<Navigate to="/projects" replace />} />
+            <Route index element={<HomeRedirect />} />
+            <Route path="dieu-hanh" element={<Overview />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="gantt" element={<Gantt />} />
             <Route path="kanban" element={<Kanban />} />
@@ -164,9 +181,6 @@ function App() {
             <Route path="history" element={<History />} />
             <Route path="construction" element={<Construction />} />
             <Route path="finance" element={<Finance />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="customers/quotes/new" element={<QuoteGenerator />} />
-            <Route path="marketing" element={<MarketingApp />} />
             <Route path="mytasks" element={<MyTasks />} />
             <Route path="bao-gia" element={<InteriorQuote />} />
             <Route path="training" element={<TrainingHub />} />

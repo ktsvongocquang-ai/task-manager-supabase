@@ -1,23 +1,30 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
-import App from './App.tsx'
+// Bản công khai (VITE_APP_MODE=public) chỉ nạp PublicApp; app nội bộ nạp App.
+const IS_PUBLIC = import.meta.env.VITE_APP_MODE === 'public'
+const Root = IS_PUBLIC ? React.lazy(() => import('./PublicApp')) : React.lazy(() => import('./App.tsx'))
 import './index.css'
 
-// registerType: 'autoUpdate' means a detected update is activated and the
-// page reloaded automatically — no user prompt. We additionally poll for
-// updates so tabs left open for a long time still pick up new deploys
-// instead of only checking on the next full navigation/reload.
-const updateSW = registerSW({
+// Cập nhật bản mới KHÔNG làm gián đoạn người đang làm việc:
+// - kiểm tra bản mới 5 phút/lần và mỗi lần quay lại app (không còn 15 giây/lần tốn mạng 4G ở công trường);
+// - có bản mới thì chỉ tải lại khi app đang ẩn (chuyển sang app khác, khoá màn hình) — không bao giờ
+//   tải lại giữa lúc đang điền nhật ký hay phiếu.
+let updatePending = false;
+const applyUpdateIfSafe = () => { if (updatePending && document.visibilityState === 'hidden') updateSW(true); };
+const updateSW = IS_PUBLIC ? (() => Promise.resolve()) as unknown as ReturnType<typeof registerSW> : registerSW({
   immediate: true,
   onNeedRefresh() {
-    console.log('[PWA] New version detected! Reloading to apply latest Vercel build...');
-    updateSW(true);
+    updatePending = true;
+    applyUpdateIfSafe();
   },
   onRegisteredSW(_swUrl, registration) {
     if (!registration) return;
-    // Check for new Vercel deployments every 15 seconds
-    setInterval(() => { registration.update(); }, 15 * 1000);
+    setInterval(() => { registration.update(); }, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') registration.update();
+      applyUpdateIfSafe();
+    });
   },
 });
 
@@ -114,7 +121,7 @@ try {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <App />
+        <React.Suspense fallback={null}><Root /></React.Suspense>
       </ErrorBoundary>
     </React.StrictMode>,
   )

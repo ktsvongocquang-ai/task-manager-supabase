@@ -3,16 +3,15 @@ import type { UserRole } from '../pages/construction/types'
 export type AppRole = 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Giám Sát' | 'Sale' | 'Marketing' | 'Khách hàng' | 'Thiết kế'
 
 const ROUTE_ACCESS: Record<string, AppRole[]> = {
+    '/dieu-hanh':    ['Admin', 'Quản lý thiết kế'],
     '/dashboard':    ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/kanban':       ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/tasks':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/schedule':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/gantt':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/projects':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
-    '/marketing':    ['Admin', 'Quản lý thiết kế', 'Marketing'],
     '/construction': ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Khách hàng'],
     '/finance':      ['Admin', 'Quản lý thiết kế'],
-    '/customers':    ['Admin', 'Quản lý thiết kế', 'Sale'],
     '/history':      ['Admin', 'Quản lý thiết kế'],
     '/users':        ['Admin'],
     '/profile':      ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Sale', 'Marketing', 'Khách hàng', 'Thiết kế'],
@@ -26,7 +25,9 @@ export const getDefaultRoute = (role?: string | null): string => {
     switch (role) {
         case 'Admin':
         case 'Quản lý thiết kế':
+            return '/dieu-hanh'
         case 'Thiết kế':
+            return '/mytasks'
         case 'Sale':
         case 'Marketing':
             return '/kanban'

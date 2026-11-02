@@ -134,12 +134,19 @@ export const useConstructionData = () => {
     if (profile?.role === 'Quản lý thi công') {
       query = query.eq('manager_name', profile.full_name);
     } else if (profile?.role === 'Giám Sát') {
-      query = query.eq('engineer_name', profile.full_name);
+      // Không phân biệt hoa/thường: "Đàn" và "đàn" là một người.
+      query = query.ilike('engineer_name', (profile.full_name || '').trim());
     } else if (profile?.role === 'Khách hàng') {
       query = query.eq('owner_name', profile.full_name);
     }
 
-    const { data } = await query;
+    let { data } = await query;
+    // Giám sát chưa được gán công trình nào: tạm thấy mọi công trình đang thi công (để vẫn nộp được nhật ký),
+    // tới khi PM gán tên giám sát vào công trình thì chỉ còn thấy công trình của mình.
+    if (profile?.role === 'Giám Sát' && data && data.length === 0) {
+      const all = await supabase.from('construction_projects').select('*').order('created_at', { ascending: false });
+      data = (all.data || []).filter((p: any) => !/hoàn thành|completed|done|đã bàn giao|cancel/i.test(p.status || ''));
+    }
     if (data) setProjects(data as SupabaseProject[]);
     setLoading(false);
   }, [profile]);

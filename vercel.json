@@ -1,20 +1,24 @@
 {
     "crons": [
         {
-            "path": "/api/generate-grok-news",
-            "schedule": "0 0 * * *"
+            "path": "/api/v1?__path=cron/morning-brief",
+            "schedule": "0 0 * * 1-6"
         },
         {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "0 2 * * *"
+            "path": "/api/v1?__path=cron/diary-reminder",
+            "schedule": "30 9 * * 1-6"
         },
         {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "35 6 * * *"
+            "path": "/api/v1?__path=cron/daily-report",
+            "schedule": "30 10 * * 1-6"
         },
         {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "30 10 * * *"
+            "path": "/api/v1?__path=cron/weekly-report",
+            "schedule": "45 10 * * 6"
+        },
+        {
+            "path": "/api/v1?__path=cron/sync-accounting",
+            "schedule": "0 15 * * *"
         }
     ],
     "functions": {
@@ -29,8 +33,20 @@
             "destination": "/api/khai-toan/pdf"
         },
         {
-            "source": "/api/fb-ads-reports",
-            "destination": "/api/fb-ads-analyze"
+            "source": "/api/v1/(.*)",
+            "destination": "/api/v1?__path=$1"
+        },
+        {
+            "source": "/api/mcp",
+            "destination": "/api/v1?__path=mcp"
+        },
+        {
+            "source": "/api/send-telegram",
+            "destination": "/api/v1?__path=notify/telegram"
+        },
+        {
+            "source": "/api/generate-grok-news",
+            "destination": "/api/v1?__path=zalo/webhook"
         },
         {
             "source": "/(.*)",
@@ -38,24 +54,46 @@
         }
     ],
     "images": {
-        "sizes": [300, 600, 700, 800, 900, 1000, 1200, 1600, 1920],
-        "formats": ["image/avif", "image/webp"],
+        "sizes": [
+            300,
+            600,
+            700,
+            800,
+            900,
+            1000,
+            1200,
+            1600,
+            1920
+        ],
+        "formats": [
+            "image/avif",
+            "image/webp"
+        ],
         "minimumCacheTTL": 31536000,
         "remotePatterns": [
-            { "protocol": "https", "hostname": "*.supabase.co" }
+            {
+                "protocol": "https",
+                "hostname": "*.supabase.co"
+            }
         ]
     },
     "headers": [
         {
             "source": "/(.*)",
             "headers": [
-                { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=0, must-revalidate"
+                }
             ]
         },
         {
             "source": "/assets/(.*)",
             "headers": [
-                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
             ]
         }
     ]

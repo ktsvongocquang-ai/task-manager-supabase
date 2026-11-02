@@ -8,6 +8,33 @@ import { supabase } from '../../services/supabase'
  * Layout gọn cho Quản lý thi công, Giám Sát, Khách hàng.
  * Không sidebar, không bottom bar, tối ưu mobile.
  */
+/** Liên kết Telegram để nhận việc, nhắc nhật ký và để trợ lý AI nhận ra mình. */
+const TelegramSetup = () => {
+    const { profile } = useAuthStore()
+    const [chatId, setChatId] = useState((profile as any)?.telegram_chat_id || '')
+    const [saving, setSaving] = useState(false)
+    const save = async () => {
+        if (!profile?.id) return
+        setSaving(true)
+        const { error } = await supabase.from('profiles').update({ telegram_chat_id: chatId.trim() || null }).eq('id', profile.id)
+        setSaving(false)
+        if (error) alert('Lỗi: ' + error.message)
+        else { alert('Đã lưu Telegram Chat ID'); useAuthStore.getState().checkSession?.() }
+    }
+    return (
+        <div className="p-5 space-y-3">
+            <ol className="text-xs text-slate-600 list-decimal pl-4 space-y-1">
+                <li>Mở Telegram, nhắn bot của DQH chữ /start.</li>
+                <li>Nhắn @userinfobot để lấy số Chat ID của mình.</li>
+                <li>Dán số đó vào ô dưới rồi bấm Lưu.</li>
+            </ol>
+            <input value={chatId} onChange={e => setChatId(e.target.value)} inputMode="numeric" placeholder="VD: 123456789"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+            <button onClick={save} disabled={saving} className="w-full py-2.5 rounded-xl bg-[#7A1216] text-white text-sm font-semibold disabled:opacity-60">{saving ? 'Đang lưu…' : 'Lưu'}</button>
+        </div>
+    )
+}
+
 export const ConstructionOnlyLayout = () => {
     const { profile, signOut } = useAuthStore()
     const navigate = useNavigate()

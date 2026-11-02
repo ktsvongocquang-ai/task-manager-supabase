@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ClientCountdown, DailyLogView, PaymentHistory, ContractorProgressChart } from '../construction/views'
 import { ProjectManagementAIModule } from '../construction/ProjectManagement'
 import type { ViewTab } from '../construction/types'
+import { ClientDecisions } from './ClientDecisions'
 
 type ViewState = 'loading' | 'not_found' | 'gate' | 'authed'
 
@@ -154,6 +155,9 @@ export const ClientView = () => {
              <button className="px-3 py-1.5 text-xs font-bold rounded-lg text-slate-400 transition-all pointer-events-none opacity-50">Quản lý</button>
           </div>
         </div>
+
+        {/* Việc chờ chủ nhà quyết: duyệt phát sinh, chốt vật tư */}
+        <ClientDecisions token={token} password={typeof window !== 'undefined' ? sessionStorage.getItem(SESSION_KEY) : null} />
 
         {/* View Tabs */}
         <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto w-full">
