@@ -33,6 +33,18 @@
             "destination": "/api/fb-ads-analyze"
         },
         {
+            "source": "/api/v1/(.*)",
+            "destination": "/api/v1?__path=$1"
+        },
+        {
+            "source": "/api/mcp",
+            "destination": "/api/v1?__path=mcp"
+        },
+        {
+            "source": "/api/send-telegram",
+            "destination": "/api/v1?__path=notify/telegram"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

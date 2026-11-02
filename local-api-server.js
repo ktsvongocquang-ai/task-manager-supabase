@@ -796,6 +796,10 @@ app.get('/api/backup-db', async (req, res) => {
     }
 });
 
+// ── API cho trợ lý AI + MCP + Telegram (giống api/v1.js trên Vercel) ──
+import v1Handler from './api/v1.js';
+app.all(/^\/api\/(v1(\/.*)?|mcp|send-telegram)$/, (req, res) => v1Handler(req, res));
+
 const PORT = 3001;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Local AI API server running on http://0.0.0.0:${PORT}`);

@@ -731,9 +731,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         const taskLink = `${window.location.origin}/tasks`;
                         const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
 
+                        const tgToken = (await supabase.auth.getSession()).data.session?.access_token;
                         fetch('/api/send-telegram', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tgToken}` },
                             body: JSON.stringify({
                                 userId: assigneeId,
                                 message: `🚀 *${currentUserProfile?.full_name || 'Admin'}* vừa giao cho bạn một nhiệm vụ mới!
@@ -770,9 +771,10 @@ export const MarketingTaskModal: React.FC<AddEditTaskModalProps> = ({
                         const taskLink = `${window.location.origin}/tasks`;
                         const dueStr = form.due_date ? format(parseISO(form.due_date), 'dd/MM/yyyy') : 'Chưa định';
 
+                        const tgToken = (await supabase.auth.getSession()).data.session?.access_token;
                         fetch('/api/send-telegram', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tgToken}` },
                             body: JSON.stringify({
                                 userId: newSupporterId,
                                 message: `🤝 *${currentUserProfile?.full_name || 'Admin'}* vừa thêm bạn làm Người thực hiện cho một nhiệm vụ!
