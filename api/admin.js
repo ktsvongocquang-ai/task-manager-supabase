@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     // Support both VITE_ prefixed (Vercel) and plain env vars
     const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceKey) {
         return res.status(500).json({ error: 'Missing Supabase Admin credentials on the server.' });
