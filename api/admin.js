@@ -134,7 +134,7 @@ export default async function handler(req, res) {
             // Gửi tin nhắn qua Zalo Bot Server (Render)
             const zaloRes = await fetch('https://zalo-bot-server.onrender.com/api/send-message', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...(process.env.ZALO_BOT_SECRET ? { 'x-bot-secret': process.env.ZALO_BOT_SECRET } : {}) },
                 body: JSON.stringify({ 
                     phone: targetProfile.zalo_user_id, 
                     message: message 

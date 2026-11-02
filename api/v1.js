@@ -26,6 +26,7 @@ import { reportDaily, reportWeekly, reportOverdue } from '../lib/core/reports.js
 import { handleMcp } from '../lib/core/mcp.js';
 import { sendTelegram } from '../lib/core/notify.js';
 import crypto from 'node:crypto';
+import { db } from '../lib/core/db.js';
 import { runDiaryReminder, runDailyReport, runWeeklyReport, runMorningBrief } from '../lib/core/cron.js';
 import { handleChatMessage } from '../lib/core/chat.js';
 import { syncAccounting } from '../lib/core/accounting.js';
@@ -94,6 +95,20 @@ export default async function handler(req, res) {
       if (limited('u:' + user.id)) return send(res, 429, { error: 'Gửi quá nhiều, thử lại sau 1 phút' });
       const b = await readJson(req);
       return send(res, 200, await sendTelegram({ userId: b.userId, message: b.message, taskUrl: b.taskUrl }));
+    }
+
+    // App nội bộ: gửi Zalo qua bot (cần đăng nhập; chỉ gửi tới người có trong danh sách nhân sự).
+    if (route === 'notify/zalo') {
+      if (method !== 'POST') return send(res, 405, { error: 'Chỉ nhận POST' });
+      const user = await authenticateUser(req);
+      if (limited('u:' + user.id)) return send(res, 429, { error: 'Gửi quá nhiều, thử lại sau 1 phút' });
+      const b = await readJson(req);
+      const to = String(b?.to || '').trim(), message = String(b?.message || '').trim();
+      if (!to || !message) return send(res, 400, { error: 'Thiếu người nhận hoặc nội dung' });
+      const { data: known } = await db().from('profiles').select('id').eq('zalo_user_id', to).limit(1);
+      if (!known?.length) return send(res, 403, { error: 'Người nhận không có trong danh sách nhân sự' });
+      await sendZaloText(to, message, 'bot');
+      return send(res, 200, { success: true });
     }
 
     // Kênh chat: Zalo (bot Render hoặc OA) và Telegram -> cùng một "bộ não" lib/core/chat.js
