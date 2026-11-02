@@ -20,7 +20,7 @@ returns text language sql immutable as $$
     when s is null then 'todo'
     when lower(trim(s)) in ('hoàn thành','done','completed','published','đã xong') then 'done'
     when lower(trim(s)) in ('hủy bỏ','huỷ bỏ','rejected','archived','lưu trữ','cancelled','canceled') then 'cancelled'
-    when lower(trim(s)) in ('chưa bắt đầu','cần làm','todo','mới','mới tạo','upcoming','pending','idea','open','scheduled','draft','preparing') then 'todo'
+    when lower(trim(s)) in ('chưa bắt đầu','chờ kích hoạt','cần làm','todo','mới','mới tạo','upcoming','pending','idea','open','scheduled','draft','preparing') then 'todo'
     else 'doing'
   end
 $$;
