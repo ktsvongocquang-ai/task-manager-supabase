@@ -166,6 +166,18 @@ create table if not exists public.ai_cron_runs (
 );
 alter table public.ai_cron_runs enable row level security;
 
+-- Kênh chat (Zalo/Telegram): lệnh giao/sửa việc chờ người nhắn trả lời "ok".
+create table if not exists public.ai_chat_pending (
+  channel text not null,
+  sender_id text not null,
+  tool text not null,
+  args jsonb not null,
+  summary jsonb,
+  created_at timestamptz not null default now(),
+  primary key (channel, sender_id)
+);
+alter table public.ai_chat_pending enable row level security;
+
 -- Chỉ server (service role) được đụng vào 2 bảng này: bật RLS, không tạo policy nào.
 alter table public.ai_api_keys enable row level security;
 alter table public.ai_audit_log enable row level security;

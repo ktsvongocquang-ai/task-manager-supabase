@@ -1,16 +1,8 @@
 {
     "crons": [
         {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "0 2 * * *"
-        },
-        {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "35 6 * * *"
-        },
-        {
-            "path": "/api/generate-grok-news?job=zalo",
-            "schedule": "30 10 * * *"
+            "path": "/api/v1?__path=cron/morning-brief",
+            "schedule": "0 0 * * 1-6"
         },
         {
             "path": "/api/v1?__path=cron/diary-reminder",
@@ -49,29 +41,55 @@
             "destination": "/api/v1?__path=notify/telegram"
         },
         {
+            "source": "/api/generate-grok-news",
+            "destination": "/api/v1?__path=zalo/webhook"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
     ],
     "images": {
-        "sizes": [300, 600, 700, 800, 900, 1000, 1200, 1600, 1920],
-        "formats": ["image/avif", "image/webp"],
+        "sizes": [
+            300,
+            600,
+            700,
+            800,
+            900,
+            1000,
+            1200,
+            1600,
+            1920
+        ],
+        "formats": [
+            "image/avif",
+            "image/webp"
+        ],
         "minimumCacheTTL": 31536000,
         "remotePatterns": [
-            { "protocol": "https", "hostname": "*.supabase.co" }
+            {
+                "protocol": "https",
+                "hostname": "*.supabase.co"
+            }
         ]
     },
     "headers": [
         {
             "source": "/(.*)",
             "headers": [
-                { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=0, must-revalidate"
+                }
             ]
         },
         {
             "source": "/assets/(.*)",
             "headers": [
-                { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
             ]
         }
     ]

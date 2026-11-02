@@ -26,6 +26,7 @@ export function fakeDb(seed) {
     limit(k) { this.lim = k; return this; }
     insert(row) { this.op = 'insert'; this.row = row; return this; }
     update(set) { this.op = 'update'; this.set = set; return this; }
+    delete() { this.op = 'delete'; return this; }
     then(ok, bad) {
       try {
         tables[this.t] ??= [];
@@ -39,6 +40,10 @@ export function fakeDb(seed) {
         let rows = tables[this.t].filter(r => this.f.every(fn => fn(r)));
         if (this.op === 'update') {
           rows.forEach(r => Object.assign(r, this.set)); log.updates.push({ table: this.t, set: this.set, count: rows.length });
+          return Promise.resolve({ data: rows, error: null }).then(ok, bad);
+        }
+        if (this.op === 'delete') {
+          tables[this.t] = tables[this.t].filter(r => !rows.includes(r));
           return Promise.resolve({ data: null, error: null }).then(ok, bad);
         }
         if (this.ord) { const [c, asc] = this.ord; rows = [...rows].sort((a, b) => (a[c] ?? '￿') < (b[c] ?? '￿') ? (asc ? -1 : 1) : (a[c] ?? '￿') > (b[c] ?? '￿') ? (asc ? 1 : -1) : 0); }
@@ -85,6 +90,6 @@ export function seed(today) {
     v_logs: [
       { id: 'l1', source: 'construction_diary', project_id: PR.ct, kind: 'nhat_ky', log_date: today, content: 'Thiếu gạch 60x60, thang máy chưa bàn giao', is_issue: true, author_id: P.thang },
     ],
-    ai_api_keys: [], ai_audit_log: [], ai_cron_runs: [],
+    ai_api_keys: [], ai_audit_log: [], ai_cron_runs: [], ai_chat_pending: [],
   };
 }

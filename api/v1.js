@@ -12,7 +12,9 @@
 //  GET   /api/v1/reports/daily|weekly|overdue   ?date&assignee | ?week_of
 //  POST  /api/mcp                               MCP (JSON-RPC, Streamable HTTP, không trạng thái)
 //  POST  /api/send-telegram                     (app nội bộ, cần đăng nhập)
-//  GET   /api/v1/cron/diary-reminder|daily-report|weekly-report   (Vercel Cron, header Bearer CRON_SECRET)
+//  GET   /api/v1/cron/morning-brief|diary-reminder|daily-report|weekly-report   (Vercel Cron, header Bearer CRON_SECRET)
+//  POST  /api/v1/zalo/webhook        bot Zalo (Render) {sender_id,text} -> {reply_message}; Zalo OA event user_send_text
+//  POST  /api/v1/telegram/webhook    Telegram Bot API (header X-Telegram-Bot-Api-Secret-Token)
 //
 // Xác thực AI: Authorization: Bearer dqh_...  (tạo bằng: node scripts/create-ai-key.mjs)
 import { CoreError } from '../lib/core/db.js';
@@ -24,7 +26,9 @@ import { reportDaily, reportWeekly, reportOverdue } from '../lib/core/reports.js
 import { handleMcp } from '../lib/core/mcp.js';
 import { sendTelegram } from '../lib/core/notify.js';
 import crypto from 'node:crypto';
-import { runDiaryReminder, runDailyReport, runWeeklyReport } from '../lib/core/cron.js';
+import { runDiaryReminder, runDailyReport, runWeeklyReport, runMorningBrief } from '../lib/core/cron.js';
+import { handleChatMessage } from '../lib/core/chat.js';
+import { sendZaloText, sendTelegramText } from '../lib/core/notify.js';
 
 // ── Giới hạn tần suất cơ bản theo khoá/IP (bộ nhớ của từng instance) ──
 const WINDOW_MS = 60_000;
@@ -91,6 +95,39 @@ export default async function handler(req, res) {
       return send(res, 200, await sendTelegram({ userId: b.userId, message: b.message, taskUrl: b.taskUrl }));
     }
 
+    // Kênh chat: Zalo (bot Render hoặc OA) và Telegram -> cùng một "bộ não" lib/core/chat.js
+    if (route === 'zalo/webhook') {
+      if (method === 'GET') return send(res, 200, { ok: true });
+      if (method !== 'POST') return send(res, 405, { error: 'Chỉ nhận POST' });
+      const b = await readJson(req);
+      if (b?.event_name) { // Zalo OA
+        if (b.event_name !== 'user_send_text') return send(res, 200, { ok: true });
+        const uid = b.sender?.id, text = b.message?.text;
+        if (uid && text) {
+          const reply = await handleChatMessage({ channel: 'zalo', senderId: uid, text }).catch(e => 'Lỗi: ' + e.message);
+          await sendZaloText(uid, reply, 'oa').catch(e => console.error('[zalo oa reply]', e.message));
+        }
+        return send(res, 200, { error: 0, message: 'Success' });
+      }
+      const secret = process.env.ZALO_BOT_SECRET;
+      if (secret && req.headers?.['x-bot-secret'] !== secret) return send(res, 401, { error: 'Sai ZALO_BOT_SECRET' });
+      const senderId = b?.sender_id ?? b?.senderId ?? b?.phone, text = b?.text ?? b?.message;
+      if (!senderId || !text) return send(res, 400, { error: 'Thiếu sender_id hoặc text' });
+      const reply = await handleChatMessage({ channel: 'zalo', senderId: String(senderId), text: String(text) });
+      return send(res, 200, { reply_message: reply });
+    }
+    if (route === 'telegram/webhook') {
+      const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+      if (!secret || req.headers?.['x-telegram-bot-api-secret-token'] !== secret) return send(res, 401, { error: 'Sai TELEGRAM_WEBHOOK_SECRET' });
+      const b = await readJson(req);
+      const m = b?.message;
+      if (m?.chat?.type === 'private' && m.text) {
+        const reply = await handleChatMessage({ channel: 'telegram', senderId: String(m.chat.id), text: m.text }).catch(e => 'Lỗi: ' + e.message);
+        await sendTelegramText(m.chat.id, reply).catch(e => console.error('[tg reply]', e.message));
+      }
+      return send(res, 200, { ok: true });
+    }
+
     // Vercel Cron: Authorization: Bearer <CRON_SECRET>
     if (parts[0] === 'cron') {
       const secret = process.env.CRON_SECRET;
@@ -98,6 +135,7 @@ export default async function handler(req, res) {
       const ok = secret && got.length === `Bearer ${secret}`.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(`Bearer ${secret}`));
       if (!ok) return send(res, 401, { error: 'Sai CRON_SECRET' });
       const q = { ...query, force: bool(query.force) };
+      if (parts[1] === 'morning-brief') return send(res, 200, await runMorningBrief(q));
       if (parts[1] === 'diary-reminder') return send(res, 200, await runDiaryReminder(q));
       if (parts[1] === 'daily-report') return send(res, 200, await runDailyReport(q));
       if (parts[1] === 'weekly-report') return send(res, 200, await runWeeklyReport(q));

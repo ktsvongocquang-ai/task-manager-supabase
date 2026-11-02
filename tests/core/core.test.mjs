@@ -13,6 +13,7 @@ import { reportOverdue, reportDaily } from '../../lib/core/reports.js';
 import { handleMcp, TOOLS } from '../../lib/core/mcp.js';
 import { hashKey } from '../../lib/core/auth.js';
 import handler, { routeOf } from '../../api/v1.js';
+import { handleChatMessage, toolDeclarations } from '../../lib/core/chat.js';
 import { fakeDb, seed, P, PR } from './fake-db.mjs';
 
 const TODAY = todayVN();
@@ -240,4 +241,50 @@ test('bot chung: nhận diện người nhắn qua Telegram/Zalo id, "việc c�
   assert.equal(noDelegate.result.isError, true, 'khoá không có delegate không được đứng tên người khác');
   const list = await handleMcp({ jsonrpc: '2.0', id: 5, method: 'tools/list' }, bot());
   assert.ok(list.result.tools.every(t => t.inputSchema.properties.sender));
+});
+
+test('kênh chat Zalo/Telegram: liên kết bằng email, hỏi việc, giao việc phải trả lời OK mới ghi', async () => {
+  // LLM giả: lần lượt trả các lời gọi tool đã định sẵn
+  const script = (steps) => { let i = 0; return async () => steps[i++] || { text: 'xong', calls: [] }; };
+  const r0 = await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'xin chao', llm: script([]) });
+  assert.match(r0, /chưa liên kết/);
+  const r1 = await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'thang@dqh.vn', llm: script([]) });
+  assert.match(r1, /Đã liên kết Zalo với tài khoản Nguyễn Văn Thắng/);
+  _resetPeopleCache();
+
+  const r2 = await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'việc của tôi?', llm: script([
+    { text: '', calls: [{ name: 'list_tasks', args: { mine: true } }] },
+    { text: 'Anh có 1 việc: Đi ống điện tầng 2.', calls: [] },
+  ]) });
+  assert.equal(r2, 'Anh có 1 việc: Đi ống điện tầng 2.');
+
+  const before = F.log.inserts.length;
+  const r3 = await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'giao Trần Minh đo hiện trạng Q7 trước 2026-11-06', llm: script([
+    { text: '', calls: [{ name: 'create_task', args: { title: 'Đo hiện trạng', project: 'Q7', assignee: 'Trần Minh', due_date: '2026-11-06', confirm: true } }] },
+  ]) });
+  assert.match(r3, /Trả lời OK để ghi/);
+  assert.equal(F.log.inserts.filter((x, i) => i >= before && x.table === 'construction_tasks').length, 0, 'AI tự đặt confirm=true cũng không được ghi');
+  const r4 = await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'ok', llm: script([]) });
+  assert.match(r4, /Đã giao: Đo hiện trạng → Trần Minh/);
+  assert.equal(F.log.inserts.filter((x, i) => i >= before && x.table === 'construction_tasks').length, 1);
+  assert.equal(F.tables.ai_chat_pending.length, 0);
+
+  await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'giao tiếp', llm: script([
+    { text: '', calls: [{ name: 'create_task', args: { title: 'Việc 2', project: 'Q7', assignee: 'Trần Minh' } }] },
+  ]) });
+  assert.equal(await handleChatMessage({ channel: 'zalo', senderId: '0901', text: 'không', llm: script([]) }), 'Đã huỷ, không ghi gì.');
+
+  const decl = toolDeclarations();
+  assert.equal(decl.length, 10);
+  assert.ok(decl.every(d => !d.parametersJsonSchema.properties.sender && !d.parametersJsonSchema.properties.confirm));
+});
+
+test('webhook Zalo (bot Render) và Telegram: kiểm khoá bí mật', async () => {
+  process.env.ZALO_BOT_SECRET = 'zs';
+  assert.equal((await call('POST', '/api/generate-grok-news?job=zalo_webhook'.replace('/api/generate-grok-news', '/api/v1?__path=zalo/webhook&x=1'), { body: { sender_id: '1', text: 'a@b.c' } })).status, 401);
+  const ok = await call('POST', '/api/v1?__path=zalo/webhook', { headers: { 'x-bot-secret': 'zs' }, body: { sender_id: '0999', text: 'khongco@dqh.vn' } });
+  assert.equal(ok.status, 200);
+  assert.match(ok.body.reply_message, /Không tìm thấy email/);
+  delete process.env.ZALO_BOT_SECRET;
+  assert.equal((await call('POST', '/api/v1?__path=telegram/webhook', { body: {} })).status, 401);
 });
