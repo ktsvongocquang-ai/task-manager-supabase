@@ -2,6 +2,14 @@ import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthGuard } from './components/AuthGuard'
 import { RoleGuard } from './components/RoleGuard'
+import { useAuthStore } from './store/authStore'
+import { getDefaultRoute } from './utils/permissions'
+
+/** Mở app là vào đúng màn hình chính của vai trò. */
+const HomeRedirect = () => {
+  const role = useAuthStore(s => s.profile?.role)
+  return <Navigate to={getDefaultRoute(role)} replace />
+}
 import { Layout } from './components/layout/Layout'
 import { Login } from './pages/Login'
 import { ConstructionProvider } from './contexts/ConstructionContext'
@@ -61,6 +69,7 @@ const Profile = safeLazy(() => import('./pages/users/Profile').then(m => ({ defa
 const Gantt = safeLazy(() => import('./pages/gantt/Gantt').then(m => ({ default: m.Gantt })))
 const History = safeLazy(() => import('./pages/history/History').then(m => ({ default: m.History })))
 const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
+const Overview = safeLazy(() => import('./pages/dieuhanh/Overview').then(m => ({ default: m.Overview })))
 const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
 const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
 const Finance = safeLazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
@@ -148,7 +157,8 @@ function App() {
 
           {/* Protected Routes (Suspense handled inside Layout for nested routes) */}
           <Route path="/" element={<AuthGuard><RoleGuard><Layout /></RoleGuard></AuthGuard>}>
-            <Route index element={<Navigate to="/projects" replace />} />
+            <Route index element={<HomeRedirect />} />
+            <Route path="dieu-hanh" element={<Overview />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="gantt" element={<Gantt />} />
             <Route path="kanban" element={<Kanban />} />

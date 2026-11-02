@@ -3,6 +3,7 @@ import type { UserRole } from '../pages/construction/types'
 export type AppRole = 'Admin' | 'Quản lý thiết kế' | 'Quản lý thi công' | 'Giám Sát' | 'Sale' | 'Marketing' | 'Khách hàng' | 'Thiết kế'
 
 const ROUTE_ACCESS: Record<string, AppRole[]> = {
+    '/dieu-hanh':    ['Admin', 'Quản lý thiết kế'],
     '/dashboard':    ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/kanban':       ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/tasks':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
@@ -24,7 +25,9 @@ export const getDefaultRoute = (role?: string | null): string => {
     switch (role) {
         case 'Admin':
         case 'Quản lý thiết kế':
+            return '/dieu-hanh'
         case 'Thiết kế':
+            return '/mytasks'
         case 'Sale':
         case 'Marketing':
             return '/kanban'

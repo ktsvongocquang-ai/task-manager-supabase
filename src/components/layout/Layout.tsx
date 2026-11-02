@@ -55,6 +55,7 @@ const BotSettingsModal = lazy(() =>
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
     '/kanban': 'Kanban',
+    '/dieu-hanh': 'Điều hành',
     '/gantt': 'Sơ đồ Gantt',
     '/projects': 'Quản lý Dự án',
     '/tasks': 'Mục tiêu tuần',
@@ -309,6 +310,11 @@ export const Layout = () => {
     const getNavItemsByRole = (userRole?: string): any[] => {
         const role = userRole?.trim() || 'Thiết kế';
         const items: any[] = [];
+
+        // Điều hành - màn hình chính của Giám đốc / PM
+        if (canAccessRoute(role, '/dieu-hanh')) {
+            items.push({ name: 'Điều hành', path: '/dieu-hanh', icon: PieChart, matchPrefix: ['/dieu-hanh'] });
+        }
 
         // Lịch - standalone top-level item
         if (canAccessRoute(role, '/schedule')) {
