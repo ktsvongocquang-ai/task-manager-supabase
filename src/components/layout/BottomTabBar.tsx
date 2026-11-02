@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Kanban, User, HardHat, HeartHandshake, Folder, Calendar, DollarSign } from 'lucide-react';
+import { Home, Kanban, User, HardHat, Folder, Calendar, DollarSign } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { canAccessRoute } from '../../utils/permissions';
 
@@ -45,20 +45,9 @@ export const BottomTabBar = () => {
         if (role === 'Sale') {
             return [
                 { name: 'Tổng quan', path: '/dashboard', icon: Home },
-                { name: 'CRM', path: '/customers', icon: HeartHandshake },
+                { name: 'Việc', path: '/mytasks', icon: Kanban },
                 { name: 'Lịch', path: '/schedule', icon: Calendar },
                 { name: 'Dự án', path: '/projects', icon: Folder },
-                { name: 'Tài khoản', path: '/profile', icon: User },
-            ];
-        }
-
-        // Marketing
-        if (role === 'Marketing') {
-            return [
-                { name: 'Tổng quan', path: '/marketing?tab=dashboard', icon: Home },
-                { name: 'Kanban', path: '/marketing?tab=kanban', icon: Kanban },
-                { name: 'Lịch', path: '/schedule', icon: Calendar },
-                { name: 'Bài đăng', path: '/marketing?tab=posts', icon: Folder },
                 { name: 'Tài khoản', path: '/profile', icon: User },
             ];
         }

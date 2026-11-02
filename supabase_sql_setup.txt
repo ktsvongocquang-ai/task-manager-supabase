@@ -1,1 +1,0 @@
-CREATE TABLE global_messages (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, content TEXT NOT NULL, user_id UUID REFERENCES profiles(id) NOT NULL, created_at TIMESTAMPTZ DEFAULT now()); ALTER PUBLICATION supabase_realtime ADD TABLE global_messages;

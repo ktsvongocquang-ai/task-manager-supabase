@@ -18,8 +18,6 @@ import {
     X,
     Send,
     HardHat,
-    HeartHandshake,
-    Video,
     ChevronDown,
     List,
     Calendar,
@@ -65,12 +63,9 @@ const viewTitles: Record<string, string> = {
     '/users': 'Quản lý Thiết kế',
     '/construction': 'Quản lý Thi công',
     '/finance': 'Tài chính',
-    '/customers': 'CRM',
-    '/marketing': 'Marketing',
     '/bao-gia': 'Báo giá Nội thất',
     '/training': 'Đào tạo & Thư viện',
-    '/portfolio': 'Portfolio',
-}
+    '/portfolio': 'Portfolio' }
 
 export const Layout = () => {
     const { profile, signOut } = useAuthStore()
@@ -321,8 +316,7 @@ export const Layout = () => {
                 name: 'Lịch',
                 path: '/schedule',
                 icon: Calendar,
-                matchPrefix: ['/schedule'],
-            });
+                matchPrefix: ['/schedule'] });
         }
 
         // Việc cá nhân - all roles except Khách hàng
@@ -331,8 +325,7 @@ export const Layout = () => {
                 name: 'Việc cá nhân',
                 path: '/mytasks',
                 icon: UserCircle,
-                matchPrefix: ['/mytasks'],
-            });
+                matchPrefix: ['/mytasks'] });
         }
 
         // Tab Công Việc
@@ -362,11 +355,6 @@ export const Layout = () => {
             items.push({ name: 'Tài chính', path: '/finance', icon: DollarSign, matchPrefix: ['/finance'] });
         }
 
-        // Tab CRM
-        if (canAccessRoute(role, '/customers')) {
-            items.push({ name: 'Chăm sóc KH', path: '/customers', icon: HeartHandshake, matchPrefix: ['/customers'] });
-        }
-
         // Tab Báo giá Nội thất (gộp chung Kho giá NCC làm 1 tab con trong trang)
         if (isAdminRole(role)) {
             items.push({ name: 'Báo giá', path: '/bao-gia', icon: Calculator, matchPrefix: ['/bao-gia'] });
@@ -380,11 +368,6 @@ export const Layout = () => {
         // Tab Portfolio
         if (canAccessRoute(role, '/portfolio')) {
             items.push({ name: 'Portfolio', path: '/portfolio', icon: LinkIcon, matchPrefix: ['/portfolio'] });
-        }
-
-        // Tab Marketing
-        if (canAccessRoute(role, '/marketing')) {
-            items.push({ name: 'Marketing', path: '/marketing', icon: Video, matchPrefix: ['/marketing'] });
         }
 
         // Người dùng (Admin only)
@@ -735,35 +718,6 @@ export const Layout = () => {
                             )}
                         </div>
 
-                        {/* Horizontal Tabs for CRM Views (hidden on mobile) */}
-                        <div className="hidden lg:block">
-                            {location.pathname === '/customers' && (
-                                <div className="flex items-center space-x-2 border border-slate-200 p-1 rounded-xl bg-slate-50 overflow-x-auto w-full scrollbar-hide shrink-0 flex-nowrap snap-x">
-                                {[
-                                    { id: 'DASHBOARD', name: 'Tổng quan' },
-                                    { id: 'CUSTOMERS', name: 'Khách hàng' },
-                                    { id: 'LEADS', name: 'KH Tiềm năng' },
-                                    { id: 'TASKS', name: 'Theo dõi Task' },
-                                    { id: 'PROJECTS', name: 'Dự án' },
-                                    { id: 'GANTT', name: 'Gantt Chart' },
-                                    { id: 'INVOICES', name: 'Hóa đơn' },
-                                    { id: 'ACTIVITY_LOG', name: 'Nhật ký' },
-                                    { id: 'FB_ADS_AI', name: 'AI Phân tích Ads' },
-                                ].map(item => {
-                                    const isActive = activeCrmTab === item.id;
-                                    return (
-                                        <button
-                                            key={item.id}
-                                            onClick={() => navigate(`/customers?tab=${item.id}`)}
-                                            className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap shrink-0 snap-start ${isActive ? 'bg-white shadow-sm text-indigo-600 border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                            {item.name}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            )}
-                        </div>
                     </div>
                 </header>
 
@@ -780,7 +734,7 @@ export const Layout = () => {
                 />
 
                 {/* Page View */}
-                <div className={`flex-1 w-full max-w-full flex flex-col relative min-w-0 ${location.pathname === '/schedule' ? 'overflow-hidden' : 'overflow-y-scroll'} ${location.pathname.startsWith('/customers') || location.pathname === '/schedule' || location.pathname === '/portfolio' ? '' : 'p-3 sm:p-6'}`}>
+                <div className={`flex-1 w-full max-w-full flex flex-col relative min-w-0 ${location.pathname === '/schedule' ? 'overflow-hidden' : 'overflow-y-scroll'} ${location.pathname === '/schedule' || location.pathname === '/portfolio' ? '' : 'p-3 sm:p-6'}`}>
                     <Suspense fallback={
                         <div className="flex items-center justify-center min-h-[50vh] w-full">
                             <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>

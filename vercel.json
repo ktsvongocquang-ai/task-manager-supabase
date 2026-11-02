@@ -1,10 +1,6 @@
 {
     "crons": [
         {
-            "path": "/api/generate-grok-news",
-            "schedule": "0 0 * * *"
-        },
-        {
             "path": "/api/generate-grok-news?job=zalo",
             "schedule": "0 2 * * *"
         },
@@ -39,10 +35,6 @@
         {
             "source": "/api/khai-toan/(.*)\\.pdf",
             "destination": "/api/khai-toan/pdf"
-        },
-        {
-            "source": "/api/fb-ads-reports",
-            "destination": "/api/fb-ads-analyze"
         },
         {
             "source": "/api/v1/(.*)",

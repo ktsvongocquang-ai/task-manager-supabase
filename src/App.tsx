@@ -64,11 +64,8 @@ const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ defau
 const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
 const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
 const Finance = safeLazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
-const Customers = safeLazy(() => import('./pages/customers/Customers').then(m => ({ default: m.Customers })))
-const QuoteGenerator = safeLazy(() => import('./pages/customers/QuoteGenerator'))
 
 const MyTasks = safeLazy(() => import('./pages/mytasks/MyTasks'))
-const MarketingApp = safeLazy(() => import('./pages/marketing/MarketingApp'))
 const InteriorQuote = safeLazy(() => import('./pages/baogia/InteriorQuote'))
 const TrainingHub = safeLazy(() => import('./pages/training/TrainingHub'))
 
@@ -164,9 +161,6 @@ function App() {
             <Route path="history" element={<History />} />
             <Route path="construction" element={<Construction />} />
             <Route path="finance" element={<Finance />} />
-            <Route path="customers" element={<Customers />} />
-            <Route path="customers/quotes/new" element={<QuoteGenerator />} />
-            <Route path="marketing" element={<MarketingApp />} />
             <Route path="mytasks" element={<MyTasks />} />
             <Route path="bao-gia" element={<InteriorQuote />} />
             <Route path="training" element={<TrainingHub />} />

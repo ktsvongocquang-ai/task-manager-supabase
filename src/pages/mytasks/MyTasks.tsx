@@ -3,10 +3,7 @@ import {
   Plus, Calendar as CalendarIcon, 
   CheckCircle2, Circle, Lock, Trash2, Mic, MicOff, Sparkles, Loader2,
   Sun, Moon, Coffee, Star, LayoutGrid, 
-  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, ChevronDown, GripVertical, MoreVertical,
-  Globe
-} from 'lucide-react';
-import { NewsDashboard } from '../news/NewsDashboard';
+  BarChart2, X, FileText, Pin, CheckSquare, Square, ChevronLeft, ChevronRight, ChevronDown, GripVertical, MoreVertical } from 'lucide-react';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../store/authStore';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, eachDayOfInterval } from 'date-fns';
@@ -79,8 +76,7 @@ const INITIAL_CATEGORIES: Record<string, CategoryItem> = {
   family: { id: 'family', label: 'Gia đình', icon: '👨‍👩‍👧', color: 'bg-orange-100 text-orange-700' },
   finance: { id: 'finance', label: 'Tài chính', icon: '💰', color: 'bg-emerald-100 text-emerald-700' },
   learning: { id: 'learning', label: 'Học tập', icon: '📚', color: 'bg-blue-100 text-blue-700' },
-  personal: { id: 'personal', label: 'Cá nhân', icon: '🎯', color: 'bg-purple-100 text-purple-700' },
-};
+  personal: { id: 'personal', label: 'Cá nhân', icon: '🎯', color: 'bg-purple-100 text-purple-700' } };
 
 
 
@@ -100,8 +96,7 @@ const NoteCard = ({
   onDrop,
   onDragEnd,
   isDragging,
-  isDragOver,
-}: {
+  isDragOver }: {
   note: Note;
   updateNoteTitle: (id: string, title: string) => void;
   saveNoteTitle: (id: string, title: string) => void;
@@ -287,9 +282,9 @@ export default function MyTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [categories, setCategories] = useState<Record<string, CategoryItem>>({});
-  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'dashboard' | 'notes' | 'news'>(() => {
+  const [viewMode, setViewMode] = useState<'focus' | 'kanban' | 'dashboard' | 'notes'>(() => {
     const saved = localStorage.getItem('dqh_mytasks_view');
-    return (saved as any) || 'focus';
+    return (saved && saved !== 'news' ? saved as any : 'focus');
   });
 
   useEffect(() => {
@@ -318,8 +313,7 @@ export default function MyTasks() {
           user_id: profile.id,
           label: INITIAL_CATEGORIES[k].label,
           icon: INITIAL_CATEGORIES[k].icon,
-          color: INITIAL_CATEGORIES[k].color,
-        }));
+          color: INITIAL_CATEGORIES[k].color }));
         const { data: insertedCats } = await supabase.from('personal_categories').insert(defaultsToInsert).select();
         insertedCats?.forEach(c => catMap[c.id] = { id: c.id, label: c.label, icon: c.icon, color: c.color });
       } else {
@@ -337,8 +331,7 @@ export default function MyTasks() {
           status: t.status as TaskStatus,
           dueDate: t.due_date,
           priority: t.priority as Priority,
-          category: t.category_id,
-        })));
+          category: t.category_id })));
       }
 
       // 3. Fetch Notes & Items (try sort_order first, fallback to created_at)
@@ -551,8 +544,7 @@ export default function MyTasks() {
           status: data.status as TaskStatus,
           dueDate: data.due_date,
           priority: data.priority as Priority,
-          category: data.category_id,
-        }, ...tasks]);
+          category: data.category_id }, ...tasks]);
       }
       setNewTaskTitle('');
     } catch (err) {
@@ -593,8 +585,7 @@ export default function MyTasks() {
           status: data.status as TaskStatus,
           dueDate: data.due_date,
           priority: data.priority as Priority,
-          category: data.category_id,
-        }, ...prev]);
+          category: data.category_id }, ...prev]);
       }
     } catch (err: any) {
       console.error('Error quick creating task', err);
@@ -795,8 +786,7 @@ export default function MyTasks() {
         user_id: profile.id,
         title: newNoteTitle.trim() || 'Ghi chú mới',
         color: newNoteColor,
-        is_pinned: false,
-      };
+        is_pinned: false };
       const { data, error } = await supabase.from('personal_notes').insert([insertPayload]).select().single();
 
       if (error) throw error;
@@ -1646,16 +1636,6 @@ export default function MyTasks() {
                 <span className="hidden sm:inline">Ghi chú</span>
               </span>
             </button>
-            <button 
-              onClick={() => setViewMode('news')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-1 py-1 px-2 sm:px-3 rounded-md transition-all ${viewMode === 'news' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              <Globe className="w-5 h-5 sm:w-4 sm:h-4" /> 
-              <span className="text-[11px] sm:text-xs font-medium whitespace-nowrap">
-                <span className="sm:hidden">Đầu tư</span>
-                <span className="hidden sm:inline">Bảng Tin Đầu tư</span>
-              </span>
-            </button>
           </div>
         </div>
 
@@ -1729,9 +1709,7 @@ export default function MyTasks() {
         )}
 
         {/* Content Area */}
-        {viewMode === 'news' ? (
-          <NewsDashboard />
-        ) : viewMode === 'notes' ? (
+        {viewMode === 'notes' ? (
           renderNotesView()
         ) : viewMode === 'dashboard' ? (
           renderDashboardView()

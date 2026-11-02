@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, Users, FileText, ChevronRight, Banknote, Kanban } from 'lucide-react';
+import { FolderOpen, Users, ChevronRight, Banknote, Kanban } from 'lucide-react';
 import { BottomSheet } from './BottomSheet';
 import { useAuthStore } from '../../store/authStore';
 
@@ -39,48 +39,28 @@ export const FullscreenLauncher: React.FC<FullscreenLauncherProps> = ({ isOpen, 
       icon: FolderOpen,
       path: '/projects',
       desc: 'Danh sách công trình & hợp đồng',
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-100',
-    },
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     {
       id: 'kanban',
       name: 'Tiến độ Kanban',
       icon: Kanban,
       path: '/kanban',
       desc: 'Công việc theo luồng quy trình',
-      color: 'text-blue-600 bg-blue-50 border-blue-100',
-    },
+      color: 'text-blue-600 bg-blue-50 border-blue-100' },
     {
       id: 'construction',
       name: 'Nhân sự công trường',
       icon: Users,
       path: '/construction',
       desc: 'Khoán việc, thầu phụ, nhật ký',
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-100',
-    },
-    {
-      id: 'customers',
-      name: 'Chăm sóc khách hàng',
-      icon: Users,
-      path: '/customers',
-      desc: 'Leads, Báo giá, Chăm sóc',
-      color: 'text-rose-600 bg-rose-50 border-rose-100',
-    },
-    {
-      id: 'marketing',
-      name: 'Marketing Workflow',
-      icon: FileText,
-      path: '/marketing',
-      desc: 'Quy chuẩn, Content, Videos',
-      color: 'text-amber-600 bg-amber-50 border-amber-100',
-    },
+      color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     {
       id: 'finance',
       name: 'Tài chính & Công nợ',
       icon: Banknote,
       path: '/dashboard',
       desc: 'Dashboard thống kê, Thu chi',
-      color: 'text-purple-600 bg-purple-50 border-purple-100',
-    },
+      color: 'text-purple-600 bg-purple-50 border-purple-100' },
   ];
 
   const getFilteredModules = () => {

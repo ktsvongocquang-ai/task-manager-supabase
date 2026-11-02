@@ -29,3 +29,6 @@ check_all_data.js
 .env.vercel
 .env.vercel.check
 .env*
+
+# Script/bản cũ đã dời ra (vẫn còn trong lịch sử git)
+_archive/
