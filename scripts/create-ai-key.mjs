@@ -4,6 +4,7 @@
 //     --name "Claude của Quang" --scopes read,write --as "Võ Ngọc Quang"
 //
 //   --as   : tên hoặc email nhân sự đứng tên các thao tác (người tạo việc / tác giả ghi chép)
+//   delegate: cho bot dùng chung (Javis/Telegram/Zalo) đứng tên người đang nhắn qua tham số sender
 //   --revoke <key_prefix> : thu hồi khoá
 import { db } from '../lib/core/db.js';
 import { newApiKey, hashKey } from '../lib/core/auth.js';
@@ -22,7 +23,7 @@ if (opt('revoke')) {
 
 const name = opt('name');
 if (!name) { console.error('Thiếu --name'); process.exit(1); }
-const scopes = (opt('scopes') || 'read').split(',').map(s => s.trim()).filter(s => ['read', 'write'].includes(s));
+const scopes = (opt('scopes') || 'read').split(',').map(s => s.trim()).filter(s => ['read', 'write', 'delegate'].includes(s));
 const person = opt('as') ? await resolvePerson(opt('as')) : null;
 const key = newApiKey();
 const { error } = await db().from('ai_api_keys').insert({

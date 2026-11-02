@@ -60,6 +60,29 @@ claude mcp add --transport http dqh https://dqh.vercel.app/api/mcp --header "Aut
 Máy chủ MCP này chạy kiểu Streamable HTTP không trạng thái (POST, trả JSON). Xác thực bằng header `Authorization`;
 nếu một ứng dụng chỉ hỗ trợ đăng nhập OAuth thì chưa kết nối trực tiếp được.
 
+## 3b. Một trợ lý chung cho cả đội (Javis + Telegram + Zalo)
+
+Cả đội nhắn **một** bot (Javis nối với Telegram/Zalo). Bot dùng **một** khoá có quyền `delegate`,
+mỗi lệnh gửi kèm `sender` = người đang nhắn, nên việc giao / nhật ký vẫn đứng tên đúng người.
+
+1. Tạo khoá cho bot:
+   `node scripts/create-ai-key.mjs --name "Bot Javis" --scopes read,write,delegate`
+2. Trong Javis → *Tự thêm MCP server* → **Qua link**:
+   - Tên gợi nhớ: `dqh`
+   - Link MCP: `https://dqh.vercel.app/api/mcp`
+   - API key (header): ô trái `Authorization`, ô phải `Bearer dqh_...` → **Lưu và kiểm tra** (phải thấy 10 tool).
+3. Dán vào phần hướng dẫn (system prompt) của bot trong Javis:
+   > Bạn là trợ lý dự án DQH. Mỗi lần gọi tool DQH, luôn truyền `sender` = `telegram:<chat id người nhắn>` hoặc `zalo:<user id người nhắn>`.
+   > "Việc của tôi" → `list_tasks` với `mine=true`. Giao việc / sửa việc: xem trước, chỉ ghi khi người nhắn trả lời "đồng ý".
+   > Nhật ký công trình: tách khu vực, đội, số công, hạng mục, %, vướng mắc, mai làm gì.
+4. Mỗi nhân sự liên kết tài khoản 1 lần trong app: **Hồ sơ → Telegram Chat ID**, hoặc nhắn email đăng nhập cho Zalo OA của DQH
+   (OA tự lưu `zalo_user_id`). Người chưa liên kết nhắn bot sẽ bị từ chối ghi.
+
+Nếu Javis không cho biết id người nhắn, dùng `sender` = họ tên hoặc email (kém an toàn hơn: ai cũng xưng được tên người khác).
+
+Thông báo giao việc: Telegram nếu người nhận đã liên kết, không thì Zalo OA (tin tư vấn 1:1, chỉ tới được người
+đã tương tác với OA trong khung thời gian Zalo cho phép).
+
 ## 4. 10 tool
 
 | Nhóm | Tool | Ví dụ câu nói |

@@ -19,6 +19,7 @@ const TODAY = todayVN();
 let F;
 beforeEach(() => { F = fakeDb(seed(TODAY)); _setDbForTest(F); _resetPeopleCache(); });
 
+const bot = () => ({ key_id: 'kb', name: 'bot Javis', scopes: ['read', 'write', 'delegate'], actor: null });
 const writer = () => ({ key_id: 'k1', name: 'test', scopes: ['read', 'write'], actor: { id: P.quang, full_name: 'Võ Ngọc Quang' } });
 const reader = () => ({ key_id: 'k2', name: 'chỉ đọc', scopes: ['read'], actor: null });
 
@@ -220,5 +221,23 @@ test('cron: nhắc công trình chưa nộp nhật ký, cần CRON_SECRET', asyn
 
 test('giao việc qua AI trả về trạng thái thông báo cho người nhận', async () => {
   const r = await createTask({ title: 'Đo hiện trạng', project: 'Q7', assignee: 'Thắng' }, writer().actor);
-  assert.ok(['không gửi', 'người nhận chưa liên kết Telegram'].includes(r.thong_bao));
+  assert.ok(['không gửi', 'người nhận chưa liên kết Telegram/Zalo'].includes(r.thong_bao));
+});
+
+test('bot chung: nhận diện người nhắn qua Telegram/Zalo id, "việc của tôi", đứng tên đúng người', async () => {
+  F.tables.profiles.find(p => p.id === P.thang).telegram_chat_id = '777';
+  F.tables.profiles.find(p => p.id === P.minh).zalo_user_id = 'z-minh';
+  const mine = await handleMcp({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'list_tasks', arguments: { sender: 'zalo:z-minh', mine: true } } }, bot());
+  assert.equal(mine.result.isError, false);
+  assert.deepEqual(mine.result.structuredContent.data.map(t => t.id).sort(), ['t1', 't2']);
+  await handleMcp({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'add_log', arguments: { sender: 'telegram:777', content: 'Bắn vách bếp 70%', kind: 'nhat_ky', project: 'Q7' } } }, bot());
+  assert.equal(F.log.inserts.at(-2).table, 'daily_logs');
+  assert.equal(F.log.inserts.at(-2).rows[0].engineer_id, P.thang, 'nhật ký đứng tên người nhắn');
+  const unknown = await handleMcp({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'list_tasks', arguments: { sender: 'telegram:999' } } }, bot());
+  assert.equal(unknown.result.isError, true);
+  assert.match(unknown.result.content[0].text, /chưa liên kết/);
+  const noDelegate = await handleMcp({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'list_tasks', arguments: { sender: 'telegram:777' } } }, writer());
+  assert.equal(noDelegate.result.isError, true, 'khoá không có delegate không được đứng tên người khác');
+  const list = await handleMcp({ jsonrpc: '2.0', id: 5, method: 'tools/list' }, bot());
+  assert.ok(list.result.tools.every(t => t.inputSchema.properties.sender));
 });
