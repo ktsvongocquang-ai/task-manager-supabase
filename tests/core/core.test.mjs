@@ -14,6 +14,7 @@ import { handleMcp, TOOLS } from '../../lib/core/mcp.js';
 import { hashKey } from '../../lib/core/auth.js';
 import handler, { routeOf } from '../../api/v1.js';
 import { handleChatMessage, toolDeclarations } from '../../lib/core/chat.js';
+import { parseAmount, parseDate, parseLedger, parseCsv, sheetIdOf } from '../../lib/core/accounting.js';
 import { fakeDb, seed, P, PR } from './fake-db.mjs';
 
 const TODAY = todayVN();
@@ -287,4 +288,24 @@ test('webhook Zalo (bot Render) và Telegram: kiểm khoá bí mật', async () 
   assert.match(ok.body.reply_message, /Không tìm thấy email/);
   delete process.env.ZALO_BOT_SECRET;
   assert.equal((await call('POST', '/api/v1?__path=telegram/webhook', { body: {} })).status, 401);
+});
+
+test('đọc sổ kế toán Google Sheets: số tiền, ngày, cột Thu/Chi, không nhân đôi khi chạy lại', () => {
+  assert.equal(parseAmount('1.250.000'), 1250000);
+  assert.equal(parseAmount('1,250,000 đ'), 1250000);
+  assert.equal(parseAmount('(500.000)'), -500000);
+  assert.equal(parseAmount('2,5tr'), 2500000);
+  assert.equal(parseAmount('150k'), 150000);
+  assert.equal(parseAmount(''), null);
+  assert.equal(parseDate('05/08/2026'), '2026-08-05');
+  assert.equal(parseDate('5/8/26'), '2026-08-05');
+  assert.equal(parseDate(46239), '2026-08-05');
+  assert.equal(sheetIdOf('https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit#gid=0'), '1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789');
+  const rows = parseCsv('SỔ CHI CÔNG TRÌNH Q7,,,\nNgày,Diễn giải,Thu,Chi,Nhà cung cấp\n04/08/2026,Tạm ứng đợt 1,"300.000.000",,Chủ nhà\n05/08/2026,Gỗ MDF,,"12.500.000",An Cường\nTổng,,300.000.000,12.500.000,\n');
+  const e = parseLedger(rows, 'Thu chi');
+  assert.equal(e.length, 2, 'dòng Tổng không có ngày nên bị bỏ');
+  assert.deepEqual(e.map(x => [x.kind, x.amount, x.party]), [['thu', 300000000, 'Chủ nhà'], ['chi', 12500000, 'An Cường']]);
+  assert.equal(parseLedger(rows, 'Thu chi')[1].row_hash, e[1].row_hash, 'cùng dòng -> cùng mã, chạy lại không nhân đôi');
+  const e2 = parseLedger([['Ngày', 'Nội dung', 'Số tiền', 'Loại'], ['2026-08-06', 'Nhân công', '8.000.000', 'Chi'], ['2026-08-07', 'Đợt 2', '200.000.000', 'Thu']]);
+  assert.deepEqual(e2.map(x => x.kind), ['chi', 'thu']);
 });

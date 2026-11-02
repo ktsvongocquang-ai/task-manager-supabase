@@ -28,6 +28,7 @@ import { sendTelegram } from '../lib/core/notify.js';
 import crypto from 'node:crypto';
 import { runDiaryReminder, runDailyReport, runWeeklyReport, runMorningBrief } from '../lib/core/cron.js';
 import { handleChatMessage } from '../lib/core/chat.js';
+import { syncAccounting } from '../lib/core/accounting.js';
 import { sendZaloText, sendTelegramText } from '../lib/core/notify.js';
 
 // ── Giới hạn tần suất cơ bản theo khoá/IP (bộ nhớ của từng instance) ──
@@ -136,6 +137,7 @@ export default async function handler(req, res) {
       if (!ok) return send(res, 401, { error: 'Sai CRON_SECRET' });
       const q = { ...query, force: bool(query.force) };
       if (parts[1] === 'morning-brief') return send(res, 200, await runMorningBrief(q));
+      if (parts[1] === 'sync-accounting') return send(res, 200, await syncAccounting({ projectId: query.project }));
       if (parts[1] === 'diary-reminder') return send(res, 200, await runDiaryReminder(q));
       if (parts[1] === 'daily-report') return send(res, 200, await runDailyReport(q));
       if (parts[1] === 'weekly-report') return send(res, 200, await runWeeklyReport(q));
@@ -190,6 +192,10 @@ export default async function handler(req, res) {
       const r = await addLog(body, ctx.actor);
       await audit(ctx, 'POST /v1/logs', body, true, r.id);
       return send(res, 201, { data: r });
+    }
+    if (a === 'accounting' && b === 'sync' && method === 'POST') {
+      requireScope(ctx, 'write');
+      return send(res, 200, { data: await syncAccounting({ projectId: query.project }) });
     }
     if (a === 'logs' && b === 'search' && method === 'GET') {
       requireScope(ctx, 'read');

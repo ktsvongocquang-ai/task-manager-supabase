@@ -15,6 +15,10 @@
         {
             "path": "/api/v1?__path=cron/weekly-report",
             "schedule": "45 10 * * 6"
+        },
+        {
+            "path": "/api/v1?__path=cron/sync-accounting",
+            "schedule": "0 15 * * *"
         }
     ],
     "functions": {

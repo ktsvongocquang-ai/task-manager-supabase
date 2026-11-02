@@ -178,6 +178,27 @@ create table if not exists public.ai_chat_pending (
 );
 alter table public.ai_chat_pending enable row level security;
 
+-- Sổ thu/chi đọc từ Google Sheets kế toán của từng công trình (kế toán vẫn nhập ở Sheets).
+create table if not exists public.accounting_entries (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null,
+  sheet_id text,
+  sheet_tab text,
+  entry_date date not null,
+  kind text not null check (kind in ('thu','chi')),
+  amount numeric not null,
+  description text,
+  category text,
+  party text,
+  row_hash text not null,
+  synced_at timestamptz not null default now(),
+  unique (project_id, row_hash)
+);
+create index if not exists accounting_entries_project_idx on public.accounting_entries(project_id, entry_date desc);
+alter table public.accounting_entries enable row level security;
+drop policy if exists accounting_entries_read on public.accounting_entries;
+create policy accounting_entries_read on public.accounting_entries for select to authenticated using (true);
+
 -- Chỉ server (service role) được đụng vào 2 bảng này: bật RLS, không tạo policy nào.
 alter table public.ai_api_keys enable row level security;
 alter table public.ai_audit_log enable row level security;
