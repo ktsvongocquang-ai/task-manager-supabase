@@ -21,7 +21,7 @@ Script/Zalo ─REST─► /api/v1/*  ─┘
    - XOÁ `VITE_SUPABASE_SERVICE_ROLE_KEY` (biến có tiền tố `VITE_` bị nhúng vào JS công khai).
    - THÊM `SUPABASE_SERVICE_ROLE_KEY` = key mới (không chọn "expose to browser").
    - (tuỳ chọn) `SUPABASE_URL`; nếu không có sẽ dùng `VITE_SUPABASE_URL`.
-4. Deploy, rồi kiểm tra: `https://dqh.vercel.app/api/v1/health` → `{"ok":true,...}`.
+4. Deploy, rồi kiểm tra: `https://sdqh.vercel.app/api/v1/health` → `{"ok":true,...}`.
 
 ## 2. Tạo khoá cho trợ lý
 
@@ -40,7 +40,7 @@ node scripts/create-ai-key.mjs --name "Claude của Quang" --scopes read,write -
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http dqh https://dqh.vercel.app/api/mcp --header "Authorization: Bearer dqh_..."
+claude mcp add --transport http dqh https://sdqh.vercel.app/api/mcp --header "Authorization: Bearer dqh_..."
 ```
 
 **claude.ai / Claude Desktop (connector tuỳ chỉnh):** ô "Request headers" (nhập `Bearer dqh_...`) hiện chỉ mở cho một số tổ chức và là khoá dùng chung cho cả tổ chức. Nếu không thấy ô này, dùng Claude Code, hoặc tạm dùng `mcp-remote` như dưới. Muốn mỗi người đăng nhập riêng trên claude.ai / ChatGPT thì cần thêm lớp OAuth (việc tiếp theo).
@@ -51,7 +51,7 @@ claude mcp add --transport http dqh https://dqh.vercel.app/api/mcp --header "Aut
   "mcpServers": {
     "dqh": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://dqh.vercel.app/api/mcp", "--header", "Authorization: Bearer dqh_..."]
+      "args": ["-y", "mcp-remote", "https://sdqh.vercel.app/api/mcp", "--header", "Authorization: Bearer dqh_..."]
     }
   }
 }
@@ -69,7 +69,7 @@ mỗi lệnh gửi kèm `sender` = người đang nhắn, nên việc giao / nh�
    `node scripts/create-ai-key.mjs --name "Bot Javis" --scopes read,write,delegate`
 2. Trong Javis → *Tự thêm MCP server* → **Qua link**:
    - Tên gợi nhớ: `dqh`
-   - Link MCP: `https://dqh.vercel.app/api/mcp`
+   - Link MCP: `https://sdqh.vercel.app/api/mcp`
    - API key (header): ô trái `Authorization`, ô phải `Bearer dqh_...` → **Lưu và kiểm tra** (phải thấy 10 tool).
 3. Dán vào phần hướng dẫn (system prompt) của bot trong Javis:
    > Bạn là trợ lý dự án DQH. Mỗi lần gọi tool DQH, luôn truyền `sender` = `telegram:<chat id người nhắn>` hoặc `zalo:<user id người nhắn>`.
