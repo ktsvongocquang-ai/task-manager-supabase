@@ -1,14 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
-import App from './App.tsx'
+// Bản công khai (VITE_APP_MODE=public) chỉ nạp PublicApp; app nội bộ nạp App.
+const IS_PUBLIC = import.meta.env.VITE_APP_MODE === 'public'
+const Root = IS_PUBLIC ? React.lazy(() => import('./PublicApp')) : React.lazy(() => import('./App.tsx'))
 import './index.css'
 
 // registerType: 'autoUpdate' means a detected update is activated and the
 // page reloaded automatically — no user prompt. We additionally poll for
 // updates so tabs left open for a long time still pick up new deploys
 // instead of only checking on the next full navigation/reload.
-const updateSW = registerSW({
+const updateSW = IS_PUBLIC ? (() => Promise.resolve()) as unknown as ReturnType<typeof registerSW> : registerSW({
   immediate: true,
   onNeedRefresh() {
     console.log('[PWA] New version detected! Reloading to apply latest Vercel build...');
@@ -114,7 +116,7 @@ try {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <App />
+        <React.Suspense fallback={null}><Root /></React.Suspense>
       </ErrorBoundary>
     </React.StrictMode>,
   )

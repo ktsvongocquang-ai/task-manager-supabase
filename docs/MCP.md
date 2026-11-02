@@ -83,6 +83,30 @@ Nếu Javis không cho biết id người nhắn, dùng `sender` = họ tên ho�
 Thông báo giao việc: Telegram nếu người nhận đã liên kết, không thì Zalo OA (tin tư vấn 1:1, chỉ tới được người
 đã tương tác với OA trong khung thời gian Zalo cho phép).
 
+## 3c. Chat trực tiếp qua Zalo / Telegram (không cần Javis)
+
+Cùng một "bộ não" (`lib/core/chat.js`, Gemini + 10 tool ở dưới). Giao/sửa việc: bot gửi bản xem trước, người nhắn trả lời **OK** mới ghi.
+
+- **Zalo qua bot Render** (đang dùng): bot Render chỉ còn là đường truyền.
+  - Tin đến: bot gọi `POST https://sdqh.vercel.app/api/generate-grok-news?job=zalo_webhook` (đường cũ, đã trỏ sang `/api/v1/zalo/webhook`) với `{sender_id, text}`, nhận về `{reply_message}`.
+  - Tin đi: app gọi `ZALO_BOT_URL/api/send-message` `{phone, message}`.
+  - Nên đặt `ZALO_BOT_SECRET` ở cả hai bên (header `x-bot-secret`), nếu không ai biết đường dẫn cũng nhắn giả danh được.
+  - Nhắc việc 3 lần/ngày của bot Render (`remind-all`) đã bỏ; thay bằng tin sáng 07:00 + nhắc nhật ký 16:30 của app.
+- **Zalo OA** (nếu chuyển sang OA): đặt webhook OA về `/api/v1/zalo/webhook` (hoặc `/api/admin` như cũ), `ZALO_MODE=oa`.
+- **Telegram bot trực tiếp**: đặt `TELEGRAM_WEBHOOK_SECRET`, rồi gọi một lần
+  `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://sdqh.vercel.app/api/v1/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`.
+  Bot chỉ trả lời tin nhắn riêng, không trả lời trong nhóm.
+- Liên kết tài khoản: nhân sự nhắn **email đăng nhập app** cho bot một lần.
+- Cần `GEMINI_API_KEY` (đã có trong dự án). Đổi mô hình bằng `CHAT_MODEL`.
+
+## 3d. Đồng bộ Google Sheets kế toán
+
+- Mỗi công trình điền link Google Sheet kế toán (đã có ô này khi sửa công trình).
+- Cách đọc: đặt `GAS_SYNC_URL` = Web App Apps Script đang dùng (`?action=read&sheetId=`), hoặc chia sẻ sheet "Bất kỳ ai có link – Người xem".
+- Tự nhận cột: Ngày · Diễn giải/Nội dung · Số tiền (+ Loại Thu/Chi) hoặc hai cột Thu, Chi · Nhà cung cấp/Đối tượng.
+- Chạy tự động 22:00 hằng ngày; chạy tay: `POST /api/v1/accounting/sync?project=<id>` (khoá có quyền write). Chạy lại không nhân đôi.
+- Kế toán vẫn nhập ở Sheets; app chỉ đọc.
+
 ## 4. 10 tool
 
 | Nhóm | Tool | Ví dụ câu nói |
@@ -122,9 +146,11 @@ Header: `Authorization: Bearer dqh_...`
 
 | Job | Lịch trong vercel.json | Giờ VN | Việc |
 |---|---|---|---|
+| morning-brief | `0 0 * * 1-6` | 07:00 T2–T7 | Nhắn riêng từng người việc hôm nay + việc trễ |
 | diary-reminder | `30 9 * * 1-6` | 16:30 T2–T7 | Nhắn riêng giám sát + nhóm: công trình chưa nộp nhật ký |
 | daily-report | `30 10 * * 1-6` | 17:30 T2–T7 | Báo cáo ngày vào nhóm |
 | weekly-report | `45 10 * * 6` | 17:45 T7 | Báo cáo tuần vào nhóm |
+| sync-accounting | `0 15 * * *` | 22:00 hằng ngày | Đọc Google Sheets kế toán |
 
 Cần biến môi trường: `CRON_SECRET` (≥16 ký tự), `TELEGRAM_BOT_TOKEN`, `TELEGRAM_GROUP_CHAT_ID` (số âm, lấy bằng `getUpdates` sau khi thêm bot vào nhóm).
 Gói Hobby: cron có thể chạy lệch trong vòng 1 giờ; gói Pro chạy đúng phút. Mỗi job chỉ gửi 1 lần/ngày (bảng `ai_cron_runs`), chạy tay lại thì thêm `&force=1`.

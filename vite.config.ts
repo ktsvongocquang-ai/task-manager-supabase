@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
+// VITE_APP_MODE=public: bản landing công khai, không cần PWA.
+const IS_PUBLIC = process.env.VITE_APP_MODE === 'public'
+
 export default defineConfig({
   server: {
     proxy: {
@@ -17,6 +20,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      disable: IS_PUBLIC,
       registerType: 'autoUpdate',
       injectRegister: 'script',
       manifest: {

@@ -5,8 +5,11 @@
 // Người dùng thật (browser UA bình thường) vẫn đi tiếp vào SPA như cũ.
 
 export const config = {
-  matcher: ['/p', '/p/:token*'],
+  matcher: ['/p', '/p/:token*', '/api/:path*'],
 };
+
+// Bản công khai (biến môi trường PUBLIC_SITE=1 trên dự án Vercel thứ hai): chỉ cho gọi API khái toán.
+const PUBLIC_API_ALLOW = /^\/api\/khai-toan\//;
 
 const BOT_UA_RE =
   /facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Zalo|Pinterest|vkShare|Discordbot|SkypeUriPreview|redditbot|Googlebot|bingbot|Applebot/i;
@@ -51,6 +54,13 @@ function renderBotHtml(pageUrl: string) {
 }
 
 export default function middleware(request: Request): Response | undefined {
+  const path = new URL(request.url).pathname;
+  if (path.startsWith('/api/')) {
+    if (process.env.PUBLIC_SITE === '1' && !PUBLIC_API_ALLOW.test(path)) {
+      return new Response(JSON.stringify({ error: 'Không có trên trang công khai' }), { status: 404, headers: { 'content-type': 'application/json; charset=utf-8' } });
+    }
+    return undefined;
+  }
   const ua = request.headers.get('user-agent') || '';
   if (!BOT_UA_RE.test(ua)) return undefined; // người dùng thật — đi tiếp vào SPA như bình thường
 
