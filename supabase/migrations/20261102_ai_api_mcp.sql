@@ -44,7 +44,7 @@ create or replace view public.v_projects with (security_invoker = true) as
   from public.projects
 union all
   select id, 'construction', name, project_code, status,
-         start_date, end_date, engineer_id, coalesce(manager_name, engineer_name),
+         start_date, end_date, engineer_id, engineer_name,
          owner_name, address, progress, created_at
   from public.construction_projects
 union all
@@ -118,7 +118,7 @@ alter table public.daily_logs add column if not exists progress integer;
 create or replace view public.v_logs with (security_invoker = true) as
   select d.id, 'construction_diary'::text as source, d.project_id, 'construction'::text as project_source,
          d.engineer_id as author_id, 'nhat_ky'::text as kind, d.date as log_date,
-         concat_ws(E'\n', d.today_summary, d.notes, d.content, d.tomorrow_plan) as content,
+         coalesce(nullif(d.notes, ''), nullif(d.content, ''), d.today_summary) as content,
          coalesce(d.is_issue, false) as is_issue, d.created_at
   from public.daily_logs d
 union all

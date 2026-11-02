@@ -4,7 +4,7 @@ import {
   AlertTriangle, DollarSign, FileSpreadsheet,
   Eye, ListChecks, BarChart3, Search, Send, Mic,
   Check, ChevronDown, Zap, TrendingUp, FileCheck, Users, Download,
-  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List, Layers, Receipt
+  AlertCircle, CheckCheck, XCircle, Bot, QrCode, Copy, ExternalLink, Save, Building2, Key, MoreVertical, Bell, List, Layers, Receipt, HardHat
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -19,6 +19,7 @@ import { CreateProjectWizard } from './CreateProjectWizard';
 import { ProjectsListView } from './ProjectsListView';
 import { BulkAddProjectsModal, type BulkProjectRow } from './BulkAddProjectsModal';
 import { QuickExpenseModal } from './QuickExpenseModal';
+import { SupervisorStation } from './SupervisorStation';
 import { useConstructionData, type SupabaseProject, type SupabaseMilestone, type SupabaseApproval, type SupabaseNotification, type SupabaseDailyLog, type SupabaseSubcontractor } from '../../hooks/useConstructionData';
 import { useAuthStore } from '../../store/authStore';
 import { canAccessRoute } from '../../utils/permissions';
@@ -1184,7 +1185,7 @@ export const Construction = () => {
   const [userRole, setUserRole] = useState<UserRole>(getInitialRole);
   const [activeTab, setActiveTab] = useState<ViewTab>(() => {
     const initial = getInitialRole();
-    if (initial === 'ENGINEER') return 'KANBAN';
+    if (initial === 'ENGINEER') return 'STATION';
     return 'DASHBOARD';
   });
   // isSharedLink: true when accessed via QR link OR when user is a Khách hàng role
@@ -1375,13 +1376,14 @@ export const Construction = () => {
       { id: 'PAYMENTS', label: 'Thanh toán', icon: <DollarSign className="w-4 h-4" /> },
     ];
     if (userRole === 'ENGINEER') return [
+      { id: 'STATION', label: 'Trạm GS', icon: <HardHat className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'DIARY', label: 'Nhật ký', icon: <FileText className="w-4 h-4" /> },
-      { id: 'LOGS', label: 'Báo cáo', icon: <FileText className="w-4 h-4" /> },
     ];
     return [
       { id: 'DASHBOARD', label: 'Tổng quan', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'STATION', label: 'Trạm GS', icon: <HardHat className="w-4 h-4" /> },
       { id: 'PROJECTS_LIST', label: 'Công trình', icon: <List className="w-4 h-4" /> },
       { id: 'KANBAN', label: 'Kanban', icon: <ListChecks className="w-4 h-4" /> },
       { id: 'AI_GANTT', label: 'Tiến độ', icon: <TrendingUp className="w-4 h-4" /> },
@@ -1395,7 +1397,7 @@ export const Construction = () => {
   const handleRoleChange = (role: UserRole) => {
     setUserRole(role);
     if (role === 'HOMEOWNER') setActiveTab('DASHBOARD');
-    else if (role === 'ENGINEER') setActiveTab('KANBAN');
+    else if (role === 'ENGINEER') setActiveTab('STATION');
     else setActiveTab('DASHBOARD');
   };
 
@@ -1424,7 +1426,9 @@ export const Construction = () => {
           {/* Row 1: Project selector (left) + quick actions (right) */}
           <div className="flex items-center gap-2">
             {/* Project dropdown — chỉ hiện khi không ở DASHBOARD */}
-            {activeTab !== 'DASHBOARD' ? (
+            {activeTab === 'STATION' ? (
+              <span className="flex-1 text-sm font-bold text-slate-700 truncate">Trạm giám sát · {profile?.full_name || ''}</span>
+            ) : activeTab !== 'DASHBOARD' ? (
               <div className="relative flex-1 min-w-0">
                 <select
                   value={selectedProject.id}
@@ -1653,6 +1657,10 @@ export const Construction = () => {
                 showToast(`Chuyển "${task.name}" → ${statusConfig[newStatus].label}`);
               }
             }} />}
+            {/* Trạm giám sát: nộp nhật ký, việc trong ngày, quy trình, biểu mẫu */}
+            {activeTab === 'STATION' && userRole !== 'HOMEOWNER' && (
+              <SupervisorStation projects={dbProjects} profile={profile} notify={(m, t) => showToast(m, t)} onDataChanged={() => { db.loadProjects?.(); if (selectedProject?.id) db.loadProjectDetails(selectedProject.id); }} />
+            )}
             {/* Engineer Daily Report */}
             {activeTab === 'LOGS' && userRole === 'ENGINEER' && <EngineerDailyReport tasks={tasks} project={selectedProject} />}
             {/* Diary tab — all roles */}
