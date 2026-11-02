@@ -69,6 +69,7 @@ const Profile = safeLazy(() => import('./pages/users/Profile').then(m => ({ defa
 const Gantt = safeLazy(() => import('./pages/gantt/Gantt').then(m => ({ default: m.Gantt })))
 const History = safeLazy(() => import('./pages/history/History').then(m => ({ default: m.History })))
 const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ default: m.Kanban })))
+const PrintSchedule = safeLazy(() => import('./pages/construction/PrintSchedule').then(m => ({ default: m.PrintSchedule })))
 const Overview = safeLazy(() => import('./pages/dieuhanh/Overview').then(m => ({ default: m.Overview })))
 const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
 const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
@@ -114,6 +115,15 @@ function App() {
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
+
+          {/* Bản in tiến độ A3/A4 — cần đăng nhập, không có khung menu */}
+          <Route path="/in-tien-do/:id" element={
+            <AuthGuard>
+              <Suspense fallback={<GlobalLoadingFallback />}>
+                <PrintSchedule />
+              </Suspense>
+            </AuthGuard>
+          } />
 
           {/* Public client landing page — NO auth required */}
           <Route path="/c/:token" element={

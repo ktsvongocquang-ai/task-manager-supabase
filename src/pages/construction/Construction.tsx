@@ -894,8 +894,16 @@ function ImportQuotationModal({ isOpen, onClose, onGenerate, onCreateProject }: 
 
 function ShareQRModal({ isOpen, onClose, project }: { isOpen: boolean; onClose: () => void; project: Project }) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = project.client_token 
-      ? `${window.location.origin}/c/${project.client_token}${project.client_password ? `?p=${encodeURIComponent(project.client_password)}` : ''}`
+  const [token, setToken] = useState<string | undefined>(project.client_token || undefined);
+  useEffect(() => { setToken(project.client_token || undefined); }, [project.id, project.client_token]);
+  // Công trình chưa có mã link khách: tạo 1 mã ngẫu nhiên, lưu lại, để khách mở /c/<mã> không cần đăng nhập.
+  useEffect(() => {
+    if (!isOpen || token || String(project.id).startsWith('p')) return;
+    const t = (crypto.randomUUID?.() || Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/-/g, '').slice(0, 16);
+    supabase.from('construction_projects').update({ client_token: t }).eq('id', project.id).then(({ error }) => { if (!error) setToken(t); });
+  }, [isOpen, token, project.id]);
+  const shareUrl = token
+      ? `${window.location.origin}/c/${token}${project.client_password ? `?p=${encodeURIComponent(project.client_password)}` : ''}`
       : `${window.location.origin}/construction?project=${project.id}&role=homeowner`;
 
   const copyLink = () => {
@@ -1484,7 +1492,8 @@ export const Construction = () => {
                             }
                             setIsHeaderMenuOpen(false);
                           }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Key className="w-4 h-4 text-amber-500" /> Mã Khách Hàng</button>
-                          <button onClick={() => { setIsShareQROpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><QrCode className="w-4 h-4 text-emerald-500" /> Chia sẻ QR</button>
+                          <button onClick={() => { setIsShareQROpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><QrCode className="w-4 h-4 text-emerald-500" /> Link khách xem tiến độ</button>
+                          <button onClick={() => { window.open(`/in-tien-do/${selectedProject.id}`, '_blank'); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><FileText className="w-4 h-4 text-slate-500" /> In tiến độ A3</button>
                           <button onClick={() => { setIsNotificationSettingsOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><Bell className="w-4 h-4 text-sky-500" /> Thông báo Zalo/TG</button>
                           <button onClick={() => { setIsWorkflowOpen(true); setIsHeaderMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-4 py-2.5 hover:bg-slate-50 text-slate-700"><ListChecks className="w-4 h-4 text-violet-500" /> Workflow</button>
                           <div className="border-t border-slate-100 my-1" />
