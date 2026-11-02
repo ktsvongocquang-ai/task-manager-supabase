@@ -120,7 +120,8 @@ export default async function handler(req, res) {
         if (b.event_name !== 'user_send_text') return send(res, 200, { ok: true });
         const uid = b.sender?.id, text = b.message?.text;
         if (uid && text) {
-          const reply = await handleChatMessage({ channel: 'zalo', senderId: uid, text }).catch(e => 'Lỗi: ' + e.message);
+          const ai = String(process.env.ZALO_AI_REPLY || '').toLowerCase() === 'on';
+          const reply = await handleChatMessage({ channel: 'zalo', senderId: uid, text, ai }).catch(e => 'Lỗi: ' + e.message);
           await sendZaloText(uid, reply, 'oa').catch(e => console.error('[zalo oa reply]', e.message));
         }
         return send(res, 200, { error: 0, message: 'Success' });
@@ -129,7 +130,10 @@ export default async function handler(req, res) {
       if (secret && req.headers?.['x-bot-secret'] !== secret) return send(res, 401, { error: 'Sai ZALO_BOT_SECRET' });
       const senderId = b?.sender_id ?? b?.senderId ?? b?.phone, text = b?.text ?? b?.message;
       if (!senderId || !text) return send(res, 400, { error: 'Thiếu sender_id hoặc text' });
-      const reply = await handleChatMessage({ channel: 'zalo', senderId: String(senderId), text: String(text) });
+      // Trả lời bằng AI đã chuyển sang Javis. Bot Zalo (Render) chỉ còn gửi nhắc việc/báo cáo;
+      // tin nhắn tới chỉ dùng để liên kết tài khoản (gửi email). Bật lại AI: ZALO_AI_REPLY=on.
+      const ai = String(process.env.ZALO_AI_REPLY || '').toLowerCase() === 'on';
+      const reply = await handleChatMessage({ channel: 'zalo', senderId: String(senderId), text: String(text), ai });
       return send(res, 200, { reply_message: reply });
     }
     if (route === 'telegram/webhook') {

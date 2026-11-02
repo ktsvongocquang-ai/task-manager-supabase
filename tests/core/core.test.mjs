@@ -329,3 +329,12 @@ test('vật tư + phát sinh qua trợ lý: báo thiếu, hàng về, lập phá
   assert.equal(co2.ma, 'PS-02');
   assert.equal((await callTool('change_orders', { project: 'Q7', status: 'cho_khach' }, reader())).length, 2);
 });
+
+test('chat: ai=false không gọi AI, chỉ trả câu hướng dẫn', async () => {
+  const { handleChatMessage, REDIRECT_TEXT } = await import('../../lib/core/chat.js');
+  let called = false;
+  const llm = async () => { called = true; return { text: 'x', calls: [] }; };
+  const r = await handleChatMessage({ channel: 'zalo', senderId: 'zalo-test-unlinked', text: 'việc của tôi', llm, ai: false }).catch(e => e.message);
+  assert.equal(called, false);
+  assert.ok(typeof r === 'string' && (r === REDIRECT_TEXT || /chưa liên kết/.test(r)));
+});
