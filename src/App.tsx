@@ -72,6 +72,7 @@ const Kanban = safeLazy(() => import('./pages/kanban/Kanban').then(m => ({ defau
 const PrintSchedule = safeLazy(() => import('./pages/construction/PrintSchedule').then(m => ({ default: m.PrintSchedule })))
 const Overview = safeLazy(() => import('./pages/dieuhanh/Overview').then(m => ({ default: m.Overview })))
 const Schedule = safeLazy(() => import('./pages/schedule/Schedule').then(m => ({ default: m.Schedule })))
+const SiteHome = safeLazy(() => import('./pages/congtruong/SiteHome').then(m => ({ default: m.SiteHome })))
 const Construction = safeLazy(() => import('./pages/construction/Construction').then(m => ({ default: m.Construction })))
 const Finance = safeLazy(() => import('./pages/finance/Finance').then(m => ({ default: m.Finance })))
 
@@ -180,6 +181,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="history" element={<History />} />
             <Route path="construction" element={<Construction />} />
+            <Route path="cong-truong" element={<SiteHome />} />
             <Route path="finance" element={<Finance />} />
             <Route path="mytasks" element={<MyTasks />} />
             <Route path="bao-gia" element={<InteriorQuote />} />

@@ -102,6 +102,14 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged, ac
   };
 
   const pending = active.filter(p => !submitted.has(p.id));
+  const setTaskProgress = async (t: STask, progress: number) => {
+    const upd: any = { progress, updated_at: new Date().toISOString() };
+    if (progress > 0 && !/doing|review|in_progress|đang/i.test(t.status)) upd.status = 'DOING';
+    const { error } = await supabase.from('construction_tasks').update(upd).eq('id', t.id);
+    if (error) return say(isNetworkError(error.message) ? 'Mất sóng — thử lại khi có mạng' : 'Lỗi cập nhật: ' + error.message, 'error');
+    setTasks(prev => prev.map(x => x.id === t.id ? { ...x, ...upd } : x));
+    onDataChanged?.();
+  };
 
   // Thao tác nhanh từ menu góc trên (?do=diary|GS-06|GS-08|materials|task)
   useEffect(() => {
@@ -162,7 +170,10 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged, ac
       {tab === 'today' && !loading && active.length > 0 && (
         <div className="space-y-5">
           <div className="space-y-2">
-            <h2 className="text-sm font-bold text-slate-800">Nhật ký ngày — mỗi công trình 1 lần, khoảng 30 giây</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-slate-800">Nhật ký ngày — mỗi công trình 1 lần, khoảng 30 giây</h2>
+              <a href="/cong-truong" className="text-xs font-semibold text-[#7A1216] whitespace-nowrap">Nhật ký đầy đủ →</a>
+            </div>
             {active.map(p => {
               const ok = submitted.has(p.id);
               return (
@@ -201,6 +212,9 @@ export function SupervisorStation({ projects, profile, notify, onDataChanged, ac
                         <p className="text-sm font-semibold text-slate-800 truncate">{t.name}</p>
                         <p className="text-[11px] text-slate-500 truncate">{nameOf(t.project_id)} · hạn {ddmm(t.end_date)}{t.assignee ? ` · ${t.assignee}` : ''}{t.progress ? ` · ${t.progress}%` : ''}</p>
                       </div>
+                      <select aria-label={`% hoàn thành ${t.name}`} value={t.progress || 0} onChange={e => setTaskProgress(t, Number(e.target.value))} className="h-9 px-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white">
+                        {[0, 10, 25, 50, 75, 90].map(n => <option key={n} value={n}>{n}%</option>)}
+                      </select>
                       {!/doing|review|in_progress|đang/i.test(t.status) && <button onClick={() => setTaskStatus(t, 'DOING')} className="px-2.5 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold flex items-center gap-1" title="Bắt đầu"><Play className="w-3.5 h-3.5" />Làm</button>}
                       <button onClick={() => setTaskStatus(t, 'DONE')} className="px-2.5 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1" title="Xong"><Check className="w-3.5 h-3.5" />Xong</button>
                     </div>
@@ -418,6 +432,16 @@ function NoteFormModal({ form, projects, profile, onClose, onSaved, say }: { for
   const [projectId, setProjectId] = useState(projects[0]?.id || '');
   const [v, setV] = useState<Record<string, any>>({});
   const [busy, setBusy] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const upload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    if (!navigator.onLine) return say('Mất sóng: chưa tải ảnh được, lưu chữ trước rồi bổ sung ảnh sau.', 'error');
+    setUploading(true);
+    try { const urls: string[] = []; for (const f of Array.from(files).slice(0, 10)) urls.push(await uploadImageToStorage(f)); setPhotos(p => [...p, ...urls]); }
+    catch (e: any) { say('Lỗi tải ảnh: ' + (e?.message || e), 'error'); }
+    finally { setUploading(false); }
+  };
   const save = async () => {
     const miss = form.fields.filter(f => f.required && (v[f.key] == null || v[f.key] === ''));
     if (!projectId) return say('Chọn công trình', 'error');
@@ -426,19 +450,28 @@ function NoteFormModal({ form, projects, profile, onClose, onSaved, say }: { for
     const isIssue = form.noteKind === 'van_de' || (form.code === 'GS-05' && v.tinh_trang && v.tinh_trang !== 'Đủ, đạt') || (form.code === 'GS-08' && String(v.ket_luan || '').startsWith('Không'));
     const r = await saveOrQueue('ai_notes', {
       project_id: projectId, project_source: 'construction', author_id: profile?.id || null,
-      kind: form.noteKind || 'bien_ban', title: `${form.code} · ${form.name}`, content: formatForm(form, v), is_issue: !!isIssue,
+      kind: form.noteKind || 'bien_ban', title: `${form.code} · ${form.name}`, content: formatForm(form, v) + (photos.length ? `\nẢnh hiện trường:\n${photos.join('\n')}` : ''), is_issue: !!isIssue,
     }, `${form.code} ${form.name}`);
     setBusy(false);
     if (!r.ok) return say(/ai_notes/.test(r.error) ? 'Chưa bật bảng biểu mẫu: cần chạy file cập nhật dữ liệu (migration) trước.' : 'Lỗi lưu: ' + r.error, 'error');
     onSaved(r.queued);
   };
   return (
-    <Sheet title={`${form.code} · ${form.name}`} sub={form.when} onClose={onClose} footer={<SaveBtn busy={busy} onClick={save} label="Lưu biểu mẫu" />}>
+    <Sheet title={`${form.code} · ${form.name}`} sub={form.when} onClose={onClose} footer={<SaveBtn busy={busy || uploading} onClick={save} label="Lưu biểu mẫu" />}>
       <div><Label req>Công trình</Label><select className={inputCls} value={projectId} onChange={e => setProjectId(e.target.value)}>{projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
       {form.code === 'GS-06' && v.doi_chi_phi?.startsWith('Có') && (
         <div className="flex gap-2 p-3 rounded-xl bg-amber-50 text-amber-800 text-xs"><AlertTriangle className="w-4 h-4 shrink-0" />Chỉ làm sau khi khách ký phiếu phát sinh.</div>
       )}
       {form.fields.map(f => <div key={f.key}><Label req={f.required}>{f.label}</Label><FieldInput f={f} value={v[f.key]} onChange={val => setV(p => ({ ...p, [f.key]: val }))} /></div>)}
+      <div><Label>Ảnh hiện trường</Label>
+        <div className="flex flex-wrap gap-2">
+          {photos.map(u => <img key={u} src={u} alt="" className="w-16 h-16 object-cover rounded-lg border border-slate-200" />)}
+          <label className="w-16 h-16 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-500 cursor-pointer" aria-label="Chụp hoặc chọn ảnh">
+            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+            <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={e => upload(e.target.files)} />
+          </label>
+        </div>
+      </div>
     </Sheet>
   );
 }

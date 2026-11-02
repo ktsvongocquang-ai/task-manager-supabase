@@ -3,6 +3,8 @@ import { supabase } from '../services/supabase'
 import type { Profile } from '../types'
 import { generateFlatPermissions } from '../constants/permissions'
 
+const PROFILE_CACHE = 'dqh_profile_cache'
+
 interface AuthState {
     user: any | null
     profile: Profile | null
@@ -96,6 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                         throw profileError
                     }
 
+                    try { localStorage.setItem(PROFILE_CACHE, JSON.stringify(profileData)) } catch { /* ignore */ }
                     set({ user: session.user, profile: profileData, loading: false })
                     // Fetch dynamic permissions after profile is loaded
                     await get().fetchPermissions()
@@ -107,11 +110,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             await Promise.race([sessionCheck(), timeout]);
         } catch (error) {
             console.error('Error fetching session:', error)
+            // Mất mạng / mạng yếu ở công trường: phiên vẫn còn trong máy -> dùng hồ sơ đã lưu, KHÔNG đá ra trang đăng nhập.
+            try {
+                const cached = JSON.parse(localStorage.getItem(PROFILE_CACHE) || 'null')
+                const local = await Promise.race([
+                    supabase.auth.getSession(),
+                    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000)),
+                ])
+                const u = local?.data?.session?.user
+                if (u && cached?.id === u.id) { set({ user: u, profile: cached, loading: false }); return }
+            } catch { /* không có phiên trong máy */ }
             set({ user: null, profile: null, loading: false, systemPermissions: null })
         }
     },
 
     signOut: async () => {
+        try { localStorage.removeItem(PROFILE_CACHE) } catch { /* ignore */ }
         await supabase.auth.signOut()
         set({ user: null, profile: null, systemPermissions: null })
     },

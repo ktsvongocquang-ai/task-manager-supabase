@@ -171,3 +171,5 @@ export const weatherLabel: Record<WeatherType, { icon: string; label: string; co
   storm: { icon: '⛈️', label: 'Bão', color: 'bg-rose-100 text-rose-700 border-rose-200' },
 };
 
+
+export const PROJECT_TYPES = ['Xây mới', 'Cải tạo', 'Sửa chữa', 'Căn hộ'] as const;
