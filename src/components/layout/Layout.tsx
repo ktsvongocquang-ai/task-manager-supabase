@@ -41,6 +41,7 @@ import { GlobalChat } from '../chat/GlobalChat'
 import { AdminChatBot } from '../chat/AdminChatBot'
 import { HRAssistantChat } from '../chat/HRAssistantChat'
 import { BottomTabBar } from './BottomTabBar'
+import { WorkspaceSwitcher } from './WorkspaceSwitcher'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
 import { FullscreenLauncher } from './FullscreenLauncher'
 import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
@@ -51,6 +52,8 @@ import { ConstructionOnlyLayout } from './ConstructionOnlyLayout'
 const BotSettingsModal = lazy(() =>
     import('../../pages/construction/views').then(m => ({ default: m.NotificationSettings }))
 )
+
+const WS_SUBTITLES = { design: 'Việc, dự án, lịch thiết kế', construction: 'Công trình, nhật ký, vật tư, phát sinh' }
 
 const viewTitles: Record<string, string> = {
     '/dashboard': 'Thống kê',
@@ -614,17 +617,22 @@ export const Layout = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 lg:ml-[72px] flex flex-col h-screen relative bg-app-bg pb-16 md:pb-0 min-w-0">
+            <main className="flex-1 lg:ml-[72px] flex flex-col h-screen relative bg-app-bg pb-16 lg:pb-0 min-w-0">
                 {/* Header */}
                 <header className="sticky top-0 bg-white border-b border-border-main z-40 px-3 sm:px-6 py-3 sm:py-4">
                     <div className="flex flex-col gap-3">
                         {/* Top Row: Title & Actions */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
-                                <button onClick={() => setIsMobileSidebarOpen(true)} className="lg:hidden w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-sm shrink-0 active:scale-95 transition-transform">
-                                    <Menu className="text-white" size={16} />
-                                </button>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{currentTitle()}</h2>
+                                {/* Điện thoại: nút chọn khu làm việc + thao tác nhanh (thay cho nút menu) */}
+                                <WorkspaceSwitcher
+                                    className="lg:hidden"
+                                    role={profile?.role}
+                                    subtitles={WS_SUBTITLES}
+                                    onOpenFullMenu={() => setIsMobileSidebarOpen(true)}
+                                    onQuickEvent={e => e === 'add-task' ? setIsGlobalAddTaskOpen(true) : setIsGlobalAddProjectOpen(true)}
+                                />
+                                <h2 className="hidden lg:block text-lg sm:text-xl font-bold text-gray-900 truncate">{currentTitle()}</h2>
                             </div>
 
                             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">

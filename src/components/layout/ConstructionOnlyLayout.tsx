@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { WorkspaceSwitcher } from './WorkspaceSwitcher'
+import { BottomTabBar } from './BottomTabBar'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { LogOut, HardHat, KeyRound, RefreshCw, BookOpen, Send, Database } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
@@ -95,18 +97,20 @@ export const ConstructionOnlyLayout = () => {
             <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm"
                     style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
                 <div className="flex items-center justify-between px-4 py-3 gap-3">
-                    {/* Left: Logo + role */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 bg-gradient-to-br from-[#7A1216] to-red-700 rounded-xl flex items-center justify-center shadow-md shrink-0">
-                            <HardHat size={16} className="text-white" />
+                    {/* Left: Giám sát / QL thi công → nút xổ thao tác nhanh; Khách hàng → logo */}
+                    {profile?.role === 'Khách hàng' ? (
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-8 h-8 bg-gradient-to-br from-[#7A1216] to-red-700 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                                <HardHat size={16} className="text-white" />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-bold text-[#7A1216] leading-none tracking-tight">DQH</p>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 inline-block ${getRoleBadgeColor(profile?.role)}`}>{profile?.role}</span>
+                            </div>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-bold text-[#7A1216] leading-none tracking-tight">DQH</p>
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 inline-block ${getRoleBadgeColor(profile?.role)}`}>
-                                {profile?.role}
-                            </span>
-                        </div>
-                    </div>
+                    ) : (
+                        <WorkspaceSwitcher role={profile?.role} className="min-w-0" />
+                    )}
 
                     {/* Right: User + actions */}
                     <div className="flex items-center gap-2 shrink-0">
@@ -182,11 +186,11 @@ export const ConstructionOnlyLayout = () => {
 
             {/* ── Page Content ── */}
             <main
-                className="flex-1 overflow-y-auto w-full"
-                style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
+                className="flex-1 overflow-y-auto w-full pb-20 lg:pb-4"
             >
                 <Outlet />
             </main>
+            {profile?.role !== 'Khách hàng' && <BottomTabBar />}
 
             {/* ── Password Modal ── */}
             {isPasswordModalOpen && (
