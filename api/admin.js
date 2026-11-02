@@ -19,7 +19,7 @@ export default async function handler(req, res) {
             
             if (userId && msg) {
                 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-                const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+                const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
                 
                 if (supabaseUrl && serviceKey) {
                     const supabaseAdmin = createClient(supabaseUrl, serviceKey);
@@ -118,7 +118,7 @@ TRẢ VỀ DUY NHẤT 1 ĐOẠN JSON CHUẨN:
 
     // Support both VITE_ prefixed (Vercel) and plain env vars
     const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceKey) {
         return res.status(500).json({ error: 'Missing Supabase Admin credentials on the server.' });

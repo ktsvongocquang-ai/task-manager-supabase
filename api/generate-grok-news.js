@@ -23,7 +23,7 @@ export default async function handler(req, res) {
             if (!sender_id || !text) return res.status(400).json({ error: 'Missing data' });
 
             const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-            const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+            const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
             const supabaseAdmin = createClient(supabaseUrl, serviceKey);
 
             // 1. Find user by zalo_user_id
@@ -91,7 +91,7 @@ export default async function handler(req, res) {
         }
 
         const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-        const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!supabaseUrl || !serviceKey) {
             return res.status(500).json({ error: 'Missing Supabase credentials.' });
         }

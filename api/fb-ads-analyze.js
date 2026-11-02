@@ -114,7 +114,7 @@ ${JSON.stringify(demoDataRaw)}
 
         // Bước 4: Lưu vào Supabase Dashboard
         const supabaseUrl = process.env.VITE_SUPABASE_URL;
-        const serviceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (supabaseUrl && serviceKey) {
             try {
                 const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
