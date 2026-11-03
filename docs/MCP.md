@@ -91,6 +91,7 @@ Cùng một "bộ não" (`lib/core/chat.js`, Gemini + 10 tool ở dưới). Giao
   - Tin đến: bot gọi `POST https://dqh.vercel.app/api/generate-grok-news?job=zalo_webhook` (đường cũ, đã trỏ sang `/api/v1/zalo/webhook`) với `{sender_id, text}`, nhận về `{reply_message}`.
   - Tin đi: app gọi `ZALO_BOT_URL/api/send-message` `{phone, message}`.
   - Nên đặt `ZALO_BOT_SECRET` ở cả hai bên (header `x-bot-secret`), nếu không ai biết đường dẫn cũng nhắn giả danh được.
+  - Thêm / sửa biến trên Vercel xong phải **deploy lại** (Redeploy hoặc merge 1 PR) thì bản đang chạy mới nạp biến mới.
   - Nhắc việc 3 lần/ngày của bot Render (`remind-all`) đã bỏ; thay bằng tin sáng 07:00 + nhắc nhật ký 16:30 của app.
 - **Zalo OA** (nếu chuyển sang OA): đặt webhook OA về `/api/v1/zalo/webhook` (hoặc `/api/admin` như cũ), `ZALO_MODE=oa`.
 - **Telegram bot trực tiếp**: đặt `TELEGRAM_WEBHOOK_SECRET`, rồi gọi một lần
