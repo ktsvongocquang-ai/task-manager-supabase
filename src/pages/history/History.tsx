@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../services/supabase'
 import { format, parseISO } from 'date-fns'
 
+// Giờ trong database là UTC; chuỗi không ghi múi giờ thì phải coi là UTC, nếu không sẽ lệch 7 tiếng.
+const parseUtc = (v: string) => parseISO(/[zZ]|[+-]\d\d:?\d\d$/.test(v) ? v : v.replace(' ', 'T') + 'Z')
+
 export const History = () => {
     const [logs, setLogs] = useState<any[]>([])
     const [profiles, setProfiles] = useState<any[]>([])
@@ -22,7 +25,7 @@ export const History = () => {
         try {
             setLoading(true)
             const [logsResponse, profilesResponse, projectsResponse] = await Promise.all([
-                supabase.from('activity_logs').select('*').order('created_at', { ascending: false }),
+                supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(3000),
                 supabase.from('profiles').select('*'),
                 supabase.from('projects').select('*')
             ])
@@ -63,7 +66,7 @@ export const History = () => {
 
     // Apply filters
     const filteredLogs = logs.filter(log => {
-        const logDate = log.created_at ? format(parseISO(log.created_at), 'yyyy-MM-dd') : ''
+        const logDate = log.created_at ? format(parseUtc(log.created_at), 'yyyy-MM-dd') : ''
         const matchDate = dateFilter ? logDate === dateFilter : true
 
         const matchAction = actionFilter !== 'Tất cả' ? log.action.includes(actionFilter) : true
@@ -174,7 +177,7 @@ export const History = () => {
                                     filteredLogs.map(log => (
                                         <tr key={log.id} className="hover:bg-slate-50 transition-colors group">
                                             <td className="py-3.5 px-6 text-sm text-slate-500 font-medium whitespace-nowrap">
-                                                {log.created_at ? format(parseISO(log.created_at), 'yyyy-MM-dd HH:mm') : '-'}
+                                                {log.created_at ? format(parseUtc(log.created_at), 'dd/MM/yyyy HH:mm') : '-'}
                                             </td>
                                             <td className={`py-3.5 px-6 text-sm font-bold capitalize whitespace-nowrap ${getActionColor(log.action)}`}>
                                                 {log.action}

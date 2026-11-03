@@ -162,3 +162,15 @@
   animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+
+
+/* ── Trợ năng (A11Y-03/04): chữ đủ tương phản, không quá nhỏ, nút đủ to để bấm bằng tay ── */
+/* slate-400/gray-400 trên nền trắng chỉ đạt 2.6:1 -> nâng lên slate-500 (≈4.8:1, đạt WCAG AA) cho CHỮ */
+.text-slate-400, .text-gray-400 { color: #64748b; }
+.placeholder\:text-slate-400::placeholder, .placeholder-slate-400::placeholder, input::placeholder, textarea::placeholder { color: #8391a7; }
+/* chữ 8-9px đọc không được trên điện thoại -> tối thiểu 10px */
+.text-\[8px\], .text-\[9px\] { font-size: 10px; }
+/* màn hình cảm ứng: nút chỉ có biểu tượng tối thiểu 40x40px */
+@media (pointer: coarse) {
+  button:has(> svg:only-child) { min-width: 40px; min-height: 40px; }
+}

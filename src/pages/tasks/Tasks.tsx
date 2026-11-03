@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { LazySelect } from '../../components/LazySelect'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
@@ -663,7 +664,7 @@ export const Tasks = () => {
                                                                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                             {getAssigneeName(t.assignee_id).charAt(0)}
                                                                         </div>
-                                                                        <select
+                                                                        <LazySelect
                                                                             value={t.assignee_id || ''}
                                                                             onChange={(e) => updateTaskField(t.id, 'assignee_id', e.target.value || null)}
                                                                             className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
@@ -673,7 +674,7 @@ export const Tasks = () => {
                                                                             {profiles.map(p => (
                                                                                 <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                                                                             ))}
-                                                                        </select>
+                                                                        </LazySelect>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-slate-600 font-medium w-[130px] min-w-[130px]">
@@ -681,7 +682,7 @@ export const Tasks = () => {
                                                                         <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                             {getAssigneeName(t.supporter_id).charAt(0)}
                                                                         </div>
-                                                                        <select
+                                                                        <LazySelect
                                                                             value={t.supporter_id || ''}
                                                                             onChange={(e) => updateTaskField(t.id, 'supporter_id', e.target.value || null)}
                                                                             className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
@@ -691,11 +692,11 @@ export const Tasks = () => {
                                                                             {profiles.map(p => (
                                                                                 <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                                                                             ))}
-                                                                        </select>
+                                                                        </LazySelect>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[140px] min-w-[140px]">
-                                                                    <select
+                                                                    <LazySelect
                                                                         value={t.status}
                                                                         onChange={(e) => updateTaskField(t.id, 'status', e.target.value)}
                                                                         className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(t.status)}`}
@@ -705,10 +706,10 @@ export const Tasks = () => {
                                                                         <option value="Đang thực hiện">Đang thực hiện</option>
                                                                         <option value="Chờ duyệt">Chờ duyệt</option>
                                                                         <option value="Hoàn thành">Hoàn thành</option>
-                                                                    </select>
+                                                                    </LazySelect>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[120px] min-w-[120px]">
-                                                                    <select
+                                                                    <LazySelect
                                                                         value={t.priority}
                                                                         onChange={(e) => updateTaskField(t.id, 'priority', e.target.value)}
                                                                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(t.priority)}`}
@@ -716,7 +717,7 @@ export const Tasks = () => {
                                                                     >
                                                                         <option value="JUX">JUX</option>
                                                                         <option value="DQH">DQH</option>
-                                                                    </select>
+                                                                    </LazySelect>
                                                                 </td>
                                                                 <td className="px-4 py-3 w-[140px] min-w-[140px]">
                                                                     <div className="flex items-center gap-2">
@@ -875,7 +876,7 @@ export const Tasks = () => {
                                                                                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.assignee_id).charAt(0)}
                                                                                                 </div>
-                                                                                                <select
+                                                                                                <LazySelect
                                                                                                     value={child.assignee_id || ''}
                                                                                                     onChange={(e) => updateTaskField(child.id, 'assignee_id', e.target.value || null)}
                                                                                                     className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
@@ -885,7 +886,7 @@ export const Tasks = () => {
                                                                                                     {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => (
                                                                                                         <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                                                                                                     ))}
-                                                                                                </select>
+                                                                                                </LazySelect>
                                                                                             </div>
                                                                                         </td>
                                                                                         {/* 4.5 Phụ trách */}
@@ -894,7 +895,7 @@ export const Tasks = () => {
                                                                                                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shrink-0">
                                                                                                     {getAssigneeName(child.supporter_id).charAt(0)}
                                                                                                 </div>
-                                                                                                <select
+                                                                                                <LazySelect
                                                                                                     value={child.supporter_id || ''}
                                                                                                     onChange={(e) => updateTaskField(child.id, 'supporter_id', e.target.value || null)}
                                                                                                     className="bg-transparent border-none focus:ring-0 p-0 text-xs font-medium text-slate-600 cursor-pointer hover:text-indigo-600 transition-colors w-full"
@@ -904,13 +905,13 @@ export const Tasks = () => {
                                                                                                     {profiles.filter(p => ['Admin', 'Quản lý thiết kế', 'Thiết kế'].includes(p.role)).map(p => (
                                                                                                         <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                                                                                                     ))}
-                                                                                                </select>
+                                                                                                </LazySelect>
                                                                                             </div>
                                                                                         </td>
 
                                                                                         {/* 5. Status */}
                                                                                         <td className="px-4 py-3 relative z-10 w-[140px] min-w-[140px]">
-                                                                                            <select
+                                                                                            <LazySelect
                                                                                                 value={child.status}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'status', e.target.value)}
                                                                                                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase shadow-sm border-none focus:ring-0 cursor-pointer ${getStatusBadge(child.status)}`}
@@ -920,12 +921,12 @@ export const Tasks = () => {
                                                                                                 <option value="Đang thực hiện">Đang thực hiện</option>
                                                                                                 <option value="Chờ duyệt">Chờ duyệt</option>
                                                                                                 <option value="Hoàn thành">Hoàn thành</option>
-                                                                                            </select>
+                                                                                            </LazySelect>
                                                                                         </td>
 
                                                                                         {/* 6. Priority */}
                                                                                         <td className="px-4 py-3 relative z-10 w-[120px] min-w-[120px]">
-                                                                                            <select
+                                                                                            <LazySelect
                                                                                                 value={child.priority}
                                                                                                 onChange={(e) => updateTaskField(child.id, 'priority', e.target.value)}
                                                                                                 className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-none focus:ring-0 cursor-pointer ${getPriorityBadge(child.priority)}`}
@@ -935,7 +936,7 @@ export const Tasks = () => {
                                                                                                 <option value="Trung bình">Trung bình</option>
                                                                                                 <option value="Cao">Cao</option>
                                                                                                 <option value="Khẩn cấp">Khẩn cấp</option>
-                                                                                            </select>
+                                                                                            </LazySelect>
                                                                                         </td>
 
                                                                                         {/* 7. Progress */}

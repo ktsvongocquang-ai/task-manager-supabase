@@ -64,7 +64,9 @@ const viewTitles: Record<string, string> = {
     '/tasks': 'Mục tiêu tuần',
     '/schedule': 'Lịch',
     '/history': 'Lịch sử Hoạt động',
-    '/users': 'Quản lý Thiết kế',
+    '/users': 'Nhân sự',
+    '/cong-truong': 'Công trường',
+    '/mytasks': 'Việc của tôi',
     '/construction': 'Quản lý Thi công',
     '/finance': 'Tài chính',
     '/bao-gia': 'Báo giá Nội thất',
@@ -340,7 +342,7 @@ export const Layout = () => {
         // Tab Công Việc
         if (canAccessRoute(role, '/kanban')) {
             items.push({
-                name: isManagerRole(role) ? 'Quản lý thiết kế' : 'Thiết kế',
+                name: 'Việc thiết kế',
                 path: '/kanban',
                 icon: KanbanIcon,
                 matchPrefix: ['/kanban', '/tasks', '/gantt', '/projects', '/dashboard'],
@@ -357,6 +359,7 @@ export const Layout = () => {
         // Tab Thi Công
         if (canAccessRoute(role, '/construction')) {
             items.push({ name: 'Thi Công', path: '/construction', icon: HardHat, matchPrefix: ['/construction'] });
+            if (canAccessRoute(role, '/cong-truong')) items.push({ name: 'Công trường', path: '/cong-truong', icon: HardHat, matchPrefix: ['/cong-truong'] });
         }
 
         // Tab Tài chính
@@ -381,7 +384,7 @@ export const Layout = () => {
 
         // Người dùng (Admin only)
         if (isAdminRole(role)) {
-            items.push({ name: 'Người dùng', path: '/users', icon: Users });
+            items.push({ name: 'Nhân sự', path: '/users', icon: Users });
         }
 
         // Lịch sử

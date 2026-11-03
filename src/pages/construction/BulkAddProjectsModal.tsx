@@ -192,7 +192,7 @@ export function BulkAddProjectsModal({ isOpen, onClose, onCreate }: Props) {
                       { label: 'Dòng dữ liệu', value: meaningfulCards.length },
                       { label: 'Dòng lỗi', value: errors.length },
                       { label: 'File đính kèm', value: fileCount },
-                      { label: 'Tổng giá trị', value: `${(totalContract / 1e9).toFixed(1)} Tỷ` },
+                      { label: 'Tổng giá trị', value: `${(totalContract / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 1 })} tỷ` },
                     ].map(s => (
                       <div key={s.label} className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
                         <p className="text-[10px] font-bold text-slate-400 uppercase">{s.label}</p>

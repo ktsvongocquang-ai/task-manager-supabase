@@ -142,11 +142,15 @@ export interface ConstructionPhase {
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════
 
+// Tiền kiểu Việt Nam: dấu phẩy thập phân, chữ thường ("11,6 tỷ", "350 triệu", "1.200.000 đ"); xử lý cả số âm.
 export const fmt = (n?: number | null) => {
-  if (n == null) return '0 đ';
-  if (n >= 1e9) return `${(n / 1e9).toFixed(1)} Tỷ`;
-  if (n >= 1e6) return `${Math.round(n / 1e6)} Tr`;
-  return n.toLocaleString('vi-VN') + ' đ';
+  if (n == null || !Number.isFinite(n)) return '0 đ';
+  const sign = n < 0 ? '−' : '';
+  const a = Math.abs(n);
+  const dec = (x: number) => x.toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+  if (a >= 1e9) return `${sign}${dec(a / 1e9)} tỷ`;
+  if (a >= 1e6) return `${sign}${dec(a / 1e6)} triệu`;
+  return sign + Math.round(a).toLocaleString('vi-VN') + ' đ';
 };
 
 export const statusConfig: Record<TaskStatus, { label: string; color: string; bg: string; border: string }> = {
