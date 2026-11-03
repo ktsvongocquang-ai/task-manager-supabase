@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { countableTasks, isOverdue, isActiveProject, taskStats, vnToday } from '../../utils/metrics'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase'
 import { useAuthStore } from '../../store/authStore'
@@ -183,7 +184,10 @@ export const Dashboard = () => {
             const statusMap: Record<string, number> = {}
             const priorityMap: Record<string, number> = {}
 
-            fetchedTasks.forEach((t: Task) => {
+            // Đếm theo quy ước chung (src/utils/metrics.ts): bỏ việc mẫu + việc tổng hợp, trễ = hạn trước hôm nay giờ VN
+            const counted = countableTasks(fetchedTasks as any[]) as Task[]
+            const todayIso = vnToday()
+            counted.forEach((t: Task) => {
                 const status = t.status || ''
                 statusMap[status] = (statusMap[status] || 0) + 1
                 if (t.priority) priorityMap[t.priority] = (priorityMap[t.priority] || 0) + 1
@@ -191,15 +195,14 @@ export const Dashboard = () => {
                 else if (status.includes('Đang') || status === 'Chờ duyệt') ongoing++
                 else if (status.includes('Tạm dừng') || status.includes('Hủy')) paused++
                 else if (status.includes('Chưa') || status === 'Mới tạo') notStarted++
-                if (!status.includes('Hoàn thành') && t.due_date) {
-                    if (new Date(t.due_date) < today) overdue++
-                }
+                if (isOverdue(t as any, todayIso)) overdue++
             })
+            void today
 
             setStats({
-                totalProjects: fetchedProjects.length, totalTasks: fetchedTasks.length,
+                totalProjects: fetchedProjects.filter((p: any) => isActiveProject(p.status)).length, totalTasks: counted.length,
                 completedTasks: completed, ongoingTasks: ongoing, overdueTasks: overdue,
-                notStartedTasks: notStarted, pausedTasks: paused, totalTaskCount: fetchedTasks.length
+                notStartedTasks: notStarted, pausedTasks: paused, totalTaskCount: counted.length
             })
 
             setTaskStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })))
@@ -344,7 +347,8 @@ export const Dashboard = () => {
             (t.task_code || '').toLowerCase().includes(searchTasks.toLowerCase())
         if (!matchSearch) return false
         if (taskFilter === 'ongoing') return t.status?.includes('Đang')
-        if (taskFilter === 'overdue') return !t.status?.includes('Hoàn thành') && t.due_date && new Date(t.due_date) < today
+        if (taskFilter === 'overdue') return isOverdue(t as any) && countableTasks([t as any]).length > 0
+        void today
         return true
     })
 
@@ -430,7 +434,7 @@ export const Dashboard = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <span className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight leading-none block truncate">{stats.totalTasks}</span>
-                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng NV</span>
+                                <span className="text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider mt-1 block truncate">Tổng việc</span>
                             </div>
                         </div>
                         <div className="space-y-2 md:space-y-3 mt-auto">
@@ -627,12 +631,12 @@ export const Dashboard = () => {
                 title={selectedProject ? selectedProject.name : "Chi tiết dự án"}
             >
                 {selectedProject && (() => {
-                    const projTasks = allTasks.filter(t => t.project_id === selectedProject.id)
-                    const today = new Date(); today.setHours(0, 0, 0, 0)
-                    const doneCount = projTasks.filter(t => t.status?.includes('Hoàn thành')).length
+                    const projTasks = countableTasks(allTasks.filter(t => t.project_id === selectedProject.id) as any[]) as Task[]
+                    const st = taskStats(projTasks as any[])
+                    const doneCount = st.done
                     const ongoingCount = projTasks.filter(t => t.status?.includes('Đang')).length
-                    const overdueCount = projTasks.filter(t => !t.status?.includes('Hoàn thành') && t.due_date && new Date(t.due_date) < today).length
-                    const pct = projTasks.length > 0 ? Math.round((doneCount / projTasks.length) * 100) : 0
+                    const overdueCount = st.overdue
+                    const pct = st.progress
                     
                     return (
                         <div className="space-y-6">

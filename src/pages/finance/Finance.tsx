@@ -134,9 +134,10 @@ function Dashboard({ db }: { db: ReturnType<typeof useFinanceData> }) {
     { label: 'Đã thanh toán NCC', value: fmt(f.supplierPaid), color: 'text-indigo-600' },
     { label: 'Còn phải trả NCC', value: fmt(f.payable), color: 'text-amber-600' },
     { label: 'Đã thu', value: fmt(f.income), color: 'text-emerald-600' },
+    { label: 'Dự kiến thu (chưa đến ngày)', value: fmt(f.incomePlanned), color: 'text-slate-600' },
     { label: 'Còn phải thu', value: fmt(f.debt), color: 'text-amber-600' },
     { label: 'Thu vượt', value: fmt(f.over), color: 'text-sky-600' },
-    { label: 'Lợi nhuận dự kiến', value: fmt(f.profit), color: f.profit >= 0 ? 'text-emerald-600' : 'text-rose-600' },
+    { label: 'Lãi tạm tính (đã thu − chi)', value: fmt(f.profit), color: f.profit >= 0 ? 'text-emerald-600' : 'text-rose-600' },
     { label: 'Dòng tiền thực', value: fmt(f.cashflow), color: f.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600' },
   ];
 
@@ -311,8 +312,11 @@ function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof u
   // "VAT đầu vào"/"Thực chi có VAT" đã bị bỏ vì không có chỗ nhập, luôn = 0/trùng.
   const actualExVat = expenses.reduce((s, e) => s + ((e as any).amount_ex_vat ?? e.amount ?? 0), 0);
   const boqSummary = boq.getProjectBoqSummary(project.id);
-  const profitPlanned = finance.contract - boqSummary.contract;
-  const profitActual = finance.contract - actualExVat;
+  // Lợi nhuận dự kiến chỉ có nghĩa khi đã có dự toán chi phí (BOQ); chưa có thì không bịa số.
+  const hasBoq = boqSummary.contract > 0;
+  const profitPlanned = hasBoq ? finance.contract - boqSummary.contract : 0;
+  // Thực tế = tiền đã thu − chi phí đã ghi (trước đây lấy giá trị hợp đồng − chi phí, nên công trình chưa thu chưa chi vẫn báo lãi cả tỷ).
+  const profitActual = finance.income - actualExVat;
 
   return (
     <div className="space-y-4">
@@ -359,8 +363,8 @@ function ProjectFinanceTab({ db, boq, projectFilter }: { db: ReturnType<typeof u
         <StatCard icon={<TrendingUp className="w-4 h-4 text-emerald-500" />} label="Đã thu khách" value={fmt(finance.income)} tone="text-emerald-600" />
         <StatCard icon={<CalendarClock className="w-4 h-4 text-amber-500" />} label="Còn phải thu khách" value={fmt(finance.debt)} tone="text-amber-600" />
         <StatCard icon={<TrendingUp className="w-4 h-4 text-sky-500" />} label="Thu vượt" value={fmt(finance.over)} tone="text-sky-600" />
-        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận dự kiến" value={fmt(profitPlanned)} tone={profitPlanned >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
-        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận thực tế" value={fmt(profitActual)} tone={profitActual >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
+        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lợi nhuận dự kiến (HĐ − BOQ)" value={hasBoq ? fmt(profitPlanned) : 'Chưa có BOQ'} tone={!hasBoq ? 'text-slate-400' : profitPlanned >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
+        <StatCard icon={<TrendingUp className="w-4 h-4" />} label="Lãi tạm tính (đã thu − chi)" value={fmt(profitActual)} tone={profitActual >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
         <StatCard icon={<Wallet className="w-4 h-4" />} label="Dòng tiền hiện tại" value={fmt(finance.cashflow)} tone={finance.cashflow >= 0 ? 'text-emerald-600' : 'text-rose-600'} />
       </div>
 

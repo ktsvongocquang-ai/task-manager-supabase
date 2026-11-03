@@ -358,6 +358,11 @@ export const AddEditTaskModal: React.FC<AddEditTaskModalProps> = ({
     }
 
     const handleSave = async () => {
+        // Chặn dữ liệu rác: việc phải có tên (≥ 3 ký tự, có chữ cái), thuộc dự án, hạn không trước ngày bắt đầu
+        const nm = String(form.name || '').trim();
+        if (nm.length < 3 || !/[\p{L}]/u.test(nm)) { alert('Tên việc cần ít nhất 3 ký tự và có chữ (VD: "Bản vẽ triển khai tủ áo").'); return; }
+        if (!(form as any).project_id && !form.parent_id) { alert('Chọn dự án cho việc này.'); return; }
+        if (form.start_date && form.due_date && form.due_date < form.start_date) { alert('Hạn hoàn thành đang trước ngày bắt đầu — kiểm tra lại ngày.'); return; }
         try {
             let finalStatus = form.status;
             if ((finalStatus === 'Chờ kích hoạt' || finalStatus === 'Dự thảo') && (form.start_date || form.due_date)) {

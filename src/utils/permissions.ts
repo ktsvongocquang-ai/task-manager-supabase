@@ -11,6 +11,7 @@ const ROUTE_ACCESS: Record<string, AppRole[]> = {
     '/gantt':        ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/projects':     ['Admin', 'Quản lý thiết kế', 'Thiết kế', 'Sale', 'Marketing'],
     '/construction': ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát', 'Khách hàng'],
+    '/cong-truong':  ['Admin', 'Quản lý thiết kế', 'Quản lý thi công', 'Giám Sát'],
     '/finance':      ['Admin', 'Quản lý thiết kế'],
     '/history':      ['Admin', 'Quản lý thiết kế'],
     '/users':        ['Admin'],
@@ -33,6 +34,7 @@ export const getDefaultRoute = (role?: string | null): string => {
             return '/kanban'
         case 'Quản lý thi công':
         case 'Giám Sát':
+            return '/cong-truong'
         case 'Khách hàng':
             return '/construction'
         default:

@@ -9,6 +9,7 @@ export const BottomTabBar = () => {
     const loc = useLocation();
     const role = profile?.role?.trim() || '';
     if (!workspacesFor(role).length) return null;
+    if (loc.pathname.startsWith('/cong-truong')) return null; // Công trường có thanh riêng (Trang chủ · Nhật ký · + · Tiến độ · Trạm GS)
     const ws = workspaceOfPath(loc.pathname, role);
     const tabs = bottomTabs(ws, role);
     const accent = ws === 'construction' ? 'text-[#7A1216]' : 'text-indigo-600';

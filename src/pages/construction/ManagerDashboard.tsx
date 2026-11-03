@@ -1,4 +1,5 @@
 import React from 'react';
+import { isActiveProject } from '../../utils/metrics';
 import { useNavigate } from 'react-router-dom';
 import { Project, FinanceData, Approval, Notification } from './types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -19,7 +20,7 @@ interface Props {
 export function ManagerDashboard({ projects, notifications, onSelectProject, canViewFinance = false }: Props) {
   const navigate = useNavigate();
   const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status !== 'completed').length;
+  const activeProjects = projects.filter(p => p.status !== 'completed' && isActiveProject(p.status)).length;
   const delayedProjects = projects.filter(p => p.riskLevel !== 'green').length;
   const totalContract = projects.reduce((sum, p) => sum + (p.contractValue || 0), 0);
 

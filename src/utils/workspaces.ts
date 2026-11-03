@@ -10,7 +10,7 @@
 import type { ElementType } from 'react'
 import {
     Briefcase, HardHat, ListTodo, Target, FolderKanban, CalendarDays, User, LayoutDashboard,
-    ClipboardList, TrendingUp, FileText, AlertTriangle, Package, CheckCircle2, PlusCircle,
+    ClipboardList, TrendingUp, FileText, AlertTriangle, Camera, Bell, Package, CheckCircle2, PlusCircle,
     Building2, Wallet, FolderPlus, GraduationCap, KanbanSquare,
 } from 'lucide-react'
 
@@ -25,6 +25,7 @@ export const WORKSPACE_META: Record<WorkspaceId, { label: string; short: string;
 }
 
 const STATION = '/construction?tab=STATION'
+const SITE = '/cong-truong'
 const ct = (tab: string, extra = '') => `/construction?tab=${tab}${extra}`
 
 export function workspacesFor(role?: string | null): WorkspaceId[] {
@@ -45,7 +46,7 @@ export function workspacesFor(role?: string | null): WorkspaceId[] {
 /** Khu đang đứng, suy ra từ đường dẫn. */
 export function workspaceOfPath(pathname: string, role?: string | null): WorkspaceId {
     const list = workspacesFor(role)
-    const isCt = pathname.startsWith('/construction') || pathname.startsWith('/finance') || pathname.startsWith('/in-tien-do')
+    const isCt = pathname.startsWith('/construction') || pathname.startsWith('/cong-truong') || pathname.startsWith('/finance') || pathname.startsWith('/in-tien-do')
     const ws: WorkspaceId = isCt ? 'construction' : 'design'
     return list.includes(ws) ? ws : (list[0] || 'design')
 }
@@ -53,7 +54,7 @@ export function workspaceOfPath(pathname: string, role?: string | null): Workspa
 /** Trang mở ra khi chọn khu. */
 export function workspaceHome(ws: WorkspaceId, role?: string | null): string {
     const r = (role || '').trim()
-    if (ws === 'construction') return r === 'Giám Sát' ? STATION : ct('DASHBOARD')
+    if (ws === 'construction') return r === 'Giám Sát' || r === 'Quản lý thi công' ? SITE : ct('DASHBOARD')
     if (r === 'Admin' || r === 'Quản lý thiết kế') return '/dieu-hanh'
     if (r === 'Sale' || r === 'Marketing') return '/kanban'
     return '/mytasks'
@@ -65,17 +66,17 @@ export function bottomTabs(ws: WorkspaceId, role?: string | null): NavItem[] {
     const account: NavItem = { label: 'Tài khoản', to: r === 'Admin' ? '/users' : '/profile', icon: User }
     if (ws === 'construction') {
         if (r === 'Giám Sát') return [
+            { label: 'Công trường', to: SITE, icon: Building2 },
             { label: 'Trạm GS', to: STATION, icon: HardHat },
             { label: 'Việc', to: ct('KANBAN'), icon: KanbanSquare },
             { label: 'Tiến độ', to: ct('AI_GANTT'), icon: TrendingUp },
-            { label: 'Nhật ký', to: ct('DIARY'), icon: FileText },
         ]
         return [
             { label: 'Tổng quan', to: ct('DASHBOARD'), icon: LayoutDashboard },
+            { label: 'Công trường', to: SITE, icon: Building2 },
             { label: 'Trạm GS', to: STATION, icon: HardHat },
             { label: 'Việc', to: ct('KANBAN'), icon: KanbanSquare },
             { label: 'Tiến độ', to: ct('AI_GANTT'), icon: TrendingUp },
-            { label: 'Nhật ký', to: ct('DIARY'), icon: FileText },
         ]
     }
     if (r === 'Admin' || r === 'Quản lý thiết kế') return [
@@ -106,10 +107,13 @@ export function quickActions(ws: WorkspaceId, role?: string | null): QuickAction
     const r = (role || '').trim()
     if (ws === 'construction') {
         const site: QuickAction[] = [
-            { label: 'Nộp nhật ký hôm nay', to: ct('STATION', '&do=diary'), icon: ClipboardList, hint: '30 giây, trước 17:00', tone: 'text-[#7A1216] bg-red-50' },
+            { label: 'Ghi nhật ký', to: SITE + '?do=diary', icon: ClipboardList, hint: 'Hạng mục, ảnh, gửi khách', tone: 'text-[#7A1216] bg-red-50' },
+            { label: 'Chụp ảnh nhanh', to: SITE + '?do=photo', icon: Camera, tone: 'text-sky-700 bg-sky-50' },
+            { label: 'Kế hoạch hôm nay', to: SITE + '?do=plan', icon: CalendarDays, hint: 'Mọi công trình', tone: 'text-rose-700 bg-rose-50' },
+            { label: 'Nhắc việc', to: SITE + '?do=reminders', icon: Bell, tone: 'text-violet-700 bg-violet-50' },
+            { label: 'Nghiệm thu', to: SITE + '?do=acceptance', icon: CheckCircle2, hint: 'Tiêu chí, chữ ký, PDF', tone: 'text-emerald-700 bg-emerald-50' },
             { label: 'Báo sự cố', to: ct('STATION', '&do=GS-06'), icon: AlertTriangle, hint: 'GS-06', tone: 'text-amber-700 bg-amber-50' },
             { label: 'Báo thiếu vật tư', to: ct('STATION', '&do=materials'), icon: Package, tone: 'text-orange-700 bg-orange-50' },
-            { label: 'Nghiệm thu', to: ct('STATION', '&do=GS-08'), icon: CheckCircle2, hint: 'GS-08', tone: 'text-emerald-700 bg-emerald-50' },
             { label: 'Giao việc cho tổ', to: ct('STATION', '&do=task'), icon: PlusCircle, hint: 'GS-04', tone: 'text-indigo-700 bg-indigo-50' },
         ]
         if (r === 'Giám Sát') return site
@@ -117,7 +121,7 @@ export function quickActions(ws: WorkspaceId, role?: string | null): QuickAction
             { label: 'Danh sách công trình', to: ct('PROJECTS_LIST'), icon: Building2, tone: 'text-slate-700 bg-slate-100' },
         ]
         if (r === 'Admin' || r === 'Quản lý thiết kế') mgr.push({ label: 'Tài chính', to: '/finance', icon: Wallet, tone: 'text-slate-700 bg-slate-100' })
-        return [...site.slice(0, 2), site[4], ...mgr]
+        return [site[0], site[2], site[4], site[5], ...mgr]
     }
     if (r === 'Admin' || r === 'Quản lý thiết kế') return [
         { label: 'Giao việc mới', to: '', event: 'add-task', icon: PlusCircle, hint: 'Cho nhân viên thiết kế', tone: 'text-indigo-700 bg-indigo-50' },
