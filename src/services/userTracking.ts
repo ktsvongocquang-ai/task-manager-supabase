@@ -4,7 +4,19 @@ import { supabase } from './supabase'
  * Ghi nhận phiên đăng nhập của user vào activity_logs
  * Được gọi 1 lần khi user truy cập app (trong AuthGuard)
  */
+// Giảm ghi thừa: mỗi lần tải trang trước đây ghi 2 dòng activity_logs (PERF-03).
+const throttled = (key: string, minutes: number): boolean => {
+    try {
+        const k = 'dqh_track_' + key
+        const last = Number(sessionStorage.getItem(k) || 0)
+        if (Date.now() - last < minutes * 60_000) return true
+        sessionStorage.setItem(k, String(Date.now()))
+    } catch { /* ignore */ }
+    return false
+}
+
 export const trackUserLogin = async (userId: string) => {
+    if (throttled('login_' + userId, 30)) return
     try {
         const today = new Date().toISOString().split('T')[0]
         const { data: existing } = await supabase
@@ -39,6 +51,7 @@ export const trackUserLogin = async (userId: string) => {
  * Ghi nhận user chuyển trang (pageview tracking)
  */
 export const trackPageView = async (userId: string, pagePath: string) => {
+    if (throttled('page_' + userId + pagePath, 15)) return
     try {
         const pageNames: Record<string, string> = {
             '/kanban': 'Kanban Board',

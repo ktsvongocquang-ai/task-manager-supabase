@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
+import { LazySelect } from '../../components/LazySelect'
 import { ChevronLeft, ChevronRight, AlertTriangle, CalendarDays, ChevronDown, Calendar, Trash2, CheckCircle2, Filter } from 'lucide-react'
 import { supabase } from '../../services/supabase'
 import type { Task, Project } from '../../types'
@@ -335,7 +336,8 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                 groups.push({ key, label: key, tasks: dayTasks, defaultValues: { start_date: dStr, due_date: dStr } });
             }
 
-            if (lateTasks.length > 0 && sortMode === 'alert') {
+            // Việc trễ từ tuần trước luôn hiện đầu danh sách (trước đây chỉ hiện ở chế độ Cảnh báo nên trang trông trống — UX-02)
+            if (lateTasks.length > 0) {
                 groups.unshift({ key: 'Trễ hạn', label: 'Trễ hạn', tasks: lateTasks.sort((a,b) => (a.due_date||'').localeCompare(b.due_date||'')), isLateGroup: true });
             }
         } else if (sortMode === 'project') {
@@ -699,13 +701,13 @@ export const WeeklyView = ({ tasks, projects, profiles, onRefresh, onAddTask, on
                                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full rounded-full transition-all ${getPctColor(pct)}`} style={{ width: `${pct}%` }} /></div>
                                                                 <span className="text-[10px] font-semibold text-slate-600 w-7 text-right">{saving[t.id] ? '...' : `${pct}%`}</span>
                                                             </div>
-                                                            <select value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
+                                                            <LazySelect value={getAssigneeId(t.assignee_id)} onChange={e => updateAssignee(t.id, e.target.value)} className="text-[11px] font-medium text-slate-600 bg-transparent border border-slate-200 rounded px-1 py-0.5 cursor-pointer focus:outline-none truncate min-w-0">
                                                                 <option value="">Chưa gán</option>
                                                                 {profiles.map(p => <option key={p.id} value={p.id}>{p.full_name || p.email}</option>)}
-                                                            </select>
-                                                            <select value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none`}>
+                                                            </LazySelect>
+                                                            <LazySelect value={t.status} onChange={e => updateStatus(t.id, e.target.value)} className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${badge.bg} ${badge.text} whitespace-nowrap text-center cursor-pointer border-0 focus:outline-none`}>
                                                                 {ALL_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                                                            </select>
+                                                            </LazySelect>
                                                             {onDeleteTask ? (
                                                                 <button onClick={() => onDeleteTask(t)} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Xóa">
                                                                     <Trash2 size={14} />

@@ -5,6 +5,8 @@ import { registerSW } from 'virtual:pwa-register'
 const IS_PUBLIC = import.meta.env.VITE_APP_MODE === 'public'
 const Root = IS_PUBLIC ? React.lazy(() => import('./PublicApp')) : React.lazy(() => import('./App.tsx'))
 import './index.css'
+import { startA11yHelpers } from './utils/a11y'
+startA11yHelpers()
 
 // Cập nhật bản mới KHÔNG làm gián đoạn người đang làm việc:
 // - kiểm tra bản mới 5 phút/lần và mỗi lần quay lại app (không còn 15 giây/lần tốn mạng 4G ở công trường);

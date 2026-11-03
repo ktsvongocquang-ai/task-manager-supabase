@@ -236,6 +236,28 @@ export const Gantt = () => {
         setCurrentDate(newDate);
     }
     const resetDate = () => setCurrentDate(new Date())
+    // "Tới việc gần nhất": Gantt mở ở tuần hiện tại có thể trống thanh (UX-07) -> nhảy tới việc chưa xong gần hôm nay nhất.
+    const jumpToWork = () => {
+        const today = new Date(); today.setHours(0, 0, 0, 0)
+        const open = tasks.filter(t => t.status !== 'Hoàn thành' && (t.start_date || t.due_date))
+        const pool = open.length ? open : tasks.filter(t => t.start_date || t.due_date)
+        if (!pool.length) return
+        const dist = (t: Task) => { const d = new Date((t.start_date || t.due_date) as string); return Math.abs(d.getTime() - today.getTime()) }
+        const best = pool.reduce((a, b) => dist(a) <= dist(b) ? a : b)
+        setViewMode('month'); setZoom(70); setCurrentDate(new Date((best.start_date || best.due_date) as string))
+    }
+    const autoJumped = useRef(false)
+    useEffect(() => {
+        if (autoJumped.current || loading || !tasks.length) return
+        autoJumped.current = true
+        const first = visibleDates[0], last = visibleDates[visibleDates.length - 1]
+        const hasBar = tasks.some(t => {
+            const st = new Date((t.start_date || t.due_date) as string), en = new Date((t.due_date || t.start_date) as string)
+            return !!(t.start_date || t.due_date) && st <= last && en >= first
+        })
+        if (!hasBar) jumpToWork()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [loading, tasks.length])
 
     const filteredProjectsBase = useMemo(() => {
         let list = selectedProjectId ? projects.filter(p => p.id === selectedProjectId) : projects;
@@ -745,15 +767,18 @@ export const Gantt = () => {
                     {/* Zoom Control Group - Dark rounded rectangle like screenshot */}
                     <div className="flex items-center gap-2 bg-slate-800 px-4 py-1.5 rounded-xl shadow-lg">
                         <span className="text-[10px] font-bold text-white mr-2 uppercase tracking-tighter">Zoom: {zoom}%</span>
-                        <button onClick={() => setZoom(Math.max(50, zoom - 10))} className="text-slate-400 hover:text-white transition-colors">
+                        <button aria-label="Thu nhỏ" onClick={() => setZoom(Math.max(50, zoom - 10))} className="text-slate-300 hover:text-white transition-colors">
                             <ZoomOut size={16} />
                         </button>
-                        <button onClick={() => setZoom(Math.min(200, zoom + 10))} className="text-slate-400 hover:text-white transition-colors">
+                        <button aria-label="Phóng to" onClick={() => setZoom(Math.min(200, zoom + 10))} className="text-slate-300 hover:text-white transition-colors">
                             <ZoomIn size={16} />
                         </button>
                         <div className="w-px h-4 bg-slate-600 mx-1"></div>
                         <button onClick={resetDate} className="text-[10px] font-bold text-blue-300 hover:text-blue-100 hover:underline px-2 py-0.5 rounded transition-all uppercase whitespace-nowrap">
                             Đặt lại
+                        </button>
+                        <button onClick={jumpToWork} className="text-[10px] font-bold text-amber-300 hover:text-amber-100 hover:underline px-2 py-0.5 rounded transition-all uppercase whitespace-nowrap" title="Nhảy tới việc chưa xong gần hôm nay nhất">
+                            Tới việc gần nhất
                         </button>
                     </div>
 

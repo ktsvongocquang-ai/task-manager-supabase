@@ -69,7 +69,7 @@ export const Login = () => {
         <div className="min-h-screen bg-gradient-to-br from-rose-50 to-red-100 flex items-center justify-center p-4">
             <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
                 <div className="text-center mb-10">
-                    <img src="/dqh_logo.png" alt="DQH Logo" className="h-32 mx-auto mb-6 object-contain" />
+                    <img src="/dqh-logo.svg" alt="DQH Architects" width="240" height="120" className="h-28 mx-auto mb-6 object-contain" />
                     <p className="text-slate-500 text-base font-medium">Hệ thống Quản lý Giao việc Nội bộ</p>
                 </div>
 
