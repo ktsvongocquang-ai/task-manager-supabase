@@ -2,6 +2,7 @@
 // xếp đỏ → vàng → xanh, cộng việc trễ theo người và công trình chưa nộp nhật ký hôm nay.
 // Đọc từ các view v_projects / v_tasks / v_logs (cùng nguồn với trợ lý AI và báo cáo 17:30).
 import { useEffect, useMemo, useState } from 'react';
+import { isTemplateStatus, isSummaryName, isActiveProject } from '../../utils/metrics';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, Clock, HardHat, PenTool, RefreshCw, Users } from 'lucide-react';
 import { supabase } from '../../services/supabase';
@@ -31,7 +32,7 @@ export function Overview() {
     const since = addDays(today, -7);
     const [p, t, l, pe] = await Promise.all([
       supabase.from('v_projects').select('id, source, name, status, owner_name, end_date').in('source', ['core', 'construction']),
-      supabase.from('v_tasks').select('id, source, project_id, project_source, title, status, due_date, assignee_ids, assignee_name, progress_pct').neq('status', 'cancelled').limit(5000),
+      supabase.from('v_tasks').select('id, source, project_id, project_source, title, status, status_raw, due_date, assignee_ids, assignee_name, progress_pct').neq('status', 'cancelled').limit(5000),
       supabase.from('v_logs').select('project_id, kind, log_date, is_issue, content').gte('log_date', since).limit(2000),
       supabase.from('profiles').select('id, full_name'),
     ]);
@@ -47,8 +48,9 @@ export function Overview() {
   useEffect(() => { load(); }, []);
 
   const rows: Row[] = useMemo(() => {
-    const out = state.projects.filter(p => isOpenProject(p.status)).map(p => {
-      const ts = state.tasks.filter(t => t.project_id === p.id && t.project_source === p.source);
+    const out = state.projects.filter(p => isOpenProject(p.status) && isActiveProject(p.status)).map(p => {
+      // Quy ước đếm chung (utils/metrics): bỏ việc mẫu (Chờ kích hoạt/Dự thảo) và việc tổng hợp HSTC
+      const ts = state.tasks.filter(t => t.project_id === p.id && t.project_source === p.source && !isTemplateStatus((t as any).status_raw) && !isSummaryName(t.title));
       const open = ts.filter(t => t.status !== 'done');
       const overdue = open.filter(t => t.due_date && t.due_date < today).length;
       const issues = state.logs.filter(l => l.project_id === p.id && l.is_issue).length;

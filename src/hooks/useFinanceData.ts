@@ -67,6 +67,8 @@ export interface FinanceApproval {
 export interface ProjectFinance {
   contract: number; cost: number; supplierPaid: number; payable: number;
   income: number; debt: number; over: number; profit: number; cashflow: number;
+  /** Khoản thu ghi ngày tương lai = dự kiến, chưa tính là đã thu */
+  incomePlanned: number;
 }
 
 export interface CashflowItem {
@@ -74,7 +76,7 @@ export interface CashflowItem {
   amount: number; type: 'in' | 'out'; source: 'milestone' | 'expense';
 }
 
-const EMPTY_FINANCE: ProjectFinance = { contract: 0, cost: 0, supplierPaid: 0, payable: 0, income: 0, debt: 0, over: 0, profit: 0, cashflow: 0 };
+const EMPTY_FINANCE: ProjectFinance = { contract: 0, cost: 0, supplierPaid: 0, payable: 0, income: 0, debt: 0, over: 0, profit: 0, cashflow: 0, incomePlanned: 0 };
 const todayStrForData = () => new Date().toISOString().slice(0, 10);
 
 // Số tiền đã thanh toán tự set theo trạng thái — mirror normalizeFinanceRecord50_
@@ -486,14 +488,19 @@ export const useFinanceData = () => {
     const contract = project?.contract_value || 0;
     const cost = projExpenses.reduce((s, e) => s + (e.amount || 0), 0);
     const supplierPaid = projExpenses.reduce((s, e) => s + (e.amount_paid || 0), 0);
-    const income = projIncomes.reduce((s, i) => s + (i.amount || 0), 0);
+    // Chỉ khoản đã đến ngày mới là "đã thu"; khoản ghi ngày tương lai là dự kiến (trước đây bị cộng nhầm vào đã thu).
+    const todayIso = new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
+    const received = projIncomes.filter(i => !i.date || String(i.date).slice(0, 10) <= todayIso);
+    const income = received.reduce((s, i) => s + (i.amount || 0), 0);
+    const incomePlanned = projIncomes.reduce((s, i) => s + (i.amount || 0), 0) - income;
     return {
+      incomePlanned,
       contract, cost, supplierPaid,
       payable: Math.max(0, cost - supplierPaid),
       income,
       debt: Math.max(0, contract - income),
       over: Math.max(0, income - contract),
-      profit: contract - cost,
+      profit: income - cost,
       cashflow: income - supplierPaid,
     };
   }, [projects, expenses, incomes]);
@@ -502,7 +509,7 @@ export const useFinanceData = () => {
     contract: acc.contract + f.contract, cost: acc.cost + f.cost,
     supplierPaid: acc.supplierPaid + f.supplierPaid, payable: acc.payable + f.payable,
     income: acc.income + f.income, debt: acc.debt + f.debt, over: acc.over + f.over,
-    profit: acc.profit + f.profit, cashflow: acc.cashflow + f.cashflow,
+    profit: acc.profit + f.profit, cashflow: acc.cashflow + f.cashflow, incomePlanned: acc.incomePlanned + f.incomePlanned,
   }), { ...EMPTY_FINANCE });
 
   const getCustomerFinance = useCallback((customerId: string): ProjectFinance =>
