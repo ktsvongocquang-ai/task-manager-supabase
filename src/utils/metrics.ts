@@ -1,7 +1,7 @@
 // MỘT cách đếm cho cả app (Tổng quan, Điều hành, Thi công, Dự án, trợ lý AI) — để mọi trang ra cùng con số.
 //
 // Quy ước:
-//  • Việc "đã xong"   : Hoàn thành / DONE / Hủy bỏ (huỷ cũng không còn phải làm).
+//  • Việc "đã xong"   : Hoàn thành / DONE / Hủy bỏ / Lưu trữ (không còn phải làm) — khớp dqh_norm_status phía server.
 //  • Việc "mẫu"       : trạng thái Chờ kích hoạt / Dự thảo (khung tiến độ chưa chạy) → KHÔNG đếm.
 //  • Việc "tổng hợp"  : có việc con (parent) hoặc tên dạng "HSTC- … [TỔNG HỢP …]" → KHÔNG đếm (đếm việc con).
 //  • Việc "trễ hạn"   : chưa xong, có hạn, hạn < HÔM NAY theo giờ Việt Nam (hạn đúng hôm nay chưa tính trễ).
@@ -14,7 +14,7 @@ const fold = (s?: string | null) => String(s || '').toLowerCase().normalize('NFC
 
 export function isDoneStatus(status?: string | null): boolean {
     const s = fold(status)
-    return /hoàn thành|^done$|completed|hủy|huỷ|cancel/.test(s)
+    return /hoàn thành|^done$|completed|đã xong|hủy|huỷ|cancel|lưu trữ|archived|rejected/.test(s)
 }
 export function isTemplateStatus(status?: string | null): boolean {
     const s = fold(status)
